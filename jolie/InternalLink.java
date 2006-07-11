@@ -21,6 +21,10 @@ package jolie;
 
 import java.util.LinkedList;
 
+/** Internal synchronization link for parallel processes.
+ * 
+ * @author Fabrizio Montesi
+ */
 public class InternalLink extends AbstractMappedGlobalObject implements InputHandler
 {
 	private LinkedList< InputProcess > procsList;
