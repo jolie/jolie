@@ -35,4 +35,9 @@ public class VariableLocation extends Location
 	{
 		return var.strValue();
 	}
+	
+	public void setValue( String value )
+	{
+		var.setStrValue( value );
+	}
 }

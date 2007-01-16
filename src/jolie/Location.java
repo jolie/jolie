@@ -31,6 +31,7 @@ import jolie.net.CommProtocol;
 abstract public class Location
 {
 	abstract public String value();
+	abstract public void setValue( String value );
 	
 	public CommChannel createCommChannel( CommProtocol protocol )
 		throws IOException

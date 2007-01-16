@@ -28,11 +28,11 @@
  * This is the reference documentation for JOLIE: a Java Orchestration Language Interpreter Engine.
  */
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import jolie.*;
+import jolie.Interpreter;
+import jolie.InterpreterException;
+import jolie.ParserException;
 
 /** Starter class of the interpreter.
  * Analyzes the command line in search for the input source file and the optional port specification.
@@ -45,11 +45,10 @@ public class Jolie
 		try {
 			Interpreter interpreter = null;
 			if ( args.length > 0 ) {
-				InputStream stream = new FileInputStream( args[ 0 ] );
 				if ( args.length == 1 )
-					interpreter = new Interpreter( stream, args[ 0 ] );
+					interpreter = new Interpreter( args[ 0 ] );
 				else if ( args.length == 2 )
-					interpreter = new Interpreter( stream, args[ 0 ], Integer.parseInt(args[ 1 ]) );
+					interpreter = new Interpreter( args[ 0 ], Integer.parseInt(args[ 1 ]) );
 			}
 			if ( interpreter != null )
 				interpreter.run();

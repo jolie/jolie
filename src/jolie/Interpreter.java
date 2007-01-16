@@ -22,34 +22,51 @@
 
 package jolie;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import jolie.process.Process;
 
+import jolie.deploy.DeployParser;
 import jolie.net.CommCore;
+import jolie.process.Process;
 
 public class Interpreter
 {
 	private static HashMap< String, MappedGlobalObject > idMap = 
 		new HashMap< String, MappedGlobalObject >();
 
-	private Parser parser;
+	private OLParser olparser;
+	private DeployParser dolparser;
 
-	public Interpreter( InputStream stream, String sourceName, int port )
+	public Interpreter( String sourceName, int port )
 		throws IOException
 	{
-		Scanner scanner = new Scanner( stream, sourceName );
-		parser = new Parser( scanner );
+		sourceName = sourceName.replace( ".ol", "" );
+		String olPath = sourceName + ".ol";
+		String dolPath = sourceName + ".dol";
+
+		InputStream olStream = new FileInputStream( olPath );
+		InputStream dolStream = new FileInputStream( dolPath );
+		
+		olparser = new OLParser( new Scanner( olStream, olPath ) );
+		dolparser = new DeployParser( new Scanner( dolStream, dolPath ) );
 		
 		CommCore.setPort( port );
 	}
 	
-	public Interpreter( InputStream stream, String sourceName )
+	public Interpreter( String sourceName )
 		throws IOException
 	{
-		Scanner scanner = new Scanner( stream, sourceName );
-		parser = new Parser( scanner );
+		sourceName = sourceName.replace( ".ol", "" );
+		String olPath = sourceName + ".ol";
+		String dolPath = sourceName + ".dol";
+
+		InputStream olStream = new FileInputStream( olPath );
+		InputStream dolStream = new FileInputStream( dolPath );
+		
+		olparser = new OLParser( new Scanner( olStream, olPath ) );
+		dolparser = new DeployParser( new Scanner( dolStream, dolPath ) );
 	}
 	
 	public void run()
@@ -58,7 +75,8 @@ public class Interpreter
 		/*	Order is important:
 		 	CommCore.init() needs the internal objects to be initialized by parser.parse()
 		 */
-		parser.parse();
+		olparser.parse();
+		dolparser.parse();
 		CommCore.init();
 
 		// todo -- may we free the parser and scanner memory here?

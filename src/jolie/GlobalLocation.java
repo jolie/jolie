@@ -22,14 +22,25 @@
 
 package jolie;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 public class GlobalLocation extends Location implements MappedGlobalObject
 {
+	private static HashMap< String, GlobalLocation > idMap = 
+		new HashMap< String, GlobalLocation >();
+
 	private String id;
-	private String value;
+	private String value = "";
 	
-	public GlobalLocation( String id, String value )
+	public GlobalLocation( String id )
 	{
 		this.id = id;
+		//this.value = value;
+	}
+	
+	public void setValue( String value )
+	{
 		this.value = value;
 	}
 	
@@ -54,6 +65,12 @@ public class GlobalLocation extends Location implements MappedGlobalObject
 	
 	public final void register()
 	{// todo - what if the id is already registered?
+		idMap.put( id, this );
 		Interpreter.registerObject( id, this );
+	}
+	
+	public static Collection< GlobalLocation > getAll()
+	{
+		return idMap.values();
 	}
 }
