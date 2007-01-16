@@ -93,6 +93,7 @@ public class Interpreter
 			je.printStackTrace();
 		} */finally {
 			CommCore.shutdown();
+			System.exit( 0 ); // Workaround for InProcess java bug.
 		}
 	}
 	
