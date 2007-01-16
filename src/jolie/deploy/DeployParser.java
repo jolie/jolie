@@ -19,22 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy;
 
-package jolie;
+import java.io.IOException;
 
-public class ExpressionCondition implements Condition
+import jolie.AbstractParser;
+import jolie.ParserException;
+import jolie.Scanner;
+
+public class DeployParser extends AbstractParser
 {
-	private Expression expression;
-		
-	public ExpressionCondition( Expression expression )
+	public DeployParser( Scanner scanner )
 	{
-		this.expression = expression;
+		super( scanner );
 	}
 	
-	public boolean evaluate()
+	public void parse()
+		throws IOException, ParserException
 	{
-		if ( expression.evaluate().intValue() != 0 )
-			return true;
-		return false;
+		getToken();
 	}
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>               *
+ *   Copyright (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -15,7 +15,10 @@
  *   License along with this program; if not, write to the                 *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 
 package jolie;
 
@@ -24,58 +27,29 @@ import java.util.Vector;
 
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
-import jolie.process.NDChoiceProcess;
 import jolie.process.IfProcess;
 import jolie.process.InProcess;
 import jolie.process.InputProcess;
 import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
+import jolie.process.NDChoiceProcess;
 import jolie.process.NotificationProcess;
 import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
 import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
+import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SleepProcess;
 import jolie.process.SolicitResponseProcess;
 import jolie.process.WhileProcess;
-import jolie.process.Process;
 
-public class Parser
+public class Parser extends AbstractParser
 {
-	private Scanner scanner;		// Input scanner
-	private Scanner.Token token;	// Current token
-
 	public Parser( Scanner scanner )
 	{
-		this.scanner = scanner;
-	}
-	
-	private void getToken()
-		throws IOException
-	{
-		token = scanner.getToken();
-	}
-
-	private void eat( Scanner.TokenType type, String errorMessage )
-		throws ParserException, IOException
-	{
-		tokenAssert( type, errorMessage );
-		getToken();
-	}
-	
-	private void tokenAssert( Scanner.TokenType type, String errorMessage )
-		throws ParserException
-	{
-		if ( token.type() != type )
-			throwException( errorMessage );
-	}
-	
-	private void throwException( String mesg )
-		throws ParserException
-	{
-		throw new ParserException( scanner.sourceName(), scanner.line(), mesg );
+		super( scanner );
 	}
 	
 	public void parse()

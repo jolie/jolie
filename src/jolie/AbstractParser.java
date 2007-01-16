@@ -19,22 +19,51 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie;
 
-public class ExpressionCondition implements Condition
+import java.io.IOException;
+
+/** Skeleton implementation of a JOLIE scanner based parser.
+ * 
+ * @author Fabrizio Montesi
+ * @see Scanner
+ */
+public abstract class AbstractParser
 {
-	private Expression expression;
-		
-	public ExpressionCondition( Expression expression )
+	private Scanner scanner;		// Input scanner
+	protected Scanner.Token token;	// Current token
+	
+	abstract public void parse()
+		throws IOException, ParserException;
+
+	public AbstractParser( Scanner scanner )
 	{
-		this.expression = expression;
+		this.scanner = scanner;
 	}
 	
-	public boolean evaluate()
+	protected void getToken()
+		throws IOException
 	{
-		if ( expression.evaluate().intValue() != 0 )
-			return true;
-		return false;
+		token = scanner.getToken();
+	}
+
+	protected void eat( Scanner.TokenType type, String errorMessage )
+		throws ParserException, IOException
+	{
+		tokenAssert( type, errorMessage );
+		getToken();
+	}
+	
+	protected void tokenAssert( Scanner.TokenType type, String errorMessage )
+		throws ParserException
+	{
+		if ( token.type() != type )
+			throwException( errorMessage );
+	}
+	
+	protected void throwException( String mesg )
+		throws ParserException
+	{
+		throw new ParserException( scanner.sourceName(), scanner.line(), mesg );
 	}
 }
