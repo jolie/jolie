@@ -30,7 +30,7 @@ PROJECT_NUMBER =
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY = doxygen
+OUTPUT_DIRECTORY = /home/luxor/programs/jolie/doc
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -106,7 +106,7 @@ INLINE_INHERITED_MEMB = NO
 # path before files name in the file list and in the header files. If set 
 # to NO the shortest path that makes the file name unique will be used.
 
-FULL_PATH_NAMES = YES
+FULL_PATH_NAMES = 
 
 # If the FULL_PATH_NAMES tag is set to YES then the STRIP_FROM_PATH tag 
 # can be used to strip a user-defined part of the path. Stripping is 
@@ -170,7 +170,7 @@ SEPARATE_MEMBER_PAGES = NO
 # The TAB_SIZE tag can be used to set the number of spaces in a tab. 
 # Doxygen uses this value to replace tabs by spaces in code fragments.
 
-TAB_SIZE = 8
+TAB_SIZE = 4
 
 # This tag can be used to specify a number of aliases that acts 
 # as commands in the documentation. An alias has the form "name=value". 
@@ -520,7 +520,7 @@ EXAMPLE_RECURSIVE = NO
 # directories that contain image that are included in the documentation (see 
 # the \image command).
 
-IMAGE_PATH = images 
+IMAGE_PATH = images
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should 
 # invoke to filter for each input file. Doxygen will invoke the filter program 
