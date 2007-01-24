@@ -50,7 +50,7 @@ public abstract class AbstractParser
 		this.scanner = scanner;
 	}
 	
-	/** Gets a new token and puts
+	/** Gets a new token.
 	 * 
 	 * @throws IOException If the internal scanner raises one.
 	 */
