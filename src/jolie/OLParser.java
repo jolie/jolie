@@ -180,7 +180,6 @@ public class OLParser extends AbstractParser
 					getToken();
 					proc = new AssignmentProcess( id, parseExpression() );
 				} else if ( token.type() == Scanner.TokenType.LANGLE ) {
-					getToken();
 					proc = parseInputProcess( id );
 				} else if ( token.type() == Scanner.TokenType.AT ) {
 					getToken();
@@ -275,50 +274,30 @@ public class OLParser extends AbstractParser
 	{
 		InputProcess proc = null;
 		try {
-			boolean stop = false;
-			Vector< Variable > vars = new Vector< Variable >();
 			InputOperation operation;
 		
 			operation = InputOperation.getById( id );
-			
-			while( token.type() == Scanner.TokenType.ID && !stop ) {
-				vars.add( GlobalVariable.getById( token.content() ) );
-				getToken();
-				if ( token.type() == Scanner.TokenType.COMMA )
-					getToken();
-				else
-					stop = true;
-			}
-			if ( token.type() != Scanner.TokenType.RANGLE )
-				throwException( "> expected" );
-			getToken();
-			
+			Vector< Variable > inVars = parseOperationVariables();
+		
 			if ( token.type() == Scanner.TokenType.LANGLE ) { // Request Response operation
-				Vector< Variable > outVars = new Vector < Variable >();
-				stop = false;
-				getToken();
-				while( token.type() == Scanner.TokenType.ID && !stop ) {
-					outVars.add( GlobalVariable.getById( token.content() ) );
-					getToken();
-					if ( token.type() == Scanner.TokenType.COMMA )
-						getToken();
-					else
-						stop = true;
-				}
-				if ( token.type() != Scanner.TokenType.RANGLE )
-					throwException( "> expected" );
-				getToken();
-				if ( token.type() != Scanner.TokenType.LPAREN )
-					throwException( "( expected" );
-				getToken();
-				Process rrProc = parseProcess();
-				if ( token.type() != Scanner.TokenType.RPAREN )
-					throwException( ") expected" );
-				getToken();
+				Vector< Variable > outVars = parseOperationVariables();
+				if ( operation instanceof RequestResponseOperation ) {
+					RequestResponseOperation rro = (RequestResponseOperation) operation;
+					if ( inVars.size() != rro.inVarTypes().size() )
+						throwException( "wrong operation input parameters" );
+					if ( outVars.size() != rro.outVarTypes().size() )
+						throwException( "wrong operation output parameters" );
+				} else
+					throwException( "wrong operation type" );
 				
-				proc = new RequestResponseProcess( operation, vars, outVars, rrProc );
+				eat( Scanner.TokenType.LPAREN, "( expected" );
+				Process rrProc = parseProcess();
+				eat( Scanner.TokenType.RPAREN, ") expected" );				
+				proc = new RequestResponseProcess( operation, inVars, outVars, rrProc );
 			} else { // One Way operation
-				proc = new OneWayProcess( operation, vars );
+				if ( inVars.size() != operation.inVarTypes().size() )
+					throwException( "wrong operation input parameters" );
+				proc = new OneWayProcess( operation, inVars );
 			}
 		} catch( InvalidIdException e ) {
 			throwException( e.getMessage() );
@@ -328,13 +307,31 @@ public class OLParser extends AbstractParser
 		return proc;
 	}
 	
+	private Vector< Variable > parseOperationVariables()
+		throws IOException, ParserException, InvalidIdException
+	{
+		Vector< Variable > vars = new Vector< Variable >();
+		eat( Scanner.TokenType.LANGLE, "< expected" );
+		boolean keepRun = true;
+		
+		while( token.type() == Scanner.TokenType.ID && keepRun ) {
+			vars.add( GlobalVariable.getById( token.content() ) );
+			getToken();
+			if ( token.type() == Scanner.TokenType.COMMA )
+				getToken();
+			else
+				keepRun = false;
+		}
+		eat( Scanner.TokenType.LANGLE, "> expected" );
+
+		return vars;
+	}
+	
 	private Process parseOutputProcess( String id )
 		throws IOException, ParserException
 	{
 		Process proc = null;
-		boolean stop = false;
-		if ( token.type() != Scanner.TokenType.ID )
-			throwException( "location expected" );
+		tokenAssert( Scanner.TokenType.ID, "location expected" );
 		Location location = null;
 		
 		try {
@@ -350,51 +347,36 @@ public class OLParser extends AbstractParser
 		}
 
 		try {			
-			Operation operation = Operation.getById( id );
+			OutputOperation operation = OutputOperation.getById( id );
 						
 			getToken();
 			if ( token.type() != Scanner.TokenType.LANGLE )
 				throwException( "< expected" );
 			getToken();
 						
-			Vector< Variable > vars = new Vector< Variable >();
-						
-			while( token.type() == Scanner.TokenType.ID && !stop ) {
-				vars.add( GlobalVariable.getById( token.content() ) );
-				getToken();
-				if ( token.type() == Scanner.TokenType.COMMA )
-					getToken();
-				else
-					stop = true;
-			}
-			if ( token.type() != Scanner.TokenType.RANGLE )
-				throwException( "> expected" );
-			getToken();
+			Vector< Variable > outVars = parseOperationVariables();
+			
 			if ( token.type() == Scanner.TokenType.LANGLE ) { // Solicit Response
-				Vector< Variable > inVars = new Vector< Variable >();
-				stop = false;
-				getToken();
-				while( token.type() == Scanner.TokenType.ID && !stop ) {
-					inVars.add( GlobalVariable.getById( token.content() ) );
-					getToken();
-					if ( token.type() == Scanner.TokenType.COMMA )
-						getToken();
-					else
-						stop = true;
-				}
-				if ( token.type() != Scanner.TokenType.RANGLE )
-					throwException( "> expected" );
-				getToken();
-				
-				proc = new SolicitResponseProcess( operation, location, vars, inVars );
+				Vector< Variable > inVars = parseOperationVariables();
+				if ( operation instanceof SolicitResponseOperation ) {
+					SolicitResponseOperation sro = (SolicitResponseOperation) operation;
+					if ( outVars.size() != sro.outVarTypes().size() )
+						throwException( "wrong operation output parameters" );
+					if ( inVars.size() != sro.inVarTypes().size() )
+						throwException( "wrong operation input parameters" );
+				} else
+					throwException( "wrong operation type" );
+				proc = new SolicitResponseProcess( operation, location, outVars, inVars );
 			} else { // Notification
-				proc = new NotificationProcess( operation, location, vars );
+				if ( outVars.size() != operation.outVarTypes().size() )
+					throwException( "wrong operation output parameters" );
+				proc = new NotificationProcess( operation, location, outVars );
 			}
 		} catch( InvalidIdException e ) {
 			throwException( e.getMessage() );
 		}
 		if ( proc == null )
-			throwException( "input operation expected" );
+			throwException( "output operation expected" );
 		return proc;
 	}
 	
@@ -412,64 +394,35 @@ public class OLParser extends AbstractParser
 		return proc;
 	}
 	
-	private InputProcess parseLinkInProcess()
+	private LinkInProcess parseLinkInProcess()
 		throws IOException, ParserException
 	{
-		InputProcess proc = null;
-
-		if ( token.type() == Scanner.TokenType.LINKIN ) {
-			getToken();
-			if ( token.type() != Scanner.TokenType.LPAREN )
-				throwException( "( expected" );
-			getToken();
-			if ( token.type() != Scanner.TokenType.ID )
-				throwException( "call id expected" );
-			try {
-				proc = new LinkInProcess( token.content() );
-			} catch( InvalidIdException e ) {
-				throwException( e.getMessage() );
-			}
-			getToken();
-			if ( token.type() != Scanner.TokenType.RPAREN )
-				throwException( ") expected" );
-			getToken();
+		LinkInProcess proc = null;
+		
+		eat( Scanner.TokenType.LINKIN, "linkIn expected" );
+		eat( Scanner.TokenType.LPAREN, "( expected" );
+		tokenAssert( Scanner.TokenType.ID, "link id expected" );
+		try {
+			proc = new LinkInProcess( token.content() );
+		} catch( InvalidIdException e ) {
+			throwException( e.getMessage() );
 		}
-		
-		if ( proc == null )
-			throwException( "expected input" );
-		
+		getToken();
+		eat( Scanner.TokenType.RPAREN, ") expected" );
+
 		return proc;
 	}
 	
 	private SleepProcess parseSleepProcess()
 		throws IOException, ParserException
 	{
+		eat( Scanner.TokenType.SLEEP, "expected sleep call" );
 		SleepProcess proc = null;
-
-		if ( token.type() == Scanner.TokenType.SLEEP ) {
-			getToken();
-			if ( token.type() != Scanner.TokenType.LPAREN )
-				throwException( "( expected" );
-			getToken();
-			if ( token.type() == Scanner.TokenType.INT ) {
-				proc = new SleepProcess( new TempVariable( token.content() ) );
-			} else if ( token.type() == Scanner.TokenType.ID ) {
-				try {
-					proc = new SleepProcess( GlobalVariable.getById( token.content() ) );
-				} catch( InvalidIdException e ) {
-					throwException( e.getMessage() );
-				}
-			} else
-				throwException( "sleep integer or variable parameter expected" );
-			
-			getToken();
-			if ( token.type() != Scanner.TokenType.RPAREN )
-				throwException( ") expected" );
-			getToken();
-		}
+		eat( Scanner.TokenType.LPAREN, "( expected" );
 		
-		if ( proc == null )
-			throwException( "expected sleep call" );
+		proc = new SleepProcess( parseExpression() );
+		
+		eat( Scanner.TokenType.RPAREN, ") expected" );
 		
 		return proc;
 	}	
@@ -477,31 +430,15 @@ public class OLParser extends AbstractParser
 	private WhileProcess parseWhileProcess()
 		throws IOException, ParserException
 	{
-		WhileProcess proc = null;
-
-		if ( token.type() == Scanner.TokenType.WHILE ) {
-			getToken();
-			if ( token.type() != Scanner.TokenType.LPAREN )
-				throwException( "( expected" );
-			getToken();
-			Condition condition = parseCondition();
-			if ( token.type() != Scanner.TokenType.RPAREN )
-				throwException( ") expected" );
-			getToken();
-			if ( token.type() != Scanner.TokenType.LCURLY )
-				throwException( "{ expected" );
-			getToken();
-			Process process = parseProcess();
-			if ( token.type() != Scanner.TokenType.RCURLY )
-				throwException( "} expected" );
-			proc = new WhileProcess( condition, process );
-			getToken();
-		}
+		eat( Scanner.TokenType.WHILE, "expected while block" );
+		eat( Scanner.TokenType.LPAREN, "( expected" );
+		Condition condition = parseCondition();
+		eat( Scanner.TokenType.RPAREN, ") expected" );
+		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		Process process = parseProcess();
+		eat( Scanner.TokenType.RCURLY, "} expected" );
 		
-		if ( proc == null )
-			throwException( "expected while block" );
-		
-		return proc;
+		return new WhileProcess( condition, process );
 	}
 	
 	private Condition parseCondition()
@@ -603,18 +540,16 @@ public class OLParser extends AbstractParser
 	{
 		Expression retval = null;
 		
-		if ( token.type() == Scanner.TokenType.ID ) {
+		if ( token.type() == Scanner.TokenType.ID )
 			retval = GlobalVariable.getById( token.content() );
-		} else if ( token.type() == Scanner.TokenType.STRING ) {
+		else if ( token.type() == Scanner.TokenType.STRING )
 			retval = new TempVariable( token.content() );
-		} else if ( token.type() == Scanner.TokenType.INT ) {
-			int value = Integer.parseInt( token.content() );
-			retval = new TempVariable( value );
-		} else if ( token.type() == Scanner.TokenType.LPAREN ) {
+		else if ( token.type() == Scanner.TokenType.INT )
+			retval = new TempVariable( Integer.parseInt( token.content() ) );
+		else if ( token.type() == Scanner.TokenType.LPAREN ) {
 			getToken();
 			retval = parseExpression();
-			if ( token.type() != Scanner.TokenType.RPAREN )
-				throwException( ") expected" );
+			tokenAssert( Scanner.TokenType.RPAREN, ") expected" );
 		}
 		
 		getToken();
@@ -702,7 +637,10 @@ public class OLParser extends AbstractParser
 	{
 		boolean stop = false;
 		
-		eat( Scanner.TokenType.LOCATIONS, "locations expected" );
+		if ( token.type() != Scanner.TokenType.LOCATIONS )
+			return;
+		
+		getToken();
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		
 		while( token.type() != Scanner.TokenType.RCURLY && !stop ) {
@@ -724,11 +662,11 @@ public class OLParser extends AbstractParser
 		boolean stop = false;
 	
 		if ( token.type() != Scanner.TokenType.OPERATIONS )
-			throwException( "operations expected" );
+			return;
+
 		getToken();
-		if ( token.type() != Scanner.TokenType.LCURLY )
-			throwException( "{ expected");
-		getToken();
+		eat( Scanner.TokenType.LCURLY, "{ expected" );
+
 		while ( !stop ) {
 			if ( token.type() == Scanner.TokenType.OP_OW )
 				parseOneWayOperations();
@@ -741,49 +679,92 @@ public class OLParser extends AbstractParser
 			else
 				stop = true;
 		}
-		if ( token.type() != Scanner.TokenType.RCURLY )
-			throwException( "} expected");
-		getToken();
+		
+		eat( Scanner.TokenType.RCURLY, "} expected" );		
 	}
 	
 	private void parseOneWayOperations()
 		throws IOException, ParserException
 	{
-		boolean stop = false;
-
 		getToken();
-		if ( token.type() != Scanner.TokenType.COLON )
-			throwException( ": expected" );
-		while ( !stop ) {
-			getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		String opName;
+		Vector< Variable.Type > inVarTypes;
+
+		while ( keepRun ) {
 			if ( token.type() != Scanner.TokenType.ID )
-				stop = true;
+				keepRun = false;
 			else {
-				(new OneWayOperation( token.content() )).register();
+				opName = token.content();
 				getToken();
-				if ( token.type() != Scanner.TokenType.COMMA )
-					stop = true;
+				inVarTypes = parseVarTypes();
+				(new OneWayOperation( opName, inVarTypes )).register();
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
 			}
 		}
+	}
+	
+	private Vector< Variable.Type > parseVarTypes()
+		throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.LANGLE, "< expected" );
+		
+		Vector< Variable.Type > varTypes = new Vector< Variable.Type > ();
+		boolean keepRun = true;
+		
+		while( keepRun ) {
+			if ( token.type() == Scanner.TokenType.RANGLE )
+				keepRun = false;
+			else {
+				if ( token.type() == Scanner.TokenType.VAR_TYPE_INT )
+					varTypes.add( Variable.Type.INT );
+				else if ( token.type() == Scanner.TokenType.VAR_TYPE_STRING )
+					varTypes.add( Variable.Type.STRING );
+				else if ( token.type() == Scanner.TokenType.VAR_TYPE_VARIANT )
+					varTypes.add( Variable.Type.VARIANT );
+				else
+					throwException( "expected variable type" );
+				
+				getToken();
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
+			}
+		}
+
+		eat( Scanner.TokenType.RANGLE, "> expected" );
+		return varTypes;
 	}
 	
 	private void parseRequestResponseOperations()
 		throws IOException, ParserException
 	{
-		boolean stop = false;
-
 		getToken();
-		if ( token.type() != Scanner.TokenType.COLON )
-			throwException( ": expected" );
-		while ( !stop ) {
-			getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		String opName;
+		Vector< Variable.Type > inVarTypes, outVarTypes;
+
+		while ( keepRun ) {
 			if ( token.type() != Scanner.TokenType.ID )
-				stop = true;
+				keepRun = false;
 			else {
-				(new RequestResponseOperation( token.content() )).register();
+				opName = token.content();
 				getToken();
-				if ( token.type() != Scanner.TokenType.COMMA )
-					stop = true;
+				inVarTypes = parseVarTypes();
+				outVarTypes = parseVarTypes();
+				(new RequestResponseOperation( opName, inVarTypes, outVarTypes )).register();
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
 			}
 		}
 	}
@@ -791,28 +772,28 @@ public class OLParser extends AbstractParser
 	private void parseNotificationOperations()
 		throws IOException, ParserException
 	{
-		boolean stop = false;
-		String id;
-
 		getToken();
-		if ( token.type() != Scanner.TokenType.COLON )
-			throwException( ": expected" );
-		while ( !stop ) {
-			getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		String opName;
+		Vector< Variable.Type > outVarTypes;
+
+		while ( keepRun ) {
 			if ( token.type() != Scanner.TokenType.ID )
-				stop = true;
+				keepRun = false;
 			else {
-				id = token.content();
+				opName = token.content();
 				getToken();
-				if ( token.type() != Scanner.TokenType.ASSIGN )
-					throwException( "= expected" );
+				outVarTypes = parseVarTypes();
+				eat( Scanner.TokenType.ASSIGN, "= expected" );
+				tokenAssert( Scanner.TokenType.ID, "bound input operation expected" );
+				(new NotificationOperation( opName, outVarTypes, token.content() )).register();
 				getToken();
-				if ( token.type() != Scanner.TokenType.ID )
-					throwException( "value for operation expected" );
-				(new NotificationOperation( id, token.content() )).register();
-				getToken();
-				if ( token.type() != Scanner.TokenType.COMMA )
-					stop = true;
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
 			}
 		}
 	}
@@ -820,28 +801,29 @@ public class OLParser extends AbstractParser
 	private void parseSolicitResponseOperations()
 		throws IOException, ParserException
 	{
-		boolean stop = false;
-		String id;
-
 		getToken();
-		if ( token.type() != Scanner.TokenType.COLON )
-			throwException( ": expected" );
-		while ( !stop ) {
-			getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		String opName;
+		Vector< Variable.Type > outVarTypes, inVarTypes;
+
+		while ( keepRun ) {
 			if ( token.type() != Scanner.TokenType.ID )
-				stop = true;
+				keepRun = false;
 			else {
-				id = token.content();
+				opName = token.content();
 				getToken();
-				if ( token.type() != Scanner.TokenType.ASSIGN )
-					throwException( "= expected" );
+				outVarTypes = parseVarTypes();
+				inVarTypes = parseVarTypes();
+				eat( Scanner.TokenType.ASSIGN, "= expected" );
+				tokenAssert( Scanner.TokenType.ID, "bound input operation expected" );
+				(new SolicitResponseOperation( opName, outVarTypes, inVarTypes, token.content() )).register();
 				getToken();
-				if ( token.type() != Scanner.TokenType.ID )
-					throwException( "value for operation expected" );
-				(new SolicitResponseOperation( id, token.content() )).register();
-				getToken();
-				if ( token.type() != Scanner.TokenType.COMMA )
-					stop = true;
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
 			}
 		}
 	}
@@ -851,9 +833,11 @@ public class OLParser extends AbstractParser
 	{
 		boolean stop = false;
 		
-		eat( Scanner.TokenType.VARIABLES, "variables expected" );
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		if ( token.type() != Scanner.TokenType.VARIABLES )
+			return;
 		
+		getToken();
+		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		while( token.type() != Scanner.TokenType.RCURLY && !stop ) {
 			tokenAssert( Scanner.TokenType.ID, "variable id expected" );
 			(new GlobalVariable( token.content() )).register();
@@ -863,7 +847,6 @@ public class OLParser extends AbstractParser
 			else
 				getToken();
 		}
-		
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 	}
 	
@@ -873,15 +856,12 @@ public class OLParser extends AbstractParser
 		boolean stop = false;
 		
 		if ( token.type() != Scanner.TokenType.LINKS )
-			throwException( "links expected" );
-		getToken();
-		if ( token.type() != Scanner.TokenType.LCURLY )
-			throwException( "{ expected");
-		getToken();
+			return;
 		
+		getToken();
+		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		while( token.type() != Scanner.TokenType.RCURLY && !stop ) {
-			if ( token.type() != Scanner.TokenType.ID )
-				throwException( "variable id expected" );
+			tokenAssert( Scanner.TokenType.ID, "variable id expected" );
 			(new InternalLink( token.content() )).register();
 			getToken();
 			if ( token.type() != Scanner.TokenType.COMMA )
@@ -889,10 +869,8 @@ public class OLParser extends AbstractParser
 			else
 				getToken();
 		}
-
-		if ( token.type() != Scanner.TokenType.RCURLY )
-			throwException( "} expected" );
-		getToken();
+		
+		eat( Scanner.TokenType.RCURLY, "} expected" );
 	}
 }
 

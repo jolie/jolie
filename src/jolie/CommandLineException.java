@@ -19,27 +19,14 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie;
 
-import java.util.Vector;
-
-public class SolicitResponseOperation extends OutputOperation
+public class CommandLineException extends Exception
 {
-	private Vector< Variable.Type > inVarTypes;
+	private static final long serialVersionUID = Interpreter.serialVersionUID();
 	
-	public SolicitResponseOperation( String id,
-			Vector< Variable.Type > outVarTypes,
-			Vector< Variable.Type > inVarTypes,
-			String boundOperationId )
+	public CommandLineException( String message )
 	{
-		super( id, boundOperationId, outVarTypes );
-		this.inVarTypes = inVarTypes;
-	}
-	
-	public Vector< Variable.Type > inVarTypes()
-	{
-		return inVarTypes;
+		super( message );
 	}
 }
-

@@ -27,59 +27,60 @@ import java.io.*;
 public class Scanner
 {
 	public enum TokenType {
-		EOF,		// End Of File
-		ID,			// [a-z][a-zA-Z0-9]*
-		COMMA,		// ,
-		INT,		// [0-9]+
-		LPAREN,		// (
-		RPAREN,		// )
-		LSQUARE,	// [
-		RSQUARE,	// ]
-		LCURLY,		// {
-		RCURLY,		// }
-		STRING,		// "[[:graph:]]*"
-		CHOICE,		// ++
-		MINUS,		// -
-		ASTERISK,	// *
-		DIVIDE,		// /
-		ASSIGN,		// =
-		PLUS,		// +
-		SEQUENCE,	// ;;
-		IF,			// if
-		ELSE,		// else
-		LANGLE,		// <
-		RANGLE,		// >
-		AT,			// @
-		LINKIN,		// linkIn
-		LINKOUT,	// linkOut
-		IN,			// in
-		OUT,		// out
-		EQUAL,		// ==
-		AND,		// and
-		OR,			// or
-		PARALLEL,	// ||
-		NOT,		// !
-		COLON,		// :
-		OP_OW,		// OneWay
-		OP_RR,		// RequestResponse
-		OP_N,		// Notification
-		OP_SR,		// SolicitResponse
-		LOCATIONS,	// locations
-		OPERATIONS,	// operations
-		VARIABLES,	// variables
-		MAIN,		// main
-		DEFINE, 	// define
-		CALL,		// call
-		MAJOR_OR_EQUAL,	// >=
-		MINOR_OR_EQUAL,	// <=
-		NOT_EQUAL,		// !=
-		LINKS,			// links
-		NULL_PROCESS,	// nullProcess
-		WHILE,			// while
-		SLEEP,			// sleep
-		/*INT_KEYWORD,
-		STRING_KEYWORD*/
-		ERROR
+		EOF,				///< End Of File
+		ID,					///< [a-z][a-zA-Z0-9]*
+		COMMA,				///< ,
+		INT,				///< [0-9]+
+		LPAREN,				///< (
+		RPAREN,				///< )
+		LSQUARE,			///< [
+		RSQUARE,			///< ]
+		LCURLY,				///< {
+		RCURLY,				///< }
+		STRING,				///< "[[:graph:]]*"
+		CHOICE,				///< ++
+		MINUS,				///< The minus sign (doxygen can't document a - alone)
+		ASTERISK,			///< *
+		DIVIDE,				///< /
+		ASSIGN,				///< =
+		PLUS,				///< +
+		SEQUENCE,			///< ;;
+		IF,					///< if
+		ELSE,				///< else
+		LANGLE,				///< <
+		RANGLE,				///< >
+		AT,					///< @
+		LINKIN,				///< linkIn
+		LINKOUT,			///< linkOut
+		IN,					///< in
+		OUT,				///< out
+		EQUAL,				///< ==
+		AND,				///< and
+		OR,					///< or
+		PARALLEL,			///< ||
+		NOT,				///< !
+		COLON,				///< :
+		OP_OW,				///< OneWay
+		OP_RR,				///< RequestResponse
+		OP_N,				///< Notification
+		OP_SR,				///< SolicitResponse
+		LOCATIONS,			///< locations
+		OPERATIONS,			///< operations
+		VARIABLES,			///< variables
+		MAIN,				///< main
+		DEFINE, 			///< define
+		CALL,				///< call
+		MAJOR_OR_EQUAL,		///< >=
+		MINOR_OR_EQUAL,		///< <=
+		NOT_EQUAL,			///< !=
+		LINKS,				///< links
+		NULL_PROCESS,		///< nullProcess
+		WHILE,				///< while
+		SLEEP,				///< sleep
+		VAR_TYPE_VARIANT,	///< variant
+		VAR_TYPE_INT,		///< int
+		VAR_TYPE_STRING,	///< string
+		ERROR			///< Scanner error
 	}
 	
 	/**
@@ -293,10 +294,12 @@ public class Scanner
 							retval = new Token( TokenType.WHILE );
 						else if ( str.equals( "sleep" ) )
 							retval = new Token( TokenType.SLEEP );
-						/*else if ( str.equals( "int" ) )
-							retval = new Token( TokenType.INTKEYWORD );
+						else if ( str.equals( "int" ) )
+							retval = new Token( TokenType.VAR_TYPE_INT );
 						else if ( str.equals( "string" ) )
-							retval = new Token( TokenType.STRINGKEYWORD );*/
+							retval = new Token( TokenType.VAR_TYPE_STRING );
+						else if ( str.equals( "variant" ) )
+							retval = new Token( TokenType.VAR_TYPE_VARIANT );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

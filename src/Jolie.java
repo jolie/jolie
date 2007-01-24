@@ -28,38 +28,41 @@
  * This is the reference documentation for JOLIE: a Java Orchestration Language Interpreter Engine.
  */
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import jolie.CommandLineException;
 import jolie.Interpreter;
-import jolie.InterpreterException;
 import jolie.ParserException;
 
 /** Starter class of the interpreter.
- * Analyzes the command line in search for the input source file and the optional port specification.
- *
+ * @author Fabrizio Montesi
  */
 public class Jolie
 {
+	/** Entry point of program execution.
+	 * 
+	 * @param args The command line arguments.
+	 * @todo Standardize the exit codes.
+	 */
 	public static void main( String[] args )
 	{
+		int exitCode = 0;
 		try {
-			Interpreter interpreter = null;
-			if ( args.length > 0 ) {
-				if ( args.length == 1 )
-					interpreter = new Interpreter( args[ 0 ] );
-				else if ( args.length == 2 )
-					interpreter = new Interpreter( args[ 0 ], Integer.parseInt(args[ 1 ]) );
-			}
-			if ( interpreter != null )
-				interpreter.run();
-			else
-				System.out.println( "\nUsage: java Jolie <input file> [<port>]" );
-		} catch ( IOException e ) {
-			e.printStackTrace();
-		} catch ( ParserException pe ) {
+			(new Interpreter( args )).run();
+		} catch( CommandLineException cle ) {
+			System.out.println( cle.getMessage() );
+		} catch( FileNotFoundException fe ) {
+			System.out.println( fe.getMessage() );
+			exitCode = 1;
+		} catch( IOException ioe ) {
+			ioe.printStackTrace();
+			exitCode = 2;
+		} catch( ParserException pe ) {
 			pe.printStackTrace();
-		} catch ( InterpreterException ie ) {
-			ie.printStackTrace();
+			exitCode = 3;
+		} finally {
+			System.exit( exitCode ); // This is also a workaround for InProcess java bug.
 		}
 	}
 }

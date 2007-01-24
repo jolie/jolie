@@ -19,15 +19,41 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie;
 
-public class InterpreterException extends Exception
+import java.util.Vector;
+
+public class OutputOperation extends Operation
 {
-	private static final long serialVersionUID = 1L;
-	
-	public InterpreterException( String message )
+	private String boundOperationId;
+	private Vector< Variable.Type > outVarTypes;
+
+	public OutputOperation( String id,
+			String boundOperationId,
+			Vector< Variable.Type > outVarTypes
+			)
 	{
-		super( message );
+		super( id );
+		this.boundOperationId = boundOperationId;
+		this.outVarTypes = outVarTypes;
+	}
+	
+	public Vector< Variable.Type > outVarTypes()
+	{
+		return outVarTypes;
+	}
+	
+	public String boundOperationId()
+	{
+		return boundOperationId;
+	}
+	
+	public static OutputOperation getById( String id )
+		throws InvalidIdException
+	{
+		Object obj = Interpreter.getObjectById( id );
+		if ( !( obj instanceof OutputOperation ) )
+			throw new InvalidIdException( id );
+		return (OutputOperation)obj;
 	}
 }

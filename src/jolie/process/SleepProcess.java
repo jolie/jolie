@@ -21,25 +21,28 @@
 
 package jolie.process;
 
+import jolie.Expression;
 import jolie.InputHandler;
-import jolie.Variable;
 import jolie.net.CommMessage;
 
 class SleepInputHandler extends Thread implements InputHandler
 {
 	private InputProcess inputProcess;
-	private Variable var;
+	private Expression expression;
 	
-	public SleepInputHandler( Variable var )
+	//private TypedValue< int > value;
+	
+	public SleepInputHandler( Expression expression )
 	{
-		this.var = var;
+		this.expression = expression;
 	}
 	
 	public void run()
 	{
+		int i = expression.evaluate().intValue();
 		try {
-			if ( var.intValue() > 0 )
-				Thread.sleep( var.intValue() );
+			if ( i > 0 )
+				Thread.sleep( i );
 			if ( inputProcess != null )
 				inputProcess.recvMessage( new CommMessage( id() ) );
 		} catch( InterruptedException e ) {}
@@ -68,26 +71,27 @@ class SleepInputHandler extends Thread implements InputHandler
 
 public class SleepProcess implements InputProcess
 {
-	private Variable variable;
+	private Expression expression;
 	private SleepInputHandler inputHandler = null;
 	
-	public SleepProcess( Variable variable )
+	public SleepProcess( Expression expression )
 	{
-		this.variable = variable;
+		this.expression = expression;
 	}
 	
 	public void run()
 	{
+		int i = expression.evaluate().intValue();
 		try {
-			if ( variable.intValue() > 0 )
-				Thread.sleep( variable.intValue() );
+			if ( i > 0 )
+				Thread.sleep( i );
 		} catch( InterruptedException e ) {}
 	}
 	
 	public InputHandler inputHandler()
 	{
 		if ( inputHandler == null )
-			inputHandler = new SleepInputHandler( variable );
+			inputHandler = new SleepInputHandler( expression );
 
 		return inputHandler;
 	}

@@ -22,10 +22,12 @@
 
 package jolie;
 
+import java.util.Vector;
+
 public class OneWayOperation extends InputOperation
 {
-	public OneWayOperation( String id )
+	public OneWayOperation( String id, Vector< Variable.Type > inVarTypes )
 	{
-		super( id );
+		super( id, inVarTypes );
 	}
 }

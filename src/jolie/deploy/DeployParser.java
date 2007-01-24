@@ -50,27 +50,29 @@ public class DeployParser extends AbstractParser
 		boolean stop = false;
 		GlobalLocation loc;
 
-		eat( Scanner.TokenType.LOCATIONS, "locations expected" );
-		eat( Scanner.TokenType.LCURLY, "{ expected" );
-		while ( token.type() != Scanner.TokenType.RCURLY && !stop ) {
-			tokenAssert( Scanner.TokenType.ID, "location id expected" );
-			try {
-				loc = GlobalLocation.getById( token.content() );
-				getToken();
-				eat( Scanner.TokenType.ASSIGN, "= expected" );
-				tokenAssert( Scanner.TokenType.STRING, "location value expected" );
-				loc.setValue( token.content() );
-				checkedLocations++;
-			} catch( InvalidIdException e ) {
-				throwException( "invalid location identifier" );
-			}
+		if ( token.type() == Scanner.TokenType.LOCATIONS ) {
 			getToken();
-			if ( token.type() != Scanner.TokenType.COMMA )
-				stop = true;
-			else
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while ( token.type() != Scanner.TokenType.RCURLY && !stop ) {
+				tokenAssert( Scanner.TokenType.ID, "location id expected" );
+				try {
+					loc = GlobalLocation.getById( token.content() );
+					getToken();
+					eat( Scanner.TokenType.ASSIGN, "= expected" );
+					tokenAssert( Scanner.TokenType.STRING, "location value expected" );
+					loc.setValue( token.content() );
+					checkedLocations++;
+				} catch( InvalidIdException e ) {
+					throwException( "invalid location identifier" );
+				}
 				getToken();
+				if ( token.type() != Scanner.TokenType.COMMA )
+					stop = true;
+				else
+					getToken();
+			}
+			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
-		eat( Scanner.TokenType.RCURLY, "} expected" );
 		
 		if ( checkedLocations != GlobalLocation.getAll().size() )
 			throwException( "locations deployment block is not complete" ); 

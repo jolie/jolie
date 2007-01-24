@@ -24,7 +24,7 @@ package jolie;
 
 public class ParserException extends Exception
 {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = Interpreter.serialVersionUID();
 	
 	private String sourceName;
 	private int line;

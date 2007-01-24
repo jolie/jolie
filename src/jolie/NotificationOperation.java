@@ -22,19 +22,14 @@
 
 package jolie;
 
-public class NotificationOperation extends Operation
+import java.util.Vector;
+
+public class NotificationOperation extends OutputOperation
 {
-	private String value;
-	
-	public NotificationOperation( String id, String value )
+	public NotificationOperation( String id,
+			Vector< Variable.Type > outVarTypes,
+			String boundOperationId )
 	{
-		super( id );
-		this.value = value;
+		super( id, boundOperationId, outVarTypes );
 	}
-	
-	public String value()
-	{
-		return value;
-	}
-	
 }

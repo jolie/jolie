@@ -22,7 +22,7 @@
 
 package jolie;
 
-/** Skeletal implementation of MappedGlobalObject, provided for convenience.
+/** Skeletal implementation of MappedGlobalObject.
  * 
  * @see MappedGlobalObject
  * @author Fabrizio Montesi
@@ -32,16 +32,25 @@ abstract public class AbstractMappedGlobalObject implements MappedGlobalObject
 {
 	private String id;
 
+	/** Constructor.
+	 * 
+	 * @param id The identifier of the object in the global map.
+	 */
 	public AbstractMappedGlobalObject( String id )
 	{
 		this.id = id;
 	}
 	
+	/** Returns this global object identifier.
+	 */
 	public final String id()
 	{
 		return id;
 	}
 
+	/**
+	 * Registers the global object in the global map.
+	 */
 	public final void register()
 	{// todo - what if the id is already registered?
 		Interpreter.registerObject( id, this );

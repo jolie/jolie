@@ -22,10 +22,22 @@
 
 package jolie;
 
+import java.util.Vector;
+
 public class RequestResponseOperation extends InputOperation
 {
-	public RequestResponseOperation( String id )
+	private Vector< Variable.Type > outVarTypes;
+
+	public RequestResponseOperation( String id,
+			Vector< Variable.Type > inVarTypes,
+			Vector< Variable.Type > outVarTypes )
 	{
-		super( id );
+		super( id, inVarTypes );
+		this.outVarTypes = outVarTypes;
+	}
+	
+	public Vector< Variable.Type > outVarTypes()
+	{
+		return outVarTypes;
 	}
 }

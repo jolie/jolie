@@ -23,30 +23,52 @@ package jolie;
 
 import java.io.IOException;
 
-/** Skeleton implementation of a JOLIE scanner based parser.
+/** Skeleton implementation of a JOLIE Scanner based parser.
  * 
  * @author Fabrizio Montesi
  * @see Scanner
  */
 public abstract class AbstractParser
 {
-	private Scanner scanner;		// Input scanner
-	protected Scanner.Token token;	// Current token
+	private Scanner scanner;		// Input scanner.
+	protected Scanner.Token token;	///< The current token.
 	
+	/** Starts the parsing procedure.
+	 * 
+	 * @throws IOException If a scanner level error occurs.
+	 * @throws ParserException If a parser level error occurs.
+	 */
 	abstract public void parse()
 		throws IOException, ParserException;
 
+	/** Constructor
+	 * 
+	 * @param scanner The scanner to use during the parsing procedure.
+	 */
 	public AbstractParser( Scanner scanner )
 	{
 		this.scanner = scanner;
 	}
 	
+	/** Gets a new token and puts
+	 * 
+	 * @throws IOException If the internal scanner raises one.
+	 */
 	protected void getToken()
 		throws IOException
 	{
 		token = scanner.getToken();
 	}
 
+	/**
+	 * Eats the current token, asserting its type.
+	 * Calling eat( type, errorMessage ) is equivalent to call subsequently
+	 * tokenAssert( type, errorMessage ) and getToken().
+	 * @param type The type of the token to eat.
+	 * @param errorMessage The error message to display in case of a wrong token type.
+	 * @throws ParserException If the token type is wrong.
+	 * @throws IOException If the internal scanner raises one.
+	 */
 	protected void eat( Scanner.TokenType type, String errorMessage )
 		throws ParserException, IOException
 	{
@@ -54,6 +76,12 @@ public abstract class AbstractParser
 		getToken();
 	}
 	
+	/**
+	 * Asserts the current token type.
+	 * @param type The token type to assert.
+	 * @param errorMessage The error message to display in case of a wrong token type.
+	 * @throws ParserException If the token type is wrong.
+	 */
 	protected void tokenAssert( Scanner.TokenType type, String errorMessage )
 		throws ParserException
 	{
@@ -61,6 +89,11 @@ public abstract class AbstractParser
 			throwException( errorMessage );
 	}
 	
+	/**
+	 * Shortcut to throw a correctly formed ParserException.
+	 * @param mesg The message to insert in the ParserException.
+	 * @throws ParserException Everytime, as its the function of this method.
+	 */
 	protected void throwException( String mesg )
 		throws ParserException
 	{

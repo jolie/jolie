@@ -25,18 +25,18 @@ import java.io.IOException;
 import java.util.Vector;
 
 import jolie.Location;
-import jolie.Operation;
+import jolie.OutputOperation;
 import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 
 public class NotificationProcess implements Process
 {
-	private Operation operation;
+	private OutputOperation operation;
 	private Vector< Variable > varsVec;
 	private Location location;
 
-	public NotificationProcess( Operation operation, Location location, Vector< Variable > varsVec )
+	public NotificationProcess( OutputOperation operation, Location location, Vector< Variable > varsVec )
 	{
 		this.operation = operation;
 		this.varsVec = varsVec;
@@ -47,7 +47,7 @@ public class NotificationProcess implements Process
 	{
 		try {
 			CommChannel channel = location.createCommChannel( operation.getProtocol() );
-			CommMessage message = new CommMessage( operation.value(), varsVec );
+			CommMessage message = new CommMessage( operation.boundOperationId(), varsVec );
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

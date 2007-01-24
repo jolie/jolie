@@ -25,9 +25,12 @@ package jolie;
 public interface Variable extends Expression
 {
 	public enum Type {
-		UNDEFINED, INT, STRING
+		UNDEFINED,	///< Undefined variable.
+		INT,		///< Integer variable. Used also by operations for type management.
+		STRING,		///< String variable. Used also by operations for type management.
+		VARIANT		///< Variant variable. Used only by operations for type management.
 	}
-	
+		
 	public String id();
 	public void setStrValue( String value );
 	public boolean isDefined();

@@ -42,11 +42,7 @@ public class AssignmentProcess implements Process
 	public AssignmentProcess( String varId, Expression expression )
 		throws InvalidIdException
 	{
-		GlobalVariable findVar = GlobalVariable.getById( varId );
-		if ( findVar == null )
-			throw new InvalidIdException( varId );
-		
-		this.var = findVar;
+		this.var = GlobalVariable.getById( varId );
 		this.expression = expression;
 	}
 	

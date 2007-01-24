@@ -28,7 +28,6 @@ package jolie;
  * @author Fabrizio Montesi
  *
  */
-
 abstract public class AbstractVariable implements Variable
 {
 	private String strValue;
@@ -91,7 +90,7 @@ abstract public class AbstractVariable implements Variable
 	
 	public synchronized void assignValue( Variable var )
 	{
-		if ( var.type() == Type.INT )
+		if ( var.isInt() )
 			setIntValue( var.intValue() );
 		else
 			setStrValue( var.strValue() );
