@@ -56,7 +56,8 @@ public class OneWayProcess implements InputProcess
 			int i = 0;
 			Vector< Variable.Type > varTypes = operation.inVarTypes();
 			for( Variable var : message ) { // Check their types first!
-				if ( var.type() != varTypes.elementAt( i ) ) {
+				if ( varTypes.elementAt( i ) != Variable.Type.VARIANT &&
+							var.type() != varTypes.elementAt( i ) ) {
 					System.out.println( "Warning: rejecting wrong packet for operation " + 
 							operation.id() + ". Wrong argument types received." );
 					return false;

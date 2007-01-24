@@ -29,8 +29,12 @@ import jolie.InvalidIdException;
 import jolie.ParserException;
 import jolie.Scanner;
 
+/** Parses the deploy file
+ * @author Fabrizio Montesi
+ */
 public class DeployParser extends AbstractParser
 {
+	/** Constructor */
 	public DeployParser( Scanner scanner )
 	{
 		super( scanner );
