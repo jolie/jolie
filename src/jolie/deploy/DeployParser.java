@@ -47,13 +47,13 @@ public class DeployParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		int checkedLocations = 0;
-		boolean stop = false;
+		boolean keepRun = true;
 		GlobalLocation loc;
 
-		if ( token.type() == Scanner.TokenType.LOCATIONS ) {
+		if ( token.isA( Scanner.TokenType.LOCATIONS ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			while ( token.type() != Scanner.TokenType.RCURLY && !stop ) {
+			while ( !token.isA( Scanner.TokenType.RCURLY ) && keepRun ) {
 				tokenAssert( Scanner.TokenType.ID, "location id expected" );
 				try {
 					loc = GlobalLocation.getById( token.content() );
@@ -66,8 +66,8 @@ public class DeployParser extends AbstractParser
 					throwException( "invalid location identifier" );
 				}
 				getToken();
-				if ( token.type() != Scanner.TokenType.COMMA )
-					stop = true;
+				if ( !token.isA( Scanner.TokenType.COMMA ) )
+					keepRun = false;
 				else
 					getToken();
 			}

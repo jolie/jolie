@@ -85,7 +85,7 @@ public abstract class AbstractParser
 	protected void tokenAssert( Scanner.TokenType type, String errorMessage )
 		throws ParserException
 	{
-		if ( token.type() != type )
+		if ( !token.isA( type ) )
 			throwException( errorMessage );
 	}
 	
