@@ -122,6 +122,11 @@ public class Scanner
 		{
 			return ( type == TokenType.EOF );
 		}
+		
+		public boolean isA( TokenType compareType )
+		{
+			return ( type == compareType );
+		}
 	}
 	
 

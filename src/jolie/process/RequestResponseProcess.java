@@ -35,7 +35,6 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 {
 	private InputOperation operation;
 	private Vector< Variable > varsVec;
-	//private boolean mesgReceived;
 	private Process process;
 	private Vector< Variable > outVars;
 
@@ -45,12 +44,10 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 		this.varsVec = varsVec;
 		this.process = process;
 		this.outVars = outVars;
-		//mesgReceived = false;
 	}
 	
 	public void run()
 	{
-		//mesgReceived = false;
 		operation.getMessage( this );
 	}
 	
@@ -61,12 +58,18 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 	
 	public synchronized boolean recvMessage( CommMessage message )
 	{
-		/*if ( mesgReceived )
-			return false;*/
-
 		if ( message.inputId().equals( operation.id() ) &&
-				varsVec.size() == message.count() ) {
+				varsVec.size() == message.size() ) {
 			int i = 0;
+			Vector< Variable.Type > varTypes = operation.inVarTypes();
+			for( Variable var : message ) { // Check their types first!
+				if ( var.type() != varTypes.elementAt( i ) ) {
+					System.out.println( "Warning: rejecting wrong packet for operation " + 
+							operation.id() + ". Wrong argument types received." );
+					return false;
+				}
+			}
+			i = 0;
 			for( Variable var : message )
 				varsVec.elementAt( i++ ).assignValue( var );
 		} else
@@ -84,9 +87,8 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 			} catch( IOException ioe ) {
 				ioe.printStackTrace();
 			}
-		}
+		} // todo -- else throw exception?
 		
-		//mesgReceived = true;
 		return true;
 	}
 	

@@ -25,18 +25,19 @@ import java.io.IOException;
 import java.util.Vector;
 
 import jolie.Location;
-import jolie.Operation;
+import jolie.SolicitResponseOperation;
+import jolie.TempVariable;
 import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 
 public class SolicitResponseProcess implements Process
 {
-	private Operation operation;
+	private SolicitResponseOperation operation;
 	private Vector< Variable > outVars, inVars;
 	private Location location;
 
-	public SolicitResponseProcess( Operation operation, Location location, Vector< Variable > outVars, Vector< Variable > inVars )
+	public SolicitResponseProcess( SolicitResponseOperation operation, Location location, Vector< Variable > outVars, Vector< Variable > inVars )
 	{
 		this.operation = operation;
 		this.location = location;
@@ -46,16 +47,32 @@ public class SolicitResponseProcess implements Process
 	
 	public void run()
 	{
+		Vector< TempVariable > sendVars =
+			TempVariable.createTypedVars( operation.outVarTypes(), outVars );
+
 		try {
 			CommChannel channel = location.createCommChannel( operation.getProtocol() );
-			CommMessage message = new CommMessage( operation.value(), outVars );
+			CommMessage message = new CommMessage( operation.value(), sendVars );
 			channel.send( message );
 			message = channel.recv();
 			
-			if ( message.count() == inVars.size() ) {
+			if ( message.size() == inVars.size() ) {
 				int i = 0;
-				for( Variable recvVar : message )
-					inVars.elementAt( i++ ).assignValue( recvVar );
+				boolean correctTypes = true;
+
+				Vector< Variable.Type > varTypes = operation.inVarTypes();
+				for( Variable var : message ) { // Check their types first!
+					if ( var.type() != varTypes.elementAt( i ) ) {
+						System.out.println( "Warning: rejecting wrong packet for operation " + 
+							operation.id() + ". Wrong argument types received." );
+						correctTypes = false;
+					}
+				}
+				i = 0;
+				if ( correctTypes ) {
+					for( Variable recvVar : message )
+						inVars.elementAt( i++ ).assignValue( recvVar );
+				}
 			} // todo -- if else throw exception?
 			
 			channel.close();

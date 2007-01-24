@@ -364,9 +364,9 @@ public class OLParser extends AbstractParser
 						throwException( "wrong operation output parameters" );
 					if ( inVars.size() != sro.inVarTypes().size() )
 						throwException( "wrong operation input parameters" );
+					proc = new SolicitResponseProcess( sro, location, outVars, inVars );
 				} else
 					throwException( "wrong operation type" );
-				proc = new SolicitResponseProcess( operation, location, outVars, inVars );
 			} else { // Notification
 				if ( outVars.size() != operation.outVarTypes().size() )
 					throwException( "wrong operation output parameters" );

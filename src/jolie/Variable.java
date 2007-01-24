@@ -22,7 +22,13 @@
 
 package jolie;
 
-public interface Variable extends Expression
+/** A Jolie variable.
+ * 
+ * @see Variable
+ * @author Fabrizio Montesi
+ *
+ */
+abstract public class Variable implements Expression
 {
 	public enum Type {
 		UNDEFINED,	///< Undefined variable.
@@ -30,19 +36,141 @@ public interface Variable extends Expression
 		STRING,		///< String variable. Used also by operations for type management.
 		VARIANT		///< Variant variable. Used only by operations for type management.
 	}
+	
+	private String strValue;
+	private int intValue;
+	private Type type;
+
+	public Variable()
+	{
+		type = Type.UNDEFINED;
+		intValue = 0;
+		strValue = new String();
+	}
+	
+	public Variable( Variable variable )
+	{
+		Variable.Type varType = variable.type();
+		if ( varType == Type.INT )
+			setIntValue( variable.intValue() );
+		else if ( varType == Type.STRING )
+			setStrValue( variable.strValue() );
+		else {
+			type = Type.UNDEFINED;
+			intValue = 0;
+			strValue = new String();
+		}
+	}
+	
+	public final synchronized void setStrValue( String value )
+	{
+		type = Type.STRING;
+		this.strValue = value;
+	}
+	
+	public boolean isInt()
+	{
+		return ( type == Type.INT );
+	}
+	
+	public boolean isString()
+	{
+		return ( type == Type.STRING );
+	}
+	
+	public boolean isDefined()
+	{
+		return ( type != Type.UNDEFINED );
+	}
+	
+	public final synchronized void setIntValue( int value )
+	{
+		type = Type.INT;
+		this.intValue = value;
+	}
+
+	public synchronized String strValue()
+	{
+		if ( type == Type.INT )
+			return Integer.toString( intValue );
+		return strValue;
+	}
+	
+	public synchronized int intValue()
+	{
+		if ( type == Type.STRING ) {
+			try {
+				return Integer.parseInt( strValue );
+			} catch( NumberFormatException e ) {
+				return strValue.length();
+			}
+		}
 		
-	public String id();
-	public void setStrValue( String value );
-	public boolean isDefined();
-	public void setIntValue( int value );
-	public String strValue();
-	public int intValue();
-	public void assignValue( Variable var );
-	public Type type();
-	public void add( Variable var );
-	public void subtract( Variable var );
-	public void multiply( Variable var );
-	public void divide( Variable var );
-	public boolean isString();
-	public boolean isInt();
+		return intValue;
+	}
+	
+	public synchronized void assignValue( Variable var )
+	{
+		if ( var.isInt() )
+			setIntValue( var.intValue() );
+		else
+			setStrValue( var.strValue() );
+	}
+	
+	public Type type()
+	{
+		return type;
+	}
+	
+	public Variable evaluate()
+	{
+		return this;
+	}
+	
+	public synchronized void add( Variable var )
+	{
+		if ( !isDefined() )
+			assignValue( var );
+		else {
+			if ( type == Type.INT )
+				setIntValue( intValue() + var.intValue() );
+			else
+				setStrValue( strValue() + var.strValue() );
+		}
+	}
+	
+	public synchronized void subtract( Variable var )
+	{
+		if ( !isDefined() )
+			assignValue( var );
+		else {
+			if ( type == Type.INT )
+				setIntValue( intValue() - var.intValue() );
+		}
+	}
+	
+	public synchronized void multiply( Variable var )
+	{
+		if ( !isDefined() )
+			assignValue( var );
+		else {
+			if ( type == Type.INT )
+				setIntValue( intValue() * var.intValue() );
+		}
+	}
+	
+	public synchronized void divide( Variable var )
+	{
+		if ( !isDefined() )
+			assignValue( var );
+		else {
+			if ( type == Type.INT )
+				setIntValue( intValue() / var.intValue() );
+		}
+	}
+	
+	public String id()
+	{
+		return "undefined";
+	}
 }

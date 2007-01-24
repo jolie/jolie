@@ -26,6 +26,7 @@ import java.util.Vector;
 
 import jolie.Location;
 import jolie.OutputOperation;
+import jolie.TempVariable;
 import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -45,9 +46,11 @@ public class NotificationProcess implements Process
 	
 	public void run()
 	{
+		Vector< TempVariable > outVars =
+			TempVariable.createTypedVars( operation.outVarTypes(), varsVec );
 		try {
 			CommChannel channel = location.createCommChannel( operation.getProtocol() );
-			CommMessage message = new CommMessage( operation.boundOperationId(), varsVec );
+			CommMessage message = new CommMessage( operation.boundOperationId(), outVars );
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

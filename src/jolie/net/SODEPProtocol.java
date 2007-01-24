@@ -60,16 +60,14 @@ values
 
 public class SODEPProtocol implements CommProtocol
 {	
-	public void send( OutputStream ostream, CommMessage packet )
+	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
+		String mesg = "operation:" + message.inputId() + '\n' + "values{";
 		Variable var;
-		String mesg = "operation:";
-		Iterator it = packet.iterator();
-		mesg += packet.inputId();
-		mesg += '\n' + "values{"; 
+		Iterator< Variable > it = message.iterator();
 		while( it.hasNext() ) {
-			var = (Variable)it.next();
+			var = it.next();
 			if ( var.isString() || !var.isDefined() )
 				mesg += '"' + var.strValue() + '"';
 			else if ( var.isInt() )
@@ -82,13 +80,8 @@ public class SODEPProtocol implements CommProtocol
 		mesg += '}';
 		
 		mesg = Scanner.addStringTerminator( mesg );
-		//mesg += 65535;	// Scanner terminator 
-		
-		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
-		
-		//Debug on system.out
-		//BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( System.out ) );
 
+		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
 		writer.write( mesg );
 		writer.flush();
 	}

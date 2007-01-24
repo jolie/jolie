@@ -38,10 +38,11 @@ public class CommMessage implements Iterable< Variable >
 		values = new Vector< Variable >();
 	}
 	
-	public CommMessage( String inputId, Vector< Variable > values )
+	public CommMessage( String inputId, Vector< ? extends Variable > values )
 	{
 		this.inputId = inputId;
-		this.values = values;
+		values = new Vector< Variable >();
+		addAllValues( values );
 	}
 
 	public String inputId()
@@ -65,7 +66,7 @@ public class CommMessage implements Iterable< Variable >
 		return values.iterator();
 	}
 	
-	public int count()
+	public int size()
 	{
 		return values.size();
 	}

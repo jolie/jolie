@@ -22,7 +22,7 @@
 
 package jolie;
 
-public class GlobalVariable extends AbstractVariable implements MappedGlobalObject
+public class GlobalVariable extends Variable implements MappedGlobalObject
 {
 	private String id;
 
