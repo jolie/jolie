@@ -23,7 +23,7 @@
 package jolie;
 
 import jolie.net.CommProtocol;
-import jolie.net.SOAPProtocol;
+import jolie.net.SODEPProtocol;
 
 /** Generic operation declaration
  * 
@@ -40,8 +40,8 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	
 	public CommProtocol getProtocol()
 	{
-		//return new SODEPProtocol();
-		return new SOAPProtocol();
+		return new SODEPProtocol();
+		//return new SOAPProtocol();
 	}
 	
 	public String value()

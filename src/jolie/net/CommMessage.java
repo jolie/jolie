@@ -35,13 +35,13 @@ public class CommMessage implements Iterable< Variable >
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;
-		values = new Vector< Variable >();
+		this.values = new Vector< Variable >();
 	}
 	
 	public CommMessage( String inputId, Vector< ? extends Variable > values )
 	{
 		this.inputId = inputId;
-		values = new Vector< Variable >();
+		this.values = new Vector< Variable >();
 		addAllValues( values );
 	}
 

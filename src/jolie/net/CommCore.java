@@ -97,8 +97,8 @@ public class CommCore
 	public static void init()
 		throws IOException
 	{
-		//SocketListener listener = new SocketListener( threadGroup, new SODEPProtocol() );
-		SocketListener listener = new SocketListener( threadGroup, new SOAPProtocol() );
+		SocketListener listener = new SocketListener( threadGroup, new SODEPProtocol() );
+		//SocketListener listener = new SocketListener( threadGroup, new SOAPProtocol() );
 		listener.start();
 	}
 

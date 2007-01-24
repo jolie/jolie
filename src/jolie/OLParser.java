@@ -322,7 +322,7 @@ public class OLParser extends AbstractParser
 			else
 				keepRun = false;
 		}
-		eat( Scanner.TokenType.LANGLE, "> expected" );
+		eat( Scanner.TokenType.RANGLE, "> expected" );
 
 		return vars;
 	}
@@ -350,10 +350,7 @@ public class OLParser extends AbstractParser
 			OutputOperation operation = OutputOperation.getById( id );
 						
 			getToken();
-			if ( token.type() != Scanner.TokenType.LANGLE )
-				throwException( "< expected" );
-			getToken();
-						
+					
 			Vector< Variable > outVars = parseOperationVariables();
 			
 			if ( token.type() == Scanner.TokenType.LANGLE ) { // Solicit Response

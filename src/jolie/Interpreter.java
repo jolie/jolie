@@ -73,6 +73,8 @@ public class Interpreter
 				throw new CommandLineException( getHelpString() );
 			else if ( "--version".equals( args[ i ] ) )
 				throw new CommandLineException( getVersionString() );
+			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) )
+				CommCore.setPort( Integer.parseInt( args[ ++i ] ) );
 			else if ( args[ i ].endsWith( ".ol" ) ) {
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
@@ -109,6 +111,8 @@ public class Interpreter
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
+		helpBuilder.append(
+				getOptionString( "-p, --port", "Change the input network port" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		helpBuilder.append( "\n\nNote: if the deploy file (.dol) is not specified, Jolie " +

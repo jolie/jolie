@@ -52,7 +52,7 @@ public class SolicitResponseProcess implements Process
 
 		try {
 			CommChannel channel = location.createCommChannel( operation.getProtocol() );
-			CommMessage message = new CommMessage( operation.value(), sendVars );
+			CommMessage message = new CommMessage( operation.boundOperationId(), sendVars );
 			channel.send( message );
 			message = channel.recv();
 			
