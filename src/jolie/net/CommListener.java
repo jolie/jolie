@@ -33,7 +33,7 @@ abstract public class CommListener extends Thread
 	
 	public CommListener( ThreadGroup threadGroup, CommProtocol protocol )
 	{
-		super( threadGroup, "CommListener-" + index );
+		super( threadGroup, "CommListener-" + index++ );
 		this.protocol = protocol;
 	}
 	
