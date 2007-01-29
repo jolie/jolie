@@ -65,6 +65,3 @@ See the COPYING file for the distribution license of the following content.
 <SROpListN>			::=	<SROp> <SROpListNSep> | epsilon
 <SROpListN>			::=	"," <SROp> <SROpListNSep> | epsilon
 
-
-
-ciao
