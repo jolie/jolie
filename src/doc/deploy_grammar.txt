@@ -1,0 +1,66 @@
+This file contains the formal grammar of the .dol (deploy) input files of JOLIE.
+See the AUTHORS file for information regarding the authors of the JOLIE project.
+See the COPYING file for the distribution license of the following content.
+
+// Tokens
+
+<id>			::=	[a-zA-Z][a-zA-Z0-9]*
+<int>			::=	-?[0-9]+
+<string>		::=	"[[:graph:]]*"
+
+---
+
+// Useful non terminals
+
+<IdListN>			::=	<id> <IdListNSep> | epsilon
+<IdListNSep>		::=	"," <id> <IdListNSep> | epsilon
+
+<IdStringListN>		::=	<IdStringPair> <IdStringListNSep> | epsilon
+<IdStringPairN>		::=	<id> "=" <string>
+<IdStringListNSep>	::=	"," <IdStringPair> <IdStringListNSep> | epsilon
+
+
+---
+
+// Start point:
+
+<Start>				::=	<BaseDeploy> <WSDL>
+
+<BaseDeploy>		::=	<Locations>
+<Locations>			::=	"locations" "{" <LocationsListN> "}" | epsilon
+<LocationsListN>	::=	<IdStringListN>
+
+<IdStringPair>		::=	<id> "=" <string>
+<IdStringListNSep>	::=	"," <IdStringPair> <IdStringListNSep> | epsilon
+
+<WSDL>				::=	<Operations> <InputPortTypes> <OutputPortTypes> <PartnerLinkType> <Binding> <Service>
+
+<Operations>		::=	"operations" "{" <OperationsListN> "}"
+<OperationsListN>	::=	<OWOpsListN> <RROpsListN> <NOpsListN> <SROpsListN> <OperationsListN>
+					|	epsilon
+
+<OWOpsListN>		::=	"OneWay" ":" <OpBindListN> | epsilon
+<RROpsListN>		::=	"RequestResponse" ":" <OpBindListN> | epsilon
+<NOpsListN>			::=	"Notification" ":" <OpBindListN> | epsilon
+<SROpsListN>		::=	"SolicitResponse" ":" <OpBindListN> | epsilon
+
+<OWOpsListN>		::=	"OneWay" ":" <OWOpListN> | epsilon
+<RROpsListN>		::=	"RequestResponse" ":" <RROpListN> | epsilon
+<NOpsListN>			::=	"Notification" ":" <NOpListN> | epsilon
+<SROpsListN>		::=	"SolicitResponse" ":" <SROpListN> | epsilon
+
+<OWOp>				::=	<id> "<" <VarTypeListN> ">" | epsilon
+<OWOpListN>			::=	<OWOp> <OWOpListNSep> | epsilon
+<OWOpListN>			::=	"," <OWOp> <OWOpListNSep> | epsilon
+
+<RROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" | epsilon
+<RROpListN>			::=	<RROp> <RROpListNSep> | epsilon
+<RROpListN>			::=	"," <RROp> <RROpListNSep> | epsilon
+
+<NOp>				::=	<id> "<" <VarTypeListN> ">" "=" <id> | epsilon
+<NOpListN>			::=	<NOp> <NOpListNSep> | epsilon
+<NOpListN>			::=	"," <NOp> <NOpListNSep> | epsilon
+
+<SROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" "=" <id> | epsilon
+<SROpListN>			::=	<SROp> <SROpListNSep> | epsilon
+<SROpListN>			::=	"," <SROp> <SROpListNSep> | epsilon

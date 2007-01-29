@@ -73,9 +73,15 @@ public class Interpreter
 				throw new CommandLineException( getHelpString() );
 			else if ( "--version".equals( args[ i ] ) )
 				throw new CommandLineException( getVersionString() );
-			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) )
-				CommCore.setPort( Integer.parseInt( args[ ++i ] ) );
-			else if ( args[ i ].endsWith( ".ol" ) ) {
+			/*else if ( "--to-wsdl".equals( args[ i ] ) )
+			 * We have to handle the wsdl exporter here. --export-wsdl perhaps?
+			 */
+			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) ) {
+				if ( ++i < args.length )
+					CommCore.setPort( Integer.parseInt( args[ i ] ) );
+				else
+					throw new CommandLineException( "You must specify a valid network port." );
+			} else if ( args[ i ].endsWith( ".ol" ) ) {
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
 				else
