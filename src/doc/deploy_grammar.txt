@@ -53,15 +53,5 @@ See the COPYING file for the distribution license of the following content.
 <OWOpListN>			::=	<OWOp> <OWOpListNSep> | epsilon
 <OWOpListN>			::=	"," <OWOp> <OWOpListNSep> | epsilon
 
-<RROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" | epsilon
-<RROpListN>			::=	<RROp> <RROpListNSep> | epsilon
-<RROpListN>			::=	"," <RROp> <RROpListNSep> | epsilon
 
-<NOp>				::=	<id> "<" <VarTypeListN> ">" "=" <id> | epsilon
-<NOpListN>			::=	<NOp> <NOpListNSep> | epsilon
-<NOpListN>			::=	"," <NOp> <NOpListNSep> | epsilon
-
-<SROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" "=" <id> | epsilon
-<SROpListN>			::=	<SROp> <SROpListNSep> | epsilon
-<SROpListN>			::=	"," <SROp> <SROpListNSep> | epsilon
 
