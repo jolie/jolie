@@ -22,7 +22,9 @@
 
 package jolie.net;
 
-
+/** Base class for a communication input listener.
+ * @author Fabrizio Montesi
+ */
 abstract public class CommListener extends Thread
 {
 	private static int index = 0;
