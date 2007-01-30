@@ -22,6 +22,8 @@
 
 package jolie;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import jolie.net.CommMessage;
@@ -35,6 +37,9 @@ import jolie.process.Process;
  */
 public class InternalLink extends AbstractMappedGlobalObject implements InputHandler
 {
+	private static HashMap< String, InternalLink > idMap = 
+		new HashMap< String, InternalLink >();
+	
 	private LinkedList< InputProcess > procsList;
 	private LinkedList< Process > outList;
 	
@@ -110,9 +115,20 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	public static InternalLink getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
-		if ( !( obj instanceof InternalLink ) )
+		InternalLink retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (InternalLink)obj;
+
+		return retVal;
+	}
+	
+	public final void register()
+	{
+		idMap.put( id(), this );
+	}
+	
+	public static Collection< InternalLink > getAll()
+	{
+		return idMap.values();
 	}
 }

@@ -23,6 +23,8 @@ package jolie.process;
 
 import java.util.Vector;
 
+import org.w3c.dom.Node;
+
 public class SequentialProcess implements Process, Optimizable
 {
 	private Vector< Process > children;
@@ -60,5 +62,10 @@ public class SequentialProcess implements Process, Optimizable
 				children.set( i, ((Optimizable)proc).optimize() );
 		}
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

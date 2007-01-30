@@ -22,6 +22,9 @@
 
 package jolie;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 import jolie.net.CommProtocol;
 import jolie.net.SODEPProtocol;
 
@@ -33,6 +36,9 @@ import jolie.net.SODEPProtocol;
 
 abstract public class Operation extends AbstractMappedGlobalObject
 {
+	private static HashMap< String, Operation > idMap = 
+		new HashMap< String, Operation >();
+	
 	public Operation( String id )
 	{
 		super( id );
@@ -52,9 +58,20 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	public static Operation getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
-		if ( !( obj instanceof Operation ) )
+		Operation retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (Operation)obj;
+
+		return retVal;
+	}
+	
+	public final void register()
+	{
+		idMap.put( id(), this );
+	}
+	
+	public static Collection< Operation > getAll()
+	{
+		return idMap.values();
 	}
 }

@@ -21,6 +21,8 @@
 
 package jolie.process;
 
+import org.w3c.dom.Node;
+
 public class NullProcess implements Process
 {
 	private NullProcess(){}
@@ -36,4 +38,9 @@ public class NullProcess implements Process
 	
 	public void run()
 	{}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
+	}
 }

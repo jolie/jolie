@@ -23,6 +23,8 @@ package jolie.process;
 
 import java.util.Vector;
 
+import org.w3c.dom.Node;
+
 class ParallelThread extends Thread
 {
 	Process process;
@@ -99,5 +101,10 @@ public class ParallelProcess implements Process, Optimizable
 				children.set( i, ((Optimizable)proc).optimize() );
 		}
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

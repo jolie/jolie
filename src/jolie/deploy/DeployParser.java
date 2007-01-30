@@ -77,7 +77,7 @@ public class DeployParser extends AbstractParser
 			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
-		
+
 		if ( checkedLocations != GlobalLocation.getAll().size() )
 			throwException( "locations deployment block is not complete" ); 
 	}

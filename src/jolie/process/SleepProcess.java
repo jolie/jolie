@@ -25,6 +25,8 @@ import jolie.Expression;
 import jolie.InputHandler;
 import jolie.net.CommMessage;
 
+import org.w3c.dom.Node;
+
 class SleepInputHandler extends Thread implements InputHandler
 {
 	private InputProcess inputProcess;
@@ -99,5 +101,10 @@ public class SleepProcess implements InputProcess
 	public boolean recvMessage( CommMessage message )
 	{
 		return true;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

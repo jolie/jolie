@@ -51,7 +51,7 @@ public class OutputOperation extends Operation
 	public static OutputOperation getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
+		Operation obj = Operation.getById( id );
 		if ( !( obj instanceof OutputOperation ) )
 			throw new InvalidIdException( id );
 		return (OutputOperation)obj;

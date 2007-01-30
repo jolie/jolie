@@ -22,8 +22,8 @@
 
 package jolie;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * @author Fabrizio Montesi
@@ -40,7 +40,6 @@ public class GlobalLocation extends Location implements MappedGlobalObject
 	public GlobalLocation( String id )
 	{
 		this.id = id;
-		//this.value = value;
 	}
 	
 	public void setValue( String value )
@@ -61,20 +60,20 @@ public class GlobalLocation extends Location implements MappedGlobalObject
 	public static GlobalLocation getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
-		if ( !( obj instanceof GlobalLocation ) )
+		GlobalLocation loc = idMap.get( id );
+		if ( loc == null )
 			throw new InvalidIdException( id );
-		return (GlobalLocation)obj;
+
+		return loc;
 	}
 	
 	public final void register()
-	{// todo - what if the id is already registered?
+	{
 		idMap.put( id, this );
-		Interpreter.registerObject( id, this );
 	}
 	
-	public static Iterator< GlobalLocation > iterator()
+	public static Collection< GlobalLocation > getAll()
 	{
-		return idMap.values().iterator();
+		return idMap.values();
 	}
 }

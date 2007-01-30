@@ -28,6 +28,8 @@ import jolie.InputOperation;
 import jolie.Variable;
 import jolie.net.CommMessage;
 
+import org.w3c.dom.Node;
+
 public class OneWayProcess implements InputProcess
 {
 	private InputOperation operation;
@@ -70,5 +72,10 @@ public class OneWayProcess implements InputProcess
 			return false;
 
 		return true;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

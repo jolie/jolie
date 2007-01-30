@@ -25,6 +25,8 @@ import jolie.Expression;
 import jolie.GlobalVariable;
 import jolie.InvalidIdException;
 
+import org.w3c.dom.Node;
+
 /** Assigns an expression value to a Variable.
  * @author Fabrizio Montesi
  */
@@ -50,5 +52,10 @@ public class AssignmentProcess implements Process
 	public void run()
 	{
 		var.assignValue( expression.evaluate() );
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

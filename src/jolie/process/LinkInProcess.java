@@ -26,6 +26,8 @@ import jolie.InternalLink;
 import jolie.InvalidIdException;
 import jolie.net.CommMessage;
 
+import org.w3c.dom.Node;
+
 public class LinkInProcess implements InputProcess
 {
 	private InternalLink link;
@@ -52,5 +54,10 @@ public class LinkInProcess implements InputProcess
 	public void run()
 	{
 		link.linkIn( this );
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

@@ -26,10 +26,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 
 import jolie.deploy.DeployParser;
 import jolie.net.CommCore;
+import jolie.process.DefinitionProcess;
 import jolie.process.Optimizable;
 import jolie.process.Process;
 
@@ -39,14 +39,11 @@ import jolie.process.Process;
  */
 public class Interpreter
 {
-	private static HashMap< String, MappedGlobalObject > idMap = 
-		new HashMap< String, MappedGlobalObject >();
-
 	private OLParser olparser;
 	private DeployParser dolparser;
 	
-	private static final String VERSION = "Jolie 0.3 beta1";
-	private static final String COPYRIGHT = "(C) 2006-2007 the Jolie team";
+	private static final String VERSION = "JOLIE 0.3 beta1";
+	private static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
 	
 	private static final long serialVersionUID = 1L;
 
@@ -173,19 +170,5 @@ public class Interpreter
 		} */finally {
 			CommCore.shutdown();
 		}
-	}
-	
-	public synchronized static boolean registerObject( String id, MappedGlobalObject obj )
-	{
-		if ( idMap.containsKey( id ) )
-			return false;
-		
-		idMap.put( id, obj );
-		return true;
-	}
-	
-	public synchronized static MappedGlobalObject getObjectById( String id )
-	{
-		return idMap.get( id );
 	}
 }

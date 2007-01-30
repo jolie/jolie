@@ -21,11 +21,11 @@
 
 package jolie.process;
 
+import java.io.BufferedReader;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.BufferedReader;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 
@@ -33,6 +33,8 @@ import jolie.GlobalVariable;
 import jolie.InputHandler;
 import jolie.InvalidIdException;
 import jolie.net.CommMessage;
+
+import org.w3c.dom.Node;
 
 class InInputHandler extends Thread implements InputHandler
 {
@@ -144,5 +146,10 @@ public class InProcess implements InputProcess
 	public boolean recvMessage( CommMessage message )
 	{
 		return true;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

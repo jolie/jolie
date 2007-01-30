@@ -22,12 +22,19 @@
 
 package jolie.process;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 import jolie.AbstractMappedGlobalObject;
-import jolie.Interpreter;
 import jolie.InvalidIdException;
+
+import org.w3c.dom.Node;
 
 public class DefinitionProcess extends AbstractMappedGlobalObject implements Process, Optimizable
 {
+	private static HashMap< String, DefinitionProcess > idMap = 
+		new HashMap< String, DefinitionProcess >();
+	
 	private Process process;
 
 	public DefinitionProcess( String id, Process process )
@@ -50,10 +57,21 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 	public static DefinitionProcess getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
-		if ( !( obj instanceof DefinitionProcess ) )
+		DefinitionProcess retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (DefinitionProcess) obj;
+
+		return retVal;
+	}
+	
+	public final void register()
+	{
+		idMap.put( id(), this );
+	}
+	
+	public static Collection< DefinitionProcess > getAll()
+	{
+		return idMap.values();
 	}
 	
 	public Process optimize()
@@ -62,5 +80,10 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 			return ((Optimizable)process).optimize();
 		
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

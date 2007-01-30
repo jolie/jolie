@@ -22,8 +22,14 @@
 
 package jolie;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 public class GlobalVariable extends Variable implements MappedGlobalObject
 {
+	private static HashMap< String, GlobalVariable > idMap = 
+		new HashMap< String, GlobalVariable >();
+	
 	private String id;
 
 	public GlobalVariable( String id )
@@ -40,14 +46,20 @@ public class GlobalVariable extends Variable implements MappedGlobalObject
 	public static GlobalVariable getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
-		if ( !( obj instanceof GlobalVariable ) )
+		GlobalVariable retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (GlobalVariable)obj;
+
+		return retVal;
 	}
 	
 	public final void register()
-	{// todo - what if the id is already registered?
-		Interpreter.registerObject( id, this );
+	{
+		idMap.put( id, this );
+	}
+	
+	public static Collection< GlobalVariable > getAll()
+	{
+		return idMap.values();
 	}
 }

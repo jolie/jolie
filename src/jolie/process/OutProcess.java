@@ -24,6 +24,8 @@ package jolie.process;
 import jolie.Expression;
 import jolie.Variable;
 
+import org.w3c.dom.Node;
+
 public class OutProcess implements Process
 {
 	private Expression expression;
@@ -40,5 +42,10 @@ public class OutProcess implements Process
 			System.out.print( var.strValue() );
 		else
 			System.out.print( "undefined" );
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

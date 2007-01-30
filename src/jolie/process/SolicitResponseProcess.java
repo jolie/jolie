@@ -31,6 +31,8 @@ import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 
+import org.w3c.dom.Node;
+
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
@@ -80,5 +82,10 @@ public class SolicitResponseProcess implements Process
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		}
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

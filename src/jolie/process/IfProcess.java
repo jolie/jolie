@@ -25,6 +25,8 @@ import java.util.Vector;
 
 import jolie.Condition;
 
+import org.w3c.dom.Node;
+
 
 public class IfProcess implements Process, Optimizable
 {
@@ -104,5 +106,10 @@ public class IfProcess implements Process, Optimizable
 			elseProcess = ((Optimizable)elseProcess).optimize();
 			
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
+import jolie.process.DefinitionProcess;
 import jolie.process.IfProcess;
 import jolie.process.InProcess;
 import jolie.process.InputProcess;

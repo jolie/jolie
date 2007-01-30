@@ -26,6 +26,8 @@ import java.util.HashMap;
 import jolie.InputHandler;
 import jolie.net.CommMessage;
 
+import org.w3c.dom.Node;
+
 /** Implements a non-deterministic choice.
  * An NDChoiceProcess instance collects pairs which couple an 
  * InputProcess object with a Process object.
@@ -145,5 +147,10 @@ public class NDChoiceProcess implements InputProcess, Optimizable
 			cp.optimize();
 
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

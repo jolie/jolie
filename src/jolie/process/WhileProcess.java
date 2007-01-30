@@ -23,6 +23,8 @@ package jolie.process;
 
 import jolie.Condition;
 
+import org.w3c.dom.Node;
+
 public class WhileProcess implements Process, Optimizable
 {
 	private Condition condition;
@@ -46,5 +48,10 @@ public class WhileProcess implements Process, Optimizable
 			process = ((Optimizable)process).optimize();
 
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

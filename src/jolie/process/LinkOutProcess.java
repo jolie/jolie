@@ -24,6 +24,8 @@ package jolie.process;
 import jolie.InternalLink;
 import jolie.InvalidIdException;
 
+import org.w3c.dom.Node;
+
 
 public class LinkOutProcess implements Process
 {
@@ -40,5 +42,10 @@ public class LinkOutProcess implements Process
 	public void run()
 	{
 		link.linkOut( this );
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

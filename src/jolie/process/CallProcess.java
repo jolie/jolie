@@ -20,8 +20,9 @@
  ***************************************************************************/
 
 package jolie.process;
-import jolie.DefinitionProcess;
 import jolie.InvalidIdException;
+
+import org.w3c.dom.Node;
 
 
 /** Makes a Definition object (a sub-routine) executing its content. 
@@ -57,5 +58,10 @@ public class CallProcess implements Process, Optimizable
 	public Process optimize()
 	{
 		return definition.optimize();
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

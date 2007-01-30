@@ -21,8 +21,8 @@
 
 package jolie.process;
 
-import java.util.Vector;
 import java.io.IOException;
+import java.util.Vector;
 
 import jolie.InputHandler;
 import jolie.InputOperation;
@@ -30,6 +30,8 @@ import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
+
+import org.w3c.dom.Node;
 
 public class RequestResponseProcess implements InputProcess, Optimizable
 {
@@ -99,5 +101,10 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 			((Optimizable)process).optimize();
 
 		return this;
+	}
+	
+	public void translateToBPEL( Node parentNode )
+	{
+		
 	}
 }

@@ -51,7 +51,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public static InputOperation getById( String id )
 		throws InvalidIdException
 	{
-		Object obj = Interpreter.getObjectById( id );
+		Operation obj = Operation.getById( id );
 		if ( !( obj instanceof InputOperation ) )
 			throw new InvalidIdException( id );
 		return (InputOperation)obj;
