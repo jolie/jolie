@@ -20,18 +20,18 @@
  ***************************************************************************/
 
 package jolie.process;
-import jolie.Definition;
+import jolie.DefinitionProcess;
 import jolie.InvalidIdException;
 
 
 /** Makes a Definition object (a sub-routine) executing its content. 
  * 
- * @see Definition
+ * @see DefinitionProcess
  * @author Fabrizio Montesi
  */
 public class CallProcess implements Process, Optimizable
 {
-	private Definition definition;
+	private DefinitionProcess definition;
 	
 	/** Constructor
 	 * 
@@ -41,7 +41,7 @@ public class CallProcess implements Process, Optimizable
 	public CallProcess( String defId )
 		throws InvalidIdException
 	{
-		Definition def = Definition.getById( defId );
+		DefinitionProcess def = DefinitionProcess.getById( defId );
 		if ( def == null )
 			throw new InvalidIdException( defId );
 		

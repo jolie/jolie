@@ -73,17 +73,17 @@ class SocketListener extends CommListener
 public class CommCore
 {
 	private static int port = 2555;
-	
+
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
-	
+
 	private CommCore(){}
-	
+
 	/** Sets the TCP/IP port to listen for incoming network messages. */
 	public static void setPort( int commPort )
 	{
 		port = commPort;
 	}
-	
+
 	/** Returns the TCP/IP port the CommCore is listening to.
 	 * 
 	 * @return the TCP/IP port the CommCore is listening to.

@@ -52,6 +52,7 @@ public class Interpreter
 
 	public static final long serialVersionUID()
 	{
+		/* Future use, for the bytecode compiling. */
 		return serialVersionUID;
 	}
 	
@@ -158,7 +159,7 @@ public class Interpreter
 		dolparser = null;
 
 		try {
-			Process main = Definition.getById( "main" );
+			Process main = DefinitionProcess.getById( "main" );
 			main = ((Optimizable)main).optimize();
 			main.run();
 		} catch ( InvalidIdException e ) {

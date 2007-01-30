@@ -593,7 +593,7 @@ public class OLParser extends AbstractParser
 		if ( token.type() != Scanner.TokenType.ID )
 			throwException( "define id expected" );
 		id = token.content();
-		
+
 		getToken();
 		if ( token.type() != Scanner.TokenType.LCURLY )
 			throwException( "{ expected" );
@@ -603,7 +603,7 @@ public class OLParser extends AbstractParser
 		 	In order to allow recursion, we register the definition before
 		 	reading the contained process.
 		*/
-		Definition def = new Definition( id, null );
+		DefinitionProcess def = new DefinitionProcess( id, null );
 		def.register();
 		def.setProcess( parseProcess() );
 		
@@ -620,7 +620,7 @@ public class OLParser extends AbstractParser
 			throwException( "{ expected" );
 
 		getToken();
-		Definition def = new Definition( "main", null );
+		DefinitionProcess def = new DefinitionProcess( "main", null );
 		def.register();
 		def.setProcess( parseProcess() );
 		

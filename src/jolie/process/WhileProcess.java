@@ -27,7 +27,7 @@ public class WhileProcess implements Process, Optimizable
 {
 	private Condition condition;
 	private Process process;
-	
+
 	public WhileProcess( Condition condition, Process process )
 	{
 		this.condition = condition;

@@ -22,8 +22,8 @@
 
 package jolie;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * @author Fabrizio Montesi
@@ -73,8 +73,8 @@ public class GlobalLocation extends Location implements MappedGlobalObject
 		Interpreter.registerObject( id, this );
 	}
 	
-	public static Collection< GlobalLocation > getAll()
+	public static Iterator< GlobalLocation > iterator()
 	{
-		return idMap.values();
+		return idMap.values().iterator();
 	}
 }

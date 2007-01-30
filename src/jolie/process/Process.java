@@ -21,8 +21,11 @@
 
 package jolie.process;
 
+import org.w3c.dom.Node;
+
 public interface Process
 {
 	public void run();
 		//throws JolieException;
+	public void translateToBPEL( Node parentNode );
 }
