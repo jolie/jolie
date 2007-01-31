@@ -26,12 +26,23 @@ See the COPYING file for the distribution license of the following content.
 
 <Start>				::=	<BaseDeploy> <WSDL>
 
-<BaseDeploy>		::=	<Locations>
+// Base Deploy:
+
+<BaseDeploy>		::=	<State><Execution><CorrSet><Locations> 
+
+<State>				::= "state" "{" <StateFlag> "}"
+<StateFlag>			::= "persistent" | "not-persistent"
+
+<Execution>				::= "execution" "{" <ExecutionFlag> "}"
+<ExecutionFlag>			::= "concurrent" | "sequential"
+
+<CorrSet>				::= "csets" "{" <IdListN> "}"
+
 <Locations>			::=	"locations" "{" <LocationsListN> "}" | epsilon
 <LocationsListN>	::=	<IdStringListN>
 
-<IdStringPair>		::=	<id> "=" <string>
-<IdStringListNSep>	::=	"," <IdStringPair> <IdStringListNSep> | epsilon
+
+// WSDL:
 
 <WSDL>				::=	<Operations> <InputPortTypes> <OutputPortTypes> <PartnerLinkType> <Binding> <Service>
 
@@ -39,18 +50,34 @@ See the COPYING file for the distribution license of the following content.
 <OperationsListN>	::=	<OWOpsListN> <RROpsListN> <NOpsListN> <SROpsListN> <OperationsListN>
 					|	epsilon
 
-<OWOpsListN>		::=	"OneWay" ":" <OpBindListN> | epsilon
-<RROpsListN>		::=	"RequestResponse" ":" <OpBindListN> | epsilon
-<NOpsListN>			::=	"Notification" ":" <OpBindListN> | epsilon
-<SROpsListN>		::=	"SolicitResponse" ":" <OpBindListN> | epsilon
-
-<OWOpsListN>		::=	"OneWay" ":" <OWOpListN> | epsilon
-<RROpsListN>		::=	"RequestResponse" ":" <RROpListN> | epsilon
-<NOpsListN>			::=	"Notification" ":" <NOpListN> | epsilon
-<SROpsListN>		::=	"SolicitResponse" ":" <SROpListN> | epsilon
-
-<OWOp>				::=	<id> "<" <VarTypeListN> ">" | epsilon
-<OWOpListN>			::=	<OWOp> <OWOpListNSep> | epsilon
-<OWOpListN>			::=	"," <OWOp> <OWOpListNSep> | epsilon
+<OWOpsListN>		::=	"OneWay" ":" <OWOpBindListN> | epsilon
+<RROpsListN>		::=	"RequestResponse" ":" <RROpBindListN> | epsilon
+<NOpsListN>			::=	"Notification" ":" <NOpBindListN> | epsilon
+<SROpsListN>		::=	"SolicitResponse" ":" <SROpBindListN> | epsilon
 
 
+<OWOpBindListN>		::= <OWopBind><OWOpBindListN> | epsilon
+<OWOpBind>			::= <id> "=" <id> "<" <IdListN> ">"
+
+<NOpBindListN> 		::= <OWOpBindListN>
+
+<RROpBindListN>		::= <RRopBind><RROpBindListN> | epsilon
+<RROpBind>			::= <id> "=" <id> "<" <IdListN> ">" "<" <IdListN> ">"
+
+<SROpBindListN>		::= <RROpBindListN>	
+
+<InputPortTypes>	::= "inputPortTypes" "{" <PortListN> "}"
+<PortListN>			::= <Port><PortListN> | epsilon
+<Port>				::= <id> ":" <idListN>
+
+<OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
+
+<PartnerLinkType> 	::= "inputPortTypes" "{" <PltListN> "}"
+<PltListN>			::= <Plt><PltListN> | epsilon
+<Plt>				::= <id> ":" <id> "," <id>
+
+<Binding>       	::= "binding" "{" <BindListN> "}"
+<BindListN>			::= <Bind><BindListN> | epsilon
+<Bind>				::= <id> ":" <id>
+
+<Service>       	::= "service" "{" <string> "}"
