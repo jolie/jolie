@@ -617,17 +617,13 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
-		if ( token.type() != Scanner.TokenType.LCURLY )
-			throwException( "{ expected" );
-
-		getToken();
+		eat( Scanner.TokenType.LCURLY, "{ expected" );
+		
 		DefinitionProcess def = new DefinitionProcess( "main", null );
 		def.register();
 		def.setProcess( parseProcess() );
 		
-		if ( token.type() != Scanner.TokenType.RCURLY )
-			throwException( "} expected" );
-		getToken();
+		eat( Scanner.TokenType.RCURLY, "} expected" );
 	}
 	
 	private void parseLocations()

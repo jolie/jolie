@@ -47,12 +47,4 @@ abstract public class AbstractMappedGlobalObject implements MappedGlobalObject
 	{
 		return id;
 	}
-
-	/**
-	 * Registers the global object in the global map.
-	 */
-	/*public final void register()
-	{// todo - what if the id is already registered?
-		Interpreter.registerObject( id, this );
-	}*/
 }

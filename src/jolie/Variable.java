@@ -68,17 +68,17 @@ abstract public class Variable implements Expression
 		this.strValue = value;
 	}
 	
-	public boolean isInt()
+	public final boolean isInt()
 	{
 		return ( type == Type.INT );
 	}
 	
-	public boolean isString()
+	public final boolean isString()
 	{
 		return ( type == Type.STRING );
 	}
 	
-	public boolean isDefined()
+	public final boolean isDefined()
 	{
 		return ( type != Type.UNDEFINED );
 	}
@@ -89,14 +89,14 @@ abstract public class Variable implements Expression
 		this.intValue = value;
 	}
 
-	public synchronized String strValue()
+	public final synchronized String strValue()
 	{
 		if ( type == Type.INT )
 			return Integer.toString( intValue );
 		return strValue;
 	}
 	
-	public synchronized int intValue()
+	public final synchronized int intValue()
 	{
 		if ( type == Type.STRING ) {
 			try {
@@ -109,7 +109,7 @@ abstract public class Variable implements Expression
 		return intValue;
 	}
 	
-	public synchronized void assignValue( Variable var )
+	public final synchronized void assignValue( Variable var )
 	{
 		if ( var.isInt() )
 			setIntValue( var.intValue() );
@@ -117,17 +117,17 @@ abstract public class Variable implements Expression
 			setStrValue( var.strValue() );
 	}
 	
-	public Type type()
+	public final Type type()
 	{
 		return type;
 	}
 	
-	public Variable evaluate()
+	public final Variable evaluate()
 	{
 		return this;
 	}
 	
-	public synchronized void add( Variable var )
+	public final synchronized void add( Variable var )
 	{
 		if ( !isDefined() )
 			assignValue( var );
@@ -139,7 +139,7 @@ abstract public class Variable implements Expression
 		}
 	}
 	
-	public synchronized void subtract( Variable var )
+	public final synchronized void subtract( Variable var )
 	{
 		if ( !isDefined() )
 			assignValue( var );
@@ -149,7 +149,7 @@ abstract public class Variable implements Expression
 		}
 	}
 	
-	public synchronized void multiply( Variable var )
+	public final synchronized void multiply( Variable var )
 	{
 		if ( !isDefined() )
 			assignValue( var );
@@ -159,7 +159,7 @@ abstract public class Variable implements Expression
 		}
 	}
 	
-	public synchronized void divide( Variable var )
+	public final synchronized void divide( Variable var )
 	{
 		if ( !isDefined() )
 			assignValue( var );

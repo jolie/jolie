@@ -30,8 +30,6 @@ import java.io.InputStream;
 import jolie.deploy.DeployParser;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
-import jolie.process.Optimizable;
-import jolie.process.Process;
 
 /**
  * The Jolie interpreter engine.
@@ -39,6 +37,14 @@ import jolie.process.Process;
  */
 public class Interpreter
 {
+	private enum InterpreterTask {
+		CodeExecution,
+		ExportBPEL,
+		ExportWSDL
+	}
+	
+	private InterpreterTask task;
+
 	private OLParser olparser;
 	private DeployParser dolparser;
 	
@@ -74,6 +80,10 @@ public class Interpreter
 			/*else if ( "--to-wsdl".equals( args[ i ] ) )
 			 * We have to handle the wsdl exporter here. --export-wsdl perhaps?
 			 */
+			else if ( "--export-bpel".equals( args[ i ] ) )
+				task = InterpreterTask.ExportBPEL;
+			else if ( "--export-wsdl".equals( args[ i ] ) )
+				task = InterpreterTask.ExportWSDL;
 			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) ) {
 				if ( ++i < args.length )
 					CommCore.setPort( Integer.parseInt( args[ i ] ) );
@@ -135,30 +145,65 @@ public class Interpreter
 		return( VERSION + "  " + COPYRIGHT );
 	}
 	
+	private void parse()
+		throws IOException, ParserException
+	{
+		// This method can be called once.
+		assert olparser != null || dolparser != null :
+			"Internal error: parse() method called for the second time.";
+
+		/*	Order is important:
+		 *  DeployParser needs the internal objects created by OLParser.
+		 */
+		olparser.parse();
+		dolparser.parse();
+
+		// Free the memory allocated by the parsers.
+		olparser = null;
+		dolparser = null;
+	}
+	
 	/**
-	 * Parses and executes the code contained in the input files.
+	 * Runs the interpreter behaviour specified by command line.
+	 * The default behaviour is to execute the input code.
 	 * @throws IOException If a Parser propagates a Scanner exception.
 	 * @throws ParserException If a Parser finds a syntax error.
 	 */
 	public void run()
 		throws IOException, ParserException
 	{
+		if ( task == InterpreterTask.ExportBPEL )
+			exportBPEL();
+		else if ( task == InterpreterTask.ExportWSDL )
+			exportWSDL();
+		else
+			executeCode();
+	}
+	
+	private void exportBPEL()
+		throws IOException, ParserException
+	{
+		parse();
+	}
+	
+	private void exportWSDL()
+		throws IOException, ParserException
+	{
+		parse();
+	}
+	
+	private void executeCode()
+		throws IOException, ParserException
+	{
 		/*	Order is important:
-		 *  DeployParser needs the internal objects created by OLParser.
-		 *	CommCore.init() needs the internal objects created by both parsers.
+		 *	CommCore.init() needs the internal objects created by the parsers.
 		 */
-		olparser.parse();
-		dolparser.parse();
+		parse();
 		CommCore.init();
 
-		// Free the memory allocated by the parsers.
-		olparser = null;
-		dolparser = null;
-
 		try {
-			Process main = DefinitionProcess.getById( "main" );
-			main = ((Optimizable)main).optimize();
-			main.run();
+			DefinitionProcess main = DefinitionProcess.getById( "main" );
+			main.optimize().run();
 		} catch ( InvalidIdException e ) {
 			// As the parser checks this for us, execution should never reach this point.
 			assert false;

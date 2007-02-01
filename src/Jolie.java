@@ -35,7 +35,7 @@ import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.ParserException;
 
-/** Starter class of the interpreter.
+/** Starter class of the Interpreter.
  * @author Fabrizio Montesi
  */
 public class Jolie
