@@ -36,7 +36,7 @@ See the COPYING file for the distribution license of the following content.
 <Execution>				::= "execution" "{" <ExecutionFlag> "}"
 <ExecutionFlag>			::= "concurrent" | "sequential"
 
-<CorrSet>				::= "csets" "{" <IdListN> "}"
+<CorrSet>				::= "cset" "{" <IdListN> "}"
 
 <Locations>			::=	"locations" "{" <LocationsListN> "}" | epsilon
 <LocationsListN>	::=	<IdStringListN>
