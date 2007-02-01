@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import jolie.net.CommProtocol;
-import jolie.net.SODEPProtocol;
+import jolie.net.SOAPProtocol;
 
 /** Generic operation declaration
  * 
@@ -46,8 +46,8 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	
 	public CommProtocol getProtocol()
 	{
-		return new SODEPProtocol();
-		//return new SOAPProtocol();
+		//return new SODEPProtocol();
+		return new SOAPProtocol();
 	}
 	
 	public String value()
