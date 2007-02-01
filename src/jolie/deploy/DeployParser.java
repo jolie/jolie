@@ -45,17 +45,17 @@ public class DeployParser extends AbstractParser
 	{
 		getToken();
 		parseState();
-		parseExecution();
-		parseCorrSet();
+		/*parseExecution();
+		parseCorrSet();*/
 		parseLocations();
-		parseWSDL();
+		//parseWSDL();
 	}
 	
 	private void parseState() 
 		throws IOException, ParserException
 	
 	{
-		if (token.isA(Scanner.))
+		//if (token.isA(Scanner.))
 	}
 	
 	private void parseLocations()
