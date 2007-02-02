@@ -136,6 +136,7 @@ public class SOAPProtocol implements CommProtocol
 		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
 		writer.write( messageString );
 		writer.flush();
+		//System.out.println( messageString );
 	}
 	
 	public CommMessage recv( InputStream istream )
