@@ -91,14 +91,11 @@ public class SOAPProtocol implements CommProtocol
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
+		if ( uri == null )
+			throw new IOException( "Error: URI information missing in SOAP protocol" );
 		if ( wsdlInfo == null )
 			throw new IOException( "Error: WSDL information missing in SOAP protocol" );
 
-		if ( uri == null ) { // It's a response message!
-			try {
-				uri = new URI( "localhost/response" );
-			} catch( URISyntaxException ue ) {}
-		}
 		String soapString = new String();
 		String messageString = new String();
 		messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
@@ -111,7 +108,7 @@ public class SOAPProtocol implements CommProtocol
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
 
-			Name operationName = soapEnvelope.createName( message.inputId(), "m", "http://jolie.sf.net/wsdlfile.xml" );
+			Name operationName = soapEnvelope.createName( message.inputId(), "m", "jolieSOAP" );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 
 			SOAPElement varElement;
@@ -225,6 +222,9 @@ public class SOAPProtocol implements CommProtocol
 				list.set( j, tempVar );
 			}
 			message.addAllValues( list );
+			
+			this.wsdlInfo = operation.wsdlInfo();
+			this.uri = new URI( "localhost/response" );
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {
@@ -233,8 +233,10 @@ public class SOAPProtocol implements CommProtocol
 			throw new IOException( saxe );
 		} catch( InvalidIdException iie ) {
 			throw new IOException( "Received invalid operation name: " + iie.getMessage() );
+		} catch( URISyntaxException ue ) {
+			throw new IOException( ue );
 		}
-
+		
 		return message;
 	}
 }
