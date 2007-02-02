@@ -30,7 +30,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,11 +44,16 @@ import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPBodyElement;
+import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
+import jolie.InvalidIdException;
+import jolie.Location;
+import jolie.Operation;
 import jolie.TempVariable;
 import jolie.Variable;
 
@@ -53,27 +63,49 @@ import org.xml.sax.SAXException;
 
 public class SOAPProtocol implements CommProtocol
 {
+	private URL url;
+	private Operation op;
+
+	public SOAPProtocol()
+	{
+		url = null;
+		op = null;
+	}
+	
+	public SOAPProtocol( Location location, Operation op )
+		throws MalformedURLException
+	{
+		url = new URL( location.value() );
+		this.op = op;
+	}
+
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
+		if ( op == null )
+			return;
 		String soapString = new String();
 		String messageString = new String();
-		messageString += "POST /Jolie HTTP/1.1\n";
-		messageString += "Host: Jolie\n";
-		messageString += "Content-type: application/soap+xml; charset=utf-8\n";
+		messageString += "POST " + url.getPath() + " HTTP/1.1\n";
+		messageString += "Host: " + url.getHost() + '\n';
+		messageString += "Content-type: application/soap+xml; charset=\"utf-8\"\n";
 		
 		try {
-			MessageFactory messageFactory = MessageFactory.newInstance();
+			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL );
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			
-			Name operationName = soapEnvelope.createName( "operation" );
-			soapBody.addBodyElement( operationName ).addTextNode( message.inputId() );
-			
+
+			Name operationName = soapEnvelope.createName( message.inputId(), "m", "http://jolie.sf.net/wsdlfile.xml" );
+			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+
+			SOAPElement varElement;
+			int i = 0;
+			//Operation op = Operation.getById( message.inputId() );
+			Vector< String > varNames = op.wsdlInfo().outVarNames();
 			for( Variable var : message ) {
-				Name varName = soapEnvelope.createName( var.id() );
-				soapBody.addBodyElement( varName ).addTextNode( var.strValue() );
+				varElement = opBody.addChildElement( varNames.elementAt( i++ ) );
+				varElement.addTextNode( var.strValue() );
 			}
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
@@ -81,7 +113,9 @@ public class SOAPProtocol implements CommProtocol
 			soapString = new String( tmpStream.toByteArray() );
 		} catch( SOAPException se ) {
 			throw new IOException( se );
-		}
+		}/* catch( InvalidIdException ie ) {
+			throw new IOException( ie );
+		}*/
 		
 		messageString += "Content-Length: " + soapString.length() + '\n';
 		messageString += soapString;
@@ -94,74 +128,83 @@ public class SOAPProtocol implements CommProtocol
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		int length;
 		HTTPScanner.Token token;
 		HTTPScanner scanner = new HTTPScanner( istream, "network" );
 		
 		token = scanner.getToken();
-		while( token.type() != HTTPScanner.TokenType.ERROR &&
-				token.type() != HTTPScanner.TokenType.EOF && 
-				token.type() != HTTPScanner.TokenType.CONTENTLENGTH )
+		while( !token.isA( HTTPScanner.TokenType.ERROR ) &&
+				!token.isA( HTTPScanner.TokenType.EOF ) && 
+				!token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )
 			token = scanner.getToken();
 		
-		if ( token.type() != HTTPScanner.TokenType.CONTENTLENGTH )
+		if ( !token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )
 			throw new IOException( "Malformed SOAP packet (element content-length)." );
 		
 		token = scanner.getToken();
-		if ( token.type() != HTTPScanner.TokenType.COLON )
+		if ( !token.isA( HTTPScanner.TokenType.COLON ) )
 			throw new IOException( "Malformed SOAP packet (element content-length)." );
 		token = scanner.getToken();
-		if ( token.type() != HTTPScanner.TokenType.INT )
+		if ( !token.isA( HTTPScanner.TokenType.INT ) )
 			throw new IOException( "Malformed SOAP packet (element content-length)." );
-		
-		length = Integer.parseInt( token.content() );
-		
+
+		int length = Integer.parseInt( token.content() );
+
 		byte buffer[] = new byte[ length ];
 		istream.read( buffer );
 		
 		CommMessage message = null;
 		try {
 			MessageFactory messageFactory =
-				MessageFactory.newInstance(); //SOAPConstants.DYNAMIC_SOAP_PROTOCOL );
+				MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL ); //SOAPConstants.DYNAMIC_SOAP_PROTOCOL );
 			SOAPMessage soapMessage =
 				messageFactory.createMessage();
 			
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware( true );
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			
+
 			InputSource src = new InputSource( new ByteArrayInputStream( buffer ) );
-			
+
 			Document doc = builder.parse( src );
 			DOMSource dom = new DOMSource( doc );
-			
+
 			soapMessage.getSOAPPart().setContent( dom );
-			
+
 			Iterator it = soapMessage.getSOAPBody().getChildElements();
 			SOAPBodyElement elem = (SOAPBodyElement) it.next();
-			message = new CommMessage( elem.getValue() );
-			
-			String str;
+			message = new CommMessage( elem.getLocalName() );
+
+			String value;
+			String varName;
+			int i;
+			Vector< String > varNames = Operation.getById( elem.getLocalName() ).wsdlInfo().inVarNames();
 			TempVariable tempVar;
+			List< Variable > list = new LinkedList< Variable >();
 			while( it.hasNext() ) {
 				elem = (SOAPBodyElement) it.next();
-				str = elem.getValue();
-				if ( str == null ) // Crash fix
-					str = new String();
+				varName = elem.getLocalName();
+				value = elem.getValue();
+				if ( value == null ) // Crash fix
+					value = new String();
+				
+				for( i = 0; !varNames.get( i ).equals( varName ); i++ );
 				
 				try {
-					tempVar = new TempVariable( Integer.parseInt( str ) );
+					tempVar = new TempVariable( Integer.parseInt( value ) );
 				} catch( NumberFormatException e ) {
-					tempVar = new TempVariable( str );
+					tempVar = new TempVariable( value );
 				}
-				message.addValue( tempVar );
+				list.set( i, tempVar );
 			}
+			message.addAllValues( list );
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
 		} catch( SAXException saxe ) {
 			throw new IOException( saxe );
+		} catch( InvalidIdException iie ) {
+			throw new IOException( "Received invalid operation name: " + iie.getMessage() );
 		}
 
 		return message;

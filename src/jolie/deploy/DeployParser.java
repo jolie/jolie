@@ -22,12 +22,17 @@
 package jolie.deploy;
 
 import java.io.IOException;
+import java.util.Vector;
 
 import jolie.AbstractParser;
 import jolie.GlobalLocation;
 import jolie.InvalidIdException;
+import jolie.NotificationOperation;
+import jolie.OneWayOperation;
 import jolie.ParserException;
+import jolie.RequestResponseOperation;
 import jolie.Scanner;
+import jolie.SolicitResponseOperation;
 
 /** Parses the deploy file
  * @author Fabrizio Montesi
@@ -48,12 +53,242 @@ public class DeployParser extends AbstractParser
 		/*parseExecution();
 		parseCorrSet();*/
 		parseLocations();
-		//parseWSDL();
+		parseWSDL();
+	}
+	
+	private void parseWSDL()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "wsdl" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			parseWSDLOperations();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseWSDLOperations()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.OPERATIONS ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			boolean keepRun = true;
+			while ( keepRun ) {
+				if ( token.type() == Scanner.TokenType.OP_OW )
+					parseOneWayOperations();
+				else if ( token.type() == Scanner.TokenType.OP_RR )
+					parseRequestResponseOperations();
+				else if ( token.type() == Scanner.TokenType.OP_N )
+					parseNotificationOperations();
+				else if ( token.type() == Scanner.TokenType.OP_SR )
+					parseSolicitResponseOperations();
+				else
+					keepRun = false;
+			}
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseOneWayOperations()
+		throws IOException, ParserException
+	{
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		Vector< String > inVarNames;
+		
+		OneWayOperation op;
+
+		while ( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					op = OneWayOperation.getById( token.content() );
+					getToken();
+					eat( Scanner.TokenType.ASSIGN, "= expected" );
+					tokenAssert( Scanner.TokenType.ID, "bound operation name expected" );
+					op.wsdlInfo().setBoundName( token.content() );
+					getToken();
+					inVarNames = parseIdListN();
+					if ( inVarNames.size() != op.inVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setInVarNames( inVarNames );
+					
+					if ( token.type() == Scanner.TokenType.COMMA )
+						getToken();
+					else
+						keepRun = false;
+				} catch( InvalidIdException e ) {
+					throwException( "wrong operation name: " + token.content() );
+				}
+			}
+		}
+	}
+	
+	private void parseNotificationOperations()
+		throws IOException, ParserException
+	{
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		Vector< String > varNames;
+		
+		NotificationOperation op;
+
+		while ( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					op = NotificationOperation.getById( token.content() );
+					getToken();
+					eat( Scanner.TokenType.ASSIGN, "= expected" );
+					tokenAssert( Scanner.TokenType.ID, "bound operation name expected" );
+					op.wsdlInfo().setBoundName( token.content() );
+					getToken();
+					varNames = parseIdListN();
+					if ( varNames.size() != op.outVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setOutVarNames( varNames );
+					
+					if ( token.type() == Scanner.TokenType.COMMA )
+						getToken();
+					else
+						keepRun = false;
+				} catch( InvalidIdException e ) {
+					throwException( "wrong operation name: " + token.content() );
+				}
+			}
+		}
+	}
+	
+	private void parseRequestResponseOperations()
+		throws IOException, ParserException
+	{
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		Vector< String > varNames;
+		
+		RequestResponseOperation op;
+
+		while ( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					op = RequestResponseOperation.getById( token.content() );
+					getToken();
+					eat( Scanner.TokenType.ASSIGN, "= expected" );
+					tokenAssert( Scanner.TokenType.ID, "bound operation name expected" );
+					op.wsdlInfo().setBoundName( token.content() );
+					getToken();
+					varNames = parseIdListN();
+					if ( varNames.size() != op.inVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setInVarNames( varNames );
+					
+					varNames = parseIdListN();
+					if ( varNames.size() != op.outVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setOutVarNames( varNames );
+					
+					if ( token.type() == Scanner.TokenType.COMMA )
+						getToken();
+					else
+						keepRun = false;
+				} catch( InvalidIdException e ) {
+					throwException( "wrong operation name: " + token.content() );
+				}
+			}
+		}
+	}
+	
+	private void parseSolicitResponseOperations()
+		throws IOException, ParserException
+	{
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+
+		boolean keepRun = true;
+		Vector< String > varNames;
+		
+		SolicitResponseOperation op;
+
+		while ( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					op = SolicitResponseOperation.getById( token.content() );
+					getToken();
+					eat( Scanner.TokenType.ASSIGN, "= expected" );
+					tokenAssert( Scanner.TokenType.ID, "bound operation name expected" );
+					op.wsdlInfo().setBoundName( token.content() );
+					getToken();
+					varNames = parseIdListN();
+					if ( varNames.size() != op.outVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setOutVarNames( varNames );
+					
+					varNames = parseIdListN();
+					if ( varNames.size() != op.inVarTypes().size() )
+						throwException( "invalid operation arguments" );
+					
+					op.wsdlInfo().setInVarNames( varNames );
+					
+					if ( token.type() == Scanner.TokenType.COMMA )
+						getToken();
+					else
+						keepRun = false;
+				} catch( InvalidIdException e ) {
+					throwException( "wrong operation name: " + token.content() );
+				}
+			}
+		}
+	}
+
+	
+	private Vector< String > parseIdListN()
+		throws IOException, ParserException
+	{
+		Vector< String > idVector = new Vector< String >();
+		eat( Scanner.TokenType.LANGLE, "< expected" );
+		boolean keepRun = true;
+		
+		while( keepRun ) {
+			if ( token.isA( Scanner.TokenType.RANGLE ) )
+				keepRun = false;
+			else {
+				if ( token.isA( Scanner.TokenType.ID ) )
+					idVector.add( token.content() );
+				else
+					throwException( "expected variable name" );
+				
+				getToken();
+				if ( token.isA( Scanner.TokenType.COMMA ) )
+					getToken();
+				else
+					keepRun = false;
+			}
+		}
+		
+		eat( Scanner.TokenType.RANGLE, "> expected" );
+		return idVector;
 	}
 	
 	private void parseState() 
 		throws IOException, ParserException
-	
 	{
 		//if (token.isA(Scanner.))
 	}
@@ -62,10 +297,11 @@ public class DeployParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		int checkedLocations = 0;
-		boolean keepRun = true;
-		GlobalLocation loc;
-
+		
 		if ( token.isA( Scanner.TokenType.LOCATIONS ) ) {
+			boolean keepRun = true;
+			GlobalLocation loc;
+			
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while ( !token.isA( Scanner.TokenType.RCURLY ) && keepRun ) {

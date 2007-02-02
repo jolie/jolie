@@ -22,7 +22,6 @@
 
 package jolie;
 
-import java.util.Vector;
 
 
 public class TempVariable extends Variable
@@ -49,7 +48,7 @@ public class TempVariable extends Variable
 		super( variable );
 	}
 	
-	public static Vector< TempVariable > createTypedVars(
+	/*public static Vector< TempVariable > createTypedVars(
 			Vector< Variable.Type > typesVec,
 			Vector< Variable > varsVec )
 	{
@@ -69,5 +68,5 @@ public class TempVariable extends Variable
 			retVec.add( tempVar );
 		}
 		return retVec;
-	}
+	}*/
 }

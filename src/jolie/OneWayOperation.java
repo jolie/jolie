@@ -30,4 +30,13 @@ public class OneWayOperation extends InputOperation
 	{
 		super( id, inVarTypes );
 	}
+	
+	public static OneWayOperation getById( String id )
+		throws InvalidIdException
+	{
+		Operation obj = Operation.getById( id );
+		if ( !( obj instanceof OneWayOperation ) )
+			throw new InvalidIdException( id );
+		return (OneWayOperation)obj;
+	}
 }

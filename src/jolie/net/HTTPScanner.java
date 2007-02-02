@@ -21,7 +21,8 @@
 
 package jolie.net;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 import jolie.Scanner;
 
@@ -123,6 +124,11 @@ public class HTTPScanner
 		public boolean isEOF()
 		{
 			return ( type == TokenType.EOF );
+		}
+		
+		public boolean isA( TokenType compareType )
+		{
+			return ( type == compareType );
 		}
 	}
 	

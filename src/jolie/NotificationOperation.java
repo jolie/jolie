@@ -32,4 +32,13 @@ public class NotificationOperation extends OutputOperation
 	{
 		super( id, boundOperationId, outVarTypes );
 	}
+	
+	public static NotificationOperation getById( String id )
+		throws InvalidIdException
+	{
+		Operation obj = Operation.getById( id );
+		if ( !( obj instanceof NotificationOperation ) )
+			throw new InvalidIdException( id );
+		return (NotificationOperation)obj;
+	}
 }

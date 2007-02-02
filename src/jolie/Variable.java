@@ -173,4 +173,14 @@ abstract public class Variable implements Expression
 	{
 		return "undefined";
 	}
+	
+	public void castTo( Type newType )
+	{
+		if ( newType != type ) {
+			if ( newType == Type.STRING )
+				setStrValue( strValue() );
+			else if ( newType == Type.INT )
+				setIntValue( intValue() );
+		}
+	}
 }

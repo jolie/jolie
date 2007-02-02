@@ -24,6 +24,7 @@ package jolie;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
 
 import jolie.net.CommChannel;
 import jolie.net.CommProtocol;
@@ -33,13 +34,20 @@ abstract public class Location
 	abstract public String value();
 	abstract public void setValue( String value );
 	
+	/**
+	 * @todo Embed URLs in Location directly as private members.
+	 * @param protocol
+	 * @return
+	 * @throws IOException
+	 */
 	public CommChannel createCommChannel( CommProtocol protocol )
 		throws IOException
 	{
-		String[] tokens = value().split( ":" );
-		int port = Integer.parseInt( tokens[ 1 ] );
+		/*String[] tokens = value().split( ":" );
+		int port = Integer.parseInt( tokens[ 1 ] );*/
+		URL url = new URL( value() );
 
-		Socket socket = new Socket( tokens[0], port );
+		Socket socket = new Socket( url.getHost(), url.getPort() );
 		return new CommChannel( socket.getInputStream(), socket.getOutputStream(), protocol );
 	}
 }

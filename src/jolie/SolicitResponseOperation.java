@@ -41,5 +41,14 @@ public class SolicitResponseOperation extends OutputOperation
 	{
 		return inVarTypes;
 	}
+	
+	public static SolicitResponseOperation getById( String id )
+		throws InvalidIdException
+	{
+		Operation obj = Operation.getById( id );
+		if ( !( obj instanceof SolicitResponseOperation ) )
+			throw new InvalidIdException( id );
+		return (SolicitResponseOperation)obj;
+	}
 }
 

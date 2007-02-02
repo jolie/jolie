@@ -22,8 +22,9 @@
 
 package jolie.net;
 
-import java.util.Vector;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Vector;
 
 import jolie.Variable;
 
@@ -55,7 +56,7 @@ public class CommMessage implements Iterable< Variable >
 		values.add( var );
 	}
 	
-	public void addAllValues( Vector< ? extends Variable > vars )
+	public void addAllValues( Collection< ? extends Variable > vars )
 	{
 		for( Variable var : vars )
 			addValue( var );

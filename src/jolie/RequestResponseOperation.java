@@ -40,4 +40,13 @@ public class RequestResponseOperation extends InputOperation
 	{
 		return outVarTypes;
 	}
+	
+	public static RequestResponseOperation getById( String id )
+		throws InvalidIdException
+	{
+		Operation obj = Operation.getById( id );
+		if ( !( obj instanceof RequestResponseOperation ) )
+			throw new InvalidIdException( id );
+		return (RequestResponseOperation)obj;
+	}
 }

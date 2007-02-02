@@ -212,8 +212,9 @@ public class Interpreter
 			System.out.println( "Uncaught exception: " + je.exceptionName() \
 								"\n\nJava stack trace follows:\n\n" );
 			je.printStackTrace();
-		} */finally {
-			CommCore.shutdown();
-		}
+		} finally {
+		CommCore.shutdown();
+		}*/
+		CommCore.shutdown();
 	}
 }

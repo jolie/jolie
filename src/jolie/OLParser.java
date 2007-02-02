@@ -653,7 +653,7 @@ public class OLParser extends AbstractParser
 	private void parseOperations()
 		throws IOException, ParserException
 	{
-		boolean stop = false;
+		boolean keepRun = true;
 	
 		if ( token.type() != Scanner.TokenType.OPERATIONS )
 			return;
@@ -661,7 +661,7 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 
-		while ( !stop ) {
+		while ( keepRun ) {
 			if ( token.type() == Scanner.TokenType.OP_OW )
 				parseOneWayOperations();
 			else if ( token.type() == Scanner.TokenType.OP_RR )
@@ -671,7 +671,7 @@ public class OLParser extends AbstractParser
 			else if ( token.type() == Scanner.TokenType.OP_SR )
 				parseSolicitResponseOperations();
 			else
-				stop = true;
+				keepRun = false;
 		}
 		
 		eat( Scanner.TokenType.RCURLY, "} expected" );		

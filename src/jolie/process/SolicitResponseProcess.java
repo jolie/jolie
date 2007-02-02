@@ -26,7 +26,6 @@ import java.util.Vector;
 
 import jolie.Location;
 import jolie.SolicitResponseOperation;
-import jolie.TempVariable;
 import jolie.Variable;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -49,12 +48,13 @@ public class SolicitResponseProcess implements Process
 	
 	public void run()
 	{
-		Vector< TempVariable > sendVars =
-			TempVariable.createTypedVars( operation.outVarTypes(), outVars );
+		int j = 0;
+		for( Variable var : outVars )
+			var.castTo( operation.outVarTypes().elementAt( j++ ) );
 
 		try {
-			CommChannel channel = location.createCommChannel( operation.getProtocol() );
-			CommMessage message = new CommMessage( operation.boundOperationId(), sendVars );
+			CommChannel channel = location.createCommChannel( operation.getProtocol( location ) );
+			CommMessage message = new CommMessage( operation.boundOperationId(), outVars );
 			channel.send( message );
 			message = channel.recv();
 			

@@ -22,9 +22,11 @@
 
 package jolie;
 
+import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.HashMap;
 
+import jolie.deploy.wsdl.OperationWSDLInfo;
 import jolie.net.CommProtocol;
 import jolie.net.SOAPProtocol;
 
@@ -39,15 +41,24 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	private static HashMap< String, Operation > idMap = 
 		new HashMap< String, Operation >();
 	
+	private OperationWSDLInfo wsdlInfo;
+	
+	public OperationWSDLInfo wsdlInfo()
+	{
+		return wsdlInfo;
+	}
+
 	public Operation( String id )
 	{
 		super( id );
+		wsdlInfo = new OperationWSDLInfo();
 	}
 	
-	public CommProtocol getProtocol()
+	public CommProtocol getProtocol( Location location )
+		throws MalformedURLException
 	{
 		//return new SODEPProtocol();
-		return new SOAPProtocol();
+		return new SOAPProtocol( location, this );
 	}
 	
 	public String value()
