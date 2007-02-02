@@ -22,6 +22,8 @@
 
 package jolie;
 
+import java.util.Vector;
+
 /** A Jolie variable.
  * 
  * @see Variable
@@ -182,5 +184,21 @@ abstract public class Variable implements Expression
 			else if ( newType == Type.INT )
 				setIntValue( intValue() );
 		}
+	}
+	
+	public static void castAll( Vector< Variable > varsVec, Vector< Type > varTypesVec )
+	{
+		int i = 0;
+		for( Variable var : varsVec )
+			var.castTo( varTypesVec.elementAt( i++ ) );
+	}
+	
+	public static Vector< String > getNames( Vector< Variable > varsVec )
+	{
+		Vector< String > namesVec = new Vector< String >();
+		for( Variable var : varsVec )
+			namesVec.add( var.id() );
+
+		return namesVec;
 	}
 }

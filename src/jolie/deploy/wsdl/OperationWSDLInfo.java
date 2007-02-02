@@ -19,61 +19,66 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy.wsdl;
 
-package jolie;
+import java.util.Vector;
 
-import java.util.Collection;
-import java.util.HashMap;
-
-/**
- * @author Fabrizio Montesi
- * @todo Refine the internal idMap methods.
- */
-public class GlobalLocation extends Location implements MappedGlobalObject
+public class OperationWSDLInfo implements Cloneable
 {
-	private static HashMap< String, GlobalLocation > idMap = 
-		new HashMap< String, GlobalLocation >();
-
-	private String id;
-	private String value = "";
+	private Vector< String > inVarNames;
+	private Vector< String > outVarNames;
+	private String boundName;
 	
-	public GlobalLocation( String id )
+	public OperationWSDLInfo clone()
 	{
-		this.id = id;
+		OperationWSDLInfo retval = new OperationWSDLInfo();
+		retval.setInVarNames( inVarNames );
+		retval.setOutVarNames( outVarNames );
+		retval.setBoundName( boundName );
+		return retval;
 	}
 	
-	public void setValue( String value )
+	public OperationWSDLInfo()
 	{
-		this.value = value;
+		inVarNames = null;
+		outVarNames = null;
+		boundName = null;
 	}
 	
-	protected String value()
+	public String boundName()
 	{
-		return value;
+		return boundName;
 	}
 	
-	public String id()
+	public Vector< String > inVarNames()
 	{
-		return id;
+		return inVarNames;
 	}
 	
-	public static GlobalLocation getById( String id )
-		throws InvalidIdException
+	public Vector< String > outVarNames()
 	{
-		GlobalLocation loc = idMap.get( id );
-		if ( loc == null )
-			throw new InvalidIdException( id );
-
-		return loc;
+		return outVarNames;
 	}
 	
-	public final void register()
+	public void setBoundName( String boundName )
 	{
-		idMap.put( id, this );
+		this.boundName = boundName;
 	}
 	
-	public static Collection< GlobalLocation > getAll()
+	public void setOutVarNames( Vector< String > outVarNames )
 	{
-		return idMap.values();
+		this.outVarNames = outVarNames;
+	}
+	
+	public void setInVarNames( Vector< String > inVarNames )
+	{
+		this.inVarNames = inVarNames;
+	} 
+	
+	public OperationWSDLInfo( String boundName, Vector< String > inVarNames, Vector< String > outVarNames )
+	{
+		this.boundName = boundName;
+		this.inVarNames = inVarNames;
+		this.outVarNames = outVarNames;
 	}
 }

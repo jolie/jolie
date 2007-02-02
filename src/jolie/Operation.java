@@ -22,7 +22,7 @@
 
 package jolie;
 
-import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -33,15 +33,26 @@ import jolie.net.SOAPProtocol;
 /** Generic operation declaration
  * 
  * @author Fabrizio Montesi
+ * @todo Change the behaviour of getByWSDLBoundName (rather ugly)
  *
  */
-
 abstract public class Operation extends AbstractMappedGlobalObject
 {
 	private static HashMap< String, Operation > idMap = 
 		new HashMap< String, Operation >();
 	
 	private OperationWSDLInfo wsdlInfo;
+	
+	public static Operation getByWSDLBoundName( String name )
+		throws InvalidIdException
+	{
+		Collection< Operation > values = idMap.values();
+		for( Operation op : values )
+			if ( op.wsdlInfo().boundName().equals( name ) )
+				return op;
+		
+		throw new InvalidIdException( name );
+	}
 	
 	public OperationWSDLInfo wsdlInfo()
 	{
@@ -55,10 +66,10 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	}
 	
 	public CommProtocol getProtocol( Location location )
-		throws MalformedURLException
+		throws URISyntaxException
 	{
 		//return new SODEPProtocol();
-		return new SOAPProtocol( location, this );
+		return new SOAPProtocol( location, wsdlInfo );
 	}
 	
 	public String value()

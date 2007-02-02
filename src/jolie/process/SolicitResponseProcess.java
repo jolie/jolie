@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Vector;
 
 import jolie.Location;
@@ -48,13 +49,21 @@ public class SolicitResponseProcess implements Process
 	
 	public void run()
 	{
-		int j = 0;
-		for( Variable var : outVars )
-			var.castTo( operation.outVarTypes().elementAt( j++ ) );
-
+		Variable.castAll( outVars, operation.outVarTypes() );
 		try {
-			CommChannel channel = location.createCommChannel( operation.getProtocol( location ) );
-			CommMessage message = new CommMessage( operation.boundOperationId(), outVars );
+			/*if ( wsdlInfo.outVarNames() == null ) {
+				wsdlInfo = operation.wsdlInfo().clone();
+				wsdlInfo.setOutVarNames( Variable.getNames( outVars ) );
+			}
+			
+			if ( wsdlInfo.boundName() == null )
+				wsdlInfo.setBoundName( operation.boundOperationId() );*/
+			String boundName = operation.wsdlInfo().boundName();
+			if ( boundName == null )
+				boundName = operation.boundOperationId();
+			
+			CommChannel channel = new CommChannel( location, operation.getProtocol( location ) );
+			CommMessage message = new CommMessage( boundName, outVars );
 			channel.send( message );
 			message = channel.recv();
 			
@@ -81,6 +90,8 @@ public class SolicitResponseProcess implements Process
 			channel.close();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
+		} catch( URISyntaxException ue ) {
+			ue.printStackTrace();
 		}
 	}
 	

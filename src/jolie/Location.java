@@ -24,14 +24,15 @@ package jolie;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import jolie.net.CommChannel;
 import jolie.net.CommProtocol;
 
 abstract public class Location
 {
-	abstract public String value();
+	abstract protected String value();
 	abstract public void setValue( String value );
 	
 	/**
@@ -41,13 +42,18 @@ abstract public class Location
 	 * @throws IOException
 	 */
 	public CommChannel createCommChannel( CommProtocol protocol )
-		throws IOException
+		throws IOException, URISyntaxException
 	{
-		/*String[] tokens = value().split( ":" );
-		int port = Integer.parseInt( tokens[ 1 ] );*/
-		URL url = new URL( value() );
-
-		Socket socket = new Socket( url.getHost(), url.getPort() );
+		URI uri = getURI();
+		//String urlProtocol = url.getProtocol();
+		
+		Socket socket = new Socket( uri.getHost(), uri.getPort() );
 		return new CommChannel( socket.getInputStream(), socket.getOutputStream(), protocol );
+	}
+	
+	public URI getURI()
+		throws URISyntaxException
+	{
+		return new URI( value() );
 	}
 }

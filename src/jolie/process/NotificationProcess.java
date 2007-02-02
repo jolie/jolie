@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Vector;
 
 import jolie.Location;
@@ -47,16 +48,28 @@ public class NotificationProcess implements Process
 	
 	public void run()
 	{
-		int i = 0;
-		for( Variable var : varsVec )
-			var.castTo( operation.outVarTypes().elementAt( i++ ) );
+		Variable.castAll( varsVec, operation.outVarTypes() );
 		try {
-			CommChannel channel = location.createCommChannel( operation.getProtocol( location ) );
-			CommMessage message = new CommMessage( operation.boundOperationId(), varsVec );
+			/*if ( wsdlInfo.outVarNames() == null ) {
+				wsdlInfo = operation.wsdlInfo().clone();
+				wsdlInfo.setOutVarNames( Variable.getNames( varsVec ) );
+			}
+			
+			if ( wsdlInfo.boundName() == null )
+				wsdlInfo.setBoundName( operation.boundOperationId() );*/
+			String boundName = operation.wsdlInfo().boundName();
+			if ( boundName == null )
+				boundName = operation.boundOperationId();
+
+			CommChannel channel = new CommChannel( location, operation.getProtocol( location ) );
+			
+			CommMessage message = new CommMessage( boundName, varsVec );
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
+		} catch( URISyntaxException ue ) {
+			ue.printStackTrace();
 		}
 	}
 	

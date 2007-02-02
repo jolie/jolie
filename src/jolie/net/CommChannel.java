@@ -22,9 +22,14 @@
 
 package jolie.net;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import jolie.Location;
 
 
 /** A communication channel is an abstraction which permits to send and receive messages.
@@ -49,6 +54,17 @@ public class CommChannel
 	{
 		this.istream = istream;
 		this.ostream = ostream;
+		this.protocol = protocol;
+	}
+	
+	public CommChannel( Location location, CommProtocol protocol )
+		throws IOException, URISyntaxException
+	{
+		URI uri = location.getURI();
+
+		Socket socket = new Socket( uri.getHost(), uri.getPort() );
+		this.istream = socket.getInputStream();
+		this.ostream = socket.getOutputStream();
 		this.protocol = protocol;
 	}
 	

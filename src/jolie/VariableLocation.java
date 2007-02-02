@@ -31,7 +31,7 @@ public class VariableLocation extends Location
 		this.var = var;
 	}
 	
-	public String value()
+	protected String value()
 	{
 		return var.strValue();
 	}

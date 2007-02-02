@@ -30,10 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Vector;
 
@@ -56,38 +54,55 @@ import jolie.Location;
 import jolie.Operation;
 import jolie.TempVariable;
 import jolie.Variable;
+import jolie.deploy.wsdl.OperationWSDLInfo;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+/** Implements the SOAP/HTTP protocol.
+ * 
+ * @author Fabrizio Montesi
+ * @author Mauro Silvagni
+ * @todo Implement the message WSDL namespace information.
+ * @todo Various checks should be made from the deploy parser.
+ * 
+ */
 public class SOAPProtocol implements CommProtocol
 {
-	private URL url;
-	private Operation op;
+	private URI uri;
+	private OperationWSDLInfo wsdlInfo;
 
 	public SOAPProtocol()
 	{
-		url = null;
-		op = null;
+		uri = null;
+		wsdlInfo = null;
 	}
 	
-	public SOAPProtocol( Location location, Operation op )
-		throws MalformedURLException
+	public SOAPProtocol( Location location, OperationWSDLInfo wsdlInfo )
+		throws URISyntaxException
 	{
-		url = new URL( location.value() );
-		this.op = op;
+		this.uri = location.getURI();
+		this.wsdlInfo = wsdlInfo;
 	}
 
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		if ( op == null )
-			return;
+		if ( wsdlInfo == null )
+			throw new IOException( "Error: WSDL information missing in SOAP protocol" );
+
+		if ( uri == null ) { // It's a response message!
+			try {
+				uri = new URI( "localhost/response" );
+			} catch( URISyntaxException ue ) {}
+		}
 		String soapString = new String();
 		String messageString = new String();
-		messageString += "POST " + url.getPath() + " HTTP/1.1\n";
-		messageString += "Host: " + url.getHost() + '\n';
+		messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+		messageString += "Host: " + uri.getHost() + '\n';
 		messageString += "Content-type: application/soap+xml; charset=\"utf-8\"\n";
 		
 		try {
@@ -101,8 +116,9 @@ public class SOAPProtocol implements CommProtocol
 
 			SOAPElement varElement;
 			int i = 0;
-			//Operation op = Operation.getById( message.inputId() );
-			Vector< String > varNames = op.wsdlInfo().outVarNames();
+			Vector< String > varNames = wsdlInfo.outVarNames();
+			if ( varNames == null )
+				throw new IOException( "Error: output vars information missing in SOAP protocol" );
 			for( Variable var : message ) {
 				varElement = opBody.addChildElement( varNames.elementAt( i++ ) );
 				varElement.addTextNode( var.strValue() );
@@ -170,31 +186,43 @@ public class SOAPProtocol implements CommProtocol
 
 			soapMessage.getSOAPPart().setContent( dom );
 
-			Iterator it = soapMessage.getSOAPBody().getChildElements();
-			SOAPBodyElement elem = (SOAPBodyElement) it.next();
-			message = new CommMessage( elem.getLocalName() );
+			Node opNode = soapMessage.getSOAPBody().getFirstChild();
+			Operation operation = Operation.getByWSDLBoundName( opNode.getLocalName() );
+			
+			message = new CommMessage( operation.id() );
 
-			String value;
-			String varName;
-			int i;
-			Vector< String > varNames = Operation.getById( elem.getLocalName() ).wsdlInfo().inVarNames();
+			NodeList nodeList = opNode.getChildNodes();
+
+			Vector< String > varNames = operation.wsdlInfo().inVarNames();
+			if ( varNames == null )
+				throw new IOException( "Error: missing WSDL input variable names in operation " + operation.id() );
+				
+			if ( nodeList.getLength() != varNames.size() )
+				throw new IOException( "Received malformed SOAP Packet: wrong variables number" );
+			
+			Node currNode;
+			String nodeName;
+			int j;
+			List< Variable > list = new Vector< Variable >();
+			for( int k = 0; k < varNames.size(); k++ )
+				list.add( new TempVariable() );
 			TempVariable tempVar;
-			List< Variable > list = new LinkedList< Variable >();
-			while( it.hasNext() ) {
-				elem = (SOAPBodyElement) it.next();
-				varName = elem.getLocalName();
-				value = elem.getValue();
-				if ( value == null ) // Crash fix
-					value = new String();
-				
-				for( i = 0; !varNames.get( i ).equals( varName ); i++ );
-				
-				try {
-					tempVar = new TempVariable( Integer.parseInt( value ) );
-				} catch( NumberFormatException e ) {
-					tempVar = new TempVariable( value );
+			for( int i = 0; i < nodeList.getLength(); i++ ) {
+				currNode = nodeList.item( i );
+				nodeName = currNode.getNodeName();
+				j = 0;
+				for( String str : varNames ) {
+					if ( str.equals( nodeName ) )
+						break;
+					else
+						j++;
 				}
-				list.set( i, tempVar );
+				try {
+					tempVar = new TempVariable( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
+				} catch( NumberFormatException e ) {
+					tempVar = new TempVariable( currNode.getNodeValue() );
+				}
+				list.set( j, tempVar );
 			}
 			message.addAllValues( list );
 		} catch( SOAPException se ) {
