@@ -96,7 +96,7 @@ public class InProcess implements InputProcess
 {	
 	private GlobalVariable var;
 	private InInputHandler inputHandler = null;
-	private static Object mutex = new Object();
+	private static final Object mutex = new Object();
 	private BufferedReader stdin = new BufferedReader(
 		new InputStreamReader(
 				Channels.newInputStream(

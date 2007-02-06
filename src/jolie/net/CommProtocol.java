@@ -29,6 +29,11 @@ import java.io.IOException;
 
 public interface CommProtocol
 {
+	public enum Identifier {
+		SOAP,
+		SODEP
+	}
+
 	public CommMessage recv( InputStream istream )
 		throws IOException;
 

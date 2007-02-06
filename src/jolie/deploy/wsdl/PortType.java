@@ -22,21 +22,45 @@
 
 package jolie.deploy.wsdl;
 
-import java.util.Vector;
-import jolie.Operation;
+import java.util.HashMap;
 
-public class PortType
+import jolie.AbstractMappedGlobalObject;
+import jolie.InvalidIdException;
+import jolie.net.CommProtocol;
+
+public class PortType extends AbstractMappedGlobalObject
 {
-	private String id;
-	private Vector< Operation > operations;
+	private static HashMap< String, PortType > idMap = new HashMap< String, PortType >();
+	private CommProtocol.Identifier protocolId;
 	
-	public Vector< Operation > operations()
+	public PortType( String id )
 	{
-		return operations;
+		super( id );
+		protocolId = CommProtocol.Identifier.SODEP;
 	}
 	
-	public String id()
+	public void register()
 	{
-		return id;
+		idMap.put( id(), this );
+	}
+	
+	public static PortType getById( String id )
+		throws InvalidIdException
+	{
+		PortType pt = idMap.get( id );
+		if ( pt == null )
+			throw new InvalidIdException( id );
+
+		return pt;
+	}
+	
+	public CommProtocol.Identifier protocolId()
+	{
+		return protocolId;
+	}
+	
+	public void setProtocolId( CommProtocol.Identifier protocolId )
+	{
+		this.protocolId = protocolId;
 	}
 }

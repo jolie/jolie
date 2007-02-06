@@ -26,16 +26,24 @@ import java.util.Vector;
 
 import jolie.AbstractParser;
 import jolie.GlobalLocation;
+import jolie.InputOperation;
 import jolie.InvalidIdException;
 import jolie.NotificationOperation;
 import jolie.OneWayOperation;
+import jolie.OutputOperation;
 import jolie.ParserException;
 import jolie.RequestResponseOperation;
 import jolie.Scanner;
 import jolie.SolicitResponseOperation;
+import jolie.deploy.wsdl.InputPortType;
+import jolie.deploy.wsdl.OutputPortType;
+import jolie.deploy.wsdl.PartnerLinkType;
+import jolie.deploy.wsdl.PortType;
+import jolie.net.CommProtocol;
 
 /** Parses the deploy file
  * @author Fabrizio Montesi
+ * @todo Check if a DeployScanner should be created, in order to avoid keyword collisions.
  */
 public class DeployParser extends AbstractParser
 {
@@ -63,8 +71,152 @@ public class DeployParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			parseWSDLOperations();
+			parseInputPortTypes();
+			parseOutputPortTypes();
+			parsePartnerLinkTypes();
+			parseBindings();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
+	}
+	
+	private void parseBindings()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "bindings" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while( token.isA( Scanner.TokenType.ID ) )
+				parseBinding();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseBinding()
+		throws IOException, ParserException
+	{
+		try {
+			PortType pt = PortType.getById( token.content() );
+			getToken();
+			eat( Scanner.TokenType.COLON, ": expected" );
+			tokenAssert( Scanner.TokenType.ID, "port type protocol expected" );
+			if ( token.content().equals( "soap" ) )
+				pt.setProtocolId( CommProtocol.Identifier.SOAP );
+			else if ( token.content().equals( "sodep" ) )
+				pt.setProtocolId( CommProtocol.Identifier.SODEP );
+			else
+				throwException( "unknown protocol specified in port type binding" );
+			getToken();
+		} catch( InvalidIdException iie ) {
+			throwException( "invalid port type identifier: " + token.content() );
+		}
+	}
+	
+	private void parsePartnerLinkTypes()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "partnerLinkTypes" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while( token.isA( Scanner.TokenType.ID ) )
+				parsePartnerLinkType();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parsePartnerLinkType()
+		throws IOException, ParserException
+	{
+		String id = token.content();
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+		try {
+			tokenAssert( Scanner.TokenType.ID, "input port type expected" );
+			InputPortType ipt = InputPortType.getById( id );
+			getToken();
+			eat( Scanner.TokenType.COMMA, ", expected" );
+			tokenAssert( Scanner.TokenType.ID, "output port type expected" );
+			OutputPortType opt = OutputPortType.getById( id );
+			getToken();
+			( new PartnerLinkType( id, ipt, opt ) ).register();
+		} catch( InvalidIdException iie ) {
+			throwException( "Invalid port type identifier: " + token.content() );
+		}
+	}
+	
+	private void parseInputPortTypes()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "inputPortTypes" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while( token.isA( Scanner.TokenType.ID ) )
+				parseInputPortType();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseOutputPortTypes()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "inputPortTypes" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while( token.isA( Scanner.TokenType.ID ) )
+				parseOutputPortType();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseInputPortType()
+		throws IOException, ParserException
+	{
+		String portTypeId = token.content();
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+		boolean keepRun = true;
+		Vector< InputOperation > operations = new Vector< InputOperation >();
+		while( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					operations.add( InputOperation.getById( token.content() ) );
+				} catch( InvalidIdException iie ) {
+					throwException( "Invalid input operation identifier: " + token.content() );
+				}
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
+			}
+		}
+		( new InputPortType( portTypeId, operations ) ).register();
+	}
+	
+	private void parseOutputPortType()
+		throws IOException, ParserException
+	{
+		String portTypeId = token.content();
+		getToken();
+		eat( Scanner.TokenType.COLON, ": expected" );
+		boolean keepRun = true;
+		Vector< OutputOperation > operations = new Vector< OutputOperation >();
+		while( keepRun ) {
+			if ( !token.isA( Scanner.TokenType.ID ) )
+				keepRun = false;
+			else {
+				try {
+					operations.add( OutputOperation.getById( token.content() ) );
+				} catch( InvalidIdException iie ) {
+					throwException( "Invalid input operation identifier: " + token.content() );
+				}
+				if ( token.type() == Scanner.TokenType.COMMA )
+					getToken();
+				else
+					keepRun = false;
+			}
+		}
+		( new OutputPortType( portTypeId, operations ) ).register(); 
 	}
 	
 	private void parseWSDLOperations()

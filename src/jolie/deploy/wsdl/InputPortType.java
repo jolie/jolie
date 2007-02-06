@@ -23,63 +23,30 @@ package jolie.deploy.wsdl;
 
 import java.util.Vector;
 
-public class OperationWSDLInfo implements Cloneable
+import jolie.InputOperation;
+import jolie.InvalidIdException;
+
+public class InputPortType extends PortType
 {
-	private Vector< String > inVarNames;
-	private Vector< String > outVarNames;
-	private String boundName;
-	//private InputPortType
+	private Vector< InputOperation > operations;
 	
-	public OperationWSDLInfo clone()
+	public InputPortType( String id, Vector< InputOperation > operations )
 	{
-		OperationWSDLInfo retval = new OperationWSDLInfo();
-		retval.setInVarNames( inVarNames );
-		retval.setOutVarNames( outVarNames );
-		retval.setBoundName( boundName );
-		return retval;
+		super( id );
+		this.operations = operations;
 	}
 	
-	public OperationWSDLInfo()
+	public Vector< InputOperation > operations()
 	{
-		inVarNames = null;
-		outVarNames = null;
-		boundName = null;
+		return operations;
 	}
 	
-	public String boundName()
+	public static InputPortType getById( String id )
+		throws InvalidIdException
 	{
-		return boundName;
-	}
-	
-	public Vector< String > inVarNames()
-	{
-		return inVarNames;
-	}
-	
-	public Vector< String > outVarNames()
-	{
-		return outVarNames;
-	}
-	
-	public void setBoundName( String boundName )
-	{
-		this.boundName = boundName;
-	}
-	
-	public void setOutVarNames( Vector< String > outVarNames )
-	{
-		this.outVarNames = outVarNames;
-	}
-	
-	public void setInVarNames( Vector< String > inVarNames )
-	{
-		this.inVarNames = inVarNames;
-	} 
-	
-	public OperationWSDLInfo( String boundName, Vector< String > inVarNames, Vector< String > outVarNames )
-	{
-		this.boundName = boundName;
-		this.inVarNames = inVarNames;
-		this.outVarNames = outVarNames;
+		PortType pt = PortType.getById( id );
+		if ( !( pt instanceof InputPortType ) )
+			throw new InvalidIdException( id );
+		return (InputPortType)pt;
 	}
 }

@@ -67,17 +67,17 @@ See the COPYING file for the distribution license of the following content.
 <SROpBindListN>		::= <RROpBindListN>	
 
 <InputPortTypes>	::= "inputPortTypes" "{" <PortListN> "}"
-<PortListN>			::= <Port><PortListN> | epsilon
+<PortListN>			::= <Port> <PortListN> | epsilon
 <Port>				::= <id> ":" <idListN>
 
 <OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
 
 <PartnerLinkType> 	::= "inputPortTypes" "{" <PltListN> "}"
-<PltListN>			::= <Plt><PltListN> | epsilon
+<PltListN>			::= <Plt> <PltListN> | epsilon
 <Plt>				::= <id> ":" <id> "," <id>
 
-<Binding>       	::= "binding" "{" <BindListN> "}"
-<BindListN>			::= <Bind><BindListN> | epsilon
+<Binding>       	::= "bindings" "{" <BindListN> "}"
+<BindListN>			::= <Bind> <BindListN> | epsilon
 <Bind>				::= <id> ":" <id>
 
 <Service>       	::= "service" "{" <string> "}"

@@ -19,4 +19,41 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy.wsdl;
 
+import java.util.HashMap;
+
+import jolie.AbstractMappedGlobalObject;
+
+
+
+public class PartnerLinkType extends AbstractMappedGlobalObject
+{
+	private static HashMap< String, PartnerLinkType > idMap =
+						new HashMap< String, PartnerLinkType >();
+	
+	private InputPortType inputPortType;
+	private OutputPortType outputPortType;
+	
+	public PartnerLinkType( String id, InputPortType ipt, OutputPortType opt )
+	{
+		super( id );
+		inputPortType = ipt;
+		outputPortType = opt;
+	}
+	
+	public InputPortType inputPortType()
+	{
+		return inputPortType;
+	}
+	
+	public OutputPortType outputPortType()
+	{
+		return outputPortType;
+	}
+	
+	public void register()
+	{
+		idMap.put( id(), this );
+	}
+}
