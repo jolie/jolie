@@ -39,6 +39,4 @@ public interface CommProtocol
 
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException;
-	
-	// todo -- implementare gli attributi
 }
