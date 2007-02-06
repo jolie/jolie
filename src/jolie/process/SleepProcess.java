@@ -32,8 +32,6 @@ class SleepInputHandler extends Thread implements InputHandler
 	private InputProcess inputProcess;
 	private Expression expression;
 	
-	//private TypedValue< int > value;
-	
 	public SleepInputHandler( Expression expression )
 	{
 		this.expression = expression;
