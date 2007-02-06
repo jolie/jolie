@@ -22,84 +22,47 @@
 
 package jolie.net;
 
-import java.net.ServerSocket;
-import java.nio.channels.*;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-
-
-class SocketListener extends CommListener
-{
-	private ServerSocketChannel serverChannel;
-
-	public SocketListener( ThreadGroup threadGroup, CommProtocol protocol )
-		throws IOException
-	{
-		super( threadGroup, protocol );
-		
-		serverChannel = ServerSocketChannel.open();
-		ServerSocket socket = serverChannel.socket();
-		socket.bind( new InetSocketAddress( CommCore.port() ) );
-	}
-	
-	public void run()
-	{
-		try {
-			SocketChannel socketChannel;
-			CommChannel channel;
-			while ( (socketChannel = serverChannel.accept()) != null ) {
-				channel = new CommChannel(
-							socketChannel.socket().getInputStream(),
-							socketChannel.socket().getOutputStream(),
-							protocol() );
-				(new CommChannelHandler( getThreadGroup(), channel )).start();
-			}
-			serverChannel.close();
-		} catch( ClosedByInterruptException ce ) {
-			try {
-				serverChannel.close();
-			} catch( IOException ioe ) {
-				ioe.printStackTrace();
-			}
-		} catch( IOException e ) {
-			e.printStackTrace();
-		}
-	}
-}
+import java.util.Vector;
 
 /** Handles the networking communications.
  * The CommCore class represent the communication core of JOLIE.
  */
 public class CommCore
 {
-	private static int port = 2555;
+	private static Vector< CommListener > listeners = new Vector< CommListener >();
+	
+	private static int defaultPort = 2555;
 
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 
 	private CommCore(){}
 
 	/** Sets the TCP/IP port to listen for incoming network messages. */
-	public static void setPort( int commPort )
+	public static void setDefaultPort( int commPort )
 	{
-		port = commPort;
+		defaultPort = commPort;
 	}
 
-	/** Returns the TCP/IP port the CommCore is listening to.
-	 * 
-	 * @return the TCP/IP port the CommCore is listening to.
-	 */
-	public static int port()
+	public static ThreadGroup threadGroup()
 	{
-		return port;
+		return threadGroup;
+	}
+	
+	public static void addListener( CommListener listener )
+	{
+		listeners.add( listener );
 	}
 
 	/** Initializes the communication core. */
 	public static void init()
 		throws IOException
 	{
-		//SocketListener listener = new SocketListener( threadGroup, new SODEPProtocol() );
-		SocketListener listener = new SocketListener( threadGroup, new SOAPProtocol() );
-		listener.start();
+		if ( listeners.size() > 0 ) {
+			for( CommListener listener : listeners )
+				listener.start();
+		} else
+			( new SocketListener( new SODEPProtocol(), defaultPort ) ).start();
 	}
 
 	/** Returns the current communication channel, if any. 

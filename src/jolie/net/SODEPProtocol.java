@@ -60,6 +60,12 @@ values
 
 public class SODEPProtocol implements CommProtocol
 {	
+	
+	public SODEPProtocol clone()
+	{
+		return new SODEPProtocol();
+	}
+
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{

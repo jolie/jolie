@@ -86,7 +86,7 @@ public class Interpreter
 				task = InterpreterTask.ExportWSDL;
 			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) ) {
 				if ( ++i < args.length )
-					CommCore.setPort( Integer.parseInt( args[ i ] ) );
+					CommCore.setDefaultPort( Integer.parseInt( args[ i ] ) );
 				else
 					throw new CommandLineException( "You must specify a valid network port." );
 			} else if ( args[ i ].endsWith( ".ol" ) ) {

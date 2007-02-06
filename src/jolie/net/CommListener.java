@@ -31,15 +31,15 @@ abstract public class CommListener extends Thread
 
 	private CommProtocol protocol;
 	
-	public CommListener( ThreadGroup threadGroup, CommProtocol protocol )
+	public CommListener( CommProtocol protocol )
 	{
-		super( threadGroup, "CommListener-" + index++ );
+		super( CommCore.threadGroup(), "CommListener-" + index++ );
 		this.protocol = protocol;
 	}
 	
-	public CommProtocol protocol()
+	public CommProtocol createProtocol()
 	{
-		return protocol;
+		return protocol.clone();
 	}
 	
 	abstract public void run();

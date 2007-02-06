@@ -39,7 +39,11 @@ import jolie.deploy.wsdl.InputPortType;
 import jolie.deploy.wsdl.OutputPortType;
 import jolie.deploy.wsdl.PartnerLinkType;
 import jolie.deploy.wsdl.PortType;
+import jolie.net.CommCore;
 import jolie.net.CommProtocol;
+import jolie.net.SOAPProtocol;
+import jolie.net.SODEPProtocol;
+import jolie.net.SocketListener;
 
 /** Parses the deploy file
  * @author Fabrizio Montesi
@@ -75,8 +79,42 @@ public class DeployParser extends AbstractParser
 			parseOutputPortTypes();
 			parsePartnerLinkTypes();
 			parseBindings();
+			parseService();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
+	}
+	
+	private void parseService()
+		throws IOException, ParserException
+	{
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "service" ) ) {
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			while( token.isA( Scanner.TokenType.ID ) )
+				parseServiceElement();
+			eat( Scanner.TokenType.RCURLY, "} expected" );
+		}
+	}
+	
+	private void parseServiceElement()
+		throws IOException, ParserException
+	{
+		CommProtocol protocol = null;
+		if ( token.content().equals( "soap" ) )
+			protocol = new SOAPProtocol();
+		else if ( token.content().equals( "sodep" ) )
+			protocol = new SODEPProtocol();
+		else
+			throwException( "Unknown protocol: " + token.content() );
+		
+		eat( Scanner.TokenType.COLON, ": expected" );
+		tokenAssert( Scanner.TokenType.INT, "network port expected" );
+		int port = Integer.parseInt( token.content() );
+		if ( port < 0 || port > 65535 )
+			throwException( "Invalid port specified: " + token.content() );
+		getToken();
+
+		CommCore.addListener( new SocketListener( protocol, port ) );
 	}
 	
 	private void parseBindings()

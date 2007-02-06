@@ -19,26 +19,50 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.net;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
-
-public interface CommProtocol extends Cloneable
+public class SocketListener extends CommListener
 {
-	public enum Identifier {
-		SOAP,
-		SODEP
+	private ServerSocketChannel serverChannel;
+
+	public SocketListener( CommProtocol protocol, int port )
+		throws IOException
+	{
+		super( protocol );
+		
+		serverChannel = ServerSocketChannel.open();
+		ServerSocket socket = serverChannel.socket();
+		socket.bind( new InetSocketAddress( port ) );
 	}
-
-	public CommMessage recv( InputStream istream )
-		throws IOException;
-
-	public void send( OutputStream ostream, CommMessage message )
-		throws IOException;
 	
-	public CommProtocol clone();
+	public void run()
+	{
+		try {
+			SocketChannel socketChannel;
+			CommChannel channel;
+			while ( (socketChannel = serverChannel.accept()) != null ) {
+				channel = new CommChannel(
+							socketChannel.socket().getInputStream(),
+							socketChannel.socket().getOutputStream(),
+							createProtocol() );
+				(new CommChannelHandler( getThreadGroup(), channel )).start();
+			}
+			serverChannel.close();
+		} catch( ClosedByInterruptException ce ) {
+			try {
+				serverChannel.close();
+			} catch( IOException ioe ) {
+				ioe.printStackTrace();
+			}
+		} catch( IOException e ) {
+			e.printStackTrace();
+		}
+	}
 }

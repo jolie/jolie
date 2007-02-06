@@ -74,6 +74,14 @@ public class SOAPProtocol implements CommProtocol
 {
 	private URI uri;
 	private OperationWSDLInfo wsdlInfo;
+	
+	public SOAPProtocol clone()
+	{
+		SOAPProtocol retval = new SOAPProtocol();
+		retval.uri = uri;
+		retval.wsdlInfo = wsdlInfo;
+		return retval;
+	}
 
 	public SOAPProtocol()
 	{
