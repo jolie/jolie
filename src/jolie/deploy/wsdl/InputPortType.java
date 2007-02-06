@@ -30,15 +30,21 @@ public class InputPortType extends PortType
 {
 	private Vector< InputOperation > operations;
 	
-	public InputPortType( String id, Vector< InputOperation > operations )
+	public InputPortType( String id )
 	{
 		super( id );
-		this.operations = operations;
+		this.operations = new Vector< InputOperation >();
 	}
 	
 	public Vector< InputOperation > operations()
 	{
 		return operations;
+	}
+	
+	public void addOperation( InputOperation operation )
+	{
+		operations.add( operation );
+		operation.wsdlInfo().setPortType( this );
 	}
 	
 	public static InputPortType getById( String id )

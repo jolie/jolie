@@ -29,6 +29,7 @@ import java.util.HashMap;
 import jolie.deploy.wsdl.OperationWSDLInfo;
 import jolie.net.CommProtocol;
 import jolie.net.SOAPProtocol;
+import jolie.net.SODEPProtocol;
 
 /** Generic operation declaration
  * 
@@ -68,8 +69,14 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	public CommProtocol getProtocol( Location location )
 		throws URISyntaxException
 	{
-		//return new SODEPProtocol();
-		return new SOAPProtocol( location, wsdlInfo );
+		if ( wsdlInfo.portType() != null ) {
+			CommProtocol.Identifier pId = wsdlInfo.portType().protocolId();
+			if ( pId == CommProtocol.Identifier.SODEP )
+				return new SODEPProtocol();
+			else if ( pId == CommProtocol.Identifier.SOAP )
+				return new SOAPProtocol( location, wsdlInfo );
+		}
+		return new SODEPProtocol();
 	}
 	
 	public String value()

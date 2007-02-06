@@ -28,7 +28,7 @@ public class OperationWSDLInfo implements Cloneable
 	private Vector< String > inVarNames;
 	private Vector< String > outVarNames;
 	private String boundName;
-	//private InputPortType
+	private PortType portType;
 	
 	public OperationWSDLInfo clone()
 	{
@@ -36,7 +36,18 @@ public class OperationWSDLInfo implements Cloneable
 		retval.setInVarNames( inVarNames );
 		retval.setOutVarNames( outVarNames );
 		retval.setBoundName( boundName );
+		retval.setPortType( portType );
 		return retval;
+	}
+	
+	public void setPortType( PortType portType )
+	{
+		this.portType = portType;
+	}
+	
+	public PortType portType()
+	{
+		return portType;
 	}
 	
 	public OperationWSDLInfo()
@@ -44,6 +55,7 @@ public class OperationWSDLInfo implements Cloneable
 		inVarNames = null;
 		outVarNames = null;
 		boundName = null;
+		portType = null;
 	}
 	
 	public String boundName()
@@ -75,11 +87,4 @@ public class OperationWSDLInfo implements Cloneable
 	{
 		this.inVarNames = inVarNames;
 	} 
-	
-	public OperationWSDLInfo( String boundName, Vector< String > inVarNames, Vector< String > outVarNames )
-	{
-		this.boundName = boundName;
-		this.inVarNames = inVarNames;
-		this.outVarNames = outVarNames;
-	}
 }

@@ -170,17 +170,20 @@ public class DeployParser extends AbstractParser
 	private void parseInputPortType()
 		throws IOException, ParserException
 	{
-		String portTypeId = token.content();
+		InputPortType pt = new InputPortType( token.content() );
 		getToken();
 		eat( Scanner.TokenType.COLON, ": expected" );
 		boolean keepRun = true;
-		Vector< InputOperation > operations = new Vector< InputOperation >();
+		InputOperation op;
 		while( keepRun ) {
 			if ( !token.isA( Scanner.TokenType.ID ) )
 				keepRun = false;
 			else {
 				try {
-					operations.add( InputOperation.getById( token.content() ) );
+					op = InputOperation.getById( token.content() );
+					if ( op.wsdlInfo().portType() != null )
+						throwException( "the specified operation is already present in another port type: " + token.content() );
+					pt.addOperation( op );
 				} catch( InvalidIdException iie ) {
 					throwException( "Invalid input operation identifier: " + token.content() );
 				}
@@ -190,23 +193,26 @@ public class DeployParser extends AbstractParser
 					keepRun = false;
 			}
 		}
-		( new InputPortType( portTypeId, operations ) ).register();
+		pt.register();
 	}
 	
 	private void parseOutputPortType()
 		throws IOException, ParserException
 	{
-		String portTypeId = token.content();
+		OutputPortType pt = new OutputPortType( token.content() );
 		getToken();
 		eat( Scanner.TokenType.COLON, ": expected" );
 		boolean keepRun = true;
-		Vector< OutputOperation > operations = new Vector< OutputOperation >();
+		OutputOperation op;
 		while( keepRun ) {
 			if ( !token.isA( Scanner.TokenType.ID ) )
 				keepRun = false;
 			else {
 				try {
-					operations.add( OutputOperation.getById( token.content() ) );
+					op = OutputOperation.getById( token.content() );
+					if ( op.wsdlInfo().portType() != null )
+						throwException( "the specified operation is already present in another port type: " + token.content() );
+					pt.addOperation( op );
 				} catch( InvalidIdException iie ) {
 					throwException( "Invalid input operation identifier: " + token.content() );
 				}
@@ -216,7 +222,7 @@ public class DeployParser extends AbstractParser
 					keepRun = false;
 			}
 		}
-		( new OutputPortType( portTypeId, operations ) ).register(); 
+		pt.register(); 
 	}
 	
 	private void parseWSDLOperations()

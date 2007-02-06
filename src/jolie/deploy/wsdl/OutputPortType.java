@@ -30,10 +30,10 @@ public class OutputPortType extends PortType
 {
 	private Vector< OutputOperation > operations;
 	
-	public OutputPortType( String id, Vector< OutputOperation > operations )
+	public OutputPortType( String id )
 	{
 		super( id );
-		this.operations = operations;
+		this.operations = new Vector< OutputOperation >();
 	}
 	
 	public Vector< OutputOperation > operations()
@@ -48,5 +48,11 @@ public class OutputPortType extends PortType
 		if ( !( pt instanceof OutputPortType ) )
 			throw new InvalidIdException( id );
 		return (OutputPortType)pt;
+	}
+	
+	public void addOperation( OutputOperation operation )
+	{
+		operations.add( operation );
+		operation.wsdlInfo().setPortType( this );
 	}
 }
