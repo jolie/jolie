@@ -48,7 +48,7 @@ public class Interpreter
 	private OLParser olparser;
 	private DeployParser dolparser;
 	
-	private static final String VERSION = "JOLIE 0.3 beta1";
+	private static final String VERSION = "JOLIE 0.3 technology preview 1";
 	private static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
 	
 	private static final long serialVersionUID = 1L;

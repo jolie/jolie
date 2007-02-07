@@ -60,6 +60,10 @@ public abstract class AbstractParser
 		token = scanner.getToken();
 	}
 	
+	/**
+	 * Returns the Scanner object used by this parser.
+	 * @return The Scanner used by this parser.
+	 */
 	public Scanner scanner()
 	{
 		return scanner;
