@@ -59,6 +59,12 @@ public abstract class AbstractParser
 	{
 		token = scanner.getToken();
 	}
+	
+	public Scanner scanner()
+	{
+		return scanner;
+	}
+	
 
 	/**
 	 * Eats the current token, asserting its type.
