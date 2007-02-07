@@ -47,7 +47,7 @@ import jolie.net.SocketListener;
 
 /** Parses the deploy file
  * @author Fabrizio Montesi
- * @todo Check if a DeployScanner should be created, in order to avoid keyword collisions.
+ * @todo Check if an ad-hoc DeployScanner should be created, in order to avoid keyword collisions.
  */
 public class DeployParser extends AbstractParser
 {

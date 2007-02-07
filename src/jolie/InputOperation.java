@@ -28,7 +28,11 @@ import java.util.Vector;
 import jolie.net.CommMessage;
 import jolie.process.InputProcess;
 
-
+/**
+ * @author Fabrizio Montesi
+ * 
+ *
+ */
 abstract public class InputOperation extends Operation implements InputHandler
 {
 	private LinkedList< InputProcess > procsList;
@@ -57,13 +61,15 @@ abstract public class InputOperation extends Operation implements InputHandler
 		return (InputOperation)obj;
 	}
 	
+	/**
+	 * @todo Deprecate the use of boolean received?
+	 * @param message
+	 */
 	public void recvMessage( CommMessage message )
 	{
 		boolean received = false;
 		InputProcess process;
-		/*
-		 * todo -- deprecate use of received?
-		 */
+
 		while ( !received ) {
 			process = null;
 			synchronized( this ) {

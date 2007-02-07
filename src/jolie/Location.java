@@ -36,7 +36,7 @@ abstract public class Location
 	abstract public void setValue( String value );
 	
 	/**
-	 * @todo Embed URLs in Location directly as private members.
+	 * @todo Implement the communication medium choice (socket, pipe, file) through uri.getProtocol().
 	 * @param protocol
 	 * @return
 	 * @throws IOException

@@ -22,8 +22,6 @@
 
 package jolie;
 
-
-
 public class TempVariable extends Variable
 {
 	public TempVariable()
@@ -47,26 +45,4 @@ public class TempVariable extends Variable
 	{
 		super( variable );
 	}
-	
-	/*public static Vector< TempVariable > createTypedVars(
-			Vector< Variable.Type > typesVec,
-			Vector< Variable > varsVec )
-	{
-		assert typesVec.size() == varsVec.size();
-		
-		Vector< TempVariable > retVec = new Vector< TempVariable >();
-		int i = 0;
-		TempVariable tempVar;
-		for( Variable.Type type : typesVec ) {
-			if ( type == Variable.Type.INT )
-				tempVar = new TempVariable( varsVec.elementAt( i ).intValue() );
-			else if ( type == Variable.Type.STRING )
-				tempVar = new TempVariable( varsVec.elementAt( i ).strValue() );
-			else
-				tempVar = new TempVariable( varsVec.elementAt( i ) );
-			
-			retVec.add( tempVar );
-		}
-		return retVec;
-	}*/
 }

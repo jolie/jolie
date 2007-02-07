@@ -77,9 +77,6 @@ public class Interpreter
 				throw new CommandLineException( getHelpString() );
 			else if ( "--version".equals( args[ i ] ) )
 				throw new CommandLineException( getVersionString() );
-			/*else if ( "--to-wsdl".equals( args[ i ] ) )
-			 * We have to handle the wsdl exporter here. --export-wsdl perhaps?
-			 */
 			else if ( "--export-bpel".equals( args[ i ] ) )
 				task = InterpreterTask.ExportBPEL;
 			else if ( "--export-wsdl".equals( args[ i ] ) )

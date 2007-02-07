@@ -190,7 +190,6 @@ public class Scanner
 		if ( ch == 65535 )
 			return new Token( TokenType.EOF );
 
-		//boolean ret = false;
 		boolean stopOneChar = false;
 		Token retval = null;
 		String str = new String();
@@ -426,9 +425,7 @@ public class Scanner
 					stopOneChar = false;
 			}
 		}
-		
-		//state = 1;
-		
+
 		if ( retval == null )
 			retval = new Token( TokenType.ERROR );
 		

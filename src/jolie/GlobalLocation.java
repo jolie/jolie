@@ -27,7 +27,6 @@ import java.util.HashMap;
 
 /**
  * @author Fabrizio Montesi
- * @todo Refine the internal idMap methods.
  */
 public class GlobalLocation extends Location implements MappedGlobalObject
 {

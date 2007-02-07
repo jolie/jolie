@@ -34,7 +34,7 @@ import jolie.net.SODEPProtocol;
 /** Generic operation declaration
  * 
  * @author Fabrizio Montesi
- * @todo Change the behaviour of getByWSDLBoundName (rather ugly)
+ * @todo Change the behaviour of getByWSDLBoundName (rather ugly) through a bi-directional HashMap.
  *
  */
 abstract public class Operation extends AbstractMappedGlobalObject

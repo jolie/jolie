@@ -41,6 +41,12 @@ public class InputPortType extends PortType
 		return operations;
 	}
 	
+	/**
+	 * Adds an InputOperation to this InputPortType, and sets
+	 * the PortType of the InputOperation to this InputPortType by calling
+	 * its OperationWSDLInfo setPortType method.
+	 * @param operation The InputOperation to add to this InputPortType 
+	 */
 	public void addOperation( InputOperation operation )
 	{
 		operations.add( operation );

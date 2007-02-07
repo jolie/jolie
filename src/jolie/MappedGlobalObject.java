@@ -26,6 +26,7 @@ package jolie;
  * 
  * @author Fabrizio Montesi
  * @version 0.1
+ * @todo Refine the global mapping model, in view of the correlation set implementation.
  *
  */
 public interface MappedGlobalObject

@@ -82,8 +82,6 @@ public class HTTPScanner
 		DOT,
 		SEMICOLON,
 		POST,			// POST
-		/*INT_KEYWORD,
-		STRING_KEYWORD*/
 		ERROR
 	}
 	

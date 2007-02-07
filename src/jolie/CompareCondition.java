@@ -22,6 +22,12 @@
 
 package jolie;
 
+
+/**
+ * @author Fabrizio Montesi
+ * @todo Clean up code.
+ *
+ */
 public class CompareCondition implements Condition
 {
 	private Expression leftExpression, rightExpression;

@@ -73,7 +73,6 @@ public class CommChannelHandler extends Thread
 			
 			channel.close();
 		} catch( IOException ioe ) {
-			// todo -- signal problem to CommCore?
 			ioe.printStackTrace();
 		} catch( InvalidIdException iie ) {
 			iie.printStackTrace();
