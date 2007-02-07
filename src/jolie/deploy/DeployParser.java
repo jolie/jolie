@@ -107,6 +107,7 @@ public class DeployParser extends AbstractParser
 		else
 			throwException( "Unknown protocol: " + token.content() );
 		
+		getToken();
 		eat( Scanner.TokenType.COLON, ": expected" );
 		tokenAssert( Scanner.TokenType.INT, "network port expected" );
 		int port = Integer.parseInt( token.content() );
@@ -116,7 +117,7 @@ public class DeployParser extends AbstractParser
 
 		CommCore.addListener( new SocketListener( protocol, port ) );
 	}
-	
+
 	private void parseBindings()
 		throws IOException, ParserException
 	{
@@ -196,7 +197,7 @@ public class DeployParser extends AbstractParser
 	private void parseOutputPortTypes()
 		throws IOException, ParserException
 	{
-		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "inputPortTypes" ) ) {
+		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "outputPortTypes" ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.isA( Scanner.TokenType.ID ) )
@@ -222,6 +223,7 @@ public class DeployParser extends AbstractParser
 					if ( op.wsdlInfo().portType() != null )
 						throwException( "the specified operation is already present in another port type: " + token.content() );
 					pt.addOperation( op );
+					getToken();
 				} catch( InvalidIdException iie ) {
 					throwException( "Invalid input operation identifier: " + token.content() );
 				}
@@ -251,6 +253,7 @@ public class DeployParser extends AbstractParser
 					if ( op.wsdlInfo().portType() != null )
 						throwException( "the specified operation is already present in another port type: " + token.content() );
 					pt.addOperation( op );
+					getToken();
 				} catch( InvalidIdException iie ) {
 					throwException( "Invalid input operation identifier: " + token.content() );
 				}

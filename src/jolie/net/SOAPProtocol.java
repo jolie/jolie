@@ -125,7 +125,7 @@ public class SOAPProtocol implements CommProtocol
 			if ( varNames == null )
 				throw new IOException( "Error: output vars information missing in SOAP protocol" );
 			for( Variable var : message ) {
-				varElement = opBody.addChildElement( varNames.elementAt( i++ ) );
+				varElement = opBody.addChildElement( varNames.elementAt( i++ ), operationName.getPrefix() );
 				varElement.addTextNode( var.strValue() );
 			}
 
@@ -144,7 +144,7 @@ public class SOAPProtocol implements CommProtocol
 		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
 		writer.write( messageString );
 		writer.flush();
-		//System.out.println( messageString );
+		System.out.println( messageString );
 	}
 	
 	public CommMessage recv( InputStream istream )
@@ -215,7 +215,7 @@ public class SOAPProtocol implements CommProtocol
 			TempVariable tempVar;
 			for( int i = 0; i < nodeList.getLength(); i++ ) {
 				currNode = nodeList.item( i );
-				nodeName = currNode.getNodeName();
+				nodeName = currNode.getLocalName();
 				j = 0;
 				for( String str : varNames ) {
 					if ( str.equals( nodeName ) )
