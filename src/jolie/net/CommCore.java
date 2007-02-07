@@ -32,17 +32,11 @@ public class CommCore
 {
 	private static Vector< CommListener > listeners = new Vector< CommListener >();
 	
-	private static int defaultPort = 2555;
+	//private static int defaultPort = 2555;
 
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 
 	private CommCore(){}
-
-	/** Sets the TCP/IP port to listen for incoming network messages. */
-	public static void setDefaultPort( int commPort )
-	{
-		defaultPort = commPort;
-	}
 
 	public static ThreadGroup threadGroup()
 	{
@@ -58,11 +52,8 @@ public class CommCore
 	public static void init()
 		throws IOException
 	{
-		if ( listeners.size() > 0 ) {
-			for( CommListener listener : listeners )
-				listener.start();
-		} else
-			( new SocketListener( new SODEPProtocol(), defaultPort ) ).start();
+		for( CommListener listener : listeners )
+			listener.start();
 	}
 
 	/** Returns the current communication channel, if any. 

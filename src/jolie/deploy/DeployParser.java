@@ -90,8 +90,12 @@ public class DeployParser extends AbstractParser
 		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "service" ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			while( token.isA( Scanner.TokenType.ID ) )
+			if ( token.isA( Scanner.TokenType.ID ) )
 				parseServiceElement();
+			while( token.isA( Scanner.TokenType.COMMA ) ) {
+				getToken();
+				parseServiceElement();
+			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
 	}

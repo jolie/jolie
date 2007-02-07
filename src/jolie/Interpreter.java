@@ -84,12 +84,7 @@ public class Interpreter
 				task = InterpreterTask.ExportBPEL;
 			else if ( "--export-wsdl".equals( args[ i ] ) )
 				task = InterpreterTask.ExportWSDL;
-			else if ( "-p".equals( args[ i ] ) || "--port".equals( args[ i ] ) ) {
-				if ( ++i < args.length )
-					CommCore.setDefaultPort( Integer.parseInt( args[ i ] ) );
-				else
-					throw new CommandLineException( "You must specify a valid network port." );
-			} else if ( args[ i ].endsWith( ".ol" ) ) {
+			else if ( args[ i ].endsWith( ".ol" ) ) {
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
 				else
@@ -125,8 +120,6 @@ public class Interpreter
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
-		helpBuilder.append(
-				getOptionString( "-p, --port", "Change the input network port" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		helpBuilder.append( "\n\nNote: if the deploy file (.dol) is not specified, Jolie " +
