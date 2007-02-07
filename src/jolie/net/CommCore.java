@@ -32,8 +32,6 @@ public class CommCore
 {
 	private static Vector< CommListener > listeners = new Vector< CommListener >();
 	
-	//private static int defaultPort = 2555;
-
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 
 	private CommCore(){}
