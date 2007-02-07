@@ -144,7 +144,7 @@ public class SOAPProtocol implements CommProtocol
 		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
 		writer.write( messageString );
 		writer.flush();
-		System.out.println( messageString );
+		//System.out.println( messageString );
 	}
 	
 	public CommMessage recv( InputStream istream )
@@ -154,6 +154,8 @@ public class SOAPProtocol implements CommProtocol
 		HTTPScanner scanner = new HTTPScanner( istream, "network" );
 		
 		token = scanner.getToken();
+		if ( !token.isA( HTTPScanner.TokenType.POST ) )
+			throw new IOException( "Malformed HTTP SOAP packet received." );
 		while( !token.isA( HTTPScanner.TokenType.ERROR ) &&
 				!token.isA( HTTPScanner.TokenType.EOF ) && 
 				!token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )

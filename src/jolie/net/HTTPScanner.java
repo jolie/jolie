@@ -81,6 +81,7 @@ public class HTTPScanner
 		CONTENTTYPE,
 		DOT,
 		SEMICOLON,
+		POST,			// POST
 		/*INT_KEYWORD,
 		STRING_KEYWORD*/
 		ERROR
@@ -306,6 +307,8 @@ public class HTTPScanner
 							retval = new Token( TokenType.CONTENTLENGTH );
 						else if ( str.equalsIgnoreCase( "content-type" ) )
 							retval = new Token( TokenType.CONTENTTYPE );
+						else if ( str.equalsIgnoreCase( "POST" ) )
+							retval = new Token( TokenType.POST );
 						/*else if ( str.equals( "int" ) )
 							retval = new Token( TokenType.INTKEYWORD );
 						else if ( str.equals( "string" ) )
