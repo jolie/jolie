@@ -32,10 +32,12 @@ public class PortType extends AbstractMappedGlobalObject
 {
 	private static HashMap< String, PortType > idMap = new HashMap< String, PortType >();
 	private CommProtocol.Identifier protocolId;
+	private PartnerLinkType partnerLinkType;
 	
 	public PortType( String id )
 	{
 		super( id );
+		partnerLinkType = null;
 		protocolId = CommProtocol.Identifier.SODEP;
 	}
 	
@@ -62,5 +64,15 @@ public class PortType extends AbstractMappedGlobalObject
 	public void setProtocolId( CommProtocol.Identifier protocolId )
 	{
 		this.protocolId = protocolId;
+	}
+	
+	public PartnerLinkType partnerLinkType()
+	{
+		return partnerLinkType;
+	}
+	
+	public void setPartnerLinkType( PartnerLinkType plk )
+	{
+		partnerLinkType = plk;
 	}
 }

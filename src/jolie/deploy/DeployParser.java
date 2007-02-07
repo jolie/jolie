@@ -175,10 +175,14 @@ public class DeployParser extends AbstractParser
 		try {
 			tokenAssert( Scanner.TokenType.ID, "input port type expected" );
 			InputPortType ipt = InputPortType.getById( id );
+			if ( ipt.partnerLinkType() != null )
+				throwException( "specified input port type is already present in another partner link type" );
 			getToken();
 			eat( Scanner.TokenType.COMMA, ", expected" );
 			tokenAssert( Scanner.TokenType.ID, "output port type expected" );
 			OutputPortType opt = OutputPortType.getById( id );
+			if ( opt.partnerLinkType() != null )
+				throwException( "specified output port type is already present in another partner link type" );
 			getToken();
 			( new PartnerLinkType( id, ipt, opt ) ).register();
 		} catch( InvalidIdException iie ) {

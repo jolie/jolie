@@ -38,6 +38,8 @@ public class PartnerLinkType extends AbstractMappedGlobalObject
 	public PartnerLinkType( String id, InputPortType ipt, OutputPortType opt )
 	{
 		super( id );
+		ipt.setPartnerLinkType( this );
+		opt.setPartnerLinkType( this );
 		inputPortType = ipt;
 		outputPortType = opt;
 	}
