@@ -33,10 +33,10 @@ See the COPYING file for the distribution license of the following content.
 <State>				::= "state" "{" <StateFlag> "}"
 <StateFlag>			::= "persistent" | "not-persistent"
 
-<Execution>				::= "execution" "{" <ExecutionFlag> "}"
-<ExecutionFlag>			::= "concurrent" | "sequential"
+<Execution>			::= "execution" "{" <ExecutionFlag> "}"
+<ExecutionFlag>		::= "concurrent" | "sequential"
 
-<CorrSet>				::= "cset" "{" <IdListN> "}"
+<CorrSet>			::= "cset" "{" <IdListN> "}"
 
 <Locations>			::=	"locations" "{" <LocationsListN> "}" | epsilon
 <LocationsListN>	::=	<IdStringListN>
@@ -55,13 +55,14 @@ See the COPYING file for the distribution license of the following content.
 <NOpsListN>			::=	"Notification" ":" <NOpBindListN> | epsilon
 <SROpsListN>		::=	"SolicitResponse" ":" <SROpBindListN> | epsilon
 
-
-<OWOpBindListN>		::= <OWopBind><OWOpBindListN> | epsilon
+<OWOpBindListN>		::= <OWopBind> <OWOpBindListNSep> | epsilon
+<OWOpBindListNSep>	::=	"," <OWopBind> <OWOpBindListNSep> | epsilon
 <OWOpBind>			::= <id> "=" <id> "<" <IdListN> ">"
 
 <NOpBindListN> 		::= <OWOpBindListN>
 
-<RROpBindListN>		::= <RRopBind><RROpBindListN> | epsilon
+<RROpBindListN>		::= <RRopBind> <RROpBindListNSep> | epsilon
+<RROpBindListNSep>	::= "," <RRopBind> <RROpBindListNSep> | epsilon
 <RROpBind>			::= <id> "=" <id> "<" <IdListN> ">" "<" <IdListN> ">"
 
 <SROpBindListN>		::= <RROpBindListN>	
@@ -72,7 +73,7 @@ See the COPYING file for the distribution license of the following content.
 
 <OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
 
-<PartnerLinkType> 	::= "inputPortTypes" "{" <PltListN> "}"
+<PartnerLinkType> 	::= "partnerLinkTypes" "{" <PltListN> "}"
 <PltListN>			::= <Plt> <PltListN> | epsilon
 <Plt>				::= <id> ":" <id> "," <id>
 
@@ -80,4 +81,9 @@ See the COPYING file for the distribution license of the following content.
 <BindListN>			::= <Bind> <BindListN> | epsilon
 <Bind>				::= <id> ":" <id>
 
-<Service>       	::= "service" "{" <string> "}"
+<Service>      		::= "service" "{" <ServiceElementListN> "}"
+<ServiceElListN>	::= <ServiceElement> <ServiceElListNSep> | epsilon
+<ServiceElListNSep>	::= "," <ServiceElement> <ServiceElListNSep> | epsilon
+<ServiceElement>	::= <id> ":" <int>
+
+

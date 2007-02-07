@@ -43,19 +43,19 @@ See the COPYING file for the distribution license of the following content.
 
 <OWOp>				::=	<id> "<" <VarTypeListN> ">" | epsilon
 <OWOpListN>			::=	<OWOp> <OWOpListNSep> | epsilon
-<OWOpListN>			::=	"," <OWOp> <OWOpListNSep> | epsilon
+<OWOpListNSep>		::=	"," <OWOp> <OWOpListNSep> | epsilon
 
 <RROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" | epsilon
 <RROpListN>			::=	<RROp> <RROpListNSep> | epsilon
-<RROpListN>			::=	"," <RROp> <RROpListNSep> | epsilon
+<RROpListNSep>		::=	"," <RROp> <RROpListNSep> | epsilon
 
 <NOp>				::=	<id> "<" <VarTypeListN> ">" "=" <id> | epsilon
 <NOpListN>			::=	<NOp> <NOpListNSep> | epsilon
-<NOpListN>			::=	"," <NOp> <NOpListNSep> | epsilon
+<NOpListNSep>		::=	"," <NOp> <NOpListNSep> | epsilon
 
 <SROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" "=" <id> | epsilon
 <SROpListN>			::=	<SROp> <SROpListNSep> | epsilon
-<SROpListN>			::=	"," <SROp> <SROpListNSep> | epsilon
+<SROpListNSep>		::=	"," <SROp> <SROpListNSep> | epsilon
 
 <VarType>			::=	"int" | "string" | "variant"
 <VarTypeListN>		::=	<VarType> <VarTypeListNSep> | epsilon
