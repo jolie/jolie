@@ -234,6 +234,9 @@ public class SOAPProtocol implements CommProtocol
 			}
 			message.addAllValues( list );
 			
+			/**
+			 * This is needed to maintain information useful in a RequestResponse.
+			 */
 			this.wsdlInfo = operation.wsdlInfo();
 			this.uri = new URI( "localhost/response" );
 		} catch( SOAPException se ) {
@@ -248,6 +251,10 @@ public class SOAPProtocol implements CommProtocol
 			throw new IOException( ue );
 		}
 		
+		/*
+		CommChannel channel = CommCore.currentCommChannel();
+		OutputStream ostream = channel.outputStream();
+		*/
 		return message;
 	}
 }

@@ -57,6 +57,15 @@ public class CommChannel
 		this.protocol = protocol;
 	}
 	
+	/**
+	 * Returns the raw OutputStream associated with this communication channel.
+	 * @return the raw OutputStream associated with this communication channel.
+	 */
+	public OutputStream outputStream()
+	{
+		return ostream;
+	}
+	
 	public CommChannel( Location location, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
@@ -67,16 +76,6 @@ public class CommChannel
 		this.ostream = socket.getOutputStream();
 		this.protocol = protocol;
 	}
-	
-	/*public InputStream inputStream()
-	{
-		return istream;
-	}
-	
-	public OutputStream outputStream()
-	{
-		return ostream;
-	}*/
 	
 	/** Receives a message from the channel. */
 	public CommMessage recv()
