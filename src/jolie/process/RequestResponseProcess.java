@@ -71,6 +71,7 @@ public class RequestResponseProcess implements InputProcess, Optimizable
 							operation.id() + ". Wrong argument types received." );
 					return false;
 				}
+				i++;
 			}
 			i = 0;
 			for( Variable var : message )

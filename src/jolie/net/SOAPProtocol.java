@@ -49,9 +49,11 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
+import jolie.Interpreter;
 import jolie.InvalidIdException;
 import jolie.Location;
 import jolie.Operation;
+import jolie.RequestResponseOperation;
 import jolie.TempVariable;
 import jolie.Variable;
 import jolie.deploy.wsdl.OperationWSDLInfo;
@@ -61,6 +63,36 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+class HTTPSOAPException extends Exception
+{
+	private static final long serialVersionUID = Interpreter.serialVersionUID();
+	private int httpCode;
+
+	public HTTPSOAPException( int httpCode, String message )
+	{
+		super( message );
+		this.httpCode = httpCode;
+	}
+	
+	public int httpCode()
+	{
+		return httpCode;
+	}
+	
+	public String createSOAPFaultMessage()
+		throws SOAPException, IOException
+	{
+		MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL );
+		SOAPMessage soapMessage = messageFactory.createMessage();
+		SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
+		SOAPBody soapBody = soapEnvelope.getBody();
+		soapBody.addFault( SOAPConstants.SOAP_SENDER_FAULT, getMessage() );
+		ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+		soapMessage.writeTo( tmpStream );
+		return new String( tmpStream.toByteArray() );
+	}
+}
 
 /** Implements the SOAP/HTTP protocol.
  * 
@@ -95,20 +127,15 @@ public class SOAPProtocol implements CommProtocol
 		this.uri = location.getURI();
 		this.wsdlInfo = wsdlInfo;
 	}
-
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		if ( uri == null )
-			throw new IOException( "Error: URI information missing in SOAP protocol" );
 		if ( wsdlInfo == null )
 			throw new IOException( "Error: WSDL information missing in SOAP protocol" );
 
-		String soapString = new String();
-		String messageString = new String();
-		messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
-		messageString += "Host: " + uri.getHost() + '\n';
-		messageString += "Content-type: application/soap+xml; charset=\"utf-8\"\n";
+		HTTPSOAPException httpException = null;
+		String soapString = null;
 		
 		try {
 			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL );
@@ -116,14 +143,16 @@ public class SOAPProtocol implements CommProtocol
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
 
+			Vector< String > varNames = wsdlInfo.outVarNames();
+			if ( varNames == null )
+				throw new HTTPSOAPException( 500, "Error: output vars information missing in SOAP protocol" );
+			
 			Name operationName = soapEnvelope.createName( message.inputId(), "m", "jolieSOAP" );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 
 			SOAPElement varElement;
 			int i = 0;
-			Vector< String > varNames = wsdlInfo.outVarNames();
-			if ( varNames == null )
-				throw new IOException( "Error: output vars information missing in SOAP protocol" );
+			
 			for( Variable var : message ) {
 				varElement = opBody.addChildElement( varNames.elementAt( i++ ), operationName.getPrefix() );
 				varElement.addTextNode( var.strValue() );
@@ -132,11 +161,53 @@ public class SOAPProtocol implements CommProtocol
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
 			soapString = new String( tmpStream.toByteArray() );
+		} catch( HTTPSOAPException hse ) {
+			httpException = hse;
 		} catch( SOAPException se ) {
 			throw new IOException( se );
-		}/* catch( InvalidIdException ie ) {
-			throw new IOException( ie );
-		}*/
+		}
+		
+		String messageString = new String();
+		
+		try {
+			Operation operation = Operation.getByWSDLBoundName( message.inputId() );
+			if ( operation instanceof RequestResponseOperation ) {
+				int httpCode;
+				if ( httpException == null )
+					httpCode = 200;
+				else {
+					httpCode = httpException.httpCode();
+					try {
+						soapString = httpException.createSOAPFaultMessage();
+					} catch( SOAPException se ) {
+						throw new IOException( se );
+					}
+				}
+
+				messageString += "HTTP/1.1 " + httpCode + ' ';
+				
+				switch( httpCode ) {
+					case 500:
+						messageString += "Internal Server Error";
+						break;
+					case 200:
+					default:
+						messageString += "OK";
+						break;
+				}
+				messageString += '\n';
+			} else {
+				if ( httpException != null )
+					throw new IOException( httpException );
+				if ( uri == null )
+					throw new IOException( "Error: URI information missing in SOAP protocol" );
+				messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+				messageString += "Host: " + uri.getHost() + '\n';
+			}
+			messageString += "Content-type: application/soap+xml; charset=\"utf-8\"\n";
+		} catch ( InvalidIdException iie ) {
+			throw new IOException( iie );
+		}
 		
 		messageString += "Content-Length: " + soapString.length() + '\n';
 		messageString += soapString;
@@ -145,6 +216,8 @@ public class SOAPProtocol implements CommProtocol
 		writer.write( messageString );
 		writer.flush();
 		//System.out.println( messageString );
+		if ( httpException != null )
+			throw new IOException( httpException );
 	}
 	
 	public CommMessage recv( InputStream istream )
@@ -152,10 +225,31 @@ public class SOAPProtocol implements CommProtocol
 	{
 		HTTPScanner.Token token;
 		HTTPScanner scanner = new HTTPScanner( istream, "network" );
+		int httpCode = 0;
 		
 		token = scanner.getToken();
-		if ( !token.isA( HTTPScanner.TokenType.POST ) )
-			throw new IOException( "Malformed HTTP SOAP packet received." );
+		if ( !token.isA( HTTPScanner.TokenType.POST ) ) {
+			if ( token.isA( HTTPScanner.TokenType.HTTP ) ) {
+				// Revise these checks.. for example, 1.1 and not int/int
+				token = scanner.getToken();
+				if ( token.type() != HTTPScanner.TokenType.DIVIDE )
+					throw new IOException( "Malformed HTTP SOAP packet received." );
+				token = scanner.getToken();
+				if ( token.type() != HTTPScanner.TokenType.INT )
+					throw new IOException( "Malformed HTTP SOAP packet received." );
+				token = scanner.getToken();
+				if ( token.type() != HTTPScanner.TokenType.DOT )
+					throw new IOException( "Malformed HTTP SOAP packet received." );
+				token = scanner.getToken();
+				if ( token.type() != HTTPScanner.TokenType.INT )
+					throw new IOException( "Malformed HTTP SOAP packet received." );
+				token = scanner.getToken();
+				if ( token.type() != HTTPScanner.TokenType.INT )
+					throw new IOException( "Malformed HTTP SOAP packet received." );
+				httpCode = Integer.parseInt( token.content() );
+			} else
+				throw new IOException( "Malformed HTTP SOAP packet received." );
+		}
 		while( !token.isA( HTTPScanner.TokenType.ERROR ) &&
 				!token.isA( HTTPScanner.TokenType.EOF ) && 
 				!token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )
@@ -194,9 +288,20 @@ public class SOAPProtocol implements CommProtocol
 
 			soapMessage.getSOAPPart().setContent( dom );
 
+			if ( httpCode != 0 && httpCode != 200 ) {
+				String exMesg =	"\n--> Received an HTTP error packet\n" +
+									"\tHTTP Code: " + httpCode + '\n';
+				try {
+					exMesg += 
+						"\tSOAP Fault Message: "
+						+ soapMessage.getSOAPBody().getFault().getFaultString() + '\n';
+				} catch ( NullPointerException npe ) {}
+				throw new IOException( exMesg );
+			}
+
 			Node opNode = soapMessage.getSOAPBody().getFirstChild();
 			Operation operation = Operation.getByWSDLBoundName( opNode.getLocalName() );
-			
+		
 			message = new CommMessage( operation.id() );
 
 			NodeList nodeList = opNode.getChildNodes();
@@ -204,15 +309,17 @@ public class SOAPProtocol implements CommProtocol
 			Vector< String > varNames = operation.wsdlInfo().inVarNames();
 			if ( varNames == null )
 				throw new IOException( "Error: missing WSDL input variable names in operation " + operation.id() );
-				
-			if ( nodeList.getLength() != varNames.size() )
+			
+			int namesSize = varNames.size();
+			
+			if ( nodeList.getLength() != namesSize )
 				throw new IOException( "Received malformed SOAP Packet: wrong variables number" );
 			
 			Node currNode;
 			String nodeName;
 			int j;
 			List< Variable > list = new Vector< Variable >();
-			for( int k = 0; k < varNames.size(); k++ )
+			for( int k = 0; k < namesSize; k++ )
 				list.add( new TempVariable() );
 			TempVariable tempVar;
 			for( int i = 0; i < nodeList.getLength(); i++ ) {
@@ -225,10 +332,17 @@ public class SOAPProtocol implements CommProtocol
 					else
 						j++;
 				}
-				try {
-					tempVar = new TempVariable( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
-				} catch( NumberFormatException e ) {
-					tempVar = new TempVariable( currNode.getNodeValue() );
+
+				if ( j >= namesSize )
+					throw new IOException( "Received malformed SOAP packet: corresponding variable name not found: " + nodeName );
+				if ( currNode.getFirstChild() == null )
+					tempVar = new TempVariable( "" );
+				else {
+					try {
+						tempVar = new TempVariable( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
+					} catch( NumberFormatException e ) {
+						tempVar = new TempVariable( currNode.getFirstChild().getNodeValue() );
+					}
 				}
 				list.set( j, tempVar );
 			}
@@ -251,10 +365,6 @@ public class SOAPProtocol implements CommProtocol
 			throw new IOException( ue );
 		}
 		
-		/*
-		CommChannel channel = CommCore.currentCommChannel();
-		OutputStream ostream = channel.outputStream();
-		*/
 		return message;
 	}
 }

@@ -118,8 +118,6 @@ public class OLParser extends AbstractParser
 			} else if ( token.type() == Scanner.TokenType.ID ) {
 				String id = token.content();
 				getToken();
-				
-				eat( Scanner.TokenType.LANGLE, "< expected" );
 
 				inputProc = parseInputProcess( id );
 			} else
@@ -280,7 +278,7 @@ public class OLParser extends AbstractParser
 		
 			operation = InputOperation.getById( id );
 			Vector< Variable > inVars = parseOperationVariables();
-		
+
 			if ( token.type() == Scanner.TokenType.LANGLE ) { // Request Response operation
 				Vector< Variable > outVars = parseOperationVariables();
 				if ( operation instanceof RequestResponseOperation ) {

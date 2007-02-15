@@ -79,6 +79,7 @@ public class SolicitResponseProcess implements Process
 							operation.id() + ". Wrong argument types received." );
 						correctTypes = false;
 					}
+					i++;
 				}
 				i = 0;
 				if ( correctTypes ) {

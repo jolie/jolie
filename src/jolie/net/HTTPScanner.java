@@ -82,6 +82,7 @@ public class HTTPScanner
 		DOT,
 		SEMICOLON,
 		POST,			// POST
+		HTTP,			// HTTP
 		ERROR
 	}
 	
@@ -307,6 +308,8 @@ public class HTTPScanner
 							retval = new Token( TokenType.CONTENTTYPE );
 						else if ( str.equalsIgnoreCase( "POST" ) )
 							retval = new Token( TokenType.POST );
+						else if ( str.equalsIgnoreCase( "HTTP" ) )
+							retval = new Token( TokenType.HTTP );
 						/*else if ( str.equals( "int" ) )
 							retval = new Token( TokenType.INTKEYWORD );
 						else if ( str.equals( "string" ) )
