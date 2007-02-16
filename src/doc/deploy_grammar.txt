@@ -79,11 +79,11 @@ See the COPYING file for the distribution license of the following content.
 
 <Binding>       	::= "bindings" "{" <BindListN> "}"
 <BindListN>			::= <Bind> <BindListN> | epsilon
-<Bind>				::= <id> ":" <id>
+<Bind>				::= <id> ":" <id> ":" <id>
 
 <Service>      		::= "service" "{" <ServiceElementListN> "}"
 <ServiceElListN>	::= <ServiceElement> <ServiceElListNSep> | epsilon
 <ServiceElListNSep>	::= "," <ServiceElement> <ServiceElListNSep> | epsilon
-<ServiceElement>	::= <id> ":" <int>
+<ServiceElement>	::= <string> ":" <id> <idListNSep>
 
 
