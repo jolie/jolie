@@ -22,6 +22,8 @@
 package jolie.deploy;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Vector;
 
 import jolie.AbstractParser;
@@ -35,15 +37,17 @@ import jolie.ParserException;
 import jolie.RequestResponseOperation;
 import jolie.Scanner;
 import jolie.SolicitResponseOperation;
+import jolie.deploy.wsdl.InputPort;
 import jolie.deploy.wsdl.InputPortType;
 import jolie.deploy.wsdl.OutputPortType;
 import jolie.deploy.wsdl.PartnerLinkType;
+import jolie.deploy.wsdl.PortCreationException;
 import jolie.deploy.wsdl.PortType;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
 import jolie.net.SOAPProtocol;
 import jolie.net.SODEPProtocol;
-import jolie.net.SocketListener;
+import jolie.net.UnsupportedCommMediumException;
 
 /** Parses the deploy file
  * @author Fabrizio Montesi
@@ -90,12 +94,8 @@ public class DeployParser extends AbstractParser
 		if ( token.isA( Scanner.TokenType.ID ) && token.content().equals( "service" ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			if ( token.isA( Scanner.TokenType.ID ) )
+			while( token.isA( Scanner.TokenType.STRING ) )
 				parseServiceElement();
-			while( token.isA( Scanner.TokenType.COMMA ) ) {
-				getToken();
-				parseServiceElement();
-			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
 	}
@@ -104,22 +104,42 @@ public class DeployParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		CommProtocol protocol = null;
-		if ( token.content().equals( "soap" ) )
-			protocol = new SOAPProtocol();
-		else if ( token.content().equals( "sodep" ) )
-			protocol = new SODEPProtocol();
-		else
-			throwException( "Unknown protocol: " + token.content() );
-		
-		getToken();
-		eat( Scanner.TokenType.COLON, ": expected" );
-		tokenAssert( Scanner.TokenType.INT, "network port expected" );
-		int port = Integer.parseInt( token.content() );
-		if ( port < 0 || port > 65535 )
-			throwException( "Invalid port specified: " + token.content() );
-		getToken();
-
-		CommCore.addListener( new SocketListener( protocol, port ) );
+		try {
+			Vector< InputPort > inputPorts = new Vector< InputPort >();
+			URI serviceUri = new URI( token.content() );
+			
+			getToken();
+			eat( Scanner.TokenType.COLON, ": expected" );
+			tokenAssert( Scanner.TokenType.ID, "expected port identifier" );
+			
+			InputPort port = InputPort.getById( token.content() );
+			CommProtocol.Identifier pId = port.protocolId();
+			if ( pId == CommProtocol.Identifier.SOAP )
+				protocol = new SOAPProtocol( serviceUri );
+			else if ( pId == CommProtocol.Identifier.SODEP )
+				protocol = new SODEPProtocol();
+			else
+				throwException( "Unhandled protocol specified for port " + port.id() );
+			
+			inputPorts.add( port );
+			
+			getToken();
+			while( token.isA( Scanner.TokenType.COMMA ) ) {
+				port = InputPort.getById( token.content() );
+				if ( port.protocolId() != pId )
+					throwException( "Protocol incompatible ports specified in service element" );
+				inputPorts.add( port );
+				getToken();
+			}
+			
+			CommCore.addService( serviceUri, protocol, inputPorts );
+		} catch( URISyntaxException uriex ) {
+			throwException( uriex );
+		} catch( UnsupportedCommMediumException ucm ) {
+			throwException( ucm );
+		} catch( InvalidIdException iie ) {
+			throwException( iie );
+		}
 	}
 
 	private void parseBindings()
@@ -138,17 +158,31 @@ public class DeployParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		try {
+			CommProtocol.Identifier protocolId = CommProtocol.Identifier.SODEP;
+			String portId = token.content();
+			/*try {
+				Port.getById( portId );
+				throwException( "Port identifier " + portId + " already in use" );
+			} catch( InvalidIdException iie ) {}*/
+			getToken();
+			eat( Scanner.TokenType.COLON, ": expected" );
+			tokenAssert( Scanner.TokenType.ID, "port type id expected" );
 			PortType pt = PortType.getById( token.content() );
 			getToken();
 			eat( Scanner.TokenType.COLON, ": expected" );
 			tokenAssert( Scanner.TokenType.ID, "port type protocol expected" );
 			if ( token.content().equals( "soap" ) )
-				pt.setProtocolId( CommProtocol.Identifier.SOAP );
+				protocolId = CommProtocol.Identifier.SOAP;
 			else if ( token.content().equals( "sodep" ) )
-				pt.setProtocolId( CommProtocol.Identifier.SODEP );
+				protocolId = CommProtocol.Identifier.SODEP;
 			else
-				throwException( "unknown protocol specified in port type binding" );
+				throwException( "unknown protocol specified in port binding" );
 			getToken();
+			try {
+				( pt.createPort( portId, protocolId ) ).register();
+			} catch( PortCreationException ex ) {
+				throwException( ex.getMessage() );
+			}
 		} catch( InvalidIdException iie ) {
 			throwException( "invalid port type identifier: " + token.content() );
 		}

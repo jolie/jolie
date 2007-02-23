@@ -21,7 +21,15 @@
 
 package jolie;
 
+import java.net.URISyntaxException;
 import java.util.Vector;
+
+import jolie.deploy.wsdl.OutputPort;
+import jolie.deploy.wsdl.OutputPortType;
+import jolie.deploy.wsdl.PortType;
+import jolie.net.CommProtocol;
+import jolie.net.SOAPProtocol;
+import jolie.net.SODEPProtocol;
 
 public class OutputOperation extends Operation
 {
@@ -55,5 +63,24 @@ public class OutputOperation extends Operation
 		if ( !( obj instanceof OutputOperation ) )
 			throw new InvalidIdException( id );
 		return (OutputOperation)obj;
+	}
+	
+	public CommProtocol getOutputProtocol( Location location )
+		throws URISyntaxException
+	{
+		PortType pt = wsdlInfo().portType();
+		if ( pt != null ) {
+			assert( pt instanceof OutputPortType );
+			OutputPort port = ((OutputPortType)pt).outputPort();
+			if ( port != null ) {
+				CommProtocol.Identifier pId = port.protocolId();
+				if ( pId == CommProtocol.Identifier.SODEP )
+					return new SODEPProtocol();
+				else if ( pId == CommProtocol.Identifier.SOAP )
+					return new SOAPProtocol( location.getURI(), wsdlInfo() );
+			} else
+				Interpreter.logger().warning( "Unspecified output port for operation " + id() );
+		}
+		return new SODEPProtocol();
 	}
 }

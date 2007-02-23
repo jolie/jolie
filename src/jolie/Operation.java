@@ -22,14 +22,10 @@
 
 package jolie;
 
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 
 import jolie.deploy.wsdl.OperationWSDLInfo;
-import jolie.net.CommProtocol;
-import jolie.net.SOAPProtocol;
-import jolie.net.SODEPProtocol;
 
 /** Generic operation declaration
  * 
@@ -64,19 +60,6 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	{
 		super( id );
 		wsdlInfo = new OperationWSDLInfo();
-	}
-	
-	public CommProtocol getProtocol( Location location )
-		throws URISyntaxException
-	{
-		if ( wsdlInfo.portType() != null ) {
-			CommProtocol.Identifier pId = wsdlInfo.portType().protocolId();
-			if ( pId == CommProtocol.Identifier.SODEP )
-				return new SODEPProtocol();
-			else if ( pId == CommProtocol.Identifier.SOAP )
-				return new SOAPProtocol( location, wsdlInfo );
-		}
-		return new SODEPProtocol();
 	}
 	
 	public String value()

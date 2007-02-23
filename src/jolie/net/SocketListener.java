@@ -27,15 +27,18 @@ import java.net.ServerSocket;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Collection;
+
+import jolie.deploy.wsdl.InputPort;
 
 public class SocketListener extends CommListener
 {
 	private ServerSocketChannel serverChannel;
 
-	public SocketListener( CommProtocol protocol, int port )
+	public SocketListener( CommProtocol protocol, int port, Collection< InputPort > inputPorts )
 		throws IOException
 	{
-		super( protocol );
+		super( protocol, inputPorts );
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();
@@ -52,7 +55,7 @@ public class SocketListener extends CommListener
 							socketChannel.socket().getInputStream(),
 							socketChannel.socket().getOutputStream(),
 							createProtocol() );
-				(new CommChannelHandler( getThreadGroup(), channel )).start();
+				(new CommChannelHandler( getThreadGroup(), channel, this )).start();
 			}
 			serverChannel.close();
 		} catch( ClosedByInterruptException ce ) {

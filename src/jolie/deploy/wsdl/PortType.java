@@ -28,23 +28,24 @@ import jolie.AbstractMappedGlobalObject;
 import jolie.InvalidIdException;
 import jolie.net.CommProtocol;
 
-public class PortType extends AbstractMappedGlobalObject
+abstract public class PortType extends AbstractMappedGlobalObject
 {
 	private static HashMap< String, PortType > idMap = new HashMap< String, PortType >();
-	private CommProtocol.Identifier protocolId;
 	private PartnerLinkType partnerLinkType;
 	
 	public PortType( String id )
 	{
 		super( id );
 		partnerLinkType = null;
-		protocolId = CommProtocol.Identifier.SODEP;
 	}
 	
 	public void register()
 	{
 		idMap.put( id(), this );
 	}
+	
+	abstract public Port createPort( String portId, CommProtocol.Identifier protocolId )
+		throws PortCreationException;
 	
 	public static PortType getById( String id )
 		throws InvalidIdException
@@ -54,16 +55,6 @@ public class PortType extends AbstractMappedGlobalObject
 			throw new InvalidIdException( id );
 
 		return pt;
-	}
-	
-	public CommProtocol.Identifier protocolId()
-	{
-		return protocolId;
-	}
-	
-	public void setProtocolId( CommProtocol.Identifier protocolId )
-	{
-		this.protocolId = protocolId;
 	}
 	
 	public PartnerLinkType partnerLinkType()

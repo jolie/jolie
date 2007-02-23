@@ -61,7 +61,7 @@ public class NotificationProcess implements Process
 			if ( boundName == null )
 				boundName = operation.boundOperationId();
 
-			CommChannel channel = new CommChannel( location, operation.getProtocol( location ) );
+			CommChannel channel = new CommChannel( location, operation.getOutputProtocol( location ) );
 			
 			CommMessage message = new CommMessage( boundName, varsVec );
 			channel.send( message );

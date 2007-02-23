@@ -22,6 +22,11 @@
 
 package jolie.net;
 
+import java.util.Collection;
+
+import jolie.InputOperation;
+import jolie.deploy.wsdl.InputPort;
+
 /** Base class for a communication input listener.
  * @author Fabrizio Montesi
  */
@@ -30,11 +35,13 @@ abstract public class CommListener extends Thread
 	private static int index = 0;
 
 	private CommProtocol protocol;
+	private Collection< InputPort > inputPorts;
 	
-	public CommListener( CommProtocol protocol )
+	public CommListener( CommProtocol protocol, Collection< InputPort > inputPorts )
 	{
 		super( CommCore.threadGroup(), "CommListener-" + index++ );
 		this.protocol = protocol;
+		this.inputPorts = inputPorts;
 	}
 	
 	public CommProtocol createProtocol()
@@ -42,5 +49,14 @@ abstract public class CommListener extends Thread
 		return protocol.clone();
 	}
 	
+	public boolean canHandleInputOperation( InputOperation operation )
+	{
+		for( InputPort port : inputPorts ) {
+			if ( port.inputPortType().operations().contains( operation ) )
+				return true;
+		}
+		return false;
+	}
+
 	abstract public void run();
 }

@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Logger;
 
 import jolie.deploy.DeployParser;
 import jolie.net.CommCore;
@@ -57,6 +58,13 @@ public class Interpreter
 	{
 		/* Future use, for the bytecode compiling. */
 		return serialVersionUID;
+	}
+	
+	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	
+	public static final Logger logger()
+	{
+		return logger;
 	}
 	
 	/** Constructor.

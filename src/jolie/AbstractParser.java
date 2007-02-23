@@ -102,11 +102,22 @@ public abstract class AbstractParser
 	/**
 	 * Shortcut to throw a correctly formed ParserException.
 	 * @param mesg The message to insert in the ParserException.
-	 * @throws ParserException Everytime, as its the function of this method.
+	 * @throws ParserException Everytime, as its the purpose of this method.
 	 */
 	protected void throwException( String mesg )
 		throws ParserException
 	{
 		throw new ParserException( scanner.sourceName(), scanner.line(), mesg );
+	}
+	
+	/**
+	 * Shortcut to throw a correctly formed ParserException, getting the message from an existing exception.
+	 * @param exception The exception to get the message from.
+	 * @throws ParserException Everytime, as its the purpose of this method.
+	 */
+	protected void throwException( Exception exception )
+		throws ParserException
+	{
+		throw new ParserException( scanner.sourceName(), scanner.line(), exception.getMessage() );
 	}
 }

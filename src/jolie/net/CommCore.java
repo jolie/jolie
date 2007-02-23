@@ -23,7 +23,11 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.Collection;
 import java.util.Vector;
+
+import jolie.deploy.wsdl.InputPort;
 
 /** Handles the networking communications.
  * The CommCore class represent the communication core of JOLIE.
@@ -31,6 +35,7 @@ import java.util.Vector;
 public class CommCore
 {
 	private static Vector< CommListener > listeners = new Vector< CommListener >();
+	//private static HashMap< URI, CommListener > listeners = new HashMap< CommListener >(); 
 	
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 
@@ -41,8 +46,22 @@ public class CommCore
 		return threadGroup;
 	}
 	
-	public static void addListener( CommListener listener )
+	/** Adds an input service.
+	 * @todo Implement different mediums than socket.
+	 * @param uri The
+	 * @param protocol
+	 */
+	public static void addService( URI uri, CommProtocol protocol, Collection< InputPort > inputPorts )
+		throws UnsupportedCommMediumException, IOException
 	{
+		String medium = uri.getScheme();
+		CommListener listener = null;
+		if ( medium.equals( "socket" ) ) {
+			listener = new SocketListener( protocol, uri.getPort(), inputPorts );
+		} else
+			throw new UnsupportedCommMediumException( medium );
+		
+		assert listener != null;
 		listeners.add( listener );
 	}
 

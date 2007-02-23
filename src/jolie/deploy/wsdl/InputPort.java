@@ -19,43 +19,32 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy.wsdl;
 
-package jolie;
-
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-import jolie.net.CommChannel;
+import jolie.InvalidIdException;
 import jolie.net.CommProtocol;
-import jolie.net.UnsupportedCommMediumException;
 
-abstract public class Location
+public class InputPort extends Port
 {
-	abstract protected String value();
-	abstract public void setValue( String value );
-	
-	/**
-	 * @todo Implement the communication medium choice (socket, pipe, file) through uri.getProtocol().
-	 * @param protocol
-	 * @return
-	 * @throws IOException
-	 */
-	public CommChannel createCommChannel( CommProtocol protocol )
-		throws IOException, URISyntaxException, UnsupportedCommMediumException
+	private InputPortType inputPortType;
+
+	public InputPort( String id, InputPortType portType, CommProtocol.Identifier protocolId )
 	{
-		URI uri = getURI();
-		//String urlProtocol = url.getProtocol();
-		if ( !uri.getScheme().equals( "socket" ) )
-			throw new UnsupportedCommMediumException( uri.getScheme() );
-		
-		Socket socket = new Socket( uri.getHost(), uri.getPort() );
-		return new CommChannel( socket.getInputStream(), socket.getOutputStream(), protocol );
+		super( id, protocolId );
+		this.inputPortType = portType;
 	}
 	
-	public URI getURI()
-		throws URISyntaxException
+	public InputPortType inputPortType()
 	{
-		return new URI( value() );
+		return inputPortType;
+	}
+	
+	public static InputPort getById( String id )
+		throws InvalidIdException
+	{
+		Port p = Port.getById( id );
+		if ( !( p instanceof InputPort ) )
+			throw new InvalidIdException( id );
+		return (InputPort)p;
 	}
 }

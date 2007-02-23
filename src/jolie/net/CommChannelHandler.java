@@ -38,16 +38,18 @@ public class CommChannelHandler extends Thread
 	private static int index = 0;
 	
 	private CommChannel channel;
+	private CommListener listener;
 	
 	/** Constructor.
 	 * 
 	 * @param threadGroup the threadGroup to which the CommChannelHandler thread will be assigned.
 	 * @param channel the channel to be handled.
 	 */
-	public CommChannelHandler( ThreadGroup threadGroup, CommChannel channel )
+	public CommChannelHandler( ThreadGroup threadGroup, CommChannel channel, CommListener listener )
 	{
 		super( threadGroup, "CommChannelHandler-" + index++ );
 		this.channel = channel;
+		this.listener = listener;
 	}
 
 	public CommChannel commChannel()
@@ -69,8 +71,9 @@ public class CommChannelHandler extends Thread
 			InputOperation operation =
 					InputOperation.getById( message.inputId() );
 			
-			operation.recvMessage( message );
-			
+			if ( listener.canHandleInputOperation( operation ) )
+				operation.recvMessage( message );
+
 			channel.close();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();

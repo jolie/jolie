@@ -19,43 +19,16 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.net;
 
-package jolie;
+import jolie.Interpreter;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-import jolie.net.CommChannel;
-import jolie.net.CommProtocol;
-import jolie.net.UnsupportedCommMediumException;
-
-abstract public class Location
+public class UnsupportedCommMediumException extends Exception
 {
-	abstract protected String value();
-	abstract public void setValue( String value );
+	private static final long serialVersionUID = Interpreter.serialVersionUID();
 	
-	/**
-	 * @todo Implement the communication medium choice (socket, pipe, file) through uri.getProtocol().
-	 * @param protocol
-	 * @return
-	 * @throws IOException
-	 */
-	public CommChannel createCommChannel( CommProtocol protocol )
-		throws IOException, URISyntaxException, UnsupportedCommMediumException
+	public UnsupportedCommMediumException( String medium )
 	{
-		URI uri = getURI();
-		//String urlProtocol = url.getProtocol();
-		if ( !uri.getScheme().equals( "socket" ) )
-			throw new UnsupportedCommMediumException( uri.getScheme() );
-		
-		Socket socket = new Socket( uri.getHost(), uri.getPort() );
-		return new CommChannel( socket.getInputStream(), socket.getOutputStream(), protocol );
-	}
-	
-	public URI getURI()
-		throws URISyntaxException
-	{
-		return new URI( value() );
+		super( "Unsupported communication medium: " + medium );
 	}
 }

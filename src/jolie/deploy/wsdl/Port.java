@@ -19,43 +19,48 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy.wsdl;
 
-package jolie;
+import java.util.Collection;
+import java.util.HashMap;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-import jolie.net.CommChannel;
+import jolie.AbstractMappedGlobalObject;
+import jolie.InvalidIdException;
 import jolie.net.CommProtocol;
-import jolie.net.UnsupportedCommMediumException;
 
-abstract public class Location
+abstract public class Port extends AbstractMappedGlobalObject
 {
-	abstract protected String value();
-	abstract public void setValue( String value );
+	private static HashMap< String, Port > idMap = new HashMap< String, Port >();
+	private CommProtocol.Identifier protocolId;
 	
-	/**
-	 * @todo Implement the communication medium choice (socket, pipe, file) through uri.getProtocol().
-	 * @param protocol
-	 * @return
-	 * @throws IOException
-	 */
-	public CommChannel createCommChannel( CommProtocol protocol )
-		throws IOException, URISyntaxException, UnsupportedCommMediumException
+	public Port( String id, CommProtocol.Identifier protocolId )
 	{
-		URI uri = getURI();
-		//String urlProtocol = url.getProtocol();
-		if ( !uri.getScheme().equals( "socket" ) )
-			throw new UnsupportedCommMediumException( uri.getScheme() );
-		
-		Socket socket = new Socket( uri.getHost(), uri.getPort() );
-		return new CommChannel( socket.getInputStream(), socket.getOutputStream(), protocol );
+		super( id );
+		this.protocolId = protocolId;
 	}
 	
-	public URI getURI()
-		throws URISyntaxException
+	public CommProtocol.Identifier protocolId()
 	{
-		return new URI( value() );
+		return protocolId;
+	}
+
+	public void register()
+	{
+		idMap.put( id(), this );
+	}
+	
+	public static Port getById( String id )
+		throws InvalidIdException
+	{
+		Port port = idMap.get( id );
+		if ( port == null )
+			throw new InvalidIdException( id );
+
+		return port;
+	}
+	
+	public static Collection< Port > getAll()
+	{
+		return idMap.values();
 	}
 }

@@ -69,7 +69,7 @@ See the COPYING file for the distribution license of the following content.
 
 <InputPortTypes>	::= "inputPortTypes" "{" <PortListN> "}"
 <PortListN>			::= <Port> <PortListN> | epsilon
-<Port>				::= <id> ":" <idListN>
+<Port>				::= <id> ":" <IdListN>
 
 <OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
 
@@ -82,8 +82,7 @@ See the COPYING file for the distribution license of the following content.
 <Bind>				::= <id> ":" <id> ":" <id>
 
 <Service>      		::= "service" "{" <ServiceElementListN> "}"
-<ServiceElListN>	::= <ServiceElement> <ServiceElListNSep> | epsilon
-<ServiceElListNSep>	::= "," <ServiceElement> <ServiceElListNSep> | epsilon
-<ServiceElement>	::= <string> ":" <id> <idListNSep>
+<ServiceElListN>	::= <ServiceElement> <ServiceElListN> | epsilon
+<ServiceElement>	::= <string> ":" <id> <IdListNSep>
 
 

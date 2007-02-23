@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import jolie.InputOperation;
 import jolie.InvalidIdException;
+import jolie.net.CommProtocol;
 
 public class InputPortType extends PortType
 {
@@ -34,6 +35,12 @@ public class InputPortType extends PortType
 	{
 		super( id );
 		this.operations = new Vector< InputOperation >();
+	}
+	
+	public Port createPort( String portId, CommProtocol.Identifier protocolId )
+		throws PortCreationException
+	{
+		return new InputPort( portId, this, protocolId );
 	}
 	
 	public Vector< InputOperation > operations()

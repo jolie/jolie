@@ -51,7 +51,6 @@ import javax.xml.transform.dom.DOMSource;
 
 import jolie.Interpreter;
 import jolie.InvalidIdException;
-import jolie.Location;
 import jolie.Operation;
 import jolie.RequestResponseOperation;
 import jolie.TempVariable;
@@ -121,11 +120,15 @@ public class SOAPProtocol implements CommProtocol
 		wsdlInfo = null;
 	}
 	
-	public SOAPProtocol( Location location, OperationWSDLInfo wsdlInfo )
-		throws URISyntaxException
+	public SOAPProtocol( URI uri, OperationWSDLInfo wsdlInfo )
 	{
-		this.uri = location.getURI();
+		this.uri = uri;
 		this.wsdlInfo = wsdlInfo;
+	}
+	
+	public SOAPProtocol( URI uri )
+	{
+		this.uri = uri;
 	}
 	
 	public void send( OutputStream ostream, CommMessage message )
@@ -146,7 +149,7 @@ public class SOAPProtocol implements CommProtocol
 			Vector< String > varNames = wsdlInfo.outVarNames();
 			if ( varNames == null )
 				throw new HTTPSOAPException( 500, "Error: output vars information missing in SOAP protocol" );
-			
+
 			Name operationName = soapEnvelope.createName( message.inputId(), "m", "jolieSOAP" );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 

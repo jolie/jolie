@@ -25,15 +25,18 @@ import java.util.Vector;
 
 import jolie.InvalidIdException;
 import jolie.OutputOperation;
+import jolie.net.CommProtocol;
 
 public class OutputPortType extends PortType
 {
 	private Vector< OutputOperation > operations;
+	private OutputPort outputPort;
 	
 	public OutputPortType( String id )
 	{
 		super( id );
 		this.operations = new Vector< OutputOperation >();
+		outputPort = null;
 	}
 	
 	public Vector< OutputOperation > operations()
@@ -54,5 +57,19 @@ public class OutputPortType extends PortType
 	{
 		operations.add( operation );
 		operation.wsdlInfo().setPortType( this );
+	}
+	
+	public OutputPort outputPort()
+	{
+		return outputPort;
+	}
+	
+	public Port createPort( String portId, CommProtocol.Identifier protocolId )
+		throws PortCreationException
+	{
+		if ( outputPort != null )
+			throw new PortCreationException( "You must specify only one output port for each output port type." ); 
+		outputPort = new OutputPort( portId, this, protocolId );
+		return outputPort;
 	}
 }
