@@ -25,6 +25,7 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Vector;
 
 import jolie.deploy.wsdl.InputPort;
@@ -35,7 +36,7 @@ import jolie.deploy.wsdl.InputPort;
 public class CommCore
 {
 	private static Vector< CommListener > listeners = new Vector< CommListener >();
-	//private static HashMap< URI, CommListener > listeners = new HashMap< CommListener >(); 
+	private static HashMap< URI, Collection< InputPort > > serviceMap = new HashMap< URI, Collection< InputPort > >();
 	
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 
@@ -63,8 +64,14 @@ public class CommCore
 		
 		assert listener != null;
 		listeners.add( listener );
+		serviceMap.put( uri, inputPorts );
 	}
-
+	
+	public static HashMap< URI, Collection< InputPort > > serviceMap()
+	{
+		return serviceMap;
+	}
+	
 	/** Initializes the communication core. */
 	public static void init()
 		throws IOException
