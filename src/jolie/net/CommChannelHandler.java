@@ -25,6 +25,7 @@ package jolie.net;
 import java.io.IOException;
 
 import jolie.InputOperation;
+import jolie.Interpreter;
 import jolie.InvalidIdException;
 
 /** CommChannelHandler is used by the communication core to handle a newly opened 
@@ -73,6 +74,12 @@ public class CommChannelHandler extends Thread
 			
 			if ( listener.canHandleInputOperation( operation ) )
 				operation.recvMessage( message );
+			else {
+				Interpreter.logger().warning(
+							"Discarded a message for operation " + operation +
+							", not specified in an input port."
+						);
+			}
 
 			channel.close();
 		} catch( IOException ioe ) {
