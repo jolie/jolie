@@ -214,7 +214,7 @@ public class DeployParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.COMMA, ", expected" );
 			tokenAssert( Scanner.TokenType.ID, "output port type expected" );
-			OutputPortType opt = OutputPortType.getById( id );
+			OutputPortType opt = OutputPortType.getById( token.content() );
 			if ( opt.partnerLinkType() != null )
 				throwException( "specified output port type is already present in another partner link type" );
 			getToken();
