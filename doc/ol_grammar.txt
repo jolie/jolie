@@ -1,0 +1,137 @@
+This file contains the formal grammar of the .ol input files of JOLIE.
+See the AUTHORS file for information regarding the authors of the JOLIE project.
+See the COPYING file for the distribution license of the following content.
+
+// Tokens
+
+<id>			::=	[a-zA-Z][_a-zA-Z0-9]*
+<int>			::=	-?[0-9]+
+<string>		::=	"[[:graph:]]*"
+<condOperator>	::=	<|>|>=|<=|==|!=
+<addOp>			::=	+|-
+<multOp>		::=	[*]|/
+
+---
+
+// Useful non terminals
+
+<IdListN>			::=	<id> <IdListNSep> | epsilon
+<IdListNSep>		::=	"," <id> <IdListNSep> | epsilon
+
+
+---
+
+// Start point:
+
+<Start>				::=	<Declarations> <Code>
+
+---
+
+<Declarations>		::=	<LocationsDeclN> <OperationsDeclN> <LinksDeclN> <VariablesDeclN>
+
+<LocationsDeclN>	::=	"locations" "{" <LocationsListN> "}" | epsilon
+<LocationsListN>	::=	<IdListN> <IdListNSep> | epsilon
+
+<OperationsDeclN>	::=	"operations" "{" <OperationsListN> "}" | epsilon
+<OperationsListN>	::=	<OWOpsListN> <RROpsListN> <NOpsListN> <SROpsListN> <OperationsListN>
+					|	epsilon
+
+<OWOpsListN>		::=	"OneWay" ":" <OWOpListN> | epsilon
+<RROpsListN>		::=	"RequestResponse" ":" <RROpListN> | epsilon
+<NOpsListN>			::=	"Notification" ":" <NOpListN> | epsilon
+<SROpsListN>		::=	"SolicitResponse" ":" <SROpListN> | epsilon
+
+<OWOp>				::=	<id> "<" <VarTypeListN> ">" | epsilon
+<OWOpListN>			::=	<OWOp> <OWOpListNSep> | epsilon
+<OWOpListNSep>		::=	"," <OWOp> <OWOpListNSep> | epsilon
+
+<RROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" | epsilon
+<RROpListN>			::=	<RROp> <RROpListNSep> | epsilon
+<RROpListNSep>		::=	"," <RROp> <RROpListNSep> | epsilon
+
+<NOp>				::=	<id> "<" <VarTypeListN> ">" "=" <id> | epsilon
+<NOpListN>			::=	<NOp> <NOpListNSep> | epsilon
+<NOpListNSep>		::=	"," <NOp> <NOpListNSep> | epsilon
+
+<SROp>				::=	<id> "<" <VarTypeListN> ">" "<" <VarTypeListN> ">" "=" <id> | epsilon
+<SROpListN>			::=	<SROp> <SROpListNSep> | epsilon
+<SROpListNSep>		::=	"," <SROp> <SROpListNSep> | epsilon
+
+<VarType>			::=	"int" | "string" | "variant"
+<VarTypeListN>		::=	<VarType> <VarTypeListNSep> | epsilon
+<VarTypeListNSep>	::=	"," <VarType> <VarTypeListNSep> | epsilon
+
+<LinksDeclN>		::=	"links" "{" <IdListN> "}" | epsilon
+
+<VariablesDeclN>	::=	"variables" "{" <IdListN> "}" | epsilon
+
+---
+
+<Code>				::=	<DefsListN> <Main> <DefsListN>
+<DefsListN>			::=	<Define> <DefsListN> | epsilon
+<Main>				::=	"main" <Process> "end"
+<Define>			::=	"define" <id> "{" <Process> "}"
+
+
+// Priority: ;;, ||, ++
+
+<Process>			::=	//"try" "{" <Process> "}" 
+					|	<ChoiceProcess> <ChoiceListN>
+					|	<ParallelProcess> <ParallelListN>
+
+<ChoiceListN>		::=	++ <ChoiceProcess> <ChoiceListN> | epsilon
+<ChoiceProcess>		::=	"[" <Input> "]" <Process>
+
+<ParallelListN>		::=	|| <ParallelProcess> <ParallelListN> | epsilon
+<ParallelProcess>	::=	<BasicProcess> <SequentialListN>
+
+<SequentialListN>	::=	;; <BasicProcess> <SequentialListN> | epsilon
+
+<Input>			::=	"linkIn" "(" <id> ")"
+				|	<id> "<" <IdListN> ">"
+				|	<id> "<" <IdListN> ">" "<" <IdlistN> ">" "(" <Process> ")"
+				|	"sleep" "(" <Expression> ")"
+
+<BasicProcess>	::=	<Input>
+				|	<id>
+				|	<id> "=" <Expression>
+				|	<id> "@" <id> "<" <IdListN> ">"
+				|	<id> "@" <id> "<" <IdListN> ">" "<" <IdListN> ">"
+				|	"linkOut" "(" <id> ")"
+				|	"in" "(" <id> ")"
+				|	"out" "(" <Expression> ")"
+				|	"call" "(" <id> ")"
+				|	"(" <Process> ")"
+				|	"if" "(" <Condition> ")" "{" <Process> "}" <ElseIfListN>
+				|	"nullProcess"
+				|	"while" "(" <Condition> ")" "{" <Process> "}"
+				|	"scope" "(" <id> ")" "{" <Process> "}"
+				|	"installFH" "(" <id> "," <Process> ")"
+				|	"installComp" "(" <Process> ")"
+				|	"throw" "(" <id> ")"
+				|	"comp" "(" <id> ")"
+
+<ElseIfListN>	::=	"else" "if" "(" <Condition> ")" "{" <Process> "}" <ElseIfListN>
+				|	"else" "{" <Process> "}"
+				|	epsilon
+
+
+// Priority: ! != > < <= >= ==, and, or
+
+<Condition>				::=	<AndConditionList> <OrConditionListN>
+<OrConditionListN>		::=	"or" <Condition> | epsilon
+<AndConditionList>		::=	<BaseCondition> <AndConditionListSep>
+<AndConditionListSep>	::=	"and" <AndConditionList> | epsilon
+<BaseCondition>			::=	<Expression> <condOperator> <Expression>
+						|	"!" "(" <Condition> ")"
+						|	"(" <Condition> ")"
+						|	<Expression>
+
+// Priority: * /, + -
+
+<Expression>		::=	<Term> <AdditionListN>
+<AdditionListN>		::=	<addOp> <Expression> | epsilon
+<Term>				::=	<Factor> <MultListN>
+<MultListN>			::=	<multOp> <Term> | epsilon
+<Factor>			::=	<id> | <int> | "(" <Expression> ")" | <string>
+
