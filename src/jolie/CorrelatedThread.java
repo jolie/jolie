@@ -54,7 +54,10 @@ class Scope {
 	
 	public Process getFaultHandler( String name )
 	{
-		return faultMap.get( name );
+		Process p = faultMap.get( name );
+		if ( p != null )
+			faultMap.remove( name );
+		return p;
 	}
 	
 	public Process getCompensation( String name )
