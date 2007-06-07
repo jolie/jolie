@@ -445,7 +445,7 @@ public class OLParser extends AbstractParser
 		orCond.addChild( parseAndCondition() );
 		while( token.type() == Scanner.TokenType.OR ) {
 			getToken();
-			orCond.addChild( parseBasicCondition() );
+			orCond.addChild( parseAndCondition() );
 		}
 				
 		return orCond;
@@ -536,7 +536,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException, InvalidIdException
 	{
 		Expression retval = null;
-		
+
 		if ( token.type() == Scanner.TokenType.ID )
 			retval = GlobalVariable.getById( token.content() );
 		else if ( token.type() == Scanner.TokenType.STRING )
