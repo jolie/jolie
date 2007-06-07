@@ -185,7 +185,6 @@ abstract public class InputOperation extends Operation implements InputHandler
 								Thread.currentThread()
 								)
 						);
-		
 		this.notifyAll();
 	}
 	

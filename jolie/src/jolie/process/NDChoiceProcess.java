@@ -69,7 +69,7 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	
 	private HashMap< String, ChoicePair > inputMap;
 	//private boolean mesgReceived;
-	private Process execProc;
+	//private Process execProc;
 	private CorrelatedProcess correlatedProcess;
 	
 	/** Constructor */
@@ -77,7 +77,7 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	{
 		inputMap = new HashMap< String, ChoicePair >();
 		//mesgReceived = false;
-		execProc = null;
+		//execProc = null;
 	}
 	
 	/** Adds an InputProcess<->Process pair: a possible non-deterministic choice.
@@ -117,6 +117,9 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	{
 		if ( CorrelatedThread.killed() )
 			return;
+		
+		CorrelatedThread.currentThread().setPendingNDProcess( null );
+		
 		//mesgReceived = false;
 		for( ChoicePair cp : inputMap.values() ) {
 			if ( cp.inputProcess() instanceof CorrelatedInputProcess )
@@ -125,27 +128,32 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		}
 
 		synchronized( Thread.currentThread() ) {
-			try {
-				Thread.currentThread().wait();
-			} catch( InterruptedException e ) {}
+			if( CorrelatedThread.currentThread().pendingNDProcess() == null ) {
+				try {
+					Thread.currentThread().wait();
+				} catch( InterruptedException e ) {}
+			}
 		}
-		execProc.run();
-		execProc = null;
 		
+		Process p = CorrelatedThread.currentThread().pendingNDProcess();
+		CorrelatedThread.currentThread().setPendingNDProcess( null );
 		CorrelatedThread.currentThread().throwPendingFault();
+		p.run();
 	}
 
-	public synchronized boolean recvMessage( CommMessage message )
+	public boolean recvMessage( CommMessage message )
 	{
 		/*if ( mesgReceived )
 			return false;*/
 		
 		ChoicePair pair;
 		pair = inputMap.get( message.inputId() );
+
 		if ( pair != null ) {
 			//inputMap.remove( message.inputId() );
 			pair.inputProcess().recvMessage( message );
-			execProc = pair.process();
+			CorrelatedThread.currentThread().setPendingNDProcess( pair.process() );
+			//execProc = pair.process();
 			
 			for( ChoicePair currPair : inputMap.values() )
 				currPair.inputProcess().inputHandler().cancelWaiting( this );

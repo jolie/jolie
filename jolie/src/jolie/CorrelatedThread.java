@@ -77,9 +77,20 @@ abstract public class CorrelatedThread extends Thread
 	private CorrelatedProcess notifyProc = null;
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
 	private FaultException pendingFault = null;
+	private Process pendingProcess = null;
 	private CorrelatedThread parent;
 	private boolean killed = false;
 
+	public void setPendingNDProcess( Process p )
+	{
+		pendingProcess = p;
+	}
+	
+	public Process pendingNDProcess()
+	{
+		return pendingProcess;
+	}
+	
 	public void kill()
 	{
 		killed = true;
@@ -128,22 +139,6 @@ abstract public class CorrelatedThread extends Thread
 			throw f;
 		}
 	}
-	
-	/*
-	public static boolean isKilled()
-	{
-		return CorrelatedThread.currentThread().killed();
-	}
-	
-	public void kill()
-	{
-		killed = true;
-	}
-	
-	public boolean killed()
-	{
-		return killed;
-	}*/
 	
 	public void run()
 	{
