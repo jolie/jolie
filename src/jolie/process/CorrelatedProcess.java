@@ -31,62 +31,63 @@ import jolie.runtime.FaultException;
 public class CorrelatedProcess implements Process
 {
 	private SequentialProcess sequence;
-	private boolean keepRun = false;
-	private int runningSessions = 0;
+	private CorrelatedThread waitingThread;
+	//private boolean keepRun = false;
+	//private int runningSessions = 0;
 	
 	public CorrelatedProcess( SequentialProcess sequence )
 	{
 		this.sequence = sequence;
 	}
 	
-	private void startSession( boolean async )
+	private void startSession()
 	{
-		CorrelatedThread thread;
+		//CorrelatedThread thread;
 		if ( Interpreter.stateMode() == Constants.StateMode.PERSISTENT )
-			thread = new StatelessThread( CorrelatedThread.currentThread(), sequence, this );
+			waitingThread = new StatelessThread( CorrelatedThread.currentThread(), sequence, this );
 		else
-			thread = new StatefulThread( sequence, CorrelatedThread.currentThread(), this );
+			waitingThread = new StatefulThread( sequence, CorrelatedThread.currentThread(), this );
 		
-		runningSessions++;
-		thread.start();
-		if ( async == false ) {
+		//runningSessions++;
+		waitingThread.start();
+		
+		/*if ( async == false ) {
 			try {
 				synchronized( this ) {
 					wait();
 				}
 			} catch( InterruptedException e ) {}
-		}
+		}*/
 	}
 	
 	public void run()
 	{
-		//startSession( false );
-		do {
-			keepRun = false;
-			startSession( false );
-		} while( keepRun );
-		
-		while( runningSessions > 0 ) {
-			try {
-				synchronized( this ) {
-					wait();
+		while( true ) {
+			startSession();
+			synchronized( this ) {
+				if ( waitingThread != null ) { // We are still waiting for an input
+					try {
+						wait();
+					} catch( InterruptedException ie ) {}
 				}
-			} catch( InterruptedException e ) {}
+			}
 		}
 	}
 	
-	public void inputReceived()
+	public synchronized void inputReceived()
 	{
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
-			startSession( true );
-		} else
-			keepRun = true;
+			waitingThread = null;
+			notify();
+		}
 	}
 	
 	public synchronized void sessionTerminated()
 	{
-		runningSessions--;
-		notify();
+		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+			waitingThread = null;
+			notify();
+		}
 	}
 	
 	public synchronized void signalFault( FaultException f )
@@ -95,7 +96,10 @@ public class CorrelatedProcess implements Process
 					"Uncaught fault( " + f.fault() +
 					" )\nJava stack trace follows..." );
 		f.printStackTrace();
-		runningSessions--;
-		notify();
+		
+		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+			waitingThread = null;
+			notify();
+		}
 	}
 }

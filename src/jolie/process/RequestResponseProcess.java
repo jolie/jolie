@@ -123,7 +123,7 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		if ( channel != null ) {
 			try {
 				channel.send( response );
-				//channel.close();
+				channel.close();
 			} catch( IOException ioe ) {
 				ioe.printStackTrace();
 			}

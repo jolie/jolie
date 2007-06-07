@@ -55,7 +55,8 @@ public class SocketListener extends CommListener
 							socketChannel.socket().getInputStream(),
 							socketChannel.socket().getOutputStream(),
 							createProtocol() );
-				(new CommChannelHandler( getThreadGroup(), channel, this )).start();
+				CommChannelHandler.startHandler( channel, this );
+				//(new CommChannelHandler( getThreadGroup(), channel, this )).start();
 			}
 			serverChannel.close();
 		} catch( ClosedByInterruptException ce ) {

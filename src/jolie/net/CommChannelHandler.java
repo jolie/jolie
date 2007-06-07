@@ -32,6 +32,8 @@ import jolie.runtime.InvalidIdException;
  * CommChannelHandler objects are grouped in a ThreadGroup, in order to be able 
  * to interrupt them in case of network shutdown.
  * 
+ * @todo Make handlersLimit configurable
+ * 
  */
 public class CommChannelHandler extends Thread
 {
@@ -39,6 +41,10 @@ public class CommChannelHandler extends Thread
 	
 	private CommChannel channel;
 	private CommListener listener;
+	
+	private static int runningHandlers = 0;
+	private static Object mutex = new Object();
+	private static int handlersLimit = 50;
 	
 	/** Constructor.
 	 * 
@@ -57,6 +63,19 @@ public class CommChannelHandler extends Thread
 		return channel;
 	}
 	
+	public static void startHandler( CommChannel channel, CommListener listener )
+	{
+		synchronized( mutex ) {
+			if( runningHandlers > handlersLimit ) {
+				try {
+					mutex.wait();
+				} catch( InterruptedException ie ) {}
+			}
+		}
+
+		(new CommChannelHandler( listener.getThreadGroup(), channel, listener )).start();
+	}
+	
 	/** Runs the thread, making it waiting for a message.
 	 * When a message is received, the thread creates a CommMessage object 
 	 * and passes it to the relative InputOperation object, which will handle the
@@ -66,6 +85,9 @@ public class CommChannelHandler extends Thread
 	 */
 	public void run()
 	{
+		synchronized( mutex ) {
+			runningHandlers++;
+		}
 		try {
 			CommMessage message = channel.recv();
 			InputOperation operation =
@@ -85,6 +107,12 @@ public class CommChannelHandler extends Thread
 			ioe.printStackTrace();
 		} catch( InvalidIdException iie ) {
 			iie.printStackTrace();
+		}
+		
+		synchronized( mutex ) {
+			runningHandlers--;
+			if ( runningHandlers <= handlersLimit )
+				mutex.notifyAll();
 		}
 	}
 }
