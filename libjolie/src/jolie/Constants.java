@@ -23,7 +23,7 @@ package jolie;
 
 public final class Constants
 {
-	public static final String VERSION = "JOLIE 0.9";
+	public static final String VERSION = "JOLIE 0.9.1";
 	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
 
 	public enum StateMode {
