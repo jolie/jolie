@@ -24,10 +24,6 @@ package jolie.process;
 import jolie.CorrelatedThread;
 import jolie.runtime.FaultException;
 
-/**
- * @todo installazione dei compensatori verso l'alto
- *
- */
 public class ScopeProcess implements Process
 {
 	private String id;

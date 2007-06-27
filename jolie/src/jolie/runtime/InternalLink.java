@@ -25,91 +25,140 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
+import jolie.CorrelatedThread;
 import jolie.net.CommMessage;
 import jolie.process.InputProcess;
 import jolie.process.NDChoiceProcess;
-import jolie.process.Process;
+import jolie.util.Pair;
 
 
 /** Internal synchronization link for parallel processes.
  * 
  * @author Fabrizio Montesi
+ * 
+ * @todo improve efficiency of linkIn list
  */
 public class InternalLink extends AbstractMappedGlobalObject implements InputHandler
 {
 	private static HashMap< String, InternalLink > idMap = 
 		new HashMap< String, InternalLink >();
+
+	//private LinkedList< Thread > inList = new LinkedList< Thread >();
+	private LinkedList< Pair< CorrelatedThread, InputProcess > > inList = new LinkedList< Pair< CorrelatedThread, InputProcess > >();
+	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
+	private LinkedList< Thread > outList = new LinkedList< Thread >();
 	
-	private LinkedList< InputProcess > procsList;
-	private LinkedList< Process > outList;
+	/*private LinkedList< InputProcess > procsList;
+	private LinkedList< Process > outList;*/
 	
 	public InternalLink( String id )
 	{
 		super( id );
-		procsList = new LinkedList< InputProcess >();
-		outList = new LinkedList< Process >();
 	}
+	
+	
 	
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
-		if ( outList.isEmpty() )
-			procsList.addFirst( process );
-		else {
-			Process outProc = outList.removeLast();
-			synchronized( outProc ) {
-				outProc.notify();
+		synchronized( Thread.currentThread() ) {
+			if ( outList.isEmpty() )
+				inList.addFirst(
+					new Pair< CorrelatedThread, InputProcess >( CorrelatedThread.currentThread(), process ) );
+				//inMap.put( Thread.currentThread(), process );
+				//inMa.addFirst( process );
+			else {
+				process.recvMessage( new CommMessage( id() ) );
+				Thread t = outList.removeLast();
+				synchronized( t ) {
+					t.notify();
+				}
 			}
-			process.recvMessage( new CommMessage( id() ) );
 		}
 	}
 	
 	public synchronized void cancelWaiting( NDChoiceProcess process ) 
 	{
-		procsList.remove( process );
+		for( Pair< CorrelatedThread, InputProcess > pair : inList ) {
+			if ( pair.key() == CorrelatedThread.currentThread() ) {
+				inList.remove( pair );
+				break;
+			}
+		}
+		//inMap.remove( Thread.currentThread() );
 	}
 
 	public void linkIn( InputProcess process )
 	{
-		Process outProc = null;
-		synchronized( this ) {
-			if ( outList.isEmpty() ) {
-				procsList.addFirst( process );
-			} else
-				outProc = outList.getLast();
-		}
+		Pair< CorrelatedThread, InputProcess > pair =
+			new Pair< CorrelatedThread, InputProcess >( CorrelatedThread.currentThread(), process );
 
-		if ( outProc == null ) {
-			synchronized( process ) {
-				try {
-					process.wait();
-				} catch( InterruptedException e ) {}
-			}
-		} else {
-			synchronized( outProc ) {
-				outProc.notify();
+		Thread t = null, currThread = Thread.currentThread();
+		synchronized( this ) {
+			try {
+				t = outList.removeLast();
+			} catch( NoSuchElementException e ) {
+				inList.addFirst( pair );
+				//inMap.put( currThread, process );
+				//inList.addFirst( currThread );
+			} 
+		}
+		
+		synchronized( currThread ) {
+			if ( t == null ) {
+				boolean wait = false;
+				synchronized( this ) {
+					wait = inList.contains( pair );
+					//wait = inMap.containsKey( currThread );
+					//wait = inList.contains( currThread );
+				}
+				if ( wait ) {
+					try {
+						currThread.wait();
+					} catch( InterruptedException e ) {}
+				}
+			} else {
+				synchronized( t ) {
+					t.notify();
+				}
 			}
 		}
 	}
 	
-	public void linkOut( Process process )
+	public void linkOut()
 	{
-		InputProcess inProc = null;
+		Pair< CorrelatedThread, InputProcess > pair = null;
+		CorrelatedThread currThread = CorrelatedThread.currentThread();
 		synchronized( this ) {
-			if ( procsList.isEmpty() ) {
-				outList.addFirst( process );
-			} else
-				inProc = procsList.getLast();
+			try {
+				pair = inList.removeLast();
+				//t =
+				//t = inList.removeLast();
+			} catch( NoSuchElementException e ) {
+				outList.addFirst( currThread );
+			} 
 		}
-
-		if ( inProc == null ) {
-			synchronized( process ) {
-				try {
-					process.wait();
-				} catch( InterruptedException e ) {}
+		
+		synchronized( currThread ) {
+			if ( pair == null ) {
+				boolean wait = false;
+				synchronized( this ) {
+					wait = outList.contains( currThread );
+				}
+				if ( wait ) {
+					try {
+						currThread.wait();
+					} catch( InterruptedException e ) {}
+				}
+			} else {
+				CorrelatedThread.setCurrent( pair.key() );
+				pair.value().recvMessage( new CommMessage( id() ) );
+				CorrelatedThread.setCurrent( null );
+				synchronized( pair.key() ) {
+					pair.key().notify();
+				}
 			}
-		} else {
-			inProc.recvMessage( new CommMessage( id() ) );
 		}
 	}
 	

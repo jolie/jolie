@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -34,18 +35,18 @@ import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InputHandler;
-import jolie.runtime.InputOperation;
+import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Variable;
 
 public class RequestResponseProcess implements InputOperationProcess, CorrelatedInputProcess
 {
-	private InputOperation operation;
+	private RequestResponseOperation operation;
 	private Vector< GlobalVariable > varsVec;
 	private Process process;
 	private Vector< GlobalVariable > outVars;
 	private CorrelatedProcess correlatedProcess = null;
 
-	public RequestResponseProcess( InputOperation operation, Vector< GlobalVariable > varsVec, Vector< GlobalVariable > outVars, Process process )
+	public RequestResponseProcess( RequestResponseOperation operation, Vector< GlobalVariable > varsVec, Vector< GlobalVariable > outVars, Process process )
 	{
 		this.operation = operation;
 		this.varsVec = varsVec;
@@ -116,6 +117,20 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 			response = new CommMessage( operation.id(), outVars );
 		} catch( FaultException f ) {
 			CorrelatedThread.currentThread().setPendingFault( f );
+			if ( !operation.faultNames().contains( f.fault() ) ) {
+				Interpreter.logger().severe(
+					"Request-Response process for " + operation.id() +
+					"threw an undeclared fault for that operation" );
+				Iterator< String > it = operation.faultNames().iterator();
+				if ( it.hasNext() ) {
+					String newFault = it.next();
+					Interpreter.logger().warning(
+						"Converting Request-Response fault " + f.fault() +
+						" to " + newFault );
+					f = new FaultException( newFault );
+				} else
+					Interpreter.logger().severe( "Could not find a fault to convert the undeclared fault to." );
+			}
 			response = new CommMessage( operation.id(), f );
 		}
 

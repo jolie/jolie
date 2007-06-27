@@ -21,54 +21,69 @@
 
 package jolie.process;
 
+import jolie.CorrelatedThread;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.InputHandler;
 
-class SleepInputHandler extends Thread implements InputHandler
-{
-	private InputProcess inputProcess;
-	private Expression expression;
-	
-	public SleepInputHandler( Expression expression )
-	{
-		this.expression = expression;
-	}
-	
-	public void run()
-	{
-		int i = expression.evaluate().intValue();
-		try {
-			if ( i > 0 )
-				Thread.sleep( i );
-			if ( inputProcess != null )
-				inputProcess.recvMessage( new CommMessage( id() ) );
-		} catch( InterruptedException e ) {}
-	}
-	
-	public String id()
-	{
-		return this.toString();
-	}
-	
-	public synchronized void signForMessage( NDChoiceProcess process )
-	{
-		inputProcess = process;
-		if ( this.getState() == Thread.State.NEW )
-			this.start();
-	}
-	
-	public synchronized void cancelWaiting( NDChoiceProcess process )
-	{
-		if ( inputProcess == process )
-			inputProcess = null;
-		
-		this.interrupt();
-	}
-}
-
 public class SleepProcess implements InputProcess
 {
+	public class SleepInputHandler extends Thread implements InputHandler
+	{
+		private InputProcess inputProcess;
+
+		private Expression expression;
+
+		private CorrelatedThread cthread;
+
+		public SleepInputHandler( Expression expression )
+		{
+			this.expression = expression;
+		}
+
+		public CorrelatedThread correlatedThread()
+		{
+			return cthread;
+		}
+
+		public void run()
+		{
+			int i = expression.evaluate().intValue();
+			try {
+				if ( i > 0 )
+					Thread.sleep( i );
+				if ( inputProcess != null ) {
+					inputProcess.recvMessage( new CommMessage( id() ) );
+					synchronized( cthread ) {
+						cthread.notify();
+					}
+				}
+			} catch ( InterruptedException e ) {
+			}
+		}
+
+		public String id()
+		{
+			return this.toString();
+		}
+
+		public synchronized void signForMessage( NDChoiceProcess process )
+		{
+			inputProcess = process;
+			cthread = CorrelatedThread.currentThread();
+			if ( this.getState() == Thread.State.NEW )
+				this.start();
+		}
+
+		public synchronized void cancelWaiting( NDChoiceProcess process )
+		{
+			if ( inputProcess == process )
+				inputProcess = null;
+
+			this.interrupt();
+		}
+	}
+	
 	private Expression expression;
 	private SleepInputHandler inputHandler = null;
 	

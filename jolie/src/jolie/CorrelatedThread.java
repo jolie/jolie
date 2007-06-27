@@ -29,6 +29,7 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
+import jolie.process.SleepProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
 
@@ -83,13 +84,20 @@ abstract public class CorrelatedThread extends Thread
 	private Process pendingProcess = null;
 	private CorrelatedThread parent;
 	private boolean killed = false;
+	
+	private static CorrelatedThread current = null;
 
-	public void setPendingNDProcess( Process p )
+	public synchronized static void setCurrent( CorrelatedThread cthread )
+	{
+		current = cthread;
+	}
+	
+	public synchronized void setPendingNDProcess( Process p )
 	{
 		pendingProcess = p;
 	}
 	
-	public Process pendingNDProcess()
+	public synchronized Process pendingNDProcess()
 	{
 		return pendingProcess;
 	}
@@ -152,12 +160,8 @@ abstract public class CorrelatedThread extends Thread
 		} catch( FaultException f ) {
 			if ( notifyProc != null )
 				notifyProc.signalFault( f );
-			else {
-				Interpreter.logger().severe(
-					"Uncaught fault( " + f.fault() +
-					" )\nJava stack trace follows..." );
-				f.printStackTrace();
-			}
+			else
+				Interpreter.logUnhandledFault( f );
 		}
 	}
 	
@@ -221,9 +225,14 @@ abstract public class CorrelatedThread extends Thread
 	
 	public static CorrelatedThread currentThread()
 	{
+		if ( current != null )
+			return current;
+
 		Thread current = Thread.currentThread();
 		if ( current instanceof CorrelatedThread )
 			return ((CorrelatedThread) current);
+		else if ( current instanceof SleepProcess.SleepInputHandler )
+			return ((SleepProcess.SleepInputHandler)current).correlatedThread();
 		
 		return CommCore.currentCommChannel().correlatedThread();
 	}

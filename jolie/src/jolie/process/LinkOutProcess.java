@@ -38,6 +38,6 @@ public class LinkOutProcess implements Process
 	{
 		if ( CorrelatedThread.killed() )
 			return;
-		link.linkOut( this );
+		link.linkOut();
 	}
 }

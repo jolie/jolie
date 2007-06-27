@@ -19,87 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.process;
 
-import java.util.Vector;
+import jolie.Interpreter;
 
-import jolie.CorrelatedThread;
-import jolie.StatelessThread;
-import jolie.process.Process;
 
-class ParallelThread extends StatelessThread
+public class ExitProcess implements Process
 {
-	ParallelExecution parent;
+	private ExitProcess(){}
 	
-	public ParallelThread( Process process, ParallelExecution parent )
+	private static class LazyHolder {
+		static final ExitProcess instance = new ExitProcess();
+	}
+	
+	static public ExitProcess getInstance()
 	{
-		super( CorrelatedThread.currentThread(), process );
-		this.parent = parent;
+		return ExitProcess.LazyHolder.instance;
 	}
 	
 	public void run()
 	{
-		try {
-			process().run();
-		} catch( FaultException f ) {
-			parent.signalFault( this, f );
-		}
-		parent.terminationNotify( this );
-	}
-}
-
-public class ParallelExecution
-{
-	private Vector< ParallelThread > threads = new Vector< ParallelThread >();
-	private FaultException fault = null;
-
-	public ParallelExecution( Vector< Process > procs )
-	{
-		for( Process proc : procs )
-			threads.add( new ParallelThread( proc, this ) );
-	}
-	
-	public void run()
-		throws FaultException
-	{
-		synchronized( this ) {
-			for( ParallelThread t : threads )
-				t.start();
-
-			try {
-				wait();
-			} catch( InterruptedException e ) {}
-		
-			if ( fault != null ) {
-				for( ParallelThread t : threads )
-					t.kill();
-			}
-		
-			while ( threads.size() > 0 ) {
-				try {
-					//threads.firstElement().join();
-					wait();
-				} catch( InterruptedException e ) {}
-			}
-		
-			if ( fault != null )
-				throw fault;
-		}
-	}
-	
-	public synchronized void terminationNotify( ParallelThread thread )
-	{
-		threads.remove( thread );
-				
-		if ( threads.size() < 1 )
-			notify();
-	}
-	
-		
-	public synchronized void signalFault( ParallelThread thread, FaultException f )
-	{
-		threads.remove( thread );
-		fault = f;
-		notify();
+		Interpreter.exit();
 	}
 }

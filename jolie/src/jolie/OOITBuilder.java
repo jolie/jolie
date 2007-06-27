@@ -60,6 +60,7 @@ import jolie.lang.parse.nodes.ol.CompareConditionNode;
 import jolie.lang.parse.nodes.ol.CompensateStatement;
 import jolie.lang.parse.nodes.ol.ConstantIntegerExpression;
 import jolie.lang.parse.nodes.ol.ConstantStringExpression;
+import jolie.lang.parse.nodes.ol.ExitStatement;
 import jolie.lang.parse.nodes.ol.ExpressionConditionNode;
 import jolie.lang.parse.nodes.ol.IfStatement;
 import jolie.lang.parse.nodes.ol.InStatement;
@@ -108,6 +109,7 @@ import jolie.process.CompensateProcess;
 import jolie.process.CorrelatedInputProcess;
 import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
+import jolie.process.ExitProcess;
 import jolie.process.IfProcess;
 import jolie.process.InProcess;
 import jolie.process.InputProcess;
@@ -448,7 +450,8 @@ public class OOITBuilder
 			(new RequestResponseOperation(
 				decl.id(),
 				new Vector< Constants.VariableType >( decl.inVarTypes() ),
-				new Vector< Constants.VariableType >( decl.outVarTypes() ))).register();
+				new Vector< Constants.VariableType >( decl.outVarTypes() ),
+				decl.faultNames() )).register();
 		}
 		
 		public void visit( NotificationOperationDeclaration decl )
@@ -501,7 +504,8 @@ public class OOITBuilder
 		}
 		
 		/**
-		 * @todo Avoid creating a CorrelatedProcess if the input operation does not use a correlated variable
+		 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
+		 * @todo allow ndchoice at the beginning of main to be CorrelatedInputProcess
 		 */
 		public void visit( SequenceStatement n )
 		{
@@ -568,7 +572,7 @@ public class OOITBuilder
 		{
 			try {
 				currProcess =
-					new OneWayProcess( InputOperation.getById( n.id() ), getVariables( n.inVars() ) );
+					new OneWayProcess( OneWayOperation.getById( n.id() ), getVariables( n.inVars() ) );
 			} catch( InvalidIdException e ) {
 				error( e ); 
 			}
@@ -580,7 +584,7 @@ public class OOITBuilder
 				n.process().accept( this );
 				currProcess =
 					new RequestResponseProcess(
-							InputOperation.getById( n.id() ),
+							RequestResponseOperation.getById( n.id() ),
 							getVariables( n.inVars() ),
 							getVariables( n.outVars() ),
 							currProcess
@@ -607,7 +611,7 @@ public class OOITBuilder
 			try {
 				currProcess =
 					new NotificationProcess(
-							OutputOperation.getById( n.id() ),
+							NotificationOperation.getById( n.id() ),
 							location,
 							getVariables( n.outVars() )
 							);
@@ -850,5 +854,9 @@ public class OOITBuilder
 			currProcess = NullProcess.getInstance();
 		}
 		
+		public void visit( ExitStatement n )
+		{
+			currProcess = ExitProcess.getInstance();
+		}
 	}
 }
