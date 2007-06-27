@@ -68,16 +68,12 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	}
 	
 	private HashMap< String, ChoicePair > inputMap;
-	//private boolean mesgReceived;
-	//private Process execProc;
 	private CorrelatedProcess correlatedProcess;
 	
 	/** Constructor */
 	public NDChoiceProcess()
 	{
 		inputMap = new HashMap< String, ChoicePair >();
-		//mesgReceived = false;
-		//execProc = null;
 	}
 	
 	/** Adds an InputProcess<->Process pair: a possible non-deterministic choice.
@@ -89,7 +85,6 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	{
 		ChoicePair pair = new ChoicePair( inputProc, process );
 		inputMap.put( inputProc.inputHandler().id(), pair );
-		//inputProc.inputHandler().signForMessage( this );
 	}
 
 	public InputHandler inputHandler()
@@ -120,7 +115,6 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		
 		CorrelatedThread.currentThread().setPendingNDProcess( null );
 		
-		//mesgReceived = false;
 		for( ChoicePair cp : inputMap.values() ) {
 			if ( cp.inputProcess() instanceof CorrelatedInputProcess )
 				((CorrelatedInputProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
@@ -142,26 +136,19 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	}
 
 	public boolean recvMessage( CommMessage message )
-	{
-		/*if ( mesgReceived )
-			return false;*/
-		
+	{	
 		ChoicePair pair;
 		pair = inputMap.get( message.inputId() );
 
 		if ( pair != null ) {
-			//inputMap.remove( message.inputId() );
-			pair.inputProcess().recvMessage( message );
 			CorrelatedThread.currentThread().setPendingNDProcess( pair.process() );
-			//execProc = pair.process();
-			
+			pair.inputProcess().recvMessage( message );
+
 			for( ChoicePair currPair : inputMap.values() )
 				currPair.inputProcess().inputHandler().cancelWaiting( this );
 		} else
 			return false;
 
-		//mesgReceived = true;
-		//notify();
 		return true;
 	}	
 }

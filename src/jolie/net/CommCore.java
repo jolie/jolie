@@ -43,12 +43,24 @@ public class CommCore
 	private static ThreadGroup threadGroup = new ThreadGroup( "CommCoreGroup" );
 	
 	private static Logger logger = Logger.getLogger( "JOLIE" );
+	
+	private static int connectionsLimit = -1;
 
 	private CommCore(){}
 	
 	public static Logger logger()
 	{
 		return logger;
+	}
+	
+	public static void setConnectionsLimit( int limit )
+	{
+		connectionsLimit = limit;
+	}
+	
+	public static int connectionsLimit()
+	{
+		return connectionsLimit;
 	}
 
 	public static ThreadGroup threadGroup()

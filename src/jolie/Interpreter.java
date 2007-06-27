@@ -39,6 +39,7 @@ import jolie.lang.parse.nodes.deploy.DeployInfo;
 import jolie.lang.parse.nodes.ol.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
+import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
@@ -51,11 +52,29 @@ public class Interpreter
 {
 	private OLParser olParser;
 	private DeployParser dolParser;
+	private static boolean verbose = false;
+	private static boolean exiting = false;
 	private static Set< GlobalVariable > correlationSet = new HashSet< GlobalVariable > ();
 	private static Constants.StateMode stateMode = Constants.StateMode.PERSISTENT;
-	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SEQUENTIAL;
+	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	
 	private static Logger logger = Logger.getLogger( "JOLIE" );
+	
+	public static void exit()
+	{
+		exiting = true;
+	}
+	
+	public static boolean exiting()
+	{
+		return exiting;
+	}
+	
+	public static void logUnhandledFault( FaultException f )
+	{
+		if ( verbose )
+			System.out.println( "Thrown unhandled fault: " + f.fault() ); 
+	}
 	
 	public static Constants.StateMode stateMode()
 	{
@@ -113,8 +132,13 @@ public class Interpreter
 		for( int i = 0; i < args.length; i++ ) {
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) )
 				throw new CommandLineException( getHelpString() );
-			else if ( "--version".equals( args[ i ] ) )
+			else if ( "-l".equals( args[ i ] ) ) {
+				i++;
+				CommCore.setConnectionsLimit( Integer.parseInt( args[ i ] ) );
+			} else if ( "--version".equals( args[ i ] ) )
 				throw new CommandLineException( getVersionString() );
+			else if ( "--verbose".equals( args[ i ] ) )
+				verbose = true;
 			else if ( args[ i ].endsWith( ".ol" ) ) {
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
@@ -152,6 +176,10 @@ public class Interpreter
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
 		helpBuilder.append(
+				getOptionString( "-l [number]", "Set max connections limit" ) );
+		helpBuilder.append(
+				getOptionString( "--verbose", "Activate verbose mode" ) );
+		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		helpBuilder.append( "\n\nNote: if the deploy file (.dol) is not specified, Jolie " +
 				"will search for it taking the behaviour_file name and searching for a " +
@@ -174,7 +202,6 @@ public class Interpreter
 	 * The default behaviour is to execute the input code.
 	 * @throws IOException If a Parser propagates a Scanner exception.
 	 * @throws ParserException If a Parser finds a syntax error.
-	 * @todo We should enclose the entire execution in a "main" scope
 	 */
 	public void run()
 		throws InterpreterException, IOException

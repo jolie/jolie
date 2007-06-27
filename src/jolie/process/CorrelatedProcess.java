@@ -32,8 +32,6 @@ public class CorrelatedProcess implements Process
 {
 	private SequentialProcess sequence;
 	private CorrelatedThread waitingThread;
-	//private boolean keepRun = false;
-	//private int runningSessions = 0;
 	
 	public CorrelatedProcess( SequentialProcess sequence )
 	{
@@ -42,36 +40,30 @@ public class CorrelatedProcess implements Process
 	
 	private void startSession()
 	{
-		//CorrelatedThread thread;
 		if ( Interpreter.stateMode() == Constants.StateMode.PERSISTENT )
 			waitingThread = new StatelessThread( CorrelatedThread.currentThread(), sequence, this );
 		else
 			waitingThread = new StatefulThread( sequence, CorrelatedThread.currentThread(), this );
 		
-		//runningSessions++;
 		waitingThread.start();
-		
-		/*if ( async == false ) {
-			try {
-				synchronized( this ) {
-					wait();
-				}
-			} catch( InterruptedException e ) {}
-		}*/
 	}
 	
 	public void run()
+		throws FaultException
 	{
-		while( true ) {
-			startSession();
-			synchronized( this ) {
-				if ( waitingThread != null ) { // We are still waiting for an input
-					try {
-						wait();
-					} catch( InterruptedException ie ) {}
+		if ( Interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
+			while( !Interpreter.exiting() ) {
+				startSession();
+				synchronized( this ) {
+					if ( waitingThread != null ) { // We are still waiting for an input
+						try {
+							wait();
+						} catch( InterruptedException ie ) {}
+					}
 				}
 			}
-		}
+		} else
+			sequence.run();
 	}
 	
 	public synchronized void inputReceived()
@@ -92,10 +84,7 @@ public class CorrelatedProcess implements Process
 	
 	public synchronized void signalFault( FaultException f )
 	{
-		Interpreter.logger().severe(
-					"Uncaught fault( " + f.fault() +
-					" )\nJava stack trace follows..." );
-		f.printStackTrace();
+		Interpreter.logUnhandledFault( f );
 		
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
 			waitingThread = null;

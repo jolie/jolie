@@ -37,6 +37,8 @@ import jolie.util.Triple;
 /**
  * @author Fabrizio Montesi
  * 
+ * @todo switch every input process to async signForMessage
+ * @todo switch to a custom locking system
  *
  */
 abstract public class InputOperation extends Operation implements InputHandler
@@ -70,40 +72,39 @@ abstract public class InputOperation extends Operation implements InputHandler
 	/**
 	 * Receives a message from CommCore and passes it to the right InputOperation.
 	 * If no suitable InputOperation is found, the message is enqueued in memory.
-	 * @todo Deprecate the use of boolean received?
-	 * @todo Check for other possible instances of tasks with an already allocated cset
 	 * @param message
 	 */
 	public void recvMessage( CommMessage message )
 	{
-			//CommChannel channel = CommCore.currentCommChannel();
-			//synchronized( channel ) {
-			Triple< CorrelatedThread, InputProcess, Thread > triple;
-			boolean received = false;
-			triple = getCorrelatedTriple( message );
-			//if ( pair == null )
-				//mesgList.addFirst( message );
-			
-			while( !received ) {
-				while( triple == null ) {
-					synchronized( this ) {
-						try {
-							this.wait();
-						} catch( InterruptedException e ) {}
-					}
-					triple = getCorrelatedTriple( message );
+		//CommChannel channel = CommCore.currentCommChannel();
+		//synchronized( channel ) {
+		Triple< CorrelatedThread, InputProcess, Thread > triple;
+		boolean received = false;
+		triple = getCorrelatedTriple( message );
+		//if ( pair == null )
+			//mesgList.addFirst( message );
+		
+		while( !received ) {
+			while( triple == null ) {
+				synchronized( this ) {
+					try {
+						this.wait();
+					} catch( InterruptedException e ) {}
 				}
-				CommCore.currentCommChannel().setCorrelatedThread( triple.first() );
-				received = triple.second().recvMessage( message );
-				if ( received ) {
-					//mesgList.remove( message );
-					synchronized( triple.third() ) {
-						triple.third().notify();
-					}
-				} else {
-					triple = getCorrelatedTriple( message );
-				}
+				triple = getCorrelatedTriple( message );
 			}
+			CommCore.currentCommChannel().setCorrelatedThread( triple.first() );
+			received = triple.second().recvMessage( message );
+			if ( received ) {
+				//mesgList.remove( message );
+				synchronized( triple.third() ) {
+					// @todo Check this
+					triple.third().notifyAll();
+				}
+			} else {
+				triple = getCorrelatedTriple( message );
+			}
+		}
 		//}
 	}
 	
@@ -147,35 +148,34 @@ abstract public class InputOperation extends Operation implements InputHandler
 		return null;
 	}*/
 	
-	public void getMessage( InputProcess process, boolean wait )
+	public void getMessage( InputProcess process )
 	{
+		Thread currThread = Thread.currentThread();
 		Triple< CorrelatedThread, InputProcess, Thread > triple;
 		synchronized( this ) {
 			triple =
 				new Triple< CorrelatedThread, InputProcess, Thread >(
 								CorrelatedThread.currentThread(),
 								process,
-								Thread.currentThread()
+								currThread
 								);
 
 			procsList.addFirst( triple );
 			this.notifyAll();
 		}
-		if ( wait ) {
-			synchronized( Thread.currentThread() ) {
-				try {
-					if ( procsList.contains( triple ) )
-						Thread.currentThread().wait();
-				} catch( InterruptedException e ) {}
-			}
+
+		synchronized( currThread ) {
+			try {
+				boolean wait = false;
+				synchronized( this ) {
+					wait = procsList.contains( triple );
+				}
+				if ( wait )
+					currThread.wait();
+			} catch( InterruptedException e ) {}
 		}
 	}
-	
-	public void getMessage( InputProcess process )
-	{
-		getMessage( process, true );
-	}
-		
+			
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
 		procsList.addFirst(

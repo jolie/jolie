@@ -42,7 +42,7 @@ public class LinkInProcess implements InputProcess
 	
 	public synchronized boolean recvMessage( CommMessage message )
 	{
-		notify();
+		//notify();
 		return true;
 	}
 	
@@ -51,5 +51,6 @@ public class LinkInProcess implements InputProcess
 		if ( CorrelatedThread.killed() )
 			return;
 		link.linkIn( this );
+		//link.signForMessage( this );
 	}
 }

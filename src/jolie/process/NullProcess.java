@@ -32,7 +32,7 @@ public class NullProcess implements Process
 	
 	static public NullProcess getInstance()
 	{
-		return LazyHolder.instance;
+		return NullProcess.LazyHolder.instance;
 	}
 	
 	public void run()

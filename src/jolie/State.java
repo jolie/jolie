@@ -72,10 +72,10 @@ public class State implements Cloneable
 		Variable val;
 		Value varValue;
 		for( GlobalVariable var : vars ) {
+			val = it.next();
 			if ( Interpreter.correlationSet().contains( var ) ) {
 				varValue = getValue( var );
 				try {
-					val = it.next();
 					if ( varValue.isDefined() && (
 								varValue.type() != val.type() ||
 								(varValue.isInt() && varValue.intValue() != val.intValue()) ||

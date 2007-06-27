@@ -32,7 +32,6 @@ import jolie.runtime.InvalidIdException;
  * CommChannelHandler objects are grouped in a ThreadGroup, in order to be able 
  * to interrupt them in case of network shutdown.
  * 
- * @todo Make handlersLimit configurable
  * 
  */
 public class CommChannelHandler extends Thread
@@ -44,8 +43,9 @@ public class CommChannelHandler extends Thread
 	
 	private static int runningHandlers = 0;
 	private static Object mutex = new Object();
-	private static int handlersLimit = 50;
 	
+	private static long heuristicMem = 300*1024;
+
 	/** Constructor.
 	 * 
 	 * @param threadGroup the threadGroup to which the CommChannelHandler thread will be assigned.
@@ -63,16 +63,31 @@ public class CommChannelHandler extends Thread
 		return channel;
 	}
 	
+	/**
+	 * @todo improve the memory heuristics
+	 * @todo handle resource exhaustion exceptions, as impossibility to create another thread or outofmemory errors
+	 */
 	public static void startHandler( CommChannel channel, CommListener listener )
 	{
+		int limit = CommCore.connectionsLimit();
 		synchronized( mutex ) {
-			if( runningHandlers > handlersLimit ) {
+			if ( limit < 0 ) {
+				if( runningHandlers > 0 && Runtime.getRuntime().freeMemory() < heuristicMem ) {
+					try {
+						mutex.wait();
+					} catch( InterruptedException ie ) {}
+				}
+			} else if( runningHandlers > limit ) {
 				try {
 					mutex.wait();
 				} catch( InterruptedException ie ) {}
 			}
+			
+			//int freeMem = Runtime.getRuntime().freeMemory();
+			//(new CommChannelHandler( listener.getThreadGroup(), channel, listener )).start();
+			//freeMem = 
 		}
-
+		
 		(new CommChannelHandler( listener.getThreadGroup(), channel, listener )).start();
 	}
 	
@@ -111,7 +126,8 @@ public class CommChannelHandler extends Thread
 		
 		synchronized( mutex ) {
 			runningHandlers--;
-			if ( runningHandlers <= handlersLimit )
+			int limit = CommCore.connectionsLimit();
+			if ( limit < 0 || runningHandlers <= limit )
 				mutex.notifyAll();
 		}
 	}
