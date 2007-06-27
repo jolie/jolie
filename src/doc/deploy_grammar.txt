@@ -12,6 +12,7 @@ See the COPYING file for the distribution license of the following content.
 
 // Useful non terminals
 
+<IdList>		:	::=	<id> <IdListNSep>
 <IdListN>			::=	<id> <IdListNSep> | epsilon
 <IdListNSep>		::=	"," <id> <IdListNSep> | epsilon
 
@@ -33,7 +34,7 @@ See the COPYING file for the distribution license of the following content.
 <State>				::= "state" "{" <StateFlag> "}"
 <StateFlag>			::= "persistent" | "not_persistent"
 
-<Execution>			::= "execution" "{" <ExecutionFlag> "}"
+<Execution>		::= "execution" "{" <ExecutionFlag> "}"
 <ExecutionFlag>		::= "concurrent" | "sequential"
 
 <CorrSet>			::= "cset" "{" <IdListN> "}"
@@ -69,7 +70,7 @@ See the COPYING file for the distribution license of the following content.
 
 <InputPortTypes>	::= "inputPortTypes" "{" <PortListN> "}"
 <PortListN>			::= <Port> <PortListN> | epsilon
-<Port>				::= <id> ":" <IdListN>
+<Port>				::= <id> ":" <IdList>
 
 <OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
 
@@ -83,6 +84,6 @@ See the COPYING file for the distribution license of the following content.
 
 <Service>      		::= "service" "{" <ServiceElementListN> "}"
 <ServiceElListN>	::= <ServiceElement> <ServiceElListN> | epsilon
-<ServiceElement>	::= <string> ":" <id> <IdListNSep>
+<ServiceElement>	::= <string> ":" <IdList>
 
 
