@@ -33,6 +33,7 @@ import jolie.lang.parse.nodes.ol.CompareConditionNode;
 import jolie.lang.parse.nodes.ol.CompensateStatement;
 import jolie.lang.parse.nodes.ol.ConstantIntegerExpression;
 import jolie.lang.parse.nodes.ol.ConstantStringExpression;
+import jolie.lang.parse.nodes.ol.ExitStatement;
 import jolie.lang.parse.nodes.ol.ExpressionConditionNode;
 import jolie.lang.parse.nodes.ol.IfStatement;
 import jolie.lang.parse.nodes.ol.InStatement;
@@ -197,8 +198,20 @@ public class OLParser extends AbstractParser
 				getToken();
 				inVarTypes = parseVarTypes();
 				outVarTypes = parseVarTypes();
+				Vector< String > faultNames = new Vector< String >();
+				if ( token.is( Scanner.TokenType.LSQUARE ) ) { // fault names declaration
+					getToken();
+					while( token.is( Scanner.TokenType.ID ) ) {
+						faultNames.add( token.content() );
+						getToken();
+						if ( token.isNot( Scanner.TokenType.COMMA ) )
+							break;
+						else getToken();
+					}
+					eat( Scanner.TokenType.RSQUARE, "expected ]" );
+				}
 				operationDecls.add(
-					new RequestResponseOperationDeclaration( opId, inVarTypes, outVarTypes )
+					new RequestResponseOperationDeclaration( opId, inVarTypes, outVarTypes, faultNames )
 				);
 				//getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -473,6 +486,9 @@ public class OLParser extends AbstractParser
 		else if ( token.is( Scanner.TokenType.NULL_PROCESS ) ) {
 			getToken();
 			retVal = NullProcessStatement.getInstance();
+		} else if ( token.is( Scanner.TokenType.EXIT ) ) {
+			getToken();
+			retVal = ExitStatement.getInstance();
 		} else if ( token.is( Scanner.TokenType.WHILE ) )
 			retVal = parseWhileStatement();
 		else if ( token.is( Scanner.TokenType.SLEEP ) )
@@ -482,6 +498,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			tokenAssert( Scanner.TokenType.ID, "expected link identifier" );
 			retVal = new LinkOutStatement( token.content() );
+			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 			getToken();
@@ -637,6 +654,7 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.LPAREN, "expected (" );
 		tokenAssert( Scanner.TokenType.ID, "expected link identifier" );
 		LinkInStatement stm = new LinkInStatement( token.content() );
+		getToken();
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}

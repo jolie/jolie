@@ -100,8 +100,10 @@ public class DeployParser extends AbstractParser
 				mode = Constants.ExecutionMode.SEQUENTIAL;
 			} else if ( token.is( Scanner.TokenType.CONCURRENT ) ) {
 				mode = Constants.ExecutionMode.CONCURRENT;
+			} else if ( token.is( Scanner.TokenType.SINGLE ) ) {
+				mode = Constants.ExecutionMode.SINGLE;
 			} else
-				throwException( "Expected state mode, found " + token.content() );
+				throwException( "Expected execution mode, found " + token.content() );
 
 			deployInfo.addChild( new ExecutionInfo( mode ) );
 			getToken();
@@ -155,7 +157,7 @@ public class DeployParser extends AbstractParser
 	private void parseWSDL( DeployInfo deployInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "wsdl" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "interface" ) ) {
 			WSDLInfo wsdlInfo = new WSDLInfo();
 			
 			getToken();

@@ -89,8 +89,10 @@ public class Scanner
 		THROW,				///< throw
 		INSTALL_FAULT_HANDLER,	///< installFH
 		INSTALL_COMPENSATION,	///< installComp
-		SCOPE,				///< scope
-		COMPENSATE,			///< comp
+		SCOPE,					///< scope
+		COMPENSATE,				///< comp
+		SINGLE,					///< single
+		EXIT,					///< exit
 		ERROR			///< Scanner error
 	}
 	
@@ -332,6 +334,8 @@ public class Scanner
 							retval = new Token( TokenType.PERSISTENT );
 						else if ( str.equals( "not_persistent" ) )
 							retval = new Token( TokenType.NOT_PERSISTENT );
+						else if ( str.equals( "single" ) )
+							retval = new Token( TokenType.SINGLE );
 						else if ( str.equals( "concurrent" ) )
 							retval = new Token( TokenType.CONCURRENT );
 						else if ( str.equals( "sequential" ) )
@@ -350,6 +354,8 @@ public class Scanner
 							retval = new Token( TokenType.SCOPE );
 						else if ( str.equals( "comp" ) )
 							retval = new Token( TokenType.COMPENSATE );
+						else if ( str.equals( "exit" ) )
+							retval = new Token( TokenType.EXIT );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

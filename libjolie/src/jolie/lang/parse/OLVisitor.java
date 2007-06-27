@@ -66,4 +66,5 @@ public interface OLVisitor
 	public void visit( InstallFaultHandlerStatement n );
 	public void visit( CompensateStatement n );
 	public void visit( ThrowStatement n );
+	public void visit( ExitStatement n );
 }

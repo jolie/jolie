@@ -49,6 +49,7 @@ import jolie.lang.parse.nodes.ol.CompareConditionNode;
 import jolie.lang.parse.nodes.ol.CompensateStatement;
 import jolie.lang.parse.nodes.ol.ConstantIntegerExpression;
 import jolie.lang.parse.nodes.ol.ConstantStringExpression;
+import jolie.lang.parse.nodes.ol.ExitStatement;
 import jolie.lang.parse.nodes.ol.ExpressionConditionNode;
 import jolie.lang.parse.nodes.ol.IfStatement;
 import jolie.lang.parse.nodes.ol.InStatement;
@@ -587,5 +588,6 @@ public class SemanticValidator
 		public void visit( SumExpressionNode n ) {}
 		public void visit( VariableExpressionNode n ) {}
 		public void visit( NullProcessStatement n ) {}
+		public void visit( ExitStatement n ) {}
 	}
 }

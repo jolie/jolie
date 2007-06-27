@@ -21,44 +21,23 @@
 
 package jolie.lang.parse.nodes.ol;
 
-import java.util.Collection;
-
-import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
 
-
-public class RequestResponseOperationDeclaration extends OperationDeclaration
+public class ExitStatement implements OLSyntaxNode
 {
-	private Collection< Constants.VariableType > inVarTypes, outVarTypes;
-	private Collection< String > faultNames;
-
-	public RequestResponseOperationDeclaration(
-			String id,
-			Collection< Constants.VariableType > inVarTypes,
-			Collection< Constants.VariableType > outVarTypes,
-			Collection< String > faultNames
-		)
-	{
-		super( id );
-		this.inVarTypes = inVarTypes;
-		this.outVarTypes = outVarTypes;
-		this.faultNames = faultNames;
+	private ExitStatement() {}
+	
+	private static class LazyHolder {
+		static final ExitStatement instance = new ExitStatement();
 	}
 	
-	public Collection< Constants.VariableType > inVarTypes()
+	static public ExitStatement getInstance()
 	{
-		return inVarTypes;
+		return LazyHolder.instance;
 	}
 	
-	public Collection< Constants.VariableType > outVarTypes()
-	{
-		return outVarTypes;
-	}
-		
-	public Collection< String > faultNames()
-	{
-		return faultNames;
-	}
+	public void run()
+	{}
 	
 	public void accept( OLVisitor visitor )
 	{
