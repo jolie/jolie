@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
@@ -75,6 +76,11 @@ class Scope {
 	}
 }
 
+/**
+ * @todo A correlated thread should offer the possibility to store objects into local memory.
+ * @todo Think about exploiting polymorphism in a double automatic cast for accessing local thread memory.
+ *
+ */
 abstract public class CorrelatedThread extends Thread
 {
 	private Process process;
@@ -231,9 +237,12 @@ abstract public class CorrelatedThread extends Thread
 		else if ( currThread instanceof SleepProcess.SleepInputHandler )
 			return ((SleepProcess.SleepInputHandler)currThread).correlatedThread();
 		
-		CorrelatedThread t = CommCore.currentCommChannel().correlatedThread();
-		if ( t != null )
-			return t;
+		CommChannel channel = CommCore.currentCommChannel();
+		if ( channel != null ) {
+			CorrelatedThread t = CommCore.currentCommChannel().correlatedThread();
+			if ( t != null )
+				return t;
+		}
 
 		return current;
 	}

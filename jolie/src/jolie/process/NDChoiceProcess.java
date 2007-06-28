@@ -135,20 +135,27 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		p.run();
 	}
 
+	/**
+	 * @todo Handle nested ndchoices
+	 * @todo revamp the Process implementations in order to use correlated threads local storage.
+	 */
 	public boolean recvMessage( CommMessage message )
-	{	
-		ChoicePair pair;
-		pair = inputMap.get( message.inputId() );
+	{
+		synchronized( CorrelatedThread.currentThread() ) {
+			if ( CorrelatedThread.currentThread().pendingNDProcess() != null )
+				return false;
+			ChoicePair pair;
+			pair = inputMap.get( message.inputId() );
+			
+			if ( pair != null ) {
+				CorrelatedThread.currentThread().setPendingNDProcess( pair.process() );
+				pair.inputProcess().recvMessage( message );
 
-		if ( pair != null ) {
-			CorrelatedThread.currentThread().setPendingNDProcess( pair.process() );
-			pair.inputProcess().recvMessage( message );
-
-			for( ChoicePair currPair : inputMap.values() )
-				currPair.inputProcess().inputHandler().cancelWaiting( this );
-		} else
-			return false;
-
+				for( ChoicePair currPair : inputMap.values() )
+					currPair.inputProcess().inputHandler().cancelWaiting( this );
+			} else
+				return false;
+		}
 		return true;
 	}	
 }
