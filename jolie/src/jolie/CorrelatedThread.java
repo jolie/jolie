@@ -225,16 +225,17 @@ abstract public class CorrelatedThread extends Thread
 	
 	public static CorrelatedThread currentThread()
 	{
-		if ( current != null )
-			return current;
-
-		Thread current = Thread.currentThread();
-		if ( current instanceof CorrelatedThread )
-			return ((CorrelatedThread) current);
-		else if ( current instanceof SleepProcess.SleepInputHandler )
-			return ((SleepProcess.SleepInputHandler)current).correlatedThread();
+		Thread currThread = Thread.currentThread();
+		if ( currThread instanceof CorrelatedThread )
+			return ((CorrelatedThread) currThread);
+		else if ( currThread instanceof SleepProcess.SleepInputHandler )
+			return ((SleepProcess.SleepInputHandler)currThread).correlatedThread();
 		
-		return CommCore.currentCommChannel().correlatedThread();
+		CorrelatedThread t = CommCore.currentCommChannel().correlatedThread();
+		if ( t != null )
+			return t;
+
+		return current;
 	}
 	
 	public boolean checkCorrelation( List< GlobalVariable > vars, CommMessage message )
