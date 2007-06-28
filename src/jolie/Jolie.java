@@ -51,6 +51,9 @@ public class Jolie
 		} catch( InterpreterException ie ) {
 			ie.printStackTrace();
 			exitCode = 3;
+		} catch( Exception e ) {
+			e.printStackTrace();
+			exitCode = 4;
 		} finally {
 			System.exit( exitCode ); // This is also a workaround for InProcess java bug.
 		}

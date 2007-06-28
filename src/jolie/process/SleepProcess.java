@@ -21,6 +21,9 @@
 
 package jolie.process;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
+
 import jolie.CorrelatedThread;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
@@ -31,13 +34,13 @@ public class SleepProcess implements InputProcess
 	public class SleepInputHandler extends Thread implements InputHandler
 	{
 		private InputProcess inputProcess;
-
 		private Expression expression;
-
 		private CorrelatedThread cthread;
+		private SleepProcess sleepProcess;
 
-		public SleepInputHandler( Expression expression )
+		public SleepInputHandler( SleepProcess sleepProcess, Expression expression )
 		{
+			this.sleepProcess = sleepProcess;
 			this.expression = expression;
 		}
 
@@ -59,12 +62,14 @@ public class SleepProcess implements InputProcess
 					}
 				}
 			} catch ( InterruptedException e ) {
+			} finally {
+				SleepProcess.removeHandler( this );
 			}
 		}
 
 		public String id()
 		{
-			return this.toString();
+			return sleepProcess.toString();
 		}
 
 		public synchronized void signForMessage( NDChoiceProcess process )
@@ -85,11 +90,26 @@ public class SleepProcess implements InputProcess
 	}
 	
 	private Expression expression;
-	private SleepInputHandler inputHandler = null;
+	
+	private static HashMap< CorrelatedThread, SleepInputHandler > map =
+		new HashMap< CorrelatedThread, SleepInputHandler >(); 
 	
 	public SleepProcess( Expression expression )
 	{
 		this.expression = expression;
+	}
+	
+	/**
+	 * @todo Improve performance
+	 */
+	public synchronized static void removeHandler( SleepInputHandler h )
+	{
+		for( Entry< CorrelatedThread, SleepInputHandler > entry : map.entrySet() ) {
+			if( entry.getValue() == h ) {
+				map.entrySet().remove( entry );
+				break;
+			}
+		}
 	}
 	
 	public void run()
@@ -101,12 +121,19 @@ public class SleepProcess implements InputProcess
 		} catch( InterruptedException e ) {}
 	}
 	
-	public InputHandler inputHandler()
+	public synchronized InputHandler inputHandler()
 	{
-		if ( inputHandler == null )
-			inputHandler = new SleepInputHandler( expression );
+		CorrelatedThread cthread = CorrelatedThread.currentThread();
+		if ( cthread == null )
+			return new SleepInputHandler( this, expression );
 
-		return inputHandler;
+		SleepInputHandler h = map.get( cthread );
+		if ( h == null ) {
+			h = new SleepInputHandler( this, expression );
+			map.put( cthread, h );
+		}
+		return h;
+//		return new SleepInputHandler( expression );
 	}
 	
 	public boolean recvMessage( CommMessage message )
