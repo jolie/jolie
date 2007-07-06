@@ -775,6 +775,9 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 	
+	/**
+	 * @todo Check if negative integer handling is appropriate
+	 */
 	private OLSyntaxNode parseExpression()
 		throws IOException, ParserException
 	{
@@ -789,6 +792,13 @@ public class OLParser extends AbstractParser
 			} else if ( token.is( Scanner.TokenType.MINUS ) ) {
 				getToken();
 				sum.subtract( parseProductExpression() );
+			} else if ( token.is( Scanner.TokenType.INT ) ) { // e.g. i -1
+				int value = Integer.parseInt( token.content() );
+				// We add it, because it's already negative.
+				if ( value < 0 )
+					sum.add( parseProductExpression() );
+				else // e.g. i 1
+					throwException( "expected expression operator" );
 			} else
 				keepRun = false;
 		}
