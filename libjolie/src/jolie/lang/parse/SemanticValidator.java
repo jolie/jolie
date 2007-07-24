@@ -525,7 +525,7 @@ public class SemanticValidator
 			else
 				procedureNames.add( procedure.id() );
 			
-			if ( procedure.id().equals( "main" ) )
+			if ( "main".equals( procedure.id() ) )
 				mainDefined = true;
 			
 			procedure.body().accept( this );

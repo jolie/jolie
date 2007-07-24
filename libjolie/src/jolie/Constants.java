@@ -61,9 +61,9 @@ public final class Constants
 	
 	public static ProtocolId stringToProtocolId( String str )
 	{
-		if ( str.equals( "soap" ) )
+		if ( "soap".equals( str ) )
 			return ProtocolId.SOAP;
-		else if ( str.equals( "sodep" ) )
+		else if ( "sodep".equals( str ) )
 			return ProtocolId.SODEP;
 		
 		return ProtocolId.UNSUPPORTED;
@@ -71,7 +71,7 @@ public final class Constants
 	
 	public static MediumId stringToMediumId( String str )
 	{
-		if ( str.equals( "socket" ) )
+		if ( "socket".equals( str ) )
 			return MediumId.SOCKET;
 		
 		return MediumId.UNSUPPORTED;

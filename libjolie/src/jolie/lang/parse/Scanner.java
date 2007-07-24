@@ -280,81 +280,81 @@ public class Scanner
 					break;
 				case 2:	// ID
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
-						if ( str.equals( "OneWay" ) )
+						if ( "OneWay".equals( str ) )
 							retval = new Token( TokenType.OP_OW );
-						else if ( str.equals( "RequestResponse" ) )
+						else if ( "RequestResponse".equals( str ) )
 							retval = new Token( TokenType.OP_RR );
-						else if ( str.equals( "Notification" ) )
+						else if ( "Notification".equals( str ) )
 							retval = new Token( TokenType.OP_N );
-						else if ( str.equals( "SolicitResponse" ) )
+						else if ( "SolicitResponse".equals( str ) )
 							retval = new Token( TokenType.OP_SR );
-						else if ( str.equals( "linkIn" ) )
+						else if ( "linkIn".equals( str ) )
 							retval = new Token( TokenType.LINKIN );
-						else if ( str.equals( "linkOut" ) )
+						else if ( "linkOut".equals( str ) )
 							retval = new Token( TokenType.LINKOUT );
-						else if ( str.equals( "if" ) )
+						else if ( "if".equals( str ) )
 							retval = new Token( TokenType.IF );
-						else if ( str.equals( "else" ) )
+						else if ( "else".equals( str ) )
 							retval = new Token( TokenType.ELSE );
-						else if ( str.equals( "in" ) )
+						else if ( "in".equals( str ) )
 							retval = new Token( TokenType.IN );
-						else if ( str.equals( "out" ) )
+						else if ( "out".equals( str ) )
 							retval = new Token( TokenType.OUT );
-						else if ( str.equals( "and" ) )
+						else if ( "and".equals( str ) )
 							retval = new Token( TokenType.AND );
-						else if ( str.equals( "or" ) )
+						else if ( "or".equals( str ) )
 							retval = new Token( TokenType.OR );
-						else if ( str.equals( "locations" ) )
+						else if ( "locations".equals( str ) )
 							retval = new Token( TokenType.LOCATIONS );
-						else if ( str.equals( "operations" ) )
+						else if ( "operations".equals( str ) )
 							retval = new Token( TokenType.OPERATIONS );
-						else if ( str.equals( "variables" ) )
+						else if ( "variables".equals( str ) )
 							retval = new Token( TokenType.VARIABLES );
-						else if ( str.equals( "main" ) )
+						else if ( "main".equals( str ) )
 							retval = new Token( TokenType.MAIN );
-						else if ( str.equals( "define" ) )
+						else if ( "define".equals( str ) )
 							retval = new Token( TokenType.DEFINE );
-						else if ( str.equals( "links" ) )
+						else if ( "links".equals( str ) )
 							retval = new Token( TokenType.LINKS );
-						else if ( str.equals( "nullProcess" ) )
+						else if ( "nullProcess".equals( str ) )
 							retval = new Token( TokenType.NULL_PROCESS );
-						else if ( str.equals( "while" ) )
+						else if ( "while".equals( str ) )
 							retval = new Token( TokenType.WHILE );
-						else if ( str.equals( "sleep" ) )
+						else if ( "sleep".equals( str ) )
 							retval = new Token( TokenType.SLEEP );
-						else if ( str.equals( "int" ) )
+						else if ( "int".equals( str ) )
 							retval = new Token( TokenType.VAR_TYPE_INT );
-						else if ( str.equals( "string" ) )
+						else if ( "string".equals( str ) )
 							retval = new Token( TokenType.VAR_TYPE_STRING );
-						else if ( str.equals( "variant" ) )
+						else if ( "variant".equals( str ) )
 							retval = new Token( TokenType.VAR_TYPE_VARIANT );
-						else if ( str.equals( "cset" ) )
+						else if ( "cset".equals( str ) )
 							retval = new Token( TokenType.CSET );
-						else if ( str.equals( "persistent" ) )
+						else if ( "persistent".equals( str ) )
 							retval = new Token( TokenType.PERSISTENT );
-						else if ( str.equals( "not_persistent" ) )
+						else if ( "not_persistent".equals( str ) )
 							retval = new Token( TokenType.NOT_PERSISTENT );
-						else if ( str.equals( "single" ) )
+						else if ( "single".equals( str ) )
 							retval = new Token( TokenType.SINGLE );
-						else if ( str.equals( "concurrent" ) )
+						else if ( "concurrent".equals( str ) )
 							retval = new Token( TokenType.CONCURRENT );
-						else if ( str.equals( "sequential" ) )
+						else if ( "sequential".equals( str ) )
 							retval = new Token( TokenType.SEQUENTIAL );
-						else if ( str.equals( "state" ) )
+						else if ( "state".equals( str ) )
 							retval = new Token( TokenType.STATE );
-						else if ( str.equals( "execution" ) )
+						else if ( "execution".equals( str ) )
 							retval = new Token( TokenType.EXECUTION );
-						else if ( str.equals( "installFH" ) )
+						else if ( "installFH".equals( str ) )
 							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
-						else if ( str.equals( "installComp" ) )
+						else if ( "installComp".equals( str ) )
 							retval = new Token( TokenType.INSTALL_COMPENSATION );
-						else if ( str.equals( "throw" ) )
+						else if ( "throw".equals( str ) )
 							retval = new Token( TokenType.THROW );
-						else if ( str.equals( "scope" ) )
+						else if ( "scope".equals( str ) )
 							retval = new Token( TokenType.SCOPE );
-						else if ( str.equals( "comp" ) )
+						else if ( "comp".equals( str ) )
 							retval = new Token( TokenType.COMPENSATE );
-						else if ( str.equals( "exit" ) )
+						else if ( "exit".equals( str ) )
 							retval = new Token( TokenType.EXIT );
 						else
 							retval = new Token( TokenType.ID, str );
@@ -470,11 +470,12 @@ public class Scanner
 			}
 			
 			if ( retval == null ) {
-				if ( !stopOneChar ) {
+				if ( stopOneChar )
+					stopOneChar = false;
+				else {
 					str += ch;
 					readChar();
-				} else
-					stopOneChar = false;
+				}
 			}
 		}
 

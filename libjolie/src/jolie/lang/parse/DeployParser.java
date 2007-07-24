@@ -145,10 +145,10 @@ public class DeployParser extends AbstractParser
 				}
 				
 				getToken();
-				if ( !token.is( Scanner.TokenType.COMMA ) )
-					keepRun = false;
-				else
+				if ( token.is( Scanner.TokenType.COMMA ) )
 					getToken();
+				else
+					keepRun = false;					
 			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -157,7 +157,7 @@ public class DeployParser extends AbstractParser
 	private void parseWSDL( DeployInfo deployInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "interface" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "interface".equals( token.content() ) ) {
 			WSDLInfo wsdlInfo = new WSDLInfo();
 			
 			getToken();
@@ -177,7 +177,7 @@ public class DeployParser extends AbstractParser
 	private void parseService( WSDLInfo wsdlInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "service" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "service".equals( token.content() ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.is( Scanner.TokenType.STRING ) )
@@ -206,7 +206,7 @@ public class DeployParser extends AbstractParser
 	private void parseBindings( WSDLInfo wsdlInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "bindings" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "bindings".equals( token.content() ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.is( Scanner.TokenType.ID ) )
@@ -239,7 +239,7 @@ public class DeployParser extends AbstractParser
 	private void parsePartnerLinkTypes( WSDLInfo wsdlInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "partnerLinkTypes" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "partnerLinkTypes".equals( token.content() ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.is( Scanner.TokenType.ID ) )
@@ -267,7 +267,7 @@ public class DeployParser extends AbstractParser
 	private void parseInputPortTypes( WSDLInfo wsdlInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "inputPortTypes" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "inputPortTypes".equals( token.content() ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.is( Scanner.TokenType.ID ) )
@@ -279,7 +279,7 @@ public class DeployParser extends AbstractParser
 	private void parseOutputPortTypes( WSDLInfo wsdlInfo )
 		throws IOException, ParserException
 	{
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "outputPortTypes" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "outputPortTypes".equals( token.content() ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			while( token.is( Scanner.TokenType.ID ) )
@@ -297,16 +297,15 @@ public class DeployParser extends AbstractParser
 		boolean keepRun = true;
 		Vector< String > operations = new Vector< String >(); 
 		while( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is( Scanner.TokenType.ID ) ) {
 				operations.add( token.content() );
 				getToken();
 				if ( token.type() == Scanner.TokenType.COMMA )
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 		wsdlInfo.addChild( new InputPortTypeInfo( id, operations ) );
 	}
@@ -320,16 +319,15 @@ public class DeployParser extends AbstractParser
 		boolean keepRun = true;
 		Vector< String > operations = new Vector< String >(); 
 		while( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is(Scanner.TokenType.ID) ) {
 				operations.add( token.content() );
 				getToken();
 				if ( token.type() == Scanner.TokenType.COMMA )
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 		wsdlInfo.addChild( new OutputPortTypeInfo( id, operations ) );
 	}
@@ -367,9 +365,7 @@ public class DeployParser extends AbstractParser
 		String op, boundName;
 
 		while ( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is( Scanner.TokenType.ID ) ) {
 				op = token.content();
 				getToken();
 				eat( Scanner.TokenType.ASSIGN, "= expected" );
@@ -384,7 +380,8 @@ public class DeployParser extends AbstractParser
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 	}
 	
@@ -399,9 +396,7 @@ public class DeployParser extends AbstractParser
 		String op, boundName;
 
 		while ( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is( Scanner.TokenType.ID ) ) {
 				op = token.content();
 				getToken();
 				eat( Scanner.TokenType.ASSIGN, "= expected" );
@@ -416,7 +411,8 @@ public class DeployParser extends AbstractParser
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 	}
 	
@@ -432,9 +428,7 @@ public class DeployParser extends AbstractParser
 		String op, boundName;
 
 		while ( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is( Scanner.TokenType.ID ) ) {
 				op = token.content();
 				getToken();
 				eat( Scanner.TokenType.ASSIGN, "expected =" );
@@ -450,7 +444,8 @@ public class DeployParser extends AbstractParser
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 	}
 	
@@ -466,9 +461,7 @@ public class DeployParser extends AbstractParser
 		String op, boundName;
 
 		while ( keepRun ) {
-			if ( !token.is( Scanner.TokenType.ID ) )
-				keepRun = false;
-			else {
+			if ( token.is( Scanner.TokenType.ID ) ) {
 				op = token.content();
 				getToken();
 				eat( Scanner.TokenType.ASSIGN, "= expected" );
@@ -485,7 +478,8 @@ public class DeployParser extends AbstractParser
 					getToken();
 				else
 					keepRun = false;
-			}
+			} else
+				keepRun = false;
 		}
 	}
 }
