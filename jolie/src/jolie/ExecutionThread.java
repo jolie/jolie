@@ -107,8 +107,6 @@ abstract public class ExecutionThread extends Thread
 		this.parent = parent;
 		this.notifyProc = notifyProc;
 	}
-	
-	//private synchronized void setProperty( Object who, Object props ) 
 
 	public synchronized static void setCurrent( ExecutionThread thread )
 	{
