@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InternalLink;
@@ -48,7 +48,7 @@ public class LinkInProcess implements InputProcess
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		link.linkIn( this );
 		//link.signForMessage( this );

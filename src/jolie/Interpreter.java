@@ -35,8 +35,8 @@ import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticValidator;
-import jolie.lang.parse.nodes.deploy.DeployInfo;
-import jolie.lang.parse.nodes.ol.Program;
+import jolie.lang.parse.ast.deploy.DeployInfo;
+import jolie.lang.parse.ast.ol.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.FaultException;
@@ -98,7 +98,7 @@ public class Interpreter
 	
 	public static Value getValue( GlobalVariable var )
 	{
-		return CorrelatedThread.currentThread().state().getValue( var );
+		return ExecutionThread.currentThread().state().getValue( var );
 	}
 	
 	public static void setCorrelationSet( Set< GlobalVariable > set )

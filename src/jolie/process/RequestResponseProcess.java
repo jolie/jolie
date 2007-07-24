@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.Constants;
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
@@ -67,10 +67,10 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 	public void run()
 		throws FaultException
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		operation.getMessage( this );
-		CorrelatedThread.currentThread().throwPendingFault();
+		ExecutionThread.currentThread().throwPendingFault();
 	}
 	
 	public InputHandler inputHandler()
@@ -116,7 +116,7 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 			process.run();
 			response = new CommMessage( operation.id(), outVars );
 		} catch( FaultException f ) {
-			CorrelatedThread.currentThread().setPendingFault( f );
+			ExecutionThread.currentThread().setPendingFault( f );
 			if ( !operation.faultNames().contains( f.fault() ) ) {
 				Interpreter.logger().severe(
 					"Request-Response process for " + operation.id() +

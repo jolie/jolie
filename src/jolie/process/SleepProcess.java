@@ -24,7 +24,7 @@ package jolie.process;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.InputHandler;
@@ -35,7 +35,7 @@ public class SleepProcess implements InputProcess
 	{
 		private InputProcess inputProcess;
 		private Expression expression;
-		private CorrelatedThread cthread;
+		private ExecutionThread cthread;
 		private SleepProcess sleepProcess;
 
 		public SleepInputHandler( SleepProcess sleepProcess, Expression expression )
@@ -44,7 +44,7 @@ public class SleepProcess implements InputProcess
 			this.expression = expression;
 		}
 
-		public CorrelatedThread correlatedThread()
+		public ExecutionThread correlatedThread()
 		{
 			return cthread;
 		}
@@ -75,7 +75,7 @@ public class SleepProcess implements InputProcess
 		public synchronized void signForMessage( NDChoiceProcess process )
 		{
 			inputProcess = process;
-			cthread = CorrelatedThread.currentThread();
+			cthread = ExecutionThread.currentThread();
 			if ( this.getState() == Thread.State.NEW )
 				this.start();
 		}
@@ -91,8 +91,8 @@ public class SleepProcess implements InputProcess
 	
 	private Expression expression;
 	
-	private static HashMap< CorrelatedThread, SleepInputHandler > map =
-		new HashMap< CorrelatedThread, SleepInputHandler >(); 
+	private static HashMap< ExecutionThread, SleepInputHandler > map =
+		new HashMap< ExecutionThread, SleepInputHandler >(); 
 	
 	public SleepProcess( Expression expression )
 	{
@@ -104,7 +104,7 @@ public class SleepProcess implements InputProcess
 	 */
 	public synchronized static void removeHandler( SleepInputHandler h )
 	{
-		for( Entry< CorrelatedThread, SleepInputHandler > entry : map.entrySet() ) {
+		for( Entry< ExecutionThread, SleepInputHandler > entry : map.entrySet() ) {
 			if( entry.getValue() == h ) {
 				map.entrySet().remove( entry );
 				break;
@@ -123,7 +123,7 @@ public class SleepProcess implements InputProcess
 	
 	public synchronized InputHandler inputHandler()
 	{
-		CorrelatedThread cthread = CorrelatedThread.currentThread();
+		ExecutionThread cthread = ExecutionThread.currentThread();
 		if ( cthread == null )
 			return new SleepInputHandler( this, expression );
 

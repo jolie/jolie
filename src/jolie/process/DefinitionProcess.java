@@ -34,13 +34,11 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 	private static HashMap< String, DefinitionProcess > idMap = 
 		new HashMap< String, DefinitionProcess >();
 	
-	private Process process;
+	private Process process = null;
 
 	public DefinitionProcess( String id )
 	{
 		super( id );
-		this.process = null;
-		//this.process = process;
 	}
 
 	public void setProcess( Process process )

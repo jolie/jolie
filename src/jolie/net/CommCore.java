@@ -70,7 +70,7 @@ public class CommCore
 	
 	/** Adds an input service.
 	 * @todo Implement different mediums than socket.
-	 * @param uri The
+	 * @param uri
 	 * @param protocol
 	 */
 	public static void addService( URI uri, CommProtocol protocol, Collection< InputPort > inputPorts )

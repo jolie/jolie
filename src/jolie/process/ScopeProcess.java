@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 public class ScopeProcess implements Process
@@ -38,7 +38,7 @@ public class ScopeProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		CorrelatedThread t = CorrelatedThread.currentThread();
+		ExecutionThread t = ExecutionThread.currentThread();
 		t.pushScope( id );
 		try {
 			runScope( process );
@@ -55,16 +55,16 @@ public class ScopeProcess implements Process
 		try {
 			p.run();
 			
-			if ( CorrelatedThread.killed() ) {
-				Process handler = CorrelatedThread.currentThread().getCompensation( id );
+			if ( ExecutionThread.killed() ) {
+				Process handler = ExecutionThread.getCompensation( id );
 				if ( handler != null ) {
-					CorrelatedThread.clearKill();
+					ExecutionThread.clearKill();
 					this.runScope( handler );
-					CorrelatedThread.setKill();
+					ExecutionThread.setKill();
 				}
 			}
 		} catch( FaultException f ) {
-			Process handler = CorrelatedThread.currentThread().getFaultHandler( f.fault() );
+			Process handler = ExecutionThread.getFaultHandler( f.fault() );
 			if ( handler != null ) {
 				this.runScope( handler );
 			} else

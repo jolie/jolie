@@ -26,7 +26,7 @@ import java.util.LinkedList;
 import java.util.Vector;
 
 import jolie.Constants;
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.process.InputOperationProcess;
@@ -43,14 +43,14 @@ import jolie.util.Triple;
  */
 abstract public class InputOperation extends Operation implements InputHandler
 {
-	private LinkedList< Triple< CorrelatedThread, InputProcess, Thread > > procsList;
+	private LinkedList< Triple< ExecutionThread, InputProcess, Thread > > procsList;
 	//private LinkedList< CommMessage > mesgList;
 	private Vector< Constants.VariableType > inVarTypes;
 	
 	public InputOperation( String id, Vector< Constants.VariableType > inVarTypes )
 	{
 		super( id );
-		procsList = new LinkedList< Triple< CorrelatedThread, InputProcess, Thread > >();
+		procsList = new LinkedList< Triple< ExecutionThread, InputProcess, Thread > >();
 		//mesgList = new LinkedList< CommMessage >();
 		this.inVarTypes = inVarTypes;
 	}
@@ -78,7 +78,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 	{
 		//CommChannel channel = CommCore.currentCommChannel();
 		//synchronized( channel ) {
-		Triple< CorrelatedThread, InputProcess, Thread > triple;
+		Triple< ExecutionThread, InputProcess, Thread > triple;
 		boolean received = false;
 		triple = getCorrelatedTriple( message );
 		//if ( pair == null )
@@ -108,9 +108,9 @@ abstract public class InputOperation extends Operation implements InputHandler
 		//}
 	}
 	
-	private synchronized Triple< CorrelatedThread, InputProcess, Thread > getCorrelatedTriple( CommMessage message )
+	private synchronized Triple< ExecutionThread, InputProcess, Thread > getCorrelatedTriple( CommMessage message )
 	{
-		for( Triple< CorrelatedThread, InputProcess, Thread > triple : procsList ) {
+		for( Triple< ExecutionThread, InputProcess, Thread > triple : procsList ) {
 			if ( triple.second() instanceof InputOperationProcess ) {
 				InputOperationProcess process = (InputOperationProcess) triple.second();
 				if ( triple.first().checkCorrelation( process.inputVars(), message ) ) {
@@ -151,11 +151,11 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public void getMessage( InputProcess process )
 	{
 		Thread currThread = Thread.currentThread();
-		Triple< CorrelatedThread, InputProcess, Thread > triple;
+		Triple< ExecutionThread, InputProcess, Thread > triple;
 		synchronized( this ) {
 			triple =
-				new Triple< CorrelatedThread, InputProcess, Thread >(
-								CorrelatedThread.currentThread(),
+				new Triple< ExecutionThread, InputProcess, Thread >(
+								ExecutionThread.currentThread(),
 								process,
 								currThread
 								);
@@ -179,8 +179,8 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
 		procsList.addFirst(
-						new Triple< CorrelatedThread, InputProcess, Thread >(
-								CorrelatedThread.currentThread(),
+						new Triple< ExecutionThread, InputProcess, Thread >(
+								ExecutionThread.currentThread(),
 								process,
 								Thread.currentThread()
 								)
@@ -190,9 +190,9 @@ abstract public class InputOperation extends Operation implements InputHandler
 	
 	public synchronized void cancelWaiting( NDChoiceProcess process ) 
 	{
-		CorrelatedThread ct = CorrelatedThread.currentThread();
+		ExecutionThread ct = ExecutionThread.currentThread();
 		Thread t = Thread.currentThread();
-		for ( Triple< CorrelatedThread, InputProcess, Thread > triple : procsList ) {
+		for ( Triple< ExecutionThread, InputProcess, Thread > triple : procsList ) {
 			if ( triple.first() == ct && triple.second() == process && triple.third() == t ) {
 				procsList.remove( triple );
 				break;

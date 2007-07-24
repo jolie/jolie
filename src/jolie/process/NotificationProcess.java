@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Vector;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
@@ -48,7 +48,7 @@ public class NotificationProcess implements Process
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		Variable.castAll( varsVec, operation.outVarTypes() );
 		try {

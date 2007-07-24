@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 
@@ -37,10 +37,8 @@ public class CompensateProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
-		Process process = CorrelatedThread.currentThread().getCompensation( id );
-		if ( process != null )
-			process.run();
+		ExecutionThread.getCompensation( id ).run();
 	}
 }

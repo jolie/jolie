@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.Constants;
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
@@ -57,7 +57,7 @@ public class OneWayProcess implements InputOperationProcess, CorrelatedInputProc
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		operation.getMessage( this );
 	}

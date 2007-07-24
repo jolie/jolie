@@ -29,6 +29,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
+import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.process.SleepProcess;
 import jolie.runtime.FaultException;
@@ -81,19 +82,37 @@ class Scope {
  * @todo Think about exploiting polymorphism in a double automatic cast for accessing local thread memory.
  *
  */
-abstract public class CorrelatedThread extends Thread
+abstract public class ExecutionThread extends Thread
 {
 	private Process process;
-	private CorrelatedProcess notifyProc = null;
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
-	private FaultException pendingFault = null;
-	private Process pendingProcess = null;
-	private CorrelatedThread parent;
+	private ExecutionThread parent;
 	private boolean killed = false;
 	
-	private static CorrelatedThread current = null;
+	private HashMap< Object, Object > localMap = new HashMap< Object, Object > ();
+	
+	private CorrelatedProcess notifyProc = null;
+	private FaultException pendingFault = null;
+	private Process pendingProcess = null;
+	
+	private static ExecutionThread current = null;
+	
+	public ExecutionThread( Process process, ExecutionThread parent )
+	{
+		this.process = process;
+		this.parent = parent;
+	}
+	
+	public ExecutionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
+	{
+		this.process = process;
+		this.parent = parent;
+		this.notifyProc = notifyProc;
+	}
+	
+	//private synchronized void setProperty( Object who, Object props ) 
 
-	public synchronized static void setCurrent( CorrelatedThread cthread )
+	public synchronized static void setCurrent( ExecutionThread cthread )
 	{
 		current = cthread;
 	}
@@ -129,19 +148,6 @@ abstract public class CorrelatedThread extends Thread
 		return currentThread().killed;
 	}
 	
-	public CorrelatedThread( Process process, CorrelatedThread parent )
-	{
-		this.process = process;
-		this.parent = parent;
-	}
-	
-	public CorrelatedThread( Process process, CorrelatedThread parent, CorrelatedProcess notifyProc )
-	{
-		this.process = process;
-		this.parent = parent;
-		this.notifyProc = notifyProc;
-	}
-	
 	public void setPendingFault( FaultException f )
 	{
 		pendingFault = f;
@@ -171,20 +177,68 @@ abstract public class CorrelatedThread extends Thread
 		}
 	}
 	
-	public synchronized Process getCompensation( String id )
+	private synchronized Process _getCompensation( String id )
 	{
 		if ( scopeStack.empty() )
-			return parent.getCompensation( id );
+			return parent._getCompensation( id );
 		
 		return scopeStack.peek().getCompensation( id );
 	}
 	
-	public synchronized Process getFaultHandler( String id )
+	public static Process getCompensation( String id )
+	{
+		Process p = ExecutionThread.currentThread()._getCompensation( id );
+		if ( p == null )
+			return NullProcess.getInstance();
+		return p;
+	}
+	
+	/*private synchronized void _setFields( Object ref, Object fields )
+	{
+		fieldsMap.put( ref, fields );
+	}
+	
+	public static void setFields( Object ref, Object fields )
+	{
+		currentThread()._setFields( ref, fields );
+	}*/
+	
+	@SuppressWarnings("unchecked")
+	private synchronized <T, V> T _getLocalObject( Object ref, Class<V> clazz )
+	{
+		Object obj = localMap.get( ref );
+		if ( obj == null ) {
+			try {
+				obj = clazz.newInstance();
+			} catch( InstantiationException e ) {
+				Interpreter.logger().severe( "Runtime internal error in local thread casting" );
+				e.printStackTrace();
+			} catch( IllegalAccessException e ) {
+				Interpreter.logger().severe( "Runtime internal error in local thread casting" );
+				e.printStackTrace();
+			}
+			localMap.put( ref, obj );
+		}
+
+		return (T)obj;
+	}
+	
+	public static <T,V> T getLocalObject( Object ref, Class<V> clazz )
+	{
+		return currentThread()._getLocalObject( ref, clazz );
+	}
+	
+	private synchronized Process _getFaultHandler( String id )
 	{
 		if ( scopeStack.empty() )
-			return parent.getFaultHandler( id );
+			return parent._getFaultHandler( id );
 		
 		return scopeStack.peek().getFaultHandler( id );
+	}
+	
+	public static Process getFaultHandler( String id )
+	{
+		return ExecutionThread.currentThread()._getFaultHandler( id );
 	}
 
 	public synchronized void pushScope( String id )
@@ -229,17 +283,17 @@ abstract public class CorrelatedThread extends Thread
 			scopeStack.peek().installFaultHandler( id, process );
 	}
 	
-	public static CorrelatedThread currentThread()
+	public static ExecutionThread currentThread()
 	{
 		Thread currThread = Thread.currentThread();
-		if ( currThread instanceof CorrelatedThread )
-			return ((CorrelatedThread) currThread);
+		if ( currThread instanceof ExecutionThread )
+			return ((ExecutionThread) currThread);
 		else if ( currThread instanceof SleepProcess.SleepInputHandler )
 			return ((SleepProcess.SleepInputHandler)currThread).correlatedThread();
 		
 		CommChannel channel = CommCore.currentCommChannel();
 		if ( channel != null ) {
-			CorrelatedThread t = CommCore.currentCommChannel().correlatedThread();
+			ExecutionThread t = CommCore.currentCommChannel().correlatedThread();
 			if ( t != null )
 				return t;
 		}
