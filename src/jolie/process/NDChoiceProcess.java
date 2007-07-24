@@ -140,10 +140,6 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		fields.pendingProcess.run();
 	}
 
-	/**
-	 * @todo Handle nested ndchoices
-	 * @todo revamp the Process implementations in order to use correlated threads local storage.
-	 */
 	public boolean recvMessage( CommMessage message )
 	{
 		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );

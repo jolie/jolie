@@ -77,11 +77,6 @@ class Scope {
 	}
 }
 
-/**
- * @todo A correlated thread should offer the possibility to store objects into local memory.
- * @todo Think about exploiting polymorphism in a double automatic cast for accessing local thread memory.
- *
- */
 abstract public class ExecutionThread extends Thread
 {
 	private Process process;
