@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.Expression;
 import jolie.runtime.Variable;
 
@@ -36,7 +36,7 @@ public class OutProcess implements Process
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		Variable var = expression.evaluate();
 		if ( var.isDefined() )

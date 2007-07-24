@@ -21,7 +21,6 @@
 
 package jolie.process;
 import jolie.runtime.FaultException;
-import jolie.runtime.InvalidIdException;
 
 
 /** Makes a Definition object (a sub-routine) executing its content. 
@@ -36,7 +35,6 @@ public class CallProcess implements Process
 	/** Constructor
 	 * 
 	 * @param definition the definition to execute.
-	 * @throws InvalidIdException if defId does not identify a Definition object.
 	 */
 	public CallProcess( DefinitionProcess definition )
 	{

@@ -23,7 +23,7 @@ package jolie.process;
 
 import java.util.Vector;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
@@ -40,7 +40,7 @@ public class SequentialProcess implements Process
 	{
 		for( Process proc : children ) {
 			proc.run();
-			if ( CorrelatedThread.killed() )
+			if ( ExecutionThread.killed() )
 				return;
 		}
 	}

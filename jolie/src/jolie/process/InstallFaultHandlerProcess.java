@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 
 
 public class InstallFaultHandlerProcess implements Process
@@ -37,6 +37,6 @@ public class InstallFaultHandlerProcess implements Process
 	
 	public void run()
 	{
-		CorrelatedThread.currentThread().installFaultHandler( id, process );
+		ExecutionThread.currentThread().installFaultHandler( id, process );
 	}
 }

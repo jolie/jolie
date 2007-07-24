@@ -24,11 +24,11 @@ package jolie;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 
-public class StatefulThread extends CorrelatedThread
+public class StatefulThread extends ExecutionThread
 {
 	private jolie.State state;
 
-	public StatefulThread( Process process, CorrelatedThread parent )
+	public StatefulThread( Process process, ExecutionThread parent )
 	{
 		super( process, parent );
 		if ( parent != null )
@@ -37,7 +37,7 @@ public class StatefulThread extends CorrelatedThread
 			state = new jolie.State();
 	}
 	
-	public StatefulThread( Process process, CorrelatedThread parent, CorrelatedProcess notifyObj )
+	public StatefulThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
 	{
 		super( process, parent, notifyObj );
 		if ( parent != null )

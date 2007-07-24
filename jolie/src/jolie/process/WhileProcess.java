@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.Condition;
 import jolie.runtime.FaultException;
 
@@ -39,7 +39,7 @@ public class WhileProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		while( condition.evaluate() )
 			process.run();

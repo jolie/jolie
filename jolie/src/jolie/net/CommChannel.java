@@ -29,7 +29,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.Location;
 
 
@@ -44,14 +44,14 @@ public class CommChannel
 	private InputStream istream;
 	private OutputStream ostream;
 	private CommProtocol protocol;
-	private CorrelatedThread correlatedThread;
+	private ExecutionThread correlatedThread;
 	
-	public void setCorrelatedThread( CorrelatedThread thread )
+	public void setCorrelatedThread( ExecutionThread thread )
 	{
 		correlatedThread = thread;
 	}
 	
-	public CorrelatedThread correlatedThread()
+	public ExecutionThread correlatedThread()
 	{
 		return correlatedThread;
 	}

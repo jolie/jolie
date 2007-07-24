@@ -24,7 +24,7 @@ package jolie.process;
 import java.util.HashMap;
 import java.util.List;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
@@ -110,10 +110,10 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	public void run()
 		throws FaultException
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		
-		CorrelatedThread.currentThread().setPendingNDProcess( null );
+		ExecutionThread.currentThread().setPendingNDProcess( null );
 		
 		for( ChoicePair cp : inputMap.values() ) {
 			if ( cp.inputProcess() instanceof CorrelatedInputProcess )
@@ -122,16 +122,16 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		}
 
 		synchronized( Thread.currentThread() ) {
-			if( CorrelatedThread.currentThread().pendingNDProcess() == null ) {
+			if( ExecutionThread.currentThread().pendingNDProcess() == null ) {
 				try {
 					Thread.currentThread().wait();
 				} catch( InterruptedException e ) {}
 			}
 		}
 		
-		Process p = CorrelatedThread.currentThread().pendingNDProcess();
-		CorrelatedThread.currentThread().setPendingNDProcess( null );
-		CorrelatedThread.currentThread().throwPendingFault();
+		Process p = ExecutionThread.currentThread().pendingNDProcess();
+		ExecutionThread.currentThread().setPendingNDProcess( null );
+		ExecutionThread.currentThread().throwPendingFault();
 		p.run();
 	}
 
@@ -141,14 +141,14 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	 */
 	public boolean recvMessage( CommMessage message )
 	{
-		synchronized( CorrelatedThread.currentThread() ) {
-			if ( CorrelatedThread.currentThread().pendingNDProcess() != null )
+		synchronized( ExecutionThread.currentThread() ) {
+			if ( ExecutionThread.currentThread().pendingNDProcess() != null )
 				return false;
 			ChoicePair pair;
 			pair = inputMap.get( message.inputId() );
 			
 			if ( pair != null ) {
-				CorrelatedThread.currentThread().setPendingNDProcess( pair.process() );
+				ExecutionThread.currentThread().setPendingNDProcess( pair.process() );
 				pair.inputProcess().recvMessage( message );
 
 				for( ChoicePair currPair : inputMap.values() )

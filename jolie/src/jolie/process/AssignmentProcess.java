@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.Expression;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InvalidIdException;
@@ -49,7 +49,7 @@ public class AssignmentProcess implements Process
 	/** Evaluates the expression and stores its value in the variable. */
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		var.assignValue( expression.evaluate() );
 	}

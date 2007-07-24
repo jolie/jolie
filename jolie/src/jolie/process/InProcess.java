@@ -29,7 +29,7 @@ import java.io.InputStreamReader;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InputHandler;
@@ -112,7 +112,7 @@ public class InProcess implements InputProcess
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		try {
 			String buffer;

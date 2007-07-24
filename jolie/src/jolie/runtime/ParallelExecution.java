@@ -23,7 +23,7 @@ package jolie.runtime;
 
 import java.util.Vector;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.StatelessThread;
 import jolie.process.Process;
 
@@ -33,7 +33,7 @@ class ParallelThread extends StatelessThread
 	
 	public ParallelThread( Process process, ParallelExecution parent )
 	{
-		super( CorrelatedThread.currentThread(), process );
+		super( ExecutionThread.currentThread(), process );
 		this.parent = parent;
 	}
 	

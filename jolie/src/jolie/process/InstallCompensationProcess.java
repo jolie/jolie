@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 
 
 public class InstallCompensationProcess implements Process
@@ -35,6 +35,6 @@ public class InstallCompensationProcess implements Process
 	
 	public void run()
 	{
-		CorrelatedThread.currentThread().installCompensation( process );
+		ExecutionThread.currentThread().installCompensation( process );
 	}
 }

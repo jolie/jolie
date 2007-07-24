@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.process.InputProcess;
 import jolie.process.NDChoiceProcess;
@@ -46,7 +46,7 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 		new HashMap< String, InternalLink >();
 
 	//private LinkedList< Thread > inList = new LinkedList< Thread >();
-	private LinkedList< Pair< CorrelatedThread, InputProcess > > inList = new LinkedList< Pair< CorrelatedThread, InputProcess > >();
+	private LinkedList< Pair< ExecutionThread, InputProcess > > inList = new LinkedList< Pair< ExecutionThread, InputProcess > >();
 	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
 	private LinkedList< Thread > outList = new LinkedList< Thread >();
 	
@@ -65,7 +65,7 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 		synchronized( Thread.currentThread() ) {
 			if ( outList.isEmpty() )
 				inList.addFirst(
-					new Pair< CorrelatedThread, InputProcess >( CorrelatedThread.currentThread(), process ) );
+					new Pair< ExecutionThread, InputProcess >( ExecutionThread.currentThread(), process ) );
 				//inMap.put( Thread.currentThread(), process );
 				//inMa.addFirst( process );
 			else {
@@ -80,8 +80,8 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	
 	public synchronized void cancelWaiting( NDChoiceProcess process ) 
 	{
-		for( Pair< CorrelatedThread, InputProcess > pair : inList ) {
-			if ( pair.key() == CorrelatedThread.currentThread() ) {
+		for( Pair< ExecutionThread, InputProcess > pair : inList ) {
+			if ( pair.key() == ExecutionThread.currentThread() ) {
 				inList.remove( pair );
 				break;
 			}
@@ -91,8 +91,8 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 
 	public void linkIn( InputProcess process )
 	{
-		Pair< CorrelatedThread, InputProcess > pair =
-			new Pair< CorrelatedThread, InputProcess >( CorrelatedThread.currentThread(), process );
+		Pair< ExecutionThread, InputProcess > pair =
+			new Pair< ExecutionThread, InputProcess >( ExecutionThread.currentThread(), process );
 
 		Thread t = null, currThread = Thread.currentThread();
 		synchronized( this ) {
@@ -128,8 +128,8 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	
 	public void linkOut()
 	{
-		Pair< CorrelatedThread, InputProcess > pair = null;
-		CorrelatedThread currThread = CorrelatedThread.currentThread();
+		Pair< ExecutionThread, InputProcess > pair = null;
+		ExecutionThread currThread = ExecutionThread.currentThread();
 		synchronized( this ) {
 			try {
 				pair = inList.removeLast();
@@ -152,9 +152,9 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 					} catch( InterruptedException e ) {}
 				}
 			} else {
-				CorrelatedThread.setCurrent( pair.key() );
+				ExecutionThread.setCurrent( pair.key() );
 				pair.value().recvMessage( new CommMessage( id() ) );
-				CorrelatedThread.setCurrent( null );
+				ExecutionThread.setCurrent( null );
 				synchronized( pair.key() ) {
 					pair.key().notify();
 				}

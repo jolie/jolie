@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.InternalLink;
 
 
@@ -36,7 +36,7 @@ public class LinkOutProcess implements Process
 	
 	public void run()
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 		link.linkOut();
 	}

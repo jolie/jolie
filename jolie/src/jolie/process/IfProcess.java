@@ -23,7 +23,7 @@ package jolie.process;
 
 import java.util.Vector;
 
-import jolie.CorrelatedThread;
+import jolie.ExecutionThread;
 import jolie.runtime.Condition;
 import jolie.runtime.FaultException;
 
@@ -64,7 +64,7 @@ public class IfProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( CorrelatedThread.killed() )
+		if ( ExecutionThread.killed() )
 			return;
 
 		boolean stop = false;
@@ -86,6 +86,9 @@ public class IfProcess implements Process
 			elseProcess.run();
 	}
 	
+	/*
+	 * @todo -- eliminate these methods by embedding them in the constructor
+	 */
 	public void addPair( Condition condition, Process process )
 	{
 		pairs.add( new CPPair( condition, process ) );
