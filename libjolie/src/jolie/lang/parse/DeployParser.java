@@ -28,21 +28,21 @@ import java.util.Collection;
 import java.util.Vector;
 
 import jolie.Constants;
-import jolie.lang.parse.nodes.deploy.CorrelationSetInfo;
-import jolie.lang.parse.nodes.deploy.DeployInfo;
-import jolie.lang.parse.nodes.deploy.ExecutionInfo;
-import jolie.lang.parse.nodes.deploy.InputPortTypeInfo;
-import jolie.lang.parse.nodes.deploy.LocationDeployInfo;
-import jolie.lang.parse.nodes.deploy.NotificationOperationDeployInfo;
-import jolie.lang.parse.nodes.deploy.OneWayOperationDeployInfo;
-import jolie.lang.parse.nodes.deploy.OutputPortTypeInfo;
-import jolie.lang.parse.nodes.deploy.PartnerLinkTypeInfo;
-import jolie.lang.parse.nodes.deploy.PortBindingInfo;
-import jolie.lang.parse.nodes.deploy.RequestResponseOperationDeployInfo;
-import jolie.lang.parse.nodes.deploy.ServiceInfo;
-import jolie.lang.parse.nodes.deploy.SolicitResponseOperationDeployInfo;
-import jolie.lang.parse.nodes.deploy.StateInfo;
-import jolie.lang.parse.nodes.deploy.WSDLInfo;
+import jolie.lang.parse.ast.deploy.CorrelationSetInfo;
+import jolie.lang.parse.ast.deploy.DeployInfo;
+import jolie.lang.parse.ast.deploy.ExecutionInfo;
+import jolie.lang.parse.ast.deploy.InputPortTypeInfo;
+import jolie.lang.parse.ast.deploy.LocationDeployInfo;
+import jolie.lang.parse.ast.deploy.NotificationOperationDeployInfo;
+import jolie.lang.parse.ast.deploy.OneWayOperationDeployInfo;
+import jolie.lang.parse.ast.deploy.OutputPortTypeInfo;
+import jolie.lang.parse.ast.deploy.PartnerLinkTypeInfo;
+import jolie.lang.parse.ast.deploy.PortBindingInfo;
+import jolie.lang.parse.ast.deploy.RequestResponseOperationDeployInfo;
+import jolie.lang.parse.ast.deploy.ServiceInfo;
+import jolie.lang.parse.ast.deploy.SolicitResponseOperationDeployInfo;
+import jolie.lang.parse.ast.deploy.StateInfo;
+import jolie.lang.parse.ast.deploy.WSDLInfo;
 
 /** Parser for the deploy information file (.dol)
  * @author Fabrizio Montesi

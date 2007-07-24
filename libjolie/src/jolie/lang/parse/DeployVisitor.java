@@ -21,7 +21,7 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.nodes.deploy.*;
+import jolie.lang.parse.ast.deploy.*;
 
 public interface DeployVisitor
 {

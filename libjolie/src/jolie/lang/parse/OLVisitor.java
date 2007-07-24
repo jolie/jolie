@@ -21,7 +21,7 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.nodes.ol.*;
+import jolie.lang.parse.ast.ol.*;
 
 public interface OLVisitor
 {
