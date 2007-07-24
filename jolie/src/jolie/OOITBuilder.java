@@ -485,7 +485,7 @@ public class OOITBuilder
 		{
 			DefinitionProcess def = new DefinitionProcess( n.id() );
 			n.body().accept( this );
-			if ( n.id().equals( "main" ) )
+			if ( "main".equals( n.id() ) )
 				currProcess = new ScopeProcess( "main", currProcess );
 
 			def.setProcess( currProcess );
