@@ -70,6 +70,11 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	private HashMap< String, ChoicePair > inputMap;
 	private CorrelatedProcess correlatedProcess;
 	
+	private class Fields {
+		private FaultException pendingFault = null;
+		private Process pendingProcess = null;
+	}
+	
 	/** Constructor */
 	public NDChoiceProcess()
 	{
@@ -113,26 +118,26 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		if ( ExecutionThread.killed() )
 			return;
 		
-		ExecutionThread.currentThread().setPendingNDProcess( null );
-		
+		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
+
 		for( ChoicePair cp : inputMap.values() ) {
 			if ( cp.inputProcess() instanceof CorrelatedInputProcess )
 				((CorrelatedInputProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
 			cp.inputProcess().inputHandler().signForMessage( this );
 		}
 
-		synchronized( Thread.currentThread() ) {
-			if( ExecutionThread.currentThread().pendingNDProcess() == null ) {
+		synchronized( ExecutionThread.currentThread() ) {
+			if( fields.pendingProcess == null ) {
 				try {
-					Thread.currentThread().wait();
+					ExecutionThread.currentThread().wait();
 				} catch( InterruptedException e ) {}
 			}
 		}
 		
-		Process p = ExecutionThread.currentThread().pendingNDProcess();
-		ExecutionThread.currentThread().setPendingNDProcess( null );
-		ExecutionThread.currentThread().throwPendingFault();
-		p.run();
+		if ( fields.pendingFault != null )
+			throw fields.pendingFault;
+
+		fields.pendingProcess.run();
 	}
 
 	/**
@@ -141,14 +146,16 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	 */
 	public boolean recvMessage( CommMessage message )
 	{
+		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
+		
 		synchronized( ExecutionThread.currentThread() ) {
-			if ( ExecutionThread.currentThread().pendingNDProcess() != null )
+			if ( fields.pendingProcess != null )
 				return false;
 			ChoicePair pair;
 			pair = inputMap.get( message.inputId() );
 			
 			if ( pair != null ) {
-				ExecutionThread.currentThread().setPendingNDProcess( pair.process() );
+				fields.pendingProcess = pair.process();
 				pair.inputProcess().recvMessage( message );
 
 				for( ChoicePair currPair : inputMap.values() )

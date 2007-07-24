@@ -35,7 +35,7 @@ public class SleepProcess implements InputProcess
 	{
 		private InputProcess inputProcess;
 		private Expression expression;
-		private ExecutionThread cthread;
+		private ExecutionThread ethread;
 		private SleepProcess sleepProcess;
 
 		public SleepInputHandler( SleepProcess sleepProcess, Expression expression )
@@ -44,9 +44,9 @@ public class SleepProcess implements InputProcess
 			this.expression = expression;
 		}
 
-		public ExecutionThread correlatedThread()
+		public ExecutionThread executionThread()
 		{
-			return cthread;
+			return ethread;
 		}
 
 		public void run()
@@ -57,8 +57,8 @@ public class SleepProcess implements InputProcess
 					Thread.sleep( i );
 				if ( inputProcess != null ) {
 					inputProcess.recvMessage( new CommMessage( id() ) );
-					synchronized( cthread ) {
-						cthread.notify();
+					synchronized( ethread ) {
+						ethread.notify();
 					}
 				}
 			} catch ( InterruptedException e ) {
@@ -75,7 +75,7 @@ public class SleepProcess implements InputProcess
 		public synchronized void signForMessage( NDChoiceProcess process )
 		{
 			inputProcess = process;
-			cthread = ExecutionThread.currentThread();
+			ethread = ExecutionThread.currentThread();
 			if ( this.getState() == Thread.State.NEW )
 				this.start();
 		}
