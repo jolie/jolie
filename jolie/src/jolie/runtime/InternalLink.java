@@ -133,8 +133,6 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 		synchronized( this ) {
 			try {
 				pair = inList.removeLast();
-				//t =
-				//t = inList.removeLast();
 			} catch( NoSuchElementException e ) {
 				outList.addFirst( currThread );
 			} 
