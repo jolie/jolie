@@ -32,25 +32,26 @@ import jolie.net.CommMessage;
 import jolie.process.InputOperationProcess;
 import jolie.process.InputProcess;
 import jolie.process.NDChoiceProcess;
-import jolie.util.Triple;
+import jolie.util.Pair;
 
 /**
  * @author Fabrizio Montesi
  * 
  * @todo switch every input process to async signForMessage
  * @todo switch to a custom locking system
+ * @todo re-implement async receiving of notifications
  *
  */
 abstract public class InputOperation extends Operation implements InputHandler
 {
-	private LinkedList< Triple< ExecutionThread, InputProcess, Thread > > procsList;
+	private LinkedList< Pair< ExecutionThread, InputProcess > > procsList =
+						new LinkedList< Pair< ExecutionThread, InputProcess > >();
 	//private LinkedList< CommMessage > mesgList;
 	private Vector< Constants.VariableType > inVarTypes;
 	
 	public InputOperation( String id, Vector< Constants.VariableType > inVarTypes )
 	{
 		super( id );
-		procsList = new LinkedList< Triple< ExecutionThread, InputProcess, Thread > >();
 		//mesgList = new LinkedList< CommMessage >();
 		this.inVarTypes = inVarTypes;
 	}
@@ -76,52 +77,46 @@ abstract public class InputOperation extends Operation implements InputHandler
 	 */
 	public void recvMessage( CommMessage message )
 	{
-		//CommChannel channel = CommCore.currentCommChannel();
-		//synchronized( channel ) {
-		Triple< ExecutionThread, InputProcess, Thread > triple;
 		boolean received = false;
-		triple = getCorrelatedTriple( message );
-		//if ( pair == null )
-			//mesgList.addFirst( message );
-		
+		Pair< ExecutionThread, InputProcess > pair = getCorrelatedPair( message );
+
 		while( !received ) {
-			while( triple == null ) {
+			while( pair == null ) {
 				synchronized( this ) {
 					try {
 						this.wait();
 					} catch( InterruptedException e ) {}
 				}
-				triple = getCorrelatedTriple( message );
+				pair = getCorrelatedPair( message );
 			}
-			CommCore.currentCommChannel().setCorrelatedThread( triple.first() );
-			received = triple.second().recvMessage( message );
+			CommCore.currentCommChannel().setExecutionThread( pair.key() );
+			received = pair.value().recvMessage( message );
 			if ( received ) {
-				//mesgList.remove( message );
-				synchronized( triple.third() ) {
+				synchronized( pair.key() ) {
 					// @todo Check this
-					triple.third().notifyAll();
+					pair.key().notifyAll();
 				}
 			} else {
-				triple = getCorrelatedTriple( message );
+				pair = getCorrelatedPair( message );
 			}
 		}
 		//}
 	}
 	
-	private synchronized Triple< ExecutionThread, InputProcess, Thread > getCorrelatedTriple( CommMessage message )
+	private synchronized Pair< ExecutionThread, InputProcess > getCorrelatedPair( CommMessage message )
 	{
-		for( Triple< ExecutionThread, InputProcess, Thread > triple : procsList ) {
-			if ( triple.second() instanceof InputOperationProcess ) {
-				InputOperationProcess process = (InputOperationProcess) triple.second();
-				if ( triple.first().checkCorrelation( process.inputVars(), message ) ) {
-					procsList.remove( triple );
-					return triple;
+		for( Pair< ExecutionThread, InputProcess > pair : procsList ) {
+			if ( pair.value() instanceof InputOperationProcess ) {
+				InputOperationProcess process = (InputOperationProcess) pair.value();
+				if ( pair.key().checkCorrelation( process.inputVars(), message ) ) {
+					procsList.remove( pair );
+					return pair;
 				}
-			} else if ( triple.second() instanceof NDChoiceProcess ) {
-				NDChoiceProcess process = (NDChoiceProcess) triple.second();
-				if ( triple.first().checkCorrelation( process.inputVars( this.id() ), message ) ) {
-					procsList.remove( triple );
-					return triple;
+			} else if ( pair.value() instanceof NDChoiceProcess ) {
+				NDChoiceProcess process = (NDChoiceProcess) pair.value();
+				if ( pair.key().checkCorrelation( process.inputVars( this.id() ), message ) ) {
+					procsList.remove( pair );
+					return pair;
 				}
 			}
 		}
@@ -151,16 +146,15 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public void getMessage( InputProcess process )
 	{
 		Thread currThread = Thread.currentThread();
-		Triple< ExecutionThread, InputProcess, Thread > triple;
+		Pair< ExecutionThread, InputProcess > pair;
 		synchronized( this ) {
-			triple =
-				new Triple< ExecutionThread, InputProcess, Thread >(
+			pair =
+				new Pair< ExecutionThread, InputProcess >(
 								ExecutionThread.currentThread(),
-								process,
-								currThread
+								process
 								);
 
-			procsList.addFirst( triple );
+			procsList.addFirst( pair );
 			this.notifyAll();
 		}
 
@@ -168,7 +162,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 			try {
 				boolean wait = false;
 				synchronized( this ) {
-					wait = procsList.contains( triple );
+					wait = procsList.contains( pair );
 				}
 				if ( wait )
 					currThread.wait();
@@ -179,10 +173,9 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
 		procsList.addFirst(
-						new Triple< ExecutionThread, InputProcess, Thread >(
+						new Pair< ExecutionThread, InputProcess >(
 								ExecutionThread.currentThread(),
-								process,
-								Thread.currentThread()
+								process
 								)
 						);
 		this.notifyAll();
@@ -190,11 +183,10 @@ abstract public class InputOperation extends Operation implements InputHandler
 	
 	public synchronized void cancelWaiting( NDChoiceProcess process ) 
 	{
-		ExecutionThread ct = ExecutionThread.currentThread();
-		Thread t = Thread.currentThread();
-		for ( Triple< ExecutionThread, InputProcess, Thread > triple : procsList ) {
-			if ( triple.first() == ct && triple.second() == process && triple.third() == t ) {
-				procsList.remove( triple );
+		ExecutionThread t = ExecutionThread.currentThread();
+		for ( Pair< ExecutionThread, InputProcess > pair : procsList ) {
+			if ( pair.key() == t && pair.value() == process ) {
+				procsList.remove( pair );
 				break;
 			}
 		}

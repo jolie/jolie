@@ -45,6 +45,10 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 	private Process process;
 	private Vector< GlobalVariable > outVars;
 	private CorrelatedProcess correlatedProcess = null;
+	
+	private class Fields {
+		private FaultException pendingFault = null;
+	}
 
 	public RequestResponseProcess( RequestResponseOperation operation, Vector< GlobalVariable > varsVec, Vector< GlobalVariable > outVars, Process process )
 	{
@@ -70,7 +74,10 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		if ( ExecutionThread.killed() )
 			return;
 		operation.getMessage( this );
-		ExecutionThread.currentThread().throwPendingFault();
+		
+		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
+		if ( fields.pendingFault != null )
+			throw fields.pendingFault;
 	}
 	
 	public InputHandler inputHandler()
@@ -116,7 +123,8 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 			process.run();
 			response = new CommMessage( operation.id(), outVars );
 		} catch( FaultException f ) {
-			ExecutionThread.currentThread().setPendingFault( f );
+			Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
+			fields.pendingFault = f;
 			if ( !operation.faultNames().contains( f.fault() ) ) {
 				Interpreter.logger().severe(
 					"Request-Response process for " + operation.id() +

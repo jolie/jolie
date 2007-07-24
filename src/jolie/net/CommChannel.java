@@ -44,16 +44,16 @@ public class CommChannel
 	private InputStream istream;
 	private OutputStream ostream;
 	private CommProtocol protocol;
-	private ExecutionThread correlatedThread;
+	private ExecutionThread executionThread;
 	
-	public void setCorrelatedThread( ExecutionThread thread )
+	public void setExecutionThread( ExecutionThread thread )
 	{
-		correlatedThread = thread;
+		executionThread = thread;
 	}
 	
-	public ExecutionThread correlatedThread()
+	public ExecutionThread executionThread()
 	{
-		return correlatedThread;
+		return executionThread;
 	}
 	
 	/** Constructor.

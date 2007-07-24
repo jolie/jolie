@@ -92,8 +92,6 @@ abstract public class ExecutionThread extends Thread
 	private HashMap< Object, Object > localMap = new HashMap< Object, Object > ();
 	
 	private CorrelatedProcess notifyProc = null;
-	private FaultException pendingFault = null;
-	private Process pendingProcess = null;
 	
 	private static ExecutionThread current = null;
 	
@@ -117,16 +115,6 @@ abstract public class ExecutionThread extends Thread
 		current = cthread;
 	}
 	
-	public synchronized void setPendingNDProcess( Process p )
-	{
-		pendingProcess = p;
-	}
-	
-	public synchronized Process pendingNDProcess()
-	{
-		return pendingProcess;
-	}
-	
 	public void kill()
 	{
 		killed = true;
@@ -146,21 +134,6 @@ abstract public class ExecutionThread extends Thread
 	public static boolean killed()
 	{
 		return currentThread().killed;
-	}
-	
-	public void setPendingFault( FaultException f )
-	{
-		pendingFault = f;
-	}
-	
-	public void throwPendingFault()
-		throws FaultException
-	{
-		if ( pendingFault != null ) {
-			FaultException f = pendingFault;
-			pendingFault = null;
-			throw f;
-		}
 	}
 	
 	public void run()
@@ -289,11 +262,11 @@ abstract public class ExecutionThread extends Thread
 		if ( currThread instanceof ExecutionThread )
 			return ((ExecutionThread) currThread);
 		else if ( currThread instanceof SleepProcess.SleepInputHandler )
-			return ((SleepProcess.SleepInputHandler)currThread).correlatedThread();
+			return ((SleepProcess.SleepInputHandler)currThread).executionThread();
 		
 		CommChannel channel = CommCore.currentCommChannel();
 		if ( channel != null ) {
-			ExecutionThread t = CommCore.currentCommChannel().correlatedThread();
+			ExecutionThread t = CommCore.currentCommChannel().executionThread();
 			if ( t != null )
 				return t;
 		}
