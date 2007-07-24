@@ -36,13 +36,7 @@ public class CompareCondition implements Condition
 	private Scanner.TokenType opType;
 	
 	public CompareCondition( Expression left, Expression right, Scanner.TokenType opType )
-		//throws InvalidOperationTypeException
 	{
-		/*if ( opType != Scanner.TokenType.EQUAL && opType != Scanner.TokenType.LANGLE &&
-				opType != Scanner.TokenType.RANGLE && opType != Scanner.TokenType.MAJOR_OR_EQUAL &&
-				opType != Scanner.TokenType.MINOR_OR_EQUAL && opType != Scanner.TokenType.NOT_EQUAL )
-			throw new InvalidOperationTypeException();*/
-
 		leftExpression = left;
 		rightExpression = right;
 		this.opType = opType;
