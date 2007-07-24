@@ -110,9 +110,9 @@ abstract public class ExecutionThread extends Thread
 	
 	//private synchronized void setProperty( Object who, Object props ) 
 
-	public synchronized static void setCurrent( ExecutionThread cthread )
+	public synchronized static void setCurrent( ExecutionThread thread )
 	{
-		current = cthread;
+		current = thread;
 	}
 	
 	public void kill()
