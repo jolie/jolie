@@ -67,7 +67,7 @@ public class CommMessage implements Iterable< Variable >
 		values.add( var );
 	}
 	
-	public void addAllValues( Collection< ? extends Variable > vars )
+	public final void addAllValues( Collection< ? extends Variable > vars )
 	{
 		for( Variable var : vars )
 			addValue( var );

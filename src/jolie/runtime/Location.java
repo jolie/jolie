@@ -46,7 +46,7 @@ abstract public class Location
 	{
 		URI uri = getURI();
 		//String urlProtocol = url.getProtocol();
-		if ( !uri.getScheme().equals( "socket" ) )
+		if ( !"socket".equals( uri.getScheme() ) )
 			throw new UnsupportedCommMediumException( uri.getScheme() );
 		
 		Socket socket = new Socket( uri.getHost(), uri.getPort() );

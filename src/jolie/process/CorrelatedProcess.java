@@ -31,35 +31,31 @@ import jolie.runtime.FaultException;
 public class CorrelatedProcess implements Process
 {
 	private SequentialProcess sequence;
-	
-	private class Fields {
-		private ExecutionThread waitingThread = null;	
-	}
+	private ExecutionThread waitingThread = null;
 	
 	public CorrelatedProcess( SequentialProcess sequence )
 	{
 		this.sequence = sequence;
 	}
 	
-	private void startSession( Fields fields )
+	private void startSession()
 	{
 		if ( Interpreter.stateMode() == Constants.StateMode.PERSISTENT )
-			fields.waitingThread = new StatelessThread( ExecutionThread.currentThread(), sequence, this );
+			waitingThread = new StatelessThread( ExecutionThread.currentThread(), sequence, this );
 		else
-			fields.waitingThread = new StatefulThread( sequence, ExecutionThread.currentThread(), this );
+			waitingThread = new StatefulThread( sequence, ExecutionThread.currentThread(), this );
 		
-		fields.waitingThread.start();
+		waitingThread.start();
 	}
 	
 	public void run()
 		throws FaultException
 	{
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 		if ( Interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
 			while( !Interpreter.exiting() ) {
-				startSession( fields );
+				startSession();
 				synchronized( this ) {
-					if ( fields.waitingThread != null ) { // We are still waiting for an input
+					if ( waitingThread != null ) { // We are still waiting for an input
 						try {
 							wait();
 						} catch( InterruptedException ie ) {}
@@ -72,29 +68,26 @@ public class CorrelatedProcess implements Process
 	
 	public synchronized void inputReceived()
 	{
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
-			fields.waitingThread = null;
+			waitingThread = null;
 			notify();
 		}
 	}
 	
 	public synchronized void sessionTerminated()
 	{
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			fields.waitingThread = null;
+			waitingThread = null;
 			notify();
 		}
 	}
 	
 	public synchronized void signalFault( FaultException f )
 	{
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 		Interpreter.logUnhandledFault( f );
 		
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			fields.waitingThread = null;
+			waitingThread = null;
 			notify();
 		}
 	}

@@ -258,57 +258,57 @@ public class HTTPScanner
 					break;
 				case 2:	// ID
 					if ( !( Character.isLetterOrDigit( ch ) || ch == '-' ) ) {
-						if ( str.equals( "OneWay" ) )
+						if ( "OneWay".equals( str ) )
 							retval = new Token( TokenType.OP_OW );
-						else if ( str.equals( "RequestResponse" ) )
+						else if ( "RequestResponse".equals( str ) )
 							retval = new Token( TokenType.OP_RR );
-						else if ( str.equals( "Notification" ) )
+						else if ( "Notification".equals( str ) )
 							retval = new Token( TokenType.OP_N );
-						else if ( str.equals( "SolicitResponse" ) )
+						else if ( "SolicitResponse".equals( str ) )
 							retval = new Token( TokenType.OP_SR );
-						else if ( str.equals( "linkIn" ) )
+						else if ( "linkIn".equals( str ) )
 							retval = new Token( TokenType.LINKIN );
-						else if ( str.equals( "linkOut" ) )
+						else if ( "linkOut".equals( str ) )
 							retval = new Token( TokenType.LINKOUT );
-						else if ( str.equals( "if" ) )
+						else if ( "if".equals( str ) )
 							retval = new Token( TokenType.IF );
-						else if ( str.equals( "else" ) )
+						else if ( "else".equals( str ) )
 							retval = new Token( TokenType.ELSE );
-						else if ( str.equals( "in" ) )
+						else if ( "in".equals( str ) )
 							retval = new Token( TokenType.IN );
-						else if ( str.equals( "out" ) )
+						else if ( "out".equals( str ) )
 							retval = new Token( TokenType.OUT );
-						else if ( str.equals( "and" ) )
+						else if ( "and".equals( str ) )
 							retval = new Token( TokenType.AND );
-						else if ( str.equals( "or" ) )
+						else if ( "or".equals( str ) )
 							retval = new Token( TokenType.OR );
-						else if ( str.equals( "locations" ) )
+						else if ( "locations".equals( str ) )
 							retval = new Token( TokenType.LOCATIONS );
-						else if ( str.equals( "operations" ) )
+						else if ( "operations".equals( str ) )
 							retval = new Token( TokenType.OPERATIONS );
-						else if ( str.equals( "variables" ) )
+						else if ( "variables".equals( str ) )
 							retval = new Token( TokenType.VARIABLES );
-						else if ( str.equals( "main" ) )
+						else if ( "main".equals( str ) )
 							retval = new Token( TokenType.MAIN );
-						else if ( str.equals( "define" ) )
+						else if ( "define".equals( str ) )
 							retval = new Token( TokenType.DEFINE );
-						else if ( str.equals( "call" ) )
+						else if ( "call".equals( str ) )
 							retval = new Token( TokenType.CALL );
-						else if ( str.equals( "links" ) )
+						else if ( "links".equals( str ) )
 							retval = new Token( TokenType.LINKS );
-						else if ( str.equals( "nullProcess" ) )
+						else if ( "nullProcess".equals( str ) )
 							retval = new Token( TokenType.NULL_PROCESS );
-						else if ( str.equals( "while" ) )
+						else if ( "while".equals( str ) )
 							retval = new Token( TokenType.WHILE );
-						else if ( str.equals( "sleep" ) )
+						else if ( "sleep".equals( str ) )
 							retval = new Token( TokenType.SLEEP );
-						else if ( str.equalsIgnoreCase( "content-length" ) )
+						else if ( "content-length".equalsIgnoreCase( str ) )
 							retval = new Token( TokenType.CONTENTLENGTH );
-						else if ( str.equalsIgnoreCase( "content-type" ) )
+						else if ( "content-type".equalsIgnoreCase( str ) )
 							retval = new Token( TokenType.CONTENTTYPE );
-						else if ( str.equalsIgnoreCase( "POST" ) )
+						else if ( "POST".equalsIgnoreCase( str ) )
 							retval = new Token( TokenType.POST );
-						else if ( str.equalsIgnoreCase( "HTTP" ) )
+						else if ( "HTTP".equalsIgnoreCase( str ) )
 							retval = new Token( TokenType.HTTP );
 						/*else if ( str.equals( "int" ) )
 							retval = new Token( TokenType.INTKEYWORD );
@@ -420,11 +420,12 @@ public class HTTPScanner
 			}
 			
 			if ( retval == null ) {
-				if ( !stopOneChar ) {
+				if ( stopOneChar )
+					stopOneChar = false;
+				else {
 					str += ch;
 					readChar();
-				} else
-					stopOneChar = false;
+				}
 			}
 		}
 		

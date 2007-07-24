@@ -120,7 +120,7 @@ public class SODEPProtocol implements CommProtocol
 		if ( token.type() == Scanner.TokenType.EOF )
 			return null;
 		
-		if ( token.type() != Scanner.TokenType.ID || !(token.content().equals( "operation" )) )
+		if ( token.type() != Scanner.TokenType.ID || !("operation".equals( token.content() )) )
 			throw new IOException( "malformed SODEP packet. operation keyword expected" );
 		token = scanner.getToken();
 		if ( token.type() != Scanner.TokenType.COLON  )
@@ -131,7 +131,7 @@ public class SODEPProtocol implements CommProtocol
 		
 		String inputId = token.content();
 		token = scanner.getToken();
-		if ( token.is( Scanner.TokenType.ID ) && token.content().equals( "fault" ) ) {
+		if ( token.is( Scanner.TokenType.ID ) && "fault".equals( token.content() ) ) {
 			token = scanner.getToken();
 			if ( token.isNot( Scanner.TokenType.COLON ) )
 				throw new IOException( "malformed SODEP packet. expected :" );
@@ -141,7 +141,7 @@ public class SODEPProtocol implements CommProtocol
 			message = new CommMessage( inputId );
 
 			//token = scanner.getToken();
-			if ( token.type() != Scanner.TokenType.ID || !(token.content().equals( "values" )) )
+			if ( token.type() != Scanner.TokenType.ID || !("values".equals( token.content() )) )
 				throw new IOException( "malformed SODEP packet. values keyword expected" );
 			token = scanner.getToken();
 			if ( token.type() != Scanner.TokenType.LCURLY  )

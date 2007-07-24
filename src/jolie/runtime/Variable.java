@@ -46,7 +46,7 @@ abstract public class Variable implements Expression
 		return value().intValue();
 	}
 	
-	public void setIntValue( int val )
+	public final void setIntValue( int val )
 	{
 		value().setIntValue( val );
 	}
@@ -56,7 +56,7 @@ abstract public class Variable implements Expression
 		return value().strValue();
 	}
 	
-	public void setStrValue( String val )
+	public final void setStrValue( String val )
 	{
 		value().setStrValue( val );
 	}
@@ -96,14 +96,13 @@ abstract public class Variable implements Expression
 	
 	public final synchronized void add( Variable var )
 	{
-		if ( !isDefined() )
-			assignValue( var );
-		else {
+		if ( isDefined() ) {
 			if ( isInt() )
 				setIntValue( intValue() + var.intValue() );
 			else
 				setStrValue( strValue() + var.strValue() );
-		}
+		} else
+			assignValue( var );
 	}
 	
 	public final synchronized void subtract( Variable var )
@@ -116,12 +115,11 @@ abstract public class Variable implements Expression
 	
 	public final synchronized void multiply( Variable var )
 	{
-		if ( !isDefined() )
-			assignValue( var );
-		else {
+		if ( isDefined() ) {
 			if ( isInt() )
 				setIntValue( intValue() * var.intValue() );
-		}
+		} else
+			assignValue( var );
 	}
 	
 	public final synchronized void divide( Variable var )
