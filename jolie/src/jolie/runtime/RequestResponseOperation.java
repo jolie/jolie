@@ -23,28 +23,16 @@
 package jolie.runtime;
 
 import java.util.Collection;
-import java.util.Vector;
-
-import jolie.Constants;
 
 public class RequestResponseOperation extends InputOperation
 {
-	private Vector< Constants.VariableType > outVarTypes;
 	private Collection< String > faultNames;
 
 	public RequestResponseOperation( String id,
-			Vector< Constants.VariableType > inVarTypes,
-			Vector< Constants.VariableType > outVarTypes,
 			Collection< String > faultNames )
 	{
-		super( id, inVarTypes );
-		this.outVarTypes = outVarTypes;
+		super( id );
 		this.faultNames = faultNames;
-	}
-	
-	public Vector< Constants.VariableType > outVarTypes()
-	{
-		return outVarTypes;
 	}
 	
 	public Collection< String > faultNames()

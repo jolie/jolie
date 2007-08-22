@@ -45,28 +45,28 @@ public class CompareCondition implements Condition
 	public boolean evaluate()
 	{
 		boolean retval = false;
-		Variable leftVar, rightVar;
-		leftVar = leftExpression.evaluate();
-		rightVar = rightExpression.evaluate();
+		Value leftVal, rightVal;
+		leftVal = leftExpression.evaluate();
+		rightVal = rightExpression.evaluate();
 		
 		if ( opType == Scanner.TokenType.EQUAL ) {
-			if ( leftVar.isString() && rightVar.isString() )
-				retval = leftVar.strValue().equals( rightVar.strValue() );
+			if ( leftVal.isString() && rightVal.isString() )
+				retval = leftVal.strValue().equals( rightVal.strValue() );
 			else
-				retval = ( leftVar.intValue() == rightVar.intValue() );
+				retval = ( leftVal.intValue() == rightVal.intValue() );
 		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
-			if ( leftVar.isString() && rightVar.isString() )
-				retval = !(leftVar.strValue().equals( rightVar.strValue() ));
+			if ( leftVal.isString() && rightVal.isString() )
+				retval = !(leftVal.strValue().equals( rightVal.strValue() ));
 			else
-				retval = ( leftVar.intValue() != rightVar.intValue() );
+				retval = ( leftVal.intValue() != rightVal.intValue() );
 		} else if ( opType == Scanner.TokenType.LANGLE )
-			retval = ( leftVar.intValue() < rightVar.intValue() );
+			retval = ( leftVal.intValue() < rightVal.intValue() );
 		else if ( opType == Scanner.TokenType.RANGLE )
-			retval = ( leftVar.intValue() > rightVar.intValue() );
+			retval = ( leftVal.intValue() > rightVal.intValue() );
 		else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL )
-			retval = ( leftVar.intValue() <= rightVar.intValue() );
+			retval = ( leftVal.intValue() <= rightVal.intValue() );
 		else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL )
-			retval = ( leftVar.intValue() >= rightVar.intValue() );
+			retval = ( leftVal.intValue() >= rightVal.intValue() );
 		
 		return retval;
 	}

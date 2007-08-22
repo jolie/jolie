@@ -31,6 +31,7 @@ import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.Location;
 import jolie.runtime.OutputOperation;
+import jolie.runtime.Value;
 import jolie.runtime.Variable;
 
 public class NotificationProcess implements Process
@@ -50,7 +51,7 @@ public class NotificationProcess implements Process
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		Variable.castAll( varsVec, operation.outVarTypes() );
+//		Variable.castAll( varsVec, operation.outVarTypes() );
 		try {
 			/*if ( wsdlInfo.outVarNames() == null ) {
 				wsdlInfo = operation.wsdlInfo().clone();
@@ -59,11 +60,15 @@ public class NotificationProcess implements Process
 			
 			if ( wsdlInfo.boundName() == null )
 				wsdlInfo.setBoundName( operation.boundOperationId() );*/
-			String boundName = operation.wsdlInfo().boundName();
+			String boundName = operation.deployInfo().boundName();
 			if ( boundName == null )
 				boundName = operation.boundOperationId();
 
-			CommMessage message = new CommMessage( boundName, varsVec );
+			Vector< Value > valsVec = new Vector< Value >();
+			for( Variable var : varsVec )
+				valsVec.add( var.value() );
+
+			CommMessage message = new CommMessage( boundName, valsVec );
 			CommChannel channel = new CommChannel( location, operation.getOutputProtocol( location ) );
 			channel.send( message );
 			channel.close();

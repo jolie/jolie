@@ -23,9 +23,7 @@
 package jolie.runtime;
 
 import java.util.LinkedList;
-import java.util.Vector;
 
-import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -47,18 +45,11 @@ abstract public class InputOperation extends Operation implements InputHandler
 	private LinkedList< Pair< ExecutionThread, InputProcess > > procsList =
 						new LinkedList< Pair< ExecutionThread, InputProcess > >();
 	//private LinkedList< CommMessage > mesgList;
-	private Vector< Constants.VariableType > inVarTypes;
 	
-	public InputOperation( String id, Vector< Constants.VariableType > inVarTypes )
+	public InputOperation( String id )
 	{
 		super( id );
 		//mesgList = new LinkedList< CommMessage >();
-		this.inVarTypes = inVarTypes;
-	}
-	
-	public Vector< Constants.VariableType > inVarTypes()
-	{
-		return inVarTypes;
 	}
 	
 	public static InputOperation getById( String id )

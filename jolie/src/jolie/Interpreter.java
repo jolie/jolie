@@ -27,16 +27,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Logger;
 
-import jolie.lang.parse.DeployParser;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticValidator;
-import jolie.lang.parse.ast.deploy.DeployInfo;
-import jolie.lang.parse.ast.ol.Program;
+import jolie.lang.parse.ast.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.FaultException;
@@ -51,7 +50,6 @@ import jolie.runtime.Value;
 public class Interpreter
 {
 	private OLParser olParser;
-	private DeployParser dolParser;
 	private static boolean verbose = false;
 	private static boolean exiting = false;
 	private static Set< GlobalVariable > correlationSet = new HashSet< GlobalVariable > ();
@@ -96,9 +94,9 @@ public class Interpreter
 		stateMode = mode;
 	}
 	
-	public static Value getValue( GlobalVariable var )
+	public static Vector< Value > getValues( GlobalVariable var )
 	{
-		return ExecutionThread.currentThread().state().getValue( var );
+		return ExecutionThread.currentThread().state().getValues( var );
 	}
 	
 	public static void setCorrelationSet( Set< GlobalVariable > set )
@@ -127,7 +125,6 @@ public class Interpreter
 		throws CommandLineException, FileNotFoundException, IOException
 	{
 		String olFilepath = null;
-		String dolFilepath = null;
 
 		for( int i = 0; i < args.length; i++ ) {
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) )
@@ -143,28 +140,17 @@ public class Interpreter
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
 				else
-					throw new CommandLineException( "You can specify only a behaviour file." );
-			} else if ( args[ i ].endsWith( ".dol" ) ) {
-				if ( olFilepath != null )
-					dolFilepath = args[ i ];
-				else
-					throw new CommandLineException(
-						"You must specify the behaviour file before the deploy (.dol) one." );
+					throw new CommandLineException( "You can specify only an input file." );
 			} else
 				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );
 		}
 		
 		if ( olFilepath == null )
-			throw new CommandLineException( "Behaviour file not specified." );
-		
-		if ( dolFilepath == null )
-			dolFilepath = olFilepath.substring( 0, olFilepath.length() - 3 ) + ".dol";
+			throw new CommandLineException( "Input file not specified." );
 		
 		InputStream olStream = new FileInputStream( olFilepath );
-		InputStream dolStream = new FileInputStream( dolFilepath );
 		
 		olParser = new OLParser( new Scanner( olStream, olFilepath ) );
-		dolParser = new DeployParser( new Scanner( dolStream, dolFilepath ) );
 	}
 	
 	private String getHelpString()
@@ -236,12 +222,11 @@ public class Interpreter
 	{
 		try {
 			Program program = olParser.parse();
-			DeployInfo deployInfo = dolParser.parse();
 			program = (new OLParseTreeOptimizer( program )).optimize();
-			if ( !(new SemanticValidator( program, deployInfo )).validate() )
+			if ( !(new SemanticValidator( program )).validate() )
 				throw new InterpreterException( "Exiting" );
 			
-			return (new OOITBuilder( program, deployInfo )).build();
+			return (new OOITBuilder( program )).build();
 		} catch( ParserException e ) {
 			throw new InterpreterException( e );
 		} catch( IOException e ) {

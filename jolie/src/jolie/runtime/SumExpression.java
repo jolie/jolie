@@ -35,18 +35,19 @@ public class SumExpression implements Expression
 		children = new Vector< Operand >();
 	}
 	
-	public Variable evaluate()
+	public Value evaluate()
 	{
-		TempVariable var = new TempVariable();
+		Value val = new Value();
+		//TempVariable var = new TempVariable();
 		
 		for( Operand operand : children ) {
 			if ( operand.type() == Constants.OperandType.ADD )
-				var.add( operand.expression().evaluate() );
+				val.add( operand.expression().evaluate() );
 			else
-				var.subtract( operand.expression().evaluate() );
+				val.subtract( operand.expression().evaluate() );
 		}
 		
-		return var;
+		return val;
 	}
 	
 	public void add( Expression expression )

@@ -50,12 +50,11 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
 import jolie.Constants;
-import jolie.deploy.OperationWSDLInfo;
+import jolie.deploy.OperationDeployInfo;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Operation;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.TempVariable;
-import jolie.runtime.Variable;
+import jolie.runtime.Value;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -104,7 +103,7 @@ class HTTPSOAPException extends Exception
 public class SOAPProtocol implements CommProtocol
 {
 	private URI uri;
-	private OperationWSDLInfo wsdlInfo;
+	private OperationDeployInfo wsdlInfo;
 	
 	public SOAPProtocol clone()
 	{
@@ -120,7 +119,7 @@ public class SOAPProtocol implements CommProtocol
 		wsdlInfo = null;
 	}
 	
-	public SOAPProtocol( URI uri, OperationWSDLInfo wsdlInfo )
+	public SOAPProtocol( URI uri, OperationDeployInfo wsdlInfo )
 	{
 		this.uri = uri;
 		this.wsdlInfo = wsdlInfo;
@@ -156,9 +155,9 @@ public class SOAPProtocol implements CommProtocol
 			SOAPElement varElement;
 			int i = 0;
 			
-			for( Variable var : message ) {
+			for( Value val : message ) {
 				varElement = opBody.addChildElement( varNames.elementAt( i++ ), operationName.getPrefix() );
-				varElement.addTextNode( var.strValue() );
+				varElement.addTextNode( val.strValue() );
 			}
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
@@ -309,7 +308,7 @@ public class SOAPProtocol implements CommProtocol
 
 			NodeList nodeList = opNode.getChildNodes();
 
-			Vector< String > varNames = operation.wsdlInfo().inVarNames();
+			Vector< String > varNames = operation.deployInfo().inVarNames();
 			if ( varNames == null )
 				throw new IOException( "Error: missing WSDL input variable names in operation " + operation.id() );
 			
@@ -321,10 +320,10 @@ public class SOAPProtocol implements CommProtocol
 			Node currNode;
 			String nodeName;
 			int j;
-			List< Variable > list = new Vector< Variable >();
+			List< Value > list = new Vector< Value >();
 			for( int k = 0; k < namesSize; k++ )
-				list.add( new TempVariable() );
-			TempVariable tempVar;
+				list.add( new Value() );
+			Value tempVar;
 			for( int i = 0; i < nodeList.getLength(); i++ ) {
 				currNode = nodeList.item( i );
 				nodeName = currNode.getLocalName();
@@ -339,12 +338,12 @@ public class SOAPProtocol implements CommProtocol
 				if ( j >= namesSize )
 					throw new IOException( "Received malformed SOAP packet: corresponding variable name not found: " + nodeName );
 				if ( currNode.getFirstChild() == null )
-					tempVar = new TempVariable( "" );
+					tempVar = new Value( "" );
 				else {
 					try {
-						tempVar = new TempVariable( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
+						tempVar = new Value( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
 					} catch( NumberFormatException e ) {
-						tempVar = new TempVariable( currNode.getFirstChild().getNodeValue() );
+						tempVar = new Value( currNode.getFirstChild().getNodeValue() );
 					}
 				}
 				list.set( j, tempVar );
@@ -354,7 +353,7 @@ public class SOAPProtocol implements CommProtocol
 			/**
 			 * This is needed to maintain information useful in a RequestResponse.
 			 */
-			this.wsdlInfo = operation.wsdlInfo();
+			this.wsdlInfo = operation.deployInfo();
 			this.uri = new URI( "localhost/response" );
 		} catch( SOAPException se ) {
 			throw new IOException( se );

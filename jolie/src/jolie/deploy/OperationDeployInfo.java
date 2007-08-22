@@ -19,60 +19,72 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.deploy;
 
-package jolie.runtime;
+import java.util.Vector;
 
-import java.util.Collection;
-import java.util.HashMap;
-
-/**
- * @author Fabrizio Montesi
- */
-public class GlobalLocation extends Location implements MappedGlobalObject
+public class OperationDeployInfo implements Cloneable
 {
-	private static HashMap< String, GlobalLocation > idMap = 
-		new HashMap< String, GlobalLocation >();
-
-	private String id;
-	private String value = "";
+	private Vector< String > inVarNames;
+	private Vector< String > outVarNames;
+	private String boundName;
+	private PortType portType;
 	
-	public GlobalLocation( String id )
+	public OperationDeployInfo clone()
 	{
-		this.id = id;
+		OperationDeployInfo retval = new OperationDeployInfo();
+		retval.setInVarNames( inVarNames );
+		retval.setOutVarNames( outVarNames );
+		retval.setBoundName( boundName );
+		retval.setPortType( portType );
+		return retval;
 	}
 	
-	public void setValue( String value )
+	public void setPortType( PortType portType )
 	{
-		this.value = value;
+		this.portType = portType;
 	}
 	
-	protected String value()
+	public PortType portType()
 	{
-		return value;
+		return portType;
 	}
 	
-	public String id()
+	public OperationDeployInfo()
 	{
-		return id;
+		inVarNames = null;
+		outVarNames = null;
+		boundName = null;
+		portType = null;
 	}
 	
-	public static GlobalLocation getById( String id )
-		throws InvalidIdException
+	public String boundName()
 	{
-		GlobalLocation loc = idMap.get( id );
-		if ( loc == null )
-			throw new InvalidIdException( id );
-
-		return loc;
+		return boundName;
 	}
 	
-	public final void register()
+	public Vector< String > inVarNames()
 	{
-		idMap.put( id, this );
+		return inVarNames;
 	}
 	
-	public static Collection< GlobalLocation > getAll()
+	public Vector< String > outVarNames()
 	{
-		return idMap.values();
+		return outVarNames;
 	}
+	
+	public void setBoundName( String boundName )
+	{
+		this.boundName = boundName;
+	}
+	
+	public void setOutVarNames( Vector< String > outVarNames )
+	{
+		this.outVarNames = outVarNames;
+	}
+	
+	public void setInVarNames( Vector< String > inVarNames )
+	{
+		this.inVarNames = inVarNames;
+	} 
 }

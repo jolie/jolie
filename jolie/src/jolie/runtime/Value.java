@@ -21,13 +21,49 @@
 
 package jolie.runtime;
 
+import java.util.HashMap;
+import java.util.Vector;
+
 import jolie.Constants;
 
-public class Value
+public class Value implements Expression
 {
 	private String strValue = new String();
 	private int intValue = 0;
 	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
+	
+	private HashMap< String, Vector< Value > > children =
+					new HashMap< String, Vector< Value > >();
+	private HashMap< String, Value > attributes =
+					new HashMap< String, Value >();
+	
+	public Vector< Value > getChildren( String childId )
+	{
+		Vector< Value > v = children.get( childId );
+		if ( v == null ) {
+			v = new Vector< Value > ();
+			v.add( new Value() );
+			children.put( childId, v );
+		}
+		
+		return v;
+	}
+	
+	public Value getAttribute( String attributeId )
+	{
+		Value attr = attributes.get( attributeId );
+		if ( attr == null ) {
+			attr = new Value();
+			attributes.put( attributeId, attr );
+		}
+		
+		return attr;
+	}
+	
+	public Value evaluate()
+	{
+		return this;
+	}
 	
 	public Value( Value val )
 	{
@@ -52,6 +88,18 @@ public class Value
 	}
 	
 	public Value() {}
+	
+	public Value( String val )
+	{
+		super();
+		setStrValue( val );
+	}
+	
+	public Value( int val )
+	{
+		super();
+		setIntValue( val );
+	}
 	
 	public final synchronized void setStrValue( String value )
 	{
@@ -103,5 +151,49 @@ public class Value
 	public Constants.VariableType type()
 	{
 		return type;
+	}
+	
+	public final synchronized void add( Value val )
+	{
+		if ( isDefined() ) {
+			if ( isInt() )
+				setIntValue( intValue() + val.intValue() );
+			else
+				setStrValue( strValue() + val.strValue() );
+		} else
+			assignValue( val );
+	}
+	
+	public final synchronized void subtract( Value val )
+	{
+		if ( !isDefined() )
+			assignValue( val );
+		else if ( isInt() )
+			setIntValue( intValue() - val.intValue() );
+	}
+	
+	public final synchronized void multiply( Value val )
+	{
+		if ( isDefined() ) {
+			if ( isInt() )
+				setIntValue( intValue() * val.intValue() );
+		} else
+			assignValue( val );
+	}
+	
+	public final synchronized void divide( Value val )
+	{
+		if ( !isDefined() )
+			assignValue( val );
+		else if ( isInt() )
+				setIntValue( intValue() / val.intValue() );
+	}
+	
+	public final synchronized void assignValue( Value val )
+	{
+		if ( val.isInt() )
+			setIntValue( val.intValue() );
+		else
+			setStrValue( val.strValue() );
 	}
 }

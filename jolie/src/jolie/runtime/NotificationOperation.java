@@ -22,17 +22,13 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
-
-import jolie.Constants;
 
 public class NotificationOperation extends OutputOperation
 {
 	public NotificationOperation( String id,
-			Vector< Constants.VariableType > outVarTypes,
 			String boundOperationId )
 	{
-		super( id, boundOperationId, outVarTypes );
+		super( id, boundOperationId );
 	}
 	
 	public static NotificationOperation getById( String id )

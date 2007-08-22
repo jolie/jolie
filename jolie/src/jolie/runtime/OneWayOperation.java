@@ -22,15 +22,12 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
-
-import jolie.Constants;
 
 public class OneWayOperation extends InputOperation
 {
-	public OneWayOperation( String id, Vector< Constants.VariableType > inVarTypes )
+	public OneWayOperation( String id )
 	{
-		super( id, inVarTypes );
+		super( id );
 	}
 	
 	public static OneWayOperation getById( String id )

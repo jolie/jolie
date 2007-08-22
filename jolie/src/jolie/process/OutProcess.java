@@ -23,7 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.Expression;
-import jolie.runtime.Variable;
+import jolie.runtime.Value;
 
 public class OutProcess implements Process
 {
@@ -38,9 +38,9 @@ public class OutProcess implements Process
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		Variable var = expression.evaluate();
-		if ( var.isDefined() )
-			System.out.print( var.strValue() );
+		Value val = expression.evaluate();
+		if ( val.isDefined() )
+			System.out.print( val.strValue() );
 		else
 			System.out.print( "undefined" );
 	}

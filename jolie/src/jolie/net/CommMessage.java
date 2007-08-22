@@ -27,33 +27,32 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import jolie.runtime.FaultException;
-import jolie.runtime.TempVariable;
-import jolie.runtime.Variable;
+import jolie.runtime.Value;
 
-public class CommMessage implements Iterable< Variable >
+public class CommMessage implements Iterable< Value >
 {
 	private String inputId;
-	private Vector< Variable > values;
+	private Vector< Value > values;
 	private boolean fault = false;
 	
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;
-		this.values = new Vector< Variable >();
+		this.values = new Vector< Value >();
 	}
 	
 	public CommMessage( String inputId, FaultException f )
 	{
 		this.inputId = inputId;
-		this.values = new Vector< Variable >();
-		this.values.add( new TempVariable( f.fault() ) );
+		this.values = new Vector< Value >();
+		this.values.add( new Value( f.fault() ) );
 		fault = true;
 	}
 	
-	public CommMessage( String inputId, Vector< ? extends Variable > values )
+	public CommMessage( String inputId, Vector< ? extends Value > values )
 	{
 		this.inputId = inputId;
-		this.values = new Vector< Variable >();
+		this.values = new Vector< Value >();
 		addAllValues( values );
 	}
 
@@ -62,18 +61,18 @@ public class CommMessage implements Iterable< Variable >
 		return inputId;
 	}
 
-	public void addValue( Variable var )
+	public void addValue( Value val )
 	{
-		values.add( var );
+		values.add( val );
 	}
 	
-	public final void addAllValues( Collection< ? extends Variable > vars )
+	public final void addAllValues( Collection< ? extends Value > vals )
 	{
-		for( Variable var : vars )
-			addValue( var );
+		for( Value val : vals )
+			addValue( val );
 	}
 	
-	public Iterator< Variable > iterator()
+	public Iterator< Value > iterator()
 	{
 		return values.iterator();
 	}

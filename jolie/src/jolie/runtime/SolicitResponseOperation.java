@@ -22,26 +22,13 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
-
-import jolie.Constants;
 
 public class SolicitResponseOperation extends OutputOperation
 {
-	private Vector< Constants.VariableType > inVarTypes;
-	
 	public SolicitResponseOperation( String id,
-			Vector< Constants.VariableType > outVarTypes,
-			Vector< Constants.VariableType > inVarTypes,
 			String boundOperationId )
 	{
-		super( id, boundOperationId, outVarTypes );
-		this.inVarTypes = inVarTypes;
-	}
-	
-	public Vector< Constants.VariableType > inVarTypes()
-	{
-		return inVarTypes;
+		super( id, boundOperationId );
 	}
 	
 	public static SolicitResponseOperation getById( String id )

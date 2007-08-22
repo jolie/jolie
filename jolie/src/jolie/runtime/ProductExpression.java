@@ -35,23 +35,23 @@ public class ProductExpression implements Expression
 		children = new Vector< Operand >();
 	}
 	
-	public Variable evaluate()
+	public Value evaluate()
 	{
-		TempVariable var = new TempVariable();
+		Value val = new Value();
 		
 		if ( children.size() > 0 )
-			var.assignValue( children.firstElement().expression().evaluate() );
+			val.assignValue( children.firstElement().expression().evaluate() );
 
 		Operand o;
 		for ( int i = 1; i < children.size(); i++ ) {
 			o = children.elementAt( i );
 			if ( o.type() == Constants.OperandType.MULTIPLY )
-				var.multiply( o.expression().evaluate() );
+				val.multiply( o.expression().evaluate() );
 			else
-				var.divide( o.expression().evaluate() );
+				val.divide( o.expression().evaluate() );
 		}
 		
-		return var;
+		return val;
 	}
 	
 	public void multiply( Expression expression )

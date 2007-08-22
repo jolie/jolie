@@ -31,12 +31,10 @@ import jolie.runtime.InvalidIdException;
 abstract public class PortType extends AbstractMappedGlobalObject
 {
 	private static HashMap< String, PortType > idMap = new HashMap< String, PortType >();
-	private PartnerLinkType partnerLinkType;
 	
 	public PortType( String id )
 	{
 		super( id );
-		partnerLinkType = null;
 	}
 	
 	public void register()
@@ -55,15 +53,5 @@ abstract public class PortType extends AbstractMappedGlobalObject
 			throw new InvalidIdException( id );
 
 		return pt;
-	}
-	
-	public PartnerLinkType partnerLinkType()
-	{
-		return partnerLinkType;
-	}
-	
-	public void setPartnerLinkType( PartnerLinkType plk )
-	{
-		partnerLinkType = plk;
 	}
 }

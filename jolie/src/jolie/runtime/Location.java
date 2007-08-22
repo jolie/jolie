@@ -30,10 +30,14 @@ import jolie.net.CommChannel;
 import jolie.net.CommProtocol;
 import jolie.net.UnsupportedCommMediumException;
 
-abstract public class Location
+public class Location
 {
-	abstract protected String value();
-	abstract public void setValue( String value );
+	private Expression expression;
+	
+	public Location( Expression expression )
+	{
+		this.expression = expression;
+	}
 	
 	/**
 	 * @todo Implement the communication medium choice (socket, pipe, file) through uri.getProtocol().
@@ -56,6 +60,6 @@ abstract public class Location
 	public URI getURI()
 		throws URISyntaxException
 	{
-		return new URI( value() );
+		return new URI( expression.evaluate().strValue() );
 	}
 }

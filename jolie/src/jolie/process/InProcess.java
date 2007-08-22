@@ -31,21 +31,21 @@ import java.nio.channels.ClosedByInterruptException;
 
 import jolie.ExecutionThread;
 import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 
 class InInputHandler extends Thread implements InputHandler
 {
-	GlobalVariable var;
+	GlobalVariablePath varPath;
 	private InputProcess inputProcess;
 	private BufferedReader stdin = new BufferedReader(
 		new InputStreamReader(
 				Channels.newInputStream(
 						(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
 
-	public InInputHandler( GlobalVariable var )
+	public InInputHandler( GlobalVariablePath varPath )
 	{
-		this.var = var;
+		this.varPath = varPath;
 	}
 	
 	public synchronized void signForMessage( NDChoiceProcess process )
@@ -77,9 +77,9 @@ class InInputHandler extends Thread implements InputHandler
 				buffer = stdin.readLine();
 			}
 			try {
-				var.setIntValue( Integer.parseInt( buffer ) );
+				varPath.getValue().setIntValue( Integer.parseInt( buffer ) );
 			} catch( NumberFormatException nfe ) {
-				var.setStrValue( buffer );
+				varPath.getValue().setStrValue( buffer );
 			}
 			if ( inputProcess != null )
 				inputProcess.recvMessage( new CommMessage( id() ) );
@@ -92,7 +92,7 @@ class InInputHandler extends Thread implements InputHandler
 
 public class InProcess implements InputProcess
 {	
-	private GlobalVariable var;
+	private GlobalVariablePath varPath;
 	private InInputHandler inputHandler = null;
 	private static final Object mutex = new Object();
 	private BufferedReader stdin = new BufferedReader(
@@ -105,9 +105,9 @@ public class InProcess implements InputProcess
 		return mutex;
 	}
 
-	public InProcess( GlobalVariable var )
+	public InProcess( GlobalVariablePath varPath )
 	{
-		this.var = var;
+		this.varPath = varPath;
 	}
 	
 	public void run()
@@ -121,9 +121,9 @@ public class InProcess implements InputProcess
 				buffer = stdin.readLine();
 			}
 			try {
-				var.setIntValue( Integer.parseInt( buffer ) );
+				varPath.getValue().setIntValue( Integer.parseInt( buffer ) );
 			} catch( NumberFormatException nfe ) {
-				var.setStrValue( buffer );
+				varPath.getValue().setStrValue( buffer );
 			}
 		} catch( ClosedByInterruptException ce ) {
 		} catch( IOException e ) {
@@ -134,7 +134,7 @@ public class InProcess implements InputProcess
 	public InputHandler inputHandler()
 	{
 		if ( inputHandler == null )
-			inputHandler = new InInputHandler( var );
+			inputHandler = new InInputHandler( varPath );
 		return inputHandler;
 	}
 	

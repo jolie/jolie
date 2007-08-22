@@ -30,8 +30,7 @@ import java.util.Iterator;
 
 import jolie.lang.parse.Scanner;
 import jolie.runtime.FaultException;
-import jolie.runtime.TempVariable;
-import jolie.runtime.Variable;
+import jolie.runtime.Value;
 
 /*
 Simple Operation Data Exchange Protocol BNF grammar:
@@ -84,14 +83,14 @@ public class SODEPProtocol implements CommProtocol
 			mesg += "fault:" + message.faultName();
 		} else {
 			mesg += "values{";
-			Variable var;
-			Iterator< Variable > it = message.iterator();
+			Value val;
+			Iterator< Value > it = message.iterator();
 			while( it.hasNext() ) {
-				var = it.next();
-				if ( var.isString() || !var.isDefined() )
-					mesg += '"' + var.strValue() + '"';
-				else if ( var.isInt() )
-					mesg += var.intValue();
+				val = it.next();
+				if ( val.isString() || !val.isDefined() )
+					mesg += '"' + val.strValue() + '"';
+				else if ( val.isInt() )
+					mesg += val.intValue();
 				else
 					throw new IOException( "sodep packet creation: invalid variable type or undefined variable" );
 				if ( it.hasNext() )
@@ -112,7 +111,7 @@ public class SODEPProtocol implements CommProtocol
 	{
 		Scanner.Token token;
 		CommMessage message = null;
-		TempVariable var;
+		Value val;
 		boolean stop = false;
 		Scanner scanner = new Scanner( istream, "network" );
 		
@@ -150,12 +149,12 @@ public class SODEPProtocol implements CommProtocol
 		
 			while ( token.type() != Scanner.TokenType.RCURLY && !stop ) { 
 				if ( token.type() == Scanner.TokenType.STRING )
-					var = new TempVariable( token.content() );
+					val = new Value( token.content() );
 				else if ( token.type() == Scanner.TokenType.INT )
-					var = new TempVariable( Integer.parseInt( token.content() ) );
+					val = new Value( Integer.parseInt( token.content() ) );
 				else
 					throw new IOException( "malformed SODEP packet. invalid variable type" );
-				message.addValue( var );
+				message.addValue( val );
 				token = scanner.getToken();
 				if ( token.isNot( Scanner.TokenType.COMMA ) )
 					stop = true;

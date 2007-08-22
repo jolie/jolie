@@ -161,12 +161,13 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	}
 	
 	public static InternalLink getById( String id )
-		throws InvalidIdException
 	{
 		InternalLink retVal = idMap.get( id );
-		if ( retVal == null )
-			throw new InvalidIdException( id );
-
+		if ( retVal == null ) {
+			retVal = new InternalLink( id );
+			retVal.register();
+		}
+		
 		return retVal;
 	}
 	

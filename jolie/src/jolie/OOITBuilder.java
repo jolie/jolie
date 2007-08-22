@@ -25,79 +25,65 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import jolie.Constants.OperandType;
 import jolie.deploy.InputPort;
 import jolie.deploy.InputPortType;
 import jolie.deploy.OutputPortType;
-import jolie.deploy.PartnerLinkType;
 import jolie.deploy.PortCreationException;
 import jolie.deploy.PortType;
-import jolie.lang.parse.DeployVisitor;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.deploy.CorrelationSetInfo;
-import jolie.lang.parse.ast.deploy.DeployInfo;
-import jolie.lang.parse.ast.deploy.DeploySyntaxNode;
-import jolie.lang.parse.ast.deploy.ExecutionInfo;
-import jolie.lang.parse.ast.deploy.InputPortTypeInfo;
-import jolie.lang.parse.ast.deploy.LocationDeployInfo;
-import jolie.lang.parse.ast.deploy.NotificationOperationDeployInfo;
-import jolie.lang.parse.ast.deploy.OneWayOperationDeployInfo;
-import jolie.lang.parse.ast.deploy.OutputPortTypeInfo;
-import jolie.lang.parse.ast.deploy.PartnerLinkTypeInfo;
-import jolie.lang.parse.ast.deploy.PortBindingInfo;
-import jolie.lang.parse.ast.deploy.RequestResponseOperationDeployInfo;
-import jolie.lang.parse.ast.deploy.ServiceInfo;
-import jolie.lang.parse.ast.deploy.SolicitResponseOperationDeployInfo;
-import jolie.lang.parse.ast.deploy.StateInfo;
-import jolie.lang.parse.ast.deploy.WSDLInfo;
-import jolie.lang.parse.ast.ol.AndConditionNode;
-import jolie.lang.parse.ast.ol.AssignStatement;
-import jolie.lang.parse.ast.ol.CompareConditionNode;
-import jolie.lang.parse.ast.ol.CompensateStatement;
-import jolie.lang.parse.ast.ol.ConstantIntegerExpression;
-import jolie.lang.parse.ast.ol.ConstantStringExpression;
-import jolie.lang.parse.ast.ol.ExitStatement;
-import jolie.lang.parse.ast.ol.ExpressionConditionNode;
-import jolie.lang.parse.ast.ol.IfStatement;
-import jolie.lang.parse.ast.ol.InStatement;
-import jolie.lang.parse.ast.ol.InstallCompensationStatement;
-import jolie.lang.parse.ast.ol.InstallFaultHandlerStatement;
-import jolie.lang.parse.ast.ol.InternalLinkDeclaration;
-import jolie.lang.parse.ast.ol.LinkInStatement;
-import jolie.lang.parse.ast.ol.LinkOutStatement;
-import jolie.lang.parse.ast.ol.LocationDeclaration;
-import jolie.lang.parse.ast.ol.NDChoiceStatement;
-import jolie.lang.parse.ast.ol.NotConditionNode;
-import jolie.lang.parse.ast.ol.NotificationOperationDeclaration;
-import jolie.lang.parse.ast.ol.NotificationOperationStatement;
-import jolie.lang.parse.ast.ol.NullProcessStatement;
-import jolie.lang.parse.ast.ol.OLSyntaxNode;
-import jolie.lang.parse.ast.ol.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.ol.OneWayOperationStatement;
-import jolie.lang.parse.ast.ol.OperationDeclaration;
-import jolie.lang.parse.ast.ol.OrConditionNode;
-import jolie.lang.parse.ast.ol.OutStatement;
-import jolie.lang.parse.ast.ol.ParallelStatement;
-import jolie.lang.parse.ast.ol.Procedure;
-import jolie.lang.parse.ast.ol.ProcedureCallStatement;
-import jolie.lang.parse.ast.ol.ProductExpressionNode;
-import jolie.lang.parse.ast.ol.Program;
-import jolie.lang.parse.ast.ol.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.ol.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.ol.Scope;
-import jolie.lang.parse.ast.ol.SequenceStatement;
-import jolie.lang.parse.ast.ol.SleepStatement;
-import jolie.lang.parse.ast.ol.SolicitResponseOperationDeclaration;
-import jolie.lang.parse.ast.ol.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.ol.SumExpressionNode;
-import jolie.lang.parse.ast.ol.ThrowStatement;
-import jolie.lang.parse.ast.ol.VariableDeclaration;
-import jolie.lang.parse.ast.ol.VariableExpressionNode;
-import jolie.lang.parse.ast.ol.WhileStatement;
+import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.ConstantIntegerExpression;
+import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.InStatement;
+import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InstallCompensationStatement;
+import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.NotificationOperationDeclaration;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.OutStatement;
+import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.Procedure;
+import jolie.lang.parse.ast.ProcedureCallStatement;
+import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceInfo;
+import jolie.lang.parse.ast.SleepStatement;
+import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.StateInfo;
+import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
 import jolie.net.SOAPProtocol;
@@ -136,8 +122,8 @@ import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
-import jolie.runtime.GlobalLocation;
 import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InternalLink;
 import jolie.runtime.InvalidIdException;
@@ -151,712 +137,560 @@ import jolie.runtime.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.SumExpression;
-import jolie.runtime.TempVariable;
-import jolie.runtime.Variable;
-import jolie.runtime.VariableLocation;
+import jolie.runtime.Value;
 import jolie.util.Pair;
 
-public class OOITBuilder
+public class OOITBuilder implements OLVisitor
 {
 	private Program program;
-	private DeployInfo deployInfo;
-	
-	public OOITBuilder( Program program, DeployInfo deployInfo )
+	private boolean valid = true;
+
+	public OOITBuilder( Program program )
 	{
 		 this.program = program;
-		 this.deployInfo = deployInfo;
+	}
+	
+	private void error( String message )
+	{
+		valid = false;
+		Interpreter.logger().severe( message );
+	}
+	
+	private void error( Exception e )
+	{
+		valid = false;
+		Interpreter.logger().severe( e.getMessage() );
 	}
 	
 	public boolean build()
 	{
-		boolean valid;
-		
-		valid = (new ProcessBuilder( Interpreter.logger() )).build( program );
-		if ( !valid )
-			return false;
-		
-		valid = (new DeployBuilder( Interpreter.logger() )).build( deployInfo );
+		visit( program );
 		
 		return valid;
 	}
 	
-	private class DeployBuilder implements DeployVisitor
+	public void visit( StateInfo n )
 	{
-		private Logger logger;
-		private boolean valid = true;
+		Interpreter.setStateMode( n.mode() );
+	}
 		
-		public DeployBuilder( Logger logger )
-		{
-			this.logger = logger;
-		}
-		
-		private void error( String message )
-		{
-			valid = false;
-			logger.severe( message );
-		}
-		
-		private void error( Exception e )
-		{
-			error( e.getMessage() );
-		}
-		
-		public boolean build( DeployInfo deployInfo )
-		{
-			deployInfo.accept( this );
-			return valid;
-		}
+	public void visit( ExecutionInfo n )
+	{
+		Interpreter.setExecutionMode( n.mode() );
+	}
+	
+	public void visit( CorrelationSetInfo n )
+	{
+		Set< GlobalVariable > cVars = new HashSet< GlobalVariable > ();
+		for( String varName : n.variableNames() )
+				cVars.add( GlobalVariable.getById( varName ) );
 
-		public void visit( DeployInfo n )
-		{
-			for( DeploySyntaxNode node : n.children() )
-				node.accept( this );
-		}
+		Interpreter.setCorrelationSet( cVars );
+	}
 		
-		public void visit( StateInfo n )
-		{
-			Interpreter.setStateMode( n.mode() );
-		}
-		
-		public void visit( ExecutionInfo n )
-		{
-			Interpreter.setExecutionMode( n.mode() );
-		}
-		
-		public void visit( CorrelationSetInfo n )
-		{
-			Set< GlobalVariable > cVars = new HashSet< GlobalVariable > ();
-			for( String varName : n.variableNames() ) {
-				try {
-					cVars.add( GlobalVariable.getById( varName ) );
-				} catch( InvalidIdException e ) {
-					error( e );
-				}
-			}
-			
-			Interpreter.setCorrelationSet( cVars );
-		}
-		
-		public void visit( LocationDeployInfo n )
-		{
+	public void visit( InputPortTypeInfo n )
+	{
+		InputPortType pt = new InputPortType( n.id() );
+		for( OperationDeclaration op : n.operations() ) {
 			try {
-				GlobalLocation loc = GlobalLocation.getById( n.id() );
-				loc.setValue( n.uri().toString() );
+				pt.addOperation( InputOperation.getById( op.id() ) );
+			} catch( InvalidIdException e ) {
+				error( e );
+			}
+		}
+		pt.register();
+	}
+		
+	public void visit( OutputPortTypeInfo n )
+	{
+		OutputPortType pt = new OutputPortType( n.id() );
+		for( OperationDeclaration op : n.operations() ) {
+			try {
+				pt.addOperation( OutputOperation.getById( op.id() ) );
+			} catch( InvalidIdException e ) {
+				error( e );
+			}
+		}
+		pt.register();
+	}
+		
+	public void visit( PortInfo n )
+	{
+		try {
+			PortType pt = PortType.getById( n.portType() );
+			(pt.createPort( n.id(), n.protocolId() )).register();
+		} catch( InvalidIdException e ) {
+			error( e );
+		} catch( PortCreationException pce ) {
+			error( pce );
+		}
+	}
+		
+	public void visit( ServiceInfo n )
+	{
+		InputPort port = null;
+		Vector< InputPort > inputPorts = new Vector< InputPort > ();
+		for( String portId : n.inputPorts() ) {
+			try {
+				port = InputPort.getById( portId );
+				inputPorts.add( port );
 			} catch( InvalidIdException e ) {
 				error( e );
 			}
 		}
 		
-		public void visit( WSDLInfo n )
-		{
-			for( DeploySyntaxNode node : n.children() )
-				node.accept( this );
-		}
+		Constants.ProtocolId pId = port.protocolId();
+		CommProtocol protocol = null;
 		
-		public void visit( OneWayOperationDeployInfo n )
-		{
+		if ( pId == Constants.ProtocolId.SOAP )
+			protocol = new SOAPProtocol( n.uri() );
+		else if ( pId == Constants.ProtocolId.SODEP )
+			protocol = new SODEPProtocol();
+		else
+			error( "Unsupported protocol specified for port " + port.id() );
+		
+		if ( protocol != null ) {
 			try {
-				OneWayOperation op = OneWayOperation.getById( n.id() );
-				op.wsdlInfo().setBoundName( n.boundName() );
-				op.wsdlInfo().setInVarNames( new Vector< String > (n.inVarNames()) );
-			} catch( InvalidIdException e ) {
+				CommCore.addService( n.uri(), protocol, inputPorts );
+			} catch( UnsupportedCommMediumException e ) {
 				error( e );
-			}
-		}
-		
-		public void visit( NotificationOperationDeployInfo n )
-		{
-			try {
-				NotificationOperation op = NotificationOperation.getById( n.id() );
-				op.wsdlInfo().setBoundName( n.boundName() );
-				op.wsdlInfo().setOutVarNames( new Vector< String > (n.outVarNames()) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( RequestResponseOperationDeployInfo n )
-		{
-			try {
-				RequestResponseOperation op = RequestResponseOperation.getById( n.id() );
-				op.wsdlInfo().setBoundName( n.boundName() );
-				op.wsdlInfo().setInVarNames( new Vector< String > (n.inVarNames()) );
-				op.wsdlInfo().setOutVarNames( new Vector< String > (n.outVarNames()) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( SolicitResponseOperationDeployInfo n )
-		{
-			try {
-				SolicitResponseOperation op = SolicitResponseOperation.getById( n.id() );
-				op.wsdlInfo().setBoundName( n.boundName() );
-				op.wsdlInfo().setInVarNames( new Vector< String > (n.inVarNames()) );
-				op.wsdlInfo().setOutVarNames( new Vector< String > (n.outVarNames()) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( InputPortTypeInfo n )
-		{
-			InputPortType pt = new InputPortType( n.id() );
-			for( String id : n.operations() ) {
-				try {
-					pt.addOperation( InputOperation.getById( id ) );
-				} catch( InvalidIdException e ) {
-					error( e );
-				}
-			}
-			pt.register();
-		}
-		
-		public void visit( OutputPortTypeInfo n )
-		{
-			OutputPortType pt = new OutputPortType( n.id() );
-			for( String id : n.operations() ) {
-				try {
-					pt.addOperation( OutputOperation.getById( id ) );
-				} catch( InvalidIdException e ) {
-					error( e );
-				}
-			}
-			pt.register();
-		}
-		
-		public void visit( PartnerLinkTypeInfo n )
-		{
-			try {
-				( new PartnerLinkType(
-						n.id(),
-						InputPortType.getById( n.outputPortType() ),
-						OutputPortType.getById( n.outputPortType() )
-						) ).register();
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( PortBindingInfo n )
-		{
-			try {
-				PortType pt = PortType.getById( n.portType() );
-				(pt.createPort( n.id(), n.protocolId() )).register();
-			} catch( InvalidIdException e ) {
-				error( e );
-			} catch( PortCreationException pce ) {
-				error( pce );
-			}
-		}
-		
-		public void visit( ServiceInfo n )
-		{
-			InputPort port = null;
-			Vector< InputPort > inputPorts = new Vector< InputPort > ();
-			for( String portId : n.inputPorts() ) {
-				try {
-					port = InputPort.getById( portId );
-					inputPorts.add( port );
-				} catch( InvalidIdException e ) {
-					error( e );
-				}
-			}
-			
-			Constants.ProtocolId pId = port.protocolId();
-			CommProtocol protocol = null;
-			
-			if ( pId == Constants.ProtocolId.SOAP )
-				protocol = new SOAPProtocol( n.uri() );
-			else if ( pId == Constants.ProtocolId.SODEP )
-				protocol = new SODEPProtocol();
-			else
-				error( "Unsupported protocol specified for port " + port.id() );
-			
-			if ( protocol != null ) {
-				try {
-					CommCore.addService( n.uri(), protocol, inputPorts );
-				} catch( UnsupportedCommMediumException e ) {
-					error( e );
-				} catch( IOException ioe ) {
-					error( ioe );
-				}
+			} catch( IOException ioe ) {
+				error( ioe );
 			}
 		}
 	}
 	
-	private class ProcessBuilder implements OLVisitor
+	private Process currProcess;
+	private Expression currExpression;
+	private Condition currCondition;
+	private boolean correlatedSequence = false;
+		
+	public void visit( Program p )
 	{
-		private Process currProcess;
-		private Expression currExpression;
-		private Condition currCondition;
-		private Logger logger;
-		private boolean valid = true, correlatedSequence = false;
-		
-		public ProcessBuilder( Logger logger )
-		{
-			this.logger = logger;
-		}
-		
-		private void error( String message )
-		{
-			valid = false;
-			logger.severe( message );
-		}
-		
-		private void error( Exception e )
-		{
-			error( e.getMessage() );
-		}
-		
-		public boolean build( Program p )
-		{
-			p.accept( this );
-			return valid;
-		}
-		
-		public void visit( Program p )
-		{
-			for( LocationDeclaration decl : p.locationDeclarations() )
-				decl.accept( this );
-			
-			for( OperationDeclaration decl : p.operationDeclarations() )
-				decl.accept( this );
-			
-			for( VariableDeclaration decl : p.variableDeclarations() )
-				decl.accept( this );
-			
-			for( InternalLinkDeclaration decl : p.linkDeclarations() )
-				decl.accept( this );
-			
-			for( Procedure proc : p.procedures() )
-				proc.accept( this );
-		}
-		
-		public void visit( LocationDeclaration decl )
-		{
-			(new GlobalLocation( decl.id() )).register();
-		}
-		
-		public void visit( OneWayOperationDeclaration decl )
-		{
-			(new OneWayOperation(
-				decl.id(),
-				new Vector< Constants.VariableType >( decl.inVarTypes() ) )).register();
-		}
-		
-		public void visit( RequestResponseOperationDeclaration decl )
-		{
-			(new RequestResponseOperation(
-				decl.id(),
-				new Vector< Constants.VariableType >( decl.inVarTypes() ),
-				new Vector< Constants.VariableType >( decl.outVarTypes() ),
-				decl.faultNames() )).register();
-		}
-		
-		public void visit( NotificationOperationDeclaration decl )
-		{
-			(new NotificationOperation(
-				decl.id(),
-				new Vector< Constants.VariableType >( decl.outVarTypes() ),
-				decl.boundOperationId() )).register();
-		}
-		
-		public void visit( SolicitResponseOperationDeclaration decl )
-		{
-			(new SolicitResponseOperation(
-				decl.id(),
-				new Vector< Constants.VariableType >( decl.outVarTypes() ),
-				new Vector< Constants.VariableType >( decl.inVarTypes() ),
-				decl.boundOperationId() )).register();
-		}
-		
-		public void visit( InternalLinkDeclaration n )
-		{
-			(new InternalLink( n.id() )).register();
-		}
-		
-		public void visit( VariableDeclaration n )
-		{
-			(new GlobalVariable( n.id() )).register();
-		}
-		
-		public void visit( Procedure n )
-		{
-			DefinitionProcess def = new DefinitionProcess( n.id() );
-			n.body().accept( this );
-			if ( "main".equals( n.id() ) )
-				currProcess = new ScopeProcess( "main", currProcess );
+		for( OLSyntaxNode node : p.children() )
+			node.accept( this );
+	}
 
-			def.setProcess( currProcess );
-			def.register();
-			// currProcess = def;
-		}
+	public void visit( OneWayOperationDeclaration decl )
+	{
+		(new OneWayOperation( decl.id() )).register();
+	}
 		
-		public void visit( ParallelStatement n )
-		{
-			ParallelProcess proc = new ParallelProcess();
-			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
-				proc.addChild( currProcess );
-			}
-			currProcess = proc;
-		}
+	public void visit( RequestResponseOperationDeclaration decl )
+	{
+		(new RequestResponseOperation(
+			decl.id(),
+			decl.faultNames() )).register();
+	}
 		
-		/**
-		 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
-		 * @todo allow ndchoice at the beginning of main to be CorrelatedInputProcess
-		 */
-		public void visit( SequenceStatement n )
-		{
-			SequentialProcess proc = new SequentialProcess();
-			Iterator< OLSyntaxNode > it = n.children().iterator();
-			OLSyntaxNode node;
-			while( it.hasNext() ) {
-				node = it.next();
-				node.accept( this );
-				if ( currProcess instanceof CorrelatedInputProcess && !correlatedSequence ) {
-					
-					/**
-					 * Do not use multiple CorrelatedInputProcess
-					 * in the same sequence!
-					 */
-					correlatedSequence = true;
-					SequentialProcess sequence = new SequentialProcess();
-					CorrelatedProcess corrProc = new CorrelatedProcess( sequence );
-					((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
+	public void visit( NotificationOperationDeclaration decl )
+	{
+		(new NotificationOperation(
+			decl.id(),
+			decl.boundOperationId() )).register();
+	}
+		
+	public void visit( SolicitResponseOperationDeclaration decl )
+	{
+		(new SolicitResponseOperation(
+			decl.id(),
+			decl.boundOperationId() )).register();
+	}
+	
+	public void visit( Procedure n )
+	{
+		DefinitionProcess def = new DefinitionProcess( n.id() );
+		n.body().accept( this );
+		if ( "main".equals( n.id() ) )
+			currProcess = new ScopeProcess( "main", currProcess );
+
+		def.setProcess( currProcess );
+		def.register();
+		// currProcess = def;
+	}
+		
+	public void visit( ParallelStatement n )
+	{
+		ParallelProcess proc = new ParallelProcess();
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+			proc.addChild( currProcess );
+		}
+		currProcess = proc;
+	}
+		
+	/**
+	 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
+	 * @todo allow ndchoice at the beginning of main to be CorrelatedInputProcess
+	 */
+	public void visit( SequenceStatement n )
+	{
+		SequentialProcess proc = new SequentialProcess();
+		Iterator< OLSyntaxNode > it = n.children().iterator();
+		OLSyntaxNode node;
+		while( it.hasNext() ) {
+			node = it.next();
+			node.accept( this );
+			if ( currProcess instanceof CorrelatedInputProcess && !correlatedSequence ) {
+				/**
+				 * Do not use multiple CorrelatedInputProcess
+				 * in the same sequence!
+				 */
+				correlatedSequence = true;
+				SequentialProcess sequence = new SequentialProcess();
+				CorrelatedProcess corrProc = new CorrelatedProcess( sequence );
+				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
+				sequence.addChild( currProcess );
+				while( it.hasNext() ) {
+					node = it.next();
+					node.accept( this );
 					sequence.addChild( currProcess );
-					while( it.hasNext() ) {
-						node = it.next();
-						node.accept( this );
-						sequence.addChild( currProcess );
-					}
-					currProcess = corrProc;
-					correlatedSequence = false;
 				}
-				proc.addChild( currProcess );
-				if ( !it.hasNext() ) // Dirty trick, remove this
-					break;
+				currProcess = corrProc;
+				correlatedSequence = false;
 			}
-			currProcess = proc;
+			proc.addChild( currProcess );
+			if ( !it.hasNext() ) // Dirty trick, remove this
+				break;
 		}
+		currProcess = proc;
+	}
+	
+	public void visit( NDChoiceStatement n )
+	{
+		NDChoiceProcess proc = new NDChoiceProcess();
+		Process guard;
+		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+			pair.key().accept( this );
+			guard = currProcess;
+			pair.value().accept( this );
+			proc.addChoice( (InputProcess)guard, currProcess );
+		}
+		currProcess = proc;
+	}
 		
-		public void visit( NDChoiceStatement n )
-		{
-			NDChoiceProcess proc = new NDChoiceProcess();
-			Process guard;
-			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
-				pair.key().accept( this );
-				guard = currProcess;
-				pair.value().accept( this );
-				proc.addChoice( (InputProcess)guard, currProcess );
-			}
-			currProcess = proc;
-		}
-		
-		private Vector< GlobalVariable > getVariables( Collection< String > varNames )
-		{
-			Vector< GlobalVariable > vars = new Vector< GlobalVariable >();
-			for( String id : varNames ) {
-				try {
-					vars.add( GlobalVariable.getById( id ) );
-				} catch( InvalidIdException e ) {
-					error( e ); 
-				}
-			}
-			
-			return vars;
-		}
-		
-		public void visit( OneWayOperationStatement n )
-		{
-			try {
-				currProcess =
-					new OneWayProcess( OneWayOperation.getById( n.id() ), getVariables( n.inVars() ) );
-			} catch( InvalidIdException e ) {
-				error( e ); 
-			}
-		}
-		
-		public void visit( RequestResponseOperationStatement n )
-		{
-			try {
-				n.process().accept( this );
-				currProcess =
-					new RequestResponseProcess(
-							RequestResponseOperation.getById( n.id() ),
-							getVariables( n.inVars() ),
-							getVariables( n.outVars() ),
-							currProcess
-							);
-			} catch( InvalidIdException e ) {
-				error( e ); 
-			}
-		}
-		
-		public void visit( NotificationOperationStatement n )
-		{
-			Location location;
-			try {
-				location = GlobalLocation.getById( n.locationId() );
-			} catch( InvalidIdException e ) {
-				Variable var = null;
-				try {
-					var = GlobalVariable.getById( n.locationId() );
-				} catch( InvalidIdException iie ) {
-					error( iie );
-				}
-				location = new VariableLocation( var );
-			}
-			try {
-				currProcess =
-					new NotificationProcess(
-							NotificationOperation.getById( n.id() ),
-							location,
-							getVariables( n.outVars() )
-							);
-			} catch( InvalidIdException e ) {
-				error( e ); 
-			}
-		}
-		
-		public void visit( SolicitResponseOperationStatement n )
-		{
-			Location location;
-			try {
-				location = GlobalLocation.getById( n.locationId() );
-			} catch( InvalidIdException e ) {
-				Variable var = null;
-				try {
-					var = GlobalVariable.getById( n.locationId() );
-				} catch( InvalidIdException iie ) {
-					error( iie );
-				}
-				location = new VariableLocation( var );
-			}
-			try {
-				currProcess =
-					new SolicitResponseProcess(
-							SolicitResponseOperation.getById( n.id() ),
-							location,
-							getVariables( n.outVars() ),
-							getVariables( n.inVars() )
-							);
-			} catch( InvalidIdException e ) {
-				error( e ); 
-			}
-		}
-		
-		public void visit( LinkInStatement n )
-		{
-			try {
-				currProcess = new LinkInProcess( InternalLink.getById( n.id() ) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( LinkOutStatement n )
-		{
-			try {
-				currProcess = new LinkOutProcess( InternalLink.getById( n.id() ) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( ThrowStatement n )
-		{
-			currProcess = new ThrowProcess( n.id() );
-		}
-		
-		public void visit( CompensateStatement n )
-		{
-			currProcess = new CompensateProcess( n.id() );
-		}
-		
-		public void visit( Scope n )
-		{
-			n.body().accept( this );
-			currProcess = new ScopeProcess( n.id(), currProcess );
-		}
-		
-		public void visit( InstallCompensationStatement n )
-		{
-			n.body().accept( this );
-			currProcess = new InstallCompensationProcess( currProcess );
-		}
-		
-		public void visit( InstallFaultHandlerStatement n )
-		{
-			n.body().accept( this );
-			currProcess = new InstallFaultHandlerProcess( n.id(), currProcess );
-		}
-		
-		public void visit( AssignStatement n )
-		{
-			try {
-				n.expression().accept( this );
-				currProcess =
-					new AssignmentProcess(
-						GlobalVariable.getById( n.id() ),
-						currExpression
-						);
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( IfStatement n )
-		{
-			IfProcess ifProc = new IfProcess();
-			Condition condition;
-			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
-				pair.key().accept( this );
-				condition = currCondition;
-				pair.value().accept( this );
-				ifProc.addPair( condition, currProcess );
-			}
-			
-			if ( n.elseProcess() != null ) {
-				n.elseProcess().accept( this );
-				ifProc.setElseProcess( currProcess );
-			}
-			
-			currProcess = ifProc;
-		}
-		
-		public void visit( InStatement n )
-		{
-			try {
-				currProcess = new InProcess( GlobalVariable.getById( n.id() ) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( OutStatement n )
-		{
-			n.expression().accept( this );
-			currProcess = new OutProcess( currExpression );
-		}
-		
-		public void visit( ProcedureCallStatement n )
-		{
-			try {
-				currProcess = new CallProcess( DefinitionProcess.getById( n.id() ) );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
-		
-		public void visit( SleepStatement n )
-		{
-			n.expression().accept( this );
-			currProcess = new SleepProcess( currExpression );
-		}
-		
-		public void visit( WhileStatement n )
-		{
-			n.condition().accept( this );
-			Condition condition = currCondition;
-			n.body().accept( this );
-			currProcess = new WhileProcess( condition, currProcess );
-		}
-		
-		public void visit( OrConditionNode n )
-		{
-			OrCondition cond = new OrCondition();
-			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
-				cond.addChild( currCondition );
-			}
-			currCondition = cond;
-		}
-		
-		public void visit( AndConditionNode n )
-		{
-			AndCondition cond = new AndCondition();
-			for( OLSyntaxNode node : n.children() ) {
-				node.accept( this );
-				cond.addChild( currCondition );
-			}
-			currCondition = cond;
-		}
-		
-		public void visit( NotConditionNode n )
-		{
-			n.condition().accept( this );
-			currCondition = new NotCondition( currCondition );
-		}
-		
-		public void visit( CompareConditionNode n )
-		{
-			n.leftExpression().accept( this );
-			Expression left = currExpression;
-			n.rightExpression().accept( this );
-			currCondition = new CompareCondition( left, currExpression, n.opType() );
-		}
-		
-		public void visit( ExpressionConditionNode n )
-		{
-			n.expression().accept( this );
-			currCondition = new ExpressionCondition( currExpression );
-		}
-		
-		public void visit( ConstantIntegerExpression n )
-		{
-			currExpression = new TempVariable( n.value() );
-		}
-		
-		public void visit( ConstantStringExpression n )
-		{
-			currExpression = new TempVariable( n.value() );
-		}
-		
-		public void visit( ProductExpressionNode n )
-		{
-			ProductExpression expr = new ProductExpression();
-			for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
-				pair.value().accept( this );
-				if( pair.key() == OperandType.MULTIPLY )
-					expr.multiply( currExpression );
-				else
-					expr.divide( currExpression );
-			}
-			currExpression = expr;
-		}
-		
-		public void visit( SumExpressionNode n )
-		{
-			SumExpression expr = new SumExpression();
-			for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
-				pair.value().accept( this );
-				if( pair.key() == OperandType.ADD )
-					expr.add( currExpression );
-				else
-					expr.subtract( currExpression );
-			}
-			currExpression = expr;
-		}
+	private Vector< GlobalVariable > getVariables( Collection< String > varNames )
+	{
+		Vector< GlobalVariable > vars = new Vector< GlobalVariable >();
+		for( String id : varNames )
+			vars.add( GlobalVariable.getById( id ) );
 
-		public void visit( VariableExpressionNode n )
-		{
-			try {
-				currExpression = GlobalVariable.getById( n.id() );
-			} catch( InvalidIdException e ) {
-				error( e );
-			}
-		}
+		return vars;
+	}
 		
-		public void visit( NullProcessStatement n )
-		{
-			currProcess = NullProcess.getInstance();
-		}
-		
-		public void visit( ExitStatement n )
-		{
-			currProcess = ExitProcess.getInstance();
+	public void visit( OneWayOperationStatement n )
+	{
+		try {
+			currProcess =
+				new OneWayProcess( OneWayOperation.getById( n.id() ), getVariables( n.inVars() ) );
+		} catch( InvalidIdException e ) {
+			error( e ); 
 		}
 	}
+		
+	public void visit( RequestResponseOperationStatement n )
+	{
+		try {
+			n.process().accept( this );
+			currProcess =
+				new RequestResponseProcess(
+						RequestResponseOperation.getById( n.id() ),
+						getVariables( n.inVars() ),
+						getVariables( n.outVars() ),
+						currProcess
+						);
+		} catch( InvalidIdException e ) {
+			error( e ); 
+		}
+	}
+		
+	public void visit( NotificationOperationStatement n )
+	{
+		n.locationExpression().accept( this );
+		try {
+			currProcess =
+				new NotificationProcess(
+						NotificationOperation.getById( n.id() ),
+						new Location( currExpression ),
+						getVariables( n.outVars() )
+						);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+		
+	public void visit( SolicitResponseOperationStatement n )
+	{
+		n.locationExpression().accept( this );
+		try {
+			currProcess =
+				new SolicitResponseProcess(
+						SolicitResponseOperation.getById( n.id() ),
+						new Location( currExpression ),
+						getVariables( n.outVars() ),
+						getVariables( n.inVars() )
+						);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+		
+	public void visit( LinkInStatement n )
+	{
+		currProcess = new LinkInProcess( InternalLink.getById( n.id() ) );
+	}
+	
+	public void visit( LinkOutStatement n )
+	{
+		currProcess = new LinkOutProcess( InternalLink.getById( n.id() ) );
+	}
+	
+	public void visit( ThrowStatement n )
+	{
+		currProcess = new ThrowProcess( n.id() );
+	}
+	
+	public void visit( CompensateStatement n )
+	{
+		currProcess = new CompensateProcess( n.id() );
+	}
+		
+	public void visit( Scope n )
+	{
+		n.body().accept( this );
+		currProcess = new ScopeProcess( n.id(), currProcess );
+	}
+		
+	public void visit( InstallCompensationStatement n )
+	{
+		n.body().accept( this );
+		currProcess = new InstallCompensationProcess( currProcess );
+	}
+		
+	public void visit( InstallFaultHandlerStatement n )
+	{
+		n.body().accept( this );
+		currProcess = new InstallFaultHandlerProcess( n.id(), currProcess );
+	}
+		
+	public void visit( AssignStatement n )
+	{
+		try {
+			n.expression().accept( this );
+			Expression assignExpression = currExpression;
+			
+			n.variablePath().varElement().accept( this );
+			Expression varElement = currExpression;
+			
+			LinkedList< Pair< String, Expression > > list =
+							new LinkedList< Pair< String, Expression > >();
+			Expression attribute = null;
+			
+			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
+				currExpression = null;
+				pair.value().accept( this );
+				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
+			}
+			if ( n.variablePath().attribute() != null ) {
+				n.variablePath().attribute().accept( this );
+				attribute = currExpression;
+			}
+			
+			currProcess =
+				new AssignmentProcess(
+					GlobalVariablePath.create( n.variablePath().varId(), varElement, list, attribute ),
+					assignExpression
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( IfStatement n )
+	{
+		IfProcess ifProc = new IfProcess();
+		Condition condition;
+		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
+			pair.key().accept( this );
+			condition = currCondition;
+			pair.value().accept( this );
+			ifProc.addPair( condition, currProcess );
+		}
+		
+		if ( n.elseProcess() != null ) {
+			n.elseProcess().accept( this );
+			ifProc.setElseProcess( currProcess );
+		}
+		
+		currProcess = ifProc;
+	}
+	
+	public void visit( InStatement n )
+	{
+		try {
+			n.variablePath().varElement().accept( this );
+			Expression varElement = currExpression;
+			
+			LinkedList< Pair< String, Expression > > list =
+							new LinkedList< Pair< String, Expression > >();
+			Expression attribute = null;
+			
+			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
+				currExpression = null;
+				pair.value().accept( this );
+				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
+			}
+			if ( n.variablePath().attribute() != null ) {
+				n.variablePath().attribute().accept( this );
+				attribute = currExpression;
+			}
+			currProcess = new InProcess(
+					GlobalVariablePath.create( n.variablePath().varId(), varElement, list, attribute )
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( OutStatement n )
+	{
+		n.expression().accept( this );
+		currProcess = new OutProcess( currExpression );
+	}
+	
+	public void visit( ProcedureCallStatement n )
+	{
+		try {
+			currProcess = new CallProcess( DefinitionProcess.getById( n.id() ) );
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( SleepStatement n )
+	{
+		n.expression().accept( this );
+		currProcess = new SleepProcess( currExpression );
+	}
+	
+	public void visit( WhileStatement n )
+	{
+		n.condition().accept( this );
+		Condition condition = currCondition;
+		n.body().accept( this );
+		currProcess = new WhileProcess( condition, currProcess );
+	}
+	
+	public void visit( OrConditionNode n )
+	{
+		OrCondition cond = new OrCondition();
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+			cond.addChild( currCondition );
+		}
+		currCondition = cond;
+	}
+	
+	public void visit( AndConditionNode n )
+	{
+		AndCondition cond = new AndCondition();
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+			cond.addChild( currCondition );
+		}
+		currCondition = cond;
+	}
+	
+	public void visit( NotConditionNode n )
+	{
+		n.condition().accept( this );
+		currCondition = new NotCondition( currCondition );
+	}
+	
+	public void visit( CompareConditionNode n )
+	{
+		n.leftExpression().accept( this );
+		Expression left = currExpression;
+		n.rightExpression().accept( this );
+		currCondition = new CompareCondition( left, currExpression, n.opType() );
+	}
+	
+	public void visit( ExpressionConditionNode n )
+	{
+		n.expression().accept( this );
+		currCondition = new ExpressionCondition( currExpression );
+	}
+	
+	public void visit( ConstantIntegerExpression n )
+	{
+		currExpression = new Value( n.value() );
+	}
+	
+	public void visit( ConstantStringExpression n )
+	{
+		currExpression = new Value( n.value() );
+	}
+	
+	public void visit( ProductExpressionNode n )
+	{
+		ProductExpression expr = new ProductExpression();
+		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+			pair.value().accept( this );
+			if( pair.key() == OperandType.MULTIPLY )
+				expr.multiply( currExpression );
+			else
+				expr.divide( currExpression );
+		}
+		currExpression = expr;
+	}
+	
+	public void visit( SumExpressionNode n )
+	{
+		SumExpression expr = new SumExpression();
+		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+			pair.value().accept( this );
+			if( pair.key() == OperandType.ADD )
+				expr.add( currExpression );
+			else
+				expr.subtract( currExpression );
+		}
+		currExpression = expr;
+	}
+
+	public void visit( VariableExpressionNode n )
+	{
+		try {
+			n.variablePath().varElement().accept( this );
+			Expression varElement = currExpression;
+			LinkedList< Pair< String, Expression > > list =
+							new LinkedList< Pair< String, Expression > >();
+			Expression attribute = null;
+			
+			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
+				currExpression = null;
+				pair.value().accept( this );
+				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
+			}
+			if ( n.variablePath().attribute() != null ) {
+				n.variablePath().attribute().accept( this );
+				attribute = currExpression;
+			}
+			currExpression = GlobalVariablePath.create(
+					n.variablePath().varId(), varElement, list, attribute
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( NullProcessStatement n )
+	{
+		currProcess = NullProcess.getInstance();
+	}
+	
+	public void visit( ExitStatement n )
+	{
+		currProcess = ExitProcess.getInstance();
+	}
 }
+

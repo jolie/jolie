@@ -19,25 +19,74 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.runtime;
 
-public class VariableLocation extends Location
-{
-	private Variable var;
-	
-	public VariableLocation( Variable var )
-	{
-		this.var = var;
-	}
-	
-	protected String value()
-	{
-		return var.strValue();
-	}
+import java.util.List;
+import java.util.Vector;
 
-	public void setValue( String value )
+import jolie.util.Pair;
+
+public class GlobalVariablePath implements Expression
+{
+	private GlobalVariable variable;
+	private Expression varElement;
+	private List< Pair< String, Expression > > path;
+	private Expression attribute;
+	
+	public static GlobalVariablePath create(
+			String varId,
+			Expression varElement,
+			List< Pair< String, Expression > > path,
+			Expression attribute
+			)
+		throws InvalidIdException
 	{
-		var.setStrValue( value );
+		GlobalVariablePath ret = new GlobalVariablePath( GlobalVariable.getById( varId ) );
+		ret.varElement = varElement;
+		ret.path = path;
+		ret.attribute = attribute;
+		return ret;
+	}
+	
+	private GlobalVariablePath( GlobalVariable variable )
+	{
+		this.variable = variable;
+	}
+	
+	/*
+	 * @todo -- refine!
+	 */
+	public Value getValue()
+	{
+		int index = varElement.evaluate().intValue();
+		Vector< Value > vals = variable.values();
+		if ( index >= vals.size() ) {
+			for( int i = vals.size(); i <= index; i++ )
+				vals.add( new Value() );
+		}
+		Value ret = vals.elementAt( index );
+
+		if ( !path.isEmpty() ) {
+			Vector< Value > children;
+			for( Pair< String, Expression > pair : path ) {
+				children = ret.getChildren( pair.key() );
+				index = pair.value().evaluate().intValue();
+				if ( index >= children.size() ) {
+					for( int i = children.size(); i <= index; i++ )
+						children.add( new Value() );
+				}
+				ret = children.elementAt( index );
+			}
+		}
+		
+		if ( attribute != null )
+			ret = ret.getAttribute( attribute.evaluate().strValue() );
+
+		return ret;
+	}
+	
+	public Value evaluate()
+	{
+		return getValue();
 	}
 }

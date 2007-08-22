@@ -25,14 +25,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Vector;
 
-import jolie.Constants;
-import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.Location;
 import jolie.runtime.SolicitResponseOperation;
+import jolie.runtime.Value;
 import jolie.runtime.Variable;
 
 public class SolicitResponseProcess implements Process
@@ -53,7 +52,7 @@ public class SolicitResponseProcess implements Process
 		throws FaultException
 	{
 		CommChannel channel = null;
-		Variable.castAll( outVars, operation.outVarTypes() );
+		//Variable.castAll( outVars, operation.outVarTypes() );
 		try {
 			/*if ( wsdlInfo.outVarNames() == null ) {
 				wsdlInfo = operation.wsdlInfo().clone();
@@ -62,12 +61,15 @@ public class SolicitResponseProcess implements Process
 			
 			if ( wsdlInfo.boundName() == null )
 				wsdlInfo.setBoundName( operation.boundOperationId() );*/
-			String boundName = operation.wsdlInfo().boundName();
+			String boundName = operation.deployInfo().boundName();
 			if ( boundName == null )
 				boundName = operation.boundOperationId();
 			
 			channel = new CommChannel( location, operation.getOutputProtocol( location ) );
-			CommMessage message = new CommMessage( boundName, outVars );
+			Vector< Value > valsVec = new Vector< Value >();
+			for( Variable var : outVars )
+				valsVec.add( var.value() );
+			CommMessage message = new CommMessage( boundName, valsVec );
 			channel.send( message );
 			message = channel.recv();
 			if ( message.isFault() )
@@ -75,23 +77,23 @@ public class SolicitResponseProcess implements Process
 			
 			if ( message.size() == inVars.size() ) {
 				int i = 0;
-				boolean correctTypes = true;
+				//boolean correctTypes = true;
 
-				Vector< Constants.VariableType > varTypes = operation.inVarTypes();
-				for( Variable var : message ) { // Check their types first!
+				/*Vector< Constants.VariableType > varTypes = operation.inVarTypes();
+				for( Value val : message ) { // Check their types first!
 					if ( varTypes.elementAt( i ) != Constants.VariableType.VARIANT &&
-							var.type() != varTypes.elementAt( i ) ) {
+							val.type() != varTypes.elementAt( i ) ) {
 						Interpreter.logger().warning( "Rejecting wrong packet for operation " + 
 							operation.id() + ". Wrong argument types received." );
 						correctTypes = false;
 					}
 					i++;
 				}
-				i = 0;
-				if ( correctTypes ) {
-					for( Variable recvVar : message )
-						inVars.elementAt( i++ ).assignValue( recvVar );
-				}
+				i = 0;*/
+				//if ( correctTypes ) {
+					for( Value recvVal : message )
+						inVars.elementAt( i++ ).value().assignValue( recvVal );
+				//}
 			} // todo -- if else throw exception?
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();

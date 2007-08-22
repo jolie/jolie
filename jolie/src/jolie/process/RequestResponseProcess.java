@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
@@ -36,6 +35,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.Value;
 import jolie.runtime.Variable;
 
 public class RequestResponseProcess implements InputOperationProcess, CorrelatedInputProcess
@@ -90,26 +90,26 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		if ( message.inputId().equals( operation.id() ) &&
 				varsVec.size() == message.size() ) {
 			int i = 0;
-			Vector< Constants.VariableType > varTypes = operation.inVarTypes();
-			for( Variable var : message ) { // Check their types first!
+			/*Vector< Constants.VariableType > varTypes = operation.inVarTypes();
+			for( Value val : message ) { // Check their types first!
 				if ( varTypes.elementAt( i ) != Constants.VariableType.VARIANT &&
-							var.type() != varTypes.elementAt( i ) ) {
+							val.type() != varTypes.elementAt( i ) ) {
 					Interpreter.logger().warning( "Rejecting wrong packet for operation " + 
 							operation.id() + ". Wrong argument types received." );
 					return false;
 				}
 				i++;
-			}
-			i = 0;
+			}*/
+			//i = 0;
 			if ( correlatedProcess != null )
 				correlatedProcess.inputReceived();
 
-			for( Variable var : message ) {
+			for( Value val : message ) {
 				/*if (	Interpreter.correlationSet().contains( varsVec.elementAt( i ) ) &&
 						!varsVec.elementAt( i ).equals( var )
 						)
 					correlatedProcess.inputReceived();*/
-				varsVec.elementAt( i++ ).assignValue( var );
+				varsVec.elementAt( i++ ).value().assignValue( val );
 			}
 		} else {
 			if ( correlatedProcess != null )
@@ -121,7 +121,10 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		CommMessage response = null;
 		try {
 			process.run();
-			response = new CommMessage( operation.id(), outVars );
+			Vector< Value > valsVec = new Vector< Value >();
+			for( Variable var : outVars )
+				valsVec.add( var.value() );
+			response = new CommMessage( operation.id(), valsVec );
 		} catch( FaultException f ) {
 			Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 			fields.pendingFault = f;

@@ -24,14 +24,13 @@ package jolie.process;
 import java.util.List;
 import java.util.Vector;
 
-import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
-import jolie.runtime.Variable;
+import jolie.runtime.Value;
 
 public class OneWayProcess implements InputOperationProcess, CorrelatedInputProcess
 {
@@ -75,26 +74,26 @@ public class OneWayProcess implements InputOperationProcess, CorrelatedInputProc
 		if ( message.inputId().equals( operation.id() ) &&
 				varsVec.size() == message.size() ) {
 			int i = 0;
-			Vector< Constants.VariableType > varTypes = operation.inVarTypes();
-			for( Variable var : message ) { // Check their types first!
+/*			Vector< Constants.VariableType > varTypes = operation.inVarTypes();
+			for( Value val : message ) { // Check their types first!
 				if ( varTypes.elementAt( i ) != Constants.VariableType.VARIANT &&
-							var.type() != varTypes.elementAt( i ) ) {
+							val.type() != varTypes.elementAt( i ) ) {
 					Interpreter.logger().warning( "Rejecting wrong packet for operation " + 
 							operation.id() + ". Wrong argument types received." );
 					return false;
 				}
 				i++;
-			}
+			}*/
 			if ( correlatedProcess != null )
 				correlatedProcess.inputReceived();
-			i = 0;
-			for( Variable var : message ) {
+			//i = 0;
+			for( Value val : message ) {
 				/*if (	Interpreter.correlationSet().contains( varsVec.elementAt( i ) ) &&
 						!varsVec.elementAt( i ).equals( var )
 						)
 					correlatedProcess.inputReceived();*/
 					
-				varsVec.elementAt( i++ ).assignValue( var );
+				varsVec.elementAt( i++ ).value().assignValue( val );
 			}
 			
 		} else {

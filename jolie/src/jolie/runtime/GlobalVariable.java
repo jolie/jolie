@@ -24,6 +24,7 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Vector;
 
 import jolie.Interpreter;
 
@@ -46,11 +47,12 @@ public class GlobalVariable extends Variable implements MappedGlobalObject
 	}
 	
 	public static GlobalVariable getById( String id )
-		throws InvalidIdException
 	{
 		GlobalVariable retVal = idMap.get( id );
-		if ( retVal == null )
-			throw new InvalidIdException( id );
+		if ( retVal == null ) {
+			retVal = new GlobalVariable( id );
+			retVal.register();
+		}
 
 		return retVal;
 	}
@@ -65,8 +67,8 @@ public class GlobalVariable extends Variable implements MappedGlobalObject
 		return idMap.values();
 	}
 	
-	protected Value value()
+	public Vector< Value > values()
 	{
-		return Interpreter.getValue( this );
+		return Interpreter.getValues( this );
 	}
 }

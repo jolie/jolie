@@ -25,56 +25,65 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Vector;
 
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
 import jolie.runtime.Value;
-import jolie.runtime.Variable;
 
 public class State implements Cloneable
 {
-	private HashMap< GlobalVariable, Value > stateMap;
+	private HashMap< GlobalVariable, Vector< Value > > stateMap;
 	
-	private State( HashMap< GlobalVariable, Value > map )
+	private State( HashMap< GlobalVariable, Vector< Value > > map )
 	{
 		stateMap = map;
 	}
 	
 	public State()
 	{
-		stateMap = new HashMap< GlobalVariable, Value > ();
+		stateMap = new HashMap< GlobalVariable, Vector< Value > > ();
+	}
+	
+	private Vector< Value > copyValues( Vector< Value > oldValues )
+	{
+		Vector< Value > vec = new Vector< Value >();
+		for( Value v : oldValues )
+			vec.add( new Value( v ) );
+
+		return vec;
 	}
 	
 	public State clone()
 	{
-		HashMap< GlobalVariable, Value > map =
-				new HashMap< GlobalVariable, Value > ();
+		HashMap< GlobalVariable, Vector< Value > > map =
+				new HashMap< GlobalVariable, Vector< Value > > ();
 		
 		for( GlobalVariable var : stateMap.keySet() )
-			map.put( var, new Value( getValue( var  ) ) );
+			map.put( var, copyValues( getValues( var ) ) );
 		
 		return new State( map );
 	}
 
-	public Value getValue( GlobalVariable var )
+	public Vector< Value > getValues( GlobalVariable var )
 	{
-		Value value;
-		if ( (value=stateMap.get( var )) == null ) {
-			value = new Value();
-			stateMap.put( var, value );
+		Vector< Value > values;
+		if ( (values=stateMap.get( var )) == null ) {
+			values = new Vector< Value >();
+			stateMap.put( var, values );
 		}
-		return value;
+		return values;
 	}
 	
 	public boolean checkCorrelation( List< GlobalVariable > vars, CommMessage message )
 	{
-		Iterator< Variable > it = message.iterator();
-		Variable val;
+		Iterator< Value > it = message.iterator();
+		Value val;
 		Value varValue;
 		for( GlobalVariable var : vars ) {
 			val = it.next();
 			if ( Interpreter.correlationSet().contains( var ) ) {
-				varValue = getValue( var );
+				varValue = getValues( var ).elementAt( 0 ); // TODO - this does not work anymore with structured data!
 				try {
 					if ( varValue.isDefined() && (
 								varValue.type() != val.type() ||

@@ -26,7 +26,7 @@ import jolie.Constants;
 
 public interface Expression
 {
-	public Variable evaluate();
+	public Value evaluate();
 	
 	public class Operand
 	{

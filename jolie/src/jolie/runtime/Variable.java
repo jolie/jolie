@@ -34,16 +34,35 @@ import jolie.Constants;
  */
 abstract public class Variable implements Expression
 {
-	abstract protected Value value();
+	abstract public Vector< Value > values();
 	
-	public boolean equals( Variable var )
+	/**
+	 * @todo eliminate this
+	 * @return
+	 */
+	public final Value value()
 	{
-		return value().equals( var.value() );
+		return values().elementAt( 0 );
+	}
+	
+	public final Value evaluate()
+	{
+		return value();
+	}
+	
+	public Constants.VariableType type()
+	{
+		return value().type();
 	}
 	
 	public int intValue()
 	{
 		return value().intValue();
+	}
+	
+	public final void setStrValue( String val )
+	{
+		value().setStrValue( val );
 	}
 	
 	public final void setIntValue( int val )
@@ -56,10 +75,14 @@ abstract public class Variable implements Expression
 		return value().strValue();
 	}
 	
-	public final void setStrValue( String val )
+	/*public boolean equals( Variable var )
 	{
-		value().setStrValue( val );
+		return value().equals( var.value() );
 	}
+	
+	
+	
+	
 	
 	public boolean isInt()
 	{
@@ -76,10 +99,7 @@ abstract public class Variable implements Expression
 		return value().isString();
 	}
 	
-	public Constants.VariableType type()
-	{
-		return value().type();
-	}
+	
 	
 	public final synchronized void assignValue( Variable var )
 	{
@@ -89,10 +109,7 @@ abstract public class Variable implements Expression
 			setStrValue( var.strValue() );
 	}
 	
-	public final Variable evaluate()
-	{
-		return this;
-	}
+	
 	
 	public final synchronized void add( Variable var )
 	{
@@ -130,10 +147,14 @@ abstract public class Variable implements Expression
 				setIntValue( intValue() / var.intValue() );
 	}
 	
-	public String id()
+	*/
+	
+	abstract public String id();
+	/*
 	{
 		return "undefined";
 	}
+	*/
 	
 	public void castTo( Constants.VariableType newType )
 	{

@@ -25,7 +25,7 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashMap;
 
-import jolie.deploy.OperationWSDLInfo;
+import jolie.deploy.OperationDeployInfo;
 
 /** Generic operation declaration
  * 
@@ -38,28 +38,28 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	private static HashMap< String, Operation > idMap = 
 		new HashMap< String, Operation >();
 	
-	private OperationWSDLInfo wsdlInfo;
+	private OperationDeployInfo deployInfo;
 	
 	public static Operation getByWSDLBoundName( String name )
 		throws InvalidIdException
 	{
 		Collection< Operation > values = idMap.values();
 		for( Operation op : values )
-			if ( op.wsdlInfo().boundName().equals( name ) )
+			if ( op.deployInfo().boundName().equals( name ) )
 				return op;
 		
 		throw new InvalidIdException( name );
 	}
 	
-	public OperationWSDLInfo wsdlInfo()
+	public OperationDeployInfo deployInfo()
 	{
-		return wsdlInfo;
+		return deployInfo;
 	}
 
 	public Operation( String id )
 	{
 		super( id );
-		wsdlInfo = new OperationWSDLInfo();
+		deployInfo = new OperationDeployInfo();
 	}
 	
 	public String value()

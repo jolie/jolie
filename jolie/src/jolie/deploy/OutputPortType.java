@@ -56,7 +56,7 @@ public class OutputPortType extends PortType
 	public void addOperation( OutputOperation operation )
 	{
 		operations.add( operation );
-		operation.wsdlInfo().setPortType( this );
+		operation.deployInfo().setPortType( this );
 	}
 	
 	public OutputPort outputPort()

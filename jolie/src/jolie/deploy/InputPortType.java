@@ -57,7 +57,7 @@ public class InputPortType extends PortType
 	public void addOperation( InputOperation operation )
 	{
 		operations.add( operation );
-		operation.wsdlInfo().setPortType( this );
+		operation.deployInfo().setPortType( this );
 	}
 	
 	public static InputPortType getById( String id )
