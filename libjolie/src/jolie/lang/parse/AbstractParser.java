@@ -72,6 +72,11 @@ public abstract class AbstractParser
 		return scanner;
 	}
 	
+	protected void setScanner( Scanner scanner )
+	{
+		this.scanner = scanner;
+	}
+	
 
 	/**
 	 * Eats the current token, asserting its type.
@@ -135,7 +140,7 @@ public abstract class AbstractParser
 	{
 		Vector< String > idList = new Vector< String >();
 		if ( enclosed )
-			eat( Scanner.TokenType.LANGLE, "expected <" );
+			eat( Scanner.TokenType.LPAREN, "expected (" );
 		boolean keepRun = true;
 		while( token.is( Scanner.TokenType.ID ) && keepRun ) {
 			idList.add( token.content() );
@@ -146,7 +151,7 @@ public abstract class AbstractParser
 				keepRun = false;
 		}
 		if ( enclosed )
-			eat( Scanner.TokenType.RANGLE, "expected >" );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 		return idList;
 	}
 }

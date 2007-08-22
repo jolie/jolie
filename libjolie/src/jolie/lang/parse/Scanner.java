@@ -30,6 +30,7 @@ public class Scanner
 		EOF,				///< End Of File
 		ID,					///< [a-z][a-zA-Z0-9]*
 		COMMA,				///< ,
+		DOT,				///< .
 		INT,				///< [0-9]+
 		LPAREN,				///< (
 		RPAREN,				///< )
@@ -55,8 +56,8 @@ public class Scanner
 		IN,					///< in
 		OUT,				///< out
 		EQUAL,				///< ==
-		AND,				///< and
-		OR,					///< or
+		AND,				///< &&
+		OR,					///< ||
 		PARALLEL,			///< |
 		NOT,				///< !
 		COLON,				///< :
@@ -66,7 +67,6 @@ public class Scanner
 		OP_SR,				///< SolicitResponse
 		LOCATIONS,			///< locations
 		OPERATIONS,			///< operations
-		VARIABLES,			///< variables
 		MAIN,				///< main
 		DEFINE, 			///< define
 		MAJOR_OR_EQUAL,		///< >=
@@ -93,6 +93,8 @@ public class Scanner
 		COMPENSATE,				///< comp
 		SINGLE,					///< single
 		EXIT,					///< exit
+		INCLUDE,				///< include
+		CONSTANTS,				///< constants
 		ERROR			///< Scanner error
 	}
 	
@@ -144,6 +146,11 @@ public class Scanner
 		public boolean isNot( TokenType compareType )
 		{
 			return ( type != compareType );
+		}
+		
+		public boolean isKeyword( String keyword )
+		{
+			return( type == TokenType.ID && content.equals( keyword ) ); 
 		}
 	}
 	
@@ -234,10 +241,10 @@ public class Scanner
 						state = 5;
 					else if ( ch == '=' )
 						state = 6;
-					/*else if ( ch == '|' )
+					else if ( ch == '|' )
 						state = 7;
-					else if ( ch == ';' )
-						state = 8;*/
+					else if ( ch == '&' )
+						state = 8;
 					else if ( ch == '<' )
 						state = 9;
 					else if ( ch == '>' )
@@ -271,8 +278,8 @@ public class Scanner
 							retval = new Token( TokenType.COMMA );
 						else if ( ch == ';' )
 							retval = new Token( TokenType.SEQUENCE );
-						else if ( ch == '|' )
-							retval = new Token( TokenType.PARALLEL );
+						else if ( ch == '.' )
+							retval = new Token( TokenType.DOT );
 						
 						readChar();
 					}
@@ -308,8 +315,8 @@ public class Scanner
 							retval = new Token( TokenType.LOCATIONS );
 						else if ( "operations".equals( str ) )
 							retval = new Token( TokenType.OPERATIONS );
-						else if ( "variables".equals( str ) )
-							retval = new Token( TokenType.VARIABLES );
+						else if ( "include".equals( str ) )
+							retval = new Token( TokenType.INCLUDE );
 						else if ( "main".equals( str ) )
 							retval = new Token( TokenType.MAIN );
 						else if ( "define".equals( str ) )
@@ -356,6 +363,8 @@ public class Scanner
 							retval = new Token( TokenType.COMPENSATE );
 						else if ( "exit".equals( str ) )
 							retval = new Token( TokenType.EXIT );
+						else if ( "constants".equals( str ) )
+							retval = new Token( TokenType.CONSTANTS );
 						else
 							retval = new Token( TokenType.ID, str );
 					}
@@ -399,18 +408,19 @@ public class Scanner
 					} else
 						retval = new Token( TokenType.ASSIGN );
 					break;
-				/*case 7:	// PARALLEL
+				case 7:	// PARALLEL OR LOGICAL OR
 					if ( ch == '|' ) {
+						retval = new Token( TokenType.OR );
+						readChar();
+					} else
 						retval = new Token( TokenType.PARALLEL );
+					break;
+				case 8:	// LOGICAL AND
+					if ( ch == '&' ) {
+						retval = new Token( TokenType.AND );
 						readChar();
 					}
-					break;*/
-				/*case 8:	// SEQUENCE
-					if ( ch == ';' ) {
-						retval = new Token( TokenType.SEQUENCE );
-						readChar();
-					}
-					break;*/
+					break;
 				case 9: // LANGLE OR MINOR_OR_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MINOR_OR_EQUAL );
@@ -425,7 +435,7 @@ public class Scanner
 					} else
 						retval = new Token( TokenType.RANGLE );
 					break;
-				case 11: // NOT_EQUAL
+				case 11: // NOT OR NOT_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.NOT_EQUAL );
 						readChar();

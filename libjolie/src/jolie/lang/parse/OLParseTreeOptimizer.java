@@ -21,50 +21,53 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.ast.ol.AndConditionNode;
-import jolie.lang.parse.ast.ol.AssignStatement;
-import jolie.lang.parse.ast.ol.CompareConditionNode;
-import jolie.lang.parse.ast.ol.CompensateStatement;
-import jolie.lang.parse.ast.ol.ConstantIntegerExpression;
-import jolie.lang.parse.ast.ol.ConstantStringExpression;
-import jolie.lang.parse.ast.ol.ExitStatement;
-import jolie.lang.parse.ast.ol.ExpressionConditionNode;
-import jolie.lang.parse.ast.ol.IfStatement;
-import jolie.lang.parse.ast.ol.InStatement;
-import jolie.lang.parse.ast.ol.InstallCompensationStatement;
-import jolie.lang.parse.ast.ol.InstallFaultHandlerStatement;
-import jolie.lang.parse.ast.ol.InternalLinkDeclaration;
-import jolie.lang.parse.ast.ol.LinkInStatement;
-import jolie.lang.parse.ast.ol.LinkOutStatement;
-import jolie.lang.parse.ast.ol.LocationDeclaration;
-import jolie.lang.parse.ast.ol.NDChoiceStatement;
-import jolie.lang.parse.ast.ol.NotConditionNode;
-import jolie.lang.parse.ast.ol.NotificationOperationDeclaration;
-import jolie.lang.parse.ast.ol.NotificationOperationStatement;
-import jolie.lang.parse.ast.ol.NullProcessStatement;
-import jolie.lang.parse.ast.ol.OLSyntaxNode;
-import jolie.lang.parse.ast.ol.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.ol.OneWayOperationStatement;
-import jolie.lang.parse.ast.ol.OperationDeclaration;
-import jolie.lang.parse.ast.ol.OrConditionNode;
-import jolie.lang.parse.ast.ol.OutStatement;
-import jolie.lang.parse.ast.ol.ParallelStatement;
-import jolie.lang.parse.ast.ol.Procedure;
-import jolie.lang.parse.ast.ol.ProcedureCallStatement;
-import jolie.lang.parse.ast.ol.ProductExpressionNode;
-import jolie.lang.parse.ast.ol.Program;
-import jolie.lang.parse.ast.ol.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.ol.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.ol.Scope;
-import jolie.lang.parse.ast.ol.SequenceStatement;
-import jolie.lang.parse.ast.ol.SleepStatement;
-import jolie.lang.parse.ast.ol.SolicitResponseOperationDeclaration;
-import jolie.lang.parse.ast.ol.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.ol.SumExpressionNode;
-import jolie.lang.parse.ast.ol.ThrowStatement;
-import jolie.lang.parse.ast.ol.VariableDeclaration;
-import jolie.lang.parse.ast.ol.VariableExpressionNode;
-import jolie.lang.parse.ast.ol.WhileStatement;
+import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.ConstantIntegerExpression;
+import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.InStatement;
+import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InstallCompensationStatement;
+import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.NotificationOperationDeclaration;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.OutStatement;
+import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.Procedure;
+import jolie.lang.parse.ast.ProcedureCallStatement;
+import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceInfo;
+import jolie.lang.parse.ast.SleepStatement;
+import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.StateInfo;
+import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
 
@@ -96,58 +99,61 @@ public class OLParseTreeOptimizer
 		
 		public void visit( Program p )
 		{
-			for( LocationDeclaration decl : p.locationDeclarations() )
-				decl.accept( this );
-			for( OperationDeclaration decl : p.operationDeclarations() )
-				decl.accept( this );
-			for( InternalLinkDeclaration decl : p.linkDeclarations() )
-				decl.accept( this );
-			for( VariableDeclaration decl : p.variableDeclarations() )
-				decl.accept( this );
-			
-			for( Procedure proc : p.procedures() )
-				visit( proc );
+			for( OLSyntaxNode node : p.children() )
+				node.accept( this );
+		}
+		
+		public void visit( ExecutionInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( StateInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( CorrelationSetInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( InputPortTypeInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( OutputPortTypeInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( PortInfo p )
+		{
+			program.addChild( p );
+		}
+		
+		public void visit( ServiceInfo p )
+		{
+			program.addChild( p );
 		}
 	
-		public void visit( LocationDeclaration decl )
-		{
-			program.addLocationDeclaration( decl );
-		}
-		
 		public void visit( OneWayOperationDeclaration decl )
-		{
-			program.addOperationDeclaration( decl );
-		}
+		{}
 		
 		public void visit( NotificationOperationDeclaration decl )
-		{
-			program.addOperationDeclaration( decl );
-		}
+		{}
 		
 		public void visit( RequestResponseOperationDeclaration decl )
-		{
-			program.addOperationDeclaration( decl );
-		}
+		{}
 		
 		public void visit( SolicitResponseOperationDeclaration decl )
-		{
-			program.addOperationDeclaration( decl );
-		}
-		
-		public void visit( InternalLinkDeclaration decl )
-		{
-			program.addLinkDeclaration( decl );
-		}
-		
-		public void visit( VariableDeclaration decl )
-		{
-			program.addVariableDeclaration( decl );
-		}
-		
+		{}
+
 		public void visit( Procedure procedure )
 		{
 			procedure.body().accept( this );
-			program.addProcedure( new Procedure( procedure.id(), currNode ) );
+			program.addChild( new Procedure( procedure.id(), currNode ) );
 		}
 		
 		public void visit( ParallelStatement stm )

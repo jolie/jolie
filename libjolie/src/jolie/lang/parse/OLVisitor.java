@@ -21,18 +21,18 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.ast.ol.*;
+import jolie.lang.parse.ast.*;
 
 public interface OLVisitor
 {
 	public void visit( Program n );
-	public void visit( LocationDeclaration n );
+	//public void visit( LocationDefinition n );
 	public void visit( OneWayOperationDeclaration decl );
 	public void visit( NotificationOperationDeclaration decl );
 	public void visit( RequestResponseOperationDeclaration decl );
 	public void visit( SolicitResponseOperationDeclaration decl );
-	public void visit( InternalLinkDeclaration n );
-	public void visit( VariableDeclaration n );
+	//public void visit( InternalLinkDeclaration n );
+	//public void visit( VariableDeclaration n );
 	public void visit( Procedure n );
 	public void visit( ParallelStatement n );
 	public void visit( SequenceStatement n );
@@ -67,4 +67,12 @@ public interface OLVisitor
 	public void visit( CompensateStatement n );
 	public void visit( ThrowStatement n );
 	public void visit( ExitStatement n );
+	//public void visit( VariablePath n );
+	public void visit( StateInfo n );
+	public void visit( ExecutionInfo n );
+	public void visit( CorrelationSetInfo n );
+	public void visit( InputPortTypeInfo n );
+	public void visit( OutputPortTypeInfo n );
+	public void visit( PortInfo n );
+	public void visit( ServiceInfo n );
 }
