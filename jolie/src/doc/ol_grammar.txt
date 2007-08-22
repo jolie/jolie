@@ -18,6 +18,12 @@ See the COPYING file for the distribution license of the following content.
 <IdListN>			::=	<id> <IdListNSep> | epsilon
 <IdListNSep>		::=	"," <id> <IdListNSep> | epsilon
 
+<VarPath>			::=	<id> <VarPathN>
+<VarPathN>			::=	<VarPathSubNode>
+					|	"[" <Expression> "]" <VarPathSubNode>
+<VarPathSubNode>	::=	"." <VarPath>
+					|	":" <Expression>
+					|	epsilon
 
 ---
 
@@ -27,7 +33,7 @@ See the COPYING file for the distribution license of the following content.
 
 ---
 
-<Declarations>		::=	<LocationsDeclN> <OperationsDeclN> <LinksDeclN> <VariablesDeclN>
+<Declarations>		::=	<LocationsDeclN> <OperationsDeclN>
 
 <LocationsDeclN>	::=	"locations" "{" <LocationsListN> "}" | epsilon
 <LocationsListN>	::=	<IdListN> <IdListNSep> | epsilon
@@ -61,10 +67,6 @@ See the COPYING file for the distribution license of the following content.
 <VarTypeListN>		::=	<VarType> <VarTypeListNSep> | epsilon
 <VarTypeListNSep>	::=	"," <VarType> <VarTypeListNSep> | epsilon
 
-<LinksDeclN>		::=	"links" "{" <IdListN> "}" | epsilon
-
-<VariablesDeclN>	::=	"variables" "{" <IdListN> "}" | epsilon
-
 ---
 
 <Code>				::=	<DefsListN> <Main> <DefsListN>
@@ -94,13 +96,12 @@ See the COPYING file for the distribution license of the following content.
 
 <BasicProcess>	::=	<Input>
 				|	<id>
-				|	<id> "=" <Expression>
-				|	<id> "@" <id> "<" <IdListN> ">"
-				|	<id> "@" <id> "<" <IdListN> ">" "<" <IdListN> ">"
+				|	<VarPath> "=" <Expression>
+				|	<id> "@" <Expression> "<" <IdListN> ">"
+				|	<id> "@" <Expression> "<" <IdListN> ">" "<" <IdListN> ">"
 				|	"linkOut" "(" <id> ")"
-				|	"in" "(" <id> ")"
+				|	"in" "(" <VarPath> ")"
 				|	"out" "(" <Expression> ")"
-				|	"call" "(" <id> ")"
 				|	"(" <Process> ")"
 				|	"if" "(" <Condition> ")" "{" <Process> "}" <ElseIfListN>
 				|	"nullProcess"
@@ -119,9 +120,9 @@ See the COPYING file for the distribution license of the following content.
 // Priority: ! != > < <= >= ==, and, or
 
 <Condition>				::=	<AndConditionList> <OrConditionListN>
-<OrConditionListN>		::=	"or" <Condition> | epsilon
+<OrConditionListN>		::=	"||" <Condition> | epsilon
 <AndConditionList>		::=	<BaseCondition> <AndConditionListSep>
-<AndConditionListSep>	::=	"and" <AndConditionList> | epsilon
+<AndConditionListSep>	::=	"&&" <AndConditionList> | epsilon
 <BaseCondition>			::=	<Expression> <condOperator> <Expression>
 						|	"!" "(" <Condition> ")"
 						|	"(" <Condition> ")"
@@ -133,5 +134,5 @@ See the COPYING file for the distribution license of the following content.
 <AdditionListN>		::=	<addOp> <Expression> | epsilon
 <Term>				::=	<Factor> <MultListN>
 <MultListN>			::=	<multOp> <Term> | epsilon
-<Factor>			::=	<id> | <int> | "(" <Expression> ")" | <string>
+<Factor>			::=	<VarPath> | <int> | <string> | "(" <Expression> ")" 
 
