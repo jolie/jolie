@@ -26,24 +26,13 @@ import jolie.lang.parse.OLVisitor;
 
 public class SolicitResponseOperationDeclaration extends OperationDeclaration
 {
-	private String boundOperationId;
-
-	public SolicitResponseOperationDeclaration(
-			String id,
-			String boundOperationId
-		)
+	public SolicitResponseOperationDeclaration( String id )
 	{
 		super( id );
-		this.boundOperationId = boundOperationId;
 	}
 
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
-	}
-	
-	public String boundOperationId()
-	{
-		return boundOperationId;
 	}
 }

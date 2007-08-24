@@ -132,9 +132,9 @@ public class OLParser extends AbstractParser
 	{
 		if ( token.is( Scanner.TokenType.CSET ) ) {
 			getToken();
-			eat( Scanner.TokenType.LCURLY, "{ expected" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
 			program.addChild( new CorrelationSetInfo( parseIdListN( false ) ) );
-			eat( Scanner.TokenType.RCURLY, "} expected" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
 	
@@ -252,6 +252,12 @@ public class OLParser extends AbstractParser
 			tokenAssert( Scanner.TokenType.ID, "expected output port type identifier" );
 			OutputPortTypeInfo pt = new OutputPortTypeInfo( token.content() );
 			getToken();
+			if ( token.is( Scanner.TokenType.COLON ) ) {
+				getToken();
+				tokenAssert( Scanner.TokenType.STRING, "expected port type namespace" );
+				pt.setNamespace( token.content() );
+				getToken();
+			}		
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			parseOutputOperations( pt );
 			program.addChild( pt );
@@ -275,13 +281,14 @@ public class OLParser extends AbstractParser
 					getToken();
 					tokenAssert( Scanner.TokenType.ID, "port id expected" );
 					portId = token.content();
+					getToken();
 					eat( Scanner.TokenType.LSQUARE, "expected [" );
 					tokenAssert( Scanner.TokenType.ID, "port protocol expected" );
 					protocolId = Constants.stringToProtocolId( token.content() );
 					if ( protocolId == Constants.ProtocolId.UNSUPPORTED )
 						throwException( "unknown protocol specified in port binding" );
 					getToken();
-					eat( Scanner.TokenType.LSQUARE, "expected ]" );
+					eat( Scanner.TokenType.RSQUARE, "expected ]" );
 					program.addChild( new PortInfo( portId, portTypeId, protocolId ) );
 				} while( token.is( Scanner.TokenType.COMMA ) );
 			}
@@ -398,6 +405,7 @@ public class OLParser extends AbstractParser
 		//Collection< Constants.VariableType > inVarTypes; 
 		
 		while( keepRun ) {
+			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				//opId = token.content();
 				//getToken();
@@ -424,6 +432,7 @@ public class OLParser extends AbstractParser
 		//Collection< Constants.VariableType > inVarTypes, outVarTypes; 
 		
 		while( keepRun ) {
+			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
@@ -461,18 +470,19 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 		
 		boolean keepRun = true;
-		String opId;
+		//String opId;
 		//Collection< VariableType > outVarTypes; 
 		
 		while( keepRun ) {
+			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
-				opId = token.content();
-				getToken();
+				/*opId = token.content();
+				getToken();*/
 				//outVarTypes = parseVarTypes();
-				eat( Scanner.TokenType.ASSIGN, "= expected" );
-				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );
+				/*eat( Scanner.TokenType.ASSIGN, "= expected" );
+				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );*/
 				pt.addOperation(
-					new NotificationOperationDeclaration( opId, token.content() )
+					new NotificationOperationDeclaration( token.content() )
 				);
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -491,19 +501,20 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 		
 		boolean keepRun = true;
-		String opId;
+		//String opId;
 		//Collection< VariableType > outVarTypes, inVarTypes; 
 		
 		while( keepRun ) {
+			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
-				opId = token.content();
-				getToken();
+				//opId = token.content();
+				//getToken();
 				/*outVarTypes = parseVarTypes();
 				inVarTypes = parseVarTypes();*/
-				eat( Scanner.TokenType.ASSIGN, "= expected" );
-				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );
+				/*eat( Scanner.TokenType.ASSIGN, "= expected" );
+				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );*/
 				pt.addOperation(
-					new SolicitResponseOperationDeclaration( opId, token.content() )
+					new SolicitResponseOperationDeclaration( token.content() )
 				);
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -605,10 +616,9 @@ public class OLParser extends AbstractParser
 	private void parseCode()
 		throws IOException, ParserException
 	{
-		//Vector< Procedure > procedures = program.procedures();
-		
 		boolean mainDefined = false;
-		while ( token.isNot( Scanner.TokenType.EOF ) ) {
+		boolean keepRun = true;
+		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) )
 				program.addChild( parseProcedure() );
 			else if ( token.is( Scanner.TokenType.MAIN ) ) {
@@ -617,10 +627,8 @@ public class OLParser extends AbstractParser
 				program.addChild( parseMain() );
 				mainDefined = true;
 			} else
-				throwException( "expected definition" );
-		}
-		/*if ( !mainDefined )
-			throwException( "main definition not found" );*/
+				keepRun = false;
+		} while( keepRun );
 	}
 	
 	private Procedure parseMain()
@@ -689,6 +697,7 @@ public class OLParser extends AbstractParser
 		OLSyntaxNode retVal = null;
 		
 		if ( token.is( Scanner.TokenType.ID ) ) {
+			checkConstant();
 			String id = token.content();
 			getToken();
 			if ( token.is( Scanner.TokenType.COLON )
@@ -696,7 +705,7 @@ public class OLParser extends AbstractParser
 					|| token.is( Scanner.TokenType.DOT )
 					|| token.is( Scanner.TokenType.ASSIGN ) ) {
 				retVal = parseAssignStatement( id );
-			} else if ( token.is( Scanner.TokenType.LANGLE ) ) {
+			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
 			} else if ( token.is( Scanner.TokenType.AT ) ) {
 				getToken();
@@ -736,6 +745,7 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.SCOPE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
+			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected scope identifier" );
 			String id = token.content();
 			getToken();
@@ -746,6 +756,7 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.COMPENSATE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
+			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected scope identifier" );
 			retVal = new CompensateStatement( token.content() );
 			getToken();
@@ -753,6 +764,7 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.THROW ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
+			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected fault identifier" );
 			retVal = new ThrowStatement( token.content() );
 			getToken();
@@ -879,7 +891,7 @@ public class OLParser extends AbstractParser
 		String varId = token.content();
 		getToken();
 		InStatement stm = new InStatement( parseVariablePath( varId ) );
-		getToken();
+		//getToken();
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}

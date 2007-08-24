@@ -152,13 +152,18 @@ public class Scanner
 		{
 			return( type == TokenType.ID && content.equals( keyword ) ); 
 		}
+		
+		public boolean isKeywordIgnoreCase( String keyword )
+		{
+			return( type == TokenType.ID && content.equalsIgnoreCase( keyword ) );
+		}
 	}
 	
 
 	private InputStream stream;				// input stream
-	private char ch;						// current character
-	private int currByte;
-	private int state;						// current state
+	protected char ch;						// current character
+	protected int currByte;
+	protected int state;					// current state
 	private int line;						// current line
 	private String sourceName;				// source name
 	
@@ -179,6 +184,11 @@ public class Scanner
 		return str + -1;
 	}
 	
+	public InputStream inputStream()
+	{
+		return stream;
+	}
+	
 	public int line()
 	{
 		return line;
@@ -189,7 +199,7 @@ public class Scanner
 		return sourceName;
 	}
 	
-	private boolean isSeparator( char c )
+	protected boolean isSeparator( char c )
 	{
 		if ( c == '\n' || c == '\r' || c == '\t' || c == ' ' )
 			return true;
@@ -197,7 +207,7 @@ public class Scanner
 		return false;
 	}
 	
-	private void readChar()
+	protected void readChar()
 		throws IOException
 	{
 		currByte = stream.read();
@@ -206,6 +216,11 @@ public class Scanner
 
 		if ( ch == '\n' )
 			line++;
+	}
+	
+	public char currentCharacter()
+	{
+		return ch;
 	}
 	
 	public Token getToken()

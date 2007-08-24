@@ -86,8 +86,9 @@ public class SemanticValidator implements OLVisitor
 	private Set< String > outputPortTypes = new HashSet< String >();
 	private HashMap< String, PortInfo > ports = new HashMap< String, PortInfo >();
 	
-	private Set< String > procedureNames;
-	private HashMap< String, OperationDeclaration > operations;
+	private Set< String > procedureNames = new HashSet< String > ();
+	private HashMap< String, OperationDeclaration > operations = 
+						new HashMap< String, OperationDeclaration >();
 	private boolean mainDefined = false;
 	
 	private final Logger logger = Logger.getLogger( "JOLIE" );

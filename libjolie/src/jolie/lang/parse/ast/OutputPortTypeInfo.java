@@ -25,6 +25,8 @@ import jolie.lang.parse.OLVisitor;
 
 public class OutputPortTypeInfo extends PortTypeInfo
 {	
+	private String namespace = new String(); 
+	
 	public OutputPortTypeInfo( String id )
 	{
 		super( id );
@@ -33,5 +35,15 @@ public class OutputPortTypeInfo extends PortTypeInfo
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+	
+	public String namespace()
+	{
+		return namespace;
+	}
+	
+	public void setNamespace( String namespace )
+	{
+		this.namespace = namespace;
 	}
 }
