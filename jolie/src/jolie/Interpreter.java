@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -55,6 +56,7 @@ public class Interpreter
 	private static Set< GlobalVariable > correlationSet = new HashSet< GlobalVariable > ();
 	private static Constants.StateMode stateMode = Constants.StateMode.PERSISTENT;
 	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
+	private LinkedList< String > arguments = new LinkedList< String >();
 	
 	private static Logger logger = Logger.getLogger( "JOLIE" );
 	
@@ -141,8 +143,12 @@ public class Interpreter
 					olFilepath = args[ i ];
 				else
 					throw new CommandLineException( "You can specify only an input file." );
-			} else
-				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );
+			} else {
+				for( int j = i; j < args.length; j++ ) {
+					arguments.add( args[ j ] );
+				}
+			}/* else
+				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
 		}
 		
 		if ( olFilepath == null )
@@ -157,7 +163,7 @@ public class Interpreter
 	{
 		StringBuilder helpBuilder = new StringBuilder();
 		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [options] [deploy_file] [options]\n\n" );
+		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [options] [program arguments]\n\n" );
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
@@ -209,6 +215,16 @@ public class Interpreter
 		}
 		
 		StatefulThread mainExec = new StatefulThread( main, null );
+		
+		// Initialize program arguments in the args variabile.
+		Vector< Value > args =
+			mainExec.state().getValues( GlobalVariable.getById( "args" ) );
+		
+		args.clear();
+		for( String s : arguments ) {
+			args.add( new Value( s ) );
+		}
+		
 		mainExec.start();
 		try {
 			mainExec.join();

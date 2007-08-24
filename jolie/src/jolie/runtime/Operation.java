@@ -40,17 +40,6 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	
 	private OperationDeployInfo deployInfo;
 	
-	public static Operation getByWSDLBoundName( String name )
-		throws InvalidIdException
-	{
-		Collection< Operation > values = idMap.values();
-		for( Operation op : values )
-			if ( op.deployInfo().boundName().equals( name ) )
-				return op;
-		
-		throw new InvalidIdException( name );
-	}
-	
 	public OperationDeployInfo deployInfo()
 	{
 		return deployInfo;

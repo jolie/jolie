@@ -59,6 +59,7 @@ public class SolicitResponseProcess implements Process
 				valsVec.add( var.value() );
 			CommMessage message = new CommMessage( operation.id(), valsVec );
 			channel.send( message );
+
 			message = channel.recv();
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );

@@ -47,9 +47,11 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
-import jolie.Constants;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.Operation;
+import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 
 import org.w3c.dom.Document;
@@ -58,7 +60,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-class HTTPSOAPException extends Exception
+/*class HTTPSOAPException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private int httpCode;
@@ -68,12 +70,12 @@ class HTTPSOAPException extends Exception
 		super( message );
 		this.httpCode = httpCode;
 	}
-	
+
 	public int httpCode()
 	{
 		return httpCode;
 	}
-	
+
 	public String createSOAPFaultMessage()
 		throws SOAPException, IOException
 	{
@@ -86,14 +88,16 @@ class HTTPSOAPException extends Exception
 		soapMessage.writeTo( tmpStream );
 		return new String( tmpStream.toByteArray() );
 	}
-}
+}*/
 
-/** Implements the SOAP/HTTP protocol.
+/** Implements the SOAP over HTTP protocol.
  * 
  * @author Fabrizio Montesi
- * @author Mauro Silvagni
  * @todo Implement the message WSDL namespace information.
  * @todo Various checks should be made from the deploy parser.
+ * 
+ * 2006 - Initially written by Fabrizio Montesi and Mauro Silvagni
+ * 2007 - Totally re-built by Fabrizio Montesi, exploiting new JOLIE capabilities
  * 
  */
 public class SOAPProtocol implements CommProtocol
@@ -157,12 +161,28 @@ public class SOAPProtocol implements CommProtocol
 								new String( tmpStream.toByteArray() );
 
 			String messageString = new String();
-			messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
-			messageString += "Host: " + uri.getHost() + '\n';
+			String soapAction = null;
+			try {
+				Operation operation = Operation.getById( message.inputId() );
+				if ( operation instanceof RequestResponseOperation ) {
+					// We're responding to a request
+					messageString += "HTTP/1.1 200 OK\n";
+				} else {
+					// We're sending a notification or a solicit
+					messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+					messageString += "Host: " + uri.getHost() + '\n';
+					soapAction =
+						"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
+				}
+			} catch( InvalidIdException iie ) {
+				throw new IOException( iie );
+			}
+
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
 			messageString += "Content-Type: text/xml; charset=\"utf-8\"\n";
 			messageString += "Content-Length: " + soapString.length() + '\n';
-			messageString += "SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
+			if ( soapAction != null )
+				messageString += soapAction;
 			messageString += soapString + '\n';
 			
 			//System.out.println( "Sending: " + messageString );
@@ -308,17 +328,33 @@ public class SOAPProtocol implements CommProtocol
 			DocumentBuilder builder = factory.newDocumentBuilder();
 
 			InputSource src = new InputSource( message.contentStream() );
-
+			
+			/*
+			// Debug incoming message
+			BufferedReader r = new BufferedReader( message.contentStream() );
+			String p;
+			System.out.println("---");
+			while( (p=r.readLine()) != null ) 
+				System.out.println(p);
+			System.out.println("---");
+			*/
+			
 			Document doc = builder.parse( src );
 			DOMSource dom = new DOMSource( doc );
 
 			soapMessage.getSOAPPart().setContent( dom );
 			
 			Value value = new Value();
-			soapElementsToSubValues( value, soapMessage.getSOAPBody().getChildNodes() );
+			soapElementsToSubValues( value, soapMessage.getSOAPBody().getFirstChild().getChildNodes() );
 			Vector< Value > vector = new Vector< Value >();
 			vector.add( value );
-			retVal = new CommMessage( inputId, vector ); 
+			
+			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
+				retVal = new CommMessage( inputId, vector );
+			} else if ( message.type() == HTTPMessage.Type.POST ) {
+				String id = soapMessage.getSOAPBody().getFirstChild().getNodeName();
+				retVal = new CommMessage( id, vector );
+			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {

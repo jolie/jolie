@@ -88,34 +88,15 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 	
 	public boolean recvMessage( CommMessage message )
 	{
+		if ( correlatedProcess != null )
+			correlatedProcess.inputReceived();
 		if ( message.inputId().equals( operation.id() ) &&
 				varsVec.size() == message.size() ) {
 			int i = 0;
-			/*Vector< Constants.VariableType > varTypes = operation.inVarTypes();
-			for( Value val : message ) { // Check their types first!
-				if ( varTypes.elementAt( i ) != Constants.VariableType.VARIANT &&
-							val.type() != varTypes.elementAt( i ) ) {
-					Interpreter.logger().warning( "Rejecting wrong packet for operation " + 
-							operation.id() + ". Wrong argument types received." );
-					return false;
-				}
-				i++;
-			}*/
-			//i = 0;
-			if ( correlatedProcess != null )
-				correlatedProcess.inputReceived();
-
-			for( Value val : message ) {
-				/*if (	Interpreter.correlationSet().contains( varsVec.elementAt( i ) ) &&
-						!varsVec.elementAt( i ).equals( var )
-						)
-					correlatedProcess.inputReceived();*/
-				varsVec.elementAt( i++ ).value().assignValue( val );
-			}
+			for( Value recvVal : message )
+				varsVec.elementAt( i++ ).value().deepCopy( recvVal );
 		} else {
-			if ( correlatedProcess != null )
-				correlatedProcess.inputReceived();
-			Interpreter.logger().warning( "Rejecting wrong packet for operation " + operation.id() + ": wrong variables number" );
+			Interpreter.logger().warning( "Rejecting malformed packet for operation " + operation.id() + ": wrong variables number" );
 			return false;
 		}
 		

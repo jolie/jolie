@@ -27,7 +27,7 @@ import java.io.CharArrayReader;
 public class HTTPMessage
 {
 	public enum Type {
-		RESPONSE
+		RESPONSE, POST, GET, ERROR
 	}
 	
 	private Type type;
@@ -39,6 +39,12 @@ public class HTTPMessage
 		this.httpCode = httpCode;
 		this.content = content;
 		this.type = Type.RESPONSE;
+	}
+	
+	public HTTPMessage( Type type, char[] content )
+	{
+		this.type = type;
+		this.content = content;
 	}
 	
 	public Type type()
