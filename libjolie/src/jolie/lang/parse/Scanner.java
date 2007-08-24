@@ -199,12 +199,16 @@ public class Scanner
 		return sourceName;
 	}
 	
-	protected boolean isSeparator( char c )
+	public static boolean isSeparator( int c )
 	{
-		if ( c == '\n' || c == '\r' || c == '\t' || c == ' ' )
+		if ( isNewLine( c ) || c == '\t' || c == ' ' )
 			return true;
-		
 		return false;
+	}
+	
+	public static boolean isNewLine( int c )
+	{
+		return ( c == '\n' || c == '\r' );
 	}
 	
 	protected void readChar()
