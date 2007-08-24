@@ -19,186 +19,37 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.net.http;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import jolie.lang.parse.Scanner;
 
-public class HTTPScanner
+public class HTTPScanner extends Scanner
 {
-	public enum TokenType {
-		EOF,		// End Of File
-		ID,			// [a-z]([a-zA-Z0-9]|-)*
-		COMMA,		// ,
-		INT,		// [0-9]+
-		LPAREN,		// (
-		RPAREN,		// )
-		LSQUARE,	// [
-		RSQUARE,	// ]
-		LCURLY,		// {
-		RCURLY,		// }
-		STRING,		// "[[:graph:]]*"
-		CHOICE,		// ++
-		ASTERISK,	// *
-		DIVIDE,		// /
-		ASSIGN,		// =
-		PLUS,		// +
-		IF,			// if
-		ELSE,		// else
-		LANGLE,		// <
-		RANGLE,		// >
-		AT,			// @
-		LINKIN,		// linkIn
-		LINKOUT,	// linkOut
-		IN,			// in
-		OUT,		// out
-		EQUAL,		// ==
-		AND,		// and
-		OR,			// or
-		PARALLEL,	// ||
-		NOT,		// !
-		COLON,		// :
-		OP_OW,		// OneWay
-		OP_RR,		// RequestResponse
-		OP_N,		// Notification
-		OP_SR,		// SolicitResponse
-		LOCATIONS,	// locations
-		OPERATIONS,	// operations
-		VARIABLES,	// variables
-		MAIN,		// main
-		DEFINE, 	// define
-		CALL,		// call
-		MAJOR_OR_EQUAL,	// >=
-		MINOR_OR_EQUAL,	// <=
-		NOT_EQUAL,		// !=
-		LINKS,			// links
-		NULL_PROCESS,	// nullProcess
-		WHILE,			// while
-		SLEEP,			// sleep
-		CONTENTLENGTH,
-		CONTENTTYPE,
-		DOT,
-		SEMICOLON,
-		POST,			// POST
-		HTTP,			// HTTP
-		ERROR
-	}
-	
-	/**
-	 * This class represents an input token read by the Scanner class.
-	 * 
-	 * @see Scanner
-	 * @author Fabrizio Montesi
-	 * @version 1.0
-	 *
-	 */
-	public class Token
-	{
-		private TokenType type;
-		private String content;
-		
-		public Token( TokenType type )
-		{
-			this.type = type;
-			content = "";
-		}
-		
-		public Token( TokenType type, String content )
-		{
-			this.type = type;
-			this.content = content;
-		}
-		
-		public String content()
-		{
-			return content;
-		}
-		
-		public TokenType type()
-		{
-			return type;
-		}
-		
-		public boolean isEOF()
-		{
-			return ( type == TokenType.EOF );
-		}
-		
-		public boolean isA( TokenType compareType )
-		{
-			return ( type == compareType );
-		}
-	}
-	
-
-	private InputStream stream;				// input stream
-	private char ch;						// current character
-	private int state;						// current state
-	private int line;						// current line
-	private String sourceName;				// source name
-	
 	public HTTPScanner( InputStream stream, String sourceName )
 		throws IOException
 	{
-		this.stream = stream;
-		this.sourceName = sourceName;
-		line = 1;
-		readChar();
-	}
-	
-	public static String addStringTerminator( String str )
-	{
-		StringBuffer buffer = new StringBuffer( str );
-		buffer.append( 65535 );
-		return buffer.toString();
-	}
-	
-	public int line()
-	{
-		return line;
-	}
-	
-	public String sourceName()
-	{
-		return sourceName;
-	}
-	
-	private boolean isSeparator( char c )
-	{
-		if ( c == '\n' || c == '\r' || c == '\t' || c == ' ' )
-			return true;
-		
-		return false;
-	}
-	
-	private void readChar()
-		throws IOException
-	{
-		ch = (char) stream.read();
-
-		if ( ch == '\n' )
-			line++;
+		super( stream, sourceName );
 	}
 	
 	public Token getToken()
 		throws IOException
 	{
 		state = 1;
-
-		while ( isSeparator( ch ) )
+		
+		while ( currByte != -1 && isSeparator( ch ) )
 			readChar();
 		
-		if ( ch == 65535 )
+		if ( currByte == -1 )
 			return new Token( TokenType.EOF );
-
-		//boolean ret = false;
+		
 		boolean stopOneChar = false;
 		Token retval = null;
 		String str = new String();
 
-		while ( ch < 65535 && retval == null ) {
+		while ( currByte != -1 && retval == null ) {
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
@@ -218,6 +69,8 @@ public class HTTPScanner
 						state = 6;
 					else if ( ch == '|' )
 						state = 7;
+					else if ( ch == '&' )
+						state = 8;
 					else if ( ch == '<' )
 						state = 9;
 					else if ( ch == '>' )
@@ -226,6 +79,8 @@ public class HTTPScanner
 						state = 11;
 					else if ( ch == '/' )
 						state = 12;
+					else if ( ch == '-' )
+						state = 14;
 					else {	// ONE CHARACTER TOKEN
 						if ( ch == '(' )							
 							retval = new Token( TokenType.LPAREN );
@@ -248,7 +103,7 @@ public class HTTPScanner
 						else if ( ch == ',' )
 							retval = new Token( TokenType.COMMA );
 						else if ( ch == ';' )
-							retval = new Token( TokenType.SEMICOLON );
+							retval = new Token( TokenType.SEQUENCE );
 						else if ( ch == '.' )
 							retval = new Token( TokenType.DOT );
 						
@@ -257,8 +112,11 @@ public class HTTPScanner
 					
 					break;
 				case 2:	// ID
-					if ( !( Character.isLetterOrDigit( ch ) || ch == '-' ) ) {
-						if ( "OneWay".equals( str ) )
+					if ( !Character.isLetterOrDigit( ch ) &&
+							ch != '_' &&
+							ch != '-' &&
+							ch != '+' ) {
+						/*if ( "OneWay".equals( str ) )
 							retval = new Token( TokenType.OP_OW );
 						else if ( "RequestResponse".equals( str ) )
 							retval = new Token( TokenType.OP_RR );
@@ -286,14 +144,12 @@ public class HTTPScanner
 							retval = new Token( TokenType.LOCATIONS );
 						else if ( "operations".equals( str ) )
 							retval = new Token( TokenType.OPERATIONS );
-						else if ( "variables".equals( str ) )
-							retval = new Token( TokenType.VARIABLES );
+						else if ( "include".equals( str ) )
+							retval = new Token( TokenType.INCLUDE );
 						else if ( "main".equals( str ) )
 							retval = new Token( TokenType.MAIN );
 						else if ( "define".equals( str ) )
 							retval = new Token( TokenType.DEFINE );
-						else if ( "call".equals( str ) )
-							retval = new Token( TokenType.CALL );
 						else if ( "links".equals( str ) )
 							retval = new Token( TokenType.LINKS );
 						else if ( "nullProcess".equals( str ) )
@@ -302,20 +158,44 @@ public class HTTPScanner
 							retval = new Token( TokenType.WHILE );
 						else if ( "sleep".equals( str ) )
 							retval = new Token( TokenType.SLEEP );
-						else if ( "content-length".equalsIgnoreCase( str ) )
-							retval = new Token( TokenType.CONTENTLENGTH );
-						else if ( "content-type".equalsIgnoreCase( str ) )
-							retval = new Token( TokenType.CONTENTTYPE );
-						else if ( "POST".equalsIgnoreCase( str ) )
-							retval = new Token( TokenType.POST );
-						else if ( "HTTP".equalsIgnoreCase( str ) )
-							retval = new Token( TokenType.HTTP );
-						/*else if ( str.equals( "int" ) )
-							retval = new Token( TokenType.INTKEYWORD );
-						else if ( str.equals( "string" ) )
-							retval = new Token( TokenType.STRINGKEYWORD );*/
-						else
-							retval = new Token( TokenType.ID, str );
+						else if ( "int".equals( str ) )
+							retval = new Token( TokenType.VAR_TYPE_INT );
+						else if ( "string".equals( str ) )
+							retval = new Token( TokenType.VAR_TYPE_STRING );
+						else if ( "variant".equals( str ) )
+							retval = new Token( TokenType.VAR_TYPE_VARIANT );
+						else if ( "cset".equals( str ) )
+							retval = new Token( TokenType.CSET );
+						else if ( "persistent".equals( str ) )
+							retval = new Token( TokenType.PERSISTENT );
+						else if ( "not_persistent".equals( str ) )
+							retval = new Token( TokenType.NOT_PERSISTENT );
+						else if ( "single".equals( str ) )
+							retval = new Token( TokenType.SINGLE );
+						else if ( "concurrent".equals( str ) )
+							retval = new Token( TokenType.CONCURRENT );
+						else if ( "sequential".equals( str ) )
+							retval = new Token( TokenType.SEQUENTIAL );
+						else if ( "state".equals( str ) )
+							retval = new Token( TokenType.STATE );
+						else if ( "execution".equals( str ) )
+							retval = new Token( TokenType.EXECUTION );
+						else if ( "installFH".equals( str ) )
+							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
+						else if ( "installComp".equals( str ) )
+							retval = new Token( TokenType.INSTALL_COMPENSATION );
+						else if ( "throw".equals( str ) )
+							retval = new Token( TokenType.THROW );
+						else if ( "scope".equals( str ) )
+							retval = new Token( TokenType.SCOPE );
+						else if ( "comp".equals( str ) )
+							retval = new Token( TokenType.COMPENSATE );
+						else if ( "exit".equals( str ) )
+							retval = new Token( TokenType.EXIT );
+						else if ( "constants".equals( str ) )
+							retval = new Token( TokenType.CONSTANTS );
+						else*/
+						retval = new Token( TokenType.ID, str );
 					}
 					break;	
 				case 3: // INT
@@ -357,9 +237,16 @@ public class HTTPScanner
 					} else
 						retval = new Token( TokenType.ASSIGN );
 					break;
-				case 7:	// PARALLEL
+				case 7:	// PARALLEL OR LOGICAL OR
 					if ( ch == '|' ) {
+						retval = new Token( TokenType.OR );
+						readChar();
+					} else
 						retval = new Token( TokenType.PARALLEL );
+					break;
+				case 8:	// LOGICAL AND
+					if ( ch == '&' ) {
+						retval = new Token( TokenType.AND );
 						readChar();
 					}
 					break;
@@ -377,7 +264,7 @@ public class HTTPScanner
 					} else
 						retval = new Token( TokenType.RANGLE );
 					break;
-				case 11: // NOT_EQUAL
+				case 11: // NOT OR NOT_EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.NOT_EQUAL );
 						readChar();
@@ -407,6 +294,8 @@ public class HTTPScanner
 				case 14: // MINUS OR (negative) INT
 					if ( Character.isDigit( ch ) )
 						state = 3;
+					else
+						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
 					if ( ch == '\n' ) {
@@ -428,13 +317,11 @@ public class HTTPScanner
 				}
 			}
 		}
-		
-		//state = 1;
-		
+
 		if ( retval == null )
 			retval = new Token( TokenType.ERROR );
 		
 		return retval;
 	}
-	
 }
+

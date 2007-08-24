@@ -25,10 +25,9 @@ package jolie.runtime;
 
 public class SolicitResponseOperation extends OutputOperation
 {
-	public SolicitResponseOperation( String id,
-			String boundOperationId )
+	public SolicitResponseOperation( String id )
 	{
-		super( id, boundOperationId );
+		super( id );
 	}
 	
 	public static SolicitResponseOperation getById( String id )

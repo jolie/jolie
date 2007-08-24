@@ -23,6 +23,7 @@ package jolie.runtime;
 
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import jolie.Constants;
 
@@ -37,6 +38,29 @@ public class Value implements Expression
 	private HashMap< String, Value > attributes =
 					new HashMap< String, Value >();
 	
+	public void deepCopy( Value value )
+	{
+		assignValue( value );
+		Value currVal;
+		children.clear();
+		attributes.clear();
+		for( Entry< String, Value > entry : value.attributes.entrySet() ) {
+			currVal = new Value();
+			currVal.deepCopy( entry.getValue() );
+			attributes.put( entry.getKey(), currVal );
+		}
+		
+		for( Entry< String, Vector< Value > > entry : value.children.entrySet() ) {
+			Vector< Value > vec = new Vector< Value >();
+			for( Value val : entry.getValue() ) {
+				currVal = new Value();
+				currVal.deepCopy( val );
+				vec.add( currVal );
+			}
+			children.put( entry.getKey(), vec );
+		}
+	}
+	
 	public Vector< Value > getChildren( String childId )
 	{
 		Vector< Value > v = children.get( childId );
@@ -47,6 +71,29 @@ public class Value implements Expression
 		}
 		
 		return v;
+	}
+	
+	public Value getNewChild( String childId )
+	{
+		Vector< Value > v = children.get( childId );
+		if ( v == null ) {
+			v = new Vector< Value > ();
+			children.put( childId, v );
+		}
+		Value retVal = new Value();
+		v.add( retVal );
+		
+		return retVal;
+	}
+	
+	public HashMap< String, Vector< Value > > children()
+	{
+		return children;
+	}
+	
+	public HashMap< String, Value > attributes()
+	{
+		return attributes;
 	}
 	
 	public Value getAttribute( String attributeId )

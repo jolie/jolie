@@ -24,16 +24,14 @@
 package jolie.net;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -50,10 +48,8 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
 import jolie.Constants;
-import jolie.deploy.OperationDeployInfo;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.Operation;
-import jolie.runtime.RequestResponseOperation;
+import jolie.net.http.HTTPMessage;
+import jolie.net.http.HTTPParser;
 import jolie.runtime.Value;
 
 import org.w3c.dom.Document;
@@ -103,37 +99,86 @@ class HTTPSOAPException extends Exception
 public class SOAPProtocol implements CommProtocol
 {
 	private URI uri;
-	private OperationDeployInfo wsdlInfo;
+	private String messageNamespace;
+	private String inputId = null;
 	
 	public SOAPProtocol clone()
 	{
-		SOAPProtocol retval = new SOAPProtocol();
-		retval.uri = uri;
-		retval.wsdlInfo = wsdlInfo;
-		return retval;
+		return new SOAPProtocol( uri, messageNamespace );
 	}
 
-	public SOAPProtocol()
-	{
-		uri = null;
-		wsdlInfo = null;
-	}
-	
-	public SOAPProtocol( URI uri, OperationDeployInfo wsdlInfo )
+	public SOAPProtocol( URI uri, String messageNamespace )
 	{
 		this.uri = uri;
-		this.wsdlInfo = wsdlInfo;
+		this.messageNamespace = messageNamespace;
 	}
 	
-	public SOAPProtocol( URI uri )
+	private void valueToSOAPBody(
+			Value value,
+			SOAPElement element,
+			SOAPEnvelope soapEnvelope
+			)
+		throws SOAPException
 	{
-		this.uri = uri;
+		SOAPElement currentElement;
+		for( Entry< String, Vector< Value > > entry : value.children().entrySet() ) {
+			for( Value val : entry.getValue() ) {
+				currentElement = element.addChildElement( entry.getKey() );
+				for( Entry< String, Value > attrEntry : val.attributes().entrySet() ) {
+					currentElement.addAttribute(
+							soapEnvelope.createName( attrEntry.getKey() ),
+							attrEntry.getValue().strValue()
+							);
+				}
+				currentElement.addTextNode( val.strValue() );
+				valueToSOAPBody( val, currentElement, soapEnvelope );
+			}
+		}
 	}
 	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		if ( wsdlInfo == null )
+		try {
+			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+			SOAPMessage soapMessage = messageFactory.createMessage();
+			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
+			SOAPBody soapBody = soapEnvelope.getBody();
+			Name operationName = soapEnvelope.createName( message.inputId(), "", messageNamespace );
+			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+			
+			for( Value val : message ) {
+				valueToSOAPBody( val, opBody, soapEnvelope );
+			}
+
+			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+			soapMessage.writeTo( tmpStream );
+			String soapString = "\n<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+								new String( tmpStream.toByteArray() );
+
+			String messageString = new String();
+			messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+			messageString += "Host: " + uri.getHost() + '\n';
+			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
+			messageString += "Content-Type: text/xml; charset=\"utf-8\"\n";
+			messageString += "Content-Length: " + soapString.length() + '\n';
+			messageString += "SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
+			messageString += soapString + '\n';
+			
+			//System.out.println( "Sending: " + messageString );
+			
+			inputId = message.inputId();
+			
+			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
+			writer.write( messageString );
+			writer.flush();
+		} catch( SOAPException se ) {
+			throw new IOException( se );
+		}
+		
+		
+		
+		/*if ( deployInfo == null )
 			throw new IOException( "Error: WSDL information missing in SOAP protocol" );
 
 		HTTPSOAPException httpException = null;
@@ -145,7 +190,7 @@ public class SOAPProtocol implements CommProtocol
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
 
-			Vector< String > varNames = wsdlInfo.outVarNames();
+			Vector< String > varNames = deployInfo.outVarNames();
 			if ( varNames == null )
 				throw new HTTPSOAPException( 500, "Error: output vars information missing in SOAP protocol" );
 
@@ -220,12 +265,71 @@ public class SOAPProtocol implements CommProtocol
 		//System.out.println( messageString );
 		if ( httpException != null )
 			throw new IOException( httpException );
+		*/
 	}
 	
+	private void soapElementsToSubValues( Value value, NodeList list )
+	{
+		Node node;
+		Value childValue;
+		for( int i = 0; i < list.getLength(); i++ ) {
+			node = list.item( i );
+			switch( node.getNodeType() ) {
+			case Node.ATTRIBUTE_NODE:
+				value.getAttribute( node.getNodeName() ).setStrValue( node.getNodeValue() );
+				break;
+			case Node.ELEMENT_NODE:
+				childValue = value.getNewChild( node.getLocalName() );
+				soapElementsToSubValues( childValue, node.getChildNodes() ); 
+				break;
+			case Node.TEXT_NODE:
+				value.setStrValue( node.getNodeValue() );
+				break;
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		HTTPScanner.Token token;
+		HTTPParser parser = new HTTPParser( istream );
+		HTTPMessage message = parser.parse();
+		CommMessage retVal = null;
+		
+		try {
+			MessageFactory messageFactory =
+				MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+			SOAPMessage soapMessage =
+				messageFactory.createMessage();
+			
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware( true );
+			DocumentBuilder builder = factory.newDocumentBuilder();
+
+			InputSource src = new InputSource( message.contentStream() );
+
+			Document doc = builder.parse( src );
+			DOMSource dom = new DOMSource( doc );
+
+			soapMessage.getSOAPPart().setContent( dom );
+			
+			Value value = new Value();
+			soapElementsToSubValues( value, soapMessage.getSOAPBody().getChildNodes() );
+			Vector< Value > vector = new Vector< Value >();
+			vector.add( value );
+			retVal = new CommMessage( inputId, vector ); 
+		} catch( SOAPException se ) {
+			throw new IOException( se );
+		} catch( ParserConfigurationException pce ) {
+			throw new IOException( pce );
+		} catch( SAXException saxe ) {
+			throw new IOException( saxe );
+		}
+		
+		return retVal;
+		
+		/*HTTPScanner.Token token;
 		HTTPScanner scanner = new HTTPScanner( istream, "network" );
 		int httpCode = 0;
 		
@@ -349,12 +453,12 @@ public class SOAPProtocol implements CommProtocol
 				list.set( j, tempVar );
 			}
 			message.addAllValues( list );
-			
+			*/
 			/**
 			 * This is needed to maintain information useful in a RequestResponse.
 			 */
-			this.wsdlInfo = operation.deployInfo();
-			this.uri = new URI( "localhost/response" );
+			//this.deployInfo = operation.deployInfo();
+			/*this.uri = new URI( "localhost/response" );
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {
@@ -367,6 +471,6 @@ public class SOAPProtocol implements CommProtocol
 			throw new IOException( ue );
 		}
 		
-		return message;
+		return message;*/
 	}
 }

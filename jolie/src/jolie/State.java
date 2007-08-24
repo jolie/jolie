@@ -82,7 +82,7 @@ public class State implements Cloneable
 		Value varValue;
 		for( GlobalVariable var : vars ) {
 			val = it.next();
-			if ( Interpreter.correlationSet().contains( var ) ) {
+			if ( Interpreter.correlationSet().contains( var ) && getValues( var ).size() > 0 ) {
 				varValue = getValues( var ).elementAt( 0 ); // TODO - this does not work anymore with structured data!
 				try {
 					if ( varValue.isDefined() && (

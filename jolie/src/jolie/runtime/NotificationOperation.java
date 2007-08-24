@@ -25,10 +25,9 @@ package jolie.runtime;
 
 public class NotificationOperation extends OutputOperation
 {
-	public NotificationOperation( String id,
-			String boundOperationId )
+	public NotificationOperation( String id )
 	{
-		super( id, boundOperationId );
+		super( id );
 	}
 	
 	public static NotificationOperation getById( String id )

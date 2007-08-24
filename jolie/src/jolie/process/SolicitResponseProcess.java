@@ -52,24 +52,12 @@ public class SolicitResponseProcess implements Process
 		throws FaultException
 	{
 		CommChannel channel = null;
-		//Variable.castAll( outVars, operation.outVarTypes() );
 		try {
-			/*if ( wsdlInfo.outVarNames() == null ) {
-				wsdlInfo = operation.wsdlInfo().clone();
-				wsdlInfo.setOutVarNames( Variable.getNames( outVars ) );
-			}
-			
-			if ( wsdlInfo.boundName() == null )
-				wsdlInfo.setBoundName( operation.boundOperationId() );*/
-			String boundName = operation.deployInfo().boundName();
-			if ( boundName == null )
-				boundName = operation.boundOperationId();
-			
 			channel = new CommChannel( location, operation.getOutputProtocol( location ) );
 			Vector< Value > valsVec = new Vector< Value >();
 			for( Variable var : outVars )
 				valsVec.add( var.value() );
-			CommMessage message = new CommMessage( boundName, valsVec );
+			CommMessage message = new CommMessage( operation.id(), valsVec );
 			channel.send( message );
 			message = channel.recv();
 			if ( message.isFault() )
@@ -77,23 +65,8 @@ public class SolicitResponseProcess implements Process
 			
 			if ( message.size() == inVars.size() ) {
 				int i = 0;
-				//boolean correctTypes = true;
-
-				/*Vector< Constants.VariableType > varTypes = operation.inVarTypes();
-				for( Value val : message ) { // Check their types first!
-					if ( varTypes.elementAt( i ) != Constants.VariableType.VARIANT &&
-							val.type() != varTypes.elementAt( i ) ) {
-						Interpreter.logger().warning( "Rejecting wrong packet for operation " + 
-							operation.id() + ". Wrong argument types received." );
-						correctTypes = false;
-					}
-					i++;
-				}
-				i = 0;*/
-				//if ( correctTypes ) {
-					for( Value recvVal : message )
-						inVars.elementAt( i++ ).value().assignValue( recvVal );
-				//}
+				for( Value recvVal : message )
+					inVars.elementAt( i++ ).value().deepCopy( recvVal );
 			} // todo -- if else throw exception?
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();

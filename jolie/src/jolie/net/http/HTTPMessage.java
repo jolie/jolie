@@ -19,52 +19,40 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.net.http;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Vector;
+import java.io.CharArrayReader;
 
-import jolie.ExecutionThread;
-import jolie.net.CommChannel;
-import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariable;
-import jolie.runtime.Location;
-import jolie.runtime.OutputOperation;
-import jolie.runtime.Value;
-import jolie.runtime.Variable;
 
-public class NotificationProcess implements Process
+public class HTTPMessage
 {
-	private OutputOperation operation;
-	private Vector< GlobalVariable > varsVec;
-	private Location location;
-
-	public NotificationProcess( OutputOperation operation, Location location, Vector< GlobalVariable > varsVec )
-	{
-		this.operation = operation;
-		this.varsVec = varsVec;
-		this.location = location;
+	public enum Type {
+		RESPONSE
 	}
 	
-	public void run()
+	private Type type;
+	private char[] content;
+	private int httpCode;
+
+	public HTTPMessage( int httpCode, char[] content )
 	{
-		if ( ExecutionThread.killed() )
-			return;
-
-		try {
-			Vector< Value > valsVec = new Vector< Value >();
-			for( Variable var : varsVec )
-				valsVec.add( var.value() );
-
-			CommMessage message = new CommMessage( operation.id(), valsVec );
-			CommChannel channel = new CommChannel( location, operation.getOutputProtocol( location ) );
-			channel.send( message );
-			channel.close();
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-		} catch( URISyntaxException ue ) {
-			ue.printStackTrace();
-		}
+		this.httpCode = httpCode;
+		this.content = content;
+		this.type = Type.RESPONSE;
+	}
+	
+	public Type type()
+	{
+		return type;
+	}
+	
+	public int httpCode()
+	{
+		return httpCode;
+	}
+	
+	public CharArrayReader contentStream()
+	{
+		return new CharArrayReader( content );
 	}
 }

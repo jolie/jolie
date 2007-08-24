@@ -34,19 +34,9 @@ import jolie.net.SODEPProtocol;
 
 public class OutputOperation extends Operation
 {
-	private String boundOperationId;
-
-	public OutputOperation( String id,
-			String boundOperationId
-			)
+	public OutputOperation( String id )
 	{
 		super( id );
-		this.boundOperationId = boundOperationId;
-	}
-	
-	public String boundOperationId()
-	{
-		return boundOperationId;
 	}
 	
 	public static OutputOperation getById( String id )
@@ -67,10 +57,14 @@ public class OutputOperation extends Operation
 			OutputPort port = ((OutputPortType)pt).outputPort();
 			if ( port != null ) {
 				Constants.ProtocolId pId = port.protocolId();
-				if ( pId == Constants.ProtocolId.SODEP )
+				if ( pId == Constants.ProtocolId.SODEP ) {
 					return new SODEPProtocol();
-				else if ( pId == Constants.ProtocolId.SOAP )
-					return new SOAPProtocol( location.getURI(), deployInfo() );
+				} else if ( pId == Constants.ProtocolId.SOAP ) {
+					return new SOAPProtocol(
+							location.getURI(),
+							((OutputPortType)deployInfo().portType()).namespace()
+							);
+				}
 			} else
 				Interpreter.logger().warning( "Unspecified output port for operation " + id() );
 		}

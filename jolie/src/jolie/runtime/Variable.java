@@ -40,9 +40,13 @@ abstract public class Variable implements Expression
 	 * @todo eliminate this
 	 * @return
 	 */
-	public final Value value()
+	public synchronized final Value value()
 	{
-		return values().elementAt( 0 );
+		Vector< Value > vals = values();
+		if ( vals.isEmpty() )
+			vals.add( new Value() );
+	
+		return vals.firstElement();
 	}
 	
 	public final Value evaluate()

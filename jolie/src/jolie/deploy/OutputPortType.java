@@ -31,12 +31,19 @@ public class OutputPortType extends PortType
 {
 	private Vector< OutputOperation > operations;
 	private OutputPort outputPort;
+	private String namespace;
 	
-	public OutputPortType( String id )
+	public OutputPortType( String id, String namespace )
 	{
 		super( id );
 		this.operations = new Vector< OutputOperation >();
 		outputPort = null;
+		this.namespace = namespace;
+	}
+	
+	public String namespace()
+	{
+		return namespace;
 	}
 	
 	public Vector< OutputOperation > operations()

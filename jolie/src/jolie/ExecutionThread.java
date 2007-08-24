@@ -170,17 +170,17 @@ abstract public class ExecutionThread extends Thread
 	}*/
 	
 	@SuppressWarnings("unchecked")
-	private synchronized <T, V> T _getLocalObject( Object ref, Class<V> clazz )
+	private synchronized <T> T _getLocalObject( Object ref, Class<T> clazz )
 	{
 		Object obj = localMap.get( ref );
 		if ( obj == null ) {
 			try {
 				obj = clazz.newInstance();
 			} catch( InstantiationException e ) {
-				Interpreter.logger().severe( "Runtime internal error in local thread casting" );
+				Interpreter.logger().severe( "Runtime error in local thread memory handling" );
 				e.printStackTrace();
 			} catch( IllegalAccessException e ) {
-				Interpreter.logger().severe( "Runtime internal error in local thread casting" );
+				Interpreter.logger().severe( "Runtime error in local thread memory handling" );
 				e.printStackTrace();
 			}
 			localMap.put( ref, obj );
@@ -189,7 +189,7 @@ abstract public class ExecutionThread extends Thread
 		return (T)obj;
 	}
 	
-	public static <T,V> T getLocalObject( Object ref, Class<V> clazz )
+	public static <T> T getLocalObject( Object ref, Class<T> clazz )
 	{
 		return currentThread()._getLocalObject( ref, clazz );
 	}

@@ -45,11 +45,12 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 	private Process process;
 	private Vector< GlobalVariable > outVars;
 	private CorrelatedProcess correlatedProcess = null;
-	
-	private class Fields {
+
+	public static class Fields {
 		private FaultException pendingFault = null;
 	}
 
+	
 	public RequestResponseProcess( RequestResponseOperation operation, Vector< GlobalVariable > varsVec, Vector< GlobalVariable > outVars, Process process )
 	{
 		this.operation = operation;

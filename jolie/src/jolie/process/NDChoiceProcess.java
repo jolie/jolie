@@ -70,7 +70,7 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 	private HashMap< String, ChoicePair > inputMap;
 	private CorrelatedProcess correlatedProcess;
 	
-	private class Fields {
+	public static class Fields {
 		private FaultException pendingFault = null;
 		private Process pendingProcess = null;
 	}

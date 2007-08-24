@@ -192,6 +192,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		InputPortType pt = new InputPortType( n.id() );
 		for( OperationDeclaration op : n.operations() ) {
+			op.accept( this );
 			try {
 				pt.addOperation( InputOperation.getById( op.id() ) );
 			} catch( InvalidIdException e ) {
@@ -203,8 +204,9 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( OutputPortTypeInfo n )
 	{
-		OutputPortType pt = new OutputPortType( n.id() );
+		OutputPortType pt = new OutputPortType( n.id(), n.namespace() );
 		for( OperationDeclaration op : n.operations() ) {
+			op.accept( this );
 			try {
 				pt.addOperation( OutputOperation.getById( op.id() ) );
 			} catch( InvalidIdException e ) {
@@ -225,7 +227,10 @@ public class OOITBuilder implements OLVisitor
 			error( pce );
 		}
 	}
-		
+	
+	/**
+	 * @todo implement jolie soap namespace
+	 */
 	public void visit( ServiceInfo n )
 	{
 		InputPort port = null;
@@ -243,7 +248,7 @@ public class OOITBuilder implements OLVisitor
 		CommProtocol protocol = null;
 		
 		if ( pId == Constants.ProtocolId.SOAP )
-			protocol = new SOAPProtocol( n.uri() );
+			protocol = new SOAPProtocol( n.uri(), "" );
 		else if ( pId == Constants.ProtocolId.SODEP )
 			protocol = new SODEPProtocol();
 		else
@@ -285,16 +290,12 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( NotificationOperationDeclaration decl )
 	{
-		(new NotificationOperation(
-			decl.id(),
-			decl.boundOperationId() )).register();
+		(new NotificationOperation( decl.id() )).register();
 	}
 		
 	public void visit( SolicitResponseOperationDeclaration decl )
 	{
-		(new SolicitResponseOperation(
-			decl.id(),
-			decl.boundOperationId() )).register();
+		(new SolicitResponseOperation( decl.id() )).register();
 	}
 	
 	public void visit( Procedure n )
@@ -322,6 +323,7 @@ public class OOITBuilder implements OLVisitor
 	/**
 	 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
 	 * @todo allow ndchoice at the beginning of main to be CorrelatedInputProcess
+	 * @todo allow input operations at the beginning of main to be CorrelatedInputProcess
 	 */
 	public void visit( SequenceStatement n )
 	{
