@@ -47,7 +47,8 @@ public final class Constants
 	
 	public enum MediumId {
 		UNSUPPORTED,
-		SOCKET
+		SOCKET,
+		JAVA
 	}
 	
 	public enum VariableType {
@@ -73,6 +74,8 @@ public final class Constants
 	{
 		if ( "socket".equals( str ) )
 			return MediumId.SOCKET;
+		else if ( "java".equals( str ) )
+			return MediumId.JAVA;
 		
 		return MediumId.UNSUPPORTED;
 	}
