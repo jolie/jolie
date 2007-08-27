@@ -19,24 +19,9 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.net;
 
-package jolie.runtime;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-public class Location
+public interface JavaService
 {
-	private Expression expression;
-	
-	public Location( Expression expression )
-	{
-		this.expression = expression;
-	}
-	
-	public URI getURI()
-		throws URISyntaxException
-	{
-		return new URI( expression.evaluate().strValue() );
-	}
+	public CommMessage recv( CommMessage message );
 }

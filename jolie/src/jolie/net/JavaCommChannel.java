@@ -19,24 +19,33 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.net;
 
-package jolie.runtime;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-public class Location
+public class JavaCommChannel extends CommChannel
 {
-	private Expression expression;
-	
-	public Location( Expression expression )
+	private JavaService javaService;
+	private CommMessage lastMessage = null;
+
+	public JavaCommChannel( JavaService javaService )
 	{
-		this.expression = expression;
+		this.javaService = javaService;
 	}
 	
-	public URI getURI()
-		throws URISyntaxException
+	public void send( CommMessage message )
 	{
-		return new URI( expression.evaluate().strValue() );
+		if ( javaService != null )
+			lastMessage = javaService.recv( message );
+	}
+	
+	public CommMessage recv()
+	{
+		CommMessage ret = lastMessage;
+		lastMessage = null;
+		return ret;
+	}
+	
+	public void close()
+	{
+		javaService = null;
 	}
 }

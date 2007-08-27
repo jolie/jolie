@@ -23,12 +23,11 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.runtime.Location;
 
@@ -39,11 +38,8 @@ import jolie.runtime.Location;
  * @see CommProtocol
  * @see CommMessage
  */
-public class CommChannel
+abstract public class CommChannel
 {
-	private InputStream istream;
-	private OutputStream ostream;
-	private CommProtocol protocol;
 	private ExecutionThread executionThread;
 	
 	public void setExecutionThread( ExecutionThread thread )
@@ -56,58 +52,55 @@ public class CommChannel
 		return executionThread;
 	}
 	
-	/** Constructor.
-	 * 
-	 * @param istream the channel input stream.
-	 * @param ostream the channel output stream.
-	 * @param protocol the protocol to use to send and receive messages.
-	 */
-	public CommChannel( InputStream istream, OutputStream ostream, CommProtocol protocol )
-	{
-		this.istream = istream;
-		this.ostream = ostream;
-		this.protocol = protocol;
-	}
-	
-	/**
-	 * Returns the raw OutputStream associated with this communication channel.
-	 * @return the raw OutputStream associated with this communication channel.
-	 */
-	public OutputStream outputStream()
-	{
-		return ostream;
-	}
-	
-	public CommChannel( Location location, CommProtocol protocol )
+	public static CommChannel createCommChannel( Location location, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
+		CommChannel channel = null;
 		URI uri = location.getURI();
-
-		Socket socket = new Socket( uri.getHost(), uri.getPort() );
-		this.istream = socket.getInputStream();
-		this.ostream = socket.getOutputStream();
-		this.protocol = protocol;
+		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
+		
+		if ( medium == Constants.MediumId.SOCKET ) {
+			Socket socket = new Socket( uri.getHost(), uri.getPort() );
+			channel = new StreamingCommChannel(
+						socket.getInputStream(),
+						socket.getOutputStream(),
+						protocol
+						);
+		} else if ( medium == Constants.MediumId.JAVA ) {
+			try {
+				Class<?> c =
+					ClassLoader.getSystemClassLoader().loadClass( uri.getSchemeSpecificPart() );
+				
+				if ( JavaService.class.isAssignableFrom( c ) == false )
+					throw new IOException( "Specified file is not a valid JOLIE java service" );
+				channel = new JavaCommChannel( (JavaService)c.newInstance() );
+			} catch( ClassNotFoundException ce ) {
+				throw new IOException( ce );
+			} catch( IllegalAccessException iae ) {
+				throw new IOException( iae );
+			} catch( InstantiationException ie ) {
+				throw new IOException( ie );
+			} catch( ExceptionInInitializerError eiie ) {
+				throw new IOException( eiie );
+			} catch( SecurityException se ) {
+				throw new IOException( se );
+			}
+			
+		} else
+			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
+		
+		return channel;
 	}
 	
 	/** Receives a message from the channel. */
-	public CommMessage recv()
-		throws IOException
-	{
-		return protocol.recv( istream );
-	}
+	abstract public CommMessage recv()
+		throws IOException;
 	
 	/** Sends a message through the channel. */
-	public void send( CommMessage message )
-		throws IOException
-	{
-		protocol.send( ostream, message );
-	}
+	abstract public void send( CommMessage message )
+		throws IOException;
 	
 	/** Closes the communication channel. */
-	public void close()
-		throws IOException
-	{
-		istream.close();
-		ostream.close();
-	}
+	abstract public void close()
+		throws IOException;
 }

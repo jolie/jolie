@@ -58,7 +58,7 @@ public class NotificationProcess implements Process
 				valsVec.add( var.value() );
 
 			CommMessage message = new CommMessage( operation.id(), valsVec );
-			CommChannel channel = new CommChannel( location, operation.getOutputProtocol( location ) );
+			CommChannel channel = CommChannel.createCommChannel( location, operation.getOutputProtocol( location ) );
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

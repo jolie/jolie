@@ -20,23 +20,59 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.net;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-public class Location
+public class StreamingCommChannel extends CommChannel
 {
-	private Expression expression;
-	
-	public Location( Expression expression )
+	private InputStream istream;
+	private OutputStream ostream;
+	private CommProtocol protocol;
+
+	/** Constructor.
+	 * 
+	 * @param istream the channel input stream.
+	 * @param ostream the channel output stream.
+	 * @param protocol the protocol to use to send and receive messages.
+	 */
+	public StreamingCommChannel( InputStream istream, OutputStream ostream, CommProtocol protocol )
 	{
-		this.expression = expression;
+		this.istream = istream;
+		this.ostream = ostream;
+		this.protocol = protocol;
 	}
 	
-	public URI getURI()
-		throws URISyntaxException
+	/**
+	 * Returns the raw OutputStream associated with this communication channel.
+	 * @return the raw OutputStream associated with this communication channel.
+	 */
+	public OutputStream outputStream()
 	{
-		return new URI( expression.evaluate().strValue() );
+		return ostream;
+	}
+
+	/** Receives a message from the channel. */
+	public CommMessage recv()
+		throws IOException
+	{
+		return protocol.recv( istream );
+	}
+	
+	/** Sends a message through the channel. */
+	public void send( CommMessage message )
+		throws IOException
+	{
+		protocol.send( ostream, message );
+	}
+	
+	/** Closes the communication channel. */
+	public void close()
+		throws IOException
+	{
+		istream.close();
+		ostream.close();
 	}
 }

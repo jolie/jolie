@@ -53,7 +53,7 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			channel = new CommChannel( location, operation.getOutputProtocol( location ) );
+			channel = CommChannel.createCommChannel( location, operation.getOutputProtocol( location ) );
 			Vector< Value > valsVec = new Vector< Value >();
 			for( Variable var : outVars )
 				valsVec.add( var.value() );

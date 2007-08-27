@@ -35,6 +35,12 @@ public class CommMessage implements Iterable< Value >
 	private Vector< Value > values;
 	private boolean fault = false;
 	
+	public CommMessage()
+	{
+		inputId = "";
+		values = new Vector< Value >();
+	}
+	
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;

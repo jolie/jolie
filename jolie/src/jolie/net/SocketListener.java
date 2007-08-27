@@ -51,7 +51,7 @@ public class SocketListener extends CommListener
 			SocketChannel socketChannel;
 			CommChannel channel;
 			while ( (socketChannel = serverChannel.accept()) != null ) {
-				channel = new CommChannel(
+				channel = new StreamingCommChannel(
 							socketChannel.socket().getInputStream(),
 							socketChannel.socket().getOutputStream(),
 							createProtocol() );
