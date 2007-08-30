@@ -176,6 +176,18 @@ public class Scanner
 		readChar();
 	}
 	
+	public String readWord()
+		throws IOException
+	{
+		String buffer = new String();
+		readChar();
+		do {
+			buffer += ch;
+			readChar();
+		} while( !isSeparator( ch ) );
+		return buffer;
+	}
+	
 	public static String addStringTerminator( String str )
 	{
 		/*StringBuffer buffer = new StringBuffer( str );

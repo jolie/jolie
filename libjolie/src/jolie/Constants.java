@@ -42,7 +42,8 @@ public final class Constants
 	public enum ProtocolId {
 		UNSUPPORTED,
 		SODEP,
-		SOAP
+		SOAP,
+		HTTP
 	}
 	
 	public enum MediumId {
@@ -66,6 +67,8 @@ public final class Constants
 			return ProtocolId.SOAP;
 		else if ( "sodep".equals( str ) )
 			return ProtocolId.SODEP;
+		else if ( "http".equals( str ) )
+			return ProtocolId.HTTP;
 		
 		return ProtocolId.UNSUPPORTED;
 	}
