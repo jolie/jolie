@@ -29,6 +29,7 @@ import jolie.deploy.OutputPort;
 import jolie.deploy.OutputPortType;
 import jolie.deploy.PortType;
 import jolie.net.CommProtocol;
+import jolie.net.HTTPProtocol;
 import jolie.net.SOAPProtocol;
 import jolie.net.SODEPProtocol;
 
@@ -64,6 +65,8 @@ public class OutputOperation extends Operation
 							location.getURI(),
 							((OutputPortType)deployInfo().portType()).namespace()
 							);
+				} else if ( pId == Constants.ProtocolId.HTTP ) {
+					return new HTTPProtocol( location.getURI() );
 				}
 			} else
 				Interpreter.logger().warning( "Unspecified output port for operation " + id() );

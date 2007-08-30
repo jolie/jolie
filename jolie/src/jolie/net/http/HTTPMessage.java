@@ -33,6 +33,7 @@ public class HTTPMessage
 	private Type type;
 	private char[] content;
 	private int httpCode;
+	private String requestPath;
 
 	public HTTPMessage( int httpCode, char[] content )
 	{
@@ -41,10 +42,21 @@ public class HTTPMessage
 		this.type = Type.RESPONSE;
 	}
 	
-	public HTTPMessage( Type type, char[] content )
+	public HTTPMessage( Type type, String requestPath, char[] content )
 	{
 		this.type = type;
 		this.content = content;
+		this.requestPath = requestPath;
+	}
+	
+	public int size()
+	{
+		return content.length;
+	}
+	
+	public String requestPath()
+	{
+		return requestPath;
 	}
 	
 	public Type type()

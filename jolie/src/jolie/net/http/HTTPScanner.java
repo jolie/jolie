@@ -39,8 +39,13 @@ public class HTTPScanner extends Scanner
 	{
 		state = 1;
 		
-		while ( currByte != -1 && isSeparator( ch ) )
+		char prev;
+		while ( currByte != -1 && isSeparator( ch ) ) {
+			prev = ch;
 			readChar();
+			if ( isNewLine( prev ) && isNewLine( ch ) )
+				return new Token( TokenType.EOF );
+		}
 		
 		if ( currByte == -1 )
 			return new Token( TokenType.EOF );

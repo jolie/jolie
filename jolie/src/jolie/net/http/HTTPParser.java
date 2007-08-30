@@ -31,7 +31,7 @@ import jolie.lang.parse.Scanner;
 public class HTTPParser
 {
 	private static final String HTTP = "HTTP";
-	//private static final String GET = "GET";
+	private static final String GET = "GET";
 	private static final String POST = "POST";
 	
 	private HTTPScanner scanner;
@@ -84,6 +84,7 @@ public class HTTPParser
 		int httpCode = 0;
 		HTTPMessage message = null;
 		HTTPMessage.Type type = HTTPMessage.Type.ERROR;
+		String requestPath = null;
 		if ( token.isKeyword( HTTP ) ) { // It's an HTTP response
 			getToken();
 			eat( Scanner.TokenType.DIVIDE );
@@ -116,8 +117,16 @@ public class HTTPParser
 			contentLength = Integer.parseInt( token.content() );
 			
 			type = HTTPMessage.Type.RESPONSE;
-		} else if ( token.isKeyword( POST ) ) {
-			getToken();
+		} else {
+			if ( token.isKeyword( POST ) ) {
+				type = HTTPMessage.Type.POST;
+			} else if ( token.isKeyword( GET ) ) {
+				type = HTTPMessage.Type.GET;
+			} else {
+				throw new IOException( "Unrecognized HTTP request type" );
+			}
+
+			requestPath = scanner.readWord().substring( 1 );
 			while(
 					token.isNot( Scanner.TokenType.EOF ) &&
 					token.isNot( Scanner.TokenType.ERROR ) &&
@@ -125,36 +134,40 @@ public class HTTPParser
 					) {
 				getToken();
 			}
-			conditionAssert( token.isKeywordIgnoreCase( "Content-Length" ) );
-			getToken();
-			eat( Scanner.TokenType.COLON );
-			tokenAssert( Scanner.TokenType.INT );
-			contentLength = Integer.parseInt( token.content() );
-			
-			type = HTTPMessage.Type.POST;
+
+			if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
+				getToken();
+				eat( Scanner.TokenType.COLON );
+				tokenAssert( Scanner.TokenType.INT );
+				contentLength = Integer.parseInt( token.content() );
+			} else {
+				contentLength = 0;
+			}
 		}
 		
-		InputStream stream = scanner.inputStream();
-		BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
-
-		// Eat the rest of the HTTP header
-		String line;
-		do {
-			line = reader.readLine();
-		} while( line != null && !"".equals( line ) );
-
-		// Eat empty lines
-		int ch;
-		while( Scanner.isNewLine( (ch=reader.read()) ) );
-
 		char buffer[] = new char[ contentLength ];
-		buffer[0] = (char)ch;
-		reader.read( buffer, 1, contentLength - 1 );
+		if ( contentLength != 0 ) {
+			InputStream stream = scanner.inputStream();
+			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
+
+			// Eat the rest of the HTTP header
+			String line;
+			do {
+				line = reader.readLine();
+			} while( line != null && !"".equals( line ) );
+
+			// Eat empty lines
+			int ch;
+			while( Scanner.isNewLine( (ch=reader.read()) ) );
+
+			buffer[0] = (char)ch;
+			reader.read( buffer, 1, contentLength - 1 );
+		}
 		
 		if ( type == HTTPMessage.Type.RESPONSE ) {
 			message = new HTTPMessage( httpCode, buffer );
 		} else {
-			message = new HTTPMessage( type, buffer );
+			message = new HTTPMessage( type, requestPath, buffer );
 		}
 
 		return message;

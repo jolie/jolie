@@ -86,6 +86,7 @@ import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
+import jolie.net.HTTPProtocol;
 import jolie.net.SOAPProtocol;
 import jolie.net.SODEPProtocol;
 import jolie.net.UnsupportedCommMediumException;
@@ -251,6 +252,8 @@ public class OOITBuilder implements OLVisitor
 			protocol = new SOAPProtocol( n.uri(), "" );
 		else if ( pId == Constants.ProtocolId.SODEP )
 			protocol = new SODEPProtocol();
+		else if ( pId == Constants.ProtocolId.HTTP )
+			protocol = new HTTPProtocol( n.uri() );
 		else
 			error( "Unsupported protocol specified for port " + port.id() );
 		

@@ -45,11 +45,15 @@ public class State implements Cloneable
 		stateMap = new HashMap< GlobalVariable, Vector< Value > > ();
 	}
 	
-	private Vector< Value > copyValues( Vector< Value > oldValues )
+	private Vector< Value > deepCopyValues( Vector< Value > oldValues )
 	{
 		Vector< Value > vec = new Vector< Value >();
-		for( Value v : oldValues )
-			vec.add( new Value( v ) );
+		Value newVal;
+		for( Value v : oldValues ) {
+			newVal = new Value();
+			newVal.deepCopy( v );
+			vec.add( newVal );
+		}
 
 		return vec;
 	}
@@ -60,7 +64,7 @@ public class State implements Cloneable
 				new HashMap< GlobalVariable, Vector< Value > > ();
 		
 		for( GlobalVariable var : stateMap.keySet() )
-			map.put( var, copyValues( getValues( var ) ) );
+			map.put( var, deepCopyValues( getValues( var ) ) );
 		
 		return new State( map );
 	}

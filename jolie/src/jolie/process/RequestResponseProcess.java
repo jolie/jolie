@@ -104,8 +104,9 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		try {
 			process.run();
 			Vector< Value > valsVec = new Vector< Value >();
-			for( Variable var : outVars )
+			for( Variable var : outVars ) 
 				valsVec.add( var.value() );
+
 			response = new CommMessage( operation.id(), valsVec );
 		} catch( FaultException f ) {
 			Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
