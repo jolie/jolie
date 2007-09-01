@@ -37,6 +37,7 @@ import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
@@ -59,6 +60,7 @@ import jolie.lang.parse.ast.OrConditionNode;
 import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
@@ -703,8 +705,10 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.COLON )
 					|| token.is( Scanner.TokenType.LSQUARE )
 					|| token.is( Scanner.TokenType.DOT )
-					|| token.is( Scanner.TokenType.ASSIGN ) ) {
-				retVal = parseAssignStatement( id );
+					|| token.is( Scanner.TokenType.ASSIGN )
+					|| token.is( Scanner.TokenType.POINTS_TO )
+					|| token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+				retVal = parseAssignOrDeepCopyOrPointerStatement( id );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
 			} else if ( token.is( Scanner.TokenType.AT ) ) {
@@ -712,6 +716,13 @@ public class OLParser extends AbstractParser
 				retVal = parseOutputOperationStatement( id );
 			} else
 				retVal = new ProcedureCallStatement( id );
+		/*} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
+			getToken();
+			checkConstant();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String id = token.content();
+			getToken();
+			retVal = new UndefStatement( parseVariablePath( id ) );*/
 		} else if ( token.is( Scanner.TokenType.OUT ) ) { // out( <Expression> )
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -831,27 +842,42 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 	
-	private AssignStatement parseAssignStatement( String varName )
+	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( String varName )
 		throws IOException, ParserException
 	{
+		OLSyntaxNode retVal = null;
 		VariablePath path = parseVariablePath( varName );
 		
-		eat( Scanner.TokenType.ASSIGN, "expected =" );
+		if ( token.is( Scanner.TokenType.ASSIGN ) ) {
+			getToken();
+			retVal = new AssignStatement( path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String id = token.content();
+			getToken();
+			retVal = new PointerStatement( path, parseVariablePath( id ) );
+		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String id = token.content();
+			getToken();
+			retVal = new DeepCopyStatement( path, parseVariablePath( id ) );
+		} else
+			throwException( "expected = or -> or <<" );
 		
-		return new AssignStatement( path, parseExpression() );
+		
+		return retVal;
 	}
 	
 	private VariablePath parseVariablePath( String varId )
 		throws IOException, ParserException
 	{
-		OLSyntaxNode expr;
+		OLSyntaxNode expr = null;
 		if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 			getToken();
 			expr = parseExpression();
 			eat( Scanner.TokenType.RSQUARE, "expected ]" );
-		} else {
-			// We default to the first element
-			expr = new ConstantIntegerExpression( 0 );
 		}
 		
 		VariablePath path = new VariablePath( varId, expr );
@@ -867,8 +893,7 @@ public class OLParser extends AbstractParser
 				expr = parseExpression();
 				eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
-				// We default to the first element
-				expr = new ConstantIntegerExpression( 0 );
+				expr = null;
 			}
 			
 			path.append( new Pair< String, OLSyntaxNode >( node, expr ) );
@@ -878,7 +903,6 @@ public class OLParser extends AbstractParser
 			getToken();
 			path.setAttribute( parseExpression() );
 		}
-		//System.out.println(token.content());
 		return path;
 	}
 	
@@ -1119,7 +1143,13 @@ public class OLParser extends AbstractParser
 			getToken();
 			retVal = parseExpression();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}
+		}/* else if ( token.is( Scanner.TokenType.HASH ) ) {
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String id = token.content();
+			getToken();
+			retVal = VariableSizeExpressionNode( parseVariablePath( id ) );
+		}*/
 
 		if ( retVal == null )
 			throwException( "expected expression" );

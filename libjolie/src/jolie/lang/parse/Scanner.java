@@ -95,6 +95,10 @@ public class Scanner
 		EXIT,					///< exit
 		INCLUDE,				///< include
 		CONSTANTS,				///< constants
+		POINTS_TO,				///< ->
+		DEEP_COPY_LEFT,			///< <<
+		//UNDEF,					///< undef
+		//HASH,					///< #
 		ERROR			///< Scanner error
 	}
 	
@@ -190,9 +194,6 @@ public class Scanner
 	
 	public static String addStringTerminator( String str )
 	{
-		/*StringBuffer buffer = new StringBuffer( str );
-		buffer.append( new Integer( 65535 ) );
-		return buffer.toString();*/
 		return str + -1;
 	}
 	
@@ -213,12 +214,12 @@ public class Scanner
 	
 	public static boolean isSeparator( int c )
 	{
-		if ( isNewLine( c ) || c == '\t' || c == ' ' )
+		if ( isNewLineChar( c ) || c == '\t' || c == ' ' )
 			return true;
 		return false;
 	}
 	
-	public static boolean isNewLine( int c )
+	public static boolean isNewLineChar( int c )
 	{
 		return ( c == '\n' || c == '\r' );
 	}
@@ -311,6 +312,8 @@ public class Scanner
 							retval = new Token( TokenType.SEQUENCE );
 						else if ( ch == '.' )
 							retval = new Token( TokenType.DOT );
+						/*else if ( ch == '#' )
+							retval = new Token( TokenType.HASH );*/
 						
 						readChar();
 					}
@@ -396,6 +399,8 @@ public class Scanner
 							retval = new Token( TokenType.EXIT );
 						else if ( "constants".equals( str ) )
 							retval = new Token( TokenType.CONSTANTS );
+						/*else if ( "undef".equals( str ) )
+							retval = new Token( TokenType.UNDEF );*/
 						else
 							retval = new Token( TokenType.ID, str );
 					}
@@ -452,9 +457,12 @@ public class Scanner
 						readChar();
 					}
 					break;
-				case 9: // LANGLE OR MINOR_OR_EQUAL
+				case 9: // LANGLE OR MINOR_OR_EQUAL OR DEEP_COPY_LEFT
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MINOR_OR_EQUAL );
+						readChar();
+					} else if ( ch == '<' ) {
+						retval = new Token( TokenType.DEEP_COPY_LEFT );
 						readChar();
 					} else
 						retval = new Token( TokenType.LANGLE );
@@ -493,10 +501,13 @@ public class Scanner
 						}
 					}
 					break;
-				case 14: // MINUS OR (negative) INT
+				case 14: // MINUS OR (negative) INT OR POINTS_TO
 					if ( Character.isDigit( ch ) )
 						state = 3;
-					else
+					else if ( ch == '>' ) {
+						retval = new Token( TokenType.POINTS_TO );
+						readChar();
+					} else
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line

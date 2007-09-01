@@ -60,6 +60,7 @@ public interface OLVisitor
 	public void visit( ProductExpressionNode n );
 	public void visit( SumExpressionNode n );
 	public void visit( VariableExpressionNode n );
+	//public void visit( VariableSizeExpressionNode n );
 	public void visit( NullProcessStatement n );
 	public void visit( Scope n );
 	public void visit( InstallCompensationStatement n );
@@ -67,7 +68,6 @@ public interface OLVisitor
 	public void visit( CompensateStatement n );
 	public void visit( ThrowStatement n );
 	public void visit( ExitStatement n );
-	//public void visit( VariablePath n );
 	public void visit( StateInfo n );
 	public void visit( ExecutionInfo n );
 	public void visit( CorrelationSetInfo n );
@@ -75,4 +75,7 @@ public interface OLVisitor
 	public void visit( OutputPortTypeInfo n );
 	public void visit( PortInfo n );
 	public void visit( ServiceInfo n );
+	public void visit( PointerStatement n );
+	public void visit( DeepCopyStatement n );
+	//public void visit( UndefStatement n );
 }

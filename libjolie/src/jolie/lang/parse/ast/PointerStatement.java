@@ -19,68 +19,33 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.lang.parse.ast;
 
-public final class Constants
+import jolie.lang.parse.OLVisitor;
+
+
+public class PointerStatement implements OLSyntaxNode
 {
-	public static final String VERSION = "JOLIE 1.0_tp1";
-	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
-	public static String newLineString = System.getProperty( "line.separator" );
+	private VariablePath leftPath, rightPath;
 
-	public enum StateMode {
-		PERSISTENT, NOT_PERSISTENT
-	}
-	
-	public enum ExecutionMode {
-		SINGLE, SEQUENTIAL, CONCURRENT
-	}
-	
-	public enum OperandType {
-		ADD, SUBTRACT,
-		MULTIPLY, DIVIDE
-	}
-	
-	public enum ProtocolId {
-		UNSUPPORTED,
-		SODEP,
-		SOAP,
-		HTTP
-	}
-	
-	public enum MediumId {
-		UNSUPPORTED,
-		SOCKET,
-		JAVA
-	}
-	
-	public enum VariableType {
-		UNDEFINED,	///< Undefined variable.
-		INT,		///< Integer variable. Used also by operations for type management.
-		STRING,		///< String variable. Used also by operations for type management.
-		VARIANT		///< Variant variable. Used only by operations for type management.
-	}
-	
-	public static long serialVersionUID() { return 1L; }
-	
-	public static ProtocolId stringToProtocolId( String str )
+	public PointerStatement( VariablePath leftPath, VariablePath rightPath )
 	{
-		if ( "soap".equals( str ) )
-			return ProtocolId.SOAP;
-		else if ( "sodep".equals( str ) )
-			return ProtocolId.SODEP;
-		else if ( "http".equals( str ) )
-			return ProtocolId.HTTP;
-		
-		return ProtocolId.UNSUPPORTED;
+		this.leftPath = leftPath;
+		this.rightPath = rightPath;
 	}
 	
-	public static MediumId stringToMediumId( String str )
+	public VariablePath leftPath()
 	{
-		if ( "socket".equals( str ) )
-			return MediumId.SOCKET;
-		else if ( "java".equals( str ) )
-			return MediumId.JAVA;
-		
-		return MediumId.UNSUPPORTED;
+		return leftPath;
+	}
+	
+	public VariablePath rightPath()
+	{
+		return rightPath;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

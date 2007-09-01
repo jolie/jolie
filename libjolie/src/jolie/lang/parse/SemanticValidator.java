@@ -34,6 +34,7 @@ import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
@@ -57,6 +58,7 @@ import jolie.lang.parse.ast.OrConditionNode;
 import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
@@ -275,6 +277,8 @@ public class SemanticValidator implements OLVisitor
 	 * @todo Must assign to a variable in varNames
 	 */
 	public void visit( AssignStatement n ) {}
+	public void visit( PointerStatement n ) {}
+	public void visit( DeepCopyStatement n ) {}
 	public void visit( IfStatement n ) {}
 	public void visit( InStatement n ) {}
 	public void visit( OutStatement n ) {}

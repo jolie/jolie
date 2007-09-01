@@ -28,6 +28,7 @@ import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
@@ -50,6 +51,7 @@ import jolie.lang.parse.ast.OrConditionNode;
 import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
@@ -308,6 +310,8 @@ public class OLParseTreeOptimizer
 		public void visit( LinkInStatement n ) { currNode = n; }
 		public void visit( LinkOutStatement n ) { currNode = n; }
 		public void visit( AssignStatement n ) { currNode = n; }
+		public void visit( DeepCopyStatement n ) { currNode = n; }
+		public void visit( PointerStatement n ) { currNode = n; }
 		public void visit( InStatement n ) { currNode = n; }
 		public void visit( OutStatement n ) { currNode = n; }
 		public void visit( ProcedureCallStatement n ) { currNode = n; }
