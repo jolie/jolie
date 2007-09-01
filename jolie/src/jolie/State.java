@@ -68,6 +68,11 @@ public class State implements Cloneable
 		
 		return new State( map );
 	}
+	
+	public void setValues( GlobalVariable var, Vector< Value > newValues )
+	{
+		stateMap.put( var, newValues );
+	}
 
 	public Vector< Value > getValues( GlobalVariable var )
 	{

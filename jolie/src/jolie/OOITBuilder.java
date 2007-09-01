@@ -43,6 +43,7 @@ import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
@@ -66,6 +67,7 @@ import jolie.lang.parse.ast.OrConditionNode;
 import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
@@ -83,6 +85,7 @@ import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.VariablePath;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
@@ -95,6 +98,7 @@ import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
 import jolie.process.CorrelatedInputProcess;
 import jolie.process.CorrelatedProcess;
+import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
 import jolie.process.ExitProcess;
 import jolie.process.IfProcess;
@@ -110,6 +114,7 @@ import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
 import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
+import jolie.process.PointerProcess;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.ScopeProcess;
@@ -482,29 +487,67 @@ public class OOITBuilder implements OLVisitor
 	{
 		try {
 			n.expression().accept( this );
-			Expression assignExpression = currExpression;
-			
-			n.variablePath().varElement().accept( this );
-			Expression varElement = currExpression;
-			
-			LinkedList< Pair< String, Expression > > list =
-							new LinkedList< Pair< String, Expression > >();
-			Expression attribute = null;
-			
-			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
-				currExpression = null;
-				pair.value().accept( this );
-				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
-			}
-			if ( n.variablePath().attribute() != null ) {
-				n.variablePath().attribute().accept( this );
-				attribute = currExpression;
-			}
 			
 			currProcess =
 				new AssignmentProcess(
-					GlobalVariablePath.create( n.variablePath().varId(), varElement, list, attribute ),
-					assignExpression
+					getGlobalVariablePath( n.variablePath() ),
+					currExpression
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	private GlobalVariablePath getGlobalVariablePath( VariablePath path )
+		throws InvalidIdException
+	{
+		Expression backupExpr = currExpression;
+		
+		Expression varElement = null;
+		if ( path.varElement() != null ) {
+			path.varElement().accept( this );
+			varElement = currExpression;
+		}
+
+		LinkedList< Pair< String, Expression > > list =
+							new LinkedList< Pair< String, Expression > >();
+		Expression attribute = null;
+		for( Pair< String, OLSyntaxNode > pair : path.path() ) {
+			currExpression = null;
+			if ( pair.value() != null )
+				pair.value().accept( this );
+			list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
+		}
+		if ( path.attribute() != null ) {
+			path.attribute().accept( this );
+			attribute = currExpression;
+		}
+		
+		currExpression = backupExpr;
+		
+		return GlobalVariablePath.create( path.varId(), varElement, list, attribute );
+	}
+	
+	public void visit( PointerStatement n )
+	{
+		try {
+			currProcess =
+				new PointerProcess(
+					getGlobalVariablePath( n.leftPath() ),
+					getGlobalVariablePath( n.rightPath() )
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( DeepCopyStatement n )
+	{
+		try {
+			currProcess =
+				new DeepCopyProcess(
+					getGlobalVariablePath( n.leftPath() ),
+					getGlobalVariablePath( n.rightPath() )
 					);
 		} catch( InvalidIdException e ) {
 			error( e );
@@ -533,24 +576,8 @@ public class OOITBuilder implements OLVisitor
 	public void visit( InStatement n )
 	{
 		try {
-			n.variablePath().varElement().accept( this );
-			Expression varElement = currExpression;
-			
-			LinkedList< Pair< String, Expression > > list =
-							new LinkedList< Pair< String, Expression > >();
-			Expression attribute = null;
-			
-			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
-				currExpression = null;
-				pair.value().accept( this );
-				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
-			}
-			if ( n.variablePath().attribute() != null ) {
-				n.variablePath().attribute().accept( this );
-				attribute = currExpression;
-			}
 			currProcess = new InProcess(
-					GlobalVariablePath.create( n.variablePath().varId(), varElement, list, attribute )
+					getGlobalVariablePath( n.variablePath() )
 					);
 		} catch( InvalidIdException e ) {
 			error( e );
@@ -665,24 +692,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( VariableExpressionNode n )
 	{
 		try {
-			n.variablePath().varElement().accept( this );
-			Expression varElement = currExpression;
-			LinkedList< Pair< String, Expression > > list =
-							new LinkedList< Pair< String, Expression > >();
-			Expression attribute = null;
-			
-			for( Pair< String, OLSyntaxNode > pair : n.variablePath().path() ) {
-				currExpression = null;
-				pair.value().accept( this );
-				list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
-			}
-			if ( n.variablePath().attribute() != null ) {
-				n.variablePath().attribute().accept( this );
-				attribute = currExpression;
-			}
-			currExpression = GlobalVariablePath.create(
-					n.variablePath().varId(), varElement, list, attribute
-					);
+			currExpression = getGlobalVariablePath( n.variablePath() );
 		} catch( InvalidIdException e ) {
 			error( e );
 		}

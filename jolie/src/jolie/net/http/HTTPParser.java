@@ -76,12 +76,25 @@ public class HTTPParser
 			throwException();
 	}
 	
-	public HTTPMessage parse()
+	private void eatHeaderUntil( boolean condition )
 		throws IOException
 	{
+		while(
+				token.isNot( Scanner.TokenType.EOF ) &&
+				token.isNot( Scanner.TokenType.ERROR ) &&
+				condition == false
+				) {
+			getToken();
+		}
+	}
+	
+	public HTTPMessage parse()
+		throws IOException
+	{		
 		getToken();
 		int contentLength = 0;
 		int httpCode = 0;
+		String contentType = new String();
 		HTTPMessage message = null;
 		HTTPMessage.Type type = HTTPMessage.Type.ERROR;
 		String requestPath = null;
@@ -103,19 +116,14 @@ public class HTTPParser
 			tokenAssert( Scanner.TokenType.INT );
 			httpCode = Integer.parseInt( token.content() );
 			getToken();
-			while(
-					token.isNot( Scanner.TokenType.EOF ) &&
-					token.isNot( Scanner.TokenType.ERROR ) &&
-					!token.isKeywordIgnoreCase( "Content-Length" )
-					) {
-				getToken();
-			}
+			eatHeaderUntil( token.isKeywordIgnoreCase( "Content-Length" ) );
+			
 			conditionAssert( token.isKeywordIgnoreCase( "Content-Length" ) );
 			getToken();
 			eat( Scanner.TokenType.COLON );
 			tokenAssert( Scanner.TokenType.INT );
 			contentLength = Integer.parseInt( token.content() );
-			
+
 			type = HTTPMessage.Type.RESPONSE;
 		} else {
 			if ( token.isKeyword( POST ) ) {
@@ -127,47 +135,49 @@ public class HTTPParser
 			}
 
 			requestPath = scanner.readWord().substring( 1 );
-			while(
-					token.isNot( Scanner.TokenType.EOF ) &&
-					token.isNot( Scanner.TokenType.ERROR ) &&
-					!token.isKeywordIgnoreCase( "Content-Length" )
-					) {
-				getToken();
-			}
-
-			if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
-				getToken();
-				eat( Scanner.TokenType.COLON );
-				tokenAssert( Scanner.TokenType.INT );
-				contentLength = Integer.parseInt( token.content() );
-			} else {
-				contentLength = 0;
+			
+			while( token.isNot( Scanner.TokenType.EOF ) ) {
+				eatHeaderUntil(
+					token.isKeywordIgnoreCase( "Content-Length" ) ||
+					token.isKeywordIgnoreCase( "Content-Type" )
+					);
+				if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
+					getToken();
+					eat( Scanner.TokenType.COLON );
+					tokenAssert( Scanner.TokenType.INT );
+					contentLength = Integer.parseInt( token.content() );
+				} else if ( token.isKeywordIgnoreCase( "Content-Type" ) ) {
+					getToken();
+					eat( Scanner.TokenType.COLON );
+					contentType = scanner.readWord();
+				}
 			}
 		}
-		
+
 		char buffer[] = new char[ contentLength ];
 		if ( contentLength != 0 ) {
+			InputStream stream = scanner.inputStream();
+			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
+
+			buffer[0] = scanner.currentCharacter();
+			reader.read( buffer, 0, contentLength );
+		}
+		
+		/*if ( true ) {
 			InputStream stream = scanner.inputStream();
 			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
 
 			// Eat the rest of the HTTP header
 			String line;
 			do {
-				line = reader.readLine();
-			} while( line != null && !"".equals( line ) );
-
-			// Eat empty lines
-			int ch;
-			while( Scanner.isNewLine( (ch=reader.read()) ) );
-
-			buffer[0] = (char)ch;
-			reader.read( buffer, 1, contentLength - 1 );
-		}
+				System.out.println( line = reader.readLine() );
+			} while( line != null );
+		}application/x-www-form-urlencoded*/
 		
 		if ( type == HTTPMessage.Type.RESPONSE ) {
 			message = new HTTPMessage( httpCode, buffer );
 		} else {
-			message = new HTTPMessage( type, requestPath, buffer );
+			message = new HTTPMessage( type, requestPath, contentType, buffer );
 		}
 
 		return message;

@@ -101,6 +101,11 @@ public class Interpreter
 		return ExecutionThread.currentThread().state().getValues( var );
 	}
 	
+	public static void setValues( GlobalVariable var, Vector< Value > newValues )
+	{
+		ExecutionThread.currentThread().state().setValues( var, newValues );
+	}
+	
 	public static void setCorrelationSet( Set< GlobalVariable > set )
 	{
 		correlationSet = set;

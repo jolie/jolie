@@ -19,69 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+package jolie.process;
 
-import java.io.CharArrayReader;
+import jolie.ExecutionThread;
+import jolie.runtime.GlobalVariablePath;
 
-
-public class HTTPMessage
+public class PointerProcess implements Process
 {
-	public enum Type {
-		RESPONSE, POST, GET, ERROR
-	}
-	
-	private Type type;
-	private char[] content;
-	private String contentType;
-	private int httpCode;
-	private String requestPath;
+	private GlobalVariablePath leftPath, rightPath;
 
-	public HTTPMessage( int httpCode, char[] content )
+	public PointerProcess( GlobalVariablePath leftPath, GlobalVariablePath rightPath )
 	{
-		this.httpCode = httpCode;
-		this.content = content;
-		this.type = Type.RESPONSE;
+		this.leftPath = leftPath;
+		this.rightPath = rightPath;
 	}
 	
-	public HTTPMessage(
-			Type type,
-			String requestPath,
-			String contentType,
-			char[] content )
+	public void run()
 	{
-		this.type = type;
-		this.content = content;
-		this.contentType = contentType;
-		this.requestPath = requestPath;
-	}
-	
-	public String contentType()
-	{
-		return contentType;
-	}
-	
-	public int size()
-	{
-		return content.length;
-	}
-	
-	public String requestPath()
-	{
-		return requestPath;
-	}
-	
-	public Type type()
-	{
-		return type;
-	}
-	
-	public int httpCode()
-	{
-		return httpCode;
-	}
-	
-	public CharArrayReader contentStream()
-	{
-		return new CharArrayReader( content );
+		if ( ExecutionThread.killed() )
+			return;
+
+		leftPath.makePointer( rightPath );
 	}
 }

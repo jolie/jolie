@@ -33,18 +33,21 @@ public class HTTPScanner extends Scanner
 	{
 		super( stream, sourceName );
 	}
-	
+
 	public Token getToken()
 		throws IOException
 	{
 		state = 1;
 		
-		char prev;
+		String tmp = new String();
+		tmp += ch;
+		int i;
 		while ( currByte != -1 && isSeparator( ch ) ) {
-			prev = ch;
 			readChar();
-			if ( isNewLine( prev ) && isNewLine( ch ) )
+			tmp += ch;
+			if ( (i=tmp.indexOf( '\n', 0 )) < tmp.indexOf( '\n', i + 1 ) ) {
 				return new Token( TokenType.EOF );
+			}
 		}
 		
 		if ( currByte == -1 )
@@ -111,6 +114,8 @@ public class HTTPScanner extends Scanner
 							retval = new Token( TokenType.SEQUENCE );
 						else if ( ch == '.' )
 							retval = new Token( TokenType.DOT );
+						else if ( ch == '/' )
+							retval = new Token( TokenType.DIVIDE );
 						
 						readChar();
 					}
@@ -121,85 +126,6 @@ public class HTTPScanner extends Scanner
 							ch != '_' &&
 							ch != '-' &&
 							ch != '+' ) {
-						/*if ( "OneWay".equals( str ) )
-							retval = new Token( TokenType.OP_OW );
-						else if ( "RequestResponse".equals( str ) )
-							retval = new Token( TokenType.OP_RR );
-						else if ( "Notification".equals( str ) )
-							retval = new Token( TokenType.OP_N );
-						else if ( "SolicitResponse".equals( str ) )
-							retval = new Token( TokenType.OP_SR );
-						else if ( "linkIn".equals( str ) )
-							retval = new Token( TokenType.LINKIN );
-						else if ( "linkOut".equals( str ) )
-							retval = new Token( TokenType.LINKOUT );
-						else if ( "if".equals( str ) )
-							retval = new Token( TokenType.IF );
-						else if ( "else".equals( str ) )
-							retval = new Token( TokenType.ELSE );
-						else if ( "in".equals( str ) )
-							retval = new Token( TokenType.IN );
-						else if ( "out".equals( str ) )
-							retval = new Token( TokenType.OUT );
-						else if ( "and".equals( str ) )
-							retval = new Token( TokenType.AND );
-						else if ( "or".equals( str ) )
-							retval = new Token( TokenType.OR );
-						else if ( "locations".equals( str ) )
-							retval = new Token( TokenType.LOCATIONS );
-						else if ( "operations".equals( str ) )
-							retval = new Token( TokenType.OPERATIONS );
-						else if ( "include".equals( str ) )
-							retval = new Token( TokenType.INCLUDE );
-						else if ( "main".equals( str ) )
-							retval = new Token( TokenType.MAIN );
-						else if ( "define".equals( str ) )
-							retval = new Token( TokenType.DEFINE );
-						else if ( "links".equals( str ) )
-							retval = new Token( TokenType.LINKS );
-						else if ( "nullProcess".equals( str ) )
-							retval = new Token( TokenType.NULL_PROCESS );
-						else if ( "while".equals( str ) )
-							retval = new Token( TokenType.WHILE );
-						else if ( "sleep".equals( str ) )
-							retval = new Token( TokenType.SLEEP );
-						else if ( "int".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_INT );
-						else if ( "string".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_STRING );
-						else if ( "variant".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_VARIANT );
-						else if ( "cset".equals( str ) )
-							retval = new Token( TokenType.CSET );
-						else if ( "persistent".equals( str ) )
-							retval = new Token( TokenType.PERSISTENT );
-						else if ( "not_persistent".equals( str ) )
-							retval = new Token( TokenType.NOT_PERSISTENT );
-						else if ( "single".equals( str ) )
-							retval = new Token( TokenType.SINGLE );
-						else if ( "concurrent".equals( str ) )
-							retval = new Token( TokenType.CONCURRENT );
-						else if ( "sequential".equals( str ) )
-							retval = new Token( TokenType.SEQUENTIAL );
-						else if ( "state".equals( str ) )
-							retval = new Token( TokenType.STATE );
-						else if ( "execution".equals( str ) )
-							retval = new Token( TokenType.EXECUTION );
-						else if ( "installFH".equals( str ) )
-							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
-						else if ( "installComp".equals( str ) )
-							retval = new Token( TokenType.INSTALL_COMPENSATION );
-						else if ( "throw".equals( str ) )
-							retval = new Token( TokenType.THROW );
-						else if ( "scope".equals( str ) )
-							retval = new Token( TokenType.SCOPE );
-						else if ( "comp".equals( str ) )
-							retval = new Token( TokenType.COMPENSATE );
-						else if ( "exit".equals( str ) )
-							retval = new Token( TokenType.EXIT );
-						else if ( "constants".equals( str ) )
-							retval = new Token( TokenType.CONSTANTS );
-						else*/
 						retval = new Token( TokenType.ID, str );
 					}
 					break;	
@@ -277,13 +203,13 @@ public class HTTPScanner extends Scanner
 						retval = new Token( TokenType.NOT );
 					break;
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
-					if ( ch == '*' ) {
+					/*if ( ch == '*' ) {
 						state = 13;
 						readChar();
 					} else if ( ch == '/' )  {
 						state = 15;
 						readChar();
-					} else
+					} else*/
 						retval = new Token( TokenType.DIVIDE );
 					break;
 				case 13: // WAITING FOR END_COMMENT
