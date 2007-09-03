@@ -194,7 +194,8 @@ public class HTTPProtocol implements CommProtocol
 			System.out.println("---");
 			while( (p=r.readLine()) != null ) 
 				System.out.println(p+ "-");
-			System.out.println("---");*/
+			System.out.println("---");
+		*/
 			
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
@@ -231,6 +232,8 @@ public class HTTPProtocol implements CommProtocol
 				vector.add( value );
 				//opId = doc.getDocumentElement().getFirstChild().getNodeName();
 			}
+			
+			
 
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) {
 				retVal = new CommMessage( inputId, vector );
