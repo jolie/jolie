@@ -75,7 +75,7 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		if ( ExecutionThread.killed() )
 			return;
 		operation.getMessage( this );
-		
+
 		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 		if ( fields.pendingFault != null )
 			throw fields.pendingFault;
