@@ -118,10 +118,6 @@ public class OLParser extends AbstractParser
 			parsePorts();
 			parseInclude();
 			parseService();
-			/*parseInclude();
-			parseCorrelationSet();*/
-			/*parseInclude();
-			parseOperations();*/
 			parseInclude();
 			parseCode();
 		} while( t != token && t.isNot( Scanner.TokenType.EOF ) );
@@ -222,7 +218,7 @@ public class OLParser extends AbstractParser
 			getToken();
 		}
 	}
-	
+
 	private boolean checkConstant()
 	{
 		if ( token.is( Scanner.TokenType.ID ) ) {

@@ -25,7 +25,7 @@ public final class Constants
 {
 	public static final String VERSION = "JOLIE 1.0_tp1";
 	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
-	public static String newLineString = System.getProperty( "line.separator" );
+	//public static String newLineString = System.getProperty( "line.separator" );
 
 	public enum StateMode {
 		PERSISTENT, NOT_PERSISTENT
@@ -46,7 +46,7 @@ public final class Constants
 		SOAP,
 		HTTP
 	}
-	
+
 	public enum MediumId {
 		UNSUPPORTED,
 		SOCKET,
