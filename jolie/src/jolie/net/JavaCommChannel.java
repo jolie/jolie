@@ -21,24 +21,74 @@
 
 package jolie.net;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import jolie.runtime.FaultException;
+
 public class JavaCommChannel extends CommChannel
 {
-	private JavaService javaService;
+	private Object javaService;
 	private CommMessage lastMessage = null;
 
-	public JavaCommChannel( JavaService javaService )
+	public JavaCommChannel( Object javaService )
 	{
 		this.javaService = javaService;
 	}
 	
 	public void send( CommMessage message )
+		throws IOException
 	{
-		if ( javaService != null )
-			lastMessage = javaService.recv( message );
+		lastMessage = null;
+		if ( javaService != null ) {
+			try {
+				Class<?>[] params = new Class[] { CommMessage.class };
+				Method method = javaService.getClass().getMethod(
+						message.inputId(),
+						params
+						);
+				Object[] args = new Object[] { message };
+				if ( CommMessage.class.isAssignableFrom( method.getReturnType() ) ) {
+					// It's a Request-Response
+					try {
+						lastMessage = (CommMessage)method.invoke( javaService, args );
+					} catch( InvocationTargetException ite ) {
+						Throwable t = ite.getCause();
+						if ( t instanceof FaultException ) {
+							// The operation threw a fault
+							FaultException f = (FaultException) t;
+							lastMessage = new CommMessage(
+										message.inputId(),
+										f
+										);
+						} else {
+							// The operation raised an exception
+							throw new IOException( t );
+						}
+					}
+				} else {
+					// @todo Verify that it is void
+					// It's a One-Way
+					try {
+						method.invoke( javaService, args );
+					} catch( InvocationTargetException ite ) {
+						throw new IOException( ite.getCause() );
+					}
+				}
+			} catch( NoSuchMethodException noe ) {
+				throw new IOException( noe );
+			} catch( IllegalAccessException iae ) {
+				throw new IOException( iae );
+			}
+		}
 	}
 	
 	public CommMessage recv()
+		throws IOException
 	{
+		if ( lastMessage == null )
+			throw new IOException( "Called operation is not a Request-Response" );
 		CommMessage ret = lastMessage;
 		lastMessage = null;
 		return ret;

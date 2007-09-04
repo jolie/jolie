@@ -71,9 +71,9 @@ abstract public class CommChannel
 				Class<?> c =
 					ClassLoader.getSystemClassLoader().loadClass( uri.getSchemeSpecificPart() );
 				
-				if ( JavaService.class.isAssignableFrom( c ) == false )
-					throw new IOException( "Specified file is not a valid JOLIE java service" );
-				channel = new JavaCommChannel( (JavaService)c.newInstance() );
+				//if ( JavaService.class.isAssignableFrom( c ) == false )
+				//	throw new IOException( "Specified file is not a valid JOLIE java service" );
+				channel = new JavaCommChannel( c.newInstance() );
 			} catch( ClassNotFoundException ce ) {
 				throw new IOException( ce );
 			} catch( IllegalAccessException iae ) {
