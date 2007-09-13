@@ -94,21 +94,26 @@ abstract public class InputOperation extends Operation implements InputHandler
 		//}
 	}
 	
+	/**
+	 * @todo this does not work anymore!
+	 */
 	private synchronized Pair< ExecutionThread, InputProcess > getCorrelatedPair( CommMessage message )
 	{
 		for( Pair< ExecutionThread, InputProcess > pair : procsList ) {
 			if ( pair.value() instanceof InputOperationProcess ) {
-				InputOperationProcess process = (InputOperationProcess) pair.value();
-				if ( pair.key().checkCorrelation( process.inputVars(), message ) ) {
+				//InputOperationProcess process = (InputOperationProcess) pair.value();
+				/*if ( pair.key().checkCorrelation( process.inputVarPath(), message ) ) {
 					procsList.remove( pair );
 					return pair;
-				}
+				}*/
+				return pair;
 			} else if ( pair.value() instanceof NDChoiceProcess ) {
-				NDChoiceProcess process = (NDChoiceProcess) pair.value();
-				if ( pair.key().checkCorrelation( process.inputVars( this.id() ), message ) ) {
+				//NDChoiceProcess process = (NDChoiceProcess) pair.value();
+				/*if ( pair.key().checkCorrelation( process.inputVarPath( this.id() ), message ) ) {
 					procsList.remove( pair );
 					return pair;
-				}
+				}*/
+				return pair;
 			}
 		}
 		

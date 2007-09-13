@@ -21,11 +21,9 @@
 
 package jolie.process;
 
-import java.util.List;
-
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 
 public interface InputOperationProcess extends InputProcess
 {
-	public List< GlobalVariable > inputVars();
+	public GlobalVariablePath inputVarPath();
 }

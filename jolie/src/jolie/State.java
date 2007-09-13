@@ -22,7 +22,6 @@
 package jolie;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Vector;
@@ -86,11 +85,9 @@ public class State implements Cloneable
 	
 	public boolean checkCorrelation( List< GlobalVariable > vars, CommMessage message )
 	{
-		Iterator< Value > it = message.iterator();
-		Value val;
+		Value val = message.value();
 		Value varValue;
 		for( GlobalVariable var : vars ) {
-			val = it.next();
 			if ( Interpreter.correlationSet().contains( var ) && getValues( var ).size() > 0 ) {
 				varValue = getValues( var ).elementAt( 0 ); // TODO - this does not work anymore with structured data!
 				try {

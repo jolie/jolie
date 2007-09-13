@@ -22,12 +22,11 @@
 package jolie.process;
 
 import java.util.HashMap;
-import java.util.List;
 
 import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 
 /** Implements a non-deterministic choice.
@@ -102,11 +101,11 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		this.correlatedProcess = process;
 	}
 	
-	public List< GlobalVariable > inputVars( String operationId )
+	public GlobalVariablePath inputVarPath( String operationId )
 	{
 		for( ChoicePair cp : inputMap.values() ) {
 			if ( cp.inputProcess().inputHandler().id().equals( operationId ) )
-				return ((InputOperationProcess)(cp.inputProcess())).inputVars();
+				return ((InputOperationProcess)(cp.inputProcess())).inputVarPath();
 		}
 		return null;
 	}

@@ -22,7 +22,6 @@
 package jolie;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -379,20 +378,14 @@ public class OOITBuilder implements OLVisitor
 		currProcess = proc;
 	}
 		
-	private Vector< GlobalVariable > getVariables( Collection< String > varNames )
-	{
-		Vector< GlobalVariable > vars = new Vector< GlobalVariable >();
-		for( String id : varNames )
-			vars.add( GlobalVariable.getById( id ) );
-
-		return vars;
-	}
-		
 	public void visit( OneWayOperationStatement n )
 	{
 		try {
 			currProcess =
-				new OneWayProcess( OneWayOperation.getById( n.id() ), getVariables( n.inVars() ) );
+				new OneWayProcess(
+						OneWayOperation.getById( n.id() ),
+						getGlobalVariablePath( n.inputVarPath() )
+						);
 		} catch( InvalidIdException e ) {
 			error( e ); 
 		}
@@ -405,8 +398,8 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new RequestResponseProcess(
 						RequestResponseOperation.getById( n.id() ),
-						getVariables( n.inVars() ),
-						getVariables( n.outVars() ),
+						getGlobalVariablePath( n.inputVarPath() ),
+						getGlobalVariablePath( n.outputVarPath() ),
 						currProcess
 						);
 		} catch( InvalidIdException e ) {
@@ -422,7 +415,7 @@ public class OOITBuilder implements OLVisitor
 				new NotificationProcess(
 						NotificationOperation.getById( n.id() ),
 						new Location( currExpression ),
-						getVariables( n.outVars() )
+						getGlobalVariablePath( n.outputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
 			error( e );
@@ -437,8 +430,8 @@ public class OOITBuilder implements OLVisitor
 				new SolicitResponseProcess(
 						SolicitResponseOperation.getById( n.id() ),
 						new Location( currExpression ),
-						getVariables( n.outVars() ),
-						getVariables( n.inVars() )
+						getGlobalVariablePath( n.outputVarPath() ),
+						getGlobalVariablePath( n.inputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
 			error( e );

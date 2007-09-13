@@ -21,27 +21,23 @@
 
 package jolie.process;
 
-import java.util.List;
-import java.util.Vector;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
-import jolie.runtime.Value;
 
 public class OneWayProcess implements InputOperationProcess, CorrelatedInputProcess
 {
 	private InputOperation operation;
-	private Vector< GlobalVariable > varsVec;
+	private GlobalVariablePath varPath;
 	private CorrelatedProcess correlatedProcess = null;
 
-	public OneWayProcess( InputOperation operation, Vector< GlobalVariable > varsVec )
+	public OneWayProcess( InputOperation operation, GlobalVariablePath varPath )
 	{
 		this.operation = operation;
-		this.varsVec = varsVec;
+		this.varPath = varPath;
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
@@ -61,20 +57,17 @@ public class OneWayProcess implements InputOperationProcess, CorrelatedInputProc
 		operation.getMessage( this );
 	}
 	
-	public List< GlobalVariable > inputVars()
+	public GlobalVariablePath inputVarPath()
 	{
-		return varsVec;
+		return varPath;
 	}
 	
 	public boolean recvMessage( CommMessage message )
 	{
 		if ( correlatedProcess != null )
 			correlatedProcess.inputReceived();
-		if ( message.inputId().equals( operation.id() ) &&
-				varsVec.size() == message.size() ) {
-			int i = 0;
-			for( Value recvVal : message )
-				varsVec.elementAt( i++ ).value().deepCopy( recvVal );
+		if ( message.inputId().equals( operation.id() ) ) {
+			varPath.getValue().deepCopy( message.value() );
 		} else {
 			Interpreter.logger().warning( "Rejecting malformed packet for operation " + operation.id() + ": wrong variables number" );
 			return false;

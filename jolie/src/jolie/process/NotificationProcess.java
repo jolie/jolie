@@ -23,27 +23,28 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.Location;
 import jolie.runtime.OutputOperation;
-import jolie.runtime.Value;
-import jolie.runtime.Variable;
 
 public class NotificationProcess implements Process
 {
 	private OutputOperation operation;
-	private Vector< GlobalVariable > varsVec;
+	private GlobalVariablePath varPath;
 	private Location location;
 
-	public NotificationProcess( OutputOperation operation, Location location, Vector< GlobalVariable > varsVec )
+	public NotificationProcess(
+			OutputOperation operation,
+			Location location,
+			GlobalVariablePath varPath
+			)
 	{
 		this.operation = operation;
-		this.varsVec = varsVec;
+		this.varPath = varPath;
 		this.location = location;
 	}
 	
@@ -53,12 +54,13 @@ public class NotificationProcess implements Process
 			return;
 
 		try {
-			Vector< Value > valsVec = new Vector< Value >();
-			for( Variable var : varsVec )
-				valsVec.add( var.value() );
-
-			CommMessage message = new CommMessage( operation.id(), valsVec );
-			CommChannel channel = CommChannel.createCommChannel( location, operation.getOutputProtocol( location ) );
+			CommMessage message =
+				new CommMessage( operation.id(), varPath.getValue() );
+			CommChannel channel =
+				CommChannel.createCommChannel(
+						location,
+						operation.getOutputProtocol( location )
+						);
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

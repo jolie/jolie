@@ -110,10 +110,8 @@ public class HTTPProtocol implements CommProtocol
 			Document doc = builder.newDocument();
 
 			Element root = doc.createElement( "root" );
-			for( Value val : message ) {
-				xmlString += val.strValue();
-				valueToDocument( val, root, doc );
-			}
+			xmlString += message.value().strValue();
+			valueToDocument( message.value(), root, doc );
 			
 			NodeList list = root.getChildNodes();
 			for( int i = 0; i < list.getLength(); i++ )
@@ -202,7 +200,7 @@ public class HTTPProtocol implements CommProtocol
 		CommMessage retVal = null;
 
 		try {
-			Vector< Value > vector = new Vector< Value >();
+			Value messageValue = new Value();
 			//String opId = null;
 			if ( message.size() > 0 ) {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -223,24 +221,20 @@ public class HTTPProtocol implements CommProtocol
 			
 				Document doc = builder.parse( src );
 
-				Value value = new Value();
 				elementsToSubValues(
-							value,
+							messageValue,
 							doc.getDocumentElement().getFirstChild().getChildNodes()
 						);
-				
-				vector.add( value );
-				//opId = doc.getDocumentElement().getFirstChild().getNodeName();
 			}
 			
 			
 
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) {
-				retVal = new CommMessage( inputId, vector );
+				retVal = new CommMessage( inputId, messageValue );
 			} else if (
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET ) {
-				retVal = new CommMessage( message.requestPath(), vector );
+				retVal = new CommMessage( message.requestPath(), messageValue );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );

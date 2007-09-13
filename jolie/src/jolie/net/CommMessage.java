@@ -22,72 +22,44 @@
 
 package jolie.net;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Vector;
-
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
-public class CommMessage implements Iterable< Value >
-{
+public class CommMessage
+{	
 	private String inputId;
-	private Vector< Value > values;
+	private Value value;
 	private boolean fault = false;
-	
-	public CommMessage()
+
+	public CommMessage( String inputId, Value value )
 	{
-		inputId = "";
-		values = new Vector< Value >();
+		this.inputId = inputId;
+		this.value = value;
 	}
 	
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;
-		this.values = new Vector< Value >();
+		this.value = new Value();
 	}
-	
+
 	public CommMessage( String inputId, FaultException f )
 	{
 		this.inputId = inputId;
-		this.values = new Vector< Value >();
-		this.values.add( new Value( f.fault() ) );
+		this.value = new Value( f.fault() );
 		fault = true;
 	}
 	
-	public CommMessage( String inputId, Vector< ? extends Value > values )
+	public Value value()
 	{
-		this.inputId = inputId;
-		this.values = new Vector< Value >();
-		addAllValues( values );
+		return value;
 	}
-
+	
 	public String inputId()
 	{
 		return inputId;
 	}
 
-	public void addValue( Value val )
-	{
-		values.add( val );
-	}
-	
-	public final void addAllValues( Collection< ? extends Value > vals )
-	{
-		for( Value val : vals )
-			addValue( val );
-	}
-	
-	public Iterator< Value > iterator()
-	{
-		return values.iterator();
-	}
-	
-	public int size()
-	{
-		return values.size();
-	}
-	
 	public boolean isFault()
 	{
 		return fault;
@@ -95,6 +67,6 @@ public class CommMessage implements Iterable< Value >
 	
 	public String faultName()
 	{
-		return values.elementAt( 0 ).strValue();
+		return value.strValue();
 	}
 }

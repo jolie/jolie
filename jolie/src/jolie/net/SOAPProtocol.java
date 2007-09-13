@@ -151,9 +151,7 @@ public class SOAPProtocol implements CommProtocol
 			Name operationName = soapEnvelope.createName( message.inputId(), "", messageNamespace );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 			
-			for( Value val : message ) {
-				valueToSOAPBody( val, opBody, soapEnvelope );
-			}
+			valueToSOAPBody( message.value(), opBody, soapEnvelope );
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
@@ -345,15 +343,18 @@ public class SOAPProtocol implements CommProtocol
 			soapMessage.getSOAPPart().setContent( dom );
 			
 			Value value = new Value();
-			soapElementsToSubValues( value, soapMessage.getSOAPBody().getFirstChild().getChildNodes() );
-			Vector< Value > vector = new Vector< Value >();
-			vector.add( value );
+			soapElementsToSubValues(
+					value, soapMessage.getSOAPBody().getFirstChild().getChildNodes()
+					);
 			
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
-				retVal = new CommMessage( inputId, vector );
-			} else if ( message.type() == HTTPMessage.Type.POST ) {
-				String id = soapMessage.getSOAPBody().getFirstChild().getNodeName();
-				retVal = new CommMessage( id, vector );
+				retVal = new CommMessage( inputId, value );
+			} else if (
+					message.type() == HTTPMessage.Type.POST ||
+					message.type() == HTTPMessage.Type.GET
+					) {
+				// @todo -- Beware, this does not handle a querystring or nested paths! 
+				retVal = new CommMessage( message.requestPath(), value );
 			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );

@@ -23,8 +23,6 @@ package jolie.process;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -32,31 +30,31 @@ import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.Value;
-import jolie.runtime.Variable;
 
 public class RequestResponseProcess implements InputOperationProcess, CorrelatedInputProcess
 {
 	private RequestResponseOperation operation;
-	private Vector< GlobalVariable > varsVec;
+	private GlobalVariablePath inputVarPath, outputVarPath;
 	private Process process;
-	private Vector< GlobalVariable > outVars;
 	private CorrelatedProcess correlatedProcess = null;
 
 	public static class Fields {
 		private FaultException pendingFault = null;
 	}
-
 	
-	public RequestResponseProcess( RequestResponseOperation operation, Vector< GlobalVariable > varsVec, Vector< GlobalVariable > outVars, Process process )
+	public RequestResponseProcess(
+			RequestResponseOperation operation,
+			GlobalVariablePath inputVarPath,
+			GlobalVariablePath outputVarPath,
+			Process process )
 	{
 		this.operation = operation;
-		this.varsVec = varsVec;
+		this.inputVarPath = inputVarPath;
 		this.process = process;
-		this.outVars = outVars;
+		this.outputVarPath = outputVarPath;
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
@@ -64,9 +62,9 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		this.correlatedProcess = process;
 	}
 	
-	public List< GlobalVariable > inputVars()
+	public GlobalVariablePath inputVarPath()
 	{
-		return varsVec;
+		return inputVarPath;
 	}
 	
 	public void run()
@@ -86,15 +84,19 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		return operation;
 	}
 	
+	/*
+	 * @todo can't we receive just the Value in the message?
+	 * @todo can't we receive the CommChannel as a parameter, to kill CommChannel.current ?
+	 */
 	public boolean recvMessage( CommMessage message )
 	{
 		if ( correlatedProcess != null )
 			correlatedProcess.inputReceived();
-		if ( message.inputId().equals( operation.id() ) &&
-				varsVec.size() == message.size() ) {
-			int i = 0;
-			for( Value recvVal : message )
-				varsVec.elementAt( i++ ).value().deepCopy( recvVal );
+		
+		// @todo -- 
+		// Do we still need this at this point? The CommCore should have handled this.
+		if ( message.inputId().equals( operation.id() ) ) {
+			inputVarPath.getValue().deepCopy( message.value() );
 		} else {
 			Interpreter.logger().warning( "Rejecting malformed packet for operation " + operation.id() + ": wrong variables number" );
 			return false;
@@ -103,11 +105,7 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		CommMessage response = null;
 		try {
 			process.run();
-			Vector< Value > valsVec = new Vector< Value >();
-			for( Variable var : outVars ) 
-				valsVec.add( var.value() );
-
-			response = new CommMessage( operation.id(), valsVec );
+			response = new CommMessage( operation.id(), outputVarPath.getValue() );
 		} catch( FaultException f ) {
 			Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 			fields.pendingFault = f;

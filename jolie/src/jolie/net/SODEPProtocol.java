@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Iterator;
 
 import jolie.lang.parse.Scanner;
 import jolie.runtime.FaultException;
@@ -84,18 +83,19 @@ public class SODEPProtocol implements CommProtocol
 		} else {
 			mesg += "values{";
 			Value val;
-			Iterator< Value > it = message.iterator();
-			while( it.hasNext() ) {
-				val = it.next();
+			//Iterator< Value > it = message.iterator();
+			//while( it.hasNext() ) {
+				//val = it.next();
+				val = message.value();
 				if ( val.isString() || !val.isDefined() )
 					mesg += '"' + val.strValue() + '"';
 				else if ( val.isInt() )
 					mesg += val.intValue();
 				else
 					throw new IOException( "sodep packet creation: invalid variable type or undefined variable" );
-				if ( it.hasNext() )
-					mesg += ',';
-			}
+				/*if ( it.hasNext() )
+					mesg += ',';*/
+			//}
 			mesg += '}';
 		}
 		
@@ -137,8 +137,6 @@ public class SODEPProtocol implements CommProtocol
 			token = scanner.getToken();
 			message = new CommMessage( inputId, new FaultException( token.content() ) );
 		} else {
-			message = new CommMessage( inputId );
-
 			//token = scanner.getToken();
 			if ( token.type() != Scanner.TokenType.ID || !("values".equals( token.content() )) )
 				throw new IOException( "malformed SODEP packet. values keyword expected" );
@@ -154,7 +152,8 @@ public class SODEPProtocol implements CommProtocol
 					val = new Value( Integer.parseInt( token.content() ) );
 				else
 					throw new IOException( "malformed SODEP packet. invalid variable type" );
-				message.addValue( val );
+				message = new CommMessage( inputId, val );
+				//message.addValue( val );
 				token = scanner.getToken();
 				if ( token.isNot( Scanner.TokenType.COMMA ) )
 					stop = true;

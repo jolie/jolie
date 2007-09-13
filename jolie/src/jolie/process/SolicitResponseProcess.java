@@ -23,29 +23,30 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Vector;
 
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.Location;
 import jolie.runtime.SolicitResponseOperation;
-import jolie.runtime.Value;
-import jolie.runtime.Variable;
 
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
-	private Vector< GlobalVariable > outVars, inVars;
+	private GlobalVariablePath outputVarPath, inputVarPath;
 	private Location location;
 
-	public SolicitResponseProcess( SolicitResponseOperation operation, Location location, Vector< GlobalVariable > outVars, Vector< GlobalVariable > inVars )
+	public SolicitResponseProcess(
+			SolicitResponseOperation operation,
+			Location location,
+			GlobalVariablePath outputVarPath,
+			GlobalVariablePath inputVarPath )
 	{
 		this.operation = operation;
 		this.location = location;
-		this.outVars = outVars;
-		this.inVars = inVars;
+		this.outputVarPath = outputVarPath;
+		this.inputVarPath = inputVarPath;
 	}
 	
 	public void run()
@@ -53,22 +54,21 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			channel = CommChannel.createCommChannel( location, operation.getOutputProtocol( location ) );
-			Vector< Value > valsVec = new Vector< Value >();
-			for( Variable var : outVars )
-				valsVec.add( var.value() );
-			CommMessage message = new CommMessage( operation.id(), valsVec );
+			channel =
+				CommChannel.createCommChannel(
+					location,
+					operation.getOutputProtocol( location )
+					);
+
+			CommMessage message =
+				new CommMessage( operation.id(), outputVarPath.getValue() );
 			channel.send( message );
 
 			message = channel.recv();
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );
 			
-			if ( message.size() == inVars.size() ) {
-				int i = 0;
-				for( Value recvVal : message )
-					inVars.elementAt( i++ ).value().deepCopy( recvVal );
-			} // todo -- if else throw exception?
+			inputVarPath.getValue().deepCopy( message.value() );
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {
