@@ -21,27 +21,25 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Collection;
-
 import jolie.lang.parse.OLVisitor;
 
 
 public class RequestResponseOperationStatement implements OLSyntaxNode
 {
-	private Collection< String > inVars, outVars;
+	private VariablePath inputVarPath, outputVarPath;
 	private OLSyntaxNode process;
 	private String id;
 	
 	public RequestResponseOperationStatement(
 			String id,
-			Collection< String > inVars,
-			Collection< String > outVars,
+			VariablePath inputVarPath,
+			VariablePath outputVarPath,
 			OLSyntaxNode process
 		)
 	{
 		this.id = id;
-		this.inVars = inVars;
-		this.outVars = outVars;
+		this.inputVarPath = inputVarPath;
+		this.outputVarPath = outputVarPath;
 		this.process = process;
 	}
 	
@@ -55,14 +53,14 @@ public class RequestResponseOperationStatement implements OLSyntaxNode
 		return process;
 	}
 	
-	public Collection< String > outVars()
+	public VariablePath inputVarPath()
 	{
-		return outVars;
+		return inputVarPath;
 	}
 	
-	public Collection< String > inVars()
+	public VariablePath outputVarPath()
 	{
-		return inVars;
+		return outputVarPath;
 	}
 	
 	public void accept( OLVisitor visitor )

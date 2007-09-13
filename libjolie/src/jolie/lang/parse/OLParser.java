@@ -399,15 +399,10 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 		
 		boolean keepRun = true;
-		//String opId;
-		//Collection< Constants.VariableType > inVarTypes; 
 		
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
-				//opId = token.content();
-				//getToken();
-				//inVarTypes = parseVarTypes();
 				pt.addOperation( new OneWayOperationDeclaration( token.content() ) );
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -911,7 +906,6 @@ public class OLParser extends AbstractParser
 		String varId = token.content();
 		getToken();
 		InStatement stm = new InStatement( parseVariablePath( varId ) );
-		//getToken();
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}
@@ -976,17 +970,30 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseInputOperationStatement( String id )
 		throws IOException, ParserException
 	{
-		Collection< String > inVars = parseIdListN();
+		eat( Scanner.TokenType.LPAREN, "expected )" );
+		tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+		String varId = token.content();
+		getToken();
+		VariablePath inputVarPath = parseVariablePath( varId );
+		eat( Scanner.TokenType.RPAREN, "expected )" );
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
-			Collection< String > outVars = parseIdListN();
+			getToken(); // Eat LPAREN
+			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+			String outputVarId = token.content();
+			getToken();
+			VariablePath outputVarPath = parseVariablePath( outputVarId );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			
 			OLSyntaxNode process;
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process = parseProcess();
 			eat( Scanner.TokenType.RCURLY, "expected }" );
-			stm = new RequestResponseOperationStatement( id, inVars, outVars, process );
+			stm = new RequestResponseOperationStatement(
+					id, inputVarPath, outputVarPath, process
+					);
 		} else // One Way operation
-			stm = new OneWayOperationStatement( id, inVars );
+			stm = new OneWayOperationStatement( id, inputVarPath );
 
 		return stm;
 	}
@@ -995,13 +1002,26 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		OLSyntaxNode locExpr = parseExpression();
-		Collection< String > outVars = parseIdListN();
+		
+		eat( Scanner.TokenType.LPAREN, "expected )" );
+		tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+		String varId = token.content();
+		getToken();
+		VariablePath outputVarPath = parseVariablePath( varId );
+		eat( Scanner.TokenType.RPAREN, "expected )" );
+
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit Response operation
-			Collection< String > inVars = parseIdListN();
-			stm = new SolicitResponseOperationStatement( id, locExpr, outVars, inVars );
+			getToken(); // Eat LPAREN
+			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+			String inputVarId = token.content();
+			getToken();
+			VariablePath inputVarPath = parseVariablePath( inputVarId );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			
+			stm = new SolicitResponseOperationStatement( id, locExpr, outputVarPath, inputVarPath );
 		} else // Notification operation
-			stm = new NotificationOperationStatement( id, locExpr, outVars );
+			stm = new NotificationOperationStatement( id, locExpr, outputVarPath );
 
 		return stm;
 	}

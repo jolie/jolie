@@ -281,7 +281,12 @@ public class OLParseTreeOptimizer
 		public void visit( RequestResponseOperationStatement n )
 		{
 			n.process().accept( this );
-			currNode = new RequestResponseOperationStatement( n.id(), n.inVars(), n.outVars(), currNode );
+			currNode =
+				new RequestResponseOperationStatement(
+						n.id(),
+						n.inputVarPath(),
+						n.outputVarPath(),
+						currNode );
 		}
 		
 		public void visit( Scope n )

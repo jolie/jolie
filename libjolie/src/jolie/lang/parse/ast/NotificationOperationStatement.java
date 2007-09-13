@@ -21,25 +21,23 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Collection;
-
 import jolie.lang.parse.OLVisitor;
 
 
 public class NotificationOperationStatement implements OLSyntaxNode
 {
-	private Collection< String > outVars;
+	private VariablePath outputVarPath;
 	private String id;
 	private OLSyntaxNode locationExpression;
 	
 	public NotificationOperationStatement(
 			String id,
 			OLSyntaxNode locationExpression,
-			Collection< String > outVars
+			VariablePath outputVarPath
 			)
 	{
 		this.id = id;
-		this.outVars = outVars;
+		this.outputVarPath = outputVarPath;
 		this.locationExpression = locationExpression;
 	}
 	
@@ -53,9 +51,9 @@ public class NotificationOperationStatement implements OLSyntaxNode
 		return locationExpression;
 	}
 	
-	public Collection< String > outVars()
+	public VariablePath outputVarPath()
 	{
-		return outVars;
+		return outputVarPath;
 	}
 	
 	public void accept( OLVisitor visitor )

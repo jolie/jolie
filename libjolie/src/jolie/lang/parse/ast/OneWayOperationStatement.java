@@ -21,20 +21,18 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Collection;
-
 import jolie.lang.parse.OLVisitor;
 
 
 public class OneWayOperationStatement implements OLSyntaxNode
 {
-	private Collection< String > inVars;
+	private VariablePath inputVarPath;
 	private String id;
 	
-	public OneWayOperationStatement( String id, Collection< String > inVars )
+	public OneWayOperationStatement( String id, VariablePath inputVarPath )
 	{
 		this.id = id;
-		this.inVars = inVars;
+		this.inputVarPath = inputVarPath;
 	}
 	
 	public String id()
@@ -42,9 +40,9 @@ public class OneWayOperationStatement implements OLSyntaxNode
 		return id;
 	}
 	
-	public Collection< String > inVars()
+	public VariablePath inputVarPath()
 	{
-		return inVars;
+		return inputVarPath;
 	}
 	
 	public void accept( OLVisitor visitor )
