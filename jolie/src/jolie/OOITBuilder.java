@@ -494,6 +494,9 @@ public class OOITBuilder implements OLVisitor
 	private GlobalVariablePath getGlobalVariablePath( VariablePath path )
 		throws InvalidIdException
 	{
+		if ( path == null )
+			return null;
+		
 		Expression backupExpr = currExpression;
 		
 		Expression varElement = null;

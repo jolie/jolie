@@ -34,7 +34,7 @@ import jolie.runtime.SolicitResponseOperation;
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
-	private GlobalVariablePath outputVarPath, inputVarPath;
+	private GlobalVariablePath outputVarPath, inputVarPath; // each may be null
 	private Location location;
 
 	public SolicitResponseProcess(
@@ -61,14 +61,17 @@ public class SolicitResponseProcess implements Process
 					);
 
 			CommMessage message =
-				new CommMessage( operation.id(), outputVarPath.getValue() );
+				( outputVarPath == null ) ?
+						new CommMessage( operation.id() ) :
+						new CommMessage( operation.id(), outputVarPath.getValue() );
 			channel.send( message );
 
 			message = channel.recv();
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );
-			
-			inputVarPath.getValue().deepCopy( message.value() );
+
+			if ( inputVarPath != null )
+				inputVarPath.getValue().deepCopy( message.value() );
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {

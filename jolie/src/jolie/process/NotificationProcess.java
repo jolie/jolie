@@ -55,7 +55,9 @@ public class NotificationProcess implements Process
 
 		try {
 			CommMessage message =
-				new CommMessage( operation.id(), varPath.getValue() );
+				( varPath == null ) ?
+						new CommMessage( operation.id() ) :
+						new CommMessage( operation.id(), varPath.getValue() );
 			CommChannel channel =
 				CommChannel.createCommChannel(
 						location,

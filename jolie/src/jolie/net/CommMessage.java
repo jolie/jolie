@@ -26,11 +26,16 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 public class CommMessage
-{	
+{
 	private String inputId;
 	private Value value;
 	private boolean fault = false;
 
+	public static CommMessage getEmptyMessage()
+	{
+		return new CommMessage( "" );
+	}
+	
 	public CommMessage( String inputId, Value value )
 	{
 		this.inputId = inputId;

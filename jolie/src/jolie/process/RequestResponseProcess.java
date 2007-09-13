@@ -84,10 +84,6 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		return operation;
 	}
 	
-	/*
-	 * @todo can't we receive just the Value in the message?
-	 * @todo can't we receive the CommChannel as a parameter, to kill CommChannel.current ?
-	 */
 	public boolean recvMessage( CommMessage message )
 	{
 		if ( correlatedProcess != null )
@@ -96,7 +92,8 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		// @todo -- 
 		// Do we still need this at this point? The CommCore should have handled this.
 		if ( message.inputId().equals( operation.id() ) ) {
-			inputVarPath.getValue().deepCopy( message.value() );
+			if ( inputVarPath != null )
+				inputVarPath.getValue().deepCopy( message.value() );
 		} else {
 			Interpreter.logger().warning( "Rejecting malformed packet for operation " + operation.id() + ": wrong variables number" );
 			return false;
@@ -105,7 +102,10 @@ public class RequestResponseProcess implements InputOperationProcess, Correlated
 		CommMessage response = null;
 		try {
 			process.run();
-			response = new CommMessage( operation.id(), outputVarPath.getValue() );
+			response =
+				( outputVarPath == null ) ?
+						new CommMessage( operation.id() ) :
+						new CommMessage( operation.id(), outputVarPath.getValue() );
 		} catch( FaultException f ) {
 			Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 			fields.pendingFault = f;
