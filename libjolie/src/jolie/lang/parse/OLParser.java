@@ -970,21 +970,10 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseInputOperationStatement( String id )
 		throws IOException, ParserException
 	{
-		eat( Scanner.TokenType.LPAREN, "expected )" );
-		tokenAssert( Scanner.TokenType.ID, "expected variable path" );
-		String varId = token.content();
-		getToken();
-		VariablePath inputVarPath = parseVariablePath( varId );
-		eat( Scanner.TokenType.RPAREN, "expected )" );
+		VariablePath inputVarPath = parseOperationStatementParameter();
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
-			getToken(); // Eat LPAREN
-			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
-			String outputVarId = token.content();
-			getToken();
-			VariablePath outputVarPath = parseVariablePath( outputVarId );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-			
+			VariablePath outputVarPath = parseOperationStatementParameter();
 			OLSyntaxNode process;
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process = parseProcess();
@@ -998,28 +987,40 @@ public class OLParser extends AbstractParser
 		return stm;
 	}
 	
+	/**
+	 * @return The VariablePath parameter of the statement. May be null.
+	 * @throws IOException
+	 * @throws ParserException
+	 */
+	private VariablePath parseOperationStatementParameter()
+		throws IOException, ParserException
+	{
+		VariablePath ret = null;
+		
+		eat( Scanner.TokenType.LPAREN, "expected )" );
+		if ( token.is( Scanner.TokenType.ID ) ) {
+			String varId = token.content();
+			getToken();
+			ret = parseVariablePath( varId );
+		}
+		eat( Scanner.TokenType.RPAREN, "expected )" );
+		
+		return ret;
+	}
+	
 	private OLSyntaxNode parseOutputOperationStatement( String id )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode locExpr = parseExpression();
-		
-		eat( Scanner.TokenType.LPAREN, "expected )" );
-		tokenAssert( Scanner.TokenType.ID, "expected variable path" );
-		String varId = token.content();
-		getToken();
-		VariablePath outputVarPath = parseVariablePath( varId );
-		eat( Scanner.TokenType.RPAREN, "expected )" );
+		VariablePath outputVarPath = parseOperationStatementParameter();	
 
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit Response operation
-			getToken(); // Eat LPAREN
-			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
-			String inputVarId = token.content();
-			getToken();
-			VariablePath inputVarPath = parseVariablePath( inputVarId );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-			
-			stm = new SolicitResponseOperationStatement( id, locExpr, outputVarPath, inputVarPath );
+			stm = new SolicitResponseOperationStatement(
+					id,
+					locExpr,
+					outputVarPath,
+					parseOperationStatementParameter() );
 		} else // Notification operation
 			stm = new NotificationOperationStatement( id, locExpr, outputVarPath );
 
