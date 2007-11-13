@@ -68,6 +68,7 @@ import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
@@ -96,7 +97,7 @@ public class OLParser extends AbstractParser
 	{
 		super( scanner );
 	}
-
+	
 	public Program parse()
 		throws IOException, ParserException
 	{
@@ -648,7 +649,7 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 	
-	private OLSyntaxNode parseProcess()
+	public OLSyntaxNode parseProcess()
 		throws IOException, ParserException
 	{
 		if( token.is( Scanner.TokenType.LSQUARE ) )
@@ -718,6 +719,11 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			retVal = new OutStatement( parseExpression() );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.RUN ) ) { // run( <Expression> )
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new RunStatement( parseExpression() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IN ) ) // in( <id> )
 			retVal = parseInStatement();

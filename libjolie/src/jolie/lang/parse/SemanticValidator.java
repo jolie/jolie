@@ -66,6 +66,7 @@ import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
@@ -300,4 +301,5 @@ public class SemanticValidator implements OLVisitor
 	public void visit( ExecutionInfo n ) {}
 	public void visit( StateInfo n ) {}
 	public void visit( CorrelationSetInfo n ) {}
+	public void visit( RunStatement n ) {}
 }

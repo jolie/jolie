@@ -59,6 +59,7 @@ import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
@@ -333,6 +334,7 @@ public class OLParseTreeOptimizer
 		public void visit( VariableExpressionNode n ) { currNode = n; }
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
+		public void visit( RunStatement n ) { currNode = n; }
 	}
 	
 	private Program originalProgram;

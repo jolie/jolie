@@ -97,6 +97,7 @@ public class Scanner
 		CONSTANTS,				///< constants
 		POINTS_TO,				///< ->
 		DEEP_COPY_LEFT,			///< <<
+		RUN,					///< run
 		//UNDEF,					///< undef
 		//HASH,					///< #
 		ERROR			///< Scanner error
@@ -210,6 +211,13 @@ public class Scanner
 	public String sourceName()
 	{
 		return sourceName;
+	}
+	
+	public void eatSeparators()
+		throws IOException
+	{
+		while( isSeparator( ch ) )
+			readChar();
 	}
 	
 	public static boolean isSeparator( int c )
@@ -399,6 +407,8 @@ public class Scanner
 							retval = new Token( TokenType.EXIT );
 						else if ( "constants".equals( str ) )
 							retval = new Token( TokenType.CONSTANTS );
+						else if ( "run".equals( str ) )
+							retval = new Token( TokenType.RUN );
 						/*else if ( "undef".equals( str ) )
 							retval = new Token( TokenType.UNDEF );*/
 						else

@@ -77,5 +77,6 @@ public interface OLVisitor
 	public void visit( ServiceInfo n );
 	public void visit( PointerStatement n );
 	public void visit( DeepCopyStatement n );
+	public void visit( RunStatement n );
 	//public void visit( UndefStatement n );
 }

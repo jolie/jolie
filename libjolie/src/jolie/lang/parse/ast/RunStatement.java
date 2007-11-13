@@ -21,27 +21,23 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Vector;
-
 import jolie.lang.parse.OLVisitor;
 
 
-public class Program implements OLSyntaxNode
+public class RunStatement implements OLSyntaxNode
 {
-	private Vector< OLSyntaxNode > children = new Vector< OLSyntaxNode > ();
-	
-	public Program()
-	{}
-	
-	public void addChild( OLSyntaxNode node )
+	private OLSyntaxNode expression;
+
+	public RunStatement( OLSyntaxNode expression )
 	{
-		children.add( node );
+		this.expression = expression;
 	}
 	
-	public Vector< OLSyntaxNode > children()
+	public OLSyntaxNode expression()
 	{
-		return children;
-	}	
+		return expression;
+	}
+	
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
