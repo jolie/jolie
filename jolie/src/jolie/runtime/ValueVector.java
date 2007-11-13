@@ -19,64 +19,52 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.runtime;
 
-package jolie.net;
+import java.util.Iterator;
+import java.util.Vector;
 
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-
-/**
- * @author Fabrizio Montesi
- * @todo Extend to subclasses with a direct reference to the input object, for performance improvements?
- *
- */
-public class CommMessage
+class ValueVectorImpl extends ValueVector
 {
-	private String inputId;
-	private Value value;
-	private boolean fault = false;
+	private Vector< Value > values;
+	
+	public boolean isLink()
+	{
+		return false;
+	}
+	
+	public ValueVectorImpl()
+	{
+		values = new Vector< Value >();
+	}
+	
+	public Iterator< Value > iterator()
+	{
+		return values.iterator();
+	}
+	
+	public int size()
+	{
+		return values.size();
+	}
+	
+	protected void deepCopy( ValueVector vec, boolean copyLinks )
+	{
+		/*for( int i = 0; i < vec.size(); i++ )
+			values.elementAt( i ).deepCopy( vec.elementAt( i ) );*/
+	}
+}
 
-	public static CommMessage createEmptyMessage()
-	{
-		return new CommMessage( "" );
-	}
+abstract public class ValueVector implements Iterable< Value >
+{
+	abstract public boolean isLink();
 	
-	public CommMessage( String inputId, Value value )
-	{
-		this.inputId = inputId;
-		this.value = value;
-	}
+	abstract public int size();
 	
-	public CommMessage( String inputId )
-	{
-		this.inputId = inputId;
-		this.value = Value.createValue();
-	}
-
-	public CommMessage( String inputId, FaultException f )
-	{
-		this.inputId = inputId;
-		this.value = Value.createValue( f.fault() );
-		fault = true;
-	}
+	//abstract public Value elementAt
 	
-	public Value value()
-	{
-		return value;
-	}
+	//abstract protected void _deepCopy( ValueVector vec, boolean copyLinks );
 	
-	public String inputId()
-	{
-		return inputId;
-	}
-
-	public boolean isFault()
-	{
-		return fault;
-	}
-	
-	public String faultName()
-	{
-		return value.strValue();
-	}
+	abstract protected void deepCopy( ValueVector vec, boolean copyLinks );
+	//abstract protected void deepClone( ValueVector vec, boolean copyLinks );
 }

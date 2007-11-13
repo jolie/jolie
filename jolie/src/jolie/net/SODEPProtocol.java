@@ -147,9 +147,9 @@ public class SODEPProtocol implements CommProtocol
 		
 			while ( token.type() != Scanner.TokenType.RCURLY && !stop ) { 
 				if ( token.type() == Scanner.TokenType.STRING )
-					val = new Value( token.content() );
+					val = Value.createValue( token.content() );
 				else if ( token.type() == Scanner.TokenType.INT )
-					val = new Value( Integer.parseInt( token.content() ) );
+					val = Value.createValue( Integer.parseInt( token.content() ) );
 				else
 					throw new IOException( "malformed SODEP packet. invalid variable type" );
 				message = new CommMessage( inputId, val );

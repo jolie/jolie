@@ -49,7 +49,7 @@ public class State implements Cloneable
 		Vector< Value > vec = new Vector< Value >();
 		Value newVal;
 		for( Value v : oldValues ) {
-			newVal = new Value();
+			newVal = Value.createValue();
 			newVal.deepCopy( v );
 			vec.add( newVal );
 		}

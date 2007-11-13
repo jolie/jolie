@@ -24,11 +24,11 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.runtime.GlobalVariablePath;
 
-public class PointerProcess implements Process
+public class MakePointerProcess implements Process
 {
 	private GlobalVariablePath leftPath, rightPath;
 
-	public PointerProcess( GlobalVariablePath leftPath, GlobalVariablePath rightPath )
+	public MakePointerProcess( GlobalVariablePath leftPath, GlobalVariablePath rightPath )
 	{
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;

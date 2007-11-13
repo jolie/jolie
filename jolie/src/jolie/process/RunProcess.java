@@ -19,64 +19,57 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.process;
 
-package jolie.net;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
+import jolie.ExecutionThread;
+import jolie.OOITBuilder;
+import jolie.lang.parse.OLParseTreeOptimizer;
+import jolie.lang.parse.OLParser;
+import jolie.lang.parse.ParserException;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticValidator;
+import jolie.lang.parse.ast.Program;
+import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
-/**
- * @author Fabrizio Montesi
- * @todo Extend to subclasses with a direct reference to the input object, for performance improvements?
- *
- */
-public class CommMessage
+public class RunProcess implements Process
 {
-	private String inputId;
-	private Value value;
-	private boolean fault = false;
-
-	public static CommMessage createEmptyMessage()
+	private Expression expression;
+	
+	public RunProcess( Expression expression )
 	{
-		return new CommMessage( "" );
+		this.expression = expression;
 	}
 	
-	public CommMessage( String inputId, Value value )
+	public void run()
+		throws FaultException
 	{
-		this.inputId = inputId;
-		this.value = value;
-	}
-	
-	public CommMessage( String inputId )
-	{
-		this.inputId = inputId;
-		this.value = Value.createValue();
-	}
-
-	public CommMessage( String inputId, FaultException f )
-	{
-		this.inputId = inputId;
-		this.value = Value.createValue( f.fault() );
-		fault = true;
-	}
-	
-	public Value value()
-	{
-		return value;
-	}
-	
-	public String inputId()
-	{
-		return inputId;
-	}
-
-	public boolean isFault()
-	{
-		return fault;
-	}
-	
-	public String faultName()
-	{
-		return value.strValue();
+		if ( ExecutionThread.killed() )
+			return;
+		Value val = expression.evaluate();
+		if ( val.isString() ) {
+			try {
+				String codeStr = val.strValue();
+				OLParser parser =
+					new OLParser(
+							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown" )
+						);
+				Program program = parser.parse();
+				program = (new OLParseTreeOptimizer( program )).optimize();
+				if ( !(new SemanticValidator( program )).validate() )
+					throw new FaultException( "fInvalidCode" );
+			
+				(new OOITBuilder( program )).build();
+			} catch( IOException ioe ) {
+				throw new FaultException( "fInvalidCode" );
+			} catch( ParserException ioe ) {
+				throw new FaultException( "fInvalidCode" );
+			}			
+		} else
+			throw new FaultException( "fInvalidCode" );
 	}
 }

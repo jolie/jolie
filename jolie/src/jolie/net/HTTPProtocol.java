@@ -135,7 +135,15 @@ public class HTTPProtocol implements CommProtocol
 					messageString += "HTTP/1.1 200 OK\n";
 				} else {
 					// We're sending a notification or a solicit
-					messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+					String path = new String();
+					if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
+						path += "/";
+					path += uri.getPath();
+					if ( path.endsWith( "/" ) == false )
+						path += "/";
+					path += message.inputId();
+					
+					messageString += "POST " + path + " HTTP/1.1\n";
 					messageString += "Host: " + uri.getHost() + '\n';
 				}
 			} catch( InvalidIdException iie ) {
@@ -200,7 +208,7 @@ public class HTTPProtocol implements CommProtocol
 		CommMessage retVal = null;
 
 		try {
-			Value messageValue = new Value();
+			Value messageValue = Value.createValue();
 			//String opId = null;
 			if ( message.size() > 0 ) {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -210,6 +218,7 @@ public class HTTPProtocol implements CommProtocol
 				InputSource src = new InputSource( message.contentStream() );
 
 				// Debug incoming message
+				
 				/*
 				BufferedReader r = new BufferedReader( message.contentStream() );
 				String p;
@@ -217,7 +226,7 @@ public class HTTPProtocol implements CommProtocol
 				while( (p=r.readLine()) != null ) 
 				System.out.println(p);
 				System.out.println("---");
-				 */
+				*/
 			
 				Document doc = builder.parse( src );
 

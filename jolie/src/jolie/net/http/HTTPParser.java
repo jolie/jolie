@@ -76,14 +76,18 @@ public class HTTPParser
 			throwException();
 	}
 	
-	private void eatHeaderUntil( boolean condition )
+	private void eatHeaderUntil( String[] conds )
 		throws IOException
 	{
+		int i;
 		while(
 				token.isNot( Scanner.TokenType.EOF ) &&
-				token.isNot( Scanner.TokenType.ERROR ) &&
-				condition == false
-				) {
+				token.isNot( Scanner.TokenType.ERROR ) 
+			) {
+			for( i = 0; i < conds.length; i++ ) {
+				if ( token.isKeywordIgnoreCase( conds[i] ) )
+						return;
+			}
 			getToken();
 		}
 	}
@@ -91,9 +95,20 @@ public class HTTPParser
 	public HTTPMessage parse()
 		throws IOException
 	{		
+		/*if ( true ) {
+			InputStream stream = scanner.inputStream();
+			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
+
+			// Eat the rest of the HTTP header
+			String line;
+			do {
+				System.out.println( line = reader.readLine() );
+			} while( line != null );
+		}*/
 		getToken();
 		int contentLength = 0;
 		int httpCode = 0;
+		boolean chunked = false;
 		String contentType = new String();
 		HTTPMessage message = null;
 		HTTPMessage.Type type = HTTPMessage.Type.ERROR;
@@ -116,14 +131,23 @@ public class HTTPParser
 			tokenAssert( Scanner.TokenType.INT );
 			httpCode = Integer.parseInt( token.content() );
 			getToken();
-			eatHeaderUntil( token.isKeywordIgnoreCase( "Content-Length" ) );
 			
-			conditionAssert( token.isKeywordIgnoreCase( "Content-Length" ) );
-			getToken();
-			eat( Scanner.TokenType.COLON );
-			tokenAssert( Scanner.TokenType.INT );
-			contentLength = Integer.parseInt( token.content() );
-
+			String conds[] = { "Content-Length", "Transfer-Encoding" };
+			while( token.isNot( Scanner.TokenType.EOF ) ) {
+				eatHeaderUntil( conds );
+				if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
+					getToken();
+					eat( Scanner.TokenType.COLON );
+					tokenAssert( Scanner.TokenType.INT );
+					contentLength = Integer.parseInt( token.content() );
+				} else if ( token.isKeywordIgnoreCase( "Transfer-Encoding" ) ) {
+					getToken();
+					eat( Scanner.TokenType.COLON );
+					if ( token.isKeywordIgnoreCase( "chunked" ) )
+						chunked = true;
+				}
+			}
+			
 			type = HTTPMessage.Type.RESPONSE;
 		} else {
 			if ( token.isKeyword( POST ) ) {
@@ -136,11 +160,9 @@ public class HTTPParser
 
 			requestPath = scanner.readWord().substring( 1 );
 			
+			String conds[] = { "Content-Length", "Content-Type", "Transfer-Encoding" };
 			while( token.isNot( Scanner.TokenType.EOF ) ) {
-				eatHeaderUntil(
-					token.isKeywordIgnoreCase( "Content-Length" ) ||
-					token.isKeywordIgnoreCase( "Content-Type" )
-					);
+				eatHeaderUntil( conds );
 				if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
 					getToken();
 					eat( Scanner.TokenType.COLON );
@@ -150,9 +172,18 @@ public class HTTPParser
 					getToken();
 					eat( Scanner.TokenType.COLON );
 					contentType = scanner.readWord();
+				} else if ( token.isKeywordIgnoreCase( "Transfer-Encoding" ) ) {
+					getToken();
+					eat( Scanner.TokenType.COLON );
+					if ( token.isKeywordIgnoreCase( "chunked" ) )
+						chunked = true;
 				}
 			}
 		}
+		
+		//System.out.println("HTTPParser called");
+		//System.out.println("Debug: contentLength=" + contentLength );
+		//System.out.println("Debug: chunked=" + chunked );
 
 		char buffer[] = new char[ contentLength ];
 		if ( contentLength != 0 ) {
@@ -161,6 +192,31 @@ public class HTTPParser
 
 			buffer[0] = scanner.currentCharacter();
 			reader.read( buffer, 0, contentLength );
+		} else if ( chunked ) {
+			char tmp[] = new char[ 1024*64 ];
+			//int total = 0;
+			int l = 0;
+			String lStr;
+			
+			InputStream stream = scanner.inputStream();
+			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
+			//tmp[0] = scanner.currentCharacter();
+			
+			//do {
+				lStr = scanner.readWord();
+				l = Integer.parseInt( lStr, 16 );
+				scanner.eatSeparators();
+				tmp[0] = scanner.currentCharacter();
+				//System.out.println( "Debug: l=" + l + ", lStr=" + lStr );
+				reader.read( tmp, 1, l - 1 );
+				while( token.isNot( Scanner.TokenType.EOF ) && token.isNot( Scanner.TokenType.ERROR ) )
+					getToken();
+				//lStr = scanner.readWord();
+				//System.out.println( "Debug: l=" + l + ", lStr=" + lStr );
+			//} while( l > 0 );
+			buffer = new char[ l ];
+			for( int i = 0; i < l; i++ )
+				buffer[i] = tmp[i];
 		}
 		
 		/*if ( true ) {
@@ -172,7 +228,8 @@ public class HTTPParser
 			do {
 				System.out.println( line = reader.readLine() );
 			} while( line != null );
-		}application/x-www-form-urlencoded*/
+		}*/
+		/*application/x-www-form-urlencoded*/
 		
 		if ( type == HTTPMessage.Type.RESPONSE ) {
 			message = new HTTPMessage( httpCode, buffer );

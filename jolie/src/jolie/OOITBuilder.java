@@ -74,6 +74,7 @@ import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
@@ -113,9 +114,10 @@ import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
 import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
-import jolie.process.PointerProcess;
+import jolie.process.MakePointerProcess;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
+import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SleepProcess;
@@ -528,7 +530,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		try {
 			currProcess =
-				new PointerProcess(
+				new MakePointerProcess(
 					getGlobalVariablePath( n.leftPath() ),
 					getGlobalVariablePath( n.rightPath() )
 					);
@@ -601,6 +603,12 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new SleepProcess( currExpression );
 	}
 	
+	public void visit( RunStatement n )
+	{
+		n.expression().accept( this );
+		currProcess = new RunProcess( currExpression );
+	}
+	
 	public void visit( WhileStatement n )
 	{
 		n.condition().accept( this );
@@ -651,12 +659,12 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ConstantIntegerExpression n )
 	{
-		currExpression = new Value( n.value() );
+		currExpression = Value.createValue( n.value() );
 	}
 	
 	public void visit( ConstantStringExpression n )
 	{
-		currExpression = new Value( n.value() );
+		currExpression = Value.createValue( n.value() );
 	}
 	
 	public void visit( ProductExpressionNode n )

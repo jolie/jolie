@@ -44,7 +44,7 @@ abstract public class Variable implements Expression
 	{
 		Vector< Value > vals = values();
 		if ( vals.isEmpty() )
-			vals.add( new Value() );
+			vals.add( Value.createValue() );
 	
 		return vals.firstElement();
 	}

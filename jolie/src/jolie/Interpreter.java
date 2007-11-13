@@ -227,7 +227,7 @@ public class Interpreter
 		
 		args.clear();
 		for( String s : arguments ) {
-			args.add( new Value( s ) );
+			args.add( Value.createValue( s ) );
 		}
 		
 		mainExec.start();

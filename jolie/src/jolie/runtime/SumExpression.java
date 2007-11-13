@@ -37,7 +37,7 @@ public class SumExpression implements Expression
 	
 	public Value evaluate()
 	{
-		Value val = new Value();
+		Value val = Value.createValue();
 		//TempVariable var = new TempVariable();
 		
 		for( Operand operand : children ) {

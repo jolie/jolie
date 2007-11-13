@@ -56,16 +56,16 @@ public class GlobalVariablePath implements Expression
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Object followPath( boolean forceValue, Object objToPoint )
+	private Object followPath( boolean forceValue, GlobalVariablePath pathToPoint )
 	{
 		int index = 0;
 		
 		if ( varElement == null ) {
 			if ( path.isEmpty() ) {
-				if ( objToPoint != null ) {
+				if ( pathToPoint != null ) {
 					Interpreter.setValues(
 							variable,
-							(Vector< Value >) objToPoint
+							(Vector< Value >) pathToPoint.followPath( false, null )
 							);
 					return null;
 				} else if ( !forceValue ) {
@@ -79,10 +79,10 @@ public class GlobalVariablePath implements Expression
 		Vector< Value > vals = variable.values();
 		if ( index >= vals.size() ) {
 			for( int i = vals.size(); i <= index; i++ )
-				vals.add( new Value() );
+				vals.add( Value.createValue() );
 		}
-		if ( path.isEmpty() && objToPoint != null ) {
-			vals.setElementAt( (Value)objToPoint, index );
+		if ( path.isEmpty() && pathToPoint != null ) {
+			vals.setElementAt( Value.createLink( pathToPoint ), index );
 			return null;
 		}
 		Value currVal = vals.elementAt( index );
@@ -98,10 +98,10 @@ public class GlobalVariablePath implements Expression
 				if ( it.hasNext() || attribute != null || forceValue ) {
 					index = 0;
 				} else {
-					if ( objToPoint != null ) {
+					if ( pathToPoint != null ) {
 						currVal.children().put(
 								pair.key(),
-								(Vector< Value >)objToPoint
+								(Vector< Value >) pathToPoint.followPath( false, null )
 								);
 						return null;
 					}
@@ -112,11 +112,11 @@ public class GlobalVariablePath implements Expression
 			}
 			if ( index >= children.size() ) {
 				for( int i = children.size(); i <= index; i++ )
-					children.add( new Value() );
+					children.add( Value.createValue() );
 			}
-			if ( !it.hasNext() && objToPoint != null && attribute == null ) {
+			if ( !it.hasNext() && pathToPoint != null && attribute == null ) {
 				children.setElementAt(
-						(Value)objToPoint,
+						Value.createLink( pathToPoint ),
 						index
 						);
 				return null;
@@ -125,12 +125,12 @@ public class GlobalVariablePath implements Expression
 		}
 		
 		if ( attribute != null ) {
-			if ( objToPoint == null ) {
+			if ( pathToPoint == null ) {
 				currVal = currVal.getAttribute( attribute.evaluate().strValue() );
 			} else {
 				currVal.attributes().put(
 						attribute.evaluate().strValue(),
-						(Value)objToPoint
+						Value.createLink( pathToPoint )
 						);
 				return null;
 			}
@@ -149,7 +149,7 @@ public class GlobalVariablePath implements Expression
 	 */
 	public void makePointer( GlobalVariablePath rightPath )
 	{
-		followPath( false, rightPath.followPath( false, null ) ); 
+		followPath( false, rightPath ); 
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -165,12 +165,12 @@ public class GlobalVariablePath implements Expression
 			myVec.clear();
 			Value myVal;
 			for( Value val : rightVec ) {
-				myVal = new Value();
+				myVal = Value.createValue();
 				myVal.deepCopy( val );
 				myVec.add( myVal );
 			}
 		}
-		followPath( false, rightPath.followPath( false, null ) );
+		followPath( false, rightPath );
 	}
 	
 	public Value evaluate()

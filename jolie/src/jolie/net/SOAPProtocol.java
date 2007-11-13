@@ -167,7 +167,18 @@ public class SOAPProtocol implements CommProtocol
 					messageString += "HTTP/1.1 200 OK\n";
 				} else {
 					// We're sending a notification or a solicit
+					/*String path = new String();
+					if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
+						path += "/";
+					path += uri.getPath();
+					if ( path.endsWith( "/" ) == false )
+						path += "/";
+					path += message.inputId();
+					System.out.println( path );
+					*/
+
 					messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
+					//messageString += "POST " + message.inputId() + " HTTP/1.1\n";
 					messageString += "Host: " + uri.getHost() + '\n';
 					soapAction =
 						"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
@@ -327,8 +338,9 @@ public class SOAPProtocol implements CommProtocol
 
 			InputSource src = new InputSource( message.contentStream() );
 			
-			/*
+			
 			// Debug incoming message
+			/*
 			BufferedReader r = new BufferedReader( message.contentStream() );
 			String p;
 			System.out.println("---");
@@ -342,7 +354,7 @@ public class SOAPProtocol implements CommProtocol
 
 			soapMessage.getSOAPPart().setContent( dom );
 			
-			Value value = new Value();
+			Value value = Value.createValue();
 			soapElementsToSubValues(
 					value, soapMessage.getSOAPBody().getFirstChild().getChildNodes()
 					);
@@ -354,7 +366,8 @@ public class SOAPProtocol implements CommProtocol
 					message.type() == HTTPMessage.Type.GET
 					) {
 				// @todo -- Beware, this does not handle a querystring or nested paths! 
-				retVal = new CommMessage( message.requestPath(), value );
+				//retVal = new CommMessage( message.requestPath(), value );
+				retVal = new CommMessage( soapMessage.getSOAPBody().getFirstChild().getLocalName(), value );
 			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );
@@ -463,7 +476,7 @@ public class SOAPProtocol implements CommProtocol
 			int j;
 			List< Value > list = new Vector< Value >();
 			for( int k = 0; k < namesSize; k++ )
-				list.add( new Value() );
+				list.add( Value.createValue() );
 			Value tempVar;
 			for( int i = 0; i < nodeList.getLength(); i++ ) {
 				currNode = nodeList.item( i );
@@ -479,12 +492,12 @@ public class SOAPProtocol implements CommProtocol
 				if ( j >= namesSize )
 					throw new IOException( "Received malformed SOAP packet: corresponding variable name not found: " + nodeName );
 				if ( currNode.getFirstChild() == null )
-					tempVar = new Value( "" );
+					tempVar = Value.createValue( "" );
 				else {
 					try {
-						tempVar = new Value( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
+						tempVar = Value.createValue( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
 					} catch( NumberFormatException e ) {
-						tempVar = new Value( currNode.getFirstChild().getNodeValue() );
+						tempVar = Value.createValue( currNode.getFirstChild().getNodeValue() );
 					}
 				}
 				list.set( j, tempVar );
