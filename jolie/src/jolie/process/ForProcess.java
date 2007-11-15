@@ -22,44 +22,32 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.Expression;
-import jolie.runtime.GlobalVariablePath;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.Value;
+import jolie.runtime.Condition;
+import jolie.runtime.FaultException;
 
-/** Assigns an expression value to a Variable.
- * @author Fabrizio Montesi
- */
-public class AssignmentProcess implements Process, Expression
+public class ForProcess implements Process
 {
-	private GlobalVariablePath varPath;
-	private Expression expression;
+	private Condition condition;
+	private Process init, post, process;
 
-	/** Constructor.
-	 * 
-	 * @param var the variable which will receive the value.
-	 * @param expression the expression of which the evaluation will be stored in the variable.
-	 * @throws InvalidIdException if varId does not identify a variable.
-	 */
-	public AssignmentProcess( GlobalVariablePath varPath, Expression expression )
+	public ForProcess( Process init, Condition condition, Process post, Process process )
 	{
-		this.varPath = varPath;
-		this.expression = expression;
+		this.init = init;
+		this.condition = condition;
+		this.post = post;
+		this.process = process;
 	}
 	
-	/** Evaluates the expression and stores its value in the variable. */
 	public void run()
+		throws FaultException
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		varPath.getValue().assignValue( expression.evaluate() );
-		//varPath.assignValue( expression.evaluate() );
-	}
-	
-	public Value evaluate()
-	{
-		Value val = varPath.getValue(); 
-		val.assignValue( expression.evaluate() );
-		return val;
+		
+		init.run();
+		while ( condition.evaluate() ) {
+			process.run();
+			post.run();
+		}
 	}
 }

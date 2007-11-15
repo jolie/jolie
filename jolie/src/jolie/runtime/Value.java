@@ -21,8 +21,9 @@
 
 package jolie.runtime;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.Constants;
 
@@ -50,12 +51,12 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().getNewChild( childId );
 	}
 	
-	public HashMap< String, ValueVector > children()
+	public Map< String, ValueVector > children()
 	{
 		return linkPath.getValue().children();
 	}
 	
-	public HashMap< String, Value > attributes()
+	public Map< String, Value > attributes()
 	{
 		return linkPath.getValue().attributes();
 	}
@@ -112,10 +113,10 @@ class ValueImpl extends Value
 	private int intValue = 0;
 	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
 	
-	private HashMap< String, ValueVector > children =
-				new HashMap< String, ValueVector >();
-	private HashMap< String, Value > attributes =
-				new HashMap< String, Value >();
+	private ConcurrentHashMap< String, ValueVector > children =
+				new ConcurrentHashMap< String, ValueVector >();
+	private ConcurrentHashMap< String, Value > attributes =
+				new ConcurrentHashMap< String, Value >();
 	
 	public ValueImpl() {}
 	
@@ -179,12 +180,12 @@ class ValueImpl extends Value
 		return retVal;
 	}
 	
-	public HashMap< String, ValueVector > children()
+	public Map< String, ValueVector > children()
 	{
 		return children;
 	}
 	
-	public HashMap< String, Value > attributes()
+	public Map< String, Value > attributes()
 	{
 		return attributes;
 	}
@@ -339,9 +340,9 @@ abstract public class Value implements Expression
 	
 	abstract public Value getNewChild( String childId );
 	
-	abstract public HashMap< String, ValueVector > children();
+	abstract public Map< String, ValueVector > children();
 
-	abstract public HashMap< String, Value > attributes();
+	abstract public Map< String, Value > attributes();
 	
 	abstract public Value getAttribute( String attributeId );
 	

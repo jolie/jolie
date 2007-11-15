@@ -46,6 +46,8 @@ import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
@@ -68,6 +70,10 @@ import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
@@ -84,6 +90,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePath;
 import jolie.lang.parse.ast.WhileStatement;
@@ -101,6 +109,8 @@ import jolie.process.CorrelatedProcess;
 import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
 import jolie.process.ExitProcess;
+import jolie.process.ForEachProcess;
+import jolie.process.ForProcess;
 import jolie.process.IfProcess;
 import jolie.process.InProcess;
 import jolie.process.InputProcess;
@@ -115,6 +125,10 @@ import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
 import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
+import jolie.process.PostDecrementProcess;
+import jolie.process.PostIncrementProcess;
+import jolie.process.PreDecrementProcess;
+import jolie.process.PreIncrementProcess;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.RunProcess;
@@ -123,6 +137,7 @@ import jolie.process.SequentialProcess;
 import jolie.process.SleepProcess;
 import jolie.process.SolicitResponseProcess;
 import jolie.process.ThrowProcess;
+import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
 import jolie.runtime.AndCondition;
 import jolie.runtime.CompareCondition;
@@ -144,6 +159,7 @@ import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.SumExpression;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVectorSizeExpression;
 import jolie.util.Pair;
 
 public class OOITBuilder implements OLVisitor
@@ -486,11 +502,13 @@ public class OOITBuilder implements OLVisitor
 		try {
 			n.expression().accept( this );
 			
-			currProcess =
+			AssignmentProcess p = 
 				new AssignmentProcess(
 					getGlobalVariablePath( n.variablePath() ),
 					currExpression
 					);
+			currProcess = p;
+			currExpression = p;
 		} catch( InvalidIdException e ) {
 			error( e );
 		}
@@ -713,6 +731,100 @@ public class OOITBuilder implements OLVisitor
 	public void visit( ExitStatement n )
 	{
 		currProcess = ExitProcess.getInstance();
+	}
+	
+	public void visit( ValueVectorSizeExpressionNode n )
+	{
+		try {
+			currExpression = new ValueVectorSizeExpression( getGlobalVariablePath( n.variablePath() ) );
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( PreDecrementStatement n )
+	{
+		try {
+			PreDecrementProcess p =
+				new PreDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			currProcess = p;
+			currExpression = p;
+		} catch( InvalidIdException e ) {
+			error( e );
+		} 
+	}
+	
+	public void visit( PostDecrementStatement n )
+	{
+		try {
+			PostDecrementProcess p =
+				new PostDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			currProcess = p;
+			currExpression = p;
+		} catch( InvalidIdException e ) {
+			error( e );
+		} 
+	}
+	
+	public void visit( PreIncrementStatement n )
+	{
+		try {
+			PreIncrementProcess p =
+				new PreIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			currProcess = p;
+			currExpression = p;
+		} catch( InvalidIdException e ) {
+			error( e );
+		} 
+	}
+	
+	public void visit( PostIncrementStatement n )
+	{
+		try {
+			PostIncrementProcess p =
+				new PostIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			currProcess = p;
+			currExpression = p;
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( ForStatement n )
+	{
+		n.init().accept( this );
+		Process init = currProcess;
+		n.post().accept( this );
+		Process post = currProcess;
+		n.condition().accept( this );
+		Condition condition = currCondition;
+		n.body().accept( this );
+		currProcess = new ForProcess( init, condition, post, currProcess );
+	}
+	
+	public void visit( ForEachStatement n )
+	{
+		try {
+			n.body().accept( this );
+			currProcess =
+				new ForEachProcess(
+					getGlobalVariablePath( n.keyPath() ),
+					getGlobalVariablePath( n.valuePath() ),
+					getGlobalVariablePath( n.targetPath() ),
+					currProcess
+					);
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
+	}
+	
+	public void visit( UndefStatement n )
+	{
+		try {
+			currProcess = new UndefProcess( getGlobalVariablePath( n.variablePath() ) );
+		} catch( InvalidIdException e ) {
+			error( e );
+		}
 	}
 }
 

@@ -24,42 +24,29 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.runtime.Expression;
 import jolie.runtime.GlobalVariablePath;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 
-/** Assigns an expression value to a Variable.
- * @author Fabrizio Montesi
- */
-public class AssignmentProcess implements Process, Expression
+public class PreDecrementProcess implements Process, Expression
 {
 	private GlobalVariablePath varPath;
-	private Expression expression;
 
-	/** Constructor.
-	 * 
-	 * @param var the variable which will receive the value.
-	 * @param expression the expression of which the evaluation will be stored in the variable.
-	 * @throws InvalidIdException if varId does not identify a variable.
-	 */
-	public AssignmentProcess( GlobalVariablePath varPath, Expression expression )
+	public PreDecrementProcess( GlobalVariablePath varPath )
 	{
 		this.varPath = varPath;
-		this.expression = expression;
 	}
 	
-	/** Evaluates the expression and stores its value in the variable. */
 	public void run()
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		varPath.getValue().assignValue( expression.evaluate() );
-		//varPath.assignValue( expression.evaluate() );
+		Value val = varPath.getValue();
+		val.setIntValue( val.intValue() - 1 );
 	}
 	
 	public Value evaluate()
 	{
-		Value val = varPath.getValue(); 
-		val.assignValue( expression.evaluate() );
+		Value val = varPath.getValue();
+		val.setIntValue( val.intValue() - 1 );
 		return val;
 	}
 }

@@ -19,47 +19,20 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.Expression;
-import jolie.runtime.GlobalVariablePath;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.Value;
+package jolie.runtime;
 
-/** Assigns an expression value to a Variable.
- * @author Fabrizio Montesi
- */
-public class AssignmentProcess implements Process, Expression
+public class ValueVectorSizeExpression implements Expression
 {
-	private GlobalVariablePath varPath;
-	private Expression expression;
-
-	/** Constructor.
-	 * 
-	 * @param var the variable which will receive the value.
-	 * @param expression the expression of which the evaluation will be stored in the variable.
-	 * @throws InvalidIdException if varId does not identify a variable.
-	 */
-	public AssignmentProcess( GlobalVariablePath varPath, Expression expression )
-	{
-		this.varPath = varPath;
-		this.expression = expression;
-	}
+	private GlobalVariablePath path;
 	
-	/** Evaluates the expression and stores its value in the variable. */
-	public void run()
+	public ValueVectorSizeExpression( GlobalVariablePath path )
 	{
-		if ( ExecutionThread.killed() )
-			return;
-		varPath.getValue().assignValue( expression.evaluate() );
-		//varPath.assignValue( expression.evaluate() );
+		this.path = path;
 	}
 	
 	public Value evaluate()
 	{
-		Value val = varPath.getValue(); 
-		val.assignValue( expression.evaluate() );
-		return val;
+		return Value.create( path.getValueVector().size() );
 	}
 }
