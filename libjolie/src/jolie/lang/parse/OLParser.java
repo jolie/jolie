@@ -42,6 +42,8 @@ import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
@@ -63,6 +65,10 @@ import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
@@ -79,6 +85,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePath;
 import jolie.lang.parse.ast.WhileStatement;
@@ -713,7 +721,10 @@ public class OLParser extends AbstractParser
 					|| token.is( Scanner.TokenType.DOT )
 					|| token.is( Scanner.TokenType.ASSIGN )
 					|| token.is( Scanner.TokenType.POINTS_TO )
-					|| token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
+					|| token.is( Scanner.TokenType.DEEP_COPY_LEFT )
+					|| token.is( Scanner.TokenType.DECREMENT )
+					|| token.is( Scanner.TokenType.CHOICE )
+					) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( id );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
@@ -722,13 +733,58 @@ public class OLParser extends AbstractParser
 				retVal = parseOutputOperationStatement( id );
 			} else
 				retVal = new ProcedureCallStatement( id );
-		/*} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
+		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new PreIncrementStatement( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
 			getToken();
 			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String id = token.content();
 			getToken();
-			retVal = new UndefStatement( parseVariablePath( id ) );*/
+			retVal = new UndefStatement( parseVariablePath( id ) );
+		} else if ( token.is( Scanner.TokenType.FOR ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			OLSyntaxNode init = parseProcess();
+			eat( Scanner.TokenType.COMMA, "expected ," );
+			OLSyntaxNode condition = parseCondition();
+			eat( Scanner.TokenType.COMMA, "expected ," );
+			OLSyntaxNode post = parseProcess();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			OLSyntaxNode body = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			retVal = new ForStatement( init, condition, post, body );
+		} else if ( token.is( Scanner.TokenType.FOREACH ) ) {
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+			String varId = token.content();
+			getToken();
+			VariablePath keyPath = parseVariablePath( varId );
+			eat( Scanner.TokenType.COMMA, "expected ," );
+			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+			varId = token.content();
+			getToken();
+			VariablePath valuePath = parseVariablePath( varId );
+			eat( Scanner.TokenType.IN, "expected in" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
+			varId = token.content();
+			getToken();
+			VariablePath targetPath = parseVariablePath( varId );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			OLSyntaxNode body = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			retVal = new ForEachStatement( keyPath, valuePath, targetPath, body );
 		} else if ( token.is( Scanner.TokenType.OUT ) ) { // out( <Expression> )
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -862,6 +918,12 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.ASSIGN ) ) {
 			getToken();
 			retVal = new AssignStatement( path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.CHOICE ) ) {
+			getToken();
+			retVal = new PostIncrementStatement( path );
+		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) {
+			getToken();
+			retVal = new PostDecrementStatement( path );
 		} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
@@ -875,7 +937,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			retVal = new DeepCopyStatement( path, parseVariablePath( id ) );
 		} else
-			throwException( "expected = or -> or <<" );
+			throwException( "expected = or -> or << or -- or ++" );
 		
 		
 		return retVal;
@@ -1169,7 +1231,19 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			String varId = token.content();
 			getToken();
-			retVal = new VariableExpressionNode( parseVariablePath( varId ) );
+			VariablePath path = parseVariablePath( varId );
+			if ( token.is( Scanner.TokenType.CHOICE ) ) { // Post increment
+				getToken();
+				retVal = new PostIncrementStatement( path );
+			} else if ( token.is( Scanner.TokenType.DECREMENT ) ) {
+				getToken();
+				retVal = new PostDecrementStatement( path );
+			} else if ( token.is( Scanner.TokenType.ASSIGN ) ) {
+				getToken();
+				retVal = new AssignStatement( path, parseExpression() );
+			} else {
+				retVal = new VariableExpressionNode( path );
+			}
 		} else if ( token.is( Scanner.TokenType.STRING ) ) {
 			retVal = new ConstantStringExpression( token.content() );
 			getToken();
@@ -1180,13 +1254,25 @@ public class OLParser extends AbstractParser
 			getToken();
 			retVal = parseExpression();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}/* else if ( token.is( Scanner.TokenType.HASH ) ) {
+		} else if ( token.is( Scanner.TokenType.HASH ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
-			String id = token.content();
+			String varId = token.content();
 			getToken();
-			retVal = VariableSizeExpressionNode( parseVariablePath( id ) );
-		}*/
+			retVal = new ValueVectorSizeExpressionNode( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new PreIncrementStatement( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+		}
 
 		if ( retVal == null )
 			throwException( "expected expression" );

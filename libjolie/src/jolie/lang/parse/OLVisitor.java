@@ -21,7 +21,63 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.CompareConditionNode;
+import jolie.lang.parse.ast.CompensateStatement;
+import jolie.lang.parse.ast.ConstantIntegerExpression;
+import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.ExecutionInfo;
+import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.IfStatement;
+import jolie.lang.parse.ast.InStatement;
+import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InstallCompensationStatement;
+import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.LinkInStatement;
+import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.NDChoiceStatement;
+import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.NotificationOperationDeclaration;
+import jolie.lang.parse.ast.NotificationOperationStatement;
+import jolie.lang.parse.ast.NullProcessStatement;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OneWayOperationStatement;
+import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.OutStatement;
+import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.ParallelStatement;
+import jolie.lang.parse.ast.PointerStatement;
+import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
+import jolie.lang.parse.ast.Procedure;
+import jolie.lang.parse.ast.ProcedureCallStatement;
+import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.RequestResponseOperationStatement;
+import jolie.lang.parse.ast.RunStatement;
+import jolie.lang.parse.ast.Scope;
+import jolie.lang.parse.ast.SequenceStatement;
+import jolie.lang.parse.ast.ServiceInfo;
+import jolie.lang.parse.ast.SleepStatement;
+import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
+import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.StateInfo;
+import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
+import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.WhileStatement;
 
 public interface OLVisitor
 {
@@ -78,5 +134,12 @@ public interface OLVisitor
 	public void visit( PointerStatement n );
 	public void visit( DeepCopyStatement n );
 	public void visit( RunStatement n );
-	//public void visit( UndefStatement n );
+	public void visit( UndefStatement n );
+	public void visit( ValueVectorSizeExpressionNode n );
+	public void visit( PreIncrementStatement n );
+	public void visit( PostIncrementStatement n );
+	public void visit( PreDecrementStatement n );
+	public void visit( PostDecrementStatement n );
+	public void visit( ForStatement n );
+	public void visit( ForEachStatement n );
 }

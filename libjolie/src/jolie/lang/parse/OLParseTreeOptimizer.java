@@ -32,6 +32,8 @@ import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
+import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
@@ -53,6 +55,10 @@ import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
 import jolie.lang.parse.ast.PortInfo;
+import jolie.lang.parse.ast.PostDecrementStatement;
+import jolie.lang.parse.ast.PostIncrementStatement;
+import jolie.lang.parse.ast.PreDecrementStatement;
+import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Procedure;
 import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
@@ -69,6 +75,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.UndefStatement;
+import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
@@ -335,6 +343,14 @@ public class OLParseTreeOptimizer
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
+		public void visit( ValueVectorSizeExpressionNode n ) { currNode = n; }
+		public void visit( PreIncrementStatement n ) { currNode = n; }
+		public void visit( PostIncrementStatement n ) { currNode = n; }
+		public void visit( PreDecrementStatement n ) { currNode = n; }
+		public void visit( PostDecrementStatement n ) { currNode = n; }
+		public void visit( UndefStatement n ) { currNode = n; }
+		public void visit( ForStatement n ) { currNode = n; }
+		public void visit( ForEachStatement n ) { currNode = n; }
 	}
 	
 	private Program originalProgram;

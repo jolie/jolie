@@ -98,8 +98,11 @@ public class Scanner
 		POINTS_TO,				///< ->
 		DEEP_COPY_LEFT,			///< <<
 		RUN,					///< run
-		//UNDEF,					///< undef
-		//HASH,					///< #
+		UNDEF,					///< undef
+		HASH,					///< #
+		FOR,					///< for
+		FOREACH,				///< foreach
+		DECREMENT,				///< --
 		ERROR			///< Scanner error
 	}
 	
@@ -320,8 +323,8 @@ public class Scanner
 							retval = new Token( TokenType.SEQUENCE );
 						else if ( ch == '.' )
 							retval = new Token( TokenType.DOT );
-						/*else if ( ch == '#' )
-							retval = new Token( TokenType.HASH );*/
+						else if ( ch == '#' )
+							retval = new Token( TokenType.HASH );
 						
 						readChar();
 					}
@@ -409,8 +412,12 @@ public class Scanner
 							retval = new Token( TokenType.CONSTANTS );
 						else if ( "run".equals( str ) )
 							retval = new Token( TokenType.RUN );
-						/*else if ( "undef".equals( str ) )
-							retval = new Token( TokenType.UNDEF );*/
+						else if ( "undef".equals( str ) )
+							retval = new Token( TokenType.UNDEF );
+						else if ( "for".equals( str ) )
+							retval = new Token( TokenType.FOR );
+						else if ( "foreach".equals( str ) )
+							retval = new Token( TokenType.FOREACH );
 						else
 							retval = new Token( TokenType.ID, str );
 					}
@@ -514,7 +521,10 @@ public class Scanner
 				case 14: // MINUS OR (negative) INT OR POINTS_TO
 					if ( Character.isDigit( ch ) )
 						state = 3;
-					else if ( ch == '>' ) {
+					else if ( ch == '-' ) {
+						retval = new Token( TokenType.DECREMENT );
+						readChar();
+					} else if ( ch == '>' ) {
 						retval = new Token( TokenType.POINTS_TO );
 						readChar();
 					} else
