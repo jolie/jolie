@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Vector;
 
 import jolie.Constants;
@@ -132,7 +133,20 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.CSET ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			program.addChild( new CorrelationSetInfo( parseIdListN( false ) ) );
+			String varId;
+			VariablePath path;
+			HashSet< VariablePath > cPaths = new HashSet< VariablePath >();
+			while( token.is( Scanner.TokenType.ID ) ) {
+				varId = token.content();
+				getToken();
+				path = parseVariablePath( varId );
+				cPaths.add( path );
+				if ( token.is( Scanner.TokenType.COMMA ) )
+					getToken();
+				else
+					break;
+			}
+			program.addChild( new CorrelationSetInfo( cPaths ) );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}

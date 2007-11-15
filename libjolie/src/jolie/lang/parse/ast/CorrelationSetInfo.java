@@ -27,16 +27,16 @@ import jolie.lang.parse.OLVisitor;
 
 public class CorrelationSetInfo implements OLSyntaxNode
 {
-	private Collection< String > variableNames;
+	private Collection< VariablePath > variablePaths;
 	
-	public CorrelationSetInfo( Collection< String > variableNames )
+	public CorrelationSetInfo( Collection< VariablePath > variablePaths )
 	{
-		this.variableNames = variableNames;
+		this.variablePaths = variablePaths;
 	}
 	
-	public Collection< String > variableNames()
+	public Collection< VariablePath > variablePaths()
 	{
-		return variableNames;
+		return variablePaths;
 	}
 	
 	public void accept( OLVisitor visitor )
