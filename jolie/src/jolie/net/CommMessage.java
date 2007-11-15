@@ -50,13 +50,13 @@ public class CommMessage
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;
-		this.value = Value.createValue();
+		this.value = Value.create();
 	}
 
 	public CommMessage( String inputId, FaultException f )
 	{
 		this.inputId = inputId;
-		this.value = Value.createValue( f.fault() );
+		this.value = Value.create( f.fault() );
 		fault = true;
 	}
 	

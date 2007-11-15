@@ -22,88 +22,54 @@
 package jolie;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Vector;
 
-import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariable;
-import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 public class State implements Cloneable
 {
-	private HashMap< GlobalVariable, Vector< Value > > stateMap;
+	private HashMap< GlobalVariable, ValueVector > stateMap;
 	
-	private State( HashMap< GlobalVariable, Vector< Value > > map )
+	private State( HashMap< GlobalVariable, ValueVector > map )
 	{
 		stateMap = map;
 	}
 	
 	public State()
 	{
-		stateMap = new HashMap< GlobalVariable, Vector< Value > > ();
-	}
-	
-	private Vector< Value > deepCopyValues( Vector< Value > oldValues )
-	{
-		Vector< Value > vec = new Vector< Value >();
-		Value newVal;
-		for( Value v : oldValues ) {
-			newVal = Value.createValue();
-			newVal.deepCopy( v );
-			vec.add( newVal );
-		}
-
-		return vec;
+		stateMap = new HashMap< GlobalVariable, ValueVector > ();
 	}
 	
 	public State clone()
 	{
-		HashMap< GlobalVariable, Vector< Value > > map =
-				new HashMap< GlobalVariable, Vector< Value > > ();
+		HashMap< GlobalVariable, ValueVector > map =
+				new HashMap< GlobalVariable, ValueVector > ();
 		
-		for( GlobalVariable var : stateMap.keySet() )
-			map.put( var, deepCopyValues( getValues( var ) ) );
+		synchronized( this ) {
+			for( GlobalVariable var : stateMap.keySet() )
+				map.put( var, ValueVector.createClone( getValues( var ) ) );
+		}
 		
 		return new State( map );
 	}
 	
-	public void setValues( GlobalVariable var, Vector< Value > newValues )
+	public void setValues( GlobalVariable var, ValueVector newValues )
 	{
-		stateMap.put( var, newValues );
+		synchronized( this ) {
+			stateMap.put( var, newValues );
+		}
 	}
 
-	public Vector< Value > getValues( GlobalVariable var )
+	public ValueVector getValues( GlobalVariable var )
 	{
-		Vector< Value > values;
-		if ( (values=stateMap.get( var )) == null ) {
-			values = new Vector< Value >();
-			stateMap.put( var, values );
-		}
-		return values;
-	}
-	
-	public boolean checkCorrelation( List< GlobalVariable > vars, CommMessage message )
-	{
-		Value val = message.value();
-		Value varValue;
-		for( GlobalVariable var : vars ) {
-			if ( Interpreter.correlationSet().contains( var ) && getValues( var ).size() > 0 ) {
-				varValue = getValues( var ).elementAt( 0 ); // TODO - this does not work anymore with structured data!
-				try {
-					if ( varValue.isDefined() && (
-								varValue.type() != val.type() ||
-								(varValue.isInt() && varValue.intValue() != val.intValue()) ||
-								(varValue.isString() && !varValue.strValue().equals( val.strValue() ))
-							)
-						)
-						return false;
-				} catch( NoSuchElementException e ) {
-					return false;
-				}
+		ValueVector values = null;
+		synchronized( this ) {
+			values = stateMap.get( var );
+			if ( values == null ) {
+				values = ValueVector.create();
+				stateMap.put( var, values );
 			}
 		}
-		
-		return true;
+		return values;
 	}
 }

@@ -108,13 +108,13 @@ import jolie.process.InstallCompensationProcess;
 import jolie.process.InstallFaultHandlerProcess;
 import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
+import jolie.process.MakePointerProcess;
 import jolie.process.NDChoiceProcess;
 import jolie.process.NotificationProcess;
 import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
 import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
-import jolie.process.MakePointerProcess;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.RunProcess;
@@ -129,7 +129,6 @@ import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
-import jolie.runtime.GlobalVariable;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InternalLink;
@@ -188,11 +187,15 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( CorrelationSetInfo n )
 	{
-		Set< GlobalVariable > cVars = new HashSet< GlobalVariable > ();
-		for( String varName : n.variableNames() )
-				cVars.add( GlobalVariable.getById( varName ) );
-
-		Interpreter.setCorrelationSet( cVars );
+		Set< GlobalVariablePath > cPaths = new HashSet< GlobalVariablePath > ();
+		try {
+			for( VariablePath path : n.variablePaths() )
+				cPaths.add( getGlobalVariablePath( path ) );
+		} catch( InvalidIdException e ) {
+			error( e ); 
+		}
+		
+		Interpreter.setCorrelationSet( cPaths );
 	}
 		
 	public void visit( InputPortTypeInfo n )
@@ -659,12 +662,12 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ConstantIntegerExpression n )
 	{
-		currExpression = Value.createValue( n.value() );
+		currExpression = Value.create( n.value() );
 	}
 	
 	public void visit( ConstantStringExpression n )
 	{
-		currExpression = Value.createValue( n.value() );
+		currExpression = Value.create( n.value() );
 	}
 	
 	public void visit( ProductExpressionNode n )

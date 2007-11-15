@@ -27,6 +27,11 @@ import jolie.process.Process;
 public class StatefulThread extends ExecutionThread
 {
 	private jolie.State state;
+	
+	public void setState( jolie.State state )
+	{
+		this.state = state;
+	}
 
 	public StatefulThread( Process process, ExecutionThread parent )
 	{

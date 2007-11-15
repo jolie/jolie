@@ -65,7 +65,8 @@ public class GlobalVariablePath implements Expression
 				if ( pathToPoint != null ) {
 					Interpreter.setValues(
 							variable,
-							(Vector< Value >) pathToPoint.followPath( false, null )
+							ValueVector.createLink( pathToPoint )
+							//(ValueVector) pathToPoint.followPath( false, null )
 							);
 					return null;
 				} else if ( !forceValue ) {
@@ -76,18 +77,18 @@ public class GlobalVariablePath implements Expression
 			index = varElement.evaluate().intValue();
 		}		
 
-		Vector< Value > vals = variable.values();
+		ValueVector vals = variable.values();
 		if ( index >= vals.size() ) {
 			for( int i = vals.size(); i <= index; i++ )
-				vals.add( Value.createValue() );
+				vals.add( Value.create() );
 		}
 		if ( path.isEmpty() && pathToPoint != null ) {
-			vals.setElementAt( Value.createLink( pathToPoint ), index );
+			vals.set( Value.createLink( pathToPoint ), index );
 			return null;
 		}
-		Value currVal = vals.elementAt( index );
+		Value currVal = vals.get( index );
 
-		Vector< Value > children;
+		ValueVector children;
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair;
 		index = 0;
@@ -101,7 +102,8 @@ public class GlobalVariablePath implements Expression
 					if ( pathToPoint != null ) {
 						currVal.children().put(
 								pair.key(),
-								(Vector< Value >) pathToPoint.followPath( false, null )
+								ValueVector.createLink( pathToPoint )
+								//(Vector< Value >) pathToPoint.followPath( false, null )
 								);
 						return null;
 					}
@@ -112,16 +114,16 @@ public class GlobalVariablePath implements Expression
 			}
 			if ( index >= children.size() ) {
 				for( int i = children.size(); i <= index; i++ )
-					children.add( Value.createValue() );
+					children.add( Value.create() );
 			}
 			if ( !it.hasNext() && pathToPoint != null && attribute == null ) {
-				children.setElementAt(
+				children.set(
 						Value.createLink( pathToPoint ),
 						index
 						);
 				return null;
 			}
-			currVal = children.elementAt( index );
+			currVal = children.get( index );
 		}
 		
 		if ( attribute != null ) {
@@ -146,6 +148,15 @@ public class GlobalVariablePath implements Expression
 	
 	/**
 	 * @todo This can cast a ClassCastException. Handle that.
+	 * Should be checked by the semantic validator  
+	 */
+	public ValueVector getValueVector()
+	{
+		return (ValueVector) followPath( false, null );
+	}
+	
+	/**
+	 * @todo This can cast a ClassCastException. Handle that.
 	 */
 	public void makePointer( GlobalVariablePath rightPath )
 	{
@@ -165,7 +176,7 @@ public class GlobalVariablePath implements Expression
 			myVec.clear();
 			Value myVal;
 			for( Value val : rightVec ) {
-				myVal = Value.createValue();
+				myVal = Value.create();
 				myVal.deepCopy( val );
 				myVec.add( myVal );
 			}

@@ -24,6 +24,56 @@ package jolie.runtime;
 import java.util.Iterator;
 import java.util.Vector;
 
+class ValueVectorLink extends ValueVector implements Cloneable
+{
+	private GlobalVariablePath linkPath;
+	
+	public ValueVectorLink clone()
+	{
+		return new ValueVectorLink( linkPath );
+	}
+	
+	public ValueVectorLink( GlobalVariablePath path )
+	{
+		linkPath = path;
+	}
+	
+	public boolean isLink()
+	{
+		return true;
+	}
+	
+	public Value get( int i )
+	{
+		return linkPath.getValueVector().get( i );
+	}
+	
+	public void deepCopy( ValueVector vec )
+	{
+		linkPath.getValueVector().deepCopy( vec );
+	}
+	
+	public Iterator< Value > iterator()
+	{
+		return linkPath.getValueVector().iterator();
+	}
+	
+	public int size()
+	{
+		return linkPath.getValueVector().size();
+	}
+	
+	public void add( Value value )
+	{
+		linkPath.getValueVector().add( value );
+	}
+	
+	public void set( Value value, int i )
+	{
+		linkPath.getValueVector().set( value, i );
+	}
+}
+
 class ValueVectorImpl extends ValueVector
 {
 	private Vector< Value > values;
@@ -48,23 +98,74 @@ class ValueVectorImpl extends ValueVector
 		return values.size();
 	}
 	
-	protected void deepCopy( ValueVector vec, boolean copyLinks )
+	public Value get( int i )
 	{
-		/*for( int i = 0; i < vec.size(); i++ )
-			values.elementAt( i ).deepCopy( vec.elementAt( i ) );*/
+		if ( i >= values.size() ) {
+			for( int k = values.size(); k <= i; k++ )
+				values.add( Value.create() );
+		}
+		return values.elementAt( i );
+	}
+	
+	public void set( Value value, int i )
+	{
+		if ( i >= values.size() ) {
+			for( int k = values.size(); k < i; k++ )
+				values.add( Value.create() );
+			values.add( value );
+		} else {
+			values.set( i, value );
+		}
+	}
+	
+	public void deepCopy( ValueVector vec )
+	{
+		for( int i = 0; i < vec.size(); i++ )
+			get( i ).deepCopy( vec.get( i ) );
+	}
+	
+	public void add( Value value )
+	{
+		values.add( value );
 	}
 }
 
 abstract public class ValueVector implements Iterable< Value >
-{
+{	
+	public static ValueVector create()
+	{
+		return new ValueVectorImpl();
+	}
+	
+	public static ValueVector createLink( GlobalVariablePath path )
+	{
+		return new ValueVectorLink( path );
+	}
+	
+	public static ValueVector createClone( ValueVector vec )
+	{
+		ValueVector retVec = null;
+		
+		if ( vec.isLink() ) {
+			retVec = ((ValueVectorLink)vec).clone();
+		} else {
+			retVec = create();
+			for( Value v : vec )
+				retVec.add( Value.createClone( v ) );
+		}
+		
+		return retVec;
+	}
+	
+	public Value first()
+	{
+		return get( 0 );
+	}
+	
+	abstract public void add( Value value );
 	abstract public boolean isLink();
-	
 	abstract public int size();
-	
-	//abstract public Value elementAt
-	
-	//abstract protected void _deepCopy( ValueVector vec, boolean copyLinks );
-	
-	abstract protected void deepCopy( ValueVector vec, boolean copyLinks );
-	//abstract protected void deepClone( ValueVector vec, boolean copyLinks );
+	abstract public Value get( int i );
+	abstract public void set( Value value, int i );
+	abstract public void deepCopy( ValueVector vec );
 }

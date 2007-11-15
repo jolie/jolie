@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.util.Vector;
 import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -53,6 +52,7 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.Operation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -125,7 +125,7 @@ public class SOAPProtocol implements CommProtocol
 		throws SOAPException
 	{
 		SOAPElement currentElement;
-		for( Entry< String, Vector< Value > > entry : value.children().entrySet() ) {
+		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {
 				currentElement = element.addChildElement( entry.getKey() );
 				for( Entry< String, Value > attrEntry : val.attributes().entrySet() ) {
@@ -354,7 +354,7 @@ public class SOAPProtocol implements CommProtocol
 
 			soapMessage.getSOAPPart().setContent( dom );
 			
-			Value value = Value.createValue();
+			Value value = Value.create();
 			soapElementsToSubValues(
 					value, soapMessage.getSOAPBody().getFirstChild().getChildNodes()
 					);

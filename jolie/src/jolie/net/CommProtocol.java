@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 
-
 public interface CommProtocol extends Cloneable
 {
 	public CommMessage recv( InputStream istream )

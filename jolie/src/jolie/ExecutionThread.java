@@ -22,8 +22,8 @@
 package jolie;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
+import java.util.Vector;
 
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
@@ -33,7 +33,8 @@ import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.process.SleepProcess;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.Value;
 
 class Scope {
 	private HashMap< String, Process > faultMap = new HashMap< String, Process >();
@@ -159,16 +160,6 @@ abstract public class ExecutionThread extends Thread
 		return p;
 	}
 	
-	/*private synchronized void _setFields( Object ref, Object fields )
-	{
-		fieldsMap.put( ref, fields );
-	}
-	
-	public static void setFields( Object ref, Object fields )
-	{
-		currentThread()._setFields( ref, fields );
-	}*/
-	
 	@SuppressWarnings("unchecked")
 	private synchronized <T> T _getLocalObject( Object ref, Class<T> clazz )
 	{
@@ -267,12 +258,42 @@ abstract public class ExecutionThread extends Thread
 		return current;
 	}
 	
-	public boolean checkCorrelation( List< GlobalVariable > vars, CommMessage message )
-	{
-		return state().checkCorrelation( vars, message );
-	}
-	
 	abstract public jolie.State state();
+	abstract protected void setState( jolie.State state );
+	
+	public synchronized boolean checkCorrelation( GlobalVariablePath path, CommMessage message )
+	{
+		Vector< Value > origCSetValues = new Vector< Value >();
+		for( GlobalVariablePath p : Interpreter.correlationSet() )
+			origCSetValues.add( p.getValue() );
+		
+		jolie.State origState = state();
+		setState( state().clone() );
+		
+		path.getValue().deepCopy( message.value() );
+		
+		Vector< Value > newCSetValues = new Vector< Value >();
+		for( GlobalVariablePath p : Interpreter.correlationSet() )
+			newCSetValues.add( p.getValue() );
+		
+		Value origV, newV;
+		for( int i = 0; i < origCSetValues.size(); i++ ) {
+			origV = origCSetValues.elementAt( i );
+			newV = newCSetValues.elementAt( i );
+			if ( origV.isDefined() && (
+					origV.type() != newV.type() ||
+					(origV.isInt() && origV.intValue() != newV.intValue()) ||
+					(origV.isString() && !origV.strValue().equals( newV.strValue() ))
+					)
+					)
+			{
+				setState( origState );
+				return false;
+			}
+		}
+
+		return true;
+	}
 	
 	protected Process process()
 	{

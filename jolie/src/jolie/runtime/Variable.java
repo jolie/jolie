@@ -34,7 +34,7 @@ import jolie.Constants;
  */
 abstract public class Variable implements Expression
 {
-	abstract public Vector< Value > values();
+	abstract public ValueVector values();
 	
 	/**
 	 * @todo eliminate this
@@ -42,11 +42,9 @@ abstract public class Variable implements Expression
 	 */
 	public synchronized final Value value()
 	{
-		Vector< Value > vals = values();
-		if ( vals.isEmpty() )
-			vals.add( Value.createValue() );
+		ValueVector vals = values();
 	
-		return vals.firstElement();
+		return vals.get( 0 );
 	}
 	
 	public final Value evaluate()

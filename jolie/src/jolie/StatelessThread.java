@@ -27,6 +27,11 @@ import jolie.process.Process;
 public class StatelessThread extends ExecutionThread
 {
 	private ExecutionThread parent;
+	
+	public void setState( jolie.State state )
+	{
+		parent.setState( state );
+	}
 
 	public StatelessThread( ExecutionThread parent, Process process )
 	{

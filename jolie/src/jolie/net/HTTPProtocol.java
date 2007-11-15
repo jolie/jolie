@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
-import java.util.Vector;
 import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -51,6 +50,7 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.Operation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -83,7 +83,7 @@ public class HTTPProtocol implements CommProtocol
 	{
 		Element currentElement;
 
-		for( Entry< String, Vector< Value > > entry : value.children().entrySet() ) {
+		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {
 				currentElement = doc.createElement( entry.getKey() );
 				element.appendChild( currentElement );
@@ -208,7 +208,7 @@ public class HTTPProtocol implements CommProtocol
 		CommMessage retVal = null;
 
 		try {
-			Value messageValue = Value.createValue();
+			Value messageValue = Value.create();
 			//String opId = null;
 			if ( message.size() > 0 ) {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

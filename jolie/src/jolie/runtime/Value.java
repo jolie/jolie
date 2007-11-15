@@ -22,7 +22,6 @@
 package jolie.runtime;
 
 import java.util.HashMap;
-import java.util.Vector;
 import java.util.Map.Entry;
 
 import jolie.Constants;
@@ -41,7 +40,7 @@ class ValueLink extends Value implements Cloneable
 		linkPath.getValue()._deepCopy( value, copyLinks );
 	}
 	
-	public Vector< Value > getChildren( String childId )
+	public ValueVector getChildren( String childId )
 	{
 		return linkPath.getValue().getChildren( childId );
 	}
@@ -51,7 +50,7 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().getNewChild( childId );
 	}
 	
-	public HashMap< String, Vector< Value > > children()
+	public HashMap< String, ValueVector > children()
 	{
 		return linkPath.getValue().children();
 	}
@@ -113,8 +112,8 @@ class ValueImpl extends Value
 	private int intValue = 0;
 	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
 	
-	private HashMap< String, Vector< Value > > children =
-				new HashMap< String, Vector< Value > >();
+	private HashMap< String, ValueVector > children =
+				new HashMap< String, ValueVector >();
 	private HashMap< String, Value > attributes =
 				new HashMap< String, Value >();
 	
@@ -145,23 +144,22 @@ class ValueImpl extends Value
 			attributes.put( entry.getKey(), currVal );
 		}
 	
-		for( Entry< String, Vector< Value > > entry : value.children().entrySet() ) {
-			Vector< Value > vec = new Vector< Value >();
-			for( Value val : entry.getValue() ) {
-				currVal = new ValueImpl();
-				currVal._deepCopy( val, copyLinks );
-				vec.add( currVal );
-			}
+		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			ValueVector vec = null;
+			if ( copyLinks )
+				vec = ValueVector.createClone( entry.getValue() );
+			else
+				(vec = ValueVector.create()).deepCopy( vec );
+
 			children.put( entry.getKey(), vec );
 		}
 	}
 	
-	public Vector< Value > getChildren( String childId )
+	public ValueVector getChildren( String childId )
 	{
-		Vector< Value > v = children.get( childId );
+		ValueVector v = children.get( childId );
 		if ( v == null ) {
-			v = new Vector< Value > ();
-			v.add( new ValueImpl() );
+			v = ValueVector.create();
 			children.put( childId, v );
 		}
 	
@@ -170,9 +168,9 @@ class ValueImpl extends Value
 	
 	public Value getNewChild( String childId )
 	{
-		Vector< Value > v = children.get( childId );
+		ValueVector v = children.get( childId );
 		if ( v == null ) {
-			v = new Vector< Value > ();
+			v = ValueVector.create();
 			children.put( childId, v );
 		}
 		Value retVal = new ValueImpl();
@@ -181,7 +179,7 @@ class ValueImpl extends Value
 		return retVal;
 	}
 	
-	public HashMap< String, Vector< Value > > children()
+	public HashMap< String, ValueVector > children()
 	{
 		return children;
 	}
@@ -286,24 +284,38 @@ abstract public class Value implements Expression
 		return new ValueLink( path );
 	}
 	
-	public static Value createValue()
+	public static Value create()
 	{
 		return new ValueImpl();
 	}
 	
-	public static Value createValue( String str )
+	public static Value create( String str )
 	{
 		return new ValueImpl( str );
 	}
 	
-	public static Value createValue( int i )
+	public static Value create( int i )
 	{
 		return new ValueImpl( i );
 	}
 	
-	public static Value createValue( Value value )
+	public static Value create( Value value )
 	{
 		return new ValueImpl( value );
+	}
+	
+	public static Value createClone( Value value )
+	{
+		Value retVal = null;
+		
+		if ( value.isLink() ) {
+			retVal = ((ValueLink)value).clone();
+		} else {
+			retVal = create();
+			retVal._deepCopy( value, true );
+		}
+		
+		return retVal;
 	}
 	
 	/**
@@ -316,18 +328,18 @@ abstract public class Value implements Expression
 		_deepCopy( value, false );
 	}
 	
-	public void deepClone( Value value )
+	/*public void deepClone( Value value )
 	{
 		_deepCopy( value, true );
-	}
+	}*/
 	
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
 	
-	abstract public Vector< Value > getChildren( String childId );
+	abstract public ValueVector getChildren( String childId );
 	
 	abstract public Value getNewChild( String childId );
 	
-	abstract public HashMap< String, Vector< Value > > children();
+	abstract public HashMap< String, ValueVector > children();
 
 	abstract public HashMap< String, Value > attributes();
 	

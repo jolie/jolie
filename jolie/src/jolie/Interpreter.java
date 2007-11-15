@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -41,8 +40,10 @@ import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariable;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 /**
  * The Jolie interpreter engine.
@@ -53,7 +54,7 @@ public class Interpreter
 	private OLParser olParser;
 	private static boolean verbose = false;
 	private static boolean exiting = false;
-	private static Set< GlobalVariable > correlationSet = new HashSet< GlobalVariable > ();
+	private static Set< GlobalVariablePath > correlationSet = new HashSet< GlobalVariablePath > ();
 	private static Constants.StateMode stateMode = Constants.StateMode.PERSISTENT;
 	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private LinkedList< String > arguments = new LinkedList< String >();
@@ -96,22 +97,22 @@ public class Interpreter
 		stateMode = mode;
 	}
 	
-	public static Vector< Value > getValues( GlobalVariable var )
+	public static ValueVector getValues( GlobalVariable var )
 	{
 		return ExecutionThread.currentThread().state().getValues( var );
 	}
 	
-	public static void setValues( GlobalVariable var, Vector< Value > newValues )
+	public static void setValues( GlobalVariable var, ValueVector newValues )
 	{
 		ExecutionThread.currentThread().state().setValues( var, newValues );
 	}
 	
-	public static void setCorrelationSet( Set< GlobalVariable > set )
+	public static void setCorrelationSet( Set< GlobalVariablePath > set )
 	{
 		correlationSet = set;
 	}
 	
-	public static Set< GlobalVariable > correlationSet()
+	public static Set< GlobalVariablePath > correlationSet()
 	{
 		return correlationSet;
 	}
@@ -222,13 +223,12 @@ public class Interpreter
 		StatefulThread mainExec = new StatefulThread( main, null );
 		
 		// Initialize program arguments in the args variabile.
-		Vector< Value > args =
-			mainExec.state().getValues( GlobalVariable.getById( "args" ) );
+		ValueVector args = ValueVector.create();
 		
-		args.clear();
-		for( String s : arguments ) {
-			args.add( Value.createValue( s ) );
-		}
+		for( String s : arguments )
+			args.add( Value.create( s ) );
+
+		mainExec.state().setValues( GlobalVariable.getById( "args" ), args );
 		
 		mainExec.start();
 		try {

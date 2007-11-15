@@ -99,22 +99,17 @@ abstract public class InputOperation extends Operation implements InputHandler
 	 */
 	private synchronized Pair< ExecutionThread, InputProcess > getCorrelatedPair( CommMessage message )
 	{
+		GlobalVariablePath path = null;
 		for( Pair< ExecutionThread, InputProcess > pair : procsList ) {
-			if ( pair.value() instanceof InputOperationProcess ) {
-				//InputOperationProcess process = (InputOperationProcess) pair.value();
-				/*if ( pair.key().checkCorrelation( process.inputVarPath(), message ) ) {
-					procsList.remove( pair );
-					return pair;
-				}*/
+			if ( pair.value() instanceof InputOperationProcess )
+				path = ((InputOperationProcess) pair.value()).inputVarPath();
+			else if ( pair.value() instanceof NDChoiceProcess )
+				path = ((NDChoiceProcess) pair.value()).inputVarPath( this.id() );
+			
+			if ( pair.key().checkCorrelation( path, message ) ) {
+				procsList.remove( pair );
 				return pair;
-			} else if ( pair.value() instanceof NDChoiceProcess ) {
-				//NDChoiceProcess process = (NDChoiceProcess) pair.value();
-				/*if ( pair.key().checkCorrelation( process.inputVarPath( this.id() ), message ) ) {
-					procsList.remove( pair );
-					return pair;
-				}*/
-				return pair;
-			}
+			}	
 		}
 		
 		return null;
