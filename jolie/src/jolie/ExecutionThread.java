@@ -270,7 +270,8 @@ abstract public class ExecutionThread extends Thread
 		jolie.State origState = state();
 		setState( state().clone() );
 		
-		path.getValue().deepCopy( message.value() );
+		if ( path != null )
+			path.getValue().deepCopy( message.value() );
 		
 		Vector< Value > newCSetValues = new Vector< Value >();
 		for( GlobalVariablePath p : Interpreter.correlationSet() )

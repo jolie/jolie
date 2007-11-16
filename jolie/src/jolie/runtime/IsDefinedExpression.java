@@ -19,31 +19,21 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
 
-import jolie.runtime.Value;
+package jolie.runtime;
 
-public class State implements Cloneable
+public class IsDefinedExpression implements Expression
 {
-	private Value root;
+	private GlobalVariablePath path;
 	
-	private State( Value root )
+	public IsDefinedExpression( GlobalVariablePath path )
 	{
-		this.root = root;
+		this.path = path;
 	}
 	
-	public State()
+	public Value evaluate()
 	{
-		this.root = Value.create();
-	}
-	
-	public State clone()
-	{
-		return new State( Value.createClone( root ) );
-	}
-	
-	public Value root()
-	{
-		return root;
+		Value v = path.getValueOrNull();
+		return Value.create( ( v != null && v.isDefined() ) ? 1 : 0 );
 	}
 }

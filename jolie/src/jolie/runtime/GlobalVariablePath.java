@@ -25,207 +25,268 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import jolie.Interpreter;
+import jolie.ExecutionThread;
 import jolie.util.Pair;
 
 public class GlobalVariablePath implements Expression, Cloneable
 {
-	private GlobalVariable variable;
-	private Expression varElement; // may be null
 	private List< Pair< String, Expression > > path; // Expression may be null
 	private Expression attribute; // may be null
 	
 	public GlobalVariablePath clone()
 	{
-		try {
-			List< Pair< String, Expression > > list =
-				new Vector< Pair< String, Expression > >();
-			for( Pair< String, Expression > p : path )
-				list.add( new Pair< String, Expression >( p.key(), p.value() ) );
-			return create( variable.id(), varElement, list, attribute );
-		} catch( InvalidIdException iie ) {
-			assert false; // This exception should never be raised.
-			return null;
-		}
+		List< Pair< String, Expression > > list =
+			new Vector< Pair< String, Expression > >();
+		for( Pair< String, Expression > p : path )
+			list.add( new Pair< String, Expression >( p.key(), p.value() ) );
+		return new GlobalVariablePath( list, attribute );
 	}
 	
-	public void addPathElement( String nodeName, Expression expression )
+	public void addPathNode( String nodeName, Expression expression )
 	{
 		path.add( new Pair< String, Expression >( nodeName, expression ) );
 	}
 	
-	public static GlobalVariablePath create(
-			String varId,
-			Expression varElement,
+	public GlobalVariablePath(
 			List< Pair< String, Expression > > path,
 			Expression attribute
 			)
-		throws InvalidIdException
 	{
-		GlobalVariablePath ret = new GlobalVariablePath( GlobalVariable.getById( varId ) );
-		ret.varElement = varElement;
-		ret.path = path;
-		ret.attribute = attribute;
-		return ret;
-	}
-	
-	private GlobalVariablePath( GlobalVariable variable )
-	{
-		this.variable = variable;
-	}
-	
-	@SuppressWarnings("unchecked")
-	private Object followPath( boolean forceValue, GlobalVariablePath pathToPoint, boolean undef )
-	{
-		int index = 0;
-		
-		if ( varElement == null ) {
-			if ( path.isEmpty() ) {
-				if ( undef ) {
-					Interpreter.setValues( variable, ValueVector.create() );
-					return null;
-				} else if ( pathToPoint != null ) {
-					Interpreter.setValues(
-							variable,
-							ValueVector.createLink( pathToPoint )
-							);
-					return null;
-				} else if ( !forceValue ) {
-					return variable.values();
-				}
-			}
-		} else {
-			index = varElement.evaluate().intValue();
-		}		
-
-		ValueVector vals = variable.values();
-		if ( index >= vals.size() ) {
-			for( int i = vals.size(); i <= index; i++ )
-				vals.add( Value.create() );
-		}
-		if ( path.isEmpty() ) {
-			if ( undef ) {
-				vals.remove( index );
-				return null;
-			} else if ( pathToPoint != null ) {
-				vals.set( Value.createLink( pathToPoint ), index );
-				return null;
-			}
-		}
-		Value currVal = vals.get( index );
-
-		ValueVector children;
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair;
-		index = 0;
-		while( it.hasNext() ) {
-			pair = it.next();
-			children = currVal.getChildren( pair.key() );
-			if ( pair.value() == null ) {
-				if ( it.hasNext() || attribute != null || forceValue ) {
-					index = 0;
-				} else {
-					if ( undef ) {
-						currVal.children().remove( pair.key() );
-						return null;
-					} else if ( pathToPoint != null ) {
-						currVal.children().put(
-								pair.key(),
-								ValueVector.createLink( pathToPoint )
-								);
-						return null;
-					}
-					return children; 
-				}
-			} else {
-				index = pair.value().evaluate().intValue();
-			}
-			if ( index >= children.size() ) {
-				for( int i = children.size(); i <= index; i++ )
-					children.add( Value.create() );
-			}
-			if ( !it.hasNext() && attribute == null ) {
-				if ( undef ) {
-					children.remove( index );
-					return null;
-				} else if ( pathToPoint != null ) { 
-					children.set(
-							Value.createLink( pathToPoint ),
-							index
-							);
-					return null;
-				}
-			}
-			currVal = children.get( index );
-		}
-		
-		if ( attribute != null ) {
-			if ( undef ) {
-				currVal.attributes().remove( attribute.evaluate().strValue() );
-			} else if ( pathToPoint == null ) {
-				currVal = currVal.getAttribute( attribute.evaluate().strValue() );
-			} else {
-				currVal.attributes().put(
-						attribute.evaluate().strValue(),
-						Value.createLink( pathToPoint )
-						);
-				return null;
-			}
-		}
-
-		return currVal;
+		this.path = path;
+		this.attribute = attribute;
 	}
 	
 	public void undef()
 	{
-		followPath( false, null, true );
+		Iterator< Pair< String, Expression > > it = path.iterator();
+		Pair< String, Expression > pair = null;
+		ValueVector currVector = null;
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+		int index;
+
+		while( it.hasNext() ) {
+			pair = it.next();
+			currVector = currValue.children().get( pair.key() );
+			if ( currVector == null || currVector.size() < 1 )
+				return;
+			if ( pair.value() == null ) {
+				if ( it.hasNext() ) {
+					currValue = currVector.first();
+				} else { // We're finished
+					if ( attribute == null ) {
+						currValue.children().remove( pair.key() );
+					} else {
+						currVector.first().attributes().remove( attribute.evaluate().strValue() );
+					}
+				}
+			} else {
+				index = pair.value().evaluate().intValue();
+				if ( it.hasNext() ) {
+					if ( currVector.size() <= index )
+						return;
+					currValue = currVector.get( index );
+				} else {
+					if ( attribute == null ) {
+						if ( currVector.size() > index )
+							currVector.remove( index );
+					} else {
+						if ( currVector.size() > index )
+							currVector.get( index ).attributes().remove( attribute.evaluate().strValue() );
+					}
+				}
+			}
+		}
 	}
 	
 	public Value getValue()
 	{
-		return (Value) followPath( true, null, false );
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+
+		for( Pair< String, Expression > pair : path ) {
+			if ( pair.value() == null )
+				currValue =
+					currValue.getChildren( pair.key() ).first();
+			else
+				currValue =
+					currValue.getChildren( pair.key() ).get( pair.value().evaluate().intValue() );
+		}
+		
+		if ( attribute == null )
+			return currValue;
+		
+		return currValue.getAttribute( attribute.evaluate().strValue() );
 	}
 	
-	/**
-	 * @todo This can cast a ClassCastException. Handle that.
-	 * Should be checked by the semantic validator  
-	 */
+	public Value getValueOrNull()
+	{
+		Iterator< Pair< String, Expression > > it = path.iterator();
+		Pair< String, Expression > pair = null;
+		ValueVector currVector = null;
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+		int index;
+
+		while( it.hasNext() ) {
+			pair = it.next();
+			currVector = currValue.children().get( pair.key() );
+			if ( currVector == null )
+				return null;
+			if ( pair.value() == null ) {
+				if ( it.hasNext() ) {
+					if ( currVector.size() < 1 )
+						return null;
+					currValue = currVector.first();
+				} else { // We're finished
+					if ( currVector.size() < 1 )
+						return null;
+					if ( attribute == null ) {
+						return currVector.first();
+					} else {
+						if ( currVector.size() < 1 )
+							return null;
+						return currVector.first().attributes().get( attribute.evaluate().strValue() );
+					}
+				}
+			} else {
+				index = pair.value().evaluate().intValue();
+				if ( currVector.size() <= index )
+					return null;
+				currValue = currVector.get( index );
+				if ( !it.hasNext() ) {
+					if ( attribute == null ) {
+						return currValue;
+					} else {
+						return currValue.attributes().get( attribute.evaluate().strValue() );
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+	
 	public ValueVector getValueVector()
 	{
-		return (ValueVector) followPath( false, null, false );
+		Iterator< Pair< String, Expression > > it = path.iterator();
+		Pair< String, Expression > pair;
+		ValueVector currVector = null;
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+
+		while( it.hasNext() ) {
+			pair = it.next();
+			currVector = currValue.getChildren( pair.key() );
+			if ( it.hasNext() ) {
+				if ( pair.value() != null ) {
+					currValue = currVector.get( pair.value().evaluate().intValue() );
+				} else {
+					currValue = currVector.first();
+				}
+			}
+		}
+
+		return currVector;
 	}
 	
-	/**
-	 * @todo This can cast a ClassCastException. Handle that.
-	 */
 	public void makePointer( GlobalVariablePath rightPath )
 	{
-		followPath( false, rightPath, false ); 
+		Iterator< Pair< String, Expression > > it = path.iterator();
+		Pair< String, Expression > pair = null;
+		ValueVector currVector = null;
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+		int index;
+
+		while( it.hasNext() ) {
+			pair = it.next();
+			currVector = currValue.getChildren( pair.key() );
+			if ( pair.value() == null ) {
+				if ( it.hasNext() ) {
+					currValue = currVector.first();
+				} else { // We're finished
+					if ( attribute == null ) {
+						currValue.children().put( pair.key(), ValueVector.createLink( rightPath ) );
+					} else {
+						currVector.first().attributes().put( attribute.evaluate().strValue(), Value.createLink( rightPath ) );
+					}
+				}
+			} else {
+				index = pair.value().evaluate().intValue();
+				if ( it.hasNext() ) {
+					currValue = currVector.get( index );
+				} else {
+					if ( attribute == null ) {
+						currVector.set( Value.createLink( rightPath ), index );
+					} else {
+						currVector.get( index ).attributes().put( attribute.evaluate().strValue(), Value.createLink( rightPath ) );
+					}
+				}
+			}
+		}
+	}
+	
+	private Object getValueOrValueVector()
+	{
+		Iterator< Pair< String, Expression > > it = path.iterator();
+		Pair< String, Expression > pair = null;
+		ValueVector currVector = null;
+		Value currValue =
+			ExecutionThread.currentThread().state().root();
+		int index;
+
+		while( it.hasNext() ) {
+			pair = it.next();
+			currVector = currValue.getChildren( pair.key() );
+			if ( pair.value() == null ) {
+				if ( it.hasNext() ) {
+					currValue = currVector.first();
+				} else { // We're finished
+					if ( attribute == null ) {
+						return currVector;
+					} else {
+						return currVector.first().getAttribute( attribute.evaluate().strValue() );
+					}
+				}
+			} else {
+				index = pair.value().evaluate().intValue();
+				if ( it.hasNext() ) {
+					currValue = currVector.get( index );
+				} else {
+					if ( attribute == null ) {
+						return currVector.get( index );
+					} else {
+						return currVector.get( index ).getAttribute( attribute.evaluate().strValue() );
+					}
+				}
+			}
+		}
+
+		return currValue;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public void deepCopy( GlobalVariablePath rightPath )
 	{
-		Object myObj = followPath( false, null, false );
+		Object myObj = getValueOrValueVector();
 		if ( myObj instanceof Value ) {
 			Value myVal = (Value) myObj;
-			myVal.deepCopy( (Value)rightPath.followPath( true, null, false ) );
+			myVal.deepCopy( rightPath.getValue() );
 		} else {
-			Vector< Value > myVec = (Vector< Value >) myObj;
-			Vector< Value > rightVec = (Vector< Value >) rightPath.followPath( false, null, false );
-			myVec.clear();
-			Value myVal;
-			for( Value val : rightVec ) {
-				myVal = Value.create();
-				myVal.deepCopy( val );
-				myVec.add( myVal );
+			ValueVector myVec = (ValueVector) myObj;
+			ValueVector rightVec = rightPath.getValueVector();
+			for( int i = 0; i < rightVec.size(); i++ ) {
+				myVec.get( i ).deepCopy( rightVec.get( i ) );
 			}
 		}
-		followPath( false, rightPath, false );
 	}
 	
 	public Value evaluate()
 	{
-		return getValue();
+		Value v = getValueOrNull();
+		if ( v == null )
+			return Value.create();
+		return v.evaluate();
 	}
 }

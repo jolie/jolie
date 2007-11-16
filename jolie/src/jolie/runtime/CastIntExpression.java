@@ -19,31 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
 
-import jolie.runtime.Value;
+package jolie.runtime;
 
-public class State implements Cloneable
+public class CastIntExpression implements Expression
 {
-	private Value root;
+	private GlobalVariablePath path;
 	
-	private State( Value root )
+	public CastIntExpression( GlobalVariablePath path )
 	{
-		this.root = root;
+		this.path = path;
 	}
 	
-	public State()
+	public Value evaluate()
 	{
-		this.root = Value.create();
-	}
-	
-	public State clone()
-	{
-		return new State( Value.createClone( root ) );
-	}
-	
-	public Value root()
-	{
-		return root;
+		Value v = path.getValueOrNull();
+		if ( v == null )
+			return Value.create();
+
+		return Value.create( v.intValue() );
 	}
 }

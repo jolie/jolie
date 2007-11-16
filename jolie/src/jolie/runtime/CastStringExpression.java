@@ -22,52 +22,21 @@
 
 package jolie.runtime;
 
-import java.util.Collection;
-import java.util.HashMap;
-
-import jolie.Interpreter;
-
-public class GlobalVariable extends Variable implements MappedGlobalObject
+public class CastStringExpression implements Expression
 {
-	private static HashMap< String, GlobalVariable > idMap = 
-		new HashMap< String, GlobalVariable >();
+	private GlobalVariablePath path;
 	
-	private String id;
+	public CastStringExpression( GlobalVariablePath path )
+	{
+		this.path = path;
+	}
+	
+	public Value evaluate()
+	{
+		Value v = path.getValueOrNull();
+		if ( v == null )
+			return Value.create();
 
-	public GlobalVariable( String id )
-	{
-		super();
-		this.id = id;
-	}
-	
-	public String id()
-	{
-		return id;
-	}
-	
-	public static GlobalVariable getById( String id )
-	{
-		GlobalVariable retVal = idMap.get( id );
-		if ( retVal == null ) {
-			retVal = new GlobalVariable( id );
-			retVal.register();
-		}
-
-		return retVal;
-	}
-	
-	public final void register()
-	{
-		idMap.put( id, this );
-	}
-	
-	public static Collection< GlobalVariable > getAll()
-	{
-		return idMap.values();
-	}
-	
-	public ValueVector values()
-	{
-		return Interpreter.getValues( this );
+		return Value.create( v.strValue() );
 	}
 }

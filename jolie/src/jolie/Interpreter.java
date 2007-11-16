@@ -39,7 +39,6 @@ import jolie.lang.parse.ast.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariable;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
@@ -95,16 +94,6 @@ public class Interpreter
 	public static void setStateMode( Constants.StateMode mode )
 	{
 		stateMode = mode;
-	}
-	
-	public static ValueVector getValues( GlobalVariable var )
-	{
-		return ExecutionThread.currentThread().state().getValues( var );
-	}
-	
-	public static void setValues( GlobalVariable var, ValueVector newValues )
-	{
-		ExecutionThread.currentThread().state().setValues( var, newValues );
 	}
 	
 	public static void setCorrelationSet( Set< GlobalVariablePath > set )
@@ -228,7 +217,7 @@ public class Interpreter
 		for( String s : arguments )
 			args.add( Value.create( s ) );
 
-		mainExec.state().setValues( GlobalVariable.getById( "args" ), args );
+		mainExec.state().root().getChildren( "args" ).deepCopy( args );
 		
 		mainExec.start();
 		try {

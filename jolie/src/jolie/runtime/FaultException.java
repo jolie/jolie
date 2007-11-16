@@ -32,6 +32,11 @@ public class FaultException extends Exception
 		super( message );
 	}
 	
+	public FaultException( Exception e )
+	{
+		super( e );
+	}
+	
 	public String fault()
 	{
 		return getMessage();

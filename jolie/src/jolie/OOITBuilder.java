@@ -53,6 +53,7 @@ import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallCompensationStatement;
 import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
@@ -90,6 +91,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -140,6 +142,8 @@ import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
 import jolie.runtime.AndCondition;
+import jolie.runtime.CastIntExpression;
+import jolie.runtime.CastStringExpression;
 import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
 import jolie.runtime.Expression;
@@ -148,6 +152,9 @@ import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InternalLink;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.IsDefinedExpression;
+import jolie.runtime.IsIntExpression;
+import jolie.runtime.IsStringExpression;
 import jolie.runtime.Location;
 import jolie.runtime.NotCondition;
 import jolie.runtime.NotificationOperation;
@@ -204,13 +211,9 @@ public class OOITBuilder implements OLVisitor
 	public void visit( CorrelationSetInfo n )
 	{
 		Set< GlobalVariablePath > cPaths = new HashSet< GlobalVariablePath > ();
-		try {
-			for( VariablePath path : n.variablePaths() )
-				cPaths.add( getGlobalVariablePath( path ) );
-		} catch( InvalidIdException e ) {
-			error( e ); 
-		}
-		
+		for( VariablePath path : n.variablePaths() )
+			cPaths.add( getGlobalVariablePath( path ) );
+
 		Interpreter.setCorrelationSet( cPaths );
 	}
 		
@@ -499,35 +502,24 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( AssignStatement n )
 	{
-		try {
-			n.expression().accept( this );
+		n.expression().accept( this );
 			
-			AssignmentProcess p = 
-				new AssignmentProcess(
-					getGlobalVariablePath( n.variablePath() ),
-					currExpression
-					);
-			currProcess = p;
-			currExpression = p;
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		AssignmentProcess p = 
+			new AssignmentProcess(
+				getGlobalVariablePath( n.variablePath() ),
+				currExpression
+				);
+		currProcess = p;
+		currExpression = p;
 	}
 	
 	private GlobalVariablePath getGlobalVariablePath( VariablePath path )
-		throws InvalidIdException
 	{
 		if ( path == null )
 			return null;
 		
 		Expression backupExpr = currExpression;
 		
-		Expression varElement = null;
-		if ( path.varElement() != null ) {
-			path.varElement().accept( this );
-			varElement = currExpression;
-		}
-
 		LinkedList< Pair< String, Expression > > list =
 							new LinkedList< Pair< String, Expression > >();
 		Expression attribute = null;
@@ -544,33 +536,25 @@ public class OOITBuilder implements OLVisitor
 		
 		currExpression = backupExpr;
 		
-		return GlobalVariablePath.create( path.varId(), varElement, list, attribute );
+		return new GlobalVariablePath( list, attribute );
 	}
 	
 	public void visit( PointerStatement n )
 	{
-		try {
-			currProcess =
-				new MakePointerProcess(
-					getGlobalVariablePath( n.leftPath() ),
-					getGlobalVariablePath( n.rightPath() )
-					);
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currProcess =
+			new MakePointerProcess(
+				getGlobalVariablePath( n.leftPath() ),
+				getGlobalVariablePath( n.rightPath() )
+				);
 	}
 	
 	public void visit( DeepCopyStatement n )
 	{
-		try {
-			currProcess =
-				new DeepCopyProcess(
-					getGlobalVariablePath( n.leftPath() ),
-					getGlobalVariablePath( n.rightPath() )
-					);
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currProcess =
+			new DeepCopyProcess(
+				getGlobalVariablePath( n.leftPath() ),
+				getGlobalVariablePath( n.rightPath() )
+				);
 	}
 	
 	public void visit( IfStatement n )
@@ -594,13 +578,9 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( InStatement n )
 	{
-		try {
-			currProcess = new InProcess(
-					getGlobalVariablePath( n.variablePath() )
-					);
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currProcess = new InProcess(
+				getGlobalVariablePath( n.variablePath() )
+				);
 	}
 	
 	public void visit( OutStatement n )
@@ -716,11 +696,7 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( VariableExpressionNode n )
 	{
-		try {
-			currExpression = getGlobalVariablePath( n.variablePath() );
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currExpression = getGlobalVariablePath( n.variablePath() );
 	}
 	
 	public void visit( NullProcessStatement n )
@@ -735,59 +711,63 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
-		try {
-			currExpression = new ValueVectorSizeExpression( getGlobalVariablePath( n.variablePath() ) );
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currExpression = new ValueVectorSizeExpression( getGlobalVariablePath( n.variablePath() ) );
 	}
 	
 	public void visit( PreDecrementStatement n )
 	{
-		try {
-			PreDecrementProcess p =
-				new PreDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
-			currProcess = p;
-			currExpression = p;
-		} catch( InvalidIdException e ) {
-			error( e );
-		} 
+		PreDecrementProcess p =
+			new PreDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p; 
 	}
 	
 	public void visit( PostDecrementStatement n )
 	{
-		try {
-			PostDecrementProcess p =
-				new PostDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
-			currProcess = p;
-			currExpression = p;
-		} catch( InvalidIdException e ) {
-			error( e );
-		} 
+		PostDecrementProcess p =
+			new PostDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p;
+	}
+	
+	public void visit( IsTypeExpressionNode n )
+	{
+		IsTypeExpressionNode.CheckType type = n.type();
+		if ( type == IsTypeExpressionNode.CheckType.DEFINED ) {
+			currExpression =
+				new IsDefinedExpression( getGlobalVariablePath( n.variablePath() ) );
+		} else if ( type == IsTypeExpressionNode.CheckType.INT ) {
+			currExpression =
+				new IsIntExpression( getGlobalVariablePath( n.variablePath() ) );	
+		} else if ( type == IsTypeExpressionNode.CheckType.STRING ) {
+			currExpression =
+				new IsStringExpression( getGlobalVariablePath( n.variablePath() ) );
+		}
+	}
+	
+	public void visit( TypeCastExpressionNode n )
+	{
+		if ( n.type() == Constants.VariableType.INT ) {
+			currExpression = new CastIntExpression( getGlobalVariablePath( n.variablePath() ) );
+		} else if ( n.type() == Constants.VariableType.STRING ) {
+			currExpression = new CastStringExpression( getGlobalVariablePath( n.variablePath() ) );
+		}
 	}
 	
 	public void visit( PreIncrementStatement n )
 	{
-		try {
-			PreIncrementProcess p =
-				new PreIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
-			currProcess = p;
-			currExpression = p;
-		} catch( InvalidIdException e ) {
-			error( e );
-		} 
+		PreIncrementProcess p =
+			new PreIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p; 
 	}
 	
 	public void visit( PostIncrementStatement n )
 	{
-		try {
-			PostIncrementProcess p =
-				new PostIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
-			currProcess = p;
-			currExpression = p;
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		PostIncrementProcess p =
+			new PostIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+		currProcess = p;
+		currExpression = p;
 	}
 	
 	public void visit( ForStatement n )
@@ -804,27 +784,19 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ForEachStatement n )
 	{
-		try {
-			n.body().accept( this );
-			currProcess =
-				new ForEachProcess(
-					getGlobalVariablePath( n.keyPath() ),
-					getGlobalVariablePath( n.valuePath() ),
-					getGlobalVariablePath( n.targetPath() ),
-					currProcess
-					);
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		n.body().accept( this );
+		currProcess =
+			new ForEachProcess(
+				getGlobalVariablePath( n.keyPath() ),
+				getGlobalVariablePath( n.valuePath() ),
+				getGlobalVariablePath( n.targetPath() ),
+				currProcess
+				);
 	}
 	
 	public void visit( UndefStatement n )
 	{
-		try {
-			currProcess = new UndefProcess( getGlobalVariablePath( n.variablePath() ) );
-		} catch( InvalidIdException e ) {
-			error( e );
-		}
+		currProcess = new UndefProcess( getGlobalVariablePath( n.variablePath() ) );
 	}
 }
 

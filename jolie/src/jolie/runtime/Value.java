@@ -150,7 +150,7 @@ class ValueImpl extends Value
 			if ( copyLinks )
 				vec = ValueVector.createClone( entry.getValue() );
 			else
-				(vec = ValueVector.create()).deepCopy( vec );
+				(vec = ValueVector.create()).deepCopy( entry.getValue() );
 
 			children.put( entry.getKey(), vec );
 		}
@@ -169,13 +169,9 @@ class ValueImpl extends Value
 	
 	public Value getNewChild( String childId )
 	{
-		ValueVector v = children.get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			children.put( childId, v );
-		}
+		ValueVector vec = getChildren( childId );
 		Value retVal = new ValueImpl();
-		v.add( retVal );
+		vec.add( retVal );
 		
 		return retVal;
 	}
