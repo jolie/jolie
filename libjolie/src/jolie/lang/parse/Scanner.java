@@ -103,6 +103,11 @@ public class Scanner
 		FOR,					///< for
 		FOREACH,				///< foreach
 		DECREMENT,				///< --
+		IS_STRING,				///< is_string
+		IS_INT,					///< is_int
+		IS_DEFINED,				///< is_defined
+		CAST_INT,				///< int
+		CAST_STRING,			///< string
 		ERROR			///< Scanner error
 	}
 	
@@ -418,6 +423,16 @@ public class Scanner
 							retval = new Token( TokenType.FOR );
 						else if ( "foreach".equals( str ) )
 							retval = new Token( TokenType.FOREACH );
+						else if ( "is_defined".equals( str ) )
+							retval = new Token( TokenType.IS_DEFINED );
+						else if ( "is_string".equals( str ) )
+							retval = new Token( TokenType.IS_STRING );
+						else if ( "is_int".equals( str ) )
+							retval = new Token( TokenType.IS_INT );
+						else if ( "int".equals( str ) )
+							retval = new Token( TokenType.CAST_INT );
+						else if ( "string".equals( str ) )
+							retval = new Token( TokenType.CAST_STRING );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

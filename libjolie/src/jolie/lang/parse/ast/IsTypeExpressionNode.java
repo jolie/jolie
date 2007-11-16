@@ -21,41 +21,38 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import jolie.util.Pair;
+import jolie.lang.parse.OLVisitor;
 
 
-public class VariablePath
+public class IsTypeExpressionNode implements OLSyntaxNode
 {
-	private List< Pair< String, OLSyntaxNode > > path;
-	private OLSyntaxNode attribute = null;
+	public enum CheckType {
+		DEFINED,
+		INT,
+		STRING
+	}
+	
+	private VariablePath variablePath;
+	private CheckType type;
 
-	public VariablePath( String varId, OLSyntaxNode varElement )
+	public IsTypeExpressionNode( CheckType type, VariablePath variablePath )
 	{
-		path =
-				new LinkedList< Pair< String, OLSyntaxNode > >();
-		path.add( new Pair< String, OLSyntaxNode >( varId, varElement ) );
+		this.type = type;
+		this.variablePath = variablePath;
 	}
 	
-	public void append( Pair< String, OLSyntaxNode > node )
+	public CheckType type()
 	{
-		path.add( node );
+		return type;
 	}
 	
-	public List< Pair< String, OLSyntaxNode > > path()
+	public VariablePath variablePath()
 	{
-		return path;
+		return variablePath;
 	}
 	
-	public OLSyntaxNode attribute()
+	public void accept( OLVisitor visitor )
 	{
-		return attribute;
-	}
-	
-	public void setAttribute( OLSyntaxNode attribute )
-	{
-		this.attribute = attribute;
+		visitor.visit( this );
 	}
 }

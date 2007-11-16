@@ -85,6 +85,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -747,11 +749,13 @@ public class OLParser extends AbstractParser
 			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
 			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
 			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String id = token.content();
 			getToken();
 			retVal = new UndefStatement( parseVariablePath( id ) );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.FOR ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1149,6 +1153,21 @@ public class OLParser extends AbstractParser
 		return andCond;
 	}
 	
+	private OLSyntaxNode parseNotCondition()
+		throws IOException, ParserException
+	{
+		OLSyntaxNode retVal = null;
+		
+		if ( token.is( Scanner.TokenType.LPAREN ) ) {
+			getToken();
+			retVal = parseCondition();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else
+			retVal = new ExpressionConditionNode( parseExpression() );
+
+		return new NotConditionNode( retVal );
+	}
+	
 	private OLSyntaxNode parseBasicCondition()
 		throws IOException, ParserException
 	{
@@ -1160,9 +1179,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.NOT ) ) {
 			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new NotConditionNode( parseCondition() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
+			retVal = parseNotCondition();
 		} else {
 			Scanner.TokenType opType;
 			OLSyntaxNode expr1;
@@ -1272,6 +1289,56 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.IS_DEFINED ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new IsTypeExpressionNode(
+						IsTypeExpressionNode.CheckType.DEFINED, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.IS_INT ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new IsTypeExpressionNode(
+						IsTypeExpressionNode.CheckType.INT, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.IS_STRING ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new IsTypeExpressionNode(
+						IsTypeExpressionNode.CheckType.STRING, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.CAST_INT ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new TypeCastExpressionNode(
+						Constants.VariableType.INT, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new TypeCastExpressionNode(
+						Constants.VariableType.STRING, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
 
 		if ( retVal == null )

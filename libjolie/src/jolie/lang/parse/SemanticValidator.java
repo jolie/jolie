@@ -82,6 +82,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -318,4 +320,6 @@ public class SemanticValidator implements OLVisitor
 	public void visit( UndefStatement n ) {}
 	public void visit( ForStatement n ) {}
 	public void visit( ForEachStatement n ) {}
+	public void visit( IsTypeExpressionNode n ) {}
+	public void visit( TypeCastExpressionNode n ) {}
 }

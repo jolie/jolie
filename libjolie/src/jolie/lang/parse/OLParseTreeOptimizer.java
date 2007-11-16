@@ -75,6 +75,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
+import jolie.lang.parse.ast.TypeCastExpressionNode;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -351,6 +353,8 @@ public class OLParseTreeOptimizer
 		public void visit( UndefStatement n ) { currNode = n; }
 		public void visit( ForStatement n ) { currNode = n; }
 		public void visit( ForEachStatement n ) { currNode = n; }
+		public void visit( IsTypeExpressionNode n ) { currNode = n; }
+		public void visit( TypeCastExpressionNode n ) { currNode = n; }
 	}
 	
 	private Program originalProgram;
