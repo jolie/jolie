@@ -87,15 +87,18 @@ public class Scanner
 		STATE,				///< state
 		EXECUTION,			///< execution
 		THROW,				///< throw
-		INSTALL_FAULT_HANDLER,	///< installFH
-		INSTALL_COMPENSATION,	///< installComp
+		INSTALL,				///< install
+		//INSTALL_FAULT_HANDLER,	///< installFH
+		//INSTALL_COMPENSATION,	///< installComp
 		SCOPE,					///< scope
+		THIS,					///< this
 		COMPENSATE,				///< comp
 		SINGLE,					///< single
 		EXIT,					///< exit
 		INCLUDE,				///< include
 		CONSTANTS,				///< constants
 		POINTS_TO,				///< ->
+		ARROW,					///< =>
 		DEEP_COPY_LEFT,			///< <<
 		RUN,					///< run
 		UNDEF,					///< undef
@@ -401,10 +404,14 @@ public class Scanner
 							retval = new Token( TokenType.STATE );
 						else if ( "execution".equals( str ) )
 							retval = new Token( TokenType.EXECUTION );
-						else if ( "installFH".equals( str ) )
+						else if ( "install".equals( str ) )
+							retval = new Token( TokenType.INSTALL );
+						else if ( "this".equals( str ) )
+							retval = new Token( TokenType.THIS );
+						/*else if ( "installFH".equals( str ) )
 							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
 						else if ( "installComp".equals( str ) )
-							retval = new Token( TokenType.INSTALL_COMPENSATION );
+							retval = new Token( TokenType.INSTALL_COMPENSATION );*/
 						else if ( "throw".equals( str ) )
 							retval = new Token( TokenType.THROW );
 						else if ( "scope".equals( str ) )
@@ -472,6 +479,9 @@ public class Scanner
 				case 6:	// ASSIGN OR EQUAL
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.EQUAL );
+						readChar();
+					} else if ( ch == '>' ) {
+						retval = new Token( TokenType.ARROW );
 						readChar();
 					} else
 						retval = new Token( TokenType.ASSIGN );

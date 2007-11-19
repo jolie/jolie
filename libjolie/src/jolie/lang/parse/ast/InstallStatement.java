@@ -24,18 +24,18 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 
 
-public class InstallCompensationStatement implements OLSyntaxNode
+public class InstallStatement implements OLSyntaxNode
 {
-	private OLSyntaxNode body;
+	private InstallFunctionNode handlersFunction;
 
-	public InstallCompensationStatement( OLSyntaxNode body )
+	public InstallStatement( InstallFunctionNode handlersFunction )
 	{
-		this.body = body;
+		this.handlersFunction = handlersFunction;
 	}
 	
-	public OLSyntaxNode body()
+	public InstallFunctionNode handlersFunction()
 	{
-		return body;
+		return handlersFunction;
 	}
 	
 	public void accept( OLVisitor visitor )

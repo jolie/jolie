@@ -37,8 +37,8 @@ import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
-import jolie.lang.parse.ast.InstallCompensationStatement;
-import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
@@ -76,7 +76,6 @@ import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -306,18 +305,14 @@ public class OLParseTreeOptimizer
 			currNode = new Scope( n.id(), currNode );
 		}
 		
-		public void visit( InstallFaultHandlerStatement n )
+		/*
+		 * @todo Optimize the associated processes
+		 */
+		public void visit( InstallStatement n )
 		{
-			n.body().accept( this );
-			currNode = new InstallFaultHandlerStatement( n.id(), currNode );
+			currNode = n;
 		}
-		
-		public void visit( InstallCompensationStatement n )
-		{
-			n.body().accept( this );
-			currNode = new InstallCompensationStatement( currNode );
-		}
-		
+				
 		public void visit( CompensateStatement n ) { currNode = n; }
 		public void visit( ThrowStatement n ) { currNode = n; }
 		public void visit( OneWayOperationStatement n ) { currNode = n; }

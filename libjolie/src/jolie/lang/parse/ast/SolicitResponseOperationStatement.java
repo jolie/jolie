@@ -29,18 +29,26 @@ public class SolicitResponseOperationStatement implements OLSyntaxNode
 	private VariablePath outputVarPath, inputVarPath;
 	private String id;
 	private OLSyntaxNode locationExpression;
+	private InstallFunctionNode handlersFunction;
 	
 	public SolicitResponseOperationStatement(
 			String id,
 			OLSyntaxNode locationExpression,
 			VariablePath outputVarPath,
-			VariablePath inputVarPath
+			VariablePath inputVarPath,
+			InstallFunctionNode handlersFunction
 		)
 	{
 		this.id = id;
 		this.outputVarPath = outputVarPath;
 		this.inputVarPath = inputVarPath;
 		this.locationExpression = locationExpression;
+		this.handlersFunction = handlersFunction;
+	}
+	
+	public InstallFunctionNode handlersFunction()
+	{
+		return handlersFunction;
 	}
 	
 	public String id()

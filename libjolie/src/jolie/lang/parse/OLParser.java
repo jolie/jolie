@@ -47,8 +47,9 @@ import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
-import jolie.lang.parse.ast.InstallCompensationStatement;
-import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
@@ -86,7 +87,6 @@ import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
@@ -853,7 +853,13 @@ public class OLParser extends AbstractParser
 			retVal = new ThrowStatement( token.content() );
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.INSTALL_COMPENSATION ) ) {
+		} else if ( token.is( Scanner.TokenType.INSTALL ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new InstallStatement( parseInstallFunction() );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		}	
+		/*else if ( token.is( Scanner.TokenType.INSTALL_COMPENSATION ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			retVal = new InstallCompensationStatement( parseProcess() );
@@ -867,7 +873,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.COMMA, "expected ," );
 			retVal = new InstallFaultHandlerStatement( id, parseProcess() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IF ) ) {
+		}*/ else if ( token.is( Scanner.TokenType.IF ) ) {
 			IfStatement stm = new IfStatement();
 			OLSyntaxNode cond;
 			OLSyntaxNode node;
@@ -913,6 +919,31 @@ public class OLParser extends AbstractParser
 			throwException( "expected basic statement" );
 		
 		return retVal;
+	}
+	
+	private InstallFunctionNode parseInstallFunction()
+		throws IOException, ParserException
+	{
+		Vector< Pair< String, OLSyntaxNode > > vec =
+				new Vector< Pair< String, OLSyntaxNode > >();
+
+		String id;
+		// @todo: this is buggy, as it allows lists ending with a comma
+		while( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.THIS ) ) {
+			if ( token.is( Scanner.TokenType.ID ) )
+				id = token.content();
+			else
+				id = null;
+			getToken();
+			eat( Scanner.TokenType.ARROW, "expected =>" );
+			vec.add( new Pair< String, OLSyntaxNode >( id, parseProcess() ) );
+			if ( token.isNot( Scanner.TokenType.COMMA ) )
+				break;
+			else
+				getToken();
+		}
+		
+		return new InstallFunctionNode( vec );
 	}
 	
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( String varName )
@@ -1100,15 +1131,23 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		OLSyntaxNode locExpr = parseExpression();
-		VariablePath outputVarPath = parseOperationStatementParameter();	
+		VariablePath outputVarPath = parseOperationStatementParameter();
 
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit Response operation
+			VariablePath inputVarPath = parseOperationStatementParameter();
+			InstallFunctionNode function = null;
+			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+				eat( Scanner.TokenType.LSQUARE, "expected [" );
+				function = parseInstallFunction();
+				eat( Scanner.TokenType.RSQUARE, "expected ]" );
+			}
 			stm = new SolicitResponseOperationStatement(
 					id,
 					locExpr,
 					outputVarPath,
-					parseOperationStatementParameter() );
+					inputVarPath,
+					function );
 		} else // Notification operation
 			stm = new NotificationOperationStatement( id, locExpr, outputVarPath );
 

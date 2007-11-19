@@ -21,32 +21,22 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.lang.parse.OLVisitor;
+import java.util.List;
+
+import jolie.util.Pair;
 
 
-public class InstallFaultHandlerStatement implements OLSyntaxNode
+public class InstallFunctionNode
 {
-	private String id;
-	private OLSyntaxNode body;
+	private List< Pair< String, OLSyntaxNode > > pairs;
 
-	public InstallFaultHandlerStatement( String id, OLSyntaxNode body )
+	public InstallFunctionNode( List< Pair< String, OLSyntaxNode > > pairs )
 	{
-		this.id = id;
-		this.body = body;
+		this.pairs = pairs;
 	}
 	
-	public String id()
+	public List< Pair< String, OLSyntaxNode > > pairs()
 	{
-		return id;
-	}
-	
-	public OLSyntaxNode body()
-	{
-		return body;
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return pairs;
 	}
 }
