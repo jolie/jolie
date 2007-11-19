@@ -771,6 +771,7 @@ public class OLParser extends AbstractParser
 			retVal = new ForStatement( init, condition, post, body );
 		} else if ( token.is( Scanner.TokenType.FOREACH ) ) {
 			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
 			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
 			String varId = token.content();
 			getToken();
@@ -785,6 +786,7 @@ public class OLParser extends AbstractParser
 			varId = token.content();
 			getToken();
 			VariablePath targetPath = parseVariablePath( varId );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			OLSyntaxNode body = parseProcess();
 			eat( Scanner.TokenType.RCURLY, "expected }" );
