@@ -36,17 +36,21 @@ public class SolicitResponseProcess implements Process
 	private SolicitResponseOperation operation;
 	private GlobalVariablePath outputVarPath, inputVarPath; // each may be null
 	private Location location;
+	private Process installProcess;
 
 	public SolicitResponseProcess(
 			SolicitResponseOperation operation,
 			Location location,
 			GlobalVariablePath outputVarPath,
-			GlobalVariablePath inputVarPath )
+			GlobalVariablePath inputVarPath,
+			Process installProcess
+			)
 	{
 		this.operation = operation;
 		this.location = location;
 		this.outputVarPath = outputVarPath;
 		this.inputVarPath = inputVarPath;
+		this.installProcess = installProcess;
 	}
 	
 	public void run()
@@ -72,6 +76,8 @@ public class SolicitResponseProcess implements Process
 
 			if ( inputVarPath != null )
 				inputVarPath.getValue().deepCopy( message.value() );
+			
+			installProcess.run();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {

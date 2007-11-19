@@ -51,8 +51,8 @@ import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
-import jolie.lang.parse.ast.InstallCompensationStatement;
-import jolie.lang.parse.ast.InstallFaultHandlerStatement;
+import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
@@ -116,8 +116,7 @@ import jolie.process.ForProcess;
 import jolie.process.IfProcess;
 import jolie.process.InProcess;
 import jolie.process.InputProcess;
-import jolie.process.InstallCompensationProcess;
-import jolie.process.InstallFaultHandlerProcess;
+import jolie.process.InstallProcess;
 import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
 import jolie.process.MakePointerProcess;
@@ -449,13 +448,18 @@ public class OOITBuilder implements OLVisitor
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		n.locationExpression().accept( this );
+		Expression location = currExpression;
 		try {
+			Process installProcess = NullProcess.getInstance();
+			if ( n.handlersFunction() != null )
+				installProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 			currProcess =
 				new SolicitResponseProcess(
 						SolicitResponseOperation.getById( n.id() ),
-						new Location( currExpression ),
+						new Location( location ),
 						getGlobalVariablePath( n.outputVarPath() ),
-						getGlobalVariablePath( n.inputVarPath() )
+						getGlobalVariablePath( n.inputVarPath() ),
+						installProcess
 						);
 		} catch( InvalidIdException e ) {
 			error( e );
@@ -488,18 +492,21 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new ScopeProcess( n.id(), currProcess );
 	}
 		
-	public void visit( InstallCompensationStatement n )
+	public void visit( InstallStatement n )
 	{
-		n.body().accept( this );
-		currProcess = new InstallCompensationProcess( currProcess );
+		currProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 	}
-		
-	public void visit( InstallFaultHandlerStatement n )
+	
+	private Vector< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
 	{
-		n.body().accept( this );
-		currProcess = new InstallFaultHandlerProcess( n.id(), currProcess );
+		Vector< Pair< String, Process > > pairs = new Vector< Pair< String, Process > >();
+		for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
+			pair.value().accept( this );
+			pairs.add( new Pair< String, Process >( pair.key(), currProcess ) );
+		}
+		return pairs;
 	}
-		
+			
 	public void visit( AssignStatement n )
 	{
 		n.expression().accept( this );
