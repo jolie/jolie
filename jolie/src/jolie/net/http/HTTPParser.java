@@ -21,10 +21,9 @@
 
 package jolie.net.http;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import jolie.lang.parse.Scanner;
 
@@ -49,12 +48,12 @@ public class HTTPParser
 		scanner = new HTTPScanner( istream, "network" );
 	}
 	
-	private void eat( Scanner.TokenType type )
+	/*private void eat( Scanner.TokenType type )
 		throws IOException
 	{
 		tokenAssert( type );
 		getToken();
-	}
+	}*/
 	
 	private void tokenAssert( Scanner.TokenType type )
 		throws IOException
@@ -69,7 +68,7 @@ public class HTTPParser
 		throw new IOException( "Malformed HTTP header" );
 	}
 	
-	private void conditionAssert( boolean condition )
+	/*private void assertCondition( boolean condition )
 		throws IOException
 	{
 		if ( condition == false )
@@ -90,153 +89,133 @@ public class HTTPParser
 			}
 			getToken();
 		}
+	}*/
+	
+	private void parseHeaderProperties( HTTPMessage message )
+		throws IOException
+	{
+		String name, value;
+		getToken();
+		while( token.is( Scanner.TokenType.ID ) ) {
+			name = token.content();
+			getToken();
+			tokenAssert( Scanner.TokenType.COLON );
+			value = scanner.readLine();
+			message.setProperty( name.toLowerCase(), value );
+			getToken();
+		}
 	}
 	
-	public HTTPMessage parse()
+	private HTTPMessage parseRequest()
 		throws IOException
-	{		
-		/*if ( true ) {
-			InputStream stream = scanner.inputStream();
-			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
-
-			// Eat the rest of the HTTP header
-			String line;
-			do {
-				System.out.println( line = reader.readLine() );
-			} while( line != null );
-		}*/
-		getToken();
-		int contentLength = 0;
-		int httpCode = 0;
-		boolean chunked = false;
-		String contentType = new String();
+	{
 		HTTPMessage message = null;
-		HTTPMessage.Type type = HTTPMessage.Type.ERROR;
-		String requestPath = null;
-		if ( token.isKeyword( HTTP ) ) { // It's an HTTP response
-			getToken();
-			eat( Scanner.TokenType.DIVIDE );
-			conditionAssert(
-					token.is( Scanner.TokenType.INT ) &&
-					Integer.parseInt( token.content() ) == 1
-					);
-			getToken();
-			eat( Scanner.TokenType.DOT );
-			httpCode = Integer.parseInt( token.content() );
-			conditionAssert(
-					token.is( Scanner.TokenType.INT ) &&
-					( httpCode == 1 || httpCode == 0 )
-					);
-			getToken();
-			tokenAssert( Scanner.TokenType.INT );
-			httpCode = Integer.parseInt( token.content() );
-			getToken();
-			
-			String conds[] = { "Content-Length", "Transfer-Encoding" };
-			while( token.isNot( Scanner.TokenType.EOF ) ) {
-				eatHeaderUntil( conds );
-				if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON );
-					tokenAssert( Scanner.TokenType.INT );
-					contentLength = Integer.parseInt( token.content() );
-				} else if ( token.isKeywordIgnoreCase( "Transfer-Encoding" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON );
-					if ( token.isKeywordIgnoreCase( "chunked" ) )
-						chunked = true;
-				}
-			}
-			
-			type = HTTPMessage.Type.RESPONSE;
-		} else {
-			if ( token.isKeyword( POST ) ) {
-				type = HTTPMessage.Type.POST;
-			} else if ( token.isKeyword( GET ) ) {
-				type = HTTPMessage.Type.GET;
-			} else {
-				throw new IOException( "Unrecognized HTTP request type" );
-			}
-
-			requestPath = scanner.readWord().substring( 1 );
-			
-			String conds[] = { "Content-Length", "Content-Type", "Transfer-Encoding" };
-			while( token.isNot( Scanner.TokenType.EOF ) ) {
-				eatHeaderUntil( conds );
-				if ( token.isKeywordIgnoreCase( "Content-Length" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON );
-					tokenAssert( Scanner.TokenType.INT );
-					contentLength = Integer.parseInt( token.content() );
-				} else if ( token.isKeywordIgnoreCase( "Content-Type" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON );
-					contentType = scanner.readWord();
-				} else if ( token.isKeywordIgnoreCase( "Transfer-Encoding" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON );
-					if ( token.isKeywordIgnoreCase( "chunked" ) )
-						chunked = true;
-				}
-			}
-		}
+		if ( token.isKeyword( GET ) ) {
+			message = new HTTPMessage( HTTPMessage.Type.GET );
+		} else if ( token.isKeyword( POST ) ) {
+			message = new HTTPMessage( HTTPMessage.Type.POST );
+		} else
+			throw new IOException( "Unknown HTTP request type: " + token.content() );
 		
-		//System.out.println("HTTPParser called");
-		//System.out.println("Debug: contentLength=" + contentLength );
-		//System.out.println("Debug: chunked=" + chunked );
+		message.setRequestPath( scanner.readWord().substring( 1 ) );
+		
+		getToken();
+		if ( !token.isKeyword( HTTP ) )
+			throw new IOException( "Invalid HTTP header: expected HTTP version" );
+		
+		if ( (char)scanner.currentByte() != '/' )
+			throw new IOException( "Expected HTTP version" );
 
-		char buffer[] = new char[ contentLength ];
-		if ( contentLength != 0 ) {
+		String version = scanner.readWord();
+		if ( !( "1.1".equals( version ) || "1.0".equals( version ) ) )
+			throw new IOException( "Unsupported HTTP version specified: " + version );
+		
+		return message;
+	}
+	
+	private HTTPMessage parseMessageType()
+		throws IOException
+	{
+		if ( token.isKeyword( HTTP ) ) {
+			return parseResponse();
+		} else {
+			return parseRequest();
+		}
+	}
+	
+	private HTTPMessage parseResponse()
+		throws IOException
+	{
+		HTTPMessage message = new HTTPMessage( HTTPMessage.Type.RESPONSE );
+		if ( (char)scanner.currentByte() != '/' )
+			throw new IOException( "Expected HTTP version" );
+
+		String version = scanner.readWord();
+		if ( !( "1.1".equals( version ) || "1.0".equals( version ) ) )
+			throw new IOException( "Unsupported HTTP version specified: " + version );
+
+		getToken();
+		tokenAssert( Scanner.TokenType.INT );
+		message.setHttpCode( Integer.parseInt( token.content() ) );
+		message.setReason( scanner.readLine() );
+
+		return message;
+	}
+	
+	private void readContent( HTTPMessage message )
+		throws IOException
+	{
+		String p;
+		int contentLength = 0;
+		p = message.getProperty( "content-length" );
+		if ( p != null )
+			contentLength = Integer.parseInt( p );
+		
+		boolean chunked = false;
+		p = message.getProperty( "transfer-encoding" );
+		if ( p != null && p.equals( "chunked" ) )
+			chunked = true;
+		
+		byte buffer[] = new byte[ contentLength ];
+		if ( contentLength > 0 ) {
 			InputStream stream = scanner.inputStream();
-			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
+			BufferedInputStream reader = new BufferedInputStream( stream );
 
-			buffer[0] = scanner.currentCharacter();
+			buffer[0] = scanner.currentByte();
 			reader.read( buffer, 0, contentLength );
 		} else if ( chunked ) {
-			char tmp[] = new char[ 1024*64 ];
+			byte tmp[] = new byte[ 1024*64 ];
 			//int total = 0;
 			int l = 0;
 			String lStr;
 			
 			InputStream stream = scanner.inputStream();
-			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
-			//tmp[0] = scanner.currentCharacter();
+			BufferedInputStream reader = new BufferedInputStream( stream );
 			
 			//do {
 				lStr = scanner.readWord();
 				l = Integer.parseInt( lStr, 16 );
 				scanner.eatSeparators();
-				tmp[0] = scanner.currentCharacter();
-				//System.out.println( "Debug: l=" + l + ", lStr=" + lStr );
+				tmp[0] = scanner.currentByte();
 				reader.read( tmp, 1, l - 1 );
-				while( token.isNot( Scanner.TokenType.EOF ) && token.isNot( Scanner.TokenType.ERROR ) )
+				while( !token.isEOF() && token.isNot( Scanner.TokenType.ERROR ) )
 					getToken();
-				//lStr = scanner.readWord();
-				//System.out.println( "Debug: l=" + l + ", lStr=" + lStr );
 			//} while( l > 0 );
-			buffer = new char[ l ];
+			buffer = new byte[ l ];
 			for( int i = 0; i < l; i++ )
 				buffer[i] = tmp[i];
 		}
 		
-		/*if ( true ) {
-			InputStream stream = scanner.inputStream();
-			BufferedReader reader = new BufferedReader( new InputStreamReader( stream ) );
-
-			// Eat the rest of the HTTP header
-			String line;
-			do {
-				System.out.println( line = reader.readLine() );
-			} while( line != null );
-		}*/
-		/*application/x-www-form-urlencoded*/
-		
-		if ( type == HTTPMessage.Type.RESPONSE ) {
-			message = new HTTPMessage( httpCode, buffer );
-		} else {
-			message = new HTTPMessage( type, requestPath, contentType, buffer );
-		}
-
+		message.setContent( buffer );
+	}
+	
+	public HTTPMessage parse()
+		throws IOException
+	{
+		getToken();
+		HTTPMessage message = parseMessageType();
+		parseHeaderProperties( message );
+		readContent( message );
 		return message;
 	}
 }

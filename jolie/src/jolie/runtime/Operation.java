@@ -22,9 +22,6 @@
 
 package jolie.runtime;
 
-import java.util.Collection;
-import java.util.HashMap;
-
 import jolie.deploy.OperationDeployInfo;
 
 /** Generic operation declaration
@@ -35,9 +32,6 @@ import jolie.deploy.OperationDeployInfo;
  */
 abstract public class Operation extends AbstractMappedGlobalObject
 {
-	private static HashMap< String, Operation > idMap = 
-		new HashMap< String, Operation >();
-	
 	private OperationDeployInfo deployInfo;
 	
 	public OperationDeployInfo deployInfo()
@@ -56,7 +50,7 @@ abstract public class Operation extends AbstractMappedGlobalObject
 		return id();
 	}
 
-	public static Operation getById( String id )
+	/*public static Operation getById( String id )
 		throws InvalidIdException
 	{
 		Operation retVal = idMap.get( id );
@@ -64,15 +58,7 @@ abstract public class Operation extends AbstractMappedGlobalObject
 			throw new InvalidIdException( id );
 
 		return retVal;
-	}
+	}*/
 	
-	public final void register()
-	{
-		idMap.put( id(), this );
-	}
-	
-	public static Collection< Operation > getAll()
-	{
-		return idMap.values();
-	}
+	abstract public void register();
 }

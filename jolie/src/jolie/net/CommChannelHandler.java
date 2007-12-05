@@ -32,6 +32,7 @@ import jolie.runtime.InvalidIdException;
  * CommChannelHandler objects are grouped in a ThreadGroup, in order to be able 
  * to interrupt them in case of network shutdown.
  * 
+ * @todo this must become a ProcessThread, leaving the encumbrance from CommChannel
  * 
  */
 public class CommChannelHandler extends Thread

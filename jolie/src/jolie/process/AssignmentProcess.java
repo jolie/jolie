@@ -58,7 +58,7 @@ public class AssignmentProcess implements Process, Expression
 	
 	public Value evaluate()
 	{
-		Value val = varPath.getValue(); 
+		Value val = varPath.getValue();
 		val.assignValue( expression.evaluate() );
 		return val;
 	}

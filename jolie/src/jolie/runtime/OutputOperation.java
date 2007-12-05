@@ -22,6 +22,7 @@
 package jolie.runtime;
 
 import java.net.URISyntaxException;
+import java.util.HashMap;
 
 import jolie.Constants;
 import jolie.Interpreter;
@@ -35,6 +36,9 @@ import jolie.net.SODEPProtocol;
 
 public class OutputOperation extends Operation
 {
+	private static HashMap< String, OutputOperation > idMap = 
+		new HashMap< String, OutputOperation >();
+
 	public OutputOperation( String id )
 	{
 		super( id );
@@ -43,10 +47,16 @@ public class OutputOperation extends Operation
 	public static OutputOperation getById( String id )
 		throws InvalidIdException
 	{
-		Operation obj = Operation.getById( id );
-		if ( !( obj instanceof OutputOperation ) )
+		OutputOperation retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (OutputOperation)obj;
+
+		return retVal;
+	}
+	
+	public void register()
+	{
+		idMap.put( id(), this );
 	}
 	
 	public CommProtocol getOutputProtocol( Location location )

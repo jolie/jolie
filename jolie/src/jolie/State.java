@@ -21,15 +21,42 @@
 
 package jolie;
 
+import java.util.HashMap;
+
+import jolie.runtime.InternalLink;
 import jolie.runtime.Value;
 
 public class State implements Cloneable
 {
 	private Value root;
+	private HashMap< String, InternalLink > linksMap =
+				new HashMap< String, InternalLink >();
+	private HashMap< String, Object > locksMap =
+				new HashMap< String, Object >();
 	
 	private State( Value root )
 	{
 		this.root = root;
+	}
+	
+	public InternalLink getLink( String id )
+	{
+		InternalLink l = linksMap.get( id );
+		if ( l == null ) {
+			l = new InternalLink( id );
+			linksMap.put( id, l );
+		}
+		return l;
+	}
+	
+	public Object getLock( String id )
+	{
+		Object l = locksMap.get( id );
+		if ( l == null ) {
+			l = new Object();
+			locksMap.put( id, l );
+		}
+		return l;
 	}
 	
 	public State()

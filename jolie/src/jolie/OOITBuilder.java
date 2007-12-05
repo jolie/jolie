@@ -90,6 +90,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
@@ -137,6 +138,7 @@ import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SleepProcess;
 import jolie.process.SolicitResponseProcess;
+import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
@@ -149,7 +151,6 @@ import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputOperation;
-import jolie.runtime.InternalLink;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
 import jolie.runtime.IsIntExpression;
@@ -298,7 +299,7 @@ public class OOITBuilder implements OLVisitor
 	private Process currProcess;
 	private Expression currExpression;
 	private Condition currCondition;
-	private boolean correlatedSequence = false;
+	private boolean alreadyCorrelated = false;
 		
 	public void visit( Program p )
 	{
@@ -349,6 +350,12 @@ public class OOITBuilder implements OLVisitor
 		}
 		currProcess = proc;
 	}
+	
+	public void visit( SynchronizedStatement n )
+	{
+		n.body().accept( this );
+		currProcess = new SynchronizedProcess( n.id(), currProcess );
+	}
 		
 	/**
 	 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
@@ -363,12 +370,12 @@ public class OOITBuilder implements OLVisitor
 		while( it.hasNext() ) {
 			node = it.next();
 			node.accept( this );
-			if ( currProcess instanceof CorrelatedInputProcess && !correlatedSequence ) {
+			if ( currProcess instanceof CorrelatedInputProcess && !alreadyCorrelated ) {
 				/**
 				 * Do not use multiple CorrelatedInputProcess
 				 * in the same sequence!
 				 */
-				correlatedSequence = true;
+				alreadyCorrelated = true;
 				SequentialProcess sequence = new SequentialProcess();
 				CorrelatedProcess corrProc = new CorrelatedProcess( sequence );
 				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
@@ -379,7 +386,7 @@ public class OOITBuilder implements OLVisitor
 					sequence.addChild( currProcess );
 				}
 				currProcess = corrProc;
-				correlatedSequence = false;
+				alreadyCorrelated = false;
 			}
 			proc.addChild( currProcess );
 			if ( !it.hasNext() ) // Dirty trick, remove this
@@ -398,7 +405,15 @@ public class OOITBuilder implements OLVisitor
 			pair.value().accept( this );
 			proc.addChoice( (InputProcess)guard, currProcess );
 		}
-		currProcess = proc;
+		
+		if( !alreadyCorrelated ) {
+			alreadyCorrelated = true;
+			CorrelatedProcess corrProc = new CorrelatedProcess( proc );
+			proc.setCorrelatedProcess( corrProc );
+			alreadyCorrelated = false;
+			currProcess = corrProc;
+		} else
+			currProcess = proc;
 	}
 		
 	public void visit( OneWayOperationStatement n )
@@ -468,12 +483,12 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( LinkInStatement n )
 	{
-		currProcess = new LinkInProcess( InternalLink.getById( n.id() ) );
+		currProcess = new LinkInProcess( n.id() );
 	}
 	
 	public void visit( LinkOutStatement n )
 	{
-		currProcess = new LinkOutProcess( InternalLink.getById( n.id() ) );
+		currProcess = new LinkOutProcess( n.id() );
 	}
 	
 	public void visit( ThrowStatement n )

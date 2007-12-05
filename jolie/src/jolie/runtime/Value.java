@@ -193,7 +193,7 @@ class ValueImpl extends Value
 			attr = new ValueImpl();
 			attributes.put( attributeId, attr );
 		}
-			return attr;
+		return attr;
 	}
 	
 	public boolean equals( Value val )
@@ -320,7 +320,7 @@ abstract public class Value implements Expression
 	 * In case of a sub-link, its pointed Value tree is copied.
 	 * @param value The value to be copied. 
 	 */
-	public void deepCopy( Value value )
+	public synchronized void deepCopy( Value value )
 	{
 		_deepCopy( value, false );
 	}

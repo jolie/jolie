@@ -28,18 +28,21 @@ import jolie.runtime.InternalLink;
 
 public class LinkInProcess implements InputProcess
 {
-	private InternalLink link;
+	private String link;
 	
-	public LinkInProcess( InternalLink link )
+	public LinkInProcess( String link )
 	{
 		this.link = link;
 	}
 	
 	public InputHandler inputHandler()
 	{
-		return link;
+		return InternalLink.getById( link );
 	}
 	
+	/**
+	 * @todo Why is this synchronized?
+	 */
 	public synchronized boolean recvMessage( CommMessage message )
 	{
 		//notify();
@@ -50,7 +53,7 @@ public class LinkInProcess implements InputProcess
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		link.linkIn( this );
+		InternalLink.getById( link ).linkIn( this );
 		//link.signForMessage( this );
 	}
 }

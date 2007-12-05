@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import jolie.ExecutionThread;
@@ -42,6 +43,9 @@ import jolie.util.Pair;
  */
 abstract public class InputOperation extends Operation implements InputHandler
 {
+	private static HashMap< String, InputOperation > idMap = 
+		new HashMap< String, InputOperation >();
+	
 	private LinkedList< Pair< ExecutionThread, InputProcess > > procsList =
 						new LinkedList< Pair< ExecutionThread, InputProcess > >();
 	//private LinkedList< CommMessage > mesgList;
@@ -55,10 +59,16 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public static InputOperation getById( String id )
 		throws InvalidIdException
 	{
-		Operation obj = Operation.getById( id );
-		if ( !( obj instanceof InputOperation ) )
+		InputOperation retVal = idMap.get( id );
+		if ( retVal == null )
 			throw new InvalidIdException( id );
-		return (InputOperation)obj;
+
+		return retVal;
+	}
+	
+	public void register()
+	{
+		idMap.put( id(), this );
 	}
 	
 	/**
@@ -105,7 +115,8 @@ abstract public class InputOperation extends Operation implements InputHandler
 				path = ((InputOperationProcess) pair.value()).inputVarPath();
 			else if ( pair.value() instanceof NDChoiceProcess )
 				path = ((NDChoiceProcess) pair.value()).inputVarPath( this.id() );
-			
+		
+			CommCore.currentCommChannel().setExecutionThread( pair.key() );
 			if ( pair.key().checkCorrelation( path, message ) ) {
 				procsList.remove( pair );
 				return pair;

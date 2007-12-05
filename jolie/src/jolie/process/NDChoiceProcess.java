@@ -120,8 +120,14 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
 
 		for( ChoicePair cp : inputMap.values() ) {
-			if ( cp.inputProcess() instanceof CorrelatedInputProcess )
+			/*
+			 * @todo this setCorrelatedProcess thing should be done only once!
+			 */
+			if ( cp.inputProcess() instanceof CorrelatedInputProcess ) {
 				((CorrelatedInputProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
+			} else if ( cp.inputProcess() instanceof InProcess ) {
+				((InProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
+			}
 			cp.inputProcess().inputHandler().signForMessage( this );
 		}
 

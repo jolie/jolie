@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 public class JavaCommChannel extends CommChannel
@@ -35,6 +36,7 @@ public class JavaCommChannel extends CommChannel
 	public JavaCommChannel( Object javaService )
 	{
 		this.javaService = javaService;
+		setExecutionThread( ExecutionThread.currentThread() );
 	}
 	
 	public void send( CommMessage message )

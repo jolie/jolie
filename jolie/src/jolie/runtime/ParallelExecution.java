@@ -29,14 +29,14 @@ import jolie.process.Process;
 
 class ParallelThread extends StatelessThread
 {
-	ParallelExecution parent;
+	private ParallelExecution parent;
 	
 	public ParallelThread( Process process, ParallelExecution parent )
 	{
 		super( ExecutionThread.currentThread(), process );
 		this.parent = parent;
 	}
-	
+
 	public void run()
 	{
 		try {
@@ -52,11 +52,14 @@ public class ParallelExecution
 {
 	private Vector< ParallelThread > threads = new Vector< ParallelThread >();
 	private FaultException fault = null;
+	//private ExecutionThread ethread;
 
 	public ParallelExecution( Vector< Process > procs )
 	{
 		for( Process proc : procs )
 			threads.add( new ParallelThread( proc, this ) );
+		
+		//ethread = ExecutionThread.currentThread();
 	}
 	
 	public void run()

@@ -43,7 +43,7 @@ public class RequestResponseOperation extends InputOperation
 	public static RequestResponseOperation getById( String id )
 		throws InvalidIdException
 	{
-		Operation obj = Operation.getById( id );
+		InputOperation obj = InputOperation.getById( id );
 		if ( !( obj instanceof RequestResponseOperation ) )
 			throw new InvalidIdException( id );
 		return (RequestResponseOperation)obj;

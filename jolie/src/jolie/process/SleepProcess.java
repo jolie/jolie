@@ -25,13 +25,14 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import jolie.ExecutionThread;
+import jolie.ProcessThread;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.InputHandler;
 
 public class SleepProcess implements InputProcess
 {
-	public class SleepInputHandler extends Thread implements InputHandler
+	public class SleepInputHandler extends ProcessThread implements InputHandler
 	{
 		private InputProcess inputProcess;
 		private Expression expression;

@@ -30,20 +30,20 @@ import jolie.runtime.FaultException;
 
 public class CorrelatedProcess implements Process
 {
-	private SequentialProcess sequence;
+	private Process process;
 	private ExecutionThread waitingThread = null;
 	
-	public CorrelatedProcess( SequentialProcess sequence )
+	public CorrelatedProcess( Process process )
 	{
-		this.sequence = sequence;
+		this.process = process;
 	}
 	
 	private void startSession()
 	{
 		if ( Interpreter.stateMode() == Constants.StateMode.PERSISTENT )
-			waitingThread = new StatelessThread( ExecutionThread.currentThread(), sequence, this );
+			waitingThread = new StatelessThread( ExecutionThread.currentThread(), process, this );
 		else
-			waitingThread = new StatefulThread( sequence, ExecutionThread.currentThread(), this );
+			waitingThread = new StatefulThread( process, ExecutionThread.currentThread(), this );
 		
 		waitingThread.start();
 	}
@@ -63,7 +63,7 @@ public class CorrelatedProcess implements Process
 				}
 			}
 		} else
-			sequence.run();
+			process.run();
 	}
 	
 	public synchronized void inputReceived()

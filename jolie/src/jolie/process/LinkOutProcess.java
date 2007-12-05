@@ -27,9 +27,9 @@ import jolie.runtime.InternalLink;
 
 public class LinkOutProcess implements Process
 {
-	private InternalLink link;
+	private String link;
 	
-	public LinkOutProcess( InternalLink link )
+	public LinkOutProcess( String link )
 	{
 		this.link = link;
 	}
@@ -38,6 +38,6 @@ public class LinkOutProcess implements Process
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		link.linkOut();
+		InternalLink.getById( link ).linkOut();
 	}
 }

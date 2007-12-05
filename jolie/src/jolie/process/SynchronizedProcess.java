@@ -19,87 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+package jolie.process;
 
-import java.util.HashMap;
+import jolie.ExecutionThread;
+import jolie.runtime.FaultException;
 
-
-public class HTTPMessage
+public class SynchronizedProcess implements Process
 {
-	public enum Type {
-		RESPONSE, POST, GET, ERROR
+	private String id;
+	private Process process;
+	
+	public SynchronizedProcess( String id, Process process )
+	{
+		this.id = id;
+		this.process = process;
 	}
 	
-	private Type type;
-	private byte[] content;
-	private HashMap< String, String > propMap = new HashMap< String, String > ();
-	
-	private int httpCode;
-	private String requestPath;
-	private String reason;
-
-	public HTTPMessage( Type type )
+	public void run()
+		throws FaultException
 	{
-		this.type = type;
-	}
-	
-	public void setContent( byte[] content )
-	{
-		this.content = content;
-	}
-	
-	public void setRequestPath( String path )
-	{
-		requestPath = path;
-	}
-	
-	public void setProperty( String name, String value )
-	{
-		propMap.put( name, value );
-	}
-	
-	public String getProperty( String name )
-	{
-		return propMap.get( name );
-	}
-	
-	public String reason()
-	{
-		return reason;
-	}
-	
-	public void setReason( String reason )
-	{
-		this.reason = reason;
-	}
-	
-	public int size()
-	{
-		return content.length;
-	}
-	
-	public String requestPath()
-	{
-		return requestPath;
-	}
-	
-	public Type type()
-	{
-		return type;
-	}
-	
-	public int httpCode()
-	{
-		return httpCode;
-	}
-	
-	public void setHttpCode( int code )
-	{
-		httpCode = code;
-	}
-	
-	public byte[] content()
-	{
-		return content;
+		synchronized( ExecutionThread.currentThread().state().getLock( id ) ) {
+			process.run();
+		}
 	}
 }

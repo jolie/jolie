@@ -24,6 +24,7 @@
 package jolie.net;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,6 +83,9 @@ public class HTTPProtocol implements CommProtocol
 		throws SOAPException
 	{
 		Element currentElement;
+		
+		//if ( value.isDefined() )
+			//element.appendChild( doc.createTextNode( value.strValue() ) );
 
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {
@@ -129,8 +133,8 @@ public class HTTPProtocol implements CommProtocol
 
 			String messageString = new String();
 			try {
-				Operation operation = Operation.getById( message.inputId() );
-				if ( operation instanceof RequestResponseOperation ) {
+				Operation operation = RequestResponseOperation.getById( message.inputId() );
+				if ( operation != null ) {
 					// We're responding to a request
 					messageString += "HTTP/1.1 200 OK\n";
 				} else {
@@ -215,10 +219,11 @@ public class HTTPProtocol implements CommProtocol
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 
-				InputSource src = new InputSource( message.contentStream() );
+				//InputSource src = new InputSource( message.contentStream() );
+				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 
 				// Debug incoming message
-				
+
 				/*
 				BufferedReader r = new BufferedReader( message.contentStream() );
 				String p;

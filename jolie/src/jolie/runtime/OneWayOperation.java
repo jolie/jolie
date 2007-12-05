@@ -33,7 +33,7 @@ public class OneWayOperation extends InputOperation
 	public static OneWayOperation getById( String id )
 		throws InvalidIdException
 	{
-		Operation obj = Operation.getById( id );
+		InputOperation obj = InputOperation.getById( id );
 		if ( !( obj instanceof OneWayOperation ) )
 			throw new InvalidIdException( id );
 		return (OneWayOperation)obj;

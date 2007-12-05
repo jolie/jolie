@@ -22,8 +22,6 @@
 
 package jolie.runtime;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
@@ -40,11 +38,8 @@ import jolie.util.Pair;
  * 
  * @todo improve efficiency of linkIn list
  */
-public class InternalLink extends AbstractMappedGlobalObject implements InputHandler
+public class InternalLink implements InputHandler
 {
-	private static HashMap< String, InternalLink > idMap = 
-		new HashMap< String, InternalLink >();
-
 	//private LinkedList< Thread > inList = new LinkedList< Thread >();
 	private LinkedList< Pair< ExecutionThread, InputProcess > > inList = new LinkedList< Pair< ExecutionThread, InputProcess > >();
 	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
@@ -53,12 +48,17 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	/*private LinkedList< InputProcess > procsList;
 	private LinkedList< Process > outList;*/
 	
+	private String id;
+	
 	public InternalLink( String id )
 	{
-		super( id );
+		this.id = id;
 	}
 	
-	
+	public String id()
+	{
+		return id;
+	}
 	
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
@@ -162,22 +162,6 @@ public class InternalLink extends AbstractMappedGlobalObject implements InputHan
 	
 	public static InternalLink getById( String id )
 	{
-		InternalLink retVal = idMap.get( id );
-		if ( retVal == null ) {
-			retVal = new InternalLink( id );
-			retVal.register();
-		}
-		
-		return retVal;
-	}
-	
-	public final void register()
-	{
-		idMap.put( id(), this );
-	}
-	
-	public static Collection< InternalLink > getAll()
-	{
-		return idMap.values();
+		return ExecutionThread.currentThread().state().getLink( id ); 
 	}
 }

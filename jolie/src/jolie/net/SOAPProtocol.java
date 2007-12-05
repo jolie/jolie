@@ -24,6 +24,7 @@
 package jolie.net;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -124,7 +125,17 @@ public class SOAPProtocol implements CommProtocol
 			)
 		throws SOAPException
 	{
+		String type = null;
 		SOAPElement currentElement;
+		if ( value.isDefined() ) {
+			if ( value.isInt() )
+				type = "int";
+			else
+				type = "string";
+			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );
+			element.addTextNode( value.strValue() );
+		}
+
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {
 				currentElement = element.addChildElement( entry.getKey() );
@@ -134,7 +145,6 @@ public class SOAPProtocol implements CommProtocol
 							attrEntry.getValue().strValue()
 							);
 				}
-				currentElement.addTextNode( val.strValue() );
 				valueToSOAPBody( val, currentElement, soapEnvelope );
 			}
 		}
@@ -160,33 +170,34 @@ public class SOAPProtocol implements CommProtocol
 
 			String messageString = new String();
 			String soapAction = null;
+			Operation operation = null;
 			try {
-				Operation operation = Operation.getById( message.inputId() );
-				if ( operation instanceof RequestResponseOperation ) {
-					// We're responding to a request
-					messageString += "HTTP/1.1 200 OK\n";
-				} else {
-					// We're sending a notification or a solicit
-					/*String path = new String();
-					if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
-						path += "/";
-					path += uri.getPath();
-					if ( path.endsWith( "/" ) == false )
-						path += "/";
-					path += message.inputId();
-					System.out.println( path );
-					*/
-
-					messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
-					//messageString += "POST " + message.inputId() + " HTTP/1.1\n";
-					messageString += "Host: " + uri.getHost() + '\n';
-					soapAction =
-						"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
-				}
-			} catch( InvalidIdException iie ) {
-				throw new IOException( iie );
+				operation = RequestResponseOperation.getById( message.inputId() );
+			} catch( InvalidIdException iie ) {}
+			if ( operation != null ) {
+				// We're responding to a request
+				messageString += "HTTP/1.1 200 OK\n";
+			} else {
+				// We're sending a notification or a solicit
+				/*String path = new String();
+				if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
+					path += "/";
+				path += uri.getPath();
+				if ( path.endsWith( "/" ) == false )
+					path += "/";
+				path += message.inputId();
+				System.out.println( path );
+				*/
+				String path = uri.getPath();
+				if ( path.length() == 0 )
+					path = "*";
+				messageString += "POST " + path + " HTTP/1.1\n";
+				//messageString += "POST " + message.inputId() + " HTTP/1.1\n";
+				messageString += "Host: " + uri.getHost() + '\n';
+				soapAction =
+					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
 			}
-
+			
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
 			messageString += "Content-Type: text/xml; charset=\"utf-8\"\n";
 			messageString += "Content-Length: " + soapString.length() + '\n';
@@ -194,7 +205,7 @@ public class SOAPProtocol implements CommProtocol
 				messageString += soapAction;
 			messageString += soapString + '\n';
 			
-			//System.out.println( "Sending: " + messageString );
+			System.out.println( "Sending: " + messageString );
 			
 			inputId = message.inputId();
 			
@@ -336,7 +347,7 @@ public class SOAPProtocol implements CommProtocol
 			factory.setNamespaceAware( true );
 			DocumentBuilder builder = factory.newDocumentBuilder();
 
-			InputSource src = new InputSource( message.contentStream() );
+			InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 			
 			
 			// Debug incoming message

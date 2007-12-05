@@ -30,29 +30,44 @@ import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 
 import jolie.ExecutionThread;
+import jolie.ProcessThread;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 
-class InInputHandler extends Thread implements InputHandler
+class InInputHandler extends ProcessThread implements InputHandler, CorrelatedInputProcess
 {
-	GlobalVariablePath varPath;
+	private InProcess parent;
+	private GlobalVariablePath varPath;
+	private ExecutionThread executionThread;
 	private InputProcess inputProcess;
-	private BufferedReader stdin = new BufferedReader(
-		new InputStreamReader(
-				Channels.newInputStream(
-						(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
-
-	public InInputHandler( GlobalVariablePath varPath )
+	private CorrelatedProcess correlatedProcess;
+	
+	public InInputHandler( InProcess parent, GlobalVariablePath varPath, CorrelatedProcess correlatedProcess )
 	{
+		this.parent = parent;
 		this.varPath = varPath;
+		this.correlatedProcess = correlatedProcess;
+	}
+	
+	public void setCorrelatedProcess( CorrelatedProcess process )
+	{
+		this.correlatedProcess = process;
+	}
+	
+	public ExecutionThread executionThread()
+	{
+		return executionThread;
 	}
 	
 	public synchronized void signForMessage( NDChoiceProcess process )
 	{
+		executionThread = ExecutionThread.currentThread();
+
 		inputProcess = process;
 		if ( this.getState() == Thread.State.NEW )
 			this.start();
+		// This should make a notify to run in order to avoid race conditions
 	}
 	
 	public synchronized void cancelWaiting( NDChoiceProcess process )
@@ -60,6 +75,7 @@ class InInputHandler extends Thread implements InputHandler
 		if ( inputProcess == process )
 			inputProcess = null;
 
+		parent.setHandler( new InInputHandler( parent, varPath, correlatedProcess ) );
 		this.interrupt();
 	}
 		
@@ -72,17 +88,30 @@ class InInputHandler extends Thread implements InputHandler
 	{
 		try {
 			String buffer;
-			synchronized( InProcess.mutex() ) {
-				Thread.yield();
+			synchronized( InProcess.mutex ) {
+				BufferedReader stdin = new BufferedReader(
+					new InputStreamReader(
+						Channels.newInputStream(
+							(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
+				//Thread.yield();
 				buffer = stdin.readLine();
 			}
+			
+			if ( correlatedProcess != null )
+				correlatedProcess.inputReceived();
+
 			try {
 				varPath.getValue().setIntValue( Integer.parseInt( buffer ) );
 			} catch( NumberFormatException nfe ) {
 				varPath.getValue().setStrValue( buffer );
 			}
-			if ( inputProcess != null )
-				inputProcess.recvMessage( new CommMessage( id() ) );
+			if ( inputProcess != null ) {
+				if ( inputProcess.recvMessage( new CommMessage( id() ) ) ) {
+					synchronized( executionThread ) {
+						executionThread.notify();
+					}
+				}
+			}
 		} catch( ClosedByInterruptException ce ) {
 		} catch( IOException e ) {
 			e.printStackTrace();
@@ -90,19 +119,20 @@ class InInputHandler extends Thread implements InputHandler
 	}
 }
 
-public class InProcess implements InputProcess
+public class InProcess implements InputProcess, CorrelatedInputProcess
 {	
 	private GlobalVariablePath varPath;
 	private InInputHandler inputHandler = null;
-	private static final Object mutex = new Object();
-	private BufferedReader stdin = new BufferedReader(
+	private CorrelatedProcess correlatedProcess = null;
+	protected static final Object mutex = new Object();
+	/*protected static BufferedReader stdin = new BufferedReader(
 		new InputStreamReader(
 				Channels.newInputStream(
-						(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
+						(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );*/
 	
-	public static Object mutex()
+	public void setCorrelatedProcess( CorrelatedProcess process )
 	{
-		return mutex;
+		this.correlatedProcess = process;
 	}
 
 	public InProcess( GlobalVariablePath varPath )
@@ -116,10 +146,18 @@ public class InProcess implements InputProcess
 			return;
 		try {
 			String buffer;
-			synchronized( mutex() ) {
-				Thread.yield();
+			synchronized( mutex ) {
+				BufferedReader stdin = new BufferedReader(
+					new InputStreamReader(
+						Channels.newInputStream(
+							(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );
+				//Thread.yield();
 				buffer = stdin.readLine();
 			}
+			
+			if ( correlatedProcess != null )
+				correlatedProcess.inputReceived();
+
 			try {
 				varPath.getValue().setIntValue( Integer.parseInt( buffer ) );
 			} catch( NumberFormatException nfe ) {
@@ -131,10 +169,16 @@ public class InProcess implements InputProcess
 		}
 	}
 	
+	protected void setHandler( InInputHandler handler )
+	{
+		inputHandler = handler;
+	}
+	
 	public InputHandler inputHandler()
 	{
 		if ( inputHandler == null )
-			inputHandler = new InInputHandler( varPath );
+			inputHandler = new InInputHandler( this, varPath, correlatedProcess );
+
 		return inputHandler;
 	}
 	

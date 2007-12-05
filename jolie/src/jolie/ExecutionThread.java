@@ -31,7 +31,6 @@ import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
-import jolie.process.SleepProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.Value;
@@ -108,18 +107,18 @@ abstract public class ExecutionThread extends Thread
 	{
 		current = thread;
 	}
-	
+
 	public void kill()
 	{
 		killed = true;
 		interrupt();
 	}
-	
+
 	public static void clearKill()
 	{
 		currentThread().killed = false;
 	}
-	
+
 	public static void setKill()
 	{
 		currentThread().killed = true;
@@ -245,8 +244,8 @@ abstract public class ExecutionThread extends Thread
 		Thread currThread = Thread.currentThread();
 		if ( currThread instanceof ExecutionThread )
 			return ((ExecutionThread) currThread);
-		else if ( currThread instanceof SleepProcess.SleepInputHandler )
-			return ((SleepProcess.SleepInputHandler)currThread).executionThread();
+		else if ( currThread instanceof ProcessThread )
+			return ((ProcessThread)currThread).executionThread();
 		
 		CommChannel channel = CommCore.currentCommChannel();
 		if ( channel != null ) {
@@ -268,7 +267,7 @@ abstract public class ExecutionThread extends Thread
 			origCSetValues.add( p.getValue() );
 		
 		jolie.State origState = state();
-		setState( state().clone() );
+		setState( origState.clone() );
 		
 		if ( path != null )
 			path.getValue().deepCopy( message.value() );

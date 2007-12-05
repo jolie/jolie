@@ -33,7 +33,7 @@ public class SolicitResponseOperation extends OutputOperation
 	public static SolicitResponseOperation getById( String id )
 		throws InvalidIdException
 	{
-		Operation obj = Operation.getById( id );
+		OutputOperation obj = OutputOperation.getById( id );
 		if ( !( obj instanceof SolicitResponseOperation ) )
 			throw new InvalidIdException( id );
 		return (SolicitResponseOperation)obj;
