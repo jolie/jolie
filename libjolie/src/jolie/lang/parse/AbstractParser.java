@@ -115,7 +115,11 @@ public abstract class AbstractParser
 	protected void throwException( String mesg )
 		throws ParserException
 	{
-		throw new ParserException( scanner.sourceName(), scanner.line(), mesg );
+		String m = mesg + ". Found token type " + token.type().toString();
+		if ( !token.content().equals( "" ) )
+			m += ", token content " + token.content();
+
+		throw new ParserException( scanner.sourceName(), scanner.line(), m );
 	}
 	
 	/**

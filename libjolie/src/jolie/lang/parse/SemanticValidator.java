@@ -81,6 +81,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
@@ -273,7 +274,7 @@ public class SemanticValidator implements OLVisitor
 	public void visit( Scope n ) {}
 	
 	/*
-	 * @todo Must check operation names in opNames and links in linkNames
+	 * @todo Must check operation names in opNames and links in linkNames and locks in lockNames
 	 */
 	public void visit( OneWayOperationStatement n ) {}
 	public void visit( RequestResponseOperationStatement n ) {}
@@ -281,6 +282,7 @@ public class SemanticValidator implements OLVisitor
 	public void visit( SolicitResponseOperationStatement n ) {}
 	public void visit( LinkInStatement n ) {}
 	public void visit( LinkOutStatement n ) {}
+	public void visit( SynchronizedStatement n ) {}
 		
 	/**
 	 * @todo Must assign to a variable in varNames

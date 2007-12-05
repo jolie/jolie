@@ -85,6 +85,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
@@ -325,7 +326,7 @@ public class OLParser extends AbstractParser
 		if ( token.isKeyword( "service" ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			while( token.is( Scanner.TokenType.STRING ) )
+			while( token.isNot( Scanner.TokenType.RCURLY ) )
 				parseServiceElement();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -334,6 +335,8 @@ public class OLParser extends AbstractParser
 	private void parseServiceElement()
 		throws IOException, ParserException
 	{
+		checkConstant();
+		tokenAssert( Scanner.TokenType.STRING, "expected service location" );
 		URI serviceUri = null;
 		try {
 			serviceUri = new URI( token.content() );
@@ -747,6 +750,16 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+		} else if ( token.is( Scanner.TokenType.SYNCHRONIZED ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			tokenAssert( Scanner.TokenType.ID, "expected lock id" );
+			String id = token.content();
+			getToken();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			retVal = new SynchronizedStatement( id, parseProcess() );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1042,7 +1055,7 @@ public class OLParser extends AbstractParser
 				inputGuard = parseLinkInStatement();
 			else if ( token.is( Scanner.TokenType.SLEEP ) )
 				inputGuard = parseSleepStatement();
-			else if ( token.is( Scanner.TokenType.LINKIN ) )
+			else if ( token.is( Scanner.TokenType.IN ) )
 				inputGuard = parseInStatement();
 			else if ( token.is( Scanner.TokenType.ID ) ) {
 				String id = token.content();

@@ -74,6 +74,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
@@ -236,7 +237,7 @@ public class OLParseTreeOptimizer
 		
 		public void visit( NDChoiceStatement stm )
 		{
-			if ( stm.children().size() > 1 ) {
+			//if ( stm.children().size() > 1 ) {
 				NDChoiceStatement tmp = new NDChoiceStatement();
 				for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 					pair.key().accept( this );
@@ -245,20 +246,23 @@ public class OLParseTreeOptimizer
 					tmp.addChild( new Pair< OLSyntaxNode, OLSyntaxNode >( n, currNode ) );
 				}
 				currNode = tmp;
-			} else {
+			//} else {
 				/*
 				 * ( [ I ] A ) === I ;; A
 				 * 
 				 * An NDChoice formed by only one element
 				 * is equivalent to a sequence beginning with the
 				 * same input.
+				 * 
+				 * This is not true as of 19 Nov 07,
+				 * because of InProcess special behaviour inside an NDChoiceProcess
 				 */
-				SequenceStatement sequence = new SequenceStatement();
+				/*SequenceStatement sequence = new SequenceStatement();
 				Pair< OLSyntaxNode, OLSyntaxNode > pair = stm.children().get( 0 );
 				sequence.addChild( pair.key() );
 				sequence.addChild( pair.value() );
 				sequence.accept( this );
-			}
+			}*/
 		}
 		
 		public void visit( IfStatement n )
@@ -305,12 +309,18 @@ public class OLParseTreeOptimizer
 			currNode = new Scope( n.id(), currNode );
 		}
 		
-		/*
+		/**
 		 * @todo Optimize the associated processes
 		 */
 		public void visit( InstallStatement n )
 		{
 			currNode = n;
+		}
+		
+		public void visit( SynchronizedStatement n )
+		{
+			n.body().accept( this );
+			currNode = new SynchronizedStatement( n.id(), currNode );
 		}
 				
 		public void visit( CompensateStatement n ) { currNode = n; }

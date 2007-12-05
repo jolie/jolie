@@ -76,9 +76,6 @@ public class Scanner
 		NULL_PROCESS,		///< nullProcess
 		WHILE,				///< while
 		SLEEP,				///< sleep
-		VAR_TYPE_VARIANT,	///< variant
-		VAR_TYPE_INT,		///< int
-		VAR_TYPE_STRING,	///< string
 		CSET,				///< cset
 		PERSISTENT,			///< persistent
 		NOT_PERSISTENT,		///< not_persistent
@@ -111,6 +108,7 @@ public class Scanner
 		IS_DEFINED,				///< is_defined
 		CAST_INT,				///< int
 		CAST_STRING,			///< string
+		SYNCHRONIZED,			///< synchronized
 		ERROR			///< Scanner error
 	}
 	
@@ -204,6 +202,18 @@ public class Scanner
 		return buffer;
 	}
 	
+	public String readLine()
+		throws IOException
+	{
+		String buffer = new String();
+		readChar();
+		do {
+			buffer += ch;
+			readChar();
+		} while( !isNewLineChar( ch ) );
+		return buffer;
+	}
+	
 	public static String addStringTerminator( String str )
 	{
 		return str + -1;
@@ -254,9 +264,14 @@ public class Scanner
 			line++;
 	}
 	
-	public char currentCharacter()
+	/*public char currentCharacter()
 	{
 		return ch;
+	}*/
+	
+	public byte currentByte()
+	{
+		return (byte)currByte;
 	}
 	
 	public Token getToken()
@@ -382,12 +397,6 @@ public class Scanner
 							retval = new Token( TokenType.WHILE );
 						else if ( "sleep".equals( str ) )
 							retval = new Token( TokenType.SLEEP );
-						else if ( "int".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_INT );
-						else if ( "string".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_STRING );
-						else if ( "variant".equals( str ) )
-							retval = new Token( TokenType.VAR_TYPE_VARIANT );
 						else if ( "cset".equals( str ) )
 							retval = new Token( TokenType.CSET );
 						else if ( "persistent".equals( str ) )
@@ -408,6 +417,8 @@ public class Scanner
 							retval = new Token( TokenType.INSTALL );
 						else if ( "this".equals( str ) )
 							retval = new Token( TokenType.THIS );
+						else if ( "synchronized".equals( str ) )
+							retval = new Token( TokenType.SYNCHRONIZED );
 						/*else if ( "installFH".equals( str ) )
 							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
 						else if ( "installComp".equals( str ) )
