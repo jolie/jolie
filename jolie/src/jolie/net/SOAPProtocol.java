@@ -205,7 +205,7 @@ public class SOAPProtocol implements CommProtocol
 				messageString += soapAction;
 			messageString += soapString + '\n';
 			
-			System.out.println( "Sending: " + messageString );
+			//System.out.println( "Sending: " + messageString );
 			
 			inputId = message.inputId();
 			
