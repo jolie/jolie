@@ -21,18 +21,68 @@
 
 package jolie.process;
 
+import java.io.IOException;
+
 import jolie.ExecutionThread;
-import jolie.Interpreter;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
 
-public class OneWayProcess implements InputOperationProcess, CorrelatedInputProcess
+public class OneWayProcess implements CorrelatedInputProcess
 {
-	private InputOperation operation;
-	private GlobalVariablePath varPath;
-	private CorrelatedProcess correlatedProcess = null;
+	private class Execution implements InputOperationProcess
+	{
+		private CommMessage message = null;
+		private OneWayProcess parent;
+		
+		public Execution( OneWayProcess parent )
+		{
+			this.parent = parent;
+		}
+		
+		public InputHandler inputHandler()
+		{
+			return parent.operation;
+		}
+		
+		public GlobalVariablePath inputVarPath()
+		{
+			return parent.varPath;
+		}
+
+		public void run()
+		{
+			try {
+				parent.operation.signForMessage( this );
+				synchronized( this ) {
+					if( message == null )
+						this.wait();
+				}
+				if ( parent.varPath != null )
+					parent.varPath.getValue().deepCopy( message.value() );
+			} catch( InterruptedException ie ) {
+				parent.operation.cancelWaiting( this );
+			}
+		}
+
+		public synchronized void recvMessage( CommChannel channel, CommMessage message )
+		{
+			if ( parent.correlatedProcess != null )
+				parent.correlatedProcess.inputReceived();
+
+			this.message = message;
+			this.notify();
+			try {
+				channel.close();
+			} catch( IOException ioe ) {}
+		}
+	}
+	
+	protected InputOperation operation;
+	protected GlobalVariablePath varPath;
+	protected CorrelatedProcess correlatedProcess = null;
 
 	public OneWayProcess( InputOperation operation, GlobalVariablePath varPath )
 	{
@@ -44,35 +94,11 @@ public class OneWayProcess implements InputOperationProcess, CorrelatedInputProc
 	{
 		this.correlatedProcess = process;
 	}
-	
-	public InputHandler inputHandler()
-	{
-		return operation;
-	}
-	
+
 	public void run()
 	{
 		if ( ExecutionThread.killed() )
 			return;
-		operation.getMessage( this );
-	}
-	
-	public GlobalVariablePath inputVarPath()
-	{
-		return varPath;
-	}
-	
-	public boolean recvMessage( CommMessage message )
-	{
-		if ( correlatedProcess != null )
-			correlatedProcess.inputReceived();
-		if ( message.inputId().equals( operation.id() ) ) {
-			varPath.getValue().deepCopy( message.value() );
-		} else {
-			Interpreter.logger().warning( "Rejecting malformed packet for operation " + operation.id() + ": wrong variables number" );
-			return false;
-		}
-
-		return true;
+		(new Execution( this )).run();
 	}
 }

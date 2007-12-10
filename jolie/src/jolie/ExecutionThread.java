@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.util.Vector;
 
-import jolie.net.CommChannel;
-import jolie.net.CommCore;
+import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
 import jolie.process.NullProcess;
@@ -84,11 +83,7 @@ abstract public class ExecutionThread extends Thread
 	private ExecutionThread parent;
 	private boolean killed = false;
 	
-	private HashMap< Object, Object > localMap = new HashMap< Object, Object > ();
-	
 	private CorrelatedProcess notifyProc = null;
-	
-	private static ExecutionThread current = null;
 	
 	public ExecutionThread( Process process, ExecutionThread parent )
 	{
@@ -101,11 +96,6 @@ abstract public class ExecutionThread extends Thread
 		this.process = process;
 		this.parent = parent;
 		this.notifyProc = notifyProc;
-	}
-
-	public synchronized static void setCurrent( ExecutionThread thread )
-	{
-		current = thread;
 	}
 
 	public void kill()
@@ -158,32 +148,7 @@ abstract public class ExecutionThread extends Thread
 			return NullProcess.getInstance();
 		return p;
 	}
-	
-	@SuppressWarnings("unchecked")
-	private synchronized <T> T _getLocalObject( Object ref, Class<T> clazz )
-	{
-		Object obj = localMap.get( ref );
-		if ( obj == null ) {
-			try {
-				obj = clazz.newInstance();
-			} catch( InstantiationException e ) {
-				Interpreter.logger().severe( "Runtime error in local thread memory handling" );
-				e.printStackTrace();
-			} catch( IllegalAccessException e ) {
-				Interpreter.logger().severe( "Runtime error in local thread memory handling" );
-				e.printStackTrace();
-			}
-			localMap.put( ref, obj );
-		}
 
-		return (T)obj;
-	}
-	
-	public static <T> T getLocalObject( Object ref, Class<T> clazz )
-	{
-		return currentThread()._getLocalObject( ref, clazz );
-	}
-	
 	private synchronized Process _getFaultHandler( String id )
 	{
 		if ( scopeStack.empty() )
@@ -246,15 +211,10 @@ abstract public class ExecutionThread extends Thread
 			return ((ExecutionThread) currThread);
 		else if ( currThread instanceof ProcessThread )
 			return ((ProcessThread)currThread).executionThread();
-		
-		CommChannel channel = CommCore.currentCommChannel();
-		if ( channel != null ) {
-			ExecutionThread t = CommCore.currentCommChannel().executionThread();
-			if ( t != null )
-				return t;
-		}
+		else if ( currThread instanceof CommChannelHandler )
+			return ((CommChannelHandler)currThread).executionThread();
 
-		return current;
+		return null;
 	}
 	
 	abstract public jolie.State state();
@@ -291,7 +251,8 @@ abstract public class ExecutionThread extends Thread
 				return false;
 			}
 		}
-
+		
+		setState( origState );
 		return true;
 	}
 	

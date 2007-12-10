@@ -22,7 +22,7 @@
 package jolie.process;
 
 
-public interface CorrelatedInputProcess
+public interface CorrelatedInputProcess extends Process
 {
 	public void setCorrelatedProcess( CorrelatedProcess process );
 }

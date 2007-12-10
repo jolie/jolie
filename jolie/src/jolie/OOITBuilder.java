@@ -398,22 +398,26 @@ public class OOITBuilder implements OLVisitor
 	public void visit( NDChoiceStatement n )
 	{
 		NDChoiceProcess proc = new NDChoiceProcess();
+		CorrelatedProcess corrProc = null;
+		
+		if( !alreadyCorrelated ) {
+			alreadyCorrelated = true;
+			corrProc = new CorrelatedProcess( proc );
+			proc.setCorrelatedProcess( corrProc );
+			alreadyCorrelated = false;
+		}
+		
 		Process guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
 			guard = currProcess;
+			if ( guard instanceof CorrelatedInputProcess )
+				((CorrelatedInputProcess) guard).setCorrelatedProcess( corrProc );
 			pair.value().accept( this );
 			proc.addChoice( (InputProcess)guard, currProcess );
 		}
-		
-		if( !alreadyCorrelated ) {
-			alreadyCorrelated = true;
-			CorrelatedProcess corrProc = new CorrelatedProcess( proc );
-			proc.setCorrelatedProcess( corrProc );
-			alreadyCorrelated = false;
-			currProcess = corrProc;
-		} else
-			currProcess = proc;
+
+		currProcess = ( corrProc == null ) ? proc : corrProc;
 	}
 		
 	public void visit( OneWayOperationStatement n )

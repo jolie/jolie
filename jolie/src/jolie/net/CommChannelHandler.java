@@ -24,6 +24,7 @@ package jolie.net;
 
 import java.io.IOException;
 
+import jolie.ExecutionThread;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 
@@ -41,11 +42,12 @@ public class CommChannelHandler extends Thread
 	
 	private CommChannel channel;
 	private CommListener listener;
+	private ExecutionThread executionThread;
 	
 	private static int runningHandlers = 0;
 	private static Object mutex = new Object();
 	
-	private static long heuristicMem = 300*1024;
+	private static final long heuristicMem = 300*1024;
 
 	/** Constructor.
 	 * 
@@ -58,10 +60,20 @@ public class CommChannelHandler extends Thread
 		this.channel = channel;
 		this.listener = listener;
 	}
-
-	public CommChannel commChannel()
+	
+	public static CommChannelHandler currentThread()
 	{
-		return channel;
+		return ((CommChannelHandler)Thread.currentThread());
+	}
+	
+	public void setExecutionThread( ExecutionThread thread )
+	{
+		executionThread = thread;
+	}
+	
+	public ExecutionThread executionThread()
+	{
+		return executionThread;
 	}
 	
 	/**
@@ -110,15 +122,13 @@ public class CommChannelHandler extends Thread
 					InputOperation.getById( message.inputId() );
 			
 			if ( listener.canHandleInputOperation( operation ) )
-				operation.recvMessage( message );
+				operation.recvMessage( channel, message );
 			else {
 				CommCore.logger().warning(
 							"Discarded a message for operation " + operation +
-							", not specified in an input port."
+							", not specified in an input port at the receiving service."
 						);
 			}
-
-			channel.close();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( InvalidIdException iie ) {

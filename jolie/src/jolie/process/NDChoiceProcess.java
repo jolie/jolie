@@ -24,6 +24,7 @@ package jolie.process;
 import java.util.HashMap;
 
 import jolie.ExecutionThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
@@ -42,8 +43,72 @@ import jolie.runtime.InputHandler;
  * 
  * @author Fabrizio Montesi
  */
-public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
+public class NDChoiceProcess implements CorrelatedInputProcess
 {
+	public class Execution implements InputProcess
+	{
+		private NDChoiceProcess parent;
+		private ChoicePair pair;
+	
+		public Execution( NDChoiceProcess parent )
+		{
+			this.parent = parent;
+		}
+		
+		public InputHandler inputHandler()
+		{
+			return null;
+		}
+	
+		public void run()
+			throws FaultException
+		{
+			for( ChoicePair cp : inputMap.values() )
+				cp.inputProcess().inputHandler().signForMessage( this );
+			
+			synchronized( this ) {
+				if( pair == null ) {
+					try {
+						this.wait();
+					} catch( InterruptedException e ) {}
+				}
+			}
+			assert( pair != null );
+			
+			pair.inputProcess.run();
+			pair.process.run();			
+		}
+		
+		public boolean hasReceivedMessage()
+		{
+			return ( pair != null );
+		}
+		
+		public void recvMessage( CommChannel channel, CommMessage message )
+		{
+			if ( parent.correlatedProcess != null )
+				parent.correlatedProcess.inputReceived();
+
+			pair = parent.inputMap.get( message.inputId() );
+			assert( pair != null );
+			pair.inputProcess().recvMessage( channel, message );
+			for( ChoicePair currPair : inputMap.values() )
+				currPair.inputProcess().inputHandler().cancelWaiting( this );
+			synchronized( this ) {
+				this.notify();
+			}
+		}
+		
+		public GlobalVariablePath inputVarPath( String inputId )
+		{
+			for( ChoicePair cp : parent.inputMap.values() ) {
+				if ( cp.inputProcess().inputHandler().id().equals( inputId ) )
+					return ((InputOperationProcess)(cp.inputProcess())).inputVarPath();
+			}
+			return null;
+		}
+	}
+	
 	private class ChoicePair
 	{
 		private InputProcess inputProcess;
@@ -66,13 +131,8 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		}
 	}
 	
-	private HashMap< String, ChoicePair > inputMap;
-	private CorrelatedProcess correlatedProcess;
-	
-	public static class Fields {
-		private FaultException pendingFault = null;
-		private Process pendingProcess = null;
-	}
+	protected HashMap< String, ChoicePair > inputMap;
+	protected CorrelatedProcess correlatedProcess;
 	
 	/** Constructor */
 	public NDChoiceProcess()
@@ -91,23 +151,10 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		inputMap.put( inputProc.inputHandler().id(), pair );
 	}
 
-	public InputHandler inputHandler()
-	{
-		return null;
-	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
 	{
 		this.correlatedProcess = process;
-	}
-	
-	public GlobalVariablePath inputVarPath( String operationId )
-	{
-		for( ChoicePair cp : inputMap.values() ) {
-			if ( cp.inputProcess().inputHandler().id().equals( operationId ) )
-				return ((InputOperationProcess)(cp.inputProcess())).inputVarPath();
-		}
-		return null;
 	}
 	
 	/** Runs the non-deterministic choice behaviour. */
@@ -117,53 +164,6 @@ public class NDChoiceProcess implements InputProcess, CorrelatedInputProcess
 		if ( ExecutionThread.killed() )
 			return;
 		
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
-
-		for( ChoicePair cp : inputMap.values() ) {
-			/*
-			 * @todo this setCorrelatedProcess thing should be done only once!
-			 */
-			if ( cp.inputProcess() instanceof CorrelatedInputProcess ) {
-				((CorrelatedInputProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
-			} else if ( cp.inputProcess() instanceof InProcess ) {
-				((InProcess)cp.inputProcess()).setCorrelatedProcess( correlatedProcess );
-			}
-			cp.inputProcess().inputHandler().signForMessage( this );
-		}
-
-		synchronized( ExecutionThread.currentThread() ) {
-			if( fields.pendingProcess == null ) {
-				try {
-					ExecutionThread.currentThread().wait();
-				} catch( InterruptedException e ) {}
-			}
-		}
-		
-		if ( fields.pendingFault != null )
-			throw fields.pendingFault;
-
-		fields.pendingProcess.run();
-	}
-
-	public boolean recvMessage( CommMessage message )
-	{
-		Fields fields = ExecutionThread.getLocalObject( this, Fields.class );
-		
-		synchronized( ExecutionThread.currentThread() ) {
-			if ( fields.pendingProcess != null )
-				return false;
-			ChoicePair pair;
-			pair = inputMap.get( message.inputId() );
-			
-			if ( pair != null ) {
-				fields.pendingProcess = pair.process();
-				pair.inputProcess().recvMessage( message );
-
-				for( ChoicePair currPair : inputMap.values() )
-					currPair.inputProcess().inputHandler().cancelWaiting( this );
-			} else
-				return false;
-		}
-		return true;
+		(new Execution( this )).run();
 	}	
 }

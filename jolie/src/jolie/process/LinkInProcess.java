@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InternalLink;
@@ -39,21 +40,14 @@ public class LinkInProcess implements InputProcess
 	{
 		return InternalLink.getById( link );
 	}
-	
-	/**
-	 * @todo Why is this synchronized?
-	 */
-	public synchronized boolean recvMessage( CommMessage message )
-	{
-		//notify();
-		return true;
-	}
+
+	public void recvMessage( CommChannel channel, CommMessage message )
+	{}
 	
 	public void run()
 	{
 		if ( ExecutionThread.killed() )
 			return;
 		InternalLink.getById( link ).linkIn( this );
-		//link.signForMessage( this );
 	}
 }

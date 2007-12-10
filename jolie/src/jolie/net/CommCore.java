@@ -100,20 +100,6 @@ public class CommCore
 			listener.start();
 	}
 
-	/** Returns the current communication channel, if any. 
-	 * 
-	 * @return the current communication channel, null otherwise.
-	 */
-	public static CommChannel currentCommChannel()
-	{
-		CommChannel channel = null;
-		Thread th = Thread.currentThread();
-		if ( th instanceof CommChannelHandler )
-			channel = ((CommChannelHandler)th).commChannel();
-		
-		return channel;
-	}
-	
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
 	public static void shutdown()
 	{

@@ -31,6 +31,7 @@ import java.nio.channels.ClosedByInterruptException;
 
 import jolie.ExecutionThread;
 import jolie.ProcessThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
@@ -60,7 +61,7 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 		return executionThread;
 	}
 	
-	public synchronized void signForMessage( NDChoiceProcess process )
+	public synchronized void signForMessage( InputProcess process )
 	{
 		executionThread = ExecutionThread.currentThread();
 
@@ -70,7 +71,7 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 		// This should make a notify to run in order to avoid race conditions
 	}
 	
-	public synchronized void cancelWaiting( NDChoiceProcess process )
+	public synchronized void cancelWaiting( InputProcess process )
 	{
 		if ( inputProcess == process )
 			inputProcess = null;
@@ -106,11 +107,7 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 				varPath.getValue().setStrValue( buffer );
 			}
 			if ( inputProcess != null ) {
-				if ( inputProcess.recvMessage( new CommMessage( id() ) ) ) {
-					synchronized( executionThread ) {
-						executionThread.notify();
-					}
-				}
+				inputProcess.recvMessage( null, new CommMessage( id() ) );
 			}
 		} catch( ClosedByInterruptException ce ) {
 		} catch( IOException e ) {
@@ -182,8 +179,6 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 		return inputHandler;
 	}
 	
-	public boolean recvMessage( CommMessage message )
-	{
-		return true;
-	}
+	public void recvMessage( CommChannel channel, CommMessage message )
+	{}
 }

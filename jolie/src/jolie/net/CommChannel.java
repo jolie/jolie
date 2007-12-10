@@ -28,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.Constants;
-import jolie.ExecutionThread;
 import jolie.runtime.Location;
 
 
@@ -40,18 +39,6 @@ import jolie.runtime.Location;
  */
 abstract public class CommChannel
 {
-	private ExecutionThread executionThread;
-	
-	public void setExecutionThread( ExecutionThread thread )
-	{
-		executionThread = thread;
-	}
-	
-	public ExecutionThread executionThread()
-	{
-		return executionThread;
-	}
-	
 	public static CommChannel createCommChannel( Location location, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{

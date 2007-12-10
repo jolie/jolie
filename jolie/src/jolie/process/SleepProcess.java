@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 
 import jolie.ExecutionThread;
 import jolie.ProcessThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.InputHandler;
@@ -57,7 +58,7 @@ public class SleepProcess implements InputProcess
 				if ( i > 0 )
 					Thread.sleep( i );
 				if ( inputProcess != null ) {
-					inputProcess.recvMessage( new CommMessage( id() ) );
+					inputProcess.recvMessage( null, new CommMessage( id() ) );
 					synchronized( ethread ) {
 						ethread.notify();
 					}
@@ -73,7 +74,7 @@ public class SleepProcess implements InputProcess
 			return sleepProcess.toString();
 		}
 
-		public synchronized void signForMessage( NDChoiceProcess process )
+		public synchronized void signForMessage( InputProcess process )
 		{
 			inputProcess = process;
 			ethread = ExecutionThread.currentThread();
@@ -81,7 +82,7 @@ public class SleepProcess implements InputProcess
 				this.start();
 		}
 
-		public synchronized void cancelWaiting( NDChoiceProcess process )
+		public synchronized void cancelWaiting( InputProcess process )
 		{
 			if ( inputProcess == process )
 				inputProcess = null;
@@ -124,21 +125,18 @@ public class SleepProcess implements InputProcess
 	
 	public synchronized InputHandler inputHandler()
 	{
-		ExecutionThread cthread = ExecutionThread.currentThread();
-		if ( cthread == null )
-			return new SleepInputHandler( this, expression );
+		ExecutionThread ethread = ExecutionThread.currentThread();
+		/*if ( ethread == null )
+			return new SleepInputHandler( this, expression );*/
 
-		SleepInputHandler h = map.get( cthread );
+		SleepInputHandler h = map.get( ethread );
 		if ( h == null ) {
 			h = new SleepInputHandler( this, expression );
-			map.put( cthread, h );
+			map.put( ethread, h );
 		}
 		return h;
-//		return new SleepInputHandler( expression );
 	}
 	
-	public boolean recvMessage( CommMessage message )
-	{
-		return true;
-	}
+	public void recvMessage( CommChannel channel, CommMessage message )
+	{}
 }

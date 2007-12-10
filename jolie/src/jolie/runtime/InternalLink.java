@@ -28,7 +28,6 @@ import java.util.NoSuchElementException;
 import jolie.ExecutionThread;
 import jolie.net.CommMessage;
 import jolie.process.InputProcess;
-import jolie.process.NDChoiceProcess;
 import jolie.util.Pair;
 
 
@@ -60,7 +59,7 @@ public class InternalLink implements InputHandler
 		return id;
 	}
 	
-	public synchronized void signForMessage( NDChoiceProcess process )
+	public synchronized void signForMessage( InputProcess process )
 	{
 		synchronized( Thread.currentThread() ) {
 			if ( outList.isEmpty() )
@@ -69,7 +68,7 @@ public class InternalLink implements InputHandler
 				//inMap.put( Thread.currentThread(), process );
 				//inMa.addFirst( process );
 			else {
-				process.recvMessage( new CommMessage( id() ) );
+				process.recvMessage( null, new CommMessage( id() ) );
 				Thread t = outList.removeLast();
 				synchronized( t ) {
 					t.notify();
@@ -78,7 +77,7 @@ public class InternalLink implements InputHandler
 		}
 	}
 	
-	public synchronized void cancelWaiting( NDChoiceProcess process ) 
+	public synchronized void cancelWaiting( InputProcess process ) 
 	{
 		for( Pair< ExecutionThread, InputProcess > pair : inList ) {
 			if ( pair.key() == ExecutionThread.currentThread() ) {
@@ -150,9 +149,7 @@ public class InternalLink implements InputHandler
 					} catch( InterruptedException e ) {}
 				}
 			} else {
-				ExecutionThread.setCurrent( pair.key() );
-				pair.value().recvMessage( new CommMessage( id() ) );
-				ExecutionThread.setCurrent( null );
+				pair.value().recvMessage( null, new CommMessage( id() ) );
 				synchronized( pair.key() ) {
 					pair.key().notify();
 				}

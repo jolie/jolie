@@ -21,21 +21,14 @@
 
 package jolie.deploy;
 
-import java.util.Vector;
 
 public class OperationDeployInfo implements Cloneable
 {
-	private Vector< String > inVarNames;
-	private Vector< String > outVarNames;
-	private String boundName;
 	private PortType portType;
 	
 	public OperationDeployInfo clone()
 	{
 		OperationDeployInfo retval = new OperationDeployInfo();
-		retval.setInVarNames( inVarNames );
-		retval.setOutVarNames( outVarNames );
-		retval.setBoundName( boundName );
 		retval.setPortType( portType );
 		return retval;
 	}
@@ -52,39 +45,6 @@ public class OperationDeployInfo implements Cloneable
 	
 	public OperationDeployInfo()
 	{
-		inVarNames = null;
-		outVarNames = null;
-		boundName = null;
 		portType = null;
 	}
-	
-	public String boundName()
-	{
-		return boundName;
-	}
-	
-	public Vector< String > inVarNames()
-	{
-		return inVarNames;
-	}
-	
-	public Vector< String > outVarNames()
-	{
-		return outVarNames;
-	}
-	
-	public void setBoundName( String boundName )
-	{
-		this.boundName = boundName;
-	}
-	
-	public void setOutVarNames( Vector< String > outVarNames )
-	{
-		this.outVarNames = outVarNames;
-	}
-	
-	public void setInVarNames( Vector< String > inVarNames )
-	{
-		this.inVarNames = inVarNames;
-	} 
 }

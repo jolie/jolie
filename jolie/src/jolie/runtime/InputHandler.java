@@ -22,15 +22,11 @@
 
 package jolie.runtime;
 
-import jolie.process.NDChoiceProcess;
+import jolie.process.InputProcess;
 
-/*
- * @todo InputHandlers should care for correlatedThread tracking. 
- */
 public interface InputHandler
 {
-	public void signForMessage( NDChoiceProcess process );
-	public void cancelWaiting( NDChoiceProcess process );
-	//public CorrelatedThread correlatedThread();
+	public void signForMessage( InputProcess process );
+	public void cancelWaiting( InputProcess process );
 	public String id();
 }

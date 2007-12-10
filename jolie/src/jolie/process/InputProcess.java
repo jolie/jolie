@@ -21,11 +21,12 @@
 
 package jolie.process;
 
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.InputHandler;
 
 public interface InputProcess extends Process
 {
-	public boolean recvMessage( CommMessage message );
+	public void recvMessage( CommChannel channel, CommMessage message );
 	public InputHandler inputHandler();
 }

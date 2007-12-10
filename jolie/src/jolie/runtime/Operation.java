@@ -49,16 +49,6 @@ abstract public class Operation extends AbstractMappedGlobalObject
 	{
 		return id();
 	}
-
-	/*public static Operation getById( String id )
-		throws InvalidIdException
-	{
-		Operation retVal = idMap.get( id );
-		if ( retVal == null )
-			throw new InvalidIdException( id );
-
-		return retVal;
-	}*/
 	
 	abstract public void register();
 }
