@@ -134,5 +134,5 @@ See the COPYING file for the distribution license of the following content.
 <AdditionListN>		::=	<addOp> <Expression> | epsilon
 <Term>				::=	<Factor> <MultListN>
 <MultListN>			::=	<multOp> <Term> | epsilon
-<Factor>			::=	<VarPath> | <int> | <string> | "(" <Expression> ")" 
+<Factor>			::=	<VarPath> | <int> | <real> | <string> | "(" <Expression> ")" 
 
