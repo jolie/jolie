@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Claudio Guidi      							   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,6 +33,7 @@ public class Scanner
 		COMMA,				///< ,
 		DOT,				///< .
 		INT,				///< [0-9]+
+		REAL,				///< [0-9]*"."[0-9]+(e|E)[0-9]+
 		LPAREN,				///< (
 		RPAREN,				///< )
 		LSQUARE,			///< [
@@ -85,8 +87,6 @@ public class Scanner
 		EXECUTION,			///< execution
 		THROW,				///< throw
 		INSTALL,				///< install
-		//INSTALL_FAULT_HANDLER,	///< installFH
-		//INSTALL_COMPENSATION,	///< installComp
 		SCOPE,					///< scope
 		THIS,					///< this
 		COMPENSATE,				///< comp
@@ -105,11 +105,13 @@ public class Scanner
 		DECREMENT,				///< --
 		IS_STRING,				///< is_string
 		IS_INT,					///< is_int
+		IS_REAL,				///< is_double
 		IS_DEFINED,				///< is_defined
 		CAST_INT,				///< int
 		CAST_STRING,			///< string
+		CAST_REAL,				///< double
 		SYNCHRONIZED,			///< synchronized
-		ERROR			///< Scanner error
+		ERROR					///< Scanner error
 	}
 	
 	/**
@@ -321,6 +323,8 @@ public class Scanner
 						state = 12;
 					else if ( ch == '-' )
 						state = 14;
+					else if ( ch == '.') // DOT or REAL
+						state = 16;
 					else {	// ONE CHARACTER TOKEN
 						if ( ch == '(' )							
 							retval = new Token( TokenType.LPAREN );
@@ -344,8 +348,8 @@ public class Scanner
 							retval = new Token( TokenType.COMMA );
 						else if ( ch == ';' )
 							retval = new Token( TokenType.SEQUENCE );
-						else if ( ch == '.' )
-							retval = new Token( TokenType.DOT );
+						//else if ( ch == '.' )
+							//retval = new Token( TokenType.DOT );
 						else if ( ch == '#' )
 							retval = new Token( TokenType.HASH );
 						
@@ -419,10 +423,6 @@ public class Scanner
 							retval = new Token( TokenType.THIS );
 						else if ( "synchronized".equals( str ) )
 							retval = new Token( TokenType.SYNCHRONIZED );
-						/*else if ( "installFH".equals( str ) )
-							retval = new Token( TokenType.INSTALL_FAULT_HANDLER );
-						else if ( "installComp".equals( str ) )
-							retval = new Token( TokenType.INSTALL_COMPENSATION );*/
 						else if ( "throw".equals( str ) )
 							retval = new Token( TokenType.THROW );
 						else if ( "scope".equals( str ) )
@@ -447,17 +447,30 @@ public class Scanner
 							retval = new Token( TokenType.IS_STRING );
 						else if ( "is_int".equals( str ) )
 							retval = new Token( TokenType.IS_INT );
+						else if ( "is_double".equals( str ) )
+							retval = new Token( TokenType.IS_REAL );
 						else if ( "int".equals( str ) )
 							retval = new Token( TokenType.CAST_INT );
 						else if ( "string".equals( str ) )
 							retval = new Token( TokenType.CAST_STRING );
+						else if ( "double".equals( str ) )
+							retval = new Token( TokenType.CAST_REAL );
 						else
 							retval = new Token( TokenType.ID, str );
 					}
 					break;	
 				case 3: // INT
-					if ( !Character.isDigit( ch ) )
+					if ( ch == 'e'|| ch == 'E' ){
+						state = 19;
+					} else if ( !Character.isDigit( ch ) && ch != '.' )
 						retval = new Token( TokenType.INT, str );
+					else if ( ch == '.' ){
+						str += ch;
+						readChar();
+						if ( !Character.isDigit( ch ) ) 
+							retval =  new Token( TokenType.ERROR, str );
+						else state = 17; // recognized a REAL
+					}
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
@@ -563,6 +576,13 @@ public class Scanner
 					} else if ( ch == '>' ) {
 						retval = new Token( TokenType.POINTS_TO );
 						readChar();
+					} else if ( ch == '.' ) {
+						str += ch;
+						readChar();
+						if ( !Character.isDigit( ch ) )
+							retval = new Token( TokenType.ERROR, "-." );
+						else 
+							state = 17;
 					} else
 						retval = new Token( TokenType.MINUS );
 					break;
@@ -572,8 +592,37 @@ public class Scanner
 						retval = getToken();
 					}
 					break;
+				case 16: // DOT
+					if ( !Character.isDigit( ch ) )
+						retval = new Token( TokenType.DOT );
+					else
+						state = 17; // It's a REAL
+					break;
+				case 17: // REAL "."[0-9]+ 
+					if ( ch == 'E' || ch == 'e' )
+						state = 18;
+					else if ( !Character.isDigit( ch ) )
+						retval = new Token( TokenType.REAL, str );
+					break;
+				case 18: // Scientific notation, first char after 'E'
+					if ( ch == '-' || ch == '+' )
+						state = 19;
+					else if ( Character.isDigit( ch ) )
+						state = 20;
+					else
+						retval = new Token( TokenType.ERROR ); 
+					break;
+				case 19: // Scientific notation, first exp. digit
+					if ( !Character.isDigit( ch ) )
+						retval = new Token( TokenType.ERROR );
+					else
+						state = 20;
+				case 20: // Scientific notation: from second digit to end
+					if ( !Character.isDigit( ch ) )
+						retval = new Token( TokenType.REAL, str );
+					break;
 				default:
-					retval = new Token( TokenType.ERROR );
+					retval = new Token( TokenType.ERROR, str );
 					break;
 			}
 			

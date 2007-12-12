@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -17,39 +17,24 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+ ***************************************************************************/      
 
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 
-
-public class IsTypeExpressionNode implements OLSyntaxNode
+public class ConstantRealExpression implements OLSyntaxNode
 {
-	public enum CheckType {
-		DEFINED,
-		INT,
-		STRING,
-		REAL
-	}
-	
-	private VariablePath variablePath;
-	private CheckType type;
+	private double value;
 
-	public IsTypeExpressionNode( CheckType type, VariablePath variablePath )
+	public ConstantRealExpression( double value )
 	{
-		this.type = type;
-		this.variablePath = variablePath;
+		this.value = value;
 	}
 	
-	public CheckType type()
+	public double value()
 	{
-		return type;
-	}
-	
-	public VariablePath variablePath()
-	{
-		return variablePath;
+		return value;
 	}
 	
 	public void accept( OLVisitor visitor )

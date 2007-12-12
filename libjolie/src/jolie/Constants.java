@@ -55,9 +55,9 @@ public final class Constants
 	
 	public enum VariableType {
 		UNDEFINED,	///< Undefined variable.
-		INT,		///< Integer variable. Used also by operations for type management.
-		STRING,		///< String variable. Used also by operations for type management.
-		VARIANT		///< Variant variable. Used only by operations for type management.
+		INT,		///< Integer variable.
+		STRING,		///< String variable.
+		REAL		///< Double variable.
 	}
 	
 	public static long serialVersionUID() { return 1L; }

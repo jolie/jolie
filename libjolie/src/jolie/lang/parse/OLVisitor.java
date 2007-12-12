@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -26,6 +27,7 @@ import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
+import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.DeepCopyStatement;
@@ -84,13 +86,10 @@ import jolie.lang.parse.ast.WhileStatement;
 public interface OLVisitor
 {
 	public void visit( Program n );
-	//public void visit( LocationDefinition n );
 	public void visit( OneWayOperationDeclaration decl );
 	public void visit( NotificationOperationDeclaration decl );
 	public void visit( RequestResponseOperationDeclaration decl );
 	public void visit( SolicitResponseOperationDeclaration decl );
-	//public void visit( InternalLinkDeclaration n );
-	//public void visit( VariableDeclaration n );
 	public void visit( Procedure n );
 	public void visit( ParallelStatement n );
 	public void visit( SequenceStatement n );
@@ -114,11 +113,11 @@ public interface OLVisitor
 	public void visit( CompareConditionNode n );
 	public void visit( ExpressionConditionNode n );
 	public void visit( ConstantIntegerExpression n );
+	public void visit( ConstantRealExpression n );
 	public void visit( ConstantStringExpression n );
 	public void visit( ProductExpressionNode n );
 	public void visit( SumExpressionNode n );
 	public void visit( VariableExpressionNode n );
-	//public void visit( VariableSizeExpressionNode n );
 	public void visit( NullProcessStatement n );
 	public void visit( Scope n );
 	public void visit( InstallStatement n );
