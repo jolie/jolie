@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Fabrizio Montesi  								   *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -40,6 +41,7 @@ import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
+import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.DeepCopyStatement;
@@ -144,6 +146,7 @@ import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
 import jolie.runtime.AndCondition;
 import jolie.runtime.CastIntExpression;
+import jolie.runtime.CastRealExpression;
 import jolie.runtime.CastStringExpression;
 import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
@@ -154,6 +157,7 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
 import jolie.runtime.IsIntExpression;
+import jolie.runtime.IsRealExpression;
 import jolie.runtime.IsStringExpression;
 import jolie.runtime.Location;
 import jolie.runtime.NotCondition;
@@ -689,6 +693,11 @@ public class OOITBuilder implements OLVisitor
 		currExpression = Value.create( n.value() );
 	}
 	
+	public void visit( ConstantRealExpression n )
+	{
+		currExpression = Value.create( n.value() );
+	}
+	
 	public void visit( ConstantStringExpression n )
 	{
 		currExpression = Value.create( n.value() );
@@ -764,7 +773,10 @@ public class OOITBuilder implements OLVisitor
 				new IsDefinedExpression( getGlobalVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.INT ) {
 			currExpression =
-				new IsIntExpression( getGlobalVariablePath( n.variablePath() ) );	
+				new IsIntExpression( getGlobalVariablePath( n.variablePath() ) );
+		} else if ( type == IsTypeExpressionNode.CheckType.REAL ) {
+			currExpression =
+				new IsRealExpression( getGlobalVariablePath( n.variablePath() ) );	
 		} else if ( type == IsTypeExpressionNode.CheckType.STRING ) {
 			currExpression =
 				new IsStringExpression( getGlobalVariablePath( n.variablePath() ) );
@@ -775,6 +787,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		if ( n.type() == Constants.VariableType.INT ) {
 			currExpression = new CastIntExpression( getGlobalVariablePath( n.variablePath() ) );
+		} else if ( n.type() == Constants.VariableType.REAL ) {
+			currExpression = new CastRealExpression( getGlobalVariablePath( n.variablePath() ) );
 		} else if ( n.type() == Constants.VariableType.STRING ) {
 			currExpression = new CastStringExpression( getGlobalVariablePath( n.variablePath() ) );
 		}

@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -81,6 +82,11 @@ class ValueLink extends Value implements Cloneable
 		linkPath.getValue().setIntValue( value );
 	}
 	
+	public void setDoubleValue( double value )
+	{
+		linkPath.getValue().setDoubleValue( value );
+	}
+	
 	public String strValue()
 	{
 		return linkPath.getValue().strValue();
@@ -89,6 +95,11 @@ class ValueLink extends Value implements Cloneable
 	public int intValue()
 	{
 		return linkPath.getValue().intValue();
+	}
+	
+	public double doubleValue()
+	{
+		return linkPath.getValue().doubleValue();
 	}
 
 	public Constants.VariableType type()
@@ -111,6 +122,7 @@ class ValueImpl extends Value
 {
 	private String strValue = new String();
 	private int intValue = 0;
+	private double doubleValue = 0;
 	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
 	
 	private ConcurrentHashMap< String, ValueVector > children =
@@ -201,6 +213,8 @@ class ValueImpl extends Value
 		if ( val.isDefined() ) {
 			if ( val.isInt() )
 				return ( isInt() && intValue() == val.intValue() );
+			else if ( val.isDouble() )
+				return ( isDouble() && doubleValue() == val.doubleValue() );
 			else
 				return ( isString() && strValue().equals( val.strValue() ) );
 		}
@@ -219,10 +233,17 @@ class ValueImpl extends Value
 		this.intValue = value;
 	}
 	
+	public final synchronized void setDoubleValue( double value )
+	{
+		type = Constants.VariableType.REAL;
+		this.doubleValue = value;
+	}
 	public final synchronized String strValue()
 	{
 		if ( type == Constants.VariableType.INT )
 			return Integer.toString( intValue );
+		else if ( type == Constants.VariableType.REAL )
+			return Double.toString( doubleValue );
 		return strValue;
 	}
 	
@@ -234,9 +255,26 @@ class ValueImpl extends Value
 			} catch( NumberFormatException e ) {
 				return strValue.length();
 			}
-		}
+		} else if ( type == Constants.VariableType.REAL )
+			return (int)doubleValue;
 	
 		return intValue;
+	}
+	
+	public final synchronized double doubleValue()
+	{
+		if ( type == Constants.VariableType.STRING ) {
+			try {
+				return Double.parseDouble( strValue );
+			} catch( NumberFormatException e ) {
+				return (double) strValue.length();
+			}
+		}
+		else if ( type == Constants.VariableType.INT ) {
+			return (double) intValue;
+		}
+
+		return doubleValue;
 	}
 
 	public Constants.VariableType type()
@@ -256,11 +294,19 @@ class ValueImpl extends Value
 		setIntValue( val );
 	}
 	
+	public ValueImpl( double val )
+	{
+		super();
+		setDoubleValue( val );
+	}
+	
 	public ValueImpl( Value val )
 	{
 		if ( val.isDefined() ) {
 			if ( val.type() == Constants.VariableType.INT )
 				setIntValue( val.intValue() );
+			else if ( val.type() == Constants.VariableType.REAL )
+				setDoubleValue( val.doubleValue() );
 			else
 				setStrValue( val.strValue() );
 		}
@@ -294,6 +340,11 @@ abstract public class Value implements Expression
 	public static Value create( int i )
 	{
 		return new ValueImpl( i );
+	}
+	
+	public static Value create( double d )
+	{
+		return new ValueImpl( d );
 	}
 	
 	public static Value create( Value value )
@@ -351,9 +402,16 @@ abstract public class Value implements Expression
 	
 	abstract public void setStrValue( String value );
 	
+	abstract public void setDoubleValue( double value );
+	
 	public final boolean isInt()
 	{
 		return ( type() == Constants.VariableType.INT );
+	}
+	
+	public final boolean isDouble()
+	{
+		return ( type() == Constants.VariableType.REAL );
 	}
 	
 	public final boolean isString()
@@ -372,6 +430,8 @@ abstract public class Value implements Expression
 	
 	abstract public int intValue();
 	
+	abstract public double doubleValue();
+	
 	abstract public Constants.VariableType type();
 	
 	public final synchronized void add( Value val )
@@ -379,6 +439,8 @@ abstract public class Value implements Expression
 		if ( isDefined() ) {
 			if ( isInt() )
 				setIntValue( intValue() + val.intValue() );
+			else if ( isDouble() )
+				setDoubleValue( doubleValue() + val.doubleValue() );
 			else
 				setStrValue( strValue() + val.strValue() );
 		} else
@@ -391,6 +453,8 @@ abstract public class Value implements Expression
 			assignValue( val );
 		else if ( isInt() )
 			setIntValue( intValue() - val.intValue() );
+		else if ( isDouble() )
+			setDoubleValue( doubleValue() - val.doubleValue() );
 	}
 	
 	public final synchronized void multiply( Value val )
@@ -398,6 +462,8 @@ abstract public class Value implements Expression
 		if ( isDefined() ) {
 			if ( isInt() )
 				setIntValue( intValue() * val.intValue() );
+			else if ( isDouble() )
+				setDoubleValue( doubleValue() * val.doubleValue() );
 		} else
 			assignValue( val );
 	}
@@ -408,12 +474,16 @@ abstract public class Value implements Expression
 			assignValue( val );
 		else if ( isInt() )
 			setIntValue( intValue() / val.intValue() );
+		else if ( isDouble() )
+			setDoubleValue( doubleValue() / val.doubleValue() );
 	}
 	
 	public final synchronized void assignValue( Value val )
 	{
 		if ( val.isInt() )
 			setIntValue( val.intValue() );
+		else if ( val.isDouble() )
+			setDoubleValue( val.doubleValue() );
 		else
 			setStrValue( val.strValue() );
 	}
