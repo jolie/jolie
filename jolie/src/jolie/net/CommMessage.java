@@ -22,20 +22,44 @@
 
 package jolie.net;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
  * @author Fabrizio Montesi
- * @todo Extend to subclasses with a direct reference to the input object, for performance improvements?
  *
  */
-public class CommMessage
+public class CommMessage implements Externalizable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private String inputId;
 	private Value value;
 	private boolean fault = false;
-
+	
+	public CommMessage() {}
+	
+	public void readExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		inputId = in.readUTF();
+		fault = in.readBoolean();
+		value = Value.createFromExternal( in );
+	}
+	
+	public void writeExternal( ObjectOutput out )
+		throws IOException
+	{
+		out.writeUTF( inputId );
+		out.writeBoolean( fault );
+		value.writeExternal( out );
+	}
+	
 	public static CommMessage createEmptyMessage()
 	{
 		return new CommMessage( "" );

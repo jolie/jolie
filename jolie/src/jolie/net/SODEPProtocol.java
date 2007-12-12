@@ -21,54 +21,14 @@
 
 package jolie.net;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-
-import jolie.lang.parse.Scanner;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-
-/*
-Simple Operation Data Exchange Protocol BNF grammar:
-
-<SodepPacket>		::=		<Operation> <Body>
-<Operation>			::=		"operation" ":" <id>
-<Body>				::=		<Fault> | <Values>
-<Fault>				::=		"fault" ":" <id> 
-<Values>			::=		"values" "{" <ValuesListN> "}"
-<ValuesListN>		::=		<string> <ValuesListNSep>
-					|		<int> <ValuesListNSep>
-					|		epsilon
-
-<ValuesListNSep>	::=		"," <string> <ValuesListNSep>
-					|		"," <int> <ValuesListNSep>
-					|		epsilon
-
-<id>				::=		[a-zA-Z][a-zA-Z0-9]*
-<int>				::=		[0-9]+
-<string>			::=		"[[:graph:]]"
-
-Examples:
-
-operation: displayMessage
-values
-{
-"Hello world"
-}
-
----
-
-operation: calculateFactorial
-fault: fOverflow
-
-*/
 
 public class SODEPProtocol implements CommProtocol
 {	
-	
 	public SODEPProtocol clone()
 	{
 		return new SODEPProtocol();
@@ -77,93 +37,22 @@ public class SODEPProtocol implements CommProtocol
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		String mesg = "operation:" + message.inputId() + '\n';
-		if ( message.isFault() ) {
-			mesg += "fault:" + message.faultName();
-		} else {
-			mesg += "values{";
-			Value val;
-			//Iterator< Value > it = message.iterator();
-			//while( it.hasNext() ) {
-				//val = it.next();
-				val = message.value();
-				if ( val.isString() || !val.isDefined() )
-					mesg += '"' + val.strValue() + '"';
-				else if ( val.isInt() )
-					mesg += val.intValue();
-				else
-					throw new IOException( "sodep packet creation: invalid variable type or undefined variable" );
-				/*if ( it.hasNext() )
-					mesg += ',';*/
-			//}
-			mesg += '}';
-		}
-		
-		mesg = Scanner.addStringTerminator( mesg );
-
-		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
-		writer.write( mesg );
-		writer.flush();
+		ObjectOutputStream oos = new ObjectOutputStream( ostream );
+		oos.writeObject( message );
 	}
 	
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		Scanner.Token token;
-		CommMessage message = null;
-		Value val;
-		boolean stop = false;
-		Scanner scanner = new Scanner( istream, "network" );
-		
-		token = scanner.getToken();
-		if ( token.type() == Scanner.TokenType.EOF )
-			return null;
-		
-		if ( token.type() != Scanner.TokenType.ID || !("operation".equals( token.content() )) )
-			throw new IOException( "malformed SODEP packet. operation keyword expected" );
-		token = scanner.getToken();
-		if ( token.type() != Scanner.TokenType.COLON  )
-			throw new IOException( "malformed SODEP packet. : expected" );
-		token = scanner.getToken();
-		if ( token.type() != Scanner.TokenType.ID )
-			throw new IOException( "malformed SODEP packet. operation identifier expected" );
-		
-		String inputId = token.content();
-		token = scanner.getToken();
-		if ( token.is( Scanner.TokenType.ID ) && "fault".equals( token.content() ) ) {
-			token = scanner.getToken();
-			if ( token.isNot( Scanner.TokenType.COLON ) )
-				throw new IOException( "malformed SODEP packet. expected :" );
-			token = scanner.getToken();
-			message = new CommMessage( inputId, new FaultException( token.content() ) );
-		} else {
-			//token = scanner.getToken();
-			if ( token.type() != Scanner.TokenType.ID || !("values".equals( token.content() )) )
-				throw new IOException( "malformed SODEP packet. values keyword expected" );
-			token = scanner.getToken();
-			if ( token.type() != Scanner.TokenType.LCURLY  )
-				throw new IOException( "malformed SODEP packet. { expected" );
-			token = scanner.getToken();
-		
-			while ( token.type() != Scanner.TokenType.RCURLY && !stop ) { 
-				if ( token.type() == Scanner.TokenType.STRING )
-					val = Value.create( token.content() );
-				else if ( token.type() == Scanner.TokenType.INT )
-					val = Value.create( Integer.parseInt( token.content() ) );
-				else
-					throw new IOException( "malformed SODEP packet. invalid variable type" );
-				message = new CommMessage( inputId, val );
-				//message.addValue( val );
-				token = scanner.getToken();
-				if ( token.isNot( Scanner.TokenType.COMMA ) )
-					stop = true;
-				else
-					token = scanner.getToken();
-			}
-		
-			if ( token.type() != Scanner.TokenType.RCURLY )
-				throw new IOException( "malformed SODEP packet. } expected" );
+		ObjectInputStream ios = new ObjectInputStream( istream );
+		Object obj = null;
+		try {
+			obj = ios.readObject();
+			if ( !( obj instanceof CommMessage ) )
+				throw new IOException( "Received malformed SODEP packet" );
+		} catch( ClassNotFoundException e ) {
+			throw new IOException( "Received malformed SODEP packet" );
 		}
-		return message;
+		return (CommMessage)obj;
 	}
 }

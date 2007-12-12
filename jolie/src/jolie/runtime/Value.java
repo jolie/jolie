@@ -22,6 +22,10 @@
 
 package jolie.runtime;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +35,12 @@ import jolie.Constants;
 class ValueLink extends Value implements Cloneable
 {
 	private GlobalVariablePath linkPath;
+
+	public void writeExternal( ObjectOutput out )
+		throws IOException
+	{
+		linkPath.getValue().writeExternal( out );
+	}
 	
 	public ValueLink clone()
 	{
@@ -118,17 +128,95 @@ class ValueLink extends Value implements Cloneable
 	}
 }
 
-class ValueImpl extends Value
+class ValueImpl extends Value implements Externalizable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private String strValue = new String();
 	private int intValue = 0;
 	private double doubleValue = 0;
 	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
 	
-	private ConcurrentHashMap< String, ValueVector > children =
-				new ConcurrentHashMap< String, ValueVector >();
-	private ConcurrentHashMap< String, Value > attributes =
-				new ConcurrentHashMap< String, Value >();
+	private ConcurrentHashMap< String, ValueVector > children = null;
+	private ConcurrentHashMap< String, Value > attributes = null;
+	
+	private final static byte UndefinedType = 0;
+	private final static byte IntegerType = 1;
+	private final static byte DoubleType = 2;
+	private final static byte StringType = 3;
+	
+	public void readExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		byte type = in.readByte();
+		switch( type ) {
+		case IntegerType:
+			setIntValue( in.readInt() );
+			break;
+		case DoubleType:
+			setDoubleValue( in.readDouble() );
+			break;
+		case StringType:
+			setStrValue( in.readUTF() );
+			break;
+		}
+		
+		int n = in.readInt(); // How many attributes?
+		int i;
+		ValueImpl v;
+		String s;
+		for( i = 0; i < n; i++ ) {
+			s = in.readUTF();
+			v = new ValueImpl();
+			v.readExternal( in );
+			attributes().put( s, v );
+		}
+		
+		n = in.readInt(); // How many children?
+		ValueVector vec;
+		int size, k;
+		for( i = 0; i < n; i++ ) {
+			s = in.readUTF();
+			vec = ValueVector.create();
+			size = in.readInt();
+			for( k = 0; k < size; k++ ) {
+				v = new ValueImpl();
+				v.readExternal( in );
+				vec.add( v );
+			}
+			children().put( s, vec );
+		}
+	}
+	
+	public void writeExternal( ObjectOutput out )
+		throws IOException
+	{
+		if ( type == Constants.VariableType.INT ) {
+			out.writeByte( IntegerType );
+			out.writeInt( intValue() );
+		} else if ( type == Constants.VariableType.STRING ) {
+			out.writeByte( StringType );
+			out.writeUTF( strValue() );
+		} else if ( type == Constants.VariableType.REAL ) {
+			out.writeByte( DoubleType );
+			out.writeDouble( doubleValue() );
+		} else
+			out.writeByte( UndefinedType );
+		
+		out.writeInt( attributes().size() );
+		for( Entry< String, Value > entry : attributes().entrySet() ) {
+			out.writeUTF( entry.getKey() );
+			entry.getValue().writeExternal( out );
+		}
+		
+		out.writeInt( children().size() );
+		for( Entry< String, ValueVector > entry : children().entrySet() ) {
+			out.writeUTF( entry.getKey() );
+			out.writeInt( entry.getValue().size() );
+			for( Value v : entry.getValue() )
+				v.writeExternal( out );
+		}
+	}
 	
 	public ValueImpl() {}
 	
@@ -154,7 +242,7 @@ class ValueImpl extends Value
 				currVal = new ValueImpl();
 				currVal._deepCopy( entry.getValue(), copyLinks );
 			}
-			attributes.put( entry.getKey(), currVal );
+			attributes().put( entry.getKey(), currVal );
 		}
 	
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
@@ -164,16 +252,16 @@ class ValueImpl extends Value
 			else
 				(vec = ValueVector.create()).deepCopy( entry.getValue() );
 
-			children.put( entry.getKey(), vec );
+			children().put( entry.getKey(), vec );
 		}
 	}
 	
 	public ValueVector getChildren( String childId )
 	{
-		ValueVector v = children.get( childId );
+		ValueVector v = children().get( childId );
 		if ( v == null ) {
 			v = ValueVector.create();
-			children.put( childId, v );
+			children().put( childId, v );
 		}
 	
 		return v;
@@ -190,20 +278,24 @@ class ValueImpl extends Value
 	
 	public Map< String, ValueVector > children()
 	{
+		if ( children == null )
+			children = new ConcurrentHashMap< String, ValueVector > ();
 		return children;
 	}
 	
 	public Map< String, Value > attributes()
 	{
+		if ( attributes == null )
+			attributes = new ConcurrentHashMap< String, Value >();
 		return attributes;
 	}
 	
 	public Value getAttribute( String attributeId )
 	{
-		Value attr = attributes.get( attributeId );
+		Value attr = attributes().get( attributeId );
 		if ( attr == null ) {
 			attr = new ValueImpl();
-			attributes.put( attributeId, attr );
+			attributes().put( attributeId, attr );
 		}
 		return attr;
 	}
@@ -320,6 +412,17 @@ class ValueImpl extends Value
  */
 abstract public class Value implements Expression
 {
+	abstract public void writeExternal( ObjectOutput out )
+		throws IOException;
+	
+	public static Value createFromExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		ValueImpl v = new ValueImpl();
+		v.readExternal( in );
+		return v;
+	}
+	
 	public abstract boolean isLink();
 	
 	public static Value createLink( GlobalVariablePath path )
@@ -375,12 +478,7 @@ abstract public class Value implements Expression
 	{
 		_deepCopy( value, false );
 	}
-	
-	/*public void deepClone( Value value )
-	{
-		_deepCopy( value, true );
-	}*/
-	
+		
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
 	
 	abstract public ValueVector getChildren( String childId );
