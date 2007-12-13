@@ -23,11 +23,13 @@
 
 package jolie.net;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
@@ -195,65 +197,72 @@ public class HTTPProtocol implements CommProtocol
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	public CommMessage recv( InputStream istream )
+	private void parseXML( HTTPMessage message, Value value )
 		throws IOException
 	{
-		/*BufferedReader r = new BufferedReader( new InputStreamReader( istream ) );
-			String p;
-			System.out.println("---");
-			while( (p=r.readLine()) != null ) 
-				System.out.println(p+ "-");
-			System.out.println("---");
-		*/
-			
-		HTTPParser parser = new HTTPParser( istream );
-		HTTPMessage message = parser.parse();
-		CommMessage retVal = null;
-
 		try {
-			Value messageValue = Value.create();
-			//String opId = null;
 			if ( message.size() > 0 ) {
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 
-				//InputSource src = new InputSource( message.contentStream() );
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 
-				// Debug incoming message
-
-				/*
-				BufferedReader r = new BufferedReader( message.contentStream() );
-				String p;
-				System.out.println("---");
-				while( (p=r.readLine()) != null ) 
-				System.out.println(p);
-				System.out.println("---");
-				*/
-			
 				Document doc = builder.parse( src );
 
 				elementsToSubValues(
-							messageValue,
+							value,
 							doc.getDocumentElement().getFirstChild().getChildNodes()
 						);
-			}
-			
-			
-
-			if ( message.type() == HTTPMessage.Type.RESPONSE ) {
-				retVal = new CommMessage( inputId, messageValue );
-			} else if (
-					message.type() == HTTPMessage.Type.POST ||
-					message.type() == HTTPMessage.Type.GET ) {
-				retVal = new CommMessage( message.requestPath(), messageValue );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
 		} catch( SAXException saxe ) {
 			throw new IOException( saxe );
+		}
+	}
+	
+	private void parseForm( HTTPMessage message, Value value )
+		throws IOException
+	{
+		BufferedReader reader = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
+		String line;
+		String[] s, pair;
+		line = reader.readLine();
+		s = line.split( "&" );
+		for( int i = 0; i < s.length; i++ ) {
+			pair = s[i].split( "=", 2 );
+			value.getChildren( pair[0] ).first().setStrValue( pair[1] );
+		}		
+	}
+	
+	public CommMessage recv( InputStream istream )
+		throws IOException
+	{
+		/*String line;
+		BufferedReader reader = new BufferedReader( new InputStreamReader( istream ) );
+		while( (line=reader.readLine()) != null )
+			System.out.println( line );*/
+		
+		HTTPParser parser = new HTTPParser( istream );
+		HTTPMessage message = parser.parse();
+		CommMessage retVal = null;
+		Value messageValue = Value.create();
+		
+		if ( message.size() > 0 ) {
+			String type = message.getProperty( "content-type" );
+			if ( "application/x-www-form-urlencoded".equals( type ) )
+				parseForm( message, messageValue );
+			else
+				parseXML( message, messageValue );
+		}
+		
+		if ( message.type() == HTTPMessage.Type.RESPONSE ) {
+			retVal = new CommMessage( inputId, messageValue );
+		} else if (
+				message.type() == HTTPMessage.Type.POST ||
+				message.type() == HTTPMessage.Type.GET ) {
+			retVal = new CommMessage( message.requestPath(), messageValue );
 		}
 		
 		return retVal;
