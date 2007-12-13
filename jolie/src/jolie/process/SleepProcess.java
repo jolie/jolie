@@ -35,7 +35,7 @@ public class SleepProcess implements InputProcess
 {
 	public class SleepInputHandler extends ProcessThread implements InputHandler
 	{
-		private InputProcess inputProcess;
+		private InputProcessExecution inputProcess;
 		private Expression expression;
 		private ExecutionThread ethread;
 		private SleepProcess sleepProcess;
@@ -74,7 +74,7 @@ public class SleepProcess implements InputProcess
 			return sleepProcess.toString();
 		}
 
-		public synchronized void signForMessage( InputProcess process )
+		public synchronized void signForMessage( InputProcessExecution process )
 		{
 			inputProcess = process;
 			ethread = ExecutionThread.currentThread();
@@ -82,7 +82,7 @@ public class SleepProcess implements InputProcess
 				this.start();
 		}
 
-		public synchronized void cancelWaiting( InputProcess process )
+		public synchronized void cancelWaiting( InputProcessExecution process )
 		{
 			if ( inputProcess == process )
 				inputProcess = null;
@@ -123,11 +123,9 @@ public class SleepProcess implements InputProcess
 		} catch( InterruptedException e ) {}
 	}
 	
-	public synchronized InputHandler inputHandler()
+	public synchronized InputHandler getInputHandler()
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
-		/*if ( ethread == null )
-			return new SleepInputHandler( this, expression );*/
 
 		SleepInputHandler h = map.get( ethread );
 		if ( h == null ) {
@@ -137,6 +135,6 @@ public class SleepProcess implements InputProcess
 		return h;
 	}
 	
-	public void recvMessage( CommChannel channel, CommMessage message )
+	public void runBehaviour( CommChannel channel, CommMessage message )
 	{}
 }

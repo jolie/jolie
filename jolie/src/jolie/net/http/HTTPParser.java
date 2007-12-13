@@ -48,13 +48,6 @@ public class HTTPParser
 		scanner = new HTTPScanner( istream, "network" );
 	}
 	
-	/*private void eat( Scanner.TokenType type )
-		throws IOException
-	{
-		tokenAssert( type );
-		getToken();
-	}*/
-	
 	private void tokenAssert( Scanner.TokenType type )
 		throws IOException
 	{
@@ -67,30 +60,7 @@ public class HTTPParser
 	{
 		throw new IOException( "Malformed HTTP header" );
 	}
-	
-	/*private void assertCondition( boolean condition )
-		throws IOException
-	{
-		if ( condition == false )
-			throwException();
-	}
-	
-	private void eatHeaderUntil( String[] conds )
-		throws IOException
-	{
-		int i;
-		while(
-				token.isNot( Scanner.TokenType.EOF ) &&
-				token.isNot( Scanner.TokenType.ERROR ) 
-			) {
-			for( i = 0; i < conds.length; i++ ) {
-				if ( token.isKeywordIgnoreCase( conds[i] ) )
-						return;
-			}
-			getToken();
-		}
-	}*/
-	
+
 	private void parseHeaderProperties( HTTPMessage message )
 		throws IOException
 	{

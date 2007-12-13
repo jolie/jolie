@@ -21,33 +21,11 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.InputHandler;
-import jolie.runtime.InternalLink;
 
-public class LinkInProcess implements InputProcess
+public interface InputProcessExecution extends Process
 {
-	private String link;
-	
-	public LinkInProcess( String link )
-	{
-		this.link = link;
-	}
-	
-	public InputHandler getInputHandler()
-	{
-		return InternalLink.getById( link );
-	}
-
-	public void runBehaviour( CommChannel channel, CommMessage message )
-	{}
-	
-	public void run()
-	{
-		if ( ExecutionThread.killed() )
-			return;
-		//InternalLink.getById( link ).linkIn( this );
-	}
+	public void recvMessage( CommChannel channel, CommMessage message );
+	public Process parent();
 }

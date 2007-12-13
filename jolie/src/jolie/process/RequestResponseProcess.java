@@ -33,9 +33,9 @@ import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
 
-public class RequestResponseProcess implements CorrelatedInputProcess
+public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	private class Execution implements InputOperationProcess
+	private class Execution implements InputProcessExecution
 	{
 		private CommMessage message;
 		private CommChannel channel;
@@ -46,9 +46,9 @@ public class RequestResponseProcess implements CorrelatedInputProcess
 			this.parent = parent;
 		}
 		
-		public InputHandler inputHandler()
+		public Process parent()
 		{
-			return parent.operation;
+			return parent;
 		}
 		
 		public void run()
@@ -60,49 +60,10 @@ public class RequestResponseProcess implements CorrelatedInputProcess
 					if( message == null )
 						this.wait();
 				}
-				if ( parent.inputVarPath != null )
-					parent.inputVarPath.getValue().deepCopy( message.value() );
 			} catch( InterruptedException ie ) {
 				parent.operation.cancelWaiting( this );
 			}
-			
-			FaultException fault = null;
-			
-			CommMessage response = null;
-			try {
-				parent.process.run();
-				response =
-					( parent.outputVarPath == null ) ?
-							new CommMessage( parent.operation.id() ) :
-							new CommMessage( parent.operation.id(), parent.outputVarPath.getValue() );
-			} catch( FaultException f ) {
-				if ( !parent.operation.faultNames().contains( f.fault() ) ) {
-					Interpreter.logger().severe(
-						"Request-Response process for " + parent.operation.id() +
-						"threw an undeclared fault for that operation" );
-					Iterator< String > it = parent.operation.faultNames().iterator();
-					if ( it.hasNext() ) {
-						String newFault = it.next();
-						Interpreter.logger().warning(
-							"Converting Request-Response fault " + f.fault() +
-							" to " + newFault );
-						f = new FaultException( newFault );
-					} else
-						Interpreter.logger().severe( "Could not find a fault to convert the undeclared fault to." );
-				}
-				response = new CommMessage( parent.operation.id(), f );
-				fault = f;
-			}
-	
-			try {
-				channel.send( response );
-				channel.close();
-			} catch( IOException ioe ) {
-				ioe.printStackTrace();
-			}
-			
-			if ( fault != null )
-				throw fault;
+			parent.runBehaviour( channel, message );
 		}
 		
 		public GlobalVariablePath inputVarPath()
@@ -150,5 +111,60 @@ public class RequestResponseProcess implements CorrelatedInputProcess
 		if ( ExecutionThread.killed() )
 			return;
 		(new Execution( this )).run();
+	}
+	
+	public GlobalVariablePath inputVarPath()
+	{
+		return inputVarPath;
+	}
+	
+	public InputHandler getInputHandler()
+	{
+		return operation;
+	}
+	
+	public void runBehaviour( CommChannel channel, CommMessage message )
+		throws FaultException
+	{
+		if ( inputVarPath != null )
+			inputVarPath.getValue().deepCopy( message.value() );
+		
+		FaultException fault = null;
+		
+		CommMessage response = null;
+		try {
+			process.run();
+			response =
+				( outputVarPath == null ) ?
+						new CommMessage( operation.id() ) :
+						new CommMessage( operation.id(), outputVarPath.getValue() );
+		} catch( FaultException f ) {
+			if ( !operation.faultNames().contains( f.fault() ) ) {
+				Interpreter.logger().severe(
+					"Request-Response process for " + operation.id() +
+					"threw an undeclared fault for that operation" );
+				Iterator< String > it = operation.faultNames().iterator();
+				if ( it.hasNext() ) {
+					String newFault = it.next();
+					Interpreter.logger().warning(
+						"Converting Request-Response fault " + f.fault() +
+						" to " + newFault );
+					f = new FaultException( newFault );
+				} else
+					Interpreter.logger().severe( "Could not find a fault to convert the undeclared fault to." );
+			}
+			response = new CommMessage( operation.id(), f );
+			fault = f;
+		}
+
+		try {
+			channel.send( response );
+			channel.close();
+		} catch( IOException ioe ) {
+			ioe.printStackTrace();
+		}
+		
+		if ( fault != null )
+			throw fault;
 	}
 }

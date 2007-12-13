@@ -23,10 +23,12 @@ package jolie.process;
 
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 
 public interface InputProcess extends Process
 {
-	public void recvMessage( CommChannel channel, CommMessage message );
-	public InputHandler inputHandler();
+	public void runBehaviour( CommChannel channel, CommMessage message )
+		throws FaultException;
+	public InputHandler getInputHandler();
 }

@@ -38,15 +38,13 @@ import jolie.runtime.InputHandler;
 
 class InInputHandler extends ProcessThread implements InputHandler, CorrelatedInputProcess
 {
-	private InProcess parent;
 	private GlobalVariablePath varPath;
 	private ExecutionThread executionThread;
-	private InputProcess inputProcess;
+	private InputProcessExecution inputProcess;
 	private CorrelatedProcess correlatedProcess;
 	
 	public InInputHandler( InProcess parent, GlobalVariablePath varPath, CorrelatedProcess correlatedProcess )
 	{
-		this.parent = parent;
 		this.varPath = varPath;
 		this.correlatedProcess = correlatedProcess;
 	}
@@ -61,7 +59,7 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 		return executionThread;
 	}
 	
-	public synchronized void signForMessage( InputProcess process )
+	public synchronized void signForMessage( InputProcessExecution process )
 	{
 		executionThread = ExecutionThread.currentThread();
 
@@ -71,12 +69,11 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 		// This should make a notify to run in order to avoid race conditions
 	}
 	
-	public synchronized void cancelWaiting( InputProcess process )
+	public synchronized void cancelWaiting( InputProcessExecution process )
 	{
 		if ( inputProcess == process )
 			inputProcess = null;
 
-		parent.setHandler( new InInputHandler( parent, varPath, correlatedProcess ) );
 		this.interrupt();
 	}
 		
@@ -119,14 +116,9 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 public class InProcess implements InputProcess, CorrelatedInputProcess
 {	
 	private GlobalVariablePath varPath;
-	private InInputHandler inputHandler = null;
 	private CorrelatedProcess correlatedProcess = null;
 	protected static final Object mutex = new Object();
-	/*protected static BufferedReader stdin = new BufferedReader(
-		new InputStreamReader(
-				Channels.newInputStream(
-						(new FileInputStream( FileDescriptor.in )).getChannel() ) ) );*/
-	
+		
 	public void setCorrelatedProcess( CorrelatedProcess process )
 	{
 		this.correlatedProcess = process;
@@ -166,19 +158,13 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 		}
 	}
 	
-	protected void setHandler( InInputHandler handler )
+	public InputHandler getInputHandler()
 	{
-		inputHandler = handler;
+		return new InInputHandler( this, varPath, correlatedProcess );
 	}
 	
-	public InputHandler inputHandler()
+	public void runBehaviour( CommChannel channel, CommMessage message )
 	{
-		if ( inputHandler == null )
-			inputHandler = new InInputHandler( this, varPath, correlatedProcess );
-
-		return inputHandler;
+		
 	}
-	
-	public void recvMessage( CommChannel channel, CommMessage message )
-	{}
 }

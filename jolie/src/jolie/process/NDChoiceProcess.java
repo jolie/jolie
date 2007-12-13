@@ -21,7 +21,8 @@
 
 package jolie.process;
 
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
@@ -29,6 +30,7 @@ import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
+import jolie.util.Pair;
 
 /** Implements a non-deterministic choice.
  * An NDChoiceProcess instance collects pairs which couple an 
@@ -45,43 +47,62 @@ import jolie.runtime.InputHandler;
  */
 public class NDChoiceProcess implements CorrelatedInputProcess
 {
-	public class Execution implements InputProcess
+	public class Execution implements InputProcessExecution
 	{
+		private class InputChoice {
+			protected InputHandler inputHandler;
+			protected InputProcess inputProcess;
+			protected Process process;
+			public InputChoice( InputHandler inputHandler, InputProcess inputProcess, Process process )
+			{
+				this.inputHandler = inputHandler;
+				this.inputProcess = inputProcess;
+				this.process = process;
+			}
+		}
+		
+		private ConcurrentHashMap< String, InputChoice > inputMap =
+			new ConcurrentHashMap< String, InputChoice >();
 		private NDChoiceProcess parent;
-		private ChoicePair pair;
+		private InputChoice choice = null;
+		private CommChannel channel;
+		private CommMessage message;
 	
 		public Execution( NDChoiceProcess parent )
 		{
 			this.parent = parent;
 		}
 		
-		public InputHandler inputHandler()
+		public Process parent()
 		{
-			return null;
+			return parent;
 		}
 	
 		public void run()
 			throws FaultException
 		{
-			for( ChoicePair cp : inputMap.values() )
-				cp.inputProcess().inputHandler().signForMessage( this );
-			
+			for( Pair< InputProcess, Process > p : parent.branches ) {
+				InputHandler handler = p.key().getInputHandler();
+				inputMap.put( handler.id(), new InputChoice( handler, p.key(), p.value() ) );
+				handler.signForMessage( this );
+			}
+
 			synchronized( this ) {
-				if( pair == null ) {
+				if( choice == null ) {
 					try {
 						this.wait();
 					} catch( InterruptedException e ) {}
 				}
 			}
-			assert( pair != null );
+			assert( choice != null );
 			
-			pair.inputProcess.run();
-			pair.process.run();			
+			choice.inputProcess.runBehaviour( channel, message );
+			choice.process.run();			
 		}
 		
 		public boolean hasReceivedMessage()
 		{
-			return ( pair != null );
+			return ( choice != null );
 		}
 		
 		public void recvMessage( CommChannel channel, CommMessage message )
@@ -89,11 +110,16 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			if ( parent.correlatedProcess != null )
 				parent.correlatedProcess.inputReceived();
 
-			pair = parent.inputMap.get( message.inputId() );
-			assert( pair != null );
-			pair.inputProcess().recvMessage( channel, message );
-			for( ChoicePair currPair : inputMap.values() )
-				currPair.inputProcess().inputHandler().cancelWaiting( this );
+			choice = inputMap.get( message.inputId() );
+			assert( choice != null );
+			inputMap.remove( message.inputId() );
+
+			this.channel = channel;
+			this.message = message;
+
+			for( InputChoice c : inputMap.values() )
+				c.inputHandler.cancelWaiting( this );
+
 			synchronized( this ) {
 				this.notify();
 			}
@@ -101,56 +127,22 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		
 		public GlobalVariablePath inputVarPath( String inputId )
 		{
-			for( ChoicePair cp : parent.inputMap.values() ) {
-				if ( cp.inputProcess().inputHandler().id().equals( inputId ) )
-					return ((InputOperationProcess)(cp.inputProcess())).inputVarPath();
-			}
+			InputChoice c = inputMap.get( inputId );
+			if ( c != null && c.inputProcess instanceof InputOperationProcess )
+				return ((InputOperationProcess)c.inputProcess).inputVarPath();
+
 			return null;
 		}
 	}
-	
-	private class ChoicePair
-	{
-		private InputProcess inputProcess;
-		private Process process;
-		
-		public ChoicePair( InputProcess inputProcess, Process process )
-		{
-			this.inputProcess = inputProcess;
-			this.process = process;
-		}
-		
-		public InputProcess inputProcess()
-		{
-			return inputProcess;
-		}
-		
-		public Process process()
-		{
-			return process;
-		}
-	}
-	
-	protected HashMap< String, ChoicePair > inputMap;
-	protected CorrelatedProcess correlatedProcess;
+
+	protected Collection< Pair< InputProcess, Process > > branches;
+	protected CorrelatedProcess correlatedProcess = null;
 	
 	/** Constructor */
-	public NDChoiceProcess()
+	public NDChoiceProcess( Collection< Pair< InputProcess, Process > > branches )
 	{
-		inputMap = new HashMap< String, ChoicePair >();
+		this.branches = branches;
 	}
-	
-	/** Adds an InputProcess<->Process pair: a possible non-deterministic choice.
-	 * 
-	 * @param inputProc the InputProcess instance.
-	 * @param process the Process instance to be executed if the InputProcess receives a message.
-	 */
-	public void addChoice( InputProcess inputProc, Process process )
-	{
-		ChoicePair pair = new ChoicePair( inputProc, process );
-		inputMap.put( inputProc.inputHandler().id(), pair );
-	}
-
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
 	{

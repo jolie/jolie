@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
 
 import jolie.ExecutionThread;
 import jolie.net.CommMessage;
-import jolie.process.InputProcess;
+import jolie.process.InputProcessExecution;
 import jolie.util.Pair;
 
 
@@ -40,7 +40,7 @@ import jolie.util.Pair;
 public class InternalLink implements InputHandler
 {
 	//private LinkedList< Thread > inList = new LinkedList< Thread >();
-	private LinkedList< Pair< ExecutionThread, InputProcess > > inList = new LinkedList< Pair< ExecutionThread, InputProcess > >();
+	private LinkedList< Pair< ExecutionThread, InputProcessExecution > > inList = new LinkedList< Pair< ExecutionThread, InputProcessExecution > >();
 	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
 	private LinkedList< Thread > outList = new LinkedList< Thread >();
 	
@@ -59,12 +59,12 @@ public class InternalLink implements InputHandler
 		return id;
 	}
 	
-	public synchronized void signForMessage( InputProcess process )
+	public synchronized void signForMessage( InputProcessExecution process )
 	{
 		synchronized( Thread.currentThread() ) {
 			if ( outList.isEmpty() )
 				inList.addFirst(
-					new Pair< ExecutionThread, InputProcess >( ExecutionThread.currentThread(), process ) );
+					new Pair< ExecutionThread, InputProcessExecution >( ExecutionThread.currentThread(), process ) );
 				//inMap.put( Thread.currentThread(), process );
 				//inMa.addFirst( process );
 			else {
@@ -77,9 +77,9 @@ public class InternalLink implements InputHandler
 		}
 	}
 	
-	public synchronized void cancelWaiting( InputProcess process ) 
+	public synchronized void cancelWaiting( InputProcessExecution process ) 
 	{
-		for( Pair< ExecutionThread, InputProcess > pair : inList ) {
+		for( Pair< ExecutionThread, InputProcessExecution > pair : inList ) {
 			if ( pair.key() == ExecutionThread.currentThread() ) {
 				inList.remove( pair );
 				break;
@@ -88,10 +88,10 @@ public class InternalLink implements InputHandler
 		//inMap.remove( Thread.currentThread() );
 	}
 
-	public void linkIn( InputProcess process )
+	public void linkIn( InputProcessExecution process )
 	{
-		Pair< ExecutionThread, InputProcess > pair =
-			new Pair< ExecutionThread, InputProcess >( ExecutionThread.currentThread(), process );
+		Pair< ExecutionThread, InputProcessExecution > pair =
+			new Pair< ExecutionThread, InputProcessExecution >( ExecutionThread.currentThread(), process );
 
 		Thread t = null, currThread = Thread.currentThread();
 		synchronized( this ) {
@@ -127,7 +127,7 @@ public class InternalLink implements InputHandler
 	
 	public void linkOut()
 	{
-		Pair< ExecutionThread, InputProcess > pair = null;
+		Pair< ExecutionThread, InputProcessExecution > pair = null;
 		ExecutionThread currThread = ExecutionThread.currentThread();
 		synchronized( this ) {
 			try {

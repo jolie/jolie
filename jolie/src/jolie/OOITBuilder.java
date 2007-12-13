@@ -401,15 +401,9 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( NDChoiceStatement n )
 	{
-		NDChoiceProcess proc = new NDChoiceProcess();
 		CorrelatedProcess corrProc = null;
-		
-		if( !alreadyCorrelated ) {
-			alreadyCorrelated = true;
-			corrProc = new CorrelatedProcess( proc );
-			proc.setCorrelatedProcess( corrProc );
-			alreadyCorrelated = false;
-		}
+		Vector< Pair< InputProcess, Process > > branches = 
+					new Vector< Pair< InputProcess, Process > >();
 		
 		Process guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
@@ -418,7 +412,16 @@ public class OOITBuilder implements OLVisitor
 			if ( guard instanceof CorrelatedInputProcess )
 				((CorrelatedInputProcess) guard).setCorrelatedProcess( corrProc );
 			pair.value().accept( this );
-			proc.addChoice( (InputProcess)guard, currProcess );
+			branches.add( new Pair< InputProcess, Process >( (InputProcess)guard, currProcess ) );
+		}
+		
+		NDChoiceProcess proc = new NDChoiceProcess( branches );
+		
+		if( !alreadyCorrelated ) {
+			alreadyCorrelated = true;
+			corrProc = new CorrelatedProcess( proc );
+			proc.setCorrelatedProcess( corrProc );
+			alreadyCorrelated = false;
 		}
 
 		currProcess = ( corrProc == null ) ? proc : corrProc;

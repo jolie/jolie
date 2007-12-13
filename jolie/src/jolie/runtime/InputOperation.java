@@ -31,7 +31,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.process.InputOperationProcess;
-import jolie.process.InputProcess;
+import jolie.process.InputProcessExecution;
 import jolie.process.NDChoiceProcess;
 import jolie.util.Pair;
 
@@ -44,8 +44,8 @@ abstract public class InputOperation extends Operation implements InputHandler
 	private static HashMap< String, InputOperation > idMap = 
 		new HashMap< String, InputOperation >();
 
-	private HashMap< InputProcess, ExecutionThread > procsMap =
-						new HashMap< InputProcess, ExecutionThread >();
+	private HashMap< InputProcessExecution, ExecutionThread > procsMap =
+						new HashMap< InputProcessExecution, ExecutionThread >();
 	
 	private LinkedList< Pair< CommChannel, CommMessage > > mesgList =
 						new LinkedList< Pair< CommChannel, CommMessage > > ();
@@ -79,12 +79,13 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
 		GlobalVariablePath path = null;
-		InputProcess process = null;
-		for( Entry< InputProcess, ExecutionThread > entry : procsMap.entrySet() ) {
-			if ( process instanceof InputOperationProcess )
-				path = ((InputOperationProcess) process).inputVarPath();
-			else if ( process instanceof NDChoiceProcess.Execution )
-				path = ((NDChoiceProcess.Execution) process).inputVarPath( message.inputId() );
+		InputProcessExecution pe = null;
+		for( Entry< InputProcessExecution, ExecutionThread > entry : procsMap.entrySet() ) {
+			pe = entry.getKey();
+			if ( pe instanceof NDChoiceProcess.Execution )
+				path = ((NDChoiceProcess.Execution)pe).inputVarPath( message.inputId() );
+			else if ( pe.parent() instanceof InputOperationProcess )
+				path = ((InputOperationProcess)pe.parent()).inputVarPath();
 			
 			CommChannelHandler.currentThread().setExecutionThread( entry.getValue() );
 			if ( entry.getValue().checkCorrelation( path, message ) ) {
@@ -97,7 +98,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 		mesgList.add( new Pair< CommChannel, CommMessage >( channel, message ) );
 	}
 
-	public synchronized void signForMessage( InputProcess process )
+	public synchronized void signForMessage( InputProcessExecution process )
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		GlobalVariablePath path = null;
@@ -117,7 +118,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 		procsMap.put( process, ethread );
 	}
 	
-	public synchronized void cancelWaiting( InputProcess process ) 
+	public synchronized void cancelWaiting( InputProcessExecution process ) 
 	{
 		procsMap.remove( process );
 	}

@@ -22,11 +22,11 @@
 
 package jolie.runtime;
 
-import jolie.process.InputProcess;
+import jolie.process.InputProcessExecution;
 
 public interface InputHandler
 {
-	public void signForMessage( InputProcess process );
-	public void cancelWaiting( InputProcess process );
+	public void signForMessage( InputProcessExecution process );
+	public void cancelWaiting( InputProcessExecution process );
 	public String id();
 }

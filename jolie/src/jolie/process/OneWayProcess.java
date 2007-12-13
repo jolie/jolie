@@ -30,9 +30,9 @@ import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
 
-public class OneWayProcess implements CorrelatedInputProcess
+public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	private class Execution implements InputOperationProcess
+	private class Execution implements InputProcessExecution
 	{
 		private CommMessage message = null;
 		private OneWayProcess parent;
@@ -42,14 +42,9 @@ public class OneWayProcess implements CorrelatedInputProcess
 			this.parent = parent;
 		}
 		
-		public InputHandler inputHandler()
+		public Process parent()
 		{
-			return parent.operation;
-		}
-		
-		public GlobalVariablePath inputVarPath()
-		{
-			return parent.varPath;
+			return parent;
 		}
 
 		public void run()
@@ -60,8 +55,7 @@ public class OneWayProcess implements CorrelatedInputProcess
 					if( message == null )
 						this.wait();
 				}
-				if ( parent.varPath != null )
-					parent.varPath.getValue().deepCopy( message.value() );
+				parent.runBehaviour( null, message );
 			} catch( InterruptedException ie ) {
 				parent.operation.cancelWaiting( this );
 			}
@@ -94,11 +88,27 @@ public class OneWayProcess implements CorrelatedInputProcess
 	{
 		this.correlatedProcess = process;
 	}
+	
+	public GlobalVariablePath inputVarPath()
+	{
+		return varPath;
+	}
 
 	public void run()
 	{
 		if ( ExecutionThread.killed() )
 			return;
 		(new Execution( this )).run();
+	}
+	
+	public InputHandler getInputHandler()
+	{
+		return operation;
+	}
+	
+	public void runBehaviour( CommChannel channel, CommMessage message )
+	{
+		if ( varPath != null )
+			varPath.getValue().deepCopy( message.value() );
 	}
 }
