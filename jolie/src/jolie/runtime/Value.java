@@ -230,11 +230,6 @@ class ValueImpl extends Value implements Externalizable
 		assignValue( value );
 		Value currVal = null;
 		
-		// @todo -- are we sure about clearing children and attributes?
-		// Probably not.
-		/*children.clear();
-		attributes.clear();*/
-
 		for( Entry< String, Value > entry : value.attributes().entrySet() ) {
 			if ( copyLinks && entry.getValue().isLink() ) {
 				currVal = ((ValueLink)entry.getValue()).clone();
@@ -246,13 +241,20 @@ class ValueImpl extends Value implements Externalizable
 		}
 	
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			ValueVector vec = null;
-			if ( copyLinks )
-				vec = ValueVector.createClone( entry.getValue() );
-			else
-				(vec = ValueVector.create()).deepCopy( entry.getValue() );
-
-			children().put( entry.getKey(), vec );
+			if ( copyLinks && entry.getValue().isLink() )
+				children().put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+			else {
+				ValueVector vec = getChildren( entry.getKey() );
+				ValueVector otherVector = entry.getValue();
+				Value v;
+				for( int i = 0; i < otherVector.size(); i++ ) {
+					v = otherVector.get( i );
+					if ( copyLinks && v.isLink() )
+						vec.set( Value.createClone( v ), i );
+					else
+						vec.get( i )._deepCopy( v, copyLinks );
+				}
+			}
 		}
 	}
 	

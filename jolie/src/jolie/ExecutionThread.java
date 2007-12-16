@@ -224,14 +224,14 @@ abstract public class ExecutionThread extends Thread
 	{
 		Vector< Value > origCSetValues = new Vector< Value >();
 		for( GlobalVariablePath p : Interpreter.correlationSet() )
-			origCSetValues.add( p.getValue() );
-		
+			origCSetValues.add( Value.create( p.getValue() ) );
+
 		jolie.State origState = state();
 		setState( origState.clone() );
 		
 		if ( path != null )
 			path.getValue().deepCopy( message.value() );
-		
+
 		Vector< Value > newCSetValues = new Vector< Value >();
 		for( GlobalVariablePath p : Interpreter.correlationSet() )
 			newCSetValues.add( p.getValue() );
@@ -243,6 +243,7 @@ abstract public class ExecutionThread extends Thread
 			if ( origV.isDefined() && (
 					origV.type() != newV.type() ||
 					(origV.isInt() && origV.intValue() != newV.intValue()) ||
+					(origV.isDouble() && origV.doubleValue() != newV.doubleValue()) ||
 					(origV.isString() && !origV.strValue().equals( newV.strValue() ))
 					)
 					)
