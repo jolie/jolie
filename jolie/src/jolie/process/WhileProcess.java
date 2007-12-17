@@ -39,7 +39,7 @@ public class WhileProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		while( condition.evaluate() )
 			process.run();

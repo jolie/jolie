@@ -36,7 +36,7 @@ public class DeepCopyProcess implements Process
 	
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 
 		leftPath.deepCopy( rightPath );

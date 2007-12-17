@@ -37,8 +37,11 @@ public class CompensateProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		ExecutionThread t = ExecutionThread.currentThread();
+		if ( t.isKilled() )
 			return;
-		ExecutionThread.getCompensation( id ).run();
+		Process c = t.getCompensation( id ); 
+		if ( c != null )
+			c.run();
 	}
 }

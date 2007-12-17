@@ -64,7 +64,7 @@ public class IfProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 
 		boolean stop = false;

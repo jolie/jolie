@@ -131,7 +131,7 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 	
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		try {
 			String buffer;

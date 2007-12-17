@@ -28,7 +28,6 @@ import java.util.Vector;
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
-import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
@@ -104,19 +103,14 @@ abstract public class ExecutionThread extends Thread
 		interrupt();
 	}
 
-	public static void clearKill()
+	public void clearKill()
 	{
-		currentThread().killed = false;
+		killed = false;
 	}
 
-	public static void setKill()
+	public boolean isKilled()
 	{
-		currentThread().killed = true;
-	}
-	
-	public static boolean killed()
-	{
-		return currentThread().killed;
+		return killed;
 	}
 	
 	public void run()
@@ -133,35 +127,22 @@ abstract public class ExecutionThread extends Thread
 		}
 	}
 	
-	private synchronized Process _getCompensation( String id )
+	public synchronized Process getCompensation( String id )
 	{
 		if ( scopeStack.empty() )
-			return parent._getCompensation( id );
+			return parent.getCompensation( id );
 		
 		return scopeStack.peek().getCompensation( id );
 	}
-	
-	public static Process getCompensation( String id )
-	{
-		Process p = ExecutionThread.currentThread()._getCompensation( id );
-		if ( p == null )
-			return NullProcess.getInstance();
-		return p;
-	}
 
-	private synchronized Process _getFaultHandler( String id )
+	public synchronized Process getFaultHandler( String id )
 	{
 		if ( scopeStack.empty() )
-			return parent._getFaultHandler( id );
+			return parent.getFaultHandler( id );
 		
 		return scopeStack.peek().getFaultHandler( id );
 	}
 	
-	public static Process getFaultHandler( String id )
-	{
-		return ExecutionThread.currentThread()._getFaultHandler( id );
-	}
-
 	public synchronized void pushScope( String id )
 	{
 		scopeStack.push( new Scope( id ) );

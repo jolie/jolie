@@ -36,7 +36,7 @@ public class OutProcess implements Process
 	
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value val = expression.evaluate();
 		if ( val.isDefined() )

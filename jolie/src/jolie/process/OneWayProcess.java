@@ -96,7 +96,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		(new Execution( this )).run();
 	}

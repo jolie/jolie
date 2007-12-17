@@ -37,7 +37,7 @@ public class PreIncrementProcess implements Process, Expression
 	
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value val = varPath.getValue();
 		val.setIntValue( val.intValue() + 1 );

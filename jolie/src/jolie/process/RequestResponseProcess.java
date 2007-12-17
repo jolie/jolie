@@ -108,7 +108,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		(new Execution( this )).run();
 	}

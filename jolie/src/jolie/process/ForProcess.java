@@ -41,7 +41,7 @@ public class ForProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		
 		init.run();

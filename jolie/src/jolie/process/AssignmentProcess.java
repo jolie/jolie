@@ -50,10 +50,9 @@ public class AssignmentProcess implements Process, Expression
 	/** Evaluates the expression and stores its value in the variable. */
 	public void run()
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		varPath.getValue().assignValue( expression.evaluate() );
-		//varPath.assignValue( expression.evaluate() );
 	}
 	
 	public Value evaluate()

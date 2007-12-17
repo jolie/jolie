@@ -153,7 +153,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.killed() )
+		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		
 		(new Execution( this )).run();

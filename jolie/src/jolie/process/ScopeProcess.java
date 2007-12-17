@@ -26,8 +26,53 @@ import jolie.runtime.FaultException;
 
 public class ScopeProcess implements Process
 {
-	private String id;
-	private Process process;
+	private class Execution
+	{
+		private ScopeProcess parent;
+		private ExecutionThread ethread;
+		private boolean shouldMerge = true;
+		private FaultException fault = null;
+		
+		public Execution( ScopeProcess parent )
+		{
+			this.parent = parent;
+			this.ethread = ExecutionThread.currentThread();
+		}
+		
+		public void run()
+			throws FaultException
+		{
+			ethread.pushScope( parent.id );
+			runScope( parent.process );
+			ethread.popScope( shouldMerge );
+			if ( shouldMerge && fault != null )
+				throw fault;
+		}
+		
+		private void runScope( Process p )
+		{
+			try {
+				p.run();
+				if ( ethread.isKilled() ) {
+					shouldMerge = false;
+					p = ethread.getCompensation( id );
+					if ( p != null ) {
+						ethread.clearKill();
+						this.runScope( p );
+					}
+				}
+			} catch( FaultException f ) {
+				p = ethread.getFaultHandler( f.fault() );
+				if ( p != null ) {
+					this.runScope( p );
+				} else
+					fault = f;
+			}
+		}
+	}
+	
+	protected String id;
+	protected Process process;
 	
 	public ScopeProcess( String id, Process process )
 	{
@@ -38,37 +83,6 @@ public class ScopeProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		ExecutionThread t = ExecutionThread.currentThread();
-		t.pushScope( id );
-		try {
-			runScope( process );
-			t.popScope();
-		} catch( FaultException f ) {
-			t.popScope( false );
-			throw f;
-		}
-	}
-	
-	private void runScope( Process p )
-		throws FaultException
-	{
-		try {
-			p.run();
-			
-			if ( ExecutionThread.killed() ) {
-				Process handler = ExecutionThread.getCompensation( id );
-				if ( handler != null ) {
-					ExecutionThread.clearKill();
-					this.runScope( handler );
-					ExecutionThread.setKill();
-				}
-			}
-		} catch( FaultException f ) {
-			Process handler = ExecutionThread.getFaultHandler( f.fault() );
-			if ( handler != null ) {
-				this.runScope( handler );
-			} else
-				throw f;
-		}
+		(new Execution( this )).run();
 	}
 }
