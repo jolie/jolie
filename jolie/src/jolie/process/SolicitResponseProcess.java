@@ -74,7 +74,7 @@ public class SolicitResponseProcess implements Process
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );
 
-			if ( inputVarPath != null )
+			if ( inputVarPath != null )				
 				inputVarPath.getValue().deepCopy( message.value() );
 			
 			installProcess.run();
