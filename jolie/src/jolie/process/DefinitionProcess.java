@@ -58,7 +58,7 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 	{
 		DefinitionProcess retVal = idMap.get( id );
 		if ( retVal == null )
-			throw new InvalidIdException( id );
+			throw new InvalidIdException( id + " (undefined procedure)" );
 
 		return retVal;
 	}

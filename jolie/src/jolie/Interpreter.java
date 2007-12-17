@@ -34,7 +34,7 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticValidator;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
@@ -233,7 +233,7 @@ public class Interpreter
 		try {
 			Program program = olParser.parse();
 			program = (new OLParseTreeOptimizer( program )).optimize();
-			if ( !(new SemanticValidator( program )).validate() )
+			if ( !(new SemanticVerifier( program )).validate() )
 				throw new InterpreterException( "Exiting" );
 			
 			return (new OOITBuilder( program )).build();

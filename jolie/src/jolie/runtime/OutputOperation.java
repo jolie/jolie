@@ -49,7 +49,7 @@ public class OutputOperation extends Operation
 	{
 		OutputOperation retVal = idMap.get( id );
 		if ( retVal == null )
-			throw new InvalidIdException( id );
+			throw new InvalidIdException( id + " (undefined output operation)" );
 
 		return retVal;
 	}

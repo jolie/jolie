@@ -60,7 +60,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 	{
 		InputOperation retVal = idMap.get( id );
 		if ( retVal == null )
-			throw new InvalidIdException( id );
+			throw new InvalidIdException( id + " (undefined input operation)" );
 
 		return retVal;
 	}

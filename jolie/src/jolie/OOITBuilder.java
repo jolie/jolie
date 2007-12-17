@@ -1,26 +1,5 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi  								   *
- *   Copyright (C) by Claudio Guidi                                        *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
 package jolie;
+
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -36,6 +15,7 @@ import jolie.deploy.OutputPortType;
 import jolie.deploy.PortCreationException;
 import jolie.deploy.PortType;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -183,16 +163,17 @@ public class OOITBuilder implements OLVisitor
 		 this.program = program;
 	}
 	
-	private void error( String message )
+	private void error( ParsingContext context, String message )
 	{
 		valid = false;
-		Interpreter.logger().severe( message );
+		String s = context.sourceName() + ":" + context.line() + ": " + message;
+		Interpreter.logger().severe( s );
 	}
 	
-	private void error( Exception e )
+	private void error( ParsingContext context, Exception e )
 	{
 		valid = false;
-		Interpreter.logger().severe( e.getMessage() );
+		error( context, e.getMessage() );
 	}
 	
 	public boolean build()
@@ -229,7 +210,7 @@ public class OOITBuilder implements OLVisitor
 			try {
 				pt.addOperation( InputOperation.getById( op.id() ) );
 			} catch( InvalidIdException e ) {
-				error( e );
+				error( n.context(), e );
 			}
 		}
 		pt.register();
@@ -243,7 +224,7 @@ public class OOITBuilder implements OLVisitor
 			try {
 				pt.addOperation( OutputOperation.getById( op.id() ) );
 			} catch( InvalidIdException e ) {
-				error( e );
+				error( n.context(), e );
 			}
 		}
 		pt.register();
@@ -255,9 +236,9 @@ public class OOITBuilder implements OLVisitor
 			PortType pt = PortType.getById( n.portType() );
 			(pt.createPort( n.id(), n.protocolId() )).register();
 		} catch( InvalidIdException e ) {
-			error( e );
+			error( n.context(), e );
 		} catch( PortCreationException pce ) {
-			error( pce );
+			error( n.context(), pce );
 		}
 	}
 	
@@ -273,7 +254,7 @@ public class OOITBuilder implements OLVisitor
 				port = InputPort.getById( portId );
 				inputPorts.add( port );
 			} catch( InvalidIdException e ) {
-				error( e );
+				error( n.context(), e );
 			}
 		}
 		
@@ -287,15 +268,15 @@ public class OOITBuilder implements OLVisitor
 		else if ( pId == Constants.ProtocolId.HTTP )
 			protocol = new HTTPProtocol( n.uri() );
 		else
-			error( "Unsupported protocol specified for port " + port.id() );
+			error( n.context(), "Unsupported protocol specified for port " + port.id() );
 		
 		if ( protocol != null ) {
 			try {
 				CommCore.addService( n.uri(), protocol, inputPorts );
 			} catch( UnsupportedCommMediumException e ) {
-				error( e );
+				error( n.context(), e );
 			} catch( IOException ioe ) {
-				error( ioe );
+				error( n.context(), ioe );
 			}
 		}
 	}
@@ -436,7 +417,7 @@ public class OOITBuilder implements OLVisitor
 						getGlobalVariablePath( n.inputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
-			error( e ); 
+			error( n.context(), e ); 
 		}
 	}
 		
@@ -452,7 +433,7 @@ public class OOITBuilder implements OLVisitor
 						currProcess
 						);
 		} catch( InvalidIdException e ) {
-			error( e ); 
+			error( n.context(), e ); 
 		}
 	}
 		
@@ -467,7 +448,7 @@ public class OOITBuilder implements OLVisitor
 						getGlobalVariablePath( n.outputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
-			error( e );
+			error( n.context(), e );
 		}
 	}
 		
@@ -488,7 +469,7 @@ public class OOITBuilder implements OLVisitor
 						installProcess
 						);
 		} catch( InvalidIdException e ) {
-			error( e );
+			error( n.context(), e );
 		}
 	}
 		
@@ -627,7 +608,7 @@ public class OOITBuilder implements OLVisitor
 		try {
 			currProcess = new CallProcess( DefinitionProcess.getById( n.id() ) );
 		} catch( InvalidIdException e ) {
-			error( e );
+			error( n.context(), e );
 		}
 	}
 	
