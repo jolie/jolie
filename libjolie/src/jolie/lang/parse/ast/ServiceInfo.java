@@ -25,14 +25,16 @@ import java.net.URI;
 import java.util.Collection;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class ServiceInfo implements OLSyntaxNode
+public class ServiceInfo extends OLSyntaxNode
 {
 	private URI uri;
 	private Collection< String > inputPorts;
 	
-	public ServiceInfo( URI uri, Collection< String > inputPorts )
+	public ServiceInfo( ParsingContext context, URI uri, Collection< String > inputPorts )
 	{
+		super( context );
 		this.uri = uri;
 		this.inputPorts = inputPorts;
 	}

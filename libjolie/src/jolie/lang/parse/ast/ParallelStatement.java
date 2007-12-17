@@ -25,15 +25,17 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
 
-public class ParallelStatement implements OLSyntaxNode
+public class ParallelStatement extends OLSyntaxNode
 {
 	private List< OLSyntaxNode > children;
 
-	public ParallelStatement()
+	public ParallelStatement( ParsingContext context )
 	{
+		super( context );
 		children = new Vector< OLSyntaxNode >();
 	}
 	

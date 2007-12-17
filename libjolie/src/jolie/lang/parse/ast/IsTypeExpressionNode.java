@@ -22,9 +22,10 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class IsTypeExpressionNode implements OLSyntaxNode
+public class IsTypeExpressionNode extends OLSyntaxNode
 {
 	public enum CheckType {
 		DEFINED,
@@ -36,8 +37,9 @@ public class IsTypeExpressionNode implements OLSyntaxNode
 	private VariablePath variablePath;
 	private CheckType type;
 
-	public IsTypeExpressionNode( CheckType type, VariablePath variablePath )
+	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePath variablePath )
 	{
+		super( context );
 		this.type = type;
 		this.variablePath = variablePath;
 	}

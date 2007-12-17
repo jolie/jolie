@@ -24,6 +24,7 @@ package jolie.lang.parse.ast;
 import java.util.Collection;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration
@@ -31,11 +32,12 @@ public class RequestResponseOperationDeclaration extends OperationDeclaration
 	private Collection< String > faultNames;
 
 	public RequestResponseOperationDeclaration(
+			ParsingContext context,
 			String id,
 			Collection< String > faultNames
 		)
 	{
-		super( id );
+		super( context, id );
 		this.faultNames = faultNames;
 	}
 	

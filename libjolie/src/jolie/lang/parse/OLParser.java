@@ -102,7 +102,7 @@ import jolie.util.Pair;
  */
 public class OLParser extends AbstractParser
 {
-	private Program program = new Program();
+	private Program program = new Program( new ParsingContext() );
 	private HashMap< String, Scanner.Token > constantsMap =
 					new HashMap< String, Scanner.Token > ();
 
@@ -158,7 +158,7 @@ public class OLParser extends AbstractParser
 				else
 					break;
 			}
-			program.addChild( new CorrelationSetInfo( cPaths ) );
+			program.addChild( new CorrelationSetInfo( getContext(), cPaths ) );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
@@ -179,7 +179,7 @@ public class OLParser extends AbstractParser
 			} else
 				throwException( "Expected execution mode, found " + token.content() );
 
-			program.addChild( new ExecutionInfo( mode ) );
+			program.addChild( new ExecutionInfo( getContext(), mode ) );
 			getToken();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -199,7 +199,7 @@ public class OLParser extends AbstractParser
 			} else
 				throwException( "Expected state mode, found " + token.content() );
 
-			program.addChild( new StateInfo( mode ) );
+			program.addChild( new StateInfo( getContext(), mode ) );
 			getToken();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -264,7 +264,7 @@ public class OLParser extends AbstractParser
 		while ( token.isKeyword( "inputPortType" ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected input port type identifier" );
-			InputPortTypeInfo pt = new InputPortTypeInfo( token.content() );
+			InputPortTypeInfo pt = new InputPortTypeInfo( getContext(), token.content() );
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			parseInputOperations( pt );
@@ -275,7 +275,7 @@ public class OLParser extends AbstractParser
 		while ( token.isKeyword( "outputPortType" ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected output port type identifier" );
-			OutputPortTypeInfo pt = new OutputPortTypeInfo( token.content() );
+			OutputPortTypeInfo pt = new OutputPortTypeInfo( getContext(), token.content() );
 			getToken();
 			if ( token.is( Scanner.TokenType.COLON ) ) {
 				getToken();
@@ -314,7 +314,7 @@ public class OLParser extends AbstractParser
 						throwException( "unknown protocol specified in port binding" );
 					getToken();
 					eat( Scanner.TokenType.RSQUARE, "expected ]" );
-					program.addChild( new PortInfo( portId, portTypeId, protocolId ) );
+					program.addChild( new PortInfo( getContext(), portId, portTypeId, protocolId ) );
 				} while( token.is( Scanner.TokenType.COMMA ) );
 			}
 			eat( Scanner.TokenType.RCURLY, "expected }" );
@@ -349,7 +349,7 @@ public class OLParser extends AbstractParser
 		Collection< String > ports = parseIdListN( false );
 		if ( ports.size() < 1 )
 			throwException( "expected at least one port identifier" );
-		program.addChild( new ServiceInfo( serviceUri, ports ) );
+		program.addChild( new ServiceInfo( getContext(), serviceUri, ports ) );
 	}
 	
 	private void parseInputOperations( InputPortTypeInfo pt )
@@ -379,47 +379,6 @@ public class OLParser extends AbstractParser
 				keepRun = false;
 		}
 	}
-
-	
-	/*private void parseLocations()
-		throws IOException, ParserException
-	{
-		Vector< LocationDefinition > locationDecls = program.locationDeclarations();
-		
-		// The locations block is optional
-		if ( token.is( Scanner.TokenType.LOCATIONS ) ) {
-			getToken();
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			
-			boolean keepRun = true;
-			String locId;
-			while( token.isNot( Scanner.TokenType.RCURLY ) && keepRun ) {
-				tokenAssert( Scanner.TokenType.ID, "expected location identifier" );
-				locId = token.content();
-				getToken();
-				eat( Scanner.TokenType.ASSIGN, "expected =" );
-				if ( !checkConstant() && token.isNot( Scanner.TokenType.STRING ) )
-					throwException( "expected string or string constant" );
-
-				try {
-					locationDecls.add(
-							new LocationDefinition( locId, new URI( token.content() ) )
-							);
-				} catch( URISyntaxException e ) {
-					throwException( "Invalid URI specified for location " + locId );
-				}
-				getToken();
-				if ( token.isNot( Scanner.TokenType.COMMA ) )
-					keepRun = false;
-				else
-					getToken();
-			}
-		
-			eat( Scanner.TokenType.RCURLY, "expected }" );
-		}
-		
-		//return locationDecls;
-	}*/
 	
 	private void parseOneWayOperations( InputPortTypeInfo pt )
 		throws IOException, ParserException
@@ -432,7 +391,7 @@ public class OLParser extends AbstractParser
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
-				pt.addOperation( new OneWayOperationDeclaration( token.content() ) );
+				pt.addOperation( new OneWayOperationDeclaration( getContext(), token.content() ) );
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
 					getToken();
@@ -473,7 +432,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RSQUARE, "expected ]" );
 				}
 				pt.addOperation(
-					new RequestResponseOperationDeclaration( opId, faultNames )
+					new RequestResponseOperationDeclaration( getContext(), opId, faultNames )
 				);
 				//getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -504,7 +463,7 @@ public class OLParser extends AbstractParser
 				/*eat( Scanner.TokenType.ASSIGN, "= expected" );
 				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );*/
 				pt.addOperation(
-					new NotificationOperationDeclaration( token.content() )
+					new NotificationOperationDeclaration( getContext(), token.content() )
 				);
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -536,7 +495,7 @@ public class OLParser extends AbstractParser
 				/*eat( Scanner.TokenType.ASSIGN, "= expected" );
 				tokenAssert( Scanner.TokenType.ID, "bound input operation name expected" );*/
 				pt.addOperation(
-					new SolicitResponseOperationDeclaration( token.content() )
+					new SolicitResponseOperationDeclaration( getContext(), token.content() )
 				);
 				getToken();
 				if ( token.is( Scanner.TokenType.COMMA ) )
@@ -547,93 +506,6 @@ public class OLParser extends AbstractParser
 				keepRun = false;
 		}
 	}
-	
-	/*private Collection< Constants.VariableType > parseVarTypes()
-		throws IOException, ParserException
-	{
-		eat( Scanner.TokenType.LPAREN, "expected (" );
-		
-		Vector< VariableType > varTypes = new Vector< VariableType > ();
-		boolean keepRun = true;
-		
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.RPAREN ) )
-				keepRun = false;
-			else {
-				if ( token.is( Scanner.TokenType.VAR_TYPE_INT ) )
-					varTypes.add( Constants.VariableType.INT );
-				else if ( token.is( Scanner.TokenType.VAR_TYPE_STRING ) )
-					varTypes.add( Constants.VariableType.STRING );
-				else if ( token.is( Scanner.TokenType.VAR_TYPE_VARIANT ) )
-					varTypes.add( Constants.VariableType.VARIANT );
-				else
-					throwException( "expected variable type" );
-				
-				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
-					getToken();
-				else
-					keepRun = false;
-			}
-		}
-
-		eat( Scanner.TokenType.RPAREN, "expected )" );
-		return varTypes;	
-	}*/
-	
-	/*public void parseLinks()
-		throws IOException, ParserException
-	{
-		Vector< InternalLinkDeclaration > linkDecls = program.linkDeclarations();
-		
-		// The links block is optional
-		if ( token.is( Scanner.TokenType.LINKS ) ) {
-			getToken();
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-		
-			boolean keepRun = true;
-		
-			while( token.isNot( Scanner.TokenType.RCURLY ) && keepRun ) {
-				tokenAssert( Scanner.TokenType.ID, "expected link identifier" );
-				linkDecls.add( new InternalLinkDeclaration( token.content() ) );
-				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
-					getToken();
-				else
-					keepRun = false;
-			}
-			
-			eat( Scanner.TokenType.RCURLY, "} expected" );
-		}
-	}*/
-	
-	/*public Collection< VariableDeclaration > parseVariables()
-		throws IOException, ParserException
-	{
-		Vector< VariableDeclaration > varDecls = new Vector< VariableDeclaration >();
-		
-		// The links block is optional
-		if ( token.is( Scanner.TokenType.VARIABLES ) ) {
-			getToken();
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			
-			boolean keepRun = true;
-			
-			while( token.isNot( Scanner.TokenType.RCURLY ) && keepRun ) {
-				tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
-				varDecls.add( new VariableDeclaration( token.content() ) );
-				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
-					getToken();
-				else
-					keepRun = false;
-			}
-			
-			eat( Scanner.TokenType.RCURLY, "} expected" );
-		}
-		
-		return varDecls;
-	}*/
 	
 	private void parseCode()
 		throws IOException, ParserException
@@ -658,7 +530,7 @@ public class OLParser extends AbstractParser
 	{
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		Procedure retVal = new Procedure( "main", parseProcess() );
+		Procedure retVal = new Procedure( getContext(), "main", parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
 	}
@@ -671,7 +543,7 @@ public class OLParser extends AbstractParser
 		String procedureId = token.content();
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		Procedure retVal = new Procedure( procedureId, parseProcess() );
+		Procedure retVal = new Procedure( getContext(), procedureId, parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		
 		return retVal;
@@ -680,16 +552,13 @@ public class OLParser extends AbstractParser
 	public OLSyntaxNode parseProcess()
 		throws IOException, ParserException
 	{
-		if( token.is( Scanner.TokenType.LSQUARE ) )
-			return parseNDChoiceStatement();
-		
 		return parseParallelStatement();
 	}
 	
 	private ParallelStatement parseParallelStatement()
 		throws IOException, ParserException
 	{
-		ParallelStatement stm = new ParallelStatement();
+		ParallelStatement stm = new ParallelStatement( getContext() );
 		stm.addChild( parseSequenceStatement() );
 		while( token.is( Scanner.TokenType.PARALLEL ) ) {
 			getToken();
@@ -702,7 +571,7 @@ public class OLParser extends AbstractParser
 	private SequenceStatement parseSequenceStatement()
 		throws IOException, ParserException
 	{
-		SequenceStatement stm = new SequenceStatement();
+		SequenceStatement stm = new SequenceStatement( getContext() );
 		
 		stm.addChild( parseBasicStatement() );
 		while( token.is( Scanner.TokenType.SEQUENCE ) ) {
@@ -718,7 +587,9 @@ public class OLParser extends AbstractParser
 	{
 		OLSyntaxNode retVal = null;
 		
-		if ( token.is( Scanner.TokenType.ID ) ) {
+		if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+			retVal = parseNDChoiceStatement();
+		} else if ( token.is( Scanner.TokenType.ID ) ) {
 			checkConstant();
 			String id = token.content();
 			getToken();
@@ -738,19 +609,19 @@ public class OLParser extends AbstractParser
 				getToken();
 				retVal = parseOutputOperationStatement( id );
 			} else
-				retVal = new ProcedureCallStatement( id );
+				retVal = new ProcedureCallStatement( getContext(), id );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String varId = token.content();
 			getToken();
-			retVal = new PreIncrementStatement( parseVariablePath( varId ) );
+			retVal = new PreIncrementStatement( getContext(), parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String varId = token.content();
 			getToken();
-			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+			retVal = new PreDecrementStatement( getContext(), parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.SYNCHRONIZED ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -759,7 +630,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			retVal = new SynchronizedStatement( id, parseProcess() );
+			retVal = new SynchronizedStatement( getContext(), id, parseProcess() );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
 			getToken();
@@ -768,7 +639,7 @@ public class OLParser extends AbstractParser
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String id = token.content();
 			getToken();
-			retVal = new UndefStatement( parseVariablePath( id ) );
+			retVal = new UndefStatement( getContext(), parseVariablePath( id ) );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.FOR ) ) {
 			getToken();
@@ -779,10 +650,10 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.COMMA, "expected ," );
 			OLSyntaxNode post = parseProcess();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			OLSyntaxNode body = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
-			retVal = new ForStatement( init, condition, post, body );
+			
+			OLSyntaxNode body = parseBasicStatement();
+			
+			retVal = new ForStatement( getContext(), init, condition, post, body );
 		} else if ( token.is( Scanner.TokenType.FOREACH ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -801,19 +672,19 @@ public class OLParser extends AbstractParser
 			getToken();
 			VariablePath targetPath = parseVariablePath( varId );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			OLSyntaxNode body = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
-			retVal = new ForEachStatement( keyPath, valuePath, targetPath, body );
+			
+			OLSyntaxNode body = parseBasicStatement();
+			
+			retVal = new ForEachStatement( getContext(), keyPath, valuePath, targetPath, body );
 		} else if ( token.is( Scanner.TokenType.OUT ) ) { // out( <Expression> )
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new OutStatement( parseExpression() );
+			retVal = new OutStatement( getContext(), parseExpression() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.RUN ) ) { // run( <Expression> )
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new RunStatement( parseExpression() );
+			retVal = new RunStatement( getContext(), parseExpression() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IN ) ) // in( <id> )
 			retVal = parseInStatement();
@@ -821,10 +692,10 @@ public class OLParser extends AbstractParser
 			retVal = parseLinkInStatement();
 		else if ( token.is( Scanner.TokenType.NULL_PROCESS ) ) {
 			getToken();
-			retVal = NullProcessStatement.getInstance();
+			retVal = new NullProcessStatement( getContext() );
 		} else if ( token.is( Scanner.TokenType.EXIT ) ) {
 			getToken();
-			retVal = ExitStatement.getInstance();
+			retVal = new ExitStatement( getContext() );
 		} else if ( token.is( Scanner.TokenType.WHILE ) )
 			retVal = parseWhileStatement();
 		else if ( token.is( Scanner.TokenType.SLEEP ) )
@@ -833,13 +704,17 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			tokenAssert( Scanner.TokenType.ID, "expected link identifier" );
-			retVal = new LinkOutStatement( token.content() );
+			retVal = new LinkOutStatement( getContext(), token.content() );
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 			getToken();
 			retVal = parseProcess();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.LCURLY ) ) {
+			getToken();
+			retVal = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 		} else if ( token.is( Scanner.TokenType.SCOPE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -849,14 +724,14 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			retVal = new Scope( id, parseProcess() );
+			retVal = new Scope( getContext(), id, parseProcess() );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		} else if ( token.is( Scanner.TokenType.COMPENSATE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected scope identifier" );
-			retVal = new CompensateStatement( token.content() );
+			retVal = new CompensateStatement( getContext(), token.content() );
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.THROW ) ) {
@@ -864,31 +739,16 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			checkConstant();
 			tokenAssert( Scanner.TokenType.ID, "expected fault identifier" );
-			retVal = new ThrowStatement( token.content() );
+			retVal = new ThrowStatement( getContext(), token.content() );
 			getToken();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.INSTALL ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new InstallStatement( parseInstallFunction() );
+			retVal = new InstallStatement( getContext(), parseInstallFunction() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}	
-		/*else if ( token.is( Scanner.TokenType.INSTALL_COMPENSATION ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new InstallCompensationStatement( parseProcess() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.INSTALL_FAULT_HANDLER ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			tokenAssert( Scanner.TokenType.ID, "expected fault identifier" );
-			String id = token.content();
-			getToken();
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			retVal = new InstallFaultHandlerStatement( id, parseProcess() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}*/ else if ( token.is( Scanner.TokenType.IF ) ) {
-			IfStatement stm = new IfStatement();
+		} else if ( token.is( Scanner.TokenType.IF ) ) {
+			IfStatement stm = new IfStatement( getContext() );
 			OLSyntaxNode cond;
 			OLSyntaxNode node;
 			
@@ -896,9 +756,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			cond = parseCondition();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			node = parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			node = parseBasicStatement();
 			stm.addChild(
 				new Pair< OLSyntaxNode, OLSyntaxNode >( cond, node )
 			);
@@ -911,19 +769,14 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.LPAREN, "expected (" );
 					cond = parseCondition();
 					eat( Scanner.TokenType.RPAREN, "expected )" );
-					eat( Scanner.TokenType.LCURLY, "expected {" );
-					node = parseProcess();
-					eat( Scanner.TokenType.RCURLY, "expected }" );
+					node = parseBasicStatement();
 					stm.addChild(
 						new Pair< OLSyntaxNode, OLSyntaxNode >( cond, node )
 					);
-				} else if ( token.is( Scanner.TokenType.LCURLY ) ) { // else branch
+				} else { // else branch
 					keepRun = false;
-					eat( Scanner.TokenType.LCURLY, "expected {" );
-					stm.setElseProcess( parseProcess() );
-					eat( Scanner.TokenType.RCURLY, "expected }" );
-				} else
-					throwException( "expected else or else if branch" );
+					stm.setElseProcess( parseBasicStatement() );
+				}
 			}
 			
 			retVal = stm;
@@ -968,25 +821,25 @@ public class OLParser extends AbstractParser
 		
 		if ( token.is( Scanner.TokenType.ASSIGN ) ) {
 			getToken();
-			retVal = new AssignStatement( path, parseExpression() );
+			retVal = new AssignStatement( getContext(), path, parseExpression() );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) {
 			getToken();
-			retVal = new PostIncrementStatement( path );
+			retVal = new PostIncrementStatement( getContext(), path );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) {
 			getToken();
-			retVal = new PostDecrementStatement( path );
+			retVal = new PostDecrementStatement( getContext(), path );
 		} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String id = token.content();
 			getToken();
-			retVal = new PointerStatement( path, parseVariablePath( id ) );
+			retVal = new PointerStatement( getContext(), path, parseVariablePath( id ) );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String id = token.content();
 			getToken();
-			retVal = new DeepCopyStatement( path, parseVariablePath( id ) );
+			retVal = new DeepCopyStatement( getContext(), path, parseVariablePath( id ) );
 		} else
 			throwException( "expected = or -> or << or -- or ++" );
 		
@@ -1038,7 +891,7 @@ public class OLParser extends AbstractParser
 		tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 		String varId = token.content();
 		getToken();
-		InStatement stm = new InStatement( parseVariablePath( varId ) );
+		InStatement stm = new InStatement( getContext(), parseVariablePath( varId ) );
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}
@@ -1046,7 +899,7 @@ public class OLParser extends AbstractParser
 	private NDChoiceStatement parseNDChoiceStatement()
 		throws IOException, ParserException
 	{
-		NDChoiceStatement stm = new NDChoiceStatement();
+		NDChoiceStatement stm = new NDChoiceStatement( getContext() );
 		OLSyntaxNode inputGuard = null;
 		OLSyntaxNode process;
 		boolean keepRun = true;
@@ -1083,7 +936,7 @@ public class OLParser extends AbstractParser
 	{
 		getToken();
 		eat( Scanner.TokenType.LPAREN, "expected (" );
-		SleepStatement stm = new SleepStatement( parseExpression() );
+		SleepStatement stm = new SleepStatement( getContext(), parseExpression() );
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}
@@ -1094,7 +947,7 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.LPAREN, "expected (" );
 		tokenAssert( Scanner.TokenType.ID, "expected link identifier" );
-		LinkInStatement stm = new LinkInStatement( token.content() );
+		LinkInStatement stm = new LinkInStatement( getContext(), token.content() );
 		getToken();
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
@@ -1103,6 +956,7 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseInputOperationStatement( String id )
 		throws IOException, ParserException
 	{
+		ParsingContext context = getContext();
 		VariablePath inputVarPath = parseOperationStatementParameter();
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
@@ -1112,10 +966,10 @@ public class OLParser extends AbstractParser
 			process = parseProcess();
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 			stm = new RequestResponseOperationStatement(
-					id, inputVarPath, outputVarPath, process
+					context, id, inputVarPath, outputVarPath, process
 					);
 		} else // One Way operation
-			stm = new OneWayOperationStatement( id, inputVarPath );
+			stm = new OneWayOperationStatement( context, id, inputVarPath );
 
 		return stm;
 	}
@@ -1144,6 +998,7 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseOutputOperationStatement( String id )
 		throws IOException, ParserException
 	{
+		ParsingContext context = getContext();
 		OLSyntaxNode locExpr = parseExpression();
 		VariablePath outputVarPath = parseOperationStatementParameter();
 
@@ -1157,13 +1012,14 @@ public class OLParser extends AbstractParser
 				eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			}
 			stm = new SolicitResponseOperationStatement(
+					getContext(),
 					id,
 					locExpr,
 					outputVarPath,
 					inputVarPath,
 					function );
 		} else // Notification operation
-			stm = new NotificationOperationStatement( id, locExpr, outputVarPath );
+			stm = new NotificationOperationStatement( context, id, locExpr, outputVarPath );
 
 		return stm;
 	}
@@ -1171,6 +1027,7 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseWhileStatement()
 		throws IOException, ParserException
 	{
+		ParsingContext context = getContext();
 		OLSyntaxNode cond, process;
 		getToken();
 		eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1179,13 +1036,13 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 		process = parseProcess();
 		eat( Scanner.TokenType.RCURLY, "expected }" );
-		return new WhileStatement( cond, process );
+		return new WhileStatement( context, cond, process );
 	}
 	
 	private OLSyntaxNode parseCondition()
 		throws IOException, ParserException
 	{
-		OrConditionNode orCond = new OrConditionNode();
+		OrConditionNode orCond = new OrConditionNode( getContext() );
 		orCond.addChild( parseAndCondition() );
 		while( token.is( Scanner.TokenType.OR ) ) {
 			getToken();
@@ -1198,7 +1055,7 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseAndCondition()
 		throws IOException, ParserException
 	{
-		AndConditionNode andCond = new AndConditionNode();
+		AndConditionNode andCond = new AndConditionNode( getContext() );
 		andCond.addChild( parseBasicCondition() );
 		while( token.is( Scanner.TokenType.AND ) ) {
 			getToken();
@@ -1218,9 +1075,9 @@ public class OLParser extends AbstractParser
 			retVal = parseCondition();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else
-			retVal = new ExpressionConditionNode( parseExpression() );
+			retVal = new ExpressionConditionNode( getContext(), parseExpression() );
 
-		return new NotConditionNode( retVal );
+		return new NotConditionNode( getContext(), retVal );
 	}
 	
 	private OLSyntaxNode parseBasicCondition()
@@ -1246,13 +1103,13 @@ public class OLParser extends AbstractParser
 				opType != Scanner.TokenType.RANGLE && opType != Scanner.TokenType.MAJOR_OR_EQUAL &&
 				opType != Scanner.TokenType.MINOR_OR_EQUAL && opType != Scanner.TokenType.NOT_EQUAL ) {
 				
-				retVal = new ExpressionConditionNode( expr1 );
+				retVal = new ExpressionConditionNode( getContext(), expr1 );
 			} else {
 				OLSyntaxNode expr2;
 				getToken();
 				expr2 = parseExpression();
 			
-				retVal = new CompareConditionNode( expr1, expr2, opType );
+				retVal = new CompareConditionNode( getContext(), expr1, expr2, opType );
 			}
 		}
 		
@@ -1269,7 +1126,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		boolean keepRun = true;
-		SumExpressionNode sum = new SumExpressionNode();
+		SumExpressionNode sum = new SumExpressionNode( getContext() );
 		sum.add( parseProductExpression() );
 		
 		while( keepRun ) {
@@ -1300,6 +1157,26 @@ public class OLParser extends AbstractParser
 		return sum;
 	}
 	
+	private Collection< String > parseIdListN( boolean enclosed )
+		throws IOException, ParserException
+	{
+		Vector< String > idList = new Vector< String >();
+		if ( enclosed )
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+		boolean keepRun = true;
+		while( token.is( Scanner.TokenType.ID ) && keepRun ) {
+			idList.add( token.content() );
+			getToken();
+			if ( token.is( Scanner.TokenType.COMMA ) )
+				getToken();
+			else
+				keepRun = false;
+		}
+		if ( enclosed )
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		return idList;
+	}
+	
 	private OLSyntaxNode parseFactor()
 		throws IOException, ParserException
 	{
@@ -1312,24 +1189,24 @@ public class OLParser extends AbstractParser
 			VariablePath path = parseVariablePath( varId );
 			if ( token.is( Scanner.TokenType.CHOICE ) ) { // Post increment
 				getToken();
-				retVal = new PostIncrementStatement( path );
+				retVal = new PostIncrementStatement( getContext(), path );
 			} else if ( token.is( Scanner.TokenType.DECREMENT ) ) {
 				getToken();
-				retVal = new PostDecrementStatement( path );
+				retVal = new PostDecrementStatement( getContext(), path );
 			} else if ( token.is( Scanner.TokenType.ASSIGN ) ) {
 				getToken();
-				retVal = new AssignStatement( path, parseExpression() );
+				retVal = new AssignStatement( getContext(), path, parseExpression() );
 			} else {
-				retVal = new VariableExpressionNode( path );
+				retVal = new VariableExpressionNode( getContext(), path );
 			}
 		} else if ( token.is( Scanner.TokenType.STRING ) ) {
-			retVal = new ConstantStringExpression( token.content() );
+			retVal = new ConstantStringExpression( getContext(), token.content() );
 			getToken();
 		} else if ( token.is( Scanner.TokenType.INT ) ) {
-			retVal = new ConstantIntegerExpression( Integer.parseInt( token.content() ) );
+			retVal = new ConstantIntegerExpression( getContext(), Integer.parseInt( token.content() ) );
 			getToken();
 		} else if ( token.is( Scanner.TokenType.REAL ) ) {
-			retVal = new ConstantRealExpression( Double.parseDouble( token.content()) );
+			retVal = new ConstantRealExpression( getContext(), Double.parseDouble( token.content()) );
 			getToken();
 		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 			getToken();
@@ -1340,19 +1217,19 @@ public class OLParser extends AbstractParser
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String varId = token.content();
 			getToken();
-			retVal = new ValueVectorSizeExpressionNode( parseVariablePath( varId ) );
+			retVal = new ValueVectorSizeExpressionNode( getContext(), parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String varId = token.content();
 			getToken();
-			retVal = new PreIncrementStatement( parseVariablePath( varId ) );
+			retVal = new PreIncrementStatement( getContext(), parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
 			getToken();
 			tokenAssert( Scanner.TokenType.ID, "expected variable identifier" );
 			String varId = token.content();
 			getToken();
-			retVal = new PreDecrementStatement( parseVariablePath( varId ) );
+			retVal = new PreDecrementStatement( getContext(), parseVariablePath( varId ) );
 		} else if ( token.is( Scanner.TokenType.IS_DEFINED ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1360,7 +1237,7 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new IsTypeExpressionNode(
-						IsTypeExpressionNode.CheckType.DEFINED, parseVariablePath( varId )
+						getContext(), IsTypeExpressionNode.CheckType.DEFINED, parseVariablePath( varId )
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_INT ) ) {
@@ -1370,7 +1247,7 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new IsTypeExpressionNode(
-						IsTypeExpressionNode.CheckType.INT, parseVariablePath( varId )
+						getContext(), IsTypeExpressionNode.CheckType.INT, parseVariablePath( varId )
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_REAL ) ) {
@@ -1380,7 +1257,7 @@ public class OLParser extends AbstractParser
 				String varId = token.content();
 				getToken();
 				retVal = new IsTypeExpressionNode(
-							IsTypeExpressionNode.CheckType.REAL, parseVariablePath( varId )
+							getContext(), IsTypeExpressionNode.CheckType.REAL, parseVariablePath( varId )
 							);
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_STRING ) ) {
@@ -1390,7 +1267,7 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new IsTypeExpressionNode(
-						IsTypeExpressionNode.CheckType.STRING, parseVariablePath( varId )
+						getContext(), IsTypeExpressionNode.CheckType.STRING, parseVariablePath( varId )
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_INT ) ) {
@@ -1400,7 +1277,7 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new TypeCastExpressionNode(
-						Constants.VariableType.INT, parseVariablePath( varId )
+						getContext(), Constants.VariableType.INT, parseVariablePath( varId )
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
@@ -1410,7 +1287,7 @@ public class OLParser extends AbstractParser
 				String varId = token.content();
 				getToken();
 				retVal = new TypeCastExpressionNode(
-							Constants.VariableType.REAL, parseVariablePath( varId )
+							getContext(), Constants.VariableType.REAL, parseVariablePath( varId )
 							);
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
@@ -1420,7 +1297,7 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			retVal = new TypeCastExpressionNode(
-						Constants.VariableType.STRING, parseVariablePath( varId )
+						getContext(), Constants.VariableType.STRING, parseVariablePath( varId )
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
@@ -1434,7 +1311,7 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseProductExpression()
 		throws IOException, ParserException
 	{
-		ProductExpressionNode product = new ProductExpressionNode();
+		ProductExpressionNode product = new ProductExpressionNode( getContext() );
 		product.multiply( parseFactor() );
 		boolean keepRun = true;
 		while( keepRun ) {

@@ -22,23 +22,15 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class ExitStatement implements OLSyntaxNode
+public class ExitStatement extends OLSyntaxNode
 {
-	private ExitStatement() {}
-	
-	private static class LazyHolder {
-		static final ExitStatement instance = new ExitStatement();
-	}
-	
-	static public ExitStatement getInstance()
+	public ExitStatement( ParsingContext context )
 	{
-		return LazyHolder.instance;
+		super( context );
 	}
-	
-	public void run()
-	{}
-	
+
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

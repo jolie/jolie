@@ -22,8 +22,6 @@
 package jolie.lang.parse;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Vector;
 
 
 /** Skeleton implementation of a JOLIE Scanner based parser.
@@ -36,14 +34,6 @@ public abstract class AbstractParser
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
 	
-	/** Starts the parsing procedure.
-	 * 
-	 * @throws IOException If a scanner level error occurs.
-	 * @throws ParserException If a parser level error occurs.
-	 */
-	/*abstract public OLSyntaxNode parse()
-		throws IOException, ParserException;*/
-
 	/** Constructor
 	 * 
 	 * @param scanner The scanner to use during the parsing procedure.
@@ -77,6 +67,13 @@ public abstract class AbstractParser
 		this.scanner = scanner;
 	}
 	
+	public ParsingContext getContext()
+	{
+		ParsingContext context = new ParsingContext();
+		context.setLine( scanner.line() );
+		context.setSourceName( scanner.sourceName() );
+		return context;
+	}
 
 	/**
 	 * Eats the current token, asserting its type.
@@ -131,31 +128,5 @@ public abstract class AbstractParser
 		throws ParserException
 	{
 		throw new ParserException( scanner.sourceName(), scanner.line(), exception.getMessage() );
-	}
-	
-	protected Collection< String > parseIdListN()
-		throws IOException, ParserException
-	{
-		return parseIdListN( true );
-	}
-	
-	protected Collection< String > parseIdListN( boolean enclosed )
-		throws IOException, ParserException
-	{
-		Vector< String > idList = new Vector< String >();
-		if ( enclosed )
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-		boolean keepRun = true;
-		while( token.is( Scanner.TokenType.ID ) && keepRun ) {
-			idList.add( token.content() );
-			getToken();
-			if ( token.is( Scanner.TokenType.COMMA ) )
-				getToken();
-			else
-				keepRun = false;
-		}
-		if ( enclosed )
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		return idList;
 	}
 }

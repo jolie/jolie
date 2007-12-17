@@ -24,13 +24,15 @@ package jolie.lang.parse.ast;
 import java.util.Collection;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class CorrelationSetInfo implements OLSyntaxNode
+public class CorrelationSetInfo extends OLSyntaxNode
 {
 	private Collection< VariablePath > variablePaths;
 	
-	public CorrelationSetInfo( Collection< VariablePath > variablePaths )
+	public CorrelationSetInfo( ParsingContext context, Collection< VariablePath > variablePaths )
 	{
+		super( context );
 		this.variablePaths = variablePaths;
 	}
 	

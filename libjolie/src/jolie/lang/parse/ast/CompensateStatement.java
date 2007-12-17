@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class CompensateStatement implements OLSyntaxNode
+public class CompensateStatement extends OLSyntaxNode
 {
 	private String id;
 
-	public CompensateStatement( String id )
+	public CompensateStatement( ParsingContext context, String id )
 	{
+		super( context );
 		this.id = id;
 	}
 	

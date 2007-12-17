@@ -21,17 +21,19 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.lang.parse.Scanner;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.Scanner;
 
 
-public class CompareConditionNode implements OLSyntaxNode
+public class CompareConditionNode extends OLSyntaxNode
 {
 	private OLSyntaxNode leftExpression, rightExpression;
 	private Scanner.TokenType opType;
 
-	public CompareConditionNode( OLSyntaxNode leftExpr, OLSyntaxNode rightExpr, Scanner.TokenType opType )
+	public CompareConditionNode( ParsingContext context, OLSyntaxNode leftExpr, OLSyntaxNode rightExpr, Scanner.TokenType opType )
 	{
+		super( context );
 		this.leftExpression = leftExpr;
 		this.rightExpression = rightExpr;
 		this.opType = opType;

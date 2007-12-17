@@ -23,13 +23,15 @@ package jolie.lang.parse.ast;
 
 import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class StateInfo implements OLSyntaxNode
+public class StateInfo extends OLSyntaxNode
 {
 	private Constants.StateMode mode;
 	
-	public StateInfo( Constants.StateMode mode )
+	public StateInfo( ParsingContext context, Constants.StateMode mode )
 	{
+		super( context );
 		this.mode = mode;
 	}
 	

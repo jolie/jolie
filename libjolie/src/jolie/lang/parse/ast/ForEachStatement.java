@@ -22,20 +22,23 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class ForEachStatement implements OLSyntaxNode
+public class ForEachStatement extends OLSyntaxNode
 {
 	private VariablePath keyPath, valuePath, targetPath;
 	private OLSyntaxNode body;
 
 	public ForEachStatement(
+			ParsingContext context,
 			VariablePath keyPath,
 			VariablePath valuePath,
 			VariablePath targetPath,
 			OLSyntaxNode body
 			)
 	{
+		super( context );
 		this.keyPath = keyPath;
 		this.valuePath = valuePath;
 		this.targetPath = targetPath;

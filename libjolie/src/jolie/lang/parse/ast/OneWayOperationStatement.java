@@ -22,15 +22,17 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class OneWayOperationStatement implements OLSyntaxNode
+public class OneWayOperationStatement extends OLSyntaxNode
 {
 	private VariablePath inputVarPath;
 	private String id;
 	
-	public OneWayOperationStatement( String id, VariablePath inputVarPath )
+	public OneWayOperationStatement( ParsingContext context, String id, VariablePath inputVarPath )
 	{
+		super( context );
 		this.id = id;
 		this.inputVarPath = inputVarPath;
 	}

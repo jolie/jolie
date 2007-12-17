@@ -23,15 +23,17 @@ package jolie.lang.parse.ast;
 
 import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class TypeCastExpressionNode implements OLSyntaxNode
+public class TypeCastExpressionNode extends OLSyntaxNode
 {
 	private VariablePath variablePath;
 	private Constants.VariableType type;
 
-	public TypeCastExpressionNode( Constants.VariableType type, VariablePath variablePath )
+	public TypeCastExpressionNode( ParsingContext context, Constants.VariableType type, VariablePath variablePath )
 	{
+		super( context );
 		this.type = type;
 		this.variablePath = variablePath;
 	}

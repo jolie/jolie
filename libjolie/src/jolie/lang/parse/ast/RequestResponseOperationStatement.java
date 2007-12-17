@@ -22,21 +22,24 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class RequestResponseOperationStatement implements OLSyntaxNode
+public class RequestResponseOperationStatement extends OLSyntaxNode
 {
 	private VariablePath inputVarPath, outputVarPath;
 	private OLSyntaxNode process;
 	private String id;
 	
 	public RequestResponseOperationStatement(
+			ParsingContext context,
 			String id,
 			VariablePath inputVarPath,
 			VariablePath outputVarPath,
 			OLSyntaxNode process
 		)
 	{
+		super( context );
 		this.id = id;
 		this.inputVarPath = inputVarPath;
 		this.outputVarPath = outputVarPath;

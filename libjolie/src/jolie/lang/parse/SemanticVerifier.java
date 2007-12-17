@@ -92,7 +92,7 @@ import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
-public class SemanticValidator implements OLVisitor
+public class SemanticVerifier implements OLVisitor
 {
 	private Program program;
 	private boolean valid = true;
@@ -108,15 +108,17 @@ public class SemanticValidator implements OLVisitor
 	
 	private final Logger logger = Logger.getLogger( "JOLIE" );
 	
-	public SemanticValidator( Program program )
+	public SemanticVerifier( Program program )
 	{
 		this.program = program;
 	}
 	
-	private void error( String message )
+	private void error( OLSyntaxNode node, String message )
 	{
 		valid = false;
-		logger.severe( message );
+		ParsingContext context = node.context();
+		String s = context.sourceName() + ":" + context.line() + ": " + message;
+		logger.severe( s );
 	}
 	
 	public boolean validate()
@@ -124,7 +126,7 @@ public class SemanticValidator implements OLVisitor
 		visit( program );
 
 		if ( mainDefined == false )
-			error( "Main procedure not defined" );
+			error( null, "Main procedure not defined" );
 		
 		if ( !valid  ) {
 			logger.severe( "Aborting: input file semantically invalid." );
@@ -143,7 +145,7 @@ public class SemanticValidator implements OLVisitor
 	public void visit( InputPortTypeInfo n )
 	{
 		if ( inputPortTypes.contains( n.id() ) )
-			error( "input port type " + n.id() + " has been already defined" );
+			error( n, "input port type " + n.id() + " has been already defined" );
 		inputPortTypes.add( n.id() );
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
@@ -152,7 +154,7 @@ public class SemanticValidator implements OLVisitor
 	public void visit( OutputPortTypeInfo n )
 	{
 		if ( outputPortTypes.contains( n.id() ) )
-			error( "output port type " + n.id() + " has been already defined" );
+			error( n, "output port type " + n.id() + " has been already defined" );
 		outputPortTypes.add( n.id() );
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
@@ -161,21 +163,21 @@ public class SemanticValidator implements OLVisitor
 	public void visit( PortInfo n )
 	{
 		if ( inputPortTypes.contains( n.id() ) )
-			error( "Port name " + n.id() +
+			error( n, "Port name " + n.id() +
 					" has been already defined as an input port type" );
 		
 		if ( outputPortTypes.contains( n.id() ) )
-			error( "Port name " + n.id() +
+			error( n, "Port name " + n.id() +
 					" has been already defined as an output port type" );
 		
 		if ( ports.get( n.id() ) != null )
-			error( "Port name " + n.id() + " has been already defined" );
+			error( n, "Port name " + n.id() + " has been already defined" );
 		else
 			ports.put( n.id(), n );
 		
 		if (	!( inputPortTypes.contains( n.portType() ) ) &&
 				!( outputPortTypes.contains( n.portType() ) ) )
-			error( "Port " + n.id() + " tries to use an undefined port type (" + n.portType() + ")" );
+			error( n, "Port " + n.id() + " tries to use an undefined port type (" + n.portType() + ")" );
 	}
 	
 	public void visit( ServiceInfo n )
@@ -185,12 +187,12 @@ public class SemanticValidator implements OLVisitor
 		for( String p : n.inputPorts() ) {
 			port = ports.get( p );
 			if ( port == null )
-				error( "Service at URI " + n.uri().toString() + " specifies an undefined port (" + p + ")" );
+				error( n, "Service at URI " + n.uri().toString() + " specifies an undefined port (" + p + ")" );
 			else {
 				if ( protocolId == null )
 					protocolId = port.protocolId();
 				else if ( protocolId != port.protocolId() )
-					error( "Service at URI " + n.uri().toString() + " specifies ports with different protocols" );
+					error( n, "Service at URI " + n.uri().toString() + " specifies ports with different protocols" );
 			}
 		}
 	}
@@ -205,49 +207,49 @@ public class SemanticValidator implements OLVisitor
 		return false;
 	}
 		
-	public void visit( OneWayOperationDeclaration decl )
+	public void visit( OneWayOperationDeclaration n )
 	{
-		if ( isDefined( decl.id() ) )
-			error( "Operation " + decl.id() + " uses an already defined identifier" );
+		if ( isDefined( n.id() ) )
+			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
-			operations.put( decl.id(), decl );
+			operations.put( n.id(), n );
 	}
 		
-	public void visit( RequestResponseOperationDeclaration decl )
+	public void visit( RequestResponseOperationDeclaration n )
 	{
-		if ( isDefined( decl.id() ) )
-			error( "Operation " + decl.id() + " uses an already defined identifier" );
+		if ( isDefined( n.id() ) )
+			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
-			operations.put( decl.id(), decl );
+			operations.put( n.id(), n );
 	}
 		
-	public void visit( NotificationOperationDeclaration decl )
+	public void visit( NotificationOperationDeclaration n )
 	{
-		if ( isDefined( decl.id() ) )
-			error( "Operation " + decl.id() + " uses an already defined identifier" );
+		if ( isDefined( n.id() ) )
+			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
-			operations.put( decl.id(), decl );
+			operations.put( n.id(), n );
 	}
 		
-	public void visit( SolicitResponseOperationDeclaration decl )
+	public void visit( SolicitResponseOperationDeclaration n )
 	{
-		if ( isDefined( decl.id() ) )
-			error( "Operation " + decl.id() + " uses an already defined identifier" );
+		if ( isDefined( n.id() ) )
+			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
-			operations.put( decl.id(), decl );
+			operations.put( n.id(), n );
 	}
 		
-	public void visit( Procedure procedure )
+	public void visit( Procedure n )
 	{
-		if ( isDefined( procedure.id() ) )
-			error( "Procedure " + procedure.id() + " uses an already defined identifier" );
+		if ( isDefined( n.id() ) )
+			error( n, "Procedure " + n.id() + " uses an already defined identifier" );
 		else
-			procedureNames.add( procedure.id() );
+			procedureNames.add( n.id() );
 		
-		if ( "main".equals( procedure.id() ) )
+		if ( "main".equals( n.id() ) )
 			mainDefined = true;
 		
-		procedure.body().accept( this );
+		n.body().accept( this );
 	}
 		
 	public void visit( ParallelStatement stm )

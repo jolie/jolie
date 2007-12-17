@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class PreDecrementStatement implements OLSyntaxNode
+public class PreDecrementStatement extends OLSyntaxNode
 {
 	private VariablePath variablePath;
 
-	public PreDecrementStatement( VariablePath variablePath )
+	public PreDecrementStatement( ParsingContext context, VariablePath variablePath )
 	{
+		super( context );
 		this.variablePath = variablePath;
 	}
 	

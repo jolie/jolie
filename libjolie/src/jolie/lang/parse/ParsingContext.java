@@ -19,29 +19,34 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+package jolie.lang.parse;
 
-
-public class ExpressionConditionNode extends OLSyntaxNode
+public class ParsingContext
 {
-	private OLSyntaxNode expression;
-
-	public ExpressionConditionNode( ParsingContext context, OLSyntaxNode expression )
+	private int line = 0;
+	private String sourceName = "";
+	
+	public ParsingContext()
+	{}
+	
+	public void setSourceName( String sourceName )
 	{
-		super( context );
-		this.expression = expression;
+		this.sourceName = sourceName;
 	}
 	
-	public OLSyntaxNode expression()
+	public String sourceName()
 	{
-		return expression;
+		return sourceName;
 	}
 	
-	public void accept( OLVisitor visitor )
+	public void setLine( int line )
 	{
-		visitor.visit( this );
+		this.line = line;
+	}
+	
+	public int line()
+	{
+		return line;
 	}
 }

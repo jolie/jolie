@@ -22,13 +22,14 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
 public class NotificationOperationDeclaration extends OperationDeclaration
 {
-	public NotificationOperationDeclaration( String id )
+	public NotificationOperationDeclaration( ParsingContext context, String id )
 	{
-		super( id );
+		super( context, id );
 	}
 	
 	public void accept( OLVisitor visitor )

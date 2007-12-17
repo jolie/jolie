@@ -22,13 +22,15 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class ConstantRealExpression implements OLSyntaxNode
+public class ConstantRealExpression extends OLSyntaxNode
 {
 	private double value;
 
-	public ConstantRealExpression( double value )
+	public ConstantRealExpression( ParsingContext context, double value )
 	{
+		super( context );
 		this.value = value;
 	}
 	

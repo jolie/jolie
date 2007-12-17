@@ -22,14 +22,15 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 public class OutputPortTypeInfo extends PortTypeInfo
 {	
 	private String namespace = new String(); 
 	
-	public OutputPortTypeInfo( String id )
+	public OutputPortTypeInfo( ParsingContext context, String id )
 	{
-		super( id );
+		super( context, id );
 	}
 	
 	public void accept( OLVisitor visitor )

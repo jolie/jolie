@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class ProcedureCallStatement implements OLSyntaxNode
+public class ProcedureCallStatement extends OLSyntaxNode
 {
 	private String id;
 
-	public ProcedureCallStatement( String id )
+	public ProcedureCallStatement( ParsingContext context, String id )
 	{
+		super( context );
 		this.id = id;
 	}
 	

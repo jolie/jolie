@@ -26,16 +26,18 @@ import java.util.Vector;
 
 import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 import jolie.util.Pair;
 
 
 
-public class SumExpressionNode implements OLSyntaxNode
+public class SumExpressionNode extends OLSyntaxNode
 {
 	private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
-	public SumExpressionNode()
+	public SumExpressionNode( ParsingContext context )
 	{
+		super( context );
 		operands = new Vector< Pair< Constants.OperandType, OLSyntaxNode > >();
 	}
 	

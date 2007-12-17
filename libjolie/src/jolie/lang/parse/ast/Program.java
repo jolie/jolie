@@ -24,14 +24,17 @@ package jolie.lang.parse.ast;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class Program implements OLSyntaxNode
+public class Program extends OLSyntaxNode
 {
 	private Vector< OLSyntaxNode > children = new Vector< OLSyntaxNode > ();
 	
-	public Program()
-	{}
+	public Program( ParsingContext context )
+	{
+		super( context );
+	}
 	
 	public void addChild( OLSyntaxNode node )
 	{

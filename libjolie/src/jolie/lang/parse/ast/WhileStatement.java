@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class WhileStatement implements OLSyntaxNode
+public class WhileStatement extends OLSyntaxNode
 {
 	private OLSyntaxNode condition, body;
 
-	public WhileStatement( OLSyntaxNode condition, OLSyntaxNode body )
+	public WhileStatement( ParsingContext context, OLSyntaxNode condition, OLSyntaxNode body )
 	{
+		super( context );
 		this.condition = condition;
 		this.body = body;
 	}

@@ -24,13 +24,16 @@ package jolie.lang.parse.ast;
 import java.util.Collection;
 import java.util.Vector;
 
-abstract public class PortTypeInfo implements OLSyntaxNode
+import jolie.lang.parse.ParsingContext;
+
+abstract public class PortTypeInfo extends OLSyntaxNode
 {
 	private String id;
 	private Vector< OperationDeclaration > operations = new Vector< OperationDeclaration >();
 	
-	public PortTypeInfo( String id )
+	public PortTypeInfo( ParsingContext context, String id )
 	{
+		super( context );
 		this.id = id;
 	}
 	

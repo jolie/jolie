@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class LinkInStatement implements OLSyntaxNode
+public class LinkInStatement extends OLSyntaxNode
 {
 	private String id;
 
-	public LinkInStatement( String id )
+	public LinkInStatement( ParsingContext context, String id )
 	{
+		super( context );
 		this.id = id;
 	}
 	

@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class SleepStatement implements OLSyntaxNode
+public class SleepStatement extends OLSyntaxNode
 {
 	private OLSyntaxNode expression;
 
-	public SleepStatement( OLSyntaxNode expression )
+	public SleepStatement( ParsingContext context, OLSyntaxNode expression )
 	{
+		super( context );
 		this.expression = expression;
 	}
 	

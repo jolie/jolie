@@ -22,20 +22,23 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class NotificationOperationStatement implements OLSyntaxNode
+public class NotificationOperationStatement extends OLSyntaxNode
 {
 	private VariablePath outputVarPath;
 	private String id;
 	private OLSyntaxNode locationExpression;
 	
 	public NotificationOperationStatement(
+			ParsingContext context,
 			String id,
 			OLSyntaxNode locationExpression,
 			VariablePath outputVarPath
 			)
 	{
+		super( context );
 		this.id = id;
 		this.outputVarPath = outputVarPath;
 		this.locationExpression = locationExpression;

@@ -23,15 +23,17 @@ package jolie.lang.parse.ast;
 
 import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class PortInfo implements OLSyntaxNode
+public class PortInfo extends OLSyntaxNode
 {
 	private String id, portType;
 	private Constants.ProtocolId protocolId;
 	
-	public PortInfo( String id, String portType, Constants.ProtocolId protocolId )
+	public PortInfo( ParsingContext context, String id, String portType, Constants.ProtocolId protocolId )
 	{
+		super( context );
 		this.id = id;
 		this.protocolId = protocolId;
 		this.portType = portType;

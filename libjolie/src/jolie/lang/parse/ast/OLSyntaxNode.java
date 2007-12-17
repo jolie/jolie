@@ -22,12 +22,21 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-/**
- * @todo implement line integer for error messages by the semantic verifier
- *
- */
-public interface OLSyntaxNode
+abstract public class OLSyntaxNode
 {
-	public void accept( OLVisitor visitor );
+	private ParsingContext context;
+	
+	public OLSyntaxNode( ParsingContext context )
+	{
+		this.context = context;
+	}
+	
+	public ParsingContext context()
+	{
+		return context;
+	}
+
+	abstract public void accept( OLVisitor visitor );
 }

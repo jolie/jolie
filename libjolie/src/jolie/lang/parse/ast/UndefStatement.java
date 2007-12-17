@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class UndefStatement implements OLSyntaxNode
+public class UndefStatement extends OLSyntaxNode
 {
 	private VariablePath variablePath;
 
-	public UndefStatement( VariablePath variablePath )
+	public UndefStatement( ParsingContext context, VariablePath variablePath )
 	{
+		super( context );
 		this.variablePath = variablePath;
 	}
 	

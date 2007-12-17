@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class NotConditionNode implements OLSyntaxNode
+public class NotConditionNode extends OLSyntaxNode
 {
 	private OLSyntaxNode condition;
 
-	public NotConditionNode( OLSyntaxNode condition )
+	public NotConditionNode( ParsingContext context, OLSyntaxNode condition )
 	{
+		super( context );
 		this.condition = condition;
 	}
 	

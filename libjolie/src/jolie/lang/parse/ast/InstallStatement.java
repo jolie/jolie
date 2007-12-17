@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class InstallStatement implements OLSyntaxNode
+public class InstallStatement extends OLSyntaxNode
 {
 	private InstallFunctionNode handlersFunction;
 
-	public InstallStatement( InstallFunctionNode handlersFunction )
+	public InstallStatement( ParsingContext context, InstallFunctionNode handlersFunction )
 	{
+		super( context );
 		this.handlersFunction = handlersFunction;
 	}
 	

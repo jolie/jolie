@@ -103,7 +103,7 @@ public class OLParseTreeOptimizer
 		
 		public OptimizerVisitor()
 		{
-			program = new Program();
+			program = new Program( new ParsingContext() );
 		}
 		
 		public Program optimize( Program p )
@@ -168,13 +168,13 @@ public class OLParseTreeOptimizer
 		public void visit( Procedure procedure )
 		{
 			procedure.body().accept( this );
-			program.addChild( new Procedure( procedure.id(), currNode ) );
+			program.addChild( new Procedure( procedure.context(), procedure.id(), currNode ) );
 		}
 		
 		public void visit( ParallelStatement stm )
 		{
 			if ( stm.children().size() > 1 ) {
-				ParallelStatement tmp = new ParallelStatement();
+				ParallelStatement tmp = new ParallelStatement( stm.context() );
 				for( OLSyntaxNode node : stm.children() ) {
 					node.accept( this );
 					if ( currNode instanceof ParallelStatement ) {
@@ -197,7 +197,7 @@ public class OLParseTreeOptimizer
 				 * If we ended up with an empty composition, return nullProcess
 				 */
 				if ( tmp.children().size() == 0 )
-					currNode = NullProcessStatement.getInstance();
+					currNode = new NullProcessStatement( new ParsingContext() );
 				else
 					currNode = tmp;
 			} else
@@ -207,7 +207,7 @@ public class OLParseTreeOptimizer
 		public void visit( SequenceStatement stm )
 		{
 			if ( stm.children().size() > 1 ) {
-				SequenceStatement tmp = new SequenceStatement();
+				SequenceStatement tmp = new SequenceStatement( stm.context() );
 				for( OLSyntaxNode node : stm.children() ) {
 					node.accept( this );
 					if ( currNode instanceof SequenceStatement ) {
@@ -230,7 +230,7 @@ public class OLParseTreeOptimizer
 				 * If we ended up with an empty composition, return nullProcess
 				 */
 				if ( tmp.children().size() == 0 )
-					currNode = NullProcessStatement.getInstance();
+					currNode = new NullProcessStatement( new ParsingContext() );
 				else
 					currNode = tmp;
 			} else
@@ -240,7 +240,7 @@ public class OLParseTreeOptimizer
 		public void visit( NDChoiceStatement stm )
 		{
 			//if ( stm.children().size() > 1 ) {
-				NDChoiceStatement tmp = new NDChoiceStatement();
+				NDChoiceStatement tmp = new NDChoiceStatement( stm.context() );
 				for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 					pair.key().accept( this );
 					OLSyntaxNode n = currNode;
@@ -269,7 +269,7 @@ public class OLParseTreeOptimizer
 		
 		public void visit( IfStatement n )
 		{
-			IfStatement stm = new IfStatement();
+			IfStatement stm = new IfStatement( n.context() );
 			OLSyntaxNode condition;
 			for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 				pair.key().accept( this );
@@ -291,7 +291,7 @@ public class OLParseTreeOptimizer
 			n.condition().accept( this );
 			OLSyntaxNode condition = currNode;
 			n.body().accept( this );
-			currNode = new WhileStatement( condition, currNode );
+			currNode = new WhileStatement( n.context(), condition, currNode );
 		}
 		
 		public void visit( RequestResponseOperationStatement n )
@@ -299,6 +299,7 @@ public class OLParseTreeOptimizer
 			n.process().accept( this );
 			currNode =
 				new RequestResponseOperationStatement(
+						n.context(),
 						n.id(),
 						n.inputVarPath(),
 						n.outputVarPath(),
@@ -308,7 +309,7 @@ public class OLParseTreeOptimizer
 		public void visit( Scope n )
 		{
 			n.body().accept( this );
-			currNode = new Scope( n.id(), currNode );
+			currNode = new Scope( n.context(), n.id(), currNode );
 		}
 		
 		/**
@@ -322,7 +323,7 @@ public class OLParseTreeOptimizer
 		public void visit( SynchronizedStatement n )
 		{
 			n.body().accept( this );
-			currNode = new SynchronizedStatement( n.id(), currNode );
+			currNode = new SynchronizedStatement( n.context(), n.id(), currNode );
 		}
 				
 		public void visit( CompensateStatement n ) { currNode = n; }

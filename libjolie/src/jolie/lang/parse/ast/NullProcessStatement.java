@@ -22,22 +22,14 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
-public class NullProcessStatement implements OLSyntaxNode
+public class NullProcessStatement extends OLSyntaxNode
 {
-	private NullProcessStatement() {}
-	
-	private static class LazyHolder {
-		static final NullProcessStatement instance = new NullProcessStatement();
-	}
-	
-	static public NullProcessStatement getInstance()
+	public NullProcessStatement( ParsingContext context )
 	{
-		return LazyHolder.instance;
+		super( context );
 	}
-	
-	public void run()
-	{}
 	
 	public void accept( OLVisitor visitor )
 	{

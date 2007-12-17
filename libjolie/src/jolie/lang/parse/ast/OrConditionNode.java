@@ -25,15 +25,17 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
 
-public class OrConditionNode implements OLSyntaxNode
+public class OrConditionNode extends OLSyntaxNode
 {
 	private List< OLSyntaxNode > children;
 
-	public OrConditionNode()
+	public OrConditionNode( ParsingContext context )
 	{
+		super( context );
 		children = new Vector< OLSyntaxNode >();
 	}
 	

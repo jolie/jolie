@@ -25,17 +25,19 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 import jolie.util.Pair;
 
 
 
-public class IfStatement implements OLSyntaxNode
+public class IfStatement extends OLSyntaxNode
 {
 	private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 	private OLSyntaxNode elseProcess;
 
-	public IfStatement()
+	public IfStatement( ParsingContext context )
 	{
+		super( context );
 		children = new Vector< Pair< OLSyntaxNode, OLSyntaxNode > >();
 		elseProcess = null;
 	}

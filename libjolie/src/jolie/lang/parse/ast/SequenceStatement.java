@@ -25,15 +25,17 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
 
-public class SequenceStatement implements OLSyntaxNode
+public class SequenceStatement extends OLSyntaxNode
 {
 	private List< OLSyntaxNode > children;
 
-	public SequenceStatement()
+	public SequenceStatement( ParsingContext context )
 	{
+		super( context );
 		children = new Vector< OLSyntaxNode >();
 	}
 	

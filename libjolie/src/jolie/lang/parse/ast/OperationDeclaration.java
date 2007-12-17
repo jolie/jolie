@@ -21,13 +21,16 @@
 
 package jolie.lang.parse.ast;
 
+import jolie.lang.parse.ParsingContext;
 
-abstract public class OperationDeclaration implements OLSyntaxNode
+
+abstract public class OperationDeclaration extends OLSyntaxNode
 {
 	private String id;
 
-	public OperationDeclaration( String id )
+	public OperationDeclaration( ParsingContext context, String id )
 	{
+		super( context );
 		this.id = id;
 	}
 	

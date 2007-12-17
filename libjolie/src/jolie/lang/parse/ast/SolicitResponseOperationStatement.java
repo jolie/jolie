@@ -22,9 +22,10 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class SolicitResponseOperationStatement implements OLSyntaxNode
+public class SolicitResponseOperationStatement extends OLSyntaxNode
 {
 	private VariablePath outputVarPath, inputVarPath;
 	private String id;
@@ -32,6 +33,7 @@ public class SolicitResponseOperationStatement implements OLSyntaxNode
 	private InstallFunctionNode handlersFunction;
 	
 	public SolicitResponseOperationStatement(
+			ParsingContext context,
 			String id,
 			OLSyntaxNode locationExpression,
 			VariablePath outputVarPath,
@@ -39,6 +41,7 @@ public class SolicitResponseOperationStatement implements OLSyntaxNode
 			InstallFunctionNode handlersFunction
 		)
 	{
+		super( context );
 		this.id = id;
 		this.outputVarPath = outputVarPath;
 		this.inputVarPath = inputVarPath;

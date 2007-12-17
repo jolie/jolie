@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 
 
-public class DeepCopyStatement implements OLSyntaxNode
+public class DeepCopyStatement extends OLSyntaxNode
 {
 	private VariablePath leftPath, rightPath;
 
-	public DeepCopyStatement( VariablePath leftPath, VariablePath rightPath )
+	public DeepCopyStatement( ParsingContext context, VariablePath leftPath, VariablePath rightPath )
 	{
+		super( context );
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
