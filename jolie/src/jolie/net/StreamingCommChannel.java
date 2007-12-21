@@ -31,6 +31,14 @@ public class StreamingCommChannel extends CommChannel
 	private InputStream istream;
 	private OutputStream ostream;
 	private CommProtocol protocol;
+	
+	public boolean hasData()
+	{
+		try {
+			return( istream.available() > 0 );
+		} catch( IOException ioe ) {}
+		return false;
+	}
 
 	/** Constructor.
 	 * 
@@ -67,12 +75,13 @@ public class StreamingCommChannel extends CommChannel
 	{
 		protocol.send( ostream, message );
 	}
-	
-	/** Closes the communication channel. */
+
+	/** Closes the communication channel */
 	public void close()
 		throws IOException
 	{
 		istream.close();
 		ostream.close();
 	}
+
 }

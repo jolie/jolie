@@ -26,12 +26,14 @@ import java.util.List;
 import java.util.Vector;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.util.Pair;
 
 public class GlobalVariablePath implements Expression, Cloneable
 {
 	private List< Pair< String, Expression > > path; // Expression may be null
 	private Expression attribute; // may be null
+	private boolean global;
 	
 	public GlobalVariablePath clone()
 	{
@@ -39,7 +41,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 			new Vector< Pair< String, Expression > >();
 		for( Pair< String, Expression > p : path )
 			list.add( new Pair< String, Expression >( p.key(), p.value() ) );
-		return new GlobalVariablePath( list, attribute );
+		return new GlobalVariablePath( list, attribute, global );
 	}
 	
 	public void addPathNode( String nodeName, Expression expression )
@@ -49,11 +51,21 @@ public class GlobalVariablePath implements Expression, Cloneable
 	
 	public GlobalVariablePath(
 			List< Pair< String, Expression > > path,
-			Expression attribute
+			Expression attribute,
+			boolean global
 			)
 	{
 		this.path = path;
 		this.attribute = attribute;
+		this.global = global;
+	}
+	
+	private Value getRootValue()
+	{
+		if ( global )
+			return Interpreter.globalValue();
+		
+		return ExecutionThread.currentThread().state().root();
 	}
 	
 	public void undef()
@@ -61,8 +73,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
@@ -101,8 +112,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 	
 	public Value getValue()
 	{
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 
 		for( Pair< String, Expression > pair : path ) {
 			if ( pair.value() == null )
@@ -124,8 +134,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
@@ -172,8 +181,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair;
 		ValueVector currVector = null;
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 
 		while( it.hasNext() ) {
 			pair = it.next();
@@ -195,8 +203,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
@@ -232,8 +239,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue =
-			ExecutionThread.currentThread().state().root();
+		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {

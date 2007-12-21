@@ -42,7 +42,7 @@ import jolie.util.Pair;
 abstract public class InputOperation extends Operation implements InputHandler
 {
 	private static HashMap< String, InputOperation > idMap = 
-		new HashMap< String, InputOperation >();
+						new HashMap< String, InputOperation >();
 
 	private HashMap< InputProcessExecution, ExecutionThread > procsMap =
 						new HashMap< InputProcessExecution, ExecutionThread >();

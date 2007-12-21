@@ -31,7 +31,7 @@ public class JavaCommChannel extends CommChannel
 {
 	private Object javaService;
 	private CommMessage lastMessage = null;
-
+	
 	public JavaCommChannel( Object javaService )
 	{
 		this.javaService = javaService;
@@ -83,7 +83,7 @@ public class JavaCommChannel extends CommChannel
 			}
 		}
 	}
-	
+
 	public CommMessage recv()
 		throws IOException
 	{
@@ -93,9 +93,14 @@ public class JavaCommChannel extends CommChannel
 		lastMessage = null;
 		return ret;
 	}
-	
+
 	public void close()
 	{
 		javaService = null;
+	}
+	
+	public boolean hasData()
+	{
+		return( lastMessage != null );
 	}
 }

@@ -43,7 +43,7 @@ public class OutputOperation extends Operation
 	{
 		super( id );
 	}
-	
+
 	public static OutputOperation getById( String id )
 		throws InvalidIdException
 	{

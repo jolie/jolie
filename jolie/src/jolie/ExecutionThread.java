@@ -221,12 +221,13 @@ abstract public class ExecutionThread extends Thread
 		for( int i = 0; i < origCSetValues.size(); i++ ) {
 			origV = origCSetValues.elementAt( i );
 			newV = newCSetValues.elementAt( i );
-			if ( origV.isDefined() && (
-					origV.type() != newV.type() ||
+			if ( /*origV.isDefined() && (
+					 != newV.type() ||
 					(origV.isInt() && origV.intValue() != newV.intValue()) ||
 					(origV.isDouble() && origV.doubleValue() != newV.doubleValue()) ||
 					(origV.isString() && !origV.strValue().equals( newV.strValue() ))
-					)
+					)*/
+				!origV.equals( newV )
 					)
 			{
 				setState( origState );

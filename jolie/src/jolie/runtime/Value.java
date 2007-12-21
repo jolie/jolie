@@ -26,11 +26,12 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jolie.Constants;
+import jolie.net.CommChannel;
 
 class ValueLink extends Value implements Cloneable
 {
@@ -77,45 +78,15 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().getAttribute( attributeId );
 	}
 	
-	public boolean equals( Value val )
+	public void setValueObject( Object object )
 	{
-		return linkPath.getValue().equals( val );
+		linkPath.getValue().setValueObject( object );
 	}
 	
-	public void setStrValue( String value )
+	public Object valueObject()
 	{
-		linkPath.getValue().setStrValue( value );
-	}
-	
-	public void setIntValue( int value )
-	{
-		linkPath.getValue().setIntValue( value );
-	}
-	
-	public void setDoubleValue( double value )
-	{
-		linkPath.getValue().setDoubleValue( value );
-	}
-	
-	public String strValue()
-	{
-		return linkPath.getValue().strValue();
-	}
-	
-	public int intValue()
-	{
-		return linkPath.getValue().intValue();
-	}
-	
-	public double doubleValue()
-	{
-		return linkPath.getValue().doubleValue();
-	}
-
-	public Constants.VariableType type()
-	{
-		return linkPath.getValue().type();
-	}
+		return linkPath.getValue().valueObject();
+	}	
 	
 	public ValueLink( GlobalVariablePath path )
 	{
@@ -132,35 +103,15 @@ class ValueImpl extends Value implements Externalizable
 {
 	private static final long serialVersionUID = 1L;
 	
-	private String strValue = new String();
-	private int intValue = 0;
-	private double doubleValue = 0;
-	private Constants.VariableType type = Constants.VariableType.UNDEFINED;
-	
+	private Object valueObject;
 	private ConcurrentHashMap< String, ValueVector > children = null;
 	private ConcurrentHashMap< String, Value > attributes = null;
-	
-	private final static byte UndefinedType = 0;
-	private final static byte IntegerType = 1;
-	private final static byte DoubleType = 2;
-	private final static byte StringType = 3;
 	
 	public void readExternal( ObjectInput in )
 		throws IOException, ClassNotFoundException
 	{
-		byte type = in.readByte();
-		switch( type ) {
-		case IntegerType:
-			setIntValue( in.readInt() );
-			break;
-		case DoubleType:
-			setDoubleValue( in.readDouble() );
-			break;
-		case StringType:
-			setStrValue( in.readUTF() );
-			break;
-		}
-		
+		valueObject = in.readObject();
+				
 		int n = in.readInt(); // How many attributes?
 		int i;
 		ValueImpl v;
@@ -191,17 +142,10 @@ class ValueImpl extends Value implements Externalizable
 	public void writeExternal( ObjectOutput out )
 		throws IOException
 	{
-		if ( type == Constants.VariableType.INT ) {
-			out.writeByte( IntegerType );
-			out.writeInt( intValue() );
-		} else if ( type == Constants.VariableType.STRING ) {
-			out.writeByte( StringType );
-			out.writeUTF( strValue() );
-		} else if ( type == Constants.VariableType.REAL ) {
-			out.writeByte( DoubleType );
-			out.writeDouble( doubleValue() );
-		} else
-			out.writeByte( UndefinedType );
+		if ( valueObject != null && (valueObject instanceof Serializable || valueObject instanceof Externalizable) )
+			out.writeObject( valueObject );
+		else
+			out.writeObject( null );
 		
 		out.writeInt( attributes().size() );
 		for( Entry< String, Value > entry : attributes().entrySet() ) {
@@ -292,6 +236,16 @@ class ValueImpl extends Value implements Externalizable
 		return attributes;
 	}
 	
+	public Object valueObject()
+	{
+		return valueObject;
+	}
+	
+	public void setValueObject( Object object )
+	{
+		valueObject = object;
+	}
+	
 	public Value getAttribute( String attributeId )
 	{
 		Value attr = attributes().get( attributeId );
@@ -300,80 +254,6 @@ class ValueImpl extends Value implements Externalizable
 			attributes().put( attributeId, attr );
 		}
 		return attr;
-	}
-	
-	public boolean equals( Value val )
-	{
-		if ( val.isDefined() ) {
-			if ( val.isInt() )
-				return ( isInt() && intValue() == val.intValue() );
-			else if ( val.isDouble() )
-				return ( isDouble() && doubleValue() == val.doubleValue() );
-			else
-				return ( isString() && strValue().equals( val.strValue() ) );
-		}
-		return( !isDefined() );
-	}
-	
-	public final synchronized void setStrValue( String value )
-	{
-		type = Constants.VariableType.STRING;
-		this.strValue = value;
-	}
-	
-	public final synchronized void setIntValue( int value )
-	{
-		type = Constants.VariableType.INT;
-		this.intValue = value;
-	}
-	
-	public final synchronized void setDoubleValue( double value )
-	{
-		type = Constants.VariableType.REAL;
-		this.doubleValue = value;
-	}
-	public final synchronized String strValue()
-	{
-		if ( type == Constants.VariableType.INT )
-			return Integer.toString( intValue );
-		else if ( type == Constants.VariableType.REAL )
-			return Double.toString( doubleValue );
-		return strValue;
-	}
-	
-	public final synchronized int intValue()
-	{
-		if ( type == Constants.VariableType.STRING ) {
-			try {
-				return Integer.parseInt( strValue );
-			} catch( NumberFormatException e ) {
-				return strValue.length();
-			}
-		} else if ( type == Constants.VariableType.REAL )
-			return (int)doubleValue;
-	
-		return intValue;
-	}
-	
-	public final synchronized double doubleValue()
-	{
-		if ( type == Constants.VariableType.STRING ) {
-			try {
-				return Double.parseDouble( strValue );
-			} catch( NumberFormatException e ) {
-				return (double) strValue.length();
-			}
-		}
-		else if ( type == Constants.VariableType.INT ) {
-			return (double) intValue;
-		}
-
-		return doubleValue;
-	}
-
-	public Constants.VariableType type()
-	{
-		return type;
 	}
 	
 	public ValueImpl( String val )
@@ -396,14 +276,7 @@ class ValueImpl extends Value implements Externalizable
 	
 	public ValueImpl( Value val )
 	{
-		if ( val.isDefined() ) {
-			if ( val.type() == Constants.VariableType.INT )
-				setIntValue( val.intValue() );
-			else if ( val.type() == Constants.VariableType.REAL )
-				setDoubleValue( val.doubleValue() );
-			else
-				setStrValue( val.strValue() );
-		}
+		valueObject = val.valueObject();
 	}
 }
 
@@ -444,12 +317,12 @@ abstract public class Value implements Expression
 	
 	public static Value create( int i )
 	{
-		return new ValueImpl( i );
+		return new ValueImpl( new Integer( i ) );
 	}
 	
 	public static Value create( double d )
 	{
-		return new ValueImpl( d );
+		return new ValueImpl( new Double( d ) );
 	}
 	
 	public static Value create( Value value )
@@ -498,41 +371,122 @@ abstract public class Value implements Expression
 		return this;
 	}
 	
-	abstract public boolean equals( Value val );
+	abstract protected Object valueObject();
+	abstract protected void setValueObject( Object object );
 	
-	abstract public void setStrValue( String value );
+	public boolean equals( Value val )
+	{
+		if ( val.isDefined() ) {
+			/*if ( val.isInt() )
+				return ( isInt() && intValue() == val.intValue() );
+			else if ( val.isDouble() )
+				return ( isDouble() && doubleValue() == val.doubleValue() );
+			else
+				return ( isString() && strValue().equals( val.strValue() ) );*/
+			Object o = valueObject();
+			return( o != null && o.equals( val ) );
+		}
+		return( !isDefined() );
+	}
 	
-	abstract public void setDoubleValue( double value );
+	public void setStrValue( String value )
+	{
+		setValueObject( value );
+	}
+	
+	public void setDoubleValue( double value )
+	{
+		setValueObject( new Double( value ) );
+	}
 	
 	public final boolean isInt()
 	{
-		return ( type() == Constants.VariableType.INT );
+		return ( valueObject() instanceof Integer );
 	}
 	
 	public final boolean isDouble()
 	{
-		return ( type() == Constants.VariableType.REAL );
+		return ( valueObject() instanceof Double );
 	}
 	
 	public final boolean isString()
 	{
-		return ( type() == Constants.VariableType.STRING );
+		return ( valueObject() instanceof String );
+	}
+	
+	public final boolean isChannel()
+	{
+		return ( valueObject() instanceof CommChannel );
 	}
 	
 	public final boolean isDefined()
 	{
-		return ( type() != Constants.VariableType.UNDEFINED );
+		return ( valueObject() != null );
 	}
 	
-	abstract public void setIntValue( int value );
+	public void setChannel( CommChannel value )
+	{
+		setValueObject( value );
+	}
+	
+	public CommChannel channelValue()
+	{
+		if( !isChannel() )
+			return null;
+		return (CommChannel)valueObject();
+	}
+	
+	public void setIntValue( int value )
+	{
+		setValueObject( new Integer( value ) );
+	}
 
-	abstract public String strValue();
+	public String strValue()
+	{
+		if ( valueObject() == null )
+			return new String();
+		return valueObject().toString();
+	}
 	
-	abstract public int intValue();
+	public int intValue()
+	{
+		int r = 0;
+		Object o = valueObject();
+		if ( o == null ) {
+			return 0;
+		} else if ( o instanceof Integer ) {
+			r = ((Integer)o).intValue();
+		} else if ( o instanceof Double ) {
+			r = ((Double)o).intValue();
+		} else if ( o instanceof String ) {
+			try {
+				r = Integer.parseInt( (String)o );
+			} catch( NumberFormatException nfe ) {
+				r = ((String)o).length();
+			}
+		}
+		return r;
+	}
 	
-	abstract public double doubleValue();
-	
-	abstract public Constants.VariableType type();
+	public double doubleValue()
+	{
+		double r = 0;
+		Object o = valueObject();
+		if ( o == null ) {
+			return 0;
+		} else if ( o instanceof Integer ) {
+			r = ((Integer)o).doubleValue();
+		} else if ( o instanceof Double ) {
+			r = ((Double)o).doubleValue();
+		} else if ( o instanceof String ) {
+			try {
+				r = Double.parseDouble( (String)o );
+			} catch( NumberFormatException nfe ) {
+				r = ((String)o).length();
+			}
+		}
+		return r;
+	}
 	
 	public final synchronized void add( Value val )
 	{
@@ -580,11 +534,6 @@ abstract public class Value implements Expression
 	
 	public final synchronized void assignValue( Value val )
 	{
-		if ( val.isInt() )
-			setIntValue( val.intValue() );
-		else if ( val.isDouble() )
-			setDoubleValue( val.doubleValue() );
-		else
-			setStrValue( val.strValue() );
+		setValueObject( val.valueObject() );
 	}
 }

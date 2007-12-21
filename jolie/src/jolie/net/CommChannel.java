@@ -39,6 +39,8 @@ import jolie.runtime.Location;
  */
 abstract public class CommChannel
 {
+	abstract public boolean hasData();
+	
 	public static CommChannel createCommChannel( Location location, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{

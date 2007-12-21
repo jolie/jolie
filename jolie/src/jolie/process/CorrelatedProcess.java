@@ -25,7 +25,6 @@ import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.StatefulThread;
-import jolie.StatelessThread;
 import jolie.runtime.FaultException;
 
 public class CorrelatedProcess implements Process
@@ -40,11 +39,7 @@ public class CorrelatedProcess implements Process
 	
 	private void startSession()
 	{
-		if ( Interpreter.stateMode() == Constants.StateMode.PERSISTENT )
-			waitingThread = new StatelessThread( ExecutionThread.currentThread(), process, this );
-		else
-			waitingThread = new StatefulThread( process, ExecutionThread.currentThread(), this );
-		
+		waitingThread = new StatefulThread( process, ExecutionThread.currentThread(), this );
 		waitingThread.start();
 	}
 	

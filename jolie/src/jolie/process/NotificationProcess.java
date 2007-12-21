@@ -36,16 +36,19 @@ public class NotificationProcess implements Process
 	private OutputOperation operation;
 	private GlobalVariablePath varPath;
 	private Location location;
+	//private OperationChannelInfo channelInfo;
 
 	public NotificationProcess(
 			OutputOperation operation,
 			Location location,
 			GlobalVariablePath varPath
+		//	OperationChannelInfo channelInfo
 			)
 	{
 		this.operation = operation;
 		this.varPath = varPath;
 		this.location = location;
+		//this.channelInfo = channelInfo;
 	}
 	
 	public void run()

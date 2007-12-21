@@ -70,7 +70,7 @@ import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.StateInfo;
+import jolie.lang.parse.ast.StatementChannelInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -143,6 +143,7 @@ import jolie.runtime.Location;
 import jolie.runtime.NotCondition;
 import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
+import jolie.runtime.OperationChannelInfo;
 import jolie.runtime.OrCondition;
 import jolie.runtime.OutputOperation;
 import jolie.runtime.ProductExpression;
@@ -183,11 +184,6 @@ public class OOITBuilder implements OLVisitor
 		return valid;
 	}
 	
-	public void visit( StateInfo n )
-	{
-		Interpreter.setStateMode( n.mode() );
-	}
-		
 	public void visit( ExecutionInfo n )
 	{
 		Interpreter.setExecutionMode( n.mode() );
@@ -414,13 +410,25 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new OneWayProcess(
 						OneWayOperation.getById( n.id() ),
-						getGlobalVariablePath( n.inputVarPath() )
+						getGlobalVariablePath( n.inputVarPath() ),
+						getOperationChannelInfo( n.channelInfo() )
 						);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
 		}
 	}
-		
+	
+	private OperationChannelInfo getOperationChannelInfo( StatementChannelInfo info )
+	{
+		if ( info == null )
+			return null;
+		return new OperationChannelInfo(
+				info.type(),
+				getGlobalVariablePath( info.channelPath() ),
+				getGlobalVariablePath( info.indexPath() )
+				);
+	}
+	
 	public void visit( RequestResponseOperationStatement n )
 	{
 		try {
@@ -550,7 +558,7 @@ public class OOITBuilder implements OLVisitor
 		
 		currExpression = backupExpr;
 		
-		return new GlobalVariablePath( list, attribute );
+		return new GlobalVariablePath( list, attribute, path.isGlobal() );
 	}
 	
 	public void visit( PointerStatement n )

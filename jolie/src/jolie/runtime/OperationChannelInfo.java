@@ -19,28 +19,39 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+
 package jolie.runtime;
 
 import jolie.Constants;
 
-/** Interpreter command line exception.
- * Thrown when the Interpreter constructor finds a command line option which
- * requires a simple console information rather than a real Interpreter execution.
- * For example, a CommandLineException is thrown in response to the "--version"
- * option, containing the response message.
- * 
- * @author Fabrizio Montesi
- */
-public class CommandLineException extends Exception
+public class OperationChannelInfo
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
+	private Constants.ChannelOperator operator;
+	private GlobalVariablePath channelPath, indexPath;
 	
-	/**
-	 * Constructor
-	 * @param message The exception message.
-	 */
-	public CommandLineException( String message )
+	public OperationChannelInfo(
+			Constants.ChannelOperator operator,
+			GlobalVariablePath channelPath,
+			GlobalVariablePath indexPath
+			)
 	{
-		super( message );
+		this.operator = operator;
+		this.channelPath = channelPath;
+		this.indexPath = indexPath;
+	}
+	
+	public Constants.ChannelOperator operator()
+	{
+		return operator;
+	}
+	
+	public GlobalVariablePath channelPath()
+	{
+		return channelPath;
+	}
+	
+	public GlobalVariablePath indexPath()
+	{
+		return indexPath;
 	}
 }

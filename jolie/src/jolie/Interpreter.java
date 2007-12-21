@@ -54,8 +54,8 @@ public class Interpreter
 	private static boolean verbose = false;
 	private static boolean exiting = false;
 	private static Set< GlobalVariablePath > correlationSet = new HashSet< GlobalVariablePath > ();
-	private static Constants.StateMode stateMode = Constants.StateMode.PERSISTENT;
 	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
+	private static Value globalValue;
 	private LinkedList< String > arguments = new LinkedList< String >();
 	
 	private static Logger logger = Logger.getLogger( "JOLIE" );
@@ -76,11 +76,6 @@ public class Interpreter
 			System.out.println( "Thrown unhandled fault: " + f.fault() ); 
 	}
 	
-	public static Constants.StateMode stateMode()
-	{
-		return stateMode;
-	}
-	
 	public static Constants.ExecutionMode executionMode()
 	{
 		return executionMode;
@@ -89,11 +84,6 @@ public class Interpreter
 	public static void setExecutionMode( Constants.ExecutionMode mode )
 	{
 		executionMode = mode;
-	}
-	
-	public static void setStateMode( Constants.StateMode mode )
-	{
-		stateMode = mode;
 	}
 	
 	public static void setCorrelationSet( Set< GlobalVariablePath > set )
@@ -184,6 +174,11 @@ public class Interpreter
 		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
 	}
 	
+	public static Value globalValue()
+	{
+		return globalValue;
+	}
+	
 	/**
 	 * Runs the interpreter behaviour specified by command line.
 	 * The default behaviour is to execute the input code.
@@ -201,6 +196,8 @@ public class Interpreter
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		
 		CommCore.init();
+		
+		globalValue = Value.create();
 
 		try {
 			main = DefinitionProcess.getById( "main" );
