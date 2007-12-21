@@ -42,7 +42,7 @@ public class Scanner
 		RCURLY,				///< }
 		STRING,				///< "[[:graph:]]*"
 		CHOICE,				///< ++
-		MINUS,				///< The minus sign (doxygen can't document a - alone)
+		MINUS,				///< The minus sign -
 		ASTERISK,			///< *
 		DIVIDE,				///< /
 		ASSIGN,				///< =
@@ -67,8 +67,6 @@ public class Scanner
 		OP_RR,				///< RequestResponse
 		OP_N,				///< Notification
 		OP_SR,				///< SolicitResponse
-		LOCATIONS,			///< locations
-		OPERATIONS,			///< operations
 		MAIN,				///< main
 		DEFINE, 			///< define
 		MAJOR_OR_EQUAL,		///< >=
@@ -79,11 +77,8 @@ public class Scanner
 		WHILE,				///< while
 		SLEEP,				///< sleep
 		CSET,				///< cset
-		PERSISTENT,			///< persistent
-		NOT_PERSISTENT,		///< not_persistent
 		CONCURRENT,			///< concurrent
 		SEQUENTIAL,			///< sequential
-		STATE,				///< state
 		EXECUTION,			///< execution
 		THROW,				///< throw
 		INSTALL,				///< install
@@ -111,6 +106,8 @@ public class Scanner
 		CAST_STRING,			///< string
 		CAST_REAL,				///< double
 		SYNCHRONIZED,			///< synchronized
+		FROM,					///< from
+		PICK,					///< pick
 		ERROR					///< Scanner error
 	}
 	
@@ -383,10 +380,6 @@ public class Scanner
 							retval = new Token( TokenType.AND );
 						else if ( "or".equals( str ) )
 							retval = new Token( TokenType.OR );
-						else if ( "locations".equals( str ) )
-							retval = new Token( TokenType.LOCATIONS );
-						else if ( "operations".equals( str ) )
-							retval = new Token( TokenType.OPERATIONS );
 						else if ( "include".equals( str ) )
 							retval = new Token( TokenType.INCLUDE );
 						else if ( "main".equals( str ) )
@@ -403,18 +396,12 @@ public class Scanner
 							retval = new Token( TokenType.SLEEP );
 						else if ( "cset".equals( str ) )
 							retval = new Token( TokenType.CSET );
-						else if ( "persistent".equals( str ) )
-							retval = new Token( TokenType.PERSISTENT );
-						else if ( "not_persistent".equals( str ) )
-							retval = new Token( TokenType.NOT_PERSISTENT );
 						else if ( "single".equals( str ) )
 							retval = new Token( TokenType.SINGLE );
 						else if ( "concurrent".equals( str ) )
 							retval = new Token( TokenType.CONCURRENT );
 						else if ( "sequential".equals( str ) )
 							retval = new Token( TokenType.SEQUENTIAL );
-						else if ( "state".equals( str ) )
-							retval = new Token( TokenType.STATE );
 						else if ( "execution".equals( str ) )
 							retval = new Token( TokenType.EXECUTION );
 						else if ( "install".equals( str ) )
@@ -455,6 +442,10 @@ public class Scanner
 							retval = new Token( TokenType.CAST_STRING );
 						else if ( "double".equals( str ) )
 							retval = new Token( TokenType.CAST_REAL );
+						else if ( "from".equals( str ) )
+							retval = new Token( TokenType.FROM );
+						else if ( "pick".equals( str ) )
+							retval = new Token( TokenType.PICK );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

@@ -31,12 +31,17 @@ public class VariablePath
 {
 	private List< Pair< String, OLSyntaxNode > > path;
 	private OLSyntaxNode attribute = null;
+	private boolean global;
 
-	public VariablePath( String varId, OLSyntaxNode varElement )
+	public VariablePath( boolean global )
 	{
-		path =
-				new LinkedList< Pair< String, OLSyntaxNode > >();
-		path.add( new Pair< String, OLSyntaxNode >( varId, varElement ) );
+		path = new LinkedList< Pair< String, OLSyntaxNode > >();
+		this.global = global;
+	}
+	
+	public boolean isGlobal()
+	{
+		return global;
 	}
 	
 	public void append( Pair< String, OLSyntaxNode > node )

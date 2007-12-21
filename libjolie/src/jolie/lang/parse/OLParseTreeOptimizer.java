@@ -74,7 +74,6 @@ import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -119,11 +118,6 @@ public class OLParseTreeOptimizer
 		}
 		
 		public void visit( ExecutionInfo p )
-		{
-			program.addChild( p );
-		}
-		
-		public void visit( StateInfo p )
 		{
 			program.addChild( p );
 		}
@@ -303,7 +297,8 @@ public class OLParseTreeOptimizer
 						n.id(),
 						n.inputVarPath(),
 						n.outputVarPath(),
-						currNode );
+						currNode,
+						n.channelInfo() );
 		}
 		
 		public void visit( Scope n )

@@ -47,6 +47,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
+import jolie.lang.parse.ast.StatementChannelInfo;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
@@ -84,7 +85,6 @@ import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -122,8 +122,6 @@ public class OLParser extends AbstractParser
 			parseConstants();
 			parseInclude();
 			parseExecution();
-			parseInclude();
-			parseState();
 			parseInclude();
 			parseCorrelationSet();
 			parseInclude();
@@ -180,26 +178,6 @@ public class OLParser extends AbstractParser
 				throwException( "Expected execution mode, found " + token.content() );
 
 			program.addChild( new ExecutionInfo( getContext(), mode ) );
-			getToken();
-			eat( Scanner.TokenType.RCURLY, "} expected" );
-		}
-	}
-	
-	private void parseState()
-		throws IOException, ParserException
-	{
-		if ( token.is( Scanner.TokenType.STATE ) ) {
-			Constants.StateMode mode = Constants.StateMode.PERSISTENT;
-			getToken();
-			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			if ( token.is( Scanner.TokenType.PERSISTENT ) ) {
-				mode = Constants.StateMode.PERSISTENT;
-			} else if ( token.is( Scanner.TokenType.NOT_PERSISTENT ) ) {
-				mode = Constants.StateMode.NOT_PERSISTENT;
-			} else
-				throwException( "Expected state mode, found " + token.content() );
-
-			program.addChild( new StateInfo( getContext(), mode ) );
 			getToken();
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 		}
@@ -851,13 +829,19 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		OLSyntaxNode expr = null;
-		if ( token.is( Scanner.TokenType.LSQUARE ) ) {
-			getToken();
-			expr = parseExpression();
-			eat( Scanner.TokenType.RSQUARE, "expected ]" );
-		}
+		VariablePath path = null;
 		
-		VariablePath path = new VariablePath( varId, expr );
+		if ( varId.equals( Constants.GLOBAL ) ) {
+			path = new VariablePath( true );
+		} else {
+			path = new VariablePath( false );
+			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+				getToken();
+				expr = parseExpression();
+				eat( Scanner.TokenType.RSQUARE, "expected ]" );
+			}
+			path.append( new Pair< String, OLSyntaxNode >( varId, expr ) );
+		}
 		
 		String node;
 		while( token.is( Scanner.TokenType.DOT ) ) {
@@ -959,19 +943,54 @@ public class OLParser extends AbstractParser
 		ParsingContext context = getContext();
 		VariablePath inputVarPath = parseOperationStatementParameter();
 		OLSyntaxNode stm;
+		StatementChannelInfo info;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
 			VariablePath outputVarPath = parseOperationStatementParameter();
+			info = parseInputChannelInfo();
 			OLSyntaxNode process;
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process = parseProcess();
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 			stm = new RequestResponseOperationStatement(
-					context, id, inputVarPath, outputVarPath, process
+					context, id, inputVarPath, outputVarPath, process, info
 					);
-		} else // One Way operation
-			stm = new OneWayOperationStatement( context, id, inputVarPath );
+		} else { // One Way operation
+			info = parseInputChannelInfo();
+			stm = new OneWayOperationStatement( context, id, inputVarPath, info );
+		}
 
 		return stm;
+	}
+	
+	private StatementChannelInfo parseInputChannelInfo()
+		throws IOException, ParserException
+	{
+		Constants.ChannelOperator type = null;
+		
+		if ( token.is( Scanner.TokenType.IN ) )
+			type = Constants.ChannelOperator.IN;
+		else if ( token.is( Scanner.TokenType.FROM ) )
+			type = Constants.ChannelOperator.FROM;
+		else if ( token.is( Scanner.TokenType.PICK ) )
+			type = Constants.ChannelOperator.PICK;
+		else
+			return null;
+		
+		VariablePath channelPath = null;
+		VariablePath indexPath = null;
+		
+		getToken();
+		tokenAssert( Scanner.TokenType.ID, "expected variable path after operation statement" );
+		String varId = token.content();
+		channelPath = parseVariablePath( varId );
+		if ( type == Constants.ChannelOperator.PICK && token.is( Scanner.TokenType.IN ) ) {
+			getToken();
+			tokenAssert( Scanner.TokenType.ID, "expected variable path after pick/in command" );
+			String indexId = token.content();
+			indexPath = parseVariablePath( indexId );
+		}
+		
+		return new StatementChannelInfo( type, channelPath, indexPath );
 	}
 	
 	/**
@@ -984,7 +1003,7 @@ public class OLParser extends AbstractParser
 	{
 		VariablePath ret = null;
 		
-		eat( Scanner.TokenType.LPAREN, "expected )" );
+		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			String varId = token.content();
 			getToken();

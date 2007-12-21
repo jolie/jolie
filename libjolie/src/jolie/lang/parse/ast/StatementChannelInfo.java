@@ -22,26 +22,31 @@
 package jolie.lang.parse.ast;
 
 import jolie.Constants;
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
 
-public class StateInfo extends OLSyntaxNode
+
+public class StatementChannelInfo
 {
-	private Constants.StateMode mode;
-	
-	public StateInfo( ParsingContext context, Constants.StateMode mode )
+	private VariablePath channelPath, indexPath;
+	private Constants.ChannelOperator type;
+		
+	public StatementChannelInfo( Constants.ChannelOperator type, VariablePath channelPath, VariablePath indexPath )
 	{
-		super( context );
-		this.mode = mode;
+		this.channelPath = channelPath;
+		this.indexPath = indexPath;
 	}
 	
-	public Constants.StateMode mode()
+	public VariablePath channelPath()
 	{
-		return mode;
+		return channelPath;
 	}
 	
-	public void accept( OLVisitor visitor )
+	public VariablePath indexPath()
 	{
-		visitor.visit( this );
+		return indexPath;
+	}
+	
+	public Constants.ChannelOperator type()
+	{
+		return type;
 	}
 }

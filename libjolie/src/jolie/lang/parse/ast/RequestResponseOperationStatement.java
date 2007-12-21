@@ -30,13 +30,15 @@ public class RequestResponseOperationStatement extends OLSyntaxNode
 	private VariablePath inputVarPath, outputVarPath;
 	private OLSyntaxNode process;
 	private String id;
+	private StatementChannelInfo channelInfo;
 	
 	public RequestResponseOperationStatement(
 			ParsingContext context,
 			String id,
 			VariablePath inputVarPath,
 			VariablePath outputVarPath,
-			OLSyntaxNode process
+			OLSyntaxNode process,
+			StatementChannelInfo channelInfo
 		)
 	{
 		super( context );
@@ -44,6 +46,12 @@ public class RequestResponseOperationStatement extends OLSyntaxNode
 		this.inputVarPath = inputVarPath;
 		this.outputVarPath = outputVarPath;
 		this.process = process;
+		this.channelInfo = channelInfo;
+	}
+	
+	public StatementChannelInfo channelInfo()
+	{
+		return channelInfo;
 	}
 	
 	public String id()

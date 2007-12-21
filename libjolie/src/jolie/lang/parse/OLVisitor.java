@@ -73,7 +73,6 @@ import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.StateInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -124,7 +123,6 @@ public interface OLVisitor
 	public void visit( CompensateStatement n );
 	public void visit( ThrowStatement n );
 	public void visit( ExitStatement n );
-	public void visit( StateInfo n );
 	public void visit( ExecutionInfo n );
 	public void visit( CorrelationSetInfo n );
 	public void visit( InputPortTypeInfo n );

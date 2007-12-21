@@ -26,9 +26,10 @@ public final class Constants
 	public static final String VERSION = "JOLIE 1.0_tp1";
 	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );
+	public static final String GLOBAL = "global";
 
-	public enum StateMode {
-		PERSISTENT, NOT_PERSISTENT
+	public enum ChannelOperator {
+		IN, PICK, FROM
 	}
 	
 	public enum ExecutionMode {
