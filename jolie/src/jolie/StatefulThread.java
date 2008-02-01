@@ -32,7 +32,7 @@ public class StatefulThread extends ExecutionThread
 	{
 		this.state = state;
 	}
-
+	
 	public StatefulThread( Process process, ExecutionThread parent )
 	{
 		super( process, parent );

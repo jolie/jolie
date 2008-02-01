@@ -31,11 +31,10 @@ import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
 import jolie.runtime.OperationChannelInfo;
-import jolie.runtime.ValueVector;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	private class ExecutionInChannel extends Execution
+	/*private class ExecutionInChannel extends Execution
 	{
 		public ExecutionInChannel( OneWayProcess parent )
 		{
@@ -104,6 +103,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			throws FaultException
 		{
 			ValueVector vec = parent.channelInfo.channelPath().getValueVector();
+			for( Value v : vec ) {
+				channel = v.channelValue();
+				
+			}
 			
 			channel = parent.channelInfo.channelPath().getValue().channelValue();
 			if ( channel == null )
@@ -115,7 +118,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			}
 			parent.runBehaviour( channel, message );
 		}
-	}
+	}*/
 	
 	private class Execution implements InputProcessExecution
 	{
@@ -165,6 +168,8 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	protected GlobalVariablePath varPath;
 	protected CorrelatedProcess correlatedProcess = null;
 	protected OperationChannelInfo channelInfo;
+	
+	//private Class< ? extends Execution > model;
 
 	public OneWayProcess(
 			InputOperation operation,
@@ -174,6 +179,15 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		this.operation = operation;
 		this.varPath = varPath;
 		this.channelInfo = channelInfo;
+
+		/*if ( channelInfo == null )
+			model = Execution.class;
+		else if ( channelInfo.operator() == Constants.ChannelOperator.FROM )
+			model = ExecutionFromChannel.class;
+		else if ( channelInfo.operator() == Constants.ChannelOperator.IN )
+			model = ExecutionInChannel.class;
+		else if ( channelInfo.operator() == Constants.ChannelOperator.PICK )
+			model = ExecutionPickChannel.class;*/
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )

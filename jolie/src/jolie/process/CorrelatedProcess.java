@@ -30,7 +30,8 @@ import jolie.runtime.FaultException;
 public class CorrelatedProcess implements Process
 {
 	private Process process;
-	private ExecutionThread waitingThread = null;
+	//private ExecutionThread waitingThread = null;
+	private boolean waiting = false;
 	
 	public CorrelatedProcess( Process process )
 	{
@@ -39,8 +40,9 @@ public class CorrelatedProcess implements Process
 	
 	private void startSession()
 	{
-		waitingThread = new StatefulThread( process, ExecutionThread.currentThread(), this );
-		waitingThread.start();
+		waiting = true;
+		new StatefulThread( process, ExecutionThread.currentThread(), this ).start();
+		//waitingThread.start();
 	}
 	
 	public void run()
@@ -50,7 +52,7 @@ public class CorrelatedProcess implements Process
 			while( !Interpreter.exiting() ) {
 				startSession();
 				synchronized( this ) {
-					if ( waitingThread != null ) { // We are still waiting for an input
+					if ( waiting ) { // We are still waiting for an input
 						try {
 							wait();
 						} catch( InterruptedException ie ) {}
@@ -64,7 +66,7 @@ public class CorrelatedProcess implements Process
 	public synchronized void inputReceived()
 	{
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
-			waitingThread = null;
+			waiting = false;
 			notify();
 		}
 	}
@@ -72,7 +74,7 @@ public class CorrelatedProcess implements Process
 	public synchronized void sessionTerminated()
 	{
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			waitingThread = null;
+			waiting = false;
 			notify();
 		}
 	}
@@ -82,7 +84,7 @@ public class CorrelatedProcess implements Process
 		Interpreter.logUnhandledFault( f );
 		
 		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			waitingThread = null;
+			waiting = false;
 			notify();
 		}
 	}

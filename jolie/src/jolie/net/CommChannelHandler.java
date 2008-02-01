@@ -22,43 +22,15 @@
 
 package jolie.net;
 
-import java.io.IOException;
-
 import jolie.ExecutionThread;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
 
-/** CommChannelHandler is used by the communication core to handle a newly opened 
- * communication channel.
- * CommChannelHandler objects are grouped in a ThreadGroup, in order to be able 
- * to interrupt them in case of network shutdown.
- * 
- * @todo this must become a ProcessThread, leaving the encumbrance from CommChannel
- * 
- */
 public class CommChannelHandler extends Thread
 {
-	private static int index = 0;
-	
-	private CommChannel channel;
-	private CommListener listener;
 	private ExecutionThread executionThread;
 	
-	private static int runningHandlers = 0;
-	private static Object mutex = new Object();
-	
-	private static final long heuristicMem = 300*1024;
-
-	/** Constructor.
-	 * 
-	 * @param threadGroup the threadGroup to which the CommChannelHandler thread will be assigned.
-	 * @param channel the channel to be handled.
-	 */
-	public CommChannelHandler( ThreadGroup threadGroup, CommChannel channel, CommListener listener )
+	public CommChannelHandler( Runnable r )
 	{
-		super( threadGroup, "CommChannelHandler-" + index++ );
-		this.channel = channel;
-		this.listener = listener;
+		super( r );
 	}
 	
 	public static CommChannelHandler currentThread()
@@ -74,72 +46,5 @@ public class CommChannelHandler extends Thread
 	public ExecutionThread executionThread()
 	{
 		return executionThread;
-	}
-	
-	/**
-	 * @todo improve the memory heuristics
-	 * @todo handle resource exhaustion exceptions, as impossibility to create another thread or outofmemory errors
-	 */
-	public static void startHandler( CommChannel channel, CommListener listener )
-	{
-		int limit = CommCore.connectionsLimit();
-		synchronized( mutex ) {
-			if ( limit < 0 ) {
-				if( runningHandlers > 0 && Runtime.getRuntime().freeMemory() < heuristicMem ) {
-					try {
-						mutex.wait();
-					} catch( InterruptedException ie ) {}
-				}
-			} else if( runningHandlers > limit ) {
-				try {
-					mutex.wait();
-				} catch( InterruptedException ie ) {}
-			}
-			
-			//int freeMem = Runtime.getRuntime().freeMemory();
-			//(new CommChannelHandler( listener.getThreadGroup(), channel, listener )).start();
-			//freeMem = 
-		}
-		
-		(new CommChannelHandler( listener.getThreadGroup(), channel, listener )).start();
-	}
-	
-	/** Runs the thread, making it waiting for a message.
-	 * When a message is received, the thread creates a CommMessage object 
-	 * and passes it to the relative InputOperation object, which will handle the
-	 * received information.
-	 * After the information has been sent to the InputOperation object, the 
-	 * communication channel is closed and the thread terminates. 
-	 */
-	public void run()
-	{
-		synchronized( mutex ) {
-			runningHandlers++;
-		}
-		try {
-			CommMessage message = channel.recv();
-			InputOperation operation =
-					InputOperation.getById( message.inputId() );
-			
-			if ( listener.canHandleInputOperation( operation ) )
-				operation.recvMessage( channel, message );
-			else {
-				CommCore.logger().warning(
-							"Discarded a message for operation " + operation +
-							", not specified in an input port at the receiving service."
-						);
-			}
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-		} catch( InvalidIdException iie ) {
-			iie.printStackTrace();
-		}
-		
-		synchronized( mutex ) {
-			runningHandlers--;
-			int limit = CommCore.connectionsLimit();
-			if ( limit < 0 || runningHandlers <= limit )
-				mutex.notifyAll();
-		}
 	}
 }
