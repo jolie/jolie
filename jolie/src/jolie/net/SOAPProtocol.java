@@ -23,11 +23,13 @@
 
 package jolie.net;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
@@ -56,6 +58,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -308,24 +311,44 @@ public class SOAPProtocol implements CommProtocol
 		*/
 	}
 	
-	private void soapElementsToSubValues( Value value, NodeList list )
+	private void xmlNodeToValue( Value value, Node node )
 	{
-		Node node;
+		Node currNode;
+		
+		// Set attributes
+		NamedNodeMap attributes = node.getAttributes();
+		if ( attributes != null ) {
+			for( int i = 0; i < attributes.getLength(); i++ ) {
+				currNode = attributes.item( i );
+				value.getAttribute( currNode.getNodeName() ).setStrValue( currNode.getNodeValue() );
+			}
+		}
+		
+		// Set children
+		NodeList list = node.getChildNodes();
 		Value childValue;
 		for( int i = 0; i < list.getLength(); i++ ) {
-			node = list.item( i );
-			switch( node.getNodeType() ) {
-			case Node.ATTRIBUTE_NODE:
-				value.getAttribute( node.getNodeName() ).setStrValue( node.getNodeValue() );
-				break;
+			currNode = list.item( i );
+			switch( currNode.getNodeType() ) {
 			case Node.ELEMENT_NODE:
-				childValue = value.getNewChild( node.getLocalName() );
-				soapElementsToSubValues( childValue, node.getChildNodes() ); 
+				childValue = value.getNewChild( currNode.getLocalName() );
+				xmlNodeToValue( childValue, currNode );
 				break;
 			case Node.TEXT_NODE:
-				value.setStrValue( node.getNodeValue() );
+				value.setStrValue( currNode.getNodeValue() );
 				break;
 			}
+		}
+		
+		Value attr;
+		if ( (attr=value.attributes().get( "type" )) != null ) {
+			String type = attr.strValue();
+			if ( "xsd:int".equals( type ) )
+				value.setIntValue( value.intValue() );
+			else if ( "xsd:double".equals( type ) )
+				value.setDoubleValue( value.doubleValue() );
+			else if ( "xsd:string".equals( type ) )
+				value.setStrValue( value.strValue() );
 		}
 	}
 	
@@ -351,14 +374,14 @@ public class SOAPProtocol implements CommProtocol
 			
 			
 			// Debug incoming message
-			/*
-			BufferedReader r = new BufferedReader( message.contentStream() );
+			
+			BufferedReader r = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
 			String p;
 			System.out.println("---");
 			while( (p=r.readLine()) != null ) 
 				System.out.println(p);
 			System.out.println("---");
-			*/
+			
 			
 			Document doc = builder.parse( src );
 			DOMSource dom = new DOMSource( doc );
@@ -366,8 +389,8 @@ public class SOAPProtocol implements CommProtocol
 			soapMessage.getSOAPPart().setContent( dom );
 			
 			Value value = Value.create();
-			soapElementsToSubValues(
-					value, soapMessage.getSOAPBody().getFirstChild().getChildNodes()
+			xmlNodeToValue(
+					value, soapMessage.getSOAPBody().getFirstChild()
 					);
 			
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 

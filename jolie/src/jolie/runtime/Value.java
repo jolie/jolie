@@ -384,7 +384,7 @@ abstract public class Value implements Expression
 			else
 				return ( isString() && strValue().equals( val.strValue() ) );*/
 			Object o = valueObject();
-			return( o != null && o.equals( val ) );
+			return( o != null && o.equals( val.valueObject() ) );
 		}
 		return( !isDefined() );
 	}
