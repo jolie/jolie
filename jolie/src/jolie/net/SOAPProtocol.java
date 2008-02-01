@@ -375,13 +375,13 @@ public class SOAPProtocol implements CommProtocol
 			
 			// Debug incoming message
 			
-			BufferedReader r = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
+			/*BufferedReader r = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
 			String p;
 			System.out.println("---");
 			while( (p=r.readLine()) != null ) 
 				System.out.println(p);
 			System.out.println("---");
-			
+			*/
 			
 			Document doc = builder.parse( src );
 			DOMSource dom = new DOMSource( doc );
