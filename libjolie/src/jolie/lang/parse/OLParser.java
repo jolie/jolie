@@ -371,7 +371,7 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				pt.addOperation( new OneWayOperationDeclaration( getContext(), token.content() ) );
 				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
+				if ( token.is( Scanner.TokenType.SEQUENCE ) )
 					getToken();
 				else
 					keepRun = false;
@@ -412,7 +412,7 @@ public class OLParser extends AbstractParser
 					new RequestResponseOperationDeclaration( getContext(), opId, faultNames )
 				);
 				//getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
+				if ( token.is( Scanner.TokenType.SEQUENCE ) )
 					getToken();
 				else
 					keepRun = false;
@@ -443,7 +443,7 @@ public class OLParser extends AbstractParser
 					new NotificationOperationDeclaration( getContext(), token.content() )
 				);
 				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
+				if ( token.is( Scanner.TokenType.SEQUENCE ) )
 					getToken();
 				else
 					keepRun = false;
@@ -475,7 +475,7 @@ public class OLParser extends AbstractParser
 					new SolicitResponseOperationDeclaration( getContext(), token.content() )
 				);
 				getToken();
-				if ( token.is( Scanner.TokenType.COMMA ) )
+				if ( token.is( Scanner.TokenType.SEQUENCE ) )
 					getToken();
 				else
 					keepRun = false;
