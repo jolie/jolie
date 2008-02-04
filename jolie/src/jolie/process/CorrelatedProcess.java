@@ -79,13 +79,27 @@ public class CorrelatedProcess implements Process
 		}
 	}
 	
-	public synchronized void signalFault( FaultException f )
+	public void signalFault( FaultException f )
 	{
-		Interpreter.logUnhandledFault( f );
+		ExecutionThread ethread = ExecutionThread.currentThread();
+		Process p = null;
+		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.fault() )) == null )
+			ethread.popScope();
 		
-		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			waiting = false;
-			notify();
+		try {
+			if ( p == null )
+				Interpreter.logUnhandledFault( f );
+			else
+				p.run();
+		
+			synchronized( this ) {
+				if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+					waiting = false;
+					notify();
+				}
+			}
+		} catch( FaultException fault ) {
+			signalFault( fault );
 		}
 	}
 }

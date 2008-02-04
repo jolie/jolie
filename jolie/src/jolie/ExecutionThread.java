@@ -136,6 +136,11 @@ abstract public class ExecutionThread extends Thread
 		
 		return scopeStack.peek().getCompensation( id );
 	}
+	
+	public synchronized boolean hasScope()
+	{
+		return !scopeStack.empty();
+	}
 
 	public synchronized Process getFaultHandler( String id )
 	{
