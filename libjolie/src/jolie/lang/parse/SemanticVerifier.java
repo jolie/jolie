@@ -115,9 +115,11 @@ public class SemanticVerifier implements OLVisitor
 	private void error( OLSyntaxNode node, String message )
 	{
 		valid = false;
-		ParsingContext context = node.context();
-		String s = context.sourceName() + ":" + context.line() + ": " + message;
-		logger.severe( s );
+		if ( node != null ) {
+			ParsingContext context = node.context();
+			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
+		} else
+			logger.severe( message );
 	}
 	
 	public boolean validate()
