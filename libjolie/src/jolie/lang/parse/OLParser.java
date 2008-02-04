@@ -398,7 +398,7 @@ public class OLParser extends AbstractParser
 				/*inVarTypes = parseVarTypes();
 				outVarTypes = parseVarTypes();*/
 				Vector< String > faultNames = new Vector< String >();
-				if ( token.is( Scanner.TokenType.LSQUARE ) ) { // fault names declaration
+				if ( token.is( Scanner.TokenType.THROWS ) ) {
 					getToken();
 					while( token.is( Scanner.TokenType.ID ) ) {
 						faultNames.add( token.content() );
@@ -407,7 +407,6 @@ public class OLParser extends AbstractParser
 							break;
 						else getToken();
 					}
-					eat( Scanner.TokenType.RSQUARE, "expected ]" );
 				}
 				pt.addOperation(
 					new RequestResponseOperationDeclaration( getContext(), opId, faultNames )

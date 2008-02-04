@@ -108,6 +108,7 @@ public class Scanner
 		SYNCHRONIZED,			///< synchronized
 		FROM,					///< from
 		PICK,					///< pick
+		THROWS,					///< throws
 		ERROR					///< Scanner error
 	}
 	
@@ -446,6 +447,8 @@ public class Scanner
 							retval = new Token( TokenType.FROM );
 						else if ( "pick".equals( str ) )
 							retval = new Token( TokenType.PICK );
+						else if ( "throws".equals( str ) )
+							retval = new Token( TokenType.THROWS );
 						else
 							retval = new Token( TokenType.ID, str );
 					}
