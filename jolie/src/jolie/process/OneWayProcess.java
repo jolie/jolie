@@ -31,6 +31,7 @@ import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
 import jolie.runtime.OperationChannelInfo;
+import jolie.runtime.Value;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
@@ -216,7 +217,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	
 	public void runBehaviour( CommChannel channel, CommMessage message )
 	{
-		if ( varPath != null )
-			varPath.getValue().deepCopy( message.value() );
+		if ( varPath != null ) {
+			Value val = varPath.getValue();
+			val.erase();
+			val.deepCopy( message.value() );
+		}
 	}
 }

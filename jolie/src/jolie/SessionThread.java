@@ -24,7 +24,7 @@ package jolie;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 
-public class StatefulThread extends ExecutionThread
+public class SessionThread extends ExecutionThread
 {
 	private jolie.State state;
 	
@@ -33,21 +33,14 @@ public class StatefulThread extends ExecutionThread
 		this.state = state;
 	}
 	
-	public StatefulThread( Process process, ExecutionThread parent )
-	{
-		super( process, parent );
-		if ( parent != null )
-			state = parent.state().clone();
-		else
-			state = new jolie.State();
-	}
-	
-	public StatefulThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
+	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
 	{
 		super( process, parent, notifyObj );
-		if ( parent != null )
+		if ( parent != null ) {
 			state = parent.state().clone();
-		else
+			for( Scope s : parent.scopeStack )
+				scopeStack.push( s.clone() );
+		} else
 			state = new jolie.State();
 	}
 	

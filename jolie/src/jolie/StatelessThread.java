@@ -21,7 +21,6 @@
 
 package jolie;
 
-import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 
 public class StatelessThread extends ExecutionThread
@@ -35,13 +34,7 @@ public class StatelessThread extends ExecutionThread
 
 	public StatelessThread( ExecutionThread parent, Process process )
 	{
-		super( process, parent );
-		this.parent = parent;
-	}
-	
-	public StatelessThread( ExecutionThread parent, Process process, CorrelatedProcess notifyObj )
-	{
-		super( process, parent, notifyObj );
+		super( process, parent, null );
 		this.parent = parent;
 	}
 	

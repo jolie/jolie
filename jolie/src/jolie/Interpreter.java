@@ -206,7 +206,7 @@ public class Interpreter
 			assert false;
 		}
 		
-		StatefulThread mainExec = new StatefulThread( main, null );
+		SessionThread mainExec = new SessionThread( main, null, null );
 		
 		// Initialize program arguments in the args variabile.
 		ValueVector args = ValueVector.create();

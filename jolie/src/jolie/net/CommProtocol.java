@@ -33,6 +33,6 @@ public interface CommProtocol extends Cloneable
 
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException;
-	
+
 	public CommProtocol clone();
 }

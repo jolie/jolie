@@ -32,6 +32,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.Value;
 
 public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
 {
@@ -126,8 +127,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
-		if ( inputVarPath != null )
-			inputVarPath.getValue().deepCopy( message.value() );
+		if ( inputVarPath != null ) {
+			Value val = inputVarPath.getValue();
+			val.erase();
+			val.deepCopy( message.value() );
+		}
 		
 		FaultException fault = null;
 		

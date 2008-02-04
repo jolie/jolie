@@ -33,62 +33,64 @@ import jolie.runtime.FaultException;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.Value;
 
-class Scope {
-	private HashMap< String, Process > faultMap = new HashMap< String, Process >();
-	private HashMap< String, Process > compMap = new HashMap< String, Process >();
-	private String id;
-
-	public Scope( String id )
-	{
-		this.id = id;
-	}
-	
-	public void installCompensation( Process process )
-	{
-		compMap.put( id, process );
-	}
-	
-	public void installFaultHandler( String f, Process process )
-	{
-		faultMap.put( f, process );
-	}
-	
-	public Process getFaultHandler( String name )
-	{
-		Process p = faultMap.get( name );
-		if ( p != null )
-			faultMap.remove( name );
-		return p;
-	}
-	
-	public Process getCompensation( String name )
-	{
-		Process p = compMap.get( name );
-		if ( p != null )
-			compMap.remove( name );
-		return p;
-	}
-	
-	public void mergeCompensations( Scope s )
-	{
-		compMap.putAll( s.compMap );
-	}
-}
-
 abstract public class ExecutionThread extends Thread
 {
+	protected class Scope implements Cloneable {
+		private HashMap< String, Process > faultMap = new HashMap< String, Process >();
+		private HashMap< String, Process > compMap = new HashMap< String, Process >();
+		private String id;
+		
+		public Scope clone()
+		{
+			Scope ret = new Scope( id );
+			ret.compMap.putAll( compMap );
+			ret.faultMap.putAll( faultMap );
+			return ret;
+		}
+	
+		public Scope( String id )
+		{
+			this.id = id;
+		}
+		
+		public void installCompensation( Process process )
+		{
+			compMap.put( id, process );
+		}
+		
+		public void installFaultHandler( String f, Process process )
+		{
+			faultMap.put( f, process );
+		}
+		
+		public Process getFaultHandler( String name )
+		{
+			Process p = faultMap.get( name );
+			if ( p != null )
+				faultMap.remove( name );
+			return p;
+		}
+		
+		public Process getCompensation( String name )
+		{
+			Process p = compMap.get( name );
+			if ( p != null )
+				compMap.remove( name );
+			return p;
+		}
+		
+		public void mergeCompensations( Scope s )
+		{
+			compMap.putAll( s.compMap );
+		}
+	}
+
 	private Process process;
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
 	private ExecutionThread parent;
 	private boolean killed = false;
 	
 	private CorrelatedProcess notifyProc = null;
-	
-	public ExecutionThread( Process process, ExecutionThread parent )
-	{
-		this.process = process;
-		this.parent = parent;
-	}
 	
 	public ExecutionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{

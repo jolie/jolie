@@ -36,6 +36,11 @@ import jolie.net.CommChannel;
 class ValueLink extends Value implements Cloneable
 {
 	private GlobalVariablePath linkPath;
+	
+	public void erase()
+	{
+		linkPath.getValue().erase();
+	}
 
 	public void writeExternal( ObjectOutput out )
 		throws IOException
@@ -106,6 +111,13 @@ class ValueImpl extends Value implements Externalizable
 	private Object valueObject;
 	private ConcurrentHashMap< String, ValueVector > children = null;
 	private ConcurrentHashMap< String, Value > attributes = null;
+	
+	public void erase()
+	{
+		valueObject = null;
+		children = null;
+		attributes = null;
+	}
 	
 	public void readExternal( ObjectInput in )
 		throws IOException, ClassNotFoundException
@@ -298,7 +310,7 @@ abstract public class Value implements Expression
 		return v;
 	}
 	
-	public abstract boolean isLink();
+	abstract public boolean isLink();
 	
 	public static Value createLink( GlobalVariablePath path )
 	{
@@ -353,6 +365,8 @@ abstract public class Value implements Expression
 	{
 		_deepCopy( value, false );
 	}
+	
+	abstract public void erase();
 		
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
 	
