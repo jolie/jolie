@@ -39,6 +39,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -47,7 +48,6 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InStatement;
-import jolie.lang.parse.ast.StatementChannelInfo;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
@@ -85,6 +85,7 @@ import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.StatementChannelInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -667,7 +668,10 @@ public class OLParser extends AbstractParser
 			retVal = parseInStatement();
 		else if ( token.is( Scanner.TokenType.LINKIN ) )
 			retVal = parseLinkInStatement();
-		else if ( token.is( Scanner.TokenType.NULL_PROCESS ) ) {
+		else if ( token.is( Scanner.TokenType.CURRENT_HANDLER ) ) {
+			getToken();
+			retVal = new CurrentHandlerStatement( getContext() );
+		} else if ( token.is( Scanner.TokenType.NULL_PROCESS ) ) {
 			getToken();
 			retVal = new NullProcessStatement( getContext() );
 		} else if ( token.is( Scanner.TokenType.EXIT ) ) {

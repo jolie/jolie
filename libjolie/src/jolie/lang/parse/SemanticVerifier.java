@@ -36,6 +36,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -327,4 +328,9 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( ForEachStatement n ) {}
 	public void visit( IsTypeExpressionNode n ) {}
 	public void visit( TypeCastExpressionNode n ) {}
+	
+	/**
+	 * @todo Must check if it's inside an install function
+	 */
+	public void visit( CurrentHandlerStatement n ) {}
 }

@@ -30,6 +30,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -143,4 +144,5 @@ public interface OLVisitor
 	public void visit( IsTypeExpressionNode n );
 	public void visit( TypeCastExpressionNode n );
 	public void visit( SynchronizedStatement n );
+	public void visit( CurrentHandlerStatement n );
 }

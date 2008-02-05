@@ -109,6 +109,7 @@ public class Scanner
 		FROM,					///< from
 		PICK,					///< pick
 		THROWS,					///< throws
+		CURRENT_HANDLER,		///< cH
 		ERROR					///< Scanner error
 	}
 	
@@ -449,6 +450,8 @@ public class Scanner
 							retval = new Token( TokenType.PICK );
 						else if ( "throws".equals( str ) )
 							retval = new Token( TokenType.THROWS );
+						else if ( "cH".equals( str ) )
+							retval = new Token( TokenType.CURRENT_HANDLER );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

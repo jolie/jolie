@@ -30,6 +30,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -359,6 +360,7 @@ public class OLParseTreeOptimizer
 		public void visit( ForEachStatement n ) { currNode = n; }
 		public void visit( IsTypeExpressionNode n ) { currNode = n; }
 		public void visit( TypeCastExpressionNode n ) { currNode = n; }
+		public void visit( CurrentHandlerStatement n ) { currNode = n; }
 	}
 	
 	private Program originalProgram;
