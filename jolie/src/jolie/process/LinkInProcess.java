@@ -36,6 +36,11 @@ public class LinkInProcess implements InputProcess
 		this.link = link;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new LinkInProcess( link );
+	}
+	
 	public InputHandler getInputHandler()
 	{
 		return InternalLink.getById( link );

@@ -101,6 +101,11 @@ public class SleepProcess implements InputProcess
 		this.expression = expression;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new SleepProcess( expression );
+	}
+	
 	/**
 	 * @todo Improve performance
 	 */

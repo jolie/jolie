@@ -35,6 +35,11 @@ public class PreIncrementProcess implements Process, Expression
 		this.varPath = varPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new PreIncrementProcess( varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

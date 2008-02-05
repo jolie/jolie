@@ -33,6 +33,11 @@ public class UndefProcess implements Process
 		this.varPath = varPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new UndefProcess( varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

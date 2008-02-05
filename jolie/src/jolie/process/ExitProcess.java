@@ -37,6 +37,11 @@ public class ExitProcess implements Process
 		return ExitProcess.LazyHolder.instance;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return getInstance();
+	}
+	
 	public void run()
 	{
 		Interpreter.exit();

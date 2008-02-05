@@ -35,6 +35,11 @@ public class SynchronizedProcess implements Process
 		this.process = process;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new SynchronizedProcess( id, process.clone( reason ) );
+	}
+	
 	public void run()
 		throws FaultException
 	{

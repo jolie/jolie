@@ -41,6 +41,11 @@ public class CallProcess implements Process
 		this.definition = definition;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new CallProcess( definition );
+	}
+	
 	/** Executes the definition. */
 	public void run()
 		throws FaultException

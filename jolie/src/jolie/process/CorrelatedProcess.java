@@ -38,6 +38,11 @@ public class CorrelatedProcess implements Process
 		this.process = process;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new CorrelatedProcess( process.clone( reason ) );
+	}
+	
 	private void startSession()
 	{
 		waiting = true;
@@ -83,7 +88,7 @@ public class CorrelatedProcess implements Process
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		Process p = null;
-		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.fault() )) == null )
+		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.fault(), true )) == null )
 			ethread.popScope();
 		
 		try {

@@ -62,7 +62,7 @@ public class ScopeProcess implements Process
 					}
 				}
 			} catch( FaultException f ) {
-				p = ethread.getFaultHandler( f.fault() );
+				p = ethread.getFaultHandler( f.fault(), true );
 				if ( p != null ) {
 					this.runScope( p );
 				} else
@@ -78,6 +78,11 @@ public class ScopeProcess implements Process
 	{
 		this.id = id;
 		this.process = process;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new ScopeProcess( id, process.clone( reason ) );
 	}
 	
 	public void run()

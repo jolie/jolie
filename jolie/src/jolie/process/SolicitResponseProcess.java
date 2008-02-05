@@ -53,6 +53,11 @@ public class SolicitResponseProcess implements Process
 		this.installProcess = installProcess;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new SolicitResponseProcess( operation, location, outputVarPath, inputVarPath, installProcess );
+	}
+	
 	public void run()
 		throws FaultException
 	{

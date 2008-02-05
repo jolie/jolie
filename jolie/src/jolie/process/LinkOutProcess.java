@@ -34,6 +34,11 @@ public class LinkOutProcess implements Process
 		this.link = link;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new LinkOutProcess( link );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

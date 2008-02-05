@@ -38,6 +38,11 @@ public class ForProcess implements Process
 		this.process = process;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new ForProcess( init, condition, post, process.clone( reason ) );
+	}
+	
 	public void run()
 		throws FaultException
 	{

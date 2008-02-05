@@ -43,6 +43,11 @@ public class ForEachProcess implements Process
 		this.process = process;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new ForEachProcess( keyPath, valuePath, targetPath, process.clone( reason ) );
+	}
+	
 	public void run()
 		throws FaultException
 	{

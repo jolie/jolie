@@ -45,6 +45,11 @@ public class RunProcess implements Process
 		this.expression = expression;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new RunProcess( expression );
+	}
+	
 	public void run()
 		throws FaultException
 	{

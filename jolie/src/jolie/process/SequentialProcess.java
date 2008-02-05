@@ -35,6 +35,14 @@ public class SequentialProcess implements Process
 		children = new Vector< Process >();
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		SequentialProcess p = new SequentialProcess();
+		for( Process child : children )
+			p.addChild( child.clone( reason ) );
+		return p;
+	}
+	
 	public void run()
 		throws FaultException
 	{

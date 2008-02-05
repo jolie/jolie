@@ -19,22 +19,19 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
+package jolie.runtime;
 
-
-public class InstallCompensationProcess implements Process
+public class HandlerInstallationReason implements jolie.process.Process.TransformationReason
 {
-	private Process process;
+	private String handlerId;
 	
-	public InstallCompensationProcess( Process process )
+	public HandlerInstallationReason( String handlerId )
 	{
-		this.process = process;
+		this.handlerId = handlerId;
 	}
-	
-	public void run()
+	public String handlerId()
 	{
-		ExecutionThread.currentThread().installCompensation( process );
+		return handlerId;
 	}
 }

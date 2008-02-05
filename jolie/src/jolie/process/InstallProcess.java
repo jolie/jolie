@@ -24,6 +24,7 @@ package jolie.process;
 import java.util.List;
 
 import jolie.ExecutionThread;
+import jolie.runtime.HandlerInstallationReason;
 import jolie.util.Pair;
 
 
@@ -36,17 +37,24 @@ public class InstallProcess implements Process
 	{
 		this.pairs = pairs;
 	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new InstallProcess( pairs );
+	}
 
 	/**
 	 * @todo perhaps the currentThread() thing can be stored in a local var. Check if this causes concurrency problems.
 	 */
 	public void run()
 	{
+		Process handler;
 		for( Pair< String, Process > pair : pairs ) {
+			handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null )
-				ExecutionThread.currentThread().installCompensation( pair.value() );
+				ExecutionThread.currentThread().installCompensation( handler );
 			else
-				ExecutionThread.currentThread().installFaultHandler( pair.key(), pair.value() );
+				ExecutionThread.currentThread().installFaultHandler( pair.key(), handler );
 		}
 	}
 }

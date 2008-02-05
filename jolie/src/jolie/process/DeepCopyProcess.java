@@ -34,6 +34,11 @@ public class DeepCopyProcess implements Process
 		this.rightPath = rightPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new DeepCopyProcess( leftPath, rightPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

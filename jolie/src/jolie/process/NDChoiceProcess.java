@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.util.Collection;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.ExecutionThread;
@@ -71,6 +72,11 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		public Execution( NDChoiceProcess parent )
 		{
 			this.parent = parent;
+		}
+		
+		public Process clone( TransformationReason reason )
+		{
+			return new Execution( parent );
 		}
 		
 		public Process parent()
@@ -142,6 +148,16 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 	public NDChoiceProcess( Collection< Pair< InputProcess, Process > > branches )
 	{
 		this.branches = branches;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		Vector< Pair< InputProcess, Process > > b =
+			new Vector< Pair< InputProcess, Process > > ();
+		for( Pair< InputProcess, Process > pair : branches )
+			b.add( new Pair< InputProcess, Process >( pair.key(), pair.value().clone( reason ) ) );
+
+		return new NDChoiceProcess( b );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )

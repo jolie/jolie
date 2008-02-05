@@ -35,6 +35,11 @@ public class PostIncrementProcess implements Process, Expression
 		this.varPath = varPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new PostIncrementProcess( varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

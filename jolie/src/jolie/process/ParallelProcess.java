@@ -35,7 +35,18 @@ public class ParallelProcess implements Process
 	{
 		(new ParallelExecution( children )).run();
 	}
-		
+	
+	public Process clone( TransformationReason reason )
+	{
+		ParallelProcess p = new ParallelProcess();
+		for( Process child : children )
+			p.addChild( child.clone( reason ) );
+		return p;
+	}
+	
+	/**
+	 * @todo Embed this into the constructor
+	 */
 	public void addChild( Process process )
 	{
 		if ( process != null )

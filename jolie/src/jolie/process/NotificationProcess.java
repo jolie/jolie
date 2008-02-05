@@ -51,6 +51,11 @@ public class NotificationProcess implements Process
 		//this.channelInfo = channelInfo;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new NotificationProcess( operation, location, varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

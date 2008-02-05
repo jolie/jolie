@@ -35,6 +35,11 @@ public class PostDecrementProcess implements Process, Expression
 		this.varPath = varPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new PostDecrementProcess( varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

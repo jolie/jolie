@@ -36,6 +36,11 @@ public class WhileProcess implements Process
 		this.process = process;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new WhileProcess( condition, process.clone( reason ) );
+	}
+	
 	public void run()
 		throws FaultException
 	{

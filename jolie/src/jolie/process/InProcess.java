@@ -43,10 +43,15 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 	private InputProcessExecution inputProcess;
 	private CorrelatedProcess correlatedProcess;
 	
-	public InInputHandler( InProcess parent, GlobalVariablePath varPath, CorrelatedProcess correlatedProcess )
+	public InInputHandler( GlobalVariablePath varPath, CorrelatedProcess correlatedProcess )
 	{
 		this.varPath = varPath;
 		this.correlatedProcess = correlatedProcess;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new InInputHandler( varPath, correlatedProcess );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
@@ -129,6 +134,11 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 		this.varPath = varPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new InProcess( varPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
@@ -160,7 +170,7 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 	
 	public InputHandler getInputHandler()
 	{
-		return new InInputHandler( this, varPath, correlatedProcess );
+		return new InInputHandler( varPath, correlatedProcess );
 	}
 	
 	public void runBehaviour( CommChannel channel, CommMessage message )

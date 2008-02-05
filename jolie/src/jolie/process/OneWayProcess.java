@@ -132,6 +132,11 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			this.parent = parent;
 		}
 		
+		public Process clone( TransformationReason reason )
+		{
+			return new Execution( parent );
+		}
+		
 		public Process parent()
 		{
 			return parent;
@@ -189,6 +194,11 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			model = ExecutionInChannel.class;
 		else if ( channelInfo.operator() == Constants.ChannelOperator.PICK )
 			model = ExecutionPickChannel.class;*/
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new OneWayProcess( operation, varPath, channelInfo );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )

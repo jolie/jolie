@@ -24,6 +24,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -91,6 +92,7 @@ import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
 import jolie.process.CorrelatedInputProcess;
 import jolie.process.CorrelatedProcess;
+import jolie.process.CurrentHandlerProcess;
 import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
 import jolie.process.ExitProcess;
@@ -596,6 +598,11 @@ public class OOITBuilder implements OLVisitor
 		}
 		
 		currProcess = ifProc;
+	}
+	
+	public void visit( CurrentHandlerStatement n )
+	{
+		currProcess = CurrentHandlerProcess.getInstance();
 	}
 	
 	public void visit( InStatement n )

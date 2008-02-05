@@ -40,6 +40,11 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 	{
 		super( id );
 	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new DefinitionProcess( id() );
+	}
 
 	public void setProcess( Process process )
 	{

@@ -63,12 +63,17 @@ abstract public class ExecutionThread extends Thread
 			faultMap.put( f, process );
 		}
 		
-		public Process getFaultHandler( String name )
+		public Process getFaultHandler( String name, boolean erase )
 		{
 			Process p = faultMap.get( name );
-			if ( p != null )
+			if ( p != null && erase )
 				faultMap.remove( name );
 			return p;
+		}
+		
+		public Process getSelfCompensation()
+		{
+			return compMap.get( id );
 		}
 		
 		public Process getCompensation( String name )
@@ -129,6 +134,14 @@ abstract public class ExecutionThread extends Thread
 		}
 	}
 	
+	public synchronized Process getCurrentScopeCompensation()
+	{
+		if( scopeStack.empty() )
+			return parent.getCurrentScopeCompensation();
+		
+		return scopeStack.peek().getSelfCompensation();
+	}
+	
 	public synchronized Process getCompensation( String id )
 	{
 		if ( scopeStack.empty() )
@@ -142,12 +155,12 @@ abstract public class ExecutionThread extends Thread
 		return !scopeStack.empty();
 	}
 
-	public synchronized Process getFaultHandler( String id )
+	public synchronized Process getFaultHandler( String id, boolean erase )
 	{
 		if ( scopeStack.empty() )
-			return parent.getFaultHandler( id );
+			return parent.getFaultHandler( id, erase );
 		
-		return scopeStack.peek().getFaultHandler( id );
+		return scopeStack.peek().getFaultHandler( id, erase );
 	}
 	
 	public synchronized void pushScope( String id )

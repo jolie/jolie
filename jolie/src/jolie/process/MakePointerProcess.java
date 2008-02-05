@@ -34,6 +34,11 @@ public class MakePointerProcess implements Process
 		this.rightPath = rightPath;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new MakePointerProcess( leftPath, rightPath );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )

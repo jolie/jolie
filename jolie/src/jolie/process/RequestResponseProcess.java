@@ -47,6 +47,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			this.parent = parent;
 		}
 		
+		public Process clone( TransformationReason reason )
+		{
+			return new Execution( parent );
+		}
+		
 		public Process parent()
 		{
 			return parent;
@@ -99,6 +104,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputVarPath = outputVarPath;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new RequestResponseProcess( operation, inputVarPath, outputVarPath, process.clone( reason ) );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )

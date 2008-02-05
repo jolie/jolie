@@ -25,6 +25,10 @@ import jolie.runtime.FaultException;
 
 public interface Process
 {
+	public interface TransformationReason {}
+	
 	public void run()
 		throws FaultException;
+	
+	public Process clone( TransformationReason reason );
 }

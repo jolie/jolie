@@ -34,6 +34,11 @@ public class CompensateProcess implements Process
 		this.id = id;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new CompensateProcess( id );
+	}
+	
 	public void run()
 		throws FaultException
 	{

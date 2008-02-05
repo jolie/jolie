@@ -22,21 +22,42 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.runtime.HandlerInstallationReason;
 
 
-public class InstallFaultHandlerProcess implements Process
+public class CurrentHandlerProcess implements Process
 {
-	private String id;
-	private Process process;
+	private CurrentHandlerProcess(){}
 	
-	public InstallFaultHandlerProcess( String id, Process process )
+	private static class LazyHolder {
+		static final CurrentHandlerProcess instance = new CurrentHandlerProcess();
+	}
+	
+	static public CurrentHandlerProcess getInstance()
 	{
-		this.id = id;
-		this.process = process;
+		return CurrentHandlerProcess.LazyHolder.instance;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		Process ret = getInstance();
+		if ( reason instanceof HandlerInstallationReason ) {
+			HandlerInstallationReason r = (HandlerInstallationReason)reason;
+			if ( r.handlerId() == null )
+				ret = ExecutionThread.currentThread().getCurrentScopeCompensation();
+			else
+				ret = ExecutionThread.currentThread().getFaultHandler( r.handlerId(), false );
+			
+			if ( ret == null )
+				ret = NullProcess.getInstance();
+		}
+		
+		return ret;
 	}
 	
 	public void run()
 	{
-		ExecutionThread.currentThread().installFaultHandler( id, process );
+		// We should never execute this process node.
+		assert( false );
 	}
 }

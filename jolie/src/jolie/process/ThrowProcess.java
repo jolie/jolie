@@ -34,6 +34,11 @@ public class ThrowProcess implements Process
 		this.id = id;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new ThrowProcess( id );
+	}
+	
 	public void run()
 		throws FaultException
 	{

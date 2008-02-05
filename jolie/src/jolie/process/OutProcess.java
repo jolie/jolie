@@ -34,6 +34,11 @@ public class OutProcess implements Process
 		this.expression = expression;
 	}
 	
+	public Process clone( TransformationReason reason )
+	{
+		return new OutProcess( expression );
+	}
+	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
