@@ -27,14 +27,14 @@ import jolie.lang.parse.ParsingContext;
 
 public class ForEachStatement extends OLSyntaxNode
 {
-	private VariablePath keyPath, valuePath, targetPath;
+	private VariablePathNode keyPath, valuePath, targetPath;
 	private OLSyntaxNode body;
 
 	public ForEachStatement(
 			ParsingContext context,
-			VariablePath keyPath,
-			VariablePath valuePath,
-			VariablePath targetPath,
+			VariablePathNode keyPath,
+			VariablePathNode valuePath,
+			VariablePathNode targetPath,
 			OLSyntaxNode body
 			)
 	{
@@ -50,17 +50,17 @@ public class ForEachStatement extends OLSyntaxNode
 		return body;
 	}
 	
-	public VariablePath keyPath()
+	public VariablePathNode keyPath()
 	{
 		return keyPath;
 	}
 	
-	public VariablePath valuePath()
+	public VariablePathNode valuePath()
 	{
 		return valuePath;
 	}
 	
-	public VariablePath targetPath()
+	public VariablePathNode targetPath()
 	{
 		return targetPath;
 	}

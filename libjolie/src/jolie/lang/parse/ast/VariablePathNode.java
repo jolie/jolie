@@ -27,13 +27,13 @@ import java.util.List;
 import jolie.util.Pair;
 
 
-public class VariablePath
+public class VariablePathNode
 {
 	private List< Pair< String, OLSyntaxNode > > path;
 	private OLSyntaxNode attribute = null;
 	private boolean global;
 
-	public VariablePath( boolean global )
+	public VariablePathNode( boolean global )
 	{
 		path = new LinkedList< Pair< String, OLSyntaxNode > >();
 		this.global = global;

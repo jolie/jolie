@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class SolicitResponseOperationStatement extends OLSyntaxNode
 {
-	private VariablePath outputVarPath, inputVarPath;
+	private VariablePathNode outputVarPath, inputVarPath;
 	private String id;
 	private OLSyntaxNode locationExpression;
 	private InstallFunctionNode handlersFunction;
@@ -36,8 +36,8 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode
 			ParsingContext context,
 			String id,
 			OLSyntaxNode locationExpression,
-			VariablePath outputVarPath,
-			VariablePath inputVarPath,
+			VariablePathNode outputVarPath,
+			VariablePathNode inputVarPath,
 			InstallFunctionNode handlersFunction
 		)
 	{
@@ -64,12 +64,12 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode
 		return locationExpression;
 	}
 	
-	public VariablePath outputVarPath()
+	public VariablePathNode outputVarPath()
 	{
 		return outputVarPath;
 	}
 	
-	public VariablePath inputVarPath()
+	public VariablePathNode inputVarPath()
 	{
 		return inputVarPath;
 	}

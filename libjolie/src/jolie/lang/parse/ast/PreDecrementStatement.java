@@ -27,15 +27,15 @@ import jolie.lang.parse.ParsingContext;
 
 public class PreDecrementStatement extends OLSyntaxNode
 {
-	private VariablePath variablePath;
+	private VariablePathNode variablePath;
 
-	public PreDecrementStatement( ParsingContext context, VariablePath variablePath )
+	public PreDecrementStatement( ParsingContext context, VariablePathNode variablePath )
 	{
 		super( context );
 		this.variablePath = variablePath;
 	}
 	
-	public VariablePath variablePath()
+	public VariablePathNode variablePath()
 	{
 		return variablePath;
 	}

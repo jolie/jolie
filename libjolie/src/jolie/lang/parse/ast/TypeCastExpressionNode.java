@@ -28,10 +28,10 @@ import jolie.lang.parse.ParsingContext;
 
 public class TypeCastExpressionNode extends OLSyntaxNode
 {
-	private VariablePath variablePath;
+	private VariablePathNode variablePath;
 	private Constants.VariableType type;
 
-	public TypeCastExpressionNode( ParsingContext context, Constants.VariableType type, VariablePath variablePath )
+	public TypeCastExpressionNode( ParsingContext context, Constants.VariableType type, VariablePathNode variablePath )
 	{
 		super( context );
 		this.type = type;
@@ -43,7 +43,7 @@ public class TypeCastExpressionNode extends OLSyntaxNode
 		return type;
 	}
 	
-	public VariablePath variablePath()
+	public VariablePathNode variablePath()
 	{
 		return variablePath;
 	}

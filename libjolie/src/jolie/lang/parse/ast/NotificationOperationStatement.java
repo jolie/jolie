@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class NotificationOperationStatement extends OLSyntaxNode
 {
-	private VariablePath outputVarPath;
+	private VariablePathNode outputVarPath;
 	private String id;
 	private OLSyntaxNode locationExpression;
 	
@@ -35,7 +35,7 @@ public class NotificationOperationStatement extends OLSyntaxNode
 			ParsingContext context,
 			String id,
 			OLSyntaxNode locationExpression,
-			VariablePath outputVarPath
+			VariablePathNode outputVarPath
 			)
 	{
 		super( context );
@@ -54,7 +54,7 @@ public class NotificationOperationStatement extends OLSyntaxNode
 		return locationExpression;
 	}
 	
-	public VariablePath outputVarPath()
+	public VariablePathNode outputVarPath()
 	{
 		return outputVarPath;
 	}

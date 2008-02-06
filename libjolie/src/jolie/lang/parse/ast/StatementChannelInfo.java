@@ -26,21 +26,21 @@ import jolie.Constants;
 
 public class StatementChannelInfo
 {
-	private VariablePath channelPath, indexPath;
+	private VariablePathNode channelPath, indexPath;
 	private Constants.ChannelOperator type;
 		
-	public StatementChannelInfo( Constants.ChannelOperator type, VariablePath channelPath, VariablePath indexPath )
+	public StatementChannelInfo( Constants.ChannelOperator type, VariablePathNode channelPath, VariablePathNode indexPath )
 	{
 		this.channelPath = channelPath;
 		this.indexPath = indexPath;
 	}
 	
-	public VariablePath channelPath()
+	public VariablePathNode channelPath()
 	{
 		return channelPath;
 	}
 	
-	public VariablePath indexPath()
+	public VariablePathNode indexPath()
 	{
 		return indexPath;
 	}

@@ -28,6 +28,8 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import jolie.Constants;
@@ -93,7 +95,7 @@ import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
-import jolie.lang.parse.ast.VariablePath;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
@@ -145,19 +147,33 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			String varId;
-			VariablePath path;
-			HashSet< VariablePath > cPaths = new HashSet< VariablePath >();
+			Set< List< VariablePathNode > > cset = new HashSet< List< VariablePathNode > >();
+			List< VariablePathNode > list;
 			while( token.is( Scanner.TokenType.ID ) ) {
+				list = new Vector< VariablePathNode > ();
 				varId = token.content();
 				getToken();
-				path = parseVariablePath( varId );
-				cPaths.add( path );
-				if ( token.is( Scanner.TokenType.COMMA ) )
+				list.add( parseVariablePath( varId, false ) );
+				if ( token.is( Scanner.TokenType.COLON ) ) {
+					getToken();
+					while( token.is( Scanner.TokenType.ID ) ) {
+						varId = token.content();
+						getToken();
+						list.add( parseVariablePath( varId ) );
+						if ( token.is( Scanner.TokenType.COMMA ) )
+							getToken();
+						else
+							break;
+					}
+				}
+				cset.add( list );
+				if ( token.is( Scanner.TokenType.SEQUENCE ) )
 					getToken();
 				else
 					break;
 			}
-			program.addChild( new CorrelationSetInfo( getContext(), cPaths ) );
+			
+			program.addChild( new CorrelationSetInfo( getContext(), cset ) );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
@@ -638,17 +654,17 @@ public class OLParser extends AbstractParser
 			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
 			String varId = token.content();
 			getToken();
-			VariablePath keyPath = parseVariablePath( varId );
+			VariablePathNode keyPath = parseVariablePath( varId );
 			eat( Scanner.TokenType.COMMA, "expected ," );
 			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
 			varId = token.content();
 			getToken();
-			VariablePath valuePath = parseVariablePath( varId );
+			VariablePathNode valuePath = parseVariablePath( varId );
 			eat( Scanner.TokenType.IN, "expected in" );
 			tokenAssert( Scanner.TokenType.ID, "expected variable path" );
 			varId = token.content();
 			getToken();
-			VariablePath targetPath = parseVariablePath( varId );
+			VariablePathNode targetPath = parseVariablePath( varId );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			
 			OLSyntaxNode body = parseBasicStatement();
@@ -798,7 +814,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		OLSyntaxNode retVal = null;
-		VariablePath path = parseVariablePath( varName );
+		VariablePathNode path = parseVariablePath( varName );
 		
 		if ( token.is( Scanner.TokenType.ASSIGN ) ) {
 			getToken();
@@ -828,16 +844,22 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 	
-	private VariablePath parseVariablePath( String varId )
+	private VariablePathNode parseVariablePath( String varId )
+		throws IOException, ParserException
+	{
+		return parseVariablePath( varId, true );
+	}
+	
+	private VariablePathNode parseVariablePath( String varId, boolean parseAttribute )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode expr = null;
-		VariablePath path = null;
+		VariablePathNode path = null;
 		
 		if ( varId.equals( Constants.GLOBAL ) ) {
-			path = new VariablePath( true );
+			path = new VariablePathNode( true );
 		} else {
-			path = new VariablePath( false );
+			path = new VariablePathNode( false );
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
 				expr = parseExpression();
@@ -863,7 +885,7 @@ public class OLParser extends AbstractParser
 			path.append( new Pair< String, OLSyntaxNode >( node, expr ) );
 		}
 		
-		if ( token.is( Scanner.TokenType.COLON ) ) {
+		if ( parseAttribute && token.is( Scanner.TokenType.COLON ) ) {
 			getToken();
 			path.setAttribute( parseExpression() );
 		}
@@ -944,11 +966,11 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		ParsingContext context = getContext();
-		VariablePath inputVarPath = parseOperationStatementParameter();
+		VariablePathNode inputVarPath = parseOperationStatementParameter();
 		OLSyntaxNode stm;
 		StatementChannelInfo info;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
-			VariablePath outputVarPath = parseOperationStatementParameter();
+			VariablePathNode outputVarPath = parseOperationStatementParameter();
 			info = parseInputChannelInfo();
 			OLSyntaxNode process;
 			eat( Scanner.TokenType.LCURLY, "expected {" );
@@ -979,8 +1001,8 @@ public class OLParser extends AbstractParser
 		else
 			return null;
 		
-		VariablePath channelPath = null;
-		VariablePath indexPath = null;
+		VariablePathNode channelPath = null;
+		VariablePathNode indexPath = null;
 		
 		getToken();
 		tokenAssert( Scanner.TokenType.ID, "expected variable path after operation statement" );
@@ -1001,10 +1023,10 @@ public class OLParser extends AbstractParser
 	 * @throws IOException
 	 * @throws ParserException
 	 */
-	private VariablePath parseOperationStatementParameter()
+	private VariablePathNode parseOperationStatementParameter()
 		throws IOException, ParserException
 	{
-		VariablePath ret = null;
+		VariablePathNode ret = null;
 		
 		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if ( token.is( Scanner.TokenType.ID ) ) {
@@ -1022,11 +1044,11 @@ public class OLParser extends AbstractParser
 	{
 		ParsingContext context = getContext();
 		OLSyntaxNode locExpr = parseExpression();
-		VariablePath outputVarPath = parseOperationStatementParameter();
+		VariablePathNode outputVarPath = parseOperationStatementParameter();
 
 		OLSyntaxNode stm;
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit Response operation
-			VariablePath inputVarPath = parseOperationStatementParameter();
+			VariablePathNode inputVarPath = parseOperationStatementParameter();
 			InstallFunctionNode function = null;
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				eat( Scanner.TokenType.LSQUARE, "expected [" );
@@ -1208,7 +1230,7 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			String varId = token.content();
 			getToken();
-			VariablePath path = parseVariablePath( varId );
+			VariablePathNode path = parseVariablePath( varId );
 			if ( token.is( Scanner.TokenType.CHOICE ) ) { // Post increment
 				getToken();
 				retVal = new PostIncrementStatement( getContext(), path );

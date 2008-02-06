@@ -27,21 +27,21 @@ import jolie.lang.parse.ParsingContext;
 
 public class DeepCopyStatement extends OLSyntaxNode
 {
-	private VariablePath leftPath, rightPath;
+	private VariablePathNode leftPath, rightPath;
 
-	public DeepCopyStatement( ParsingContext context, VariablePath leftPath, VariablePath rightPath )
+	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath )
 	{
 		super( context );
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
 	
-	public VariablePath leftPath()
+	public VariablePathNode leftPath()
 	{
 		return leftPath;
 	}
 	
-	public VariablePath rightPath()
+	public VariablePathNode rightPath()
 	{
 		return rightPath;
 	}

@@ -34,10 +34,10 @@ public class IsTypeExpressionNode extends OLSyntaxNode
 		REAL
 	}
 	
-	private VariablePath variablePath;
+	private VariablePathNode variablePath;
 	private CheckType type;
 
-	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePath variablePath )
+	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath )
 	{
 		super( context );
 		this.type = type;
@@ -49,7 +49,7 @@ public class IsTypeExpressionNode extends OLSyntaxNode
 		return type;
 	}
 	
-	public VariablePath variablePath()
+	public VariablePathNode variablePath()
 	{
 		return variablePath;
 	}

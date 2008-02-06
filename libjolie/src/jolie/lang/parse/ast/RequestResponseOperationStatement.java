@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class RequestResponseOperationStatement extends OLSyntaxNode
 {
-	private VariablePath inputVarPath, outputVarPath;
+	private VariablePathNode inputVarPath, outputVarPath;
 	private OLSyntaxNode process;
 	private String id;
 	private StatementChannelInfo channelInfo;
@@ -35,8 +35,8 @@ public class RequestResponseOperationStatement extends OLSyntaxNode
 	public RequestResponseOperationStatement(
 			ParsingContext context,
 			String id,
-			VariablePath inputVarPath,
-			VariablePath outputVarPath,
+			VariablePathNode inputVarPath,
+			VariablePathNode outputVarPath,
 			OLSyntaxNode process,
 			StatementChannelInfo channelInfo
 		)
@@ -64,12 +64,12 @@ public class RequestResponseOperationStatement extends OLSyntaxNode
 		return process;
 	}
 	
-	public VariablePath inputVarPath()
+	public VariablePathNode inputVarPath()
 	{
 		return inputVarPath;
 	}
 	
-	public VariablePath outputVarPath()
+	public VariablePathNode outputVarPath()
 	{
 		return outputVarPath;
 	}

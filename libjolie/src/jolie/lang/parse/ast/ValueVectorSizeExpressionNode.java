@@ -27,15 +27,15 @@ import jolie.lang.parse.ParsingContext;
 
 public class ValueVectorSizeExpressionNode extends OLSyntaxNode
 {
-	private VariablePath variablePath;
+	private VariablePathNode variablePath;
 
-	public ValueVectorSizeExpressionNode( ParsingContext context, VariablePath variablePath )
+	public ValueVectorSizeExpressionNode( ParsingContext context, VariablePathNode variablePath )
 	{
 		super( context );
 		this.variablePath = variablePath;
 	}
 	
-	public VariablePath variablePath()
+	public VariablePathNode variablePath()
 	{
 		return variablePath;
 	}

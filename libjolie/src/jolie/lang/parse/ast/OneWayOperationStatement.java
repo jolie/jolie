@@ -27,11 +27,11 @@ import jolie.lang.parse.ParsingContext;
 
 public class OneWayOperationStatement extends OLSyntaxNode
 {
-	private VariablePath inputVarPath;
+	private VariablePathNode inputVarPath;
 	private String id;
 	private StatementChannelInfo channelInfo;
 	
-	public OneWayOperationStatement( ParsingContext context, String id, VariablePath inputVarPath, StatementChannelInfo channelInfo )
+	public OneWayOperationStatement( ParsingContext context, String id, VariablePathNode inputVarPath, StatementChannelInfo channelInfo )
 	{
 		super( context );
 		this.id = id;
@@ -49,7 +49,7 @@ public class OneWayOperationStatement extends OLSyntaxNode
 		return id;
 	}
 	
-	public VariablePath inputVarPath()
+	public VariablePathNode inputVarPath()
 	{
 		return inputVarPath;
 	}
