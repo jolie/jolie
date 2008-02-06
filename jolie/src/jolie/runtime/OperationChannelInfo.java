@@ -27,12 +27,12 @@ import jolie.Constants;
 public class OperationChannelInfo
 {
 	private Constants.ChannelOperator operator;
-	private GlobalVariablePath channelPath, indexPath;
+	private VariablePath channelPath, indexPath;
 	
 	public OperationChannelInfo(
 			Constants.ChannelOperator operator,
-			GlobalVariablePath channelPath,
-			GlobalVariablePath indexPath
+			VariablePath channelPath,
+			VariablePath indexPath
 			)
 	{
 		this.operator = operator;
@@ -45,12 +45,12 @@ public class OperationChannelInfo
 		return operator;
 	}
 	
-	public GlobalVariablePath channelPath()
+	public VariablePath channelPath()
 	{
 		return channelPath;
 	}
 	
-	public GlobalVariablePath indexPath()
+	public VariablePath indexPath()
 	{
 		return indexPath;
 	}

@@ -22,16 +22,16 @@
 package jolie;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Stack;
-import java.util.Vector;
 
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
 abstract public class ExecutionThread extends Thread
 {
@@ -221,41 +221,22 @@ abstract public class ExecutionThread extends Thread
 	abstract public jolie.State state();
 	abstract protected void setState( jolie.State state );
 	
-	public synchronized boolean checkCorrelation( GlobalVariablePath path, CommMessage message )
+	public synchronized boolean checkCorrelation( VariablePath recvPath, CommMessage message )
 	{
-		Vector< Value > origCSetValues = new Vector< Value >();
-		for( GlobalVariablePath p : Interpreter.correlationSet() )
-			origCSetValues.add( Value.create( p.getValue() ) );
-
-		jolie.State origState = state();
-		setState( origState.clone() );
-		
-		if ( path != null )
-			path.getValue().deepCopy( message.value() );
-
-		Vector< Value > newCSetValues = new Vector< Value >();
-		for( GlobalVariablePath p : Interpreter.correlationSet() )
-			newCSetValues.add( p.getValue() );
-		
-		Value origV, newV;
-		for( int i = 0; i < origCSetValues.size(); i++ ) {
-			origV = origCSetValues.elementAt( i );
-			newV = newCSetValues.elementAt( i );
-			if ( /*origV.isDefined() && (
-					 != newV.type() ||
-					(origV.isInt() && origV.intValue() != newV.intValue()) ||
-					(origV.isDouble() && origV.doubleValue() != newV.doubleValue()) ||
-					(origV.isString() && !origV.strValue().equals( newV.strValue() ))
-					)*/
-				!origV.equals( newV )
-					)
-			{
-				setState( origState );
-				return false;
+		VariablePath path;
+		Value correlationValue;
+		for( List< VariablePath > list : Interpreter.correlationSet() ) {
+			for( VariablePath p : list ) {
+				if ( (path=recvPath.containedSubPath( p )) != null ) {
+					correlationValue = list.get( 0 ).getValue();
+					if (
+							correlationValue.isDefined() &&
+							!path.getValue( message.value() ).equals( correlationValue ) )
+						return false;
+				}
 			}
 		}
 		
-		setState( origState );
 		return true;
 	}
 	

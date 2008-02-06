@@ -23,14 +23,14 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.Expression;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
 
 public class PreIncrementProcess implements Process, Expression
 {
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 
-	public PreIncrementProcess( GlobalVariablePath varPath )
+	public PreIncrementProcess( VariablePath varPath )
 	{
 		this.varPath = varPath;
 	}

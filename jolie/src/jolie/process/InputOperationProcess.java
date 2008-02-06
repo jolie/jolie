@@ -21,9 +21,9 @@
 
 package jolie.process;
 
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 
 public interface InputOperationProcess extends InputProcess
 {
-	public GlobalVariablePath inputVarPath();
+	public VariablePath inputVarPath();
 }

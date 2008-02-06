@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -39,7 +40,7 @@ import jolie.lang.parse.ast.Program;
 import jolie.net.CommCore;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -53,7 +54,8 @@ public class Interpreter
 	private OLParser olParser;
 	private static boolean verbose = false;
 	private static boolean exiting = false;
-	private static Set< GlobalVariablePath > correlationSet = new HashSet< GlobalVariablePath > ();
+	private static Set< List< VariablePath > > correlationSet =
+					new HashSet< List< VariablePath > > ();
 	private static Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private static Value globalValue;
 	private LinkedList< String > arguments = new LinkedList< String >();
@@ -86,12 +88,12 @@ public class Interpreter
 		executionMode = mode;
 	}
 	
-	public static void setCorrelationSet( Set< GlobalVariablePath > set )
+	public static void setCorrelationSet( Set< List< VariablePath > > set )
 	{
 		correlationSet = set;
 	}
 	
-	public static Set< GlobalVariablePath > correlationSet()
+	public static Set< List< VariablePath > > correlationSet()
 	{
 		return correlationSet;
 	}

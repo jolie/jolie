@@ -33,17 +33,17 @@ import jolie.ExecutionThread;
 import jolie.ProcessThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 
 class InInputHandler extends ProcessThread implements InputHandler, CorrelatedInputProcess
 {
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 	private ExecutionThread executionThread;
 	private InputProcessExecution inputProcess;
 	private CorrelatedProcess correlatedProcess;
 	
-	public InInputHandler( GlobalVariablePath varPath, CorrelatedProcess correlatedProcess )
+	public InInputHandler( VariablePath varPath, CorrelatedProcess correlatedProcess )
 	{
 		this.varPath = varPath;
 		this.correlatedProcess = correlatedProcess;
@@ -120,7 +120,7 @@ class InInputHandler extends ProcessThread implements InputHandler, CorrelatedIn
 
 public class InProcess implements InputProcess, CorrelatedInputProcess
 {	
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 	private CorrelatedProcess correlatedProcess = null;
 	protected static final Object mutex = new Object();
 		
@@ -129,7 +129,7 @@ public class InProcess implements InputProcess, CorrelatedInputProcess
 		this.correlatedProcess = process;
 	}
 
-	public InProcess( GlobalVariablePath varPath )
+	public InProcess( VariablePath varPath )
 	{
 		this.varPath = varPath;
 	}

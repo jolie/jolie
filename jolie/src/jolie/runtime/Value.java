@@ -35,7 +35,7 @@ import jolie.net.CommChannel;
 
 class ValueLink extends Value implements Cloneable
 {
-	private GlobalVariablePath linkPath;
+	private VariablePath linkPath;
 	
 	public void erase()
 	{
@@ -93,7 +93,7 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().valueObject();
 	}	
 	
-	public ValueLink( GlobalVariablePath path )
+	public ValueLink( VariablePath path )
 	{
 		linkPath = path;
 	}
@@ -312,7 +312,7 @@ abstract public class Value implements Expression
 	
 	abstract public boolean isLink();
 	
-	public static Value createLink( GlobalVariablePath path )
+	public static Value createLink( VariablePath path )
 	{
 		return new ValueLink( path );
 	}

@@ -23,7 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.Expression;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 
@@ -32,7 +32,7 @@ import jolie.runtime.Value;
  */
 public class AssignmentProcess implements Process, Expression
 {
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 	private Expression expression;
 
 	/** Constructor.
@@ -41,7 +41,7 @@ public class AssignmentProcess implements Process, Expression
 	 * @param expression the expression of which the evaluation will be stored in the variable.
 	 * @throws InvalidIdException if varId does not identify a variable.
 	 */
-	public AssignmentProcess( GlobalVariablePath varPath, Expression expression )
+	public AssignmentProcess( VariablePath varPath, Expression expression )
 	{
 		this.varPath = varPath;
 		this.expression = expression;

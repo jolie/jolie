@@ -29,19 +29,64 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.util.Pair;
 
-public class GlobalVariablePath implements Expression, Cloneable
+public class VariablePath implements Expression, Cloneable
 {
 	private List< Pair< String, Expression > > path; // Expression may be null
 	private Expression attribute; // may be null
 	private boolean global;
 	
-	public GlobalVariablePath clone()
+	public VariablePath clone()
 	{
 		List< Pair< String, Expression > > list =
 			new Vector< Pair< String, Expression > >();
 		for( Pair< String, Expression > p : path )
 			list.add( new Pair< String, Expression >( p.key(), p.value() ) );
-		return new GlobalVariablePath( list, attribute, global );
+		return new VariablePath( list, attribute, global );
+	}
+
+	/**
+	 * @TODO Do we want to support attribute checking?
+	 * @param otherVarPath
+	 * @return
+	 */
+	public VariablePath containedSubPath( VariablePath otherVarPath )
+	{
+		// If one is global and the other is not, it's not a subpath.
+		if ( global != otherVarPath.global )
+			return null;
+
+		// If the other path is shorter than this, it's not a subpath.
+		if ( otherVarPath.path.size() < path.size() )
+			return null;
+
+		int i, myIndex, otherIndex;
+		Pair< String, Expression > pair, otherPair;
+		Expression expr, otherExpr;
+		for( i = 0; i < path.size(); i++ ) {
+			pair = path.get( i );
+			otherPair = otherVarPath.path.get( i );
+			
+			// *.element_name is not a subpath of *.other_name
+			if ( !pair.key().equals( otherPair.key() ) )
+				return null;
+			
+			// If element name is equal, check for the same index
+			expr = pair.value();
+			otherExpr = otherPair.value();
+			
+			myIndex = ( expr == null ) ? 0 : expr.evaluate().intValue();
+			otherIndex = ( otherExpr == null ) ? 0 : otherExpr.evaluate().intValue();
+			if ( myIndex != otherIndex )
+				return null;
+		}
+		
+		// Now i represents the beginning of the subpath, we can just copy it from there
+		List< Pair< String, Expression > > subPath =
+			new Vector< Pair< String, Expression > >();
+		for( ; i < otherVarPath.path.size(); i++ )
+			subPath.add( otherVarPath.path.get( i ) );
+		
+		return new VariablePath( subPath, null, global );
 	}
 	
 	public void addPathNode( String nodeName, Expression expression )
@@ -49,7 +94,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		path.add( new Pair< String, Expression >( nodeName, expression ) );
 	}
 	
-	public GlobalVariablePath(
+	public VariablePath(
 			List< Pair< String, Expression > > path,
 			Expression attribute,
 			boolean global
@@ -112,7 +157,12 @@ public class GlobalVariablePath implements Expression, Cloneable
 	
 	public Value getValue()
 	{
-		Value currValue = getRootValue();
+		return getValue( getRootValue() );
+	}
+	
+	public Value getValue( Value rootValue )
+	{
+		Value currValue = rootValue;
 
 		for( Pair< String, Expression > pair : path ) {
 			if ( pair.value() == null )
@@ -198,7 +248,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 		return currVector;
 	}
 	
-	public void makePointer( GlobalVariablePath rightPath )
+	public void makePointer( VariablePath rightPath )
 	{
 		Iterator< Pair< String, Expression > > it = path.iterator();
 		Pair< String, Expression > pair = null;
@@ -273,7 +323,7 @@ public class GlobalVariablePath implements Expression, Cloneable
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void deepCopy( GlobalVariablePath rightPath )
+	public void deepCopy( VariablePath rightPath )
 	{
 		Object myObj = getValueOrValueVector();
 		if ( myObj instanceof Value ) {

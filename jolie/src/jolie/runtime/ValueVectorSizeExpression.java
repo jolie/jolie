@@ -24,9 +24,9 @@ package jolie.runtime;
 
 public class ValueVectorSizeExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public ValueVectorSizeExpression( GlobalVariablePath path )
+	public ValueVectorSizeExpression( VariablePath path )
 	{
 		this.path = path;
 	}

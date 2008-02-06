@@ -24,9 +24,9 @@ package jolie.runtime;
 
 public class IsIntExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public IsIntExpression( GlobalVariablePath path )
+	public IsIntExpression( VariablePath path )
 	{
 		this.path = path;
 	}

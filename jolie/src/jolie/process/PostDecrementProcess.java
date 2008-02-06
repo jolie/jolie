@@ -23,14 +23,14 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.Expression;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
 
 public class PostDecrementProcess implements Process, Expression
 {
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 
-	public PostDecrementProcess( GlobalVariablePath varPath )
+	public PostDecrementProcess( VariablePath varPath )
 	{
 		this.varPath = varPath;
 	}

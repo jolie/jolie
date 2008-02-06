@@ -78,7 +78,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 	 */
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
-		GlobalVariablePath path = null;
+		VariablePath path = null;
 		InputProcessExecution pe = null;
 		for( Entry< InputProcessExecution, ExecutionThread > entry : procsMap.entrySet() ) {
 			pe = entry.getKey();
@@ -101,7 +101,7 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public synchronized void signForMessage( InputProcessExecution process )
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
-		GlobalVariablePath path = null;
+		VariablePath path = null;
 		for( Pair< CommChannel, CommMessage > pair : mesgList ) {
 			if ( process instanceof InputOperationProcess )
 				path = ((InputOperationProcess) process).inputVarPath();

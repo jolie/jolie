@@ -22,13 +22,13 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 
 public class UndefProcess implements Process
 {
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 
-	public UndefProcess( GlobalVariablePath varPath )
+	public UndefProcess( VariablePath varPath )
 	{
 		this.varPath = varPath;
 	}

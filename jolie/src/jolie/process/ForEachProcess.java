@@ -23,18 +23,18 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
 
 public class ForEachProcess implements Process
 {
-	private GlobalVariablePath keyPath, valuePath, targetPath;
+	private VariablePath keyPath, valuePath, targetPath;
 	private Process process;
 
 	public ForEachProcess(
-			GlobalVariablePath keyPath,
-			GlobalVariablePath valuePath,
-			GlobalVariablePath targetPath,
+			VariablePath keyPath,
+			VariablePath valuePath,
+			VariablePath targetPath,
 			Process process )
 	{
 		this.keyPath = keyPath;
@@ -55,7 +55,7 @@ public class ForEachProcess implements Process
 			return;
 		
 		Value target = targetPath.getValue();
-		GlobalVariablePath currPath;
+		VariablePath currPath;
 		for( String id : target.children().keySet() ) {
 			keyPath.getValue().setStrValue( id );
 			currPath = targetPath.clone();

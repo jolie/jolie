@@ -29,7 +29,7 @@ import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
@@ -72,7 +72,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			parent.runBehaviour( channel, message );
 		}
 		
-		public GlobalVariablePath inputVarPath()
+		public VariablePath inputVarPath()
 		{
 			return parent.inputVarPath;
 		}
@@ -90,14 +90,14 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 	
 	protected RequestResponseOperation operation;
-	protected GlobalVariablePath inputVarPath, outputVarPath;
+	protected VariablePath inputVarPath, outputVarPath;
 	protected Process process;
 	protected CorrelatedProcess correlatedProcess = null;
 	
 	public RequestResponseProcess(
 			RequestResponseOperation operation,
-			GlobalVariablePath inputVarPath,
-			GlobalVariablePath outputVarPath,
+			VariablePath inputVarPath,
+			VariablePath outputVarPath,
 			Process process )
 	{
 		this.operation = operation;
@@ -124,7 +124,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		(new Execution( this )).run();
 	}
 	
-	public GlobalVariablePath inputVarPath()
+	public VariablePath inputVarPath()
 	{
 		return inputVarPath;
 	}

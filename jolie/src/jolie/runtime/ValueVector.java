@@ -26,7 +26,7 @@ import java.util.Vector;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
-	private GlobalVariablePath linkPath;
+	private VariablePath linkPath;
 	
 	public Value remove( int i )
 	{
@@ -38,7 +38,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return new ValueVectorLink( linkPath );
 	}
 	
-	public ValueVectorLink( GlobalVariablePath path )
+	public ValueVectorLink( VariablePath path )
 	{
 		linkPath = path;
 	}
@@ -149,7 +149,7 @@ abstract public class ValueVector implements Iterable< Value >
 	
 	abstract public Value remove( int i );
 	
-	public static ValueVector createLink( GlobalVariablePath path )
+	public static ValueVector createLink( VariablePath path )
 	{
 		return new ValueVectorLink( path );
 	}

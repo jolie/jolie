@@ -27,21 +27,21 @@ import java.net.URISyntaxException;
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.Location;
 import jolie.runtime.OutputOperation;
 
 public class NotificationProcess implements Process
 {
 	private OutputOperation operation;
-	private GlobalVariablePath varPath;
+	private VariablePath varPath;
 	private Location location;
 	//private OperationChannelInfo channelInfo;
 
 	public NotificationProcess(
 			OutputOperation operation,
 			Location location,
-			GlobalVariablePath varPath
+			VariablePath varPath
 		//	OperationChannelInfo channelInfo
 			)
 	{

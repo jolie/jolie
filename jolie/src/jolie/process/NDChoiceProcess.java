@@ -29,7 +29,7 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 import jolie.util.Pair;
 
@@ -131,7 +131,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			}
 		}
 		
-		public GlobalVariablePath inputVarPath( String inputId )
+		public VariablePath inputVarPath( String inputId )
 		{
 			InputChoice c = inputMap.get( inputId );
 			if ( c != null && c.inputProcess instanceof InputOperationProcess )

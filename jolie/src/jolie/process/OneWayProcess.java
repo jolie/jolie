@@ -27,7 +27,7 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
 import jolie.runtime.OperationChannelInfo;
@@ -171,7 +171,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	}
 	
 	protected InputOperation operation;
-	protected GlobalVariablePath varPath;
+	protected VariablePath varPath;
 	protected CorrelatedProcess correlatedProcess = null;
 	protected OperationChannelInfo channelInfo;
 	
@@ -179,7 +179,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 	public OneWayProcess(
 			InputOperation operation,
-			GlobalVariablePath varPath,
+			VariablePath varPath,
 			OperationChannelInfo channelInfo )
 	{
 		this.operation = operation;
@@ -206,7 +206,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		this.correlatedProcess = process;
 	}
 	
-	public GlobalVariablePath inputVarPath()
+	public VariablePath inputVarPath()
 	{
 		return varPath;
 	}

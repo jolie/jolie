@@ -27,22 +27,22 @@ import java.net.URISyntaxException;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.Location;
 import jolie.runtime.SolicitResponseOperation;
 
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
-	private GlobalVariablePath outputVarPath, inputVarPath; // each may be null
+	private VariablePath outputVarPath, inputVarPath; // each may be null
 	private Location location;
 	private Process installProcess;
 
 	public SolicitResponseProcess(
 			SolicitResponseOperation operation,
 			Location location,
-			GlobalVariablePath outputVarPath,
-			GlobalVariablePath inputVarPath,
+			VariablePath outputVarPath,
+			VariablePath inputVarPath,
 			Process installProcess
 			)
 	{

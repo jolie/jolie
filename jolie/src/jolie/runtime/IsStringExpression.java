@@ -24,9 +24,9 @@ package jolie.runtime;
 
 public class IsStringExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public IsStringExpression( GlobalVariablePath path )
+	public IsStringExpression( VariablePath path )
 	{
 		this.path = path;
 	}

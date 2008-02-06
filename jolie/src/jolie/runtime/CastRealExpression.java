@@ -23,9 +23,9 @@ package jolie.runtime;
 
 public class CastRealExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public CastRealExpression( GlobalVariablePath path )
+	public CastRealExpression( VariablePath path )
 	{
 		this.path = path;
 	}

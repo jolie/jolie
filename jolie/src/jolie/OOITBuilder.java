@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -79,7 +80,7 @@ import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
-import jolie.lang.parse.ast.VariablePath;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
@@ -134,7 +135,7 @@ import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
@@ -193,11 +194,16 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( CorrelationSetInfo n )
 	{
-		Set< GlobalVariablePath > cPaths = new HashSet< GlobalVariablePath > ();
-		for( VariablePath path : n.variablePaths() )
-			cPaths.add( getGlobalVariablePath( path ) );
+		Set< List< VariablePath > > cset = new HashSet< List< VariablePath > > ();
+		List< VariablePath > paths;
+		for( List< VariablePathNode > list : n.cset() ) {
+			paths = new Vector< VariablePath > ();
+			for( VariablePathNode path : list )
+				paths.add( getGlobalVariablePath( path ) );
+			cset.add( paths );
+		}
 
-		Interpreter.setCorrelationSet( cPaths );
+		Interpreter.setCorrelationSet( cset );
 	}
 		
 	public void visit( InputPortTypeInfo n )
@@ -537,7 +543,7 @@ public class OOITBuilder implements OLVisitor
 		currExpression = p;
 	}
 	
-	private GlobalVariablePath getGlobalVariablePath( VariablePath path )
+	private VariablePath getGlobalVariablePath( VariablePathNode path )
 	{
 		if ( path == null )
 			return null;
@@ -560,7 +566,7 @@ public class OOITBuilder implements OLVisitor
 		
 		currExpression = backupExpr;
 		
-		return new GlobalVariablePath( list, attribute, path.isGlobal() );
+		return new VariablePath( list, attribute, path.isGlobal() );
 	}
 	
 	public void visit( PointerStatement n )

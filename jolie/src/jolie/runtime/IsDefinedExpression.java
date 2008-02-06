@@ -24,9 +24,9 @@ package jolie.runtime;
 
 public class IsDefinedExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public IsDefinedExpression( GlobalVariablePath path )
+	public IsDefinedExpression( VariablePath path )
 	{
 		this.path = path;
 	}

@@ -24,9 +24,9 @@ package jolie.runtime;
 
 public class CastIntExpression implements Expression
 {
-	private GlobalVariablePath path;
+	private VariablePath path;
 	
-	public CastIntExpression( GlobalVariablePath path )
+	public CastIntExpression( VariablePath path )
 	{
 		this.path = path;
 	}

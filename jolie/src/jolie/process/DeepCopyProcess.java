@@ -22,13 +22,13 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.GlobalVariablePath;
+import jolie.runtime.VariablePath;
 
 public class DeepCopyProcess implements Process
 {
-	private GlobalVariablePath leftPath, rightPath;
+	private VariablePath leftPath, rightPath;
 
-	public DeepCopyProcess( GlobalVariablePath leftPath, GlobalVariablePath rightPath )
+	public DeepCopyProcess( VariablePath leftPath, VariablePath rightPath )
 	{
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
