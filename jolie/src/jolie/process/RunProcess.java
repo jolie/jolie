@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.OOITBuilder;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
@@ -68,7 +69,7 @@ public class RunProcess implements Process
 				if ( !(new SemanticVerifier( program )).validate() )
 					throw new FaultException( "fInvalidCode" );
 			
-				(new OOITBuilder( program )).build();
+				(new OOITBuilder( Interpreter.getInstance(), program )).build();
 			} catch( IOException ioe ) {
 				throw new FaultException( "fInvalidCode" );
 			} catch( ParserException ioe ) {

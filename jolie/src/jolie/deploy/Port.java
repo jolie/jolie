@@ -21,16 +21,11 @@
 
 package jolie.deploy;
 
-import java.util.Collection;
-import java.util.HashMap;
-
 import jolie.Constants;
 import jolie.runtime.AbstractMappedGlobalObject;
-import jolie.runtime.InvalidIdException;
 
 abstract public class Port extends AbstractMappedGlobalObject
 {
-	private static HashMap< String, Port > idMap = new HashMap< String, Port >();
 	private Constants.ProtocolId protocolId;
 	
 	public Port( String id, Constants.ProtocolId protocolId )
@@ -42,25 +37,5 @@ abstract public class Port extends AbstractMappedGlobalObject
 	public Constants.ProtocolId protocolId()
 	{
 		return protocolId;
-	}
-
-	public void register()
-	{
-		idMap.put( id(), this );
-	}
-	
-	public static Port getById( String id )
-		throws InvalidIdException
-	{
-		Port port = idMap.get( id );
-		if ( port == null )
-			throw new InvalidIdException( id );
-
-		return port;
-	}
-	
-	public static Collection< Port > getAll()
-	{
-		return idMap.values();
 	}
 }

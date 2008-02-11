@@ -27,13 +27,13 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
@@ -50,7 +50,6 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -82,7 +81,6 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.net.CommCore;
 import jolie.net.CommProtocol;
 import jolie.net.HTTPProtocol;
 import jolie.net.SOAPProtocol;
@@ -100,17 +98,16 @@ import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
 import jolie.process.IfProcess;
-import jolie.process.InProcess;
 import jolie.process.InputProcess;
 import jolie.process.InstallProcess;
 import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
+import jolie.process.MainDefinitionProcess;
 import jolie.process.MakePointerProcess;
 import jolie.process.NDChoiceProcess;
 import jolie.process.NotificationProcess;
 import jolie.process.NullProcess;
 import jolie.process.OneWayProcess;
-import jolie.process.OutProcess;
 import jolie.process.ParallelProcess;
 import jolie.process.PostDecrementProcess;
 import jolie.process.PostIncrementProcess;
@@ -133,45 +130,46 @@ import jolie.runtime.CastRealExpression;
 import jolie.runtime.CastStringExpression;
 import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
+import jolie.runtime.EmbeddedServiceLoader;
+import jolie.runtime.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
-import jolie.runtime.VariablePath;
-import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
 import jolie.runtime.IsIntExpression;
 import jolie.runtime.IsRealExpression;
 import jolie.runtime.IsStringExpression;
-import jolie.runtime.Location;
 import jolie.runtime.NotCondition;
 import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.OperationChannelInfo;
 import jolie.runtime.OrCondition;
-import jolie.runtime.OutputOperation;
 import jolie.runtime.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.SumExpression;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
+import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
 public class OOITBuilder implements OLVisitor
 {
 	private Program program;
 	private boolean valid = true;
+	private Interpreter interpreter;
 
-	public OOITBuilder( Program program )
+	public OOITBuilder( Interpreter interpreter, Program program )
 	{
-		 this.program = program;
+		this.interpreter = interpreter;
+		this.program = program;
 	}
 	
 	private void error( ParsingContext context, String message )
 	{
 		valid = false;
 		String s = context.sourceName() + ":" + context.line() + ": " + message;
-		Interpreter.logger().severe( s );
+		interpreter.logger().severe( s );
 	}
 	
 	private void error( ParsingContext context, Exception e )
@@ -189,7 +187,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ExecutionInfo n )
 	{
-		Interpreter.setExecutionMode( n.mode() );
+		interpreter.setExecutionMode( n.mode() );
 	}
 	
 	public void visit( CorrelationSetInfo n )
@@ -203,7 +201,7 @@ public class OOITBuilder implements OLVisitor
 			cset.add( paths );
 		}
 
-		Interpreter.setCorrelationSet( cset );
+		interpreter.setCorrelationSet( cset );
 	}
 		
 	public void visit( InputPortTypeInfo n )
@@ -212,12 +210,12 @@ public class OOITBuilder implements OLVisitor
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 			try {
-				pt.addOperation( InputOperation.getById( op.id() ) );
+				pt.addOperation( interpreter.getInputOperation( op.id() ) );
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
 			}
 		}
-		pt.register();
+		interpreter.register( n.id(), pt );
 	}
 		
 	public void visit( OutputPortTypeInfo n )
@@ -226,24 +224,39 @@ public class OOITBuilder implements OLVisitor
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 			try {
-				pt.addOperation( OutputOperation.getById( op.id() ) );
+				pt.addOperation( interpreter.getOutputOperation( op.id() ) );
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
 			}
 		}
-		pt.register();
+		interpreter.register( n.id(), pt );
 	}
 		
 	public void visit( PortInfo n )
 	{
 		try {
-			PortType pt = PortType.getById( n.portType() );
-			(pt.createPort( n.id(), n.protocolId() )).register();
+			PortType pt = interpreter.getPortType( n.portType() );
+			interpreter.register( n.id(), pt.createPort( n.id(), n.protocolId() ) );
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		} catch( PortCreationException pce ) {
 			error( n.context(), pce );
 		}
+	}
+	
+	public void visit( EmbeddedServiceNode n )
+	{
+		try {
+			interpreter.addEmbeddedServiceLoader(
+				EmbeddedServiceLoader.create(
+						n.type(),
+						n.servicePath(),
+						getGlobalVariablePath( n.channelVariablePath() )
+						) );
+		} catch( EmbeddedServiceLoaderCreationException e ) {
+			error( n.context(), e );
+		}
+		
 	}
 	
 	/**
@@ -255,7 +268,7 @@ public class OOITBuilder implements OLVisitor
 		Vector< InputPort > inputPorts = new Vector< InputPort > ();
 		for( String portId : n.inputPorts() ) {
 			try {
-				port = InputPort.getById( portId );
+				port = interpreter.getInputPort( portId );
 				inputPorts.add( port );
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
@@ -276,7 +289,7 @@ public class OOITBuilder implements OLVisitor
 		
 		if ( protocol != null ) {
 			try {
-				CommCore.addService( n.uri(), protocol, inputPorts );
+				interpreter.commCore().addService( n.uri(), protocol, inputPorts );
 			} catch( UnsupportedCommMediumException e ) {
 				error( n.context(), e );
 			} catch( IOException ioe ) {
@@ -298,35 +311,39 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OneWayOperationDeclaration decl )
 	{
-		(new OneWayOperation( decl.id() )).register();
+		interpreter.register( decl.id(), new OneWayOperation( decl.id() ) );
 	}
 		
 	public void visit( RequestResponseOperationDeclaration decl )
 	{
-		(new RequestResponseOperation(
-			decl.id(),
-			decl.faultNames() )).register();
+		interpreter.register(
+				decl.id(),
+				new RequestResponseOperation( decl.id(), decl.faultNames() ) 
+						);
 	}
 		
 	public void visit( NotificationOperationDeclaration decl )
 	{
-		(new NotificationOperation( decl.id() )).register();
+		interpreter.register( decl.id(), new NotificationOperation( decl.id() ) );
 	}
 		
 	public void visit( SolicitResponseOperationDeclaration decl )
 	{
-		(new SolicitResponseOperation( decl.id() )).register();
+		interpreter.register( decl.id(), new SolicitResponseOperation( decl.id() ) );
 	}
 	
 	public void visit( Procedure n )
 	{
-		DefinitionProcess def = new DefinitionProcess( n.id() );
+		DefinitionProcess def;
 		n.body().accept( this );
-		if ( "main".equals( n.id() ) )
+		if ( "main".equals( n.id() ) ) {
 			currProcess = new ScopeProcess( "main", currProcess );
+			def = new MainDefinitionProcess();
+		} else
+			def = new DefinitionProcess( n.id() );
 
 		def.setProcess( currProcess );
-		def.register();
+		interpreter.register( n.id(), def );
 		// currProcess = def;
 	}
 		
@@ -417,7 +434,7 @@ public class OOITBuilder implements OLVisitor
 		try {
 			currProcess =
 				new OneWayProcess(
-						OneWayOperation.getById( n.id() ),
+						interpreter.getOneWayOperation( n.id() ),
 						getGlobalVariablePath( n.inputVarPath() ),
 						getOperationChannelInfo( n.channelInfo() )
 						);
@@ -439,13 +456,18 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( RequestResponseOperationStatement n )
 	{
+		Expression outputExpression = null;
+		if ( n.outputExpression() != null ) {
+			n.outputExpression().accept( this );
+			outputExpression = currExpression;
+		}
 		try {
 			n.process().accept( this );
 			currProcess =
 				new RequestResponseProcess(
-						RequestResponseOperation.getById( n.id() ),
+						interpreter.getRequestResponseOperation( n.id() ),
 						getGlobalVariablePath( n.inputVarPath() ),
-						getGlobalVariablePath( n.outputVarPath() ),
+						outputExpression,
 						currProcess
 						);
 		} catch( InvalidIdException e ) {
@@ -455,13 +477,18 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( NotificationOperationStatement n )
 	{
+		Expression outputExpression = null;
+		if ( n.outputExpression() != null ) {
+			n.outputExpression().accept( this );
+			outputExpression = currExpression;
+		}
 		n.locationExpression().accept( this );
 		try {
 			currProcess =
 				new NotificationProcess(
-						NotificationOperation.getById( n.id() ),
-						new Location( currExpression ),
-						getGlobalVariablePath( n.outputVarPath() )
+						interpreter.getNotificationOperation( n.id() ),
+						currExpression,
+						outputExpression
 						);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
@@ -470,6 +497,11 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( SolicitResponseOperationStatement n )
 	{
+		Expression outputExpression = null;
+		if ( n.outputExpression() != null ) {
+			n.outputExpression().accept( this );
+			outputExpression = currExpression;
+		}
 		n.locationExpression().accept( this );
 		Expression location = currExpression;
 		try {
@@ -478,9 +510,9 @@ public class OOITBuilder implements OLVisitor
 				installProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 			currProcess =
 				new SolicitResponseProcess(
-						SolicitResponseOperation.getById( n.id() ),
-						new Location( location ),
-						getGlobalVariablePath( n.outputVarPath() ),
+						interpreter.getSolicitResponseOperation( n.id() ),
+						location,
+						outputExpression,
 						getGlobalVariablePath( n.inputVarPath() ),
 						installProcess
 						);
@@ -610,24 +642,11 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess = CurrentHandlerProcess.getInstance();
 	}
-	
-	public void visit( InStatement n )
-	{
-		currProcess = new InProcess(
-				getGlobalVariablePath( n.variablePath() )
-				);
-	}
-	
-	public void visit( OutStatement n )
-	{
-		n.expression().accept( this );
-		currProcess = new OutProcess( currExpression );
-	}
-	
+
 	public void visit( ProcedureCallStatement n )
 	{
 		try {
-			currProcess = new CallProcess( DefinitionProcess.getById( n.id() ) );
+			currProcess = new CallProcess( interpreter.getDefinition( n.id() ) );
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}

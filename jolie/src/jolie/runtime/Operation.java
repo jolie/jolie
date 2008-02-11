@@ -27,7 +27,6 @@ import jolie.deploy.OperationDeployInfo;
 /** Generic operation declaration
  * 
  * @author Fabrizio Montesi
- * @todo Change the behaviour of getByWSDLBoundName (rather ugly) through a bi-directional HashMap.
  *
  */
 abstract public class Operation extends AbstractMappedGlobalObject
@@ -44,11 +43,4 @@ abstract public class Operation extends AbstractMappedGlobalObject
 		super( id );
 		deployInfo = new OperationDeployInfo();
 	}
-	
-	public String value()
-	{
-		return id();
-	}
-	
-	abstract public void register();
 }

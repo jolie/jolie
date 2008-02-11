@@ -44,6 +44,6 @@ public class ExitProcess implements Process
 	
 	public void run()
 	{
-		Interpreter.exit();
+		Interpreter.getInstance().exit();
 	}
 }

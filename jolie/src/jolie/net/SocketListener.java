@@ -29,16 +29,17 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
 
+import jolie.Interpreter;
 import jolie.deploy.InputPort;
 
 public class SocketListener extends CommListener
 {
 	private ServerSocketChannel serverChannel;
 
-	public SocketListener( CommProtocol protocol, int port, Collection< InputPort > inputPorts )
+	public SocketListener( Interpreter interpreter, CommProtocol protocol, int port, Collection< InputPort > inputPorts )
 		throws IOException
 	{
-		super( protocol, inputPorts );
+		super( interpreter, protocol, inputPorts );
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();
@@ -56,7 +57,7 @@ public class SocketListener extends CommListener
 							socketChannel.socket().getOutputStream(),
 							createProtocol() );
 				
-				CommCore.scheduleReceive( channel, this );
+				Interpreter.getInstance().commCore().scheduleReceive( channel, this );
 			}
 			serverChannel.close();
 		} catch( ClosedByInterruptException ce ) {

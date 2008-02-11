@@ -29,13 +29,4 @@ public class OneWayOperation extends InputOperation
 	{
 		super( id );
 	}
-	
-	public static OneWayOperation getById( String id )
-		throws InvalidIdException
-	{
-		InputOperation obj = InputOperation.getById( id );
-		if ( !( obj instanceof OneWayOperation ) )
-			throw new InvalidIdException( id );
-		return (OneWayOperation)obj;
-	}
 }

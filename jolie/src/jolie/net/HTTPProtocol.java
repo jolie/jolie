@@ -47,11 +47,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Operation;
-import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
@@ -135,7 +135,7 @@ public class HTTPProtocol implements CommProtocol
 
 			String messageString = new String();
 			try {
-				Operation operation = RequestResponseOperation.getById( message.inputId() );
+				Operation operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
 				if ( operation != null ) {
 					// We're responding to a request
 					messageString += "HTTP/1.1 200 OK\n";

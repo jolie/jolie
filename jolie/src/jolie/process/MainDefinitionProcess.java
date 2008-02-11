@@ -19,48 +19,32 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.process;
 
-import java.net.URI;
-
-import jolie.Constants;
 import jolie.Interpreter;
-import jolie.deploy.OutputPort;
-import jolie.deploy.OutputPortType;
-import jolie.deploy.PortType;
-import jolie.net.CommProtocol;
-import jolie.net.HTTPProtocol;
-import jolie.net.SOAPProtocol;
-import jolie.net.SODEPProtocol;
+import jolie.runtime.EmbeddedServiceLoader;
+import jolie.runtime.EmbeddedServiceLoadingException;
+import jolie.runtime.FaultException;
 
-public class OutputOperation extends Operation
+
+
+public class MainDefinitionProcess extends DefinitionProcess
 {
-	public OutputOperation( String id )
+	public MainDefinitionProcess()
 	{
-		super( id );
+		super( "main" );
 	}
-
-	public CommProtocol getOutputProtocol( URI uri )
+	
+	public void run()
+		throws FaultException
 	{
-		PortType pt = deployInfo().portType();
-		if ( pt != null ) {
-			assert( pt instanceof OutputPortType );
-			OutputPort port = ((OutputPortType)pt).outputPort();
-			if ( port != null ) {
-				Constants.ProtocolId pId = port.protocolId();
-				if ( pId == Constants.ProtocolId.SODEP ) {
-					return new SODEPProtocol();
-				} else if ( pId == Constants.ProtocolId.SOAP ) {
-					return new SOAPProtocol(
-							uri,
-							((OutputPortType)deployInfo().portType()).namespace()
-							);
-				} else if ( pId == Constants.ProtocolId.HTTP ) {
-					return new HTTPProtocol( uri );
-				}
-			} else
-				Interpreter.getInstance().logger().warning( "Unspecified output port for operation " + id() );
+		try {
+			for( EmbeddedServiceLoader loader : Interpreter.getInstance().embeddedServiceLoaders() )
+				loader.load();
+		
+			super.run();
+		} catch( EmbeddedServiceLoadingException e ) {
+			Interpreter.getInstance().logger().severe( e.getMessage() );
 		}
-		return new SODEPProtocol();
 	}
 }

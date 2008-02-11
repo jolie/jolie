@@ -29,13 +29,4 @@ public class NotificationOperation extends OutputOperation
 	{
 		super( id );
 	}
-	
-	public static NotificationOperation getById( String id )
-		throws InvalidIdException
-	{
-		OutputOperation obj = OutputOperation.getById( id );
-		if ( !( obj instanceof NotificationOperation ) )
-			throw new InvalidIdException( id );
-		return (NotificationOperation)obj;
-	}
 }

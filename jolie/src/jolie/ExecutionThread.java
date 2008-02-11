@@ -33,7 +33,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-abstract public class ExecutionThread extends Thread
+abstract public class ExecutionThread extends JolieThread
 {
 	protected class Scope implements Cloneable {
 		private HashMap< String, Process > faultMap = new HashMap< String, Process >();
@@ -99,9 +99,18 @@ abstract public class ExecutionThread extends Thread
 	
 	public ExecutionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{
+		super( parent.interpreter() );
 		this.process = process;
 		this.parent = parent;
 		this.notifyProc = notifyProc;
+	}
+	
+	public ExecutionThread( Interpreter interpreter, Process process )
+	{
+		super( interpreter );
+		this.process = process;
+		this.parent = null;
+		this.notifyProc = null;
 	}
 
 	public void kill()
@@ -130,13 +139,13 @@ abstract public class ExecutionThread extends Thread
 			if ( notifyProc != null )
 				notifyProc.signalFault( f );
 			else
-				Interpreter.logUnhandledFault( f );
+				Interpreter.getInstance().logUnhandledFault( f );
 		}
 	}
 	
 	public synchronized Process getCurrentScopeCompensation()
 	{
-		if( scopeStack.empty() )
+		if( scopeStack.empty() && parent != null )
 			return parent.getCurrentScopeCompensation();
 		
 		return scopeStack.peek().getSelfCompensation();
@@ -144,7 +153,7 @@ abstract public class ExecutionThread extends Thread
 	
 	public synchronized Process getCompensation( String id )
 	{
-		if ( scopeStack.empty() )
+		if ( scopeStack.empty() && parent != null )
 			return parent.getCompensation( id );
 		
 		return scopeStack.peek().getCompensation( id );
@@ -157,7 +166,7 @@ abstract public class ExecutionThread extends Thread
 
 	public synchronized Process getFaultHandler( String id, boolean erase )
 	{
-		if ( scopeStack.empty() )
+		if ( scopeStack.empty() && parent != null )
 			return parent.getFaultHandler( id, erase );
 		
 		return scopeStack.peek().getFaultHandler( id, erase );
@@ -191,7 +200,7 @@ abstract public class ExecutionThread extends Thread
 	
 	public synchronized void installCompensation( Process process )
 	{
-		if ( scopeStack.empty() )
+		if ( scopeStack.empty() && parent != null )
 			parent.installCompensation( process );
 		else
 			scopeStack.peek().installCompensation( process );
@@ -199,7 +208,7 @@ abstract public class ExecutionThread extends Thread
 	
 	public synchronized void installFaultHandler( String id, Process process )
 	{
-		if ( scopeStack.empty() )
+		if ( scopeStack.empty() && parent != null )
 			parent.installFaultHandler( id, process );
 		else
 			scopeStack.peek().installFaultHandler( id, process );
@@ -225,7 +234,7 @@ abstract public class ExecutionThread extends Thread
 	{
 		VariablePath path;
 		Value correlationValue;
-		for( List< VariablePath > list : Interpreter.correlationSet() ) {
+		for( List< VariablePath > list : Interpreter.getInstance().correlationSet() ) {
 			for( VariablePath p : list ) {
 				if ( (path=recvPath.containedSubPath( p )) != null ) {
 					correlationValue = list.get( 0 ).getValue();

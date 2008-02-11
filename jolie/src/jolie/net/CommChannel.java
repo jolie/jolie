@@ -28,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.Constants;
-import jolie.runtime.Location;
 
 
 /** A communication channel is an abstraction which permits to send and receive messages.
@@ -41,11 +40,10 @@ abstract public class CommChannel
 {
 	abstract public boolean hasData();
 	
-	public static CommChannel createCommChannel( Location location, CommProtocol protocol )
+	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
 		CommChannel channel = null;
-		URI uri = location.getURI();
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
 		
 		if ( medium == Constants.MediumId.SOCKET ) {
@@ -55,26 +53,6 @@ abstract public class CommChannel
 						socket.getOutputStream(),
 						protocol
 						);
-		} else if ( medium == Constants.MediumId.JAVA ) {
-			try {
-				Class<?> c =
-					ClassLoader.getSystemClassLoader().loadClass( uri.getSchemeSpecificPart() );
-				
-				//if ( JavaService.class.isAssignableFrom( c ) == false )
-				//	throw new IOException( "Specified file is not a valid JOLIE java service" );
-				channel = new JavaCommChannel( c.newInstance() );
-			} catch( ClassNotFoundException ce ) {
-				throw new IOException( ce );
-			} catch( IllegalAccessException iae ) {
-				throw new IOException( iae );
-			} catch( InstantiationException ie ) {
-				throw new IOException( ie );
-			} catch( ExceptionInInitializerError eiie ) {
-				throw new IOException( eiie );
-			} catch( SecurityException se ) {
-				throw new IOException( se );
-			}
-			
 		} else
 			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
 		

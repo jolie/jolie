@@ -26,14 +26,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import jolie.runtime.FaultException;
+import jolie.runtime.JavaService;
 
 public class JavaCommChannel extends CommChannel
 {
 	private Object javaService;
 	private CommMessage lastMessage = null;
 	
-	public JavaCommChannel( Object javaService )
+	public JavaCommChannel( JavaService javaService )
 	{
+		javaService.setCommChannel( this );
 		this.javaService = javaService;
 	}
 	
@@ -88,7 +90,7 @@ public class JavaCommChannel extends CommChannel
 		throws IOException
 	{
 		if ( lastMessage == null )
-			throw new IOException( "Called operation is not a Request-Response" );
+			return CommMessage.createEmptyMessage();
 		CommMessage ret = lastMessage;
 		lastMessage = null;
 		return ret;
@@ -96,7 +98,7 @@ public class JavaCommChannel extends CommChannel
 
 	public void close()
 	{
-		javaService = null;
+		//javaService = null;
 	}
 	
 	public boolean hasData()

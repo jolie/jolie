@@ -22,21 +22,31 @@
 
 package jolie.runtime;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
 
-public class Location
+import jolie.CommandLineException;
+import jolie.Interpreter;
+
+
+public class JolieServiceLoader extends EmbeddedServiceLoader
 {
-	private Expression expression;
+	private Interpreter interpreter;
+	//private VariablePath channelVariablePath;
 	
-	public Location( Expression expression )
+	public JolieServiceLoader( String servicePath, VariablePath channelVariablePath )
+		throws IOException, CommandLineException
 	{
-		this.expression = expression;
+		interpreter = new Interpreter( servicePath.split( " " ) );
+		//this.channelVariablePath = channelVariablePath;
 	}
-	
-	public URI getURI()
-		throws URISyntaxException
+
+	public void load()
+		throws EmbeddedServiceLoadingException
 	{
-		return new URI( expression.evaluate().strValue() );
+		try {
+			interpreter.run( false );
+		} catch( Exception e ) {
+			throw new EmbeddedServiceLoadingException( e );
+		}
 	}
 }

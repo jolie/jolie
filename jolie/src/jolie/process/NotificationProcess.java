@@ -22,38 +22,38 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Location;
+import jolie.runtime.Expression;
 import jolie.runtime.OutputOperation;
+import jolie.runtime.Value;
 
 public class NotificationProcess implements Process
 {
 	private OutputOperation operation;
-	private VariablePath varPath;
-	private Location location;
+	private Expression location, outputExpression;
 	//private OperationChannelInfo channelInfo;
 
 	public NotificationProcess(
 			OutputOperation operation,
-			Location location,
-			VariablePath varPath
+			Expression location,
+			Expression outputExpression
 		//	OperationChannelInfo channelInfo
 			)
 	{
 		this.operation = operation;
-		this.varPath = varPath;
+		this.outputExpression = outputExpression;
 		this.location = location;
 		//this.channelInfo = channelInfo;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new NotificationProcess( operation, location, varPath );
+		return new NotificationProcess( operation, location, outputExpression );
 	}
 	
 	public void run()
@@ -63,14 +63,22 @@ public class NotificationProcess implements Process
 
 		try {
 			CommMessage message =
-				( varPath == null ) ?
+				( outputExpression == null ) ?
 						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), varPath.getValue() );
-			CommChannel channel =
-				CommChannel.createCommChannel(
-						location,
-						operation.getOutputProtocol( location )
+						new CommMessage( operation.id(), outputExpression.evaluate() );
+
+			CommChannel channel;
+			Value loc = location.evaluate();
+			if ( loc.isChannel() )
+				channel = loc.channelValue();
+			else {
+				URI uri = new URI( location.evaluate().strValue() );
+				channel =
+					CommChannel.createCommChannel(
+						uri,
+						operation.getOutputProtocol( uri )
 						);
+			}
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

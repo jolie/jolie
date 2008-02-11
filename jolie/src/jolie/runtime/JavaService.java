@@ -19,34 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.Expression;
-import jolie.runtime.Value;
+package jolie.runtime;
 
-public class OutProcess implements Process
+import jolie.Interpreter;
+import jolie.net.CommChannel;
+import jolie.net.CommMessage;
+
+
+abstract public class JavaService
 {
-	private Expression expression;
+	private CommChannel commChannel = null;
 	
-	public OutProcess( Expression expression )
+	public void setCommChannel( CommChannel channel )
 	{
-		this.expression = expression;
+		this.commChannel = channel;
 	}
 	
-	public Process clone( TransformationReason reason )
+	protected void sendMessage( CommMessage message )
+		throws InvalidIdException
 	{
-		return new OutProcess( expression );
-	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		Value val = expression.evaluate();
-		if ( val.isDefined() )
-			System.out.print( val.strValue() );
-		else
-			System.out.print( "undefined" );
+		Interpreter.getInstance().getInputOperation( message.inputId() ).recvMessage( commChannel, message );
 	}
 }

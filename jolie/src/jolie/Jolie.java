@@ -39,7 +39,7 @@ public class Jolie
 	{
 		int exitCode = 0;
 		try {
-			(new Interpreter( args )).run();
+			(new Interpreter( args )).run( true );
 		} catch( CommandLineException cle ) {
 			System.out.println( cle.getMessage() );
 		} catch( FileNotFoundException fe ) {

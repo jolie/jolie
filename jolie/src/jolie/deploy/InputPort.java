@@ -22,7 +22,6 @@
 package jolie.deploy;
 
 import jolie.Constants;
-import jolie.runtime.InvalidIdException;
 
 public class InputPort extends Port
 {
@@ -37,14 +36,5 @@ public class InputPort extends Port
 	public InputPortType inputPortType()
 	{
 		return inputPortType;
-	}
-	
-	public static InputPort getById( String id )
-		throws InvalidIdException
-	{
-		Port p = Port.getById( id );
-		if ( !( p instanceof InputPort ) )
-			throw new InvalidIdException( id );
-		return (InputPort)p;
 	}
 }

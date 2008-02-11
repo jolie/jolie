@@ -53,8 +53,8 @@ public class CorrelatedProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( Interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
-			while( !Interpreter.exiting() ) {
+		if ( Interpreter.getInstance().executionMode() != Constants.ExecutionMode.SINGLE ) {
+			while( !Interpreter.getInstance().exiting() ) {
 				startSession();
 				synchronized( this ) {
 					if ( waiting ) { // We are still waiting for an input
@@ -70,7 +70,7 @@ public class CorrelatedProcess implements Process
 	
 	public synchronized void inputReceived()
 	{
-		if ( Interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
+		if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.CONCURRENT ) {
 			waiting = false;
 			notify();
 		}
@@ -78,7 +78,7 @@ public class CorrelatedProcess implements Process
 	
 	public synchronized void sessionTerminated()
 	{
-		if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+		if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
 			waiting = false;
 			notify();
 		}
@@ -93,12 +93,12 @@ public class CorrelatedProcess implements Process
 		
 		try {
 			if ( p == null )
-				Interpreter.logUnhandledFault( f );
+				Interpreter.getInstance().logUnhandledFault( f );
 			else
 				p.run();
 		
 			synchronized( this ) {
-				if ( Interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+				if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
 					waiting = false;
 					notify();
 				}

@@ -108,7 +108,7 @@ public class VariablePath implements Expression, Cloneable
 	private Value getRootValue()
 	{
 		if ( global )
-			return Interpreter.globalValue();
+			return Interpreter.getInstance().globalValue();
 		
 		return ExecutionThread.currentThread().state().root();
 	}

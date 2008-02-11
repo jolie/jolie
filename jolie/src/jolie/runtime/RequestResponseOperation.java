@@ -39,13 +39,4 @@ public class RequestResponseOperation extends InputOperation
 	{
 		return faultNames;
 	}
-	
-	public static RequestResponseOperation getById( String id )
-		throws InvalidIdException
-	{
-		InputOperation obj = InputOperation.getById( id );
-		if ( !( obj instanceof RequestResponseOperation ) )
-			throw new InvalidIdException( id );
-		return (RequestResponseOperation)obj;
-	}
 }

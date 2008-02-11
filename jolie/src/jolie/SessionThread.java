@@ -33,15 +33,21 @@ public class SessionThread extends ExecutionThread
 		this.state = state;
 	}
 	
+	public SessionThread( Interpreter interpreter, Process process )
+	{
+		super( interpreter, process );
+		state = new jolie.State();
+	}
+	
 	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
 	{
 		super( process, parent, notifyObj );
-		if ( parent != null ) {
-			state = parent.state().clone();
-			for( Scope s : parent.scopeStack )
-				scopeStack.push( s.clone() );
-		} else
-			state = new jolie.State();
+		
+		assert( parent != null );
+		
+		state = parent.state().clone();
+		for( Scope s : parent.scopeStack )
+			scopeStack.push( s.clone() );
 	}
 	
 	public jolie.State state()

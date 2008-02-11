@@ -41,9 +41,6 @@ import jolie.util.Pair;
  */
 abstract public class InputOperation extends Operation implements InputHandler
 {
-	private static HashMap< String, InputOperation > idMap = 
-						new HashMap< String, InputOperation >();
-
 	private HashMap< InputProcessExecution, ExecutionThread > procsMap =
 						new HashMap< InputProcessExecution, ExecutionThread >();
 	
@@ -53,21 +50,6 @@ abstract public class InputOperation extends Operation implements InputHandler
 	public InputOperation( String id )
 	{
 		super( id );
-	}
-
-	public static InputOperation getById( String id )
-		throws InvalidIdException
-	{
-		InputOperation retVal = idMap.get( id );
-		if ( retVal == null )
-			throw new InvalidIdException( id + " (undefined input operation)" );
-
-		return retVal;
-	}
-	
-	public void register()
-	{
-		idMap.put( id(), this );
 	}
 	
 	/**

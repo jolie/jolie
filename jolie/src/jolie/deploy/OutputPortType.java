@@ -24,7 +24,6 @@ package jolie.deploy;
 import java.util.Vector;
 
 import jolie.Constants;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.OutputOperation;
 
 public class OutputPortType extends PortType
@@ -49,15 +48,6 @@ public class OutputPortType extends PortType
 	public Vector< OutputOperation > operations()
 	{
 		return operations;
-	}
-	
-	public static OutputPortType getById( String id )
-		throws InvalidIdException
-	{
-		PortType pt = PortType.getById( id );
-		if ( !( pt instanceof OutputPortType ) )
-			throw new InvalidIdException( id );
-		return (OutputPortType)pt;
 	}
 	
 	public void addOperation( OutputOperation operation )

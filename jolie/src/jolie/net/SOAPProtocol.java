@@ -47,11 +47,11 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
+import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Operation;
-import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
@@ -61,36 +61,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-/*class HTTPSOAPException extends Exception
-{
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	private int httpCode;
-
-	public HTTPSOAPException( int httpCode, String message )
-	{
-		super( message );
-		this.httpCode = httpCode;
-	}
-
-	public int httpCode()
-	{
-		return httpCode;
-	}
-
-	public String createSOAPFaultMessage()
-		throws SOAPException, IOException
-	{
-		MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL );
-		SOAPMessage soapMessage = messageFactory.createMessage();
-		SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
-		SOAPBody soapBody = soapEnvelope.getBody();
-		soapBody.addFault( SOAPConstants.SOAP_SENDER_FAULT, getMessage() );
-		ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-		soapMessage.writeTo( tmpStream );
-		return new String( tmpStream.toByteArray() );
-	}
-}*/
 
 /** Implements the SOAP over HTTP protocol.
  * 
@@ -173,27 +143,17 @@ public class SOAPProtocol implements CommProtocol
 			String soapAction = null;
 			Operation operation = null;
 			try {
-				operation = RequestResponseOperation.getById( message.inputId() );
+				operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK\n";
 			} else {
 				// We're sending a notification or a solicit
-				/*String path = new String();
-				if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
-					path += "/";
-				path += uri.getPath();
-				if ( path.endsWith( "/" ) == false )
-					path += "/";
-				path += message.inputId();
-				System.out.println( path );
-				*/
 				String path = uri.getPath();
 				if ( path.length() == 0 )
 					path = "*";
 				messageString += "POST " + path + " HTTP/1.1\n";
-				//messageString += "POST " + message.inputId() + " HTTP/1.1\n";
 				messageString += "Host: " + uri.getHost() + '\n';
 				soapAction =
 					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
@@ -216,97 +176,6 @@ public class SOAPProtocol implements CommProtocol
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		}
-		
-		
-		
-		/*if ( deployInfo == null )
-			throw new IOException( "Error: WSDL information missing in SOAP protocol" );
-
-		HTTPSOAPException httpException = null;
-		String soapString = null;
-		
-		try {
-			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL );
-			SOAPMessage soapMessage = messageFactory.createMessage();
-			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
-			SOAPBody soapBody = soapEnvelope.getBody();
-
-			Vector< String > varNames = deployInfo.outVarNames();
-			if ( varNames == null )
-				throw new HTTPSOAPException( 500, "Error: output vars information missing in SOAP protocol" );
-
-			Name operationName = soapEnvelope.createName( message.inputId(), "m", "jolieSOAP" );
-			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
-
-			SOAPElement varElement;
-			int i = 0;
-			
-			for( Value val : message ) {
-				varElement = opBody.addChildElement( varNames.elementAt( i++ ), operationName.getPrefix() );
-				varElement.addTextNode( val.strValue() );
-			}
-
-			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-			soapMessage.writeTo( tmpStream );
-			soapString = new String( tmpStream.toByteArray() );
-		} catch( HTTPSOAPException hse ) {
-			httpException = hse;
-		} catch( SOAPException se ) {
-			throw new IOException( se );
-		}
-		
-		String messageString = new String();
-		
-		try {
-			Operation operation = Operation.getByWSDLBoundName( message.inputId() );
-			if ( operation instanceof RequestResponseOperation ) {
-				int httpCode;
-				if ( httpException == null )
-					httpCode = 200;
-				else {
-					httpCode = httpException.httpCode();
-					try {
-						soapString = httpException.createSOAPFaultMessage();
-					} catch( SOAPException se ) {
-						throw new IOException( se );
-					}
-				}
-
-				messageString += "HTTP/1.1 " + httpCode + ' ';
-				
-				switch( httpCode ) {
-					case 500:
-						messageString += "Internal Server Error";
-						break;
-					case 200:
-					default:
-						messageString += "OK";
-						break;
-				}
-				messageString += '\n';
-			} else {
-				if ( httpException != null )
-					throw new IOException( httpException );
-				if ( uri == null )
-					throw new IOException( "Error: URI information missing in SOAP protocol" );
-				messageString += "POST " + uri.getPath() + " HTTP/1.1\n";
-				messageString += "Host: " + uri.getHost() + '\n';
-			}
-			messageString += "Content-type: application/soap+xml; charset=\"utf-8\"\n";
-		} catch ( InvalidIdException iie ) {
-			throw new IOException( iie );
-		}
-		
-		messageString += "Content-Length: " + soapString.length() + '\n';
-		messageString += soapString;
-		
-		BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
-		writer.write( messageString );
-		writer.flush();
-		//System.out.println( messageString );
-		if ( httpException != null )
-			throw new IOException( httpException );
-		*/
 	}
 	
 	private void xmlNodeToValue( Value value, Node node )

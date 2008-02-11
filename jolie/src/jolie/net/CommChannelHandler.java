@@ -23,14 +23,21 @@
 package jolie.net;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.JolieThread;
 
-public class CommChannelHandler extends Thread
+public class CommChannelHandler extends JolieThread
 {
 	private ExecutionThread executionThread;
 	
+	public CommChannelHandler()
+	{
+		super( Interpreter.getInstance() );
+	}
+	
 	public CommChannelHandler( Runnable r )
 	{
-		super( r );
+		super( Interpreter.getInstance(), r );
 	}
 	
 	public static CommChannelHandler currentThread()

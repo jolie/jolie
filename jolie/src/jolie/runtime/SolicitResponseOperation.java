@@ -29,14 +29,5 @@ public class SolicitResponseOperation extends OutputOperation
 	{
 		super( id );
 	}
-	
-	public static SolicitResponseOperation getById( String id )
-		throws InvalidIdException
-	{
-		OutputOperation obj = OutputOperation.getById( id );
-		if ( !( obj instanceof SolicitResponseOperation ) )
-			throw new InvalidIdException( id );
-		return (SolicitResponseOperation)obj;
-	}
 }
 

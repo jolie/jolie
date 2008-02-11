@@ -25,7 +25,6 @@ import java.util.Vector;
 
 import jolie.Constants;
 import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
 
 public class InputPortType extends PortType
 {
@@ -58,14 +57,5 @@ public class InputPortType extends PortType
 	{
 		operations.add( operation );
 		operation.deployInfo().setPortType( this );
-	}
-	
-	public static InputPortType getById( String id )
-		throws InvalidIdException
-	{
-		PortType pt = PortType.getById( id );
-		if ( !( pt instanceof InputPortType ) )
-			throw new InvalidIdException( id );
-		return (InputPortType)pt;
 	}
 }

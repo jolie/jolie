@@ -22,18 +22,11 @@
 
 package jolie.process;
 
-import java.util.Collection;
-import java.util.HashMap;
-
 import jolie.runtime.AbstractMappedGlobalObject;
 import jolie.runtime.FaultException;
-import jolie.runtime.InvalidIdException;
 
 public class DefinitionProcess extends AbstractMappedGlobalObject implements Process
 {
-	private static HashMap< String, DefinitionProcess > idMap = 
-		new HashMap< String, DefinitionProcess >();
-	
 	private Process process = null;
 
 	public DefinitionProcess( String id )
@@ -56,25 +49,5 @@ public class DefinitionProcess extends AbstractMappedGlobalObject implements Pro
 	{
 		if ( process != null )
 			process.run();
-	}
-
-	public static DefinitionProcess getById( String id )
-		throws InvalidIdException
-	{
-		DefinitionProcess retVal = idMap.get( id );
-		if ( retVal == null )
-			throw new InvalidIdException( id + " (undefined procedure)" );
-
-		return retVal;
-	}
-	
-	public final void register()
-	{
-		idMap.put( id(), this );
-	}
-	
-	public static Collection< DefinitionProcess > getAll()
-	{
-		return idMap.values();
 	}
 }

@@ -19,48 +19,36 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+
 package jolie.runtime;
 
-import java.net.URI;
+import jolie.net.JavaCommChannel;
 
-import jolie.Constants;
-import jolie.Interpreter;
-import jolie.deploy.OutputPort;
-import jolie.deploy.OutputPortType;
-import jolie.deploy.PortType;
-import jolie.net.CommProtocol;
-import jolie.net.HTTPProtocol;
-import jolie.net.SOAPProtocol;
-import jolie.net.SODEPProtocol;
 
-public class OutputOperation extends Operation
+public class JavaServiceLoader extends EmbeddedServiceLoader
 {
-	public OutputOperation( String id )
+	private String servicePath;
+	private VariablePath channelVariablePath;
+	
+	public JavaServiceLoader( String servicePath, VariablePath channelVariablePath )
 	{
-		super( id );
+		this.servicePath = servicePath;
+		this.channelVariablePath = channelVariablePath;
 	}
 
-	public CommProtocol getOutputProtocol( URI uri )
+	public void load()
+		throws EmbeddedServiceLoadingException
 	{
-		PortType pt = deployInfo().portType();
-		if ( pt != null ) {
-			assert( pt instanceof OutputPortType );
-			OutputPort port = ((OutputPortType)pt).outputPort();
-			if ( port != null ) {
-				Constants.ProtocolId pId = port.protocolId();
-				if ( pId == Constants.ProtocolId.SODEP ) {
-					return new SODEPProtocol();
-				} else if ( pId == Constants.ProtocolId.SOAP ) {
-					return new SOAPProtocol(
-							uri,
-							((OutputPortType)deployInfo().portType()).namespace()
-							);
-				} else if ( pId == Constants.ProtocolId.HTTP ) {
-					return new HTTPProtocol( uri );
-				}
-			} else
-				Interpreter.getInstance().logger().warning( "Unspecified output port for operation " + id() );
+		try {
+			Object obj =
+				ClassLoader.getSystemClassLoader().loadClass( servicePath ).newInstance();
+			if ( !(obj instanceof JavaService) )
+				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
+			channelVariablePath.getValue().setChannel(
+					new JavaCommChannel( (JavaService)obj )
+				);
+		} catch( Exception e ) {
+			throw new EmbeddedServiceLoadingException( e );
 		}
-		return new SODEPProtocol();
 	}
 }

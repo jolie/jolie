@@ -24,22 +24,24 @@ package jolie.net;
 
 import java.util.Collection;
 
+import jolie.Interpreter;
+import jolie.JolieThread;
 import jolie.deploy.InputPort;
 import jolie.runtime.InputOperation;
 
 /** Base class for a communication input listener.
  * @author Fabrizio Montesi
  */
-abstract public class CommListener extends Thread
+abstract public class CommListener extends JolieThread
 {
 	private static int index = 0;
 
 	private CommProtocol protocol;
 	private Collection< InputPort > inputPorts;
 	
-	public CommListener( CommProtocol protocol, Collection< InputPort > inputPorts )
+	public CommListener( Interpreter interpreter, CommProtocol protocol, Collection< InputPort > inputPorts )
 	{
-		super( CommCore.threadGroup(), "CommListener-" + index++ );
+		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocol = protocol;
 		this.inputPorts = inputPorts;
 	}

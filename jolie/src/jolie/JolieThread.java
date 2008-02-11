@@ -19,23 +19,32 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie;
 
-package jolie.runtime;
 
-/** Generic interface for a globally mapped object.
- * 
- * @author Fabrizio Montesi
- * @version 0.1
- *
- */
-public interface MappedGlobalObject
+public class JolieThread extends Thread
 {
-	/** Returns the identifier of the object.
-	 * @return the identifier of the object.
-	 */
-	public String id();
+	private Interpreter interpreter;
 	
-	/** Registers the object in the global map.
-	 */
-	public void register();
+	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
+	{
+		super( threadGroup, name );
+		this.interpreter = interpreter;
+	}
+	
+	public JolieThread( Interpreter interpreter )
+	{
+		this.interpreter = interpreter;
+	}
+	
+	public JolieThread( Interpreter interpreter, Runnable r )
+	{
+		super( r );
+		this.interpreter = interpreter;
+	}
+	
+	public Interpreter interpreter()
+	{
+		return interpreter;
+	}
 }

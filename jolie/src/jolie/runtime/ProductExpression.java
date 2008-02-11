@@ -37,6 +37,9 @@ public class ProductExpression implements Expression
 	
 	public Value evaluate()
 	{
+		if ( children.size() == 1 )
+			return children.firstElement().expression().evaluate();
+
 		Value val = Value.create();
 		
 		if ( children.size() > 0 )

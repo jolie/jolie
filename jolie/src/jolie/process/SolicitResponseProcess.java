@@ -22,40 +22,42 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Location;
 import jolie.runtime.SolicitResponseOperation;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
-	private VariablePath outputVarPath, inputVarPath; // each may be null
-	private Location location;
+	private VariablePath inputVarPath; // each may be null
+	private Expression location, outputExpression;
 	private Process installProcess;
 
 	public SolicitResponseProcess(
 			SolicitResponseOperation operation,
-			Location location,
-			VariablePath outputVarPath,
+			Expression location,
+			Expression outputExpression,
 			VariablePath inputVarPath,
 			Process installProcess
 			)
 	{
 		this.operation = operation;
 		this.location = location;
-		this.outputVarPath = outputVarPath;
+		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
 		this.installProcess = installProcess;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new SolicitResponseProcess( operation, location, outputVarPath, inputVarPath, installProcess );
+		return new SolicitResponseProcess( operation, location, outputExpression, inputVarPath, installProcess );
 	}
 	
 	public void run()
@@ -63,16 +65,22 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			channel =
-				CommChannel.createCommChannel(
-					location,
-					operation.getOutputProtocol( location )
-					);
+			Value loc = location.evaluate();
+			if ( loc.isChannel() )
+				channel = loc.channelValue();
+			else {
+				URI uri = new URI( location.evaluate().strValue() );
+				channel =
+					CommChannel.createCommChannel(
+						uri,
+						operation.getOutputProtocol( uri )
+						);
+			}
 
 			CommMessage message =
-				( outputVarPath == null ) ?
+				( outputExpression == null ) ?
 						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), outputVarPath.getValue() );
+						new CommMessage( operation.id(), outputExpression.evaluate() );
 			channel.send( message );
 
 			message = channel.recv();

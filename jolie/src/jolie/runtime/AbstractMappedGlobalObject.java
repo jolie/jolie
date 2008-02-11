@@ -22,13 +22,13 @@
 
 package jolie.runtime;
 
-/** Skeletal implementation of MappedGlobalObject.
+/** Generic abstract class for a globally mapped object.
  * 
- * @see MappedGlobalObject
  * @author Fabrizio Montesi
+ * @version 0.1
  *
  */
-abstract public class AbstractMappedGlobalObject implements MappedGlobalObject
+abstract public class AbstractMappedGlobalObject
 {
 	private String id;
 

@@ -28,11 +28,12 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
 public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
 {
@@ -90,25 +91,26 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 	
 	protected RequestResponseOperation operation;
-	protected VariablePath inputVarPath, outputVarPath;
+	protected VariablePath inputVarPath;
+	protected Expression outputExpression;
 	protected Process process;
 	protected CorrelatedProcess correlatedProcess = null;
 	
 	public RequestResponseProcess(
 			RequestResponseOperation operation,
 			VariablePath inputVarPath,
-			VariablePath outputVarPath,
+			Expression outputExpression,
 			Process process )
 	{
 		this.operation = operation;
 		this.inputVarPath = inputVarPath;
 		this.process = process;
-		this.outputVarPath = outputVarPath;
+		this.outputExpression = outputExpression;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new RequestResponseProcess( operation, inputVarPath, outputVarPath, process.clone( reason ) );
+		return new RequestResponseProcess( operation, inputVarPath, outputExpression, process.clone( reason ) );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
@@ -149,23 +151,23 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		try {
 			process.run();
 			response =
-				( outputVarPath == null ) ?
+				( outputExpression == null ) ?
 						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), outputVarPath.getValue() );
+						new CommMessage( operation.id(), outputExpression.evaluate() );
 		} catch( FaultException f ) {
 			if ( !operation.faultNames().contains( f.fault() ) ) {
-				Interpreter.logger().severe(
+				Interpreter.getInstance().logger().severe(
 					"Request-Response process for " + operation.id() +
 					"threw an undeclared fault for that operation" );
 				Iterator< String > it = operation.faultNames().iterator();
 				if ( it.hasNext() ) {
 					String newFault = it.next();
-					Interpreter.logger().warning(
+					Interpreter.getInstance().logger().warning(
 						"Converting Request-Response fault " + f.fault() +
 						" to " + newFault );
 					f = new FaultException( newFault );
 				} else
-					Interpreter.logger().severe( "Could not find a fault to convert the undeclared fault to." );
+					Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
 			}
 			response = new CommMessage( operation.id(), f );
 			fault = f;
