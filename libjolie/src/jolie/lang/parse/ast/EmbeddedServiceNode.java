@@ -21,23 +21,41 @@
 
 package jolie.lang.parse.ast;
 
+import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
-
-public class InStatement extends OLSyntaxNode
+public class EmbeddedServiceNode extends OLSyntaxNode
 {
-	private VariablePathNode variablePath;
-
-	public InStatement( ParsingContext context, VariablePathNode variablePath )
+	private String servicePath;
+	private VariablePathNode channelVariablePath;
+	private Constants.EmbeddedServiceType type;
+	
+	public EmbeddedServiceNode(
+			ParsingContext context,
+			Constants.EmbeddedServiceType type,
+			String servicePath,
+			VariablePathNode channelVariablePath )
 	{
 		super( context );
-		this.variablePath = variablePath;
+		this.type = type;
+		this.servicePath = servicePath;
+		this.channelVariablePath = channelVariablePath;
 	}
 	
-	public VariablePathNode variablePath()
+	public Constants.EmbeddedServiceType type()
 	{
-		return variablePath;
+		return type;
+	}
+	
+	public String servicePath()
+	{
+		return servicePath;
+	}
+	
+	public VariablePathNode channelVariablePath()
+	{
+		return channelVariablePath;
 	}
 	
 	public void accept( OLVisitor visitor )

@@ -32,13 +32,13 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -52,7 +52,6 @@ import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -102,8 +101,6 @@ public interface OLVisitor
 	public void visit( LinkOutStatement n );
 	public void visit( AssignStatement n );
 	public void visit( IfStatement n );
-	public void visit( InStatement n );
-	public void visit( OutStatement n );
 	public void visit( ProcedureCallStatement n );
 	public void visit( SleepStatement n );
 	public void visit( WhileStatement n );
@@ -145,4 +142,5 @@ public interface OLVisitor
 	public void visit( TypeCastExpressionNode n );
 	public void visit( SynchronizedStatement n );
 	public void visit( CurrentHandlerStatement n );
+	public void visit( EmbeddedServiceNode n );
 }

@@ -55,8 +55,6 @@ public class Scanner
 		AT,					///< @
 		LINKIN,				///< linkIn
 		LINKOUT,			///< linkOut
-		IN,					///< in
-		OUT,				///< out
 		EQUAL,				///< ==
 		AND,				///< &&
 		OR,					///< ||
@@ -76,7 +74,6 @@ public class Scanner
 		NULL_PROCESS,		///< nullProcess
 		WHILE,				///< while
 		SLEEP,				///< sleep
-		CSET,				///< cset
 		CONCURRENT,			///< concurrent
 		SEQUENTIAL,			///< sequential
 		EXECUTION,			///< execution
@@ -106,8 +103,6 @@ public class Scanner
 		CAST_STRING,			///< string
 		CAST_REAL,				///< double
 		SYNCHRONIZED,			///< synchronized
-		FROM,					///< from
-		PICK,					///< pick
 		THROWS,					///< throws
 		CURRENT_HANDLER,		///< cH
 		ERROR					///< Scanner error
@@ -374,10 +369,6 @@ public class Scanner
 							retval = new Token( TokenType.IF );
 						else if ( "else".equals( str ) )
 							retval = new Token( TokenType.ELSE );
-						else if ( "in".equals( str ) )
-							retval = new Token( TokenType.IN );
-						else if ( "out".equals( str ) )
-							retval = new Token( TokenType.OUT );
 						else if ( "and".equals( str ) )
 							retval = new Token( TokenType.AND );
 						else if ( "or".equals( str ) )
@@ -396,8 +387,6 @@ public class Scanner
 							retval = new Token( TokenType.WHILE );
 						else if ( "sleep".equals( str ) )
 							retval = new Token( TokenType.SLEEP );
-						else if ( "cset".equals( str ) )
-							retval = new Token( TokenType.CSET );
 						else if ( "single".equals( str ) )
 							retval = new Token( TokenType.SINGLE );
 						else if ( "concurrent".equals( str ) )
@@ -444,10 +433,6 @@ public class Scanner
 							retval = new Token( TokenType.CAST_STRING );
 						else if ( "double".equals( str ) )
 							retval = new Token( TokenType.CAST_REAL );
-						else if ( "from".equals( str ) )
-							retval = new Token( TokenType.FROM );
-						else if ( "pick".equals( str ) )
-							retval = new Token( TokenType.PICK );
 						else if ( "throws".equals( str ) )
 							retval = new Token( TokenType.THROWS );
 						else if ( "cH".equals( str ) )

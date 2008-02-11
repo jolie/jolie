@@ -32,13 +32,13 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InStatement;
 import jolie.lang.parse.ast.InputPortTypeInfo;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -53,7 +53,6 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutStatement;
 import jolie.lang.parse.ast.OutputPortTypeInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -159,6 +158,11 @@ public class OLParseTreeOptimizer
 		
 		public void visit( SolicitResponseOperationDeclaration decl )
 		{}
+		
+		public void visit( EmbeddedServiceNode n )
+		{
+			program.addChild( n );
+		}
 
 		public void visit( Procedure procedure )
 		{
@@ -291,13 +295,18 @@ public class OLParseTreeOptimizer
 		
 		public void visit( RequestResponseOperationStatement n )
 		{
+			OLSyntaxNode outputExpression = null;
+			if ( n.outputExpression() != null ) {
+				n.outputExpression().accept( this );
+				outputExpression = currNode;
+			}
 			n.process().accept( this );
 			currNode =
 				new RequestResponseOperationStatement(
 						n.context(),
 						n.id(),
 						n.inputVarPath(),
-						n.outputVarPath(),
+						outputExpression,
 						currNode,
 						n.channelInfo() );
 		}
@@ -325,15 +334,16 @@ public class OLParseTreeOptimizer
 		public void visit( CompensateStatement n ) { currNode = n; }
 		public void visit( ThrowStatement n ) { currNode = n; }
 		public void visit( OneWayOperationStatement n ) { currNode = n; }
+		
+		// @TODO - optimize the output expressions
 		public void visit( NotificationOperationStatement n ) { currNode = n; }
 		public void visit( SolicitResponseOperationStatement n ) { currNode = n; }
+		
 		public void visit( LinkInStatement n ) { currNode = n; }
 		public void visit( LinkOutStatement n ) { currNode = n; }
 		public void visit( AssignStatement n ) { currNode = n; }
 		public void visit( DeepCopyStatement n ) { currNode = n; }
 		public void visit( PointerStatement n ) { currNode = n; }
-		public void visit( InStatement n ) { currNode = n; }
-		public void visit( OutStatement n ) { currNode = n; }
 		public void visit( ProcedureCallStatement n ) { currNode = n; }
 		public void visit( SleepStatement n ) { currNode = n; }
 		public void visit( OrConditionNode n ) { currNode = n; }

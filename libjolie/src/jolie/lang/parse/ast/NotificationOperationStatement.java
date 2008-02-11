@@ -27,20 +27,19 @@ import jolie.lang.parse.ParsingContext;
 
 public class NotificationOperationStatement extends OLSyntaxNode
 {
-	private VariablePathNode outputVarPath;
 	private String id;
-	private OLSyntaxNode locationExpression;
+	private OLSyntaxNode locationExpression, outputExpression;
 	
 	public NotificationOperationStatement(
 			ParsingContext context,
 			String id,
 			OLSyntaxNode locationExpression,
-			VariablePathNode outputVarPath
+			OLSyntaxNode outputExpression
 			)
 	{
 		super( context );
 		this.id = id;
-		this.outputVarPath = outputVarPath;
+		this.outputExpression = outputExpression;
 		this.locationExpression = locationExpression;
 	}
 	
@@ -54,9 +53,9 @@ public class NotificationOperationStatement extends OLSyntaxNode
 		return locationExpression;
 	}
 	
-	public VariablePathNode outputVarPath()
+	public OLSyntaxNode outputExpression()
 	{
-		return outputVarPath;
+		return outputExpression;
 	}
 	
 	public void accept( OLVisitor visitor )

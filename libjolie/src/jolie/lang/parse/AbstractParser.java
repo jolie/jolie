@@ -87,7 +87,16 @@ public abstract class AbstractParser
 	protected void eat( Scanner.TokenType type, String errorMessage )
 		throws ParserException, IOException
 	{
-		tokenAssert( type, errorMessage );
+		assertToken( type, errorMessage );
+		getToken();
+	}
+	
+	protected void eatKeyword( String keyword, String errorMessage )
+		throws ParserException, IOException
+	{
+		assertToken( Scanner.TokenType.ID, errorMessage );
+		if ( !token.content().equals( keyword ) )
+			throwException( errorMessage );
 		getToken();
 	}
 	
@@ -97,7 +106,7 @@ public abstract class AbstractParser
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
 	 */
-	protected void tokenAssert( Scanner.TokenType type, String errorMessage )
+	protected void assertToken( Scanner.TokenType type, String errorMessage )
 		throws ParserException
 	{
 		if ( token.isNot( type ) )

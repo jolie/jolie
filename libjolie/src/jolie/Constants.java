@@ -28,6 +28,10 @@ public final class Constants
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static final String GLOBAL = "global";
 
+	public enum EmbeddedServiceType {
+		JAVA, JOLIE
+	}
+	
 	public enum ChannelOperator {
 		IN, PICK, FROM
 	}
