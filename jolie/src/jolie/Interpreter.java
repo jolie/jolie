@@ -68,7 +68,7 @@ public class Interpreter
 {
 	private CommCore commCore = null;
 	private OLParser olParser;
-	private boolean verbose = false;
+	//private boolean verbose = false;
 	private boolean exiting = false;
 	private Set< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
@@ -225,8 +225,8 @@ public class Interpreter
 	
 	public void logUnhandledFault( FaultException f )
 	{
-		if ( verbose )
-			System.out.println( "Thrown unhandled fault: " + f.fault() ); 
+		//if ( verbose )
+		System.out.println( "Thrown unhandled fault: " + f.fault() ); 
 	}
 	
 	public Constants.ExecutionMode executionMode()
@@ -280,8 +280,8 @@ public class Interpreter
 				connectionsLimit = Integer.parseInt( args[ i ] );
 			} else if ( "--version".equals( args[ i ] ) )
 				throw new CommandLineException( getVersionString() );
-			else if ( "--verbose".equals( args[ i ] ) )
-				verbose = true;
+			/*else if ( "--verbose".equals( args[ i ] ) )
+				verbose = true;*/
 			else if ( args[ i ].endsWith( ".ol" ) ) {
 				if ( olFilepath == null )
 					olFilepath = args[ i ];
