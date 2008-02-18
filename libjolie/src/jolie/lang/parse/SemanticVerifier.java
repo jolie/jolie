@@ -78,7 +78,6 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
-import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -297,7 +296,6 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( DeepCopyStatement n ) {}
 	public void visit( IfStatement n ) {}
 	public void visit( ProcedureCallStatement n ) {}
-	public void visit( SleepStatement n ) {}
 	public void visit( WhileStatement n ) {}
 	public void visit( OrConditionNode n ) {}
 	public void visit( AndConditionNode n ) {}

@@ -71,7 +71,6 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
-import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -307,8 +306,7 @@ public class OLParseTreeOptimizer
 						n.id(),
 						n.inputVarPath(),
 						outputExpression,
-						currNode,
-						n.channelInfo() );
+						currNode );
 		}
 		
 		public void visit( Scope n )
@@ -345,7 +343,6 @@ public class OLParseTreeOptimizer
 		public void visit( DeepCopyStatement n ) { currNode = n; }
 		public void visit( PointerStatement n ) { currNode = n; }
 		public void visit( ProcedureCallStatement n ) { currNode = n; }
-		public void visit( SleepStatement n ) { currNode = n; }
 		public void visit( OrConditionNode n ) { currNode = n; }
 		public void visit( AndConditionNode n ) { currNode = n; }
 		public void visit( NotConditionNode n ) { currNode = n; }

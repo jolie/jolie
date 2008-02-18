@@ -73,7 +73,6 @@ public class Scanner
 		LINKS,				///< links
 		NULL_PROCESS,		///< nullProcess
 		WHILE,				///< while
-		SLEEP,				///< sleep
 		CONCURRENT,			///< concurrent
 		SEQUENTIAL,			///< sequential
 		EXECUTION,			///< execution
@@ -385,8 +384,6 @@ public class Scanner
 							retval = new Token( TokenType.NULL_PROCESS );
 						else if ( "while".equals( str ) )
 							retval = new Token( TokenType.WHILE );
-						else if ( "sleep".equals( str ) )
-							retval = new Token( TokenType.SLEEP );
 						else if ( "single".equals( str ) )
 							retval = new Token( TokenType.SINGLE );
 						else if ( "concurrent".equals( str ) )

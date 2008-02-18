@@ -29,19 +29,12 @@ public class OneWayOperationStatement extends OLSyntaxNode
 {
 	private VariablePathNode inputVarPath;
 	private String id;
-	private StatementChannelInfo channelInfo;
 	
-	public OneWayOperationStatement( ParsingContext context, String id, VariablePathNode inputVarPath, StatementChannelInfo channelInfo )
+	public OneWayOperationStatement( ParsingContext context, String id, VariablePathNode inputVarPath )
 	{
 		super( context );
 		this.id = id;
 		this.inputVarPath = inputVarPath;
-		this.channelInfo = channelInfo;
-	}
-	
-	public StatementChannelInfo channelInfo()
-	{
-		return channelInfo;
 	}
 	
 	public String id()
