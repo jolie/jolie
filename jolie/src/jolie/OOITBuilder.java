@@ -68,10 +68,8 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
-import jolie.lang.parse.ast.SleepStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.StatementChannelInfo;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -118,7 +116,6 @@ import jolie.process.RequestResponseProcess;
 import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
-import jolie.process.SleepProcess;
 import jolie.process.SolicitResponseProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
@@ -142,7 +139,6 @@ import jolie.runtime.IsStringExpression;
 import jolie.runtime.NotCondition;
 import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
-import jolie.runtime.OperationChannelInfo;
 import jolie.runtime.OrCondition;
 import jolie.runtime.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
@@ -435,25 +431,13 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new OneWayProcess(
 						interpreter.getOneWayOperation( n.id() ),
-						getGlobalVariablePath( n.inputVarPath() ),
-						getOperationChannelInfo( n.channelInfo() )
+						getGlobalVariablePath( n.inputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
 		}
 	}
-	
-	private OperationChannelInfo getOperationChannelInfo( StatementChannelInfo info )
-	{
-		if ( info == null )
-			return null;
-		return new OperationChannelInfo(
-				info.type(),
-				getGlobalVariablePath( info.channelPath() ),
-				getGlobalVariablePath( info.indexPath() )
-				);
-	}
-	
+
 	public void visit( RequestResponseOperationStatement n )
 	{
 		Expression outputExpression = null;
@@ -650,12 +634,6 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
-	}
-	
-	public void visit( SleepStatement n )
-	{
-		n.expression().accept( this );
-		currProcess = new SleepProcess( currExpression );
 	}
 	
 	public void visit( RunStatement n )

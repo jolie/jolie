@@ -38,7 +38,7 @@ import jolie.deploy.InputPort;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 
-/** Handles the networking communications.
+/** Handles networking communications.
  * The CommCore class represent the communication core of JOLIE.
  */
 public class CommCore

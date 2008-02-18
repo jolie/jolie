@@ -27,100 +27,13 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
-import jolie.runtime.OperationChannelInfo;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	/*private class ExecutionInChannel extends Execution
-	{
-		public ExecutionInChannel( OneWayProcess parent )
-		{
-			super( parent );
-		}
-		
-		public void run()
-			throws FaultException
-		{
-			try {
-				parent.operation.signForMessage( this );
-				synchronized( this ) {
-					if( message == null )
-						this.wait();
-				}
-				parent.channelInfo.channelPath().getValue().setChannel( channel );
-			} catch( InterruptedException ie ) {
-				parent.operation.cancelWaiting( this );
-			}
-			parent.runBehaviour( channel, message );
-		}
-		
-		public synchronized void recvMessage( CommChannel channel, CommMessage message )
-		{
-			if ( parent.correlatedProcess != null )
-				parent.correlatedProcess.inputReceived();
-
-			this.message = message;
-			this.channel = channel;
-			this.notify();
-		}
-	}
-	
-	private class ExecutionFromChannel extends Execution
-	{
-		public ExecutionFromChannel( OneWayProcess parent )
-		{
-			super( parent );
-		}
-		
-		public void run()
-			throws FaultException
-		{
-			channel = parent.channelInfo.channelPath().getValue().channelValue();
-			if ( channel == null )
-				throw new FaultException( "ClosedChannel" );
-			try {
-				message = channel.recv();
-			} catch( IOException ioe ) {
-				throw new FaultException( "IOException" );
-			}
-			if ( !message.inputId().equals( parent.operation.id() ) )
-				throw new FaultException( "BadOperationName" );
-			parent.runBehaviour( channel, message );
-		}
-	}
-	
-	private class ExecutionPickChannel extends Execution
-	{
-		public ExecutionPickChannel( OneWayProcess parent )
-		{
-			super( parent );
-		}
-		
-		public void run()
-			throws FaultException
-		{
-			ValueVector vec = parent.channelInfo.channelPath().getValueVector();
-			for( Value v : vec ) {
-				channel = v.channelValue();
-				
-			}
-			
-			channel = parent.channelInfo.channelPath().getValue().channelValue();
-			if ( channel == null )
-				throw new FaultException( "ClosedChannel" );
-			try {
-				message = channel.recv();
-			} catch( IOException ioe ) {
-				throw new FaultException( "IOException" );
-			}
-			parent.runBehaviour( channel, message );
-		}
-	}*/
-	
 	private class Execution implements InputProcessExecution
 	{
 		protected CommMessage message = null;
@@ -173,32 +86,19 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	protected InputOperation operation;
 	protected VariablePath varPath;
 	protected CorrelatedProcess correlatedProcess = null;
-	protected OperationChannelInfo channelInfo;
-	
-	//private Class< ? extends Execution > model;
 
 	public OneWayProcess(
 			InputOperation operation,
-			VariablePath varPath,
-			OperationChannelInfo channelInfo )
+			VariablePath varPath
+			)
 	{
 		this.operation = operation;
 		this.varPath = varPath;
-		this.channelInfo = channelInfo;
-
-		/*if ( channelInfo == null )
-			model = Execution.class;
-		else if ( channelInfo.operator() == Constants.ChannelOperator.FROM )
-			model = ExecutionFromChannel.class;
-		else if ( channelInfo.operator() == Constants.ChannelOperator.IN )
-			model = ExecutionInChannel.class;
-		else if ( channelInfo.operator() == Constants.ChannelOperator.PICK )
-			model = ExecutionPickChannel.class;*/
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new OneWayProcess( operation, varPath, channelInfo );
+		return new OneWayProcess( operation, varPath );
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )
