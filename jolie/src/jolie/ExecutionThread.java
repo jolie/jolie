@@ -219,8 +219,6 @@ abstract public class ExecutionThread extends JolieThread
 		Thread currThread = Thread.currentThread();
 		if ( currThread instanceof ExecutionThread )
 			return ((ExecutionThread) currThread);
-		else if ( currThread instanceof ProcessThread )
-			return ((ProcessThread)currThread).executionThread();
 		else if ( currThread instanceof CommChannelHandler )
 			return ((CommChannelHandler)currThread).executionThread();
 
