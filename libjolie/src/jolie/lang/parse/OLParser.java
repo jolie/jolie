@@ -134,8 +134,11 @@ public class OLParser extends AbstractParser
 			parseServices();
 			parseInclude();
 			parseCode();
-		} while( t != token && t.isNot( Scanner.TokenType.EOF ) );
+		} while( t != token );
 
+		if ( t.isNot( Scanner.TokenType.EOF ) )
+			throwException( "Invalid token encountered" );
+		
 		return program;
 	}
 	
