@@ -960,8 +960,8 @@ public class OLParser extends AbstractParser
 		NDChoiceStatement stm = new NDChoiceStatement( getContext() );
 		OLSyntaxNode inputGuard = null;
 		OLSyntaxNode process;
-		boolean keepRun = true;
-		while( keepRun ) {
+
+		while( token.is( Scanner.TokenType.LSQUARE ) ) {
 			getToken(); // Eat [
 			if ( token.is( Scanner.TokenType.LINKIN ) )
 				inputGuard = parseLinkInStatement();
@@ -973,13 +973,10 @@ public class OLParser extends AbstractParser
 				throwException( "expected input guard" );
 			
 			eat( Scanner.TokenType.RSQUARE, "] expected" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 			stm.addChild( new Pair< OLSyntaxNode, OLSyntaxNode >( inputGuard, process ) );
-			if ( token.is( Scanner.TokenType.CHOICE ) ) {
-				getToken();
-				assertToken( Scanner.TokenType.LSQUARE, "expected [" );
-			} else
-				keepRun = false;
 		}
 		
 		return stm;
