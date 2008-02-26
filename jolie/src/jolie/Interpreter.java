@@ -338,9 +338,6 @@ public class Interpreter
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
-		helpBuilder.append( "\n\nNote: if the deploy file (.dol) is not specified, Jolie " +
-				"will search for it taking the behaviour_file name and searching for a " +
-				"file with the same name and the .dol extension.\n" );
 		return helpBuilder.toString();
 	}
 	
