@@ -255,9 +255,6 @@ public class OOITBuilder implements OLVisitor
 		
 	}
 	
-	/**
-	 * @todo implement jolie soap namespace
-	 */
 	public void visit( ServiceInfo n )
 	{
 		InputPort port = null;
@@ -297,7 +294,7 @@ public class OOITBuilder implements OLVisitor
 	private Process currProcess;
 	private Expression currExpression;
 	private Condition currCondition;
-	private boolean alreadyCorrelated = false;
+	private boolean canSpawnSession = false;
 		
 	public void visit( Program p )
 	{
@@ -333,8 +330,10 @@ public class OOITBuilder implements OLVisitor
 		DefinitionProcess def;
 		n.body().accept( this );
 		if ( "main".equals( n.id() ) ) {
+			canSpawnSession = true;
 			currProcess = new ScopeProcess( "main", currProcess );
 			def = new MainDefinitionProcess();
+			canSpawnSession = false;
 		} else
 			def = new DefinitionProcess( n.id() );
 
@@ -372,12 +371,12 @@ public class OOITBuilder implements OLVisitor
 		while( it.hasNext() ) {
 			node = it.next();
 			node.accept( this );
-			if ( currProcess instanceof CorrelatedInputProcess && !alreadyCorrelated ) {
+			if ( currProcess instanceof CorrelatedInputProcess && canSpawnSession ) {
 				/**
 				 * Do not use multiple CorrelatedInputProcess
 				 * in the same sequence!
 				 */
-				alreadyCorrelated = true;
+				canSpawnSession = false;
 				SequentialProcess sequence = new SequentialProcess();
 				CorrelatedProcess corrProc = new CorrelatedProcess( sequence );
 				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
@@ -388,7 +387,7 @@ public class OOITBuilder implements OLVisitor
 					sequence.addChild( currProcess );
 				}
 				currProcess = corrProc;
-				alreadyCorrelated = false;
+				canSpawnSession = true;
 			}
 			proc.addChild( currProcess );
 			if ( !it.hasNext() ) // Dirty trick, remove this
@@ -415,11 +414,11 @@ public class OOITBuilder implements OLVisitor
 		
 		NDChoiceProcess proc = new NDChoiceProcess( branches );
 		
-		if( !alreadyCorrelated ) {
-			alreadyCorrelated = true;
+		if( !canSpawnSession ) {
+			canSpawnSession = true;
 			corrProc = new CorrelatedProcess( proc );
 			proc.setCorrelatedProcess( corrProc );
-			alreadyCorrelated = false;
+			canSpawnSession = false;
 		}
 
 		currProcess = ( corrProc == null ) ? proc : corrProc;

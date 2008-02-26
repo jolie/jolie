@@ -45,7 +45,9 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.PipeListener;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
@@ -88,6 +90,23 @@ public class Interpreter
 	private Map< String, OutputOperation > outputOperations = 
 				new HashMap< String, OutputOperation>();
 	
+	private static Map< String, PipeListener > pipes =
+				new HashMap< String, PipeListener >();
+	
+	public static void registerPipeListener( String key, PipeListener value )
+	{
+		pipes.put( key, value );
+	}
+	
+	public static CommChannel getNewPipeChannel( String pipeId )
+		throws InvalidIdException, IOException
+	{
+		PipeListener listener = pipes.get( pipeId );
+		if ( listener == null )
+			throw new InvalidIdException( pipeId );
+		return listener.createPipeCommChannel();
+	}
+
 	public InputOperation getInputOperation( String key )
 		throws InvalidIdException
 	{

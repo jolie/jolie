@@ -32,14 +32,6 @@ public class StreamingCommChannel extends CommChannel
 	private OutputStream ostream;
 	private CommProtocol protocol;
 	
-	public boolean hasData()
-	{
-		try {
-			return( istream.available() > 0 );
-		} catch( IOException ioe ) {}
-		return false;
-	}
-
 	/** Constructor.
 	 * 
 	 * @param istream the channel input stream.

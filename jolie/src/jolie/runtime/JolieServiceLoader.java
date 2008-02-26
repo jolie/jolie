@@ -31,13 +31,11 @@ import jolie.Interpreter;
 public class JolieServiceLoader extends EmbeddedServiceLoader
 {
 	private Interpreter interpreter;
-	//private VariablePath channelVariablePath;
 	
-	public JolieServiceLoader( String servicePath, VariablePath channelVariablePath )
+	public JolieServiceLoader( String servicePath )
 		throws IOException, CommandLineException
 	{
 		interpreter = new Interpreter( servicePath.split( " " ) );
-		//this.channelVariablePath = channelVariablePath;
 	}
 
 	public void load()

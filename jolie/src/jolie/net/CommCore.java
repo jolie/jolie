@@ -76,19 +76,21 @@ public class CommCore
 	}
 	
 	/** Adds an input service.
-	 * @todo Implement different mediums than socket.
 	 * @param uri
 	 * @param protocol
 	 */
 	public void addService( URI uri, CommProtocol protocol, Collection< InputPort > inputPorts )
 		throws UnsupportedCommMediumException, IOException
 	{
-		String medium = uri.getScheme();
 		CommListener listener = null;
-		if ( Constants.stringToMediumId( medium ) == Constants.MediumId.SOCKET ) {
+		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
+		if ( medium.equals( Constants.MediumId.SOCKET ) ) {
 			listener = new SocketListener( interpreter, protocol, uri.getPort(), inputPorts );
+		} else if ( medium.equals( Constants.MediumId.PIPE ) ) { 
+			listener = new PipeListener( interpreter, protocol, inputPorts );
+			Interpreter.registerPipeListener( uri.getSchemeSpecificPart(), (PipeListener)listener );
 		} else
-			throw new UnsupportedCommMediumException( medium );
+			throw new UnsupportedCommMediumException( uri.getScheme() );
 		
 		assert listener != null;
 		listeners.add( listener );

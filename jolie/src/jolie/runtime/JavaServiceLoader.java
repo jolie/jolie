@@ -28,12 +28,10 @@ import jolie.net.JavaCommChannel;
 public class JavaServiceLoader extends EmbeddedServiceLoader
 {
 	private String servicePath;
-	private VariablePath channelVariablePath;
 	
-	public JavaServiceLoader( String servicePath, VariablePath channelVariablePath )
+	public JavaServiceLoader( String servicePath )
 	{
 		this.servicePath = servicePath;
-		this.channelVariablePath = channelVariablePath;
 	}
 
 	public void load()
@@ -44,9 +42,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 				ClassLoader.getSystemClassLoader().loadClass( servicePath ).newInstance();
 			if ( !(obj instanceof JavaService) )
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
-			channelVariablePath.getValue().setChannel(
-					new JavaCommChannel( (JavaService)obj )
-				);
+			setChannel(	new JavaCommChannel( (JavaService)obj )	);
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

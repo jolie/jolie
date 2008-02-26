@@ -23,22 +23,22 @@
 package jolie.runtime;
 
 import jolie.Constants;
+import jolie.net.CommChannel;
 
 public abstract class EmbeddedServiceLoader
 {
-	public static EmbeddedServiceLoader create(
+	private static EmbeddedServiceLoader createLoader(
 				Constants.EmbeddedServiceType type,
-				String servicePath,
-				VariablePath channelVariablePath
+				String servicePath
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
 		EmbeddedServiceLoader ret = null;
 		try {
 			if ( type == Constants.EmbeddedServiceType.JAVA ) {
-				ret = new JavaServiceLoader( servicePath, channelVariablePath );
+				ret = new JavaServiceLoader( servicePath );
 			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
-				ret = new JolieServiceLoader( servicePath, channelVariablePath );
+				ret = new JolieServiceLoader( servicePath );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
@@ -48,6 +48,41 @@ public abstract class EmbeddedServiceLoader
 			throw new EmbeddedServiceLoaderCreationException( "Invalid embedded service type specified" );
 
 		return ret;
+	}
+	
+	public static EmbeddedServiceLoader create(
+				Constants.EmbeddedServiceType type,
+				String servicePath,
+				Value channelValue
+			)
+		throws EmbeddedServiceLoaderCreationException
+	{
+		EmbeddedServiceLoader ret = createLoader( type, servicePath );
+		ret.channelDest = channelValue;
+		return ret;
+	}
+	
+	public static EmbeddedServiceLoader create(
+				Constants.EmbeddedServiceType type,
+				String servicePath,
+				VariablePath channelPath
+			)
+		throws EmbeddedServiceLoaderCreationException
+	{
+		EmbeddedServiceLoader ret = createLoader( type, servicePath );
+		ret.channelDest = channelPath;
+		return ret;
+	}
+	
+	private Expression channelDest = null;
+	
+	protected void setChannel( CommChannel channel )
+	{
+		if ( channelDest instanceof VariablePath ) {
+			((VariablePath)channelDest).getValue().setChannel( channel );
+		} else if ( channelDest instanceof Value ) {
+			((Value)channelDest).setChannel( channel );
+		}
 	}
 	
 	abstract public void load()

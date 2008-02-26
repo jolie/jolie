@@ -28,6 +28,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.Constants;
+import jolie.Interpreter;
+import jolie.runtime.InvalidIdException;
 
 
 /** A communication channel is an abstraction which permits to send and receive messages.
@@ -37,9 +39,7 @@ import jolie.Constants;
  * @see CommMessage
  */
 abstract public class CommChannel
-{
-	abstract public boolean hasData();
-	
+{	
 	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
@@ -53,6 +53,14 @@ abstract public class CommChannel
 						socket.getOutputStream(),
 						protocol
 						);
+		} else if ( medium == Constants.MediumId.PIPE ) {
+			String id = uri.getSchemeSpecificPart();
+			try {
+				channel = Interpreter.getNewPipeChannel( id );
+			} catch( InvalidIdException e ) {
+				throw new IOException( e );
+			}
+			
 		} else
 			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
 		

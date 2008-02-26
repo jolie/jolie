@@ -151,7 +151,7 @@ public class SOAPProtocol implements CommProtocol
 			} else {
 				// We're sending a notification or a solicit
 				String path = uri.getPath();
-				if ( path.length() == 0 )
+				if ( path == null || path.length() == 0 )
 					path = "*";
 				messageString += "POST " + path + " HTTP/1.1\n";
 				messageString += "Host: " + uri.getHost() + '\n';

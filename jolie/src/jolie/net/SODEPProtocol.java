@@ -40,7 +40,7 @@ public class SODEPProtocol implements CommProtocol
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( message );
 	}
-	
+
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{

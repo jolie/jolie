@@ -25,6 +25,7 @@ import jolie.Interpreter;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.InvalidIdException;
 
 
 
@@ -42,6 +43,11 @@ public class MainDefinitionProcess extends DefinitionProcess
 			for( EmbeddedServiceLoader loader : Interpreter.getInstance().embeddedServiceLoaders() )
 				loader.load();
 		
+			try {
+				DefinitionProcess p = Interpreter.getInstance().getDefinition( "init" );
+				p.run();
+			} catch( InvalidIdException e ) {}
+			
 			super.run();
 		} catch( EmbeddedServiceLoadingException e ) {
 			Interpreter.getInstance().logger().severe( e.getMessage() );
