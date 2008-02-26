@@ -29,11 +29,17 @@ public final class Constants
 	public static final String GLOBAL = "global";
 
 	public enum EmbeddedServiceType {
-		JAVA, JOLIE
+		JAVA, JOLIE, UNSUPPORTED
 	}
 	
-	public enum ChannelOperator {
-		IN, PICK, FROM
+	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
+	{
+		if ( "jolie".equalsIgnoreCase( str ) )
+			return EmbeddedServiceType.JOLIE;
+		else if ( "java".equalsIgnoreCase( str ) )
+			return EmbeddedServiceType.JAVA;
+		
+		return EmbeddedServiceType.UNSUPPORTED;
 	}
 	
 	public enum ExecutionMode {
@@ -55,7 +61,8 @@ public final class Constants
 	public enum MediumId {
 		UNSUPPORTED,
 		SOCKET,
-		JAVA
+		PIPE,
+		FILE
 	}
 	
 	public enum VariableType {
@@ -83,8 +90,10 @@ public final class Constants
 	{
 		if ( "socket".equals( str ) )
 			return MediumId.SOCKET;
-		else if ( "java".equals( str ) )
-			return MediumId.JAVA;
+		else if ( "pipe".equals( str ) )
+			return MediumId.PIPE;
+		else if ( "file".equals( str ) )
+			return MediumId.FILE;
 		
 		return MediumId.UNSUPPORTED;
 	}

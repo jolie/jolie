@@ -104,6 +104,7 @@ public class Scanner
 		SYNCHRONIZED,			///< synchronized
 		THROWS,					///< throws
 		CURRENT_HANDLER,		///< cH
+		INIT,					///< init
 		ERROR					///< Scanner error
 	}
 	
@@ -434,6 +435,8 @@ public class Scanner
 							retval = new Token( TokenType.THROWS );
 						else if ( "cH".equals( str ) )
 							retval = new Token( TokenType.CURRENT_HANDLER );
+						else if ( "init".equals( str ) )
+							retval = new Token( TokenType.INIT );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

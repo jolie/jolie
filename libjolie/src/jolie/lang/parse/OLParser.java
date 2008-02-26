@@ -229,14 +229,10 @@ public class OLParser extends AbstractParser
 						varId = token.content();
 						getToken();
 						list.add( parseVariablePath( varId ) );
-						if ( token.is( Scanner.TokenType.COMMA ) )
-							getToken();
-						else
-							break;
 					}
 				}
 				cset.add( list );
-				if ( token.is( Scanner.TokenType.SEQUENCE ) )
+				if ( token.is( Scanner.TokenType.COMMA ) )
 					getToken();
 				else
 					break;
@@ -565,6 +561,7 @@ public class OLParser extends AbstractParser
 	{
 		boolean mainDefined = false;
 		boolean keepRun = true;
+		boolean initDefined = false;
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) )
 				program.addChild( parseProcedure() );
@@ -573,6 +570,11 @@ public class OLParser extends AbstractParser
 					throwException( "you must specify only one main definition" );
 				program.addChild( parseMain() );
 				mainDefined = true;
+			} else if ( token.is( Scanner.TokenType.INIT ) ) {
+				if ( initDefined )
+					throwException( "you can specify only one init definition" );
+				program.addChild( parseInit() );
+				initDefined = true;
 			} else
 				keepRun = false;
 		} while( keepRun );
@@ -584,6 +586,16 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
 		Procedure retVal = new Procedure( getContext(), "main", parseProcess() );
+		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
+		return retVal;
+	}
+	
+	private Procedure parseInit()
+		throws IOException, ParserException
+	{
+		getToken();
+		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
+		Procedure retVal = new Procedure( getContext(), "init", parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
 	}
