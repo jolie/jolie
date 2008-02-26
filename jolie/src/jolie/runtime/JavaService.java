@@ -22,6 +22,9 @@
 
 package jolie.runtime;
 
+import java.util.List;
+import java.util.Vector;
+
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -29,16 +32,56 @@ import jolie.net.CommMessage;
 
 abstract public class JavaService
 {
-	private CommChannel commChannel = null;
-	
-	public void setCommChannel( CommChannel channel )
+	static private class InternalCommChannel extends CommChannel
 	{
-		this.commChannel = channel;
+		private List< CommMessage > ilist, olist;
+		
+		public InternalCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
+		{
+			this.ilist = ilist;
+			this.olist = olist;
+		}
+		
+		public void send( CommMessage message )
+		{
+			synchronized( olist ) {
+				olist.add( message );
+				olist.notifyAll();
+			}
+		}
+		
+		public CommMessage recv()
+		{
+			CommMessage ret = null;
+			synchronized( ilist ) {
+				try {
+					while( ilist.isEmpty() )
+						ilist.wait();
+				} catch( InterruptedException ie ) {}
+				ret = ilist.remove( 0 );
+			}
+			return ret;
+		}
+		
+		public void close()
+		{}
 	}
 	
-	protected void sendMessage( CommMessage message )
-		throws InvalidIdException
+	private Interpreter interpreter;
+	
+	public void setInterpreter( Interpreter interpreter )
 	{
-		Interpreter.getInstance().getInputOperation( message.inputId() ).recvMessage( commChannel, message );
+		this.interpreter = interpreter;
+	}
+	
+	protected CommChannel sendMessage( CommMessage message )
+	{
+		InternalCommChannel c = new InternalCommChannel(
+							new Vector< CommMessage >(),
+							new Vector< CommMessage >()
+							);
+		c.ilist.add( message );
+		interpreter.commCore().scheduleReceive( c, null );
+		return new InternalCommChannel( c.olist, c.ilist );
 	}
 }

@@ -328,14 +328,17 @@ public class OOITBuilder implements OLVisitor
 	public void visit( Procedure n )
 	{
 		DefinitionProcess def;
-		n.body().accept( this );
+		
 		if ( "main".equals( n.id() ) ) {
 			canSpawnSession = true;
+			n.body().accept( this );
 			currProcess = new ScopeProcess( "main", currProcess );
 			def = new MainDefinitionProcess();
 			canSpawnSession = false;
-		} else
+		} else {
 			def = new DefinitionProcess( n.id() );
+			n.body().accept( this );
+		}
 
 		def.setProcess( currProcess );
 		interpreter.register( n.id(), def );

@@ -30,14 +30,9 @@ public class CommChannelHandler extends JolieThread
 {
 	private ExecutionThread executionThread;
 	
-	public CommChannelHandler()
+	public CommChannelHandler( Interpreter interpreter, Runnable r )
 	{
-		super( Interpreter.getInstance() );
-	}
-	
-	public CommChannelHandler( Runnable r )
-	{
-		super( Interpreter.getInstance(), r );
+		super( interpreter, r );
 	}
 	
 	public static CommChannelHandler currentThread()

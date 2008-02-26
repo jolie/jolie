@@ -35,7 +35,6 @@ public class JavaCommChannel extends CommChannel
 	
 	public JavaCommChannel( JavaService javaService )
 	{
-		javaService.setCommChannel( this );
 		this.javaService = javaService;
 	}
 	

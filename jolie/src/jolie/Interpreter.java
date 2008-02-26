@@ -106,7 +106,7 @@ public class Interpreter
 			throw new InvalidIdException( pipeId );
 		return listener.createPipeCommChannel();
 	}
-
+	
 	public InputOperation getInputOperation( String key )
 		throws InvalidIdException
 	{

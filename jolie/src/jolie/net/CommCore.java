@@ -107,7 +107,7 @@ public class CommCore
 	private class CommThreadFactory implements ThreadFactory {
 		public Thread newThread( Runnable r )
 		{
-			return new CommChannelHandler( r );
+			return new CommChannelHandler( interpreter, r );
 		}
 	}
 

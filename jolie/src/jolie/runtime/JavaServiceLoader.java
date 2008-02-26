@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import jolie.Interpreter;
 import jolie.net.JavaCommChannel;
 
 
@@ -42,6 +43,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 				ClassLoader.getSystemClassLoader().loadClass( servicePath ).newInstance();
 			if ( !(obj instanceof JavaService) )
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
+			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
 			setChannel(	new JavaCommChannel( (JavaService)obj )	);
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
