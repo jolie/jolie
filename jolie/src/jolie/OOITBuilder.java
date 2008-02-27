@@ -401,6 +401,9 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( NDChoiceStatement n )
 	{
+		boolean origSpawnSession = canSpawnSession;
+		canSpawnSession = false;
+		
 		CorrelatedProcess corrProc = null;
 		Vector< Pair< InputProcess, Process > > branches = 
 					new Vector< Pair< InputProcess, Process > >();
@@ -417,11 +420,10 @@ public class OOITBuilder implements OLVisitor
 		
 		NDChoiceProcess proc = new NDChoiceProcess( branches );
 		
-		if( !canSpawnSession ) {
-			canSpawnSession = true;
+		canSpawnSession = origSpawnSession;
+		if( canSpawnSession ) {
 			corrProc = new CorrelatedProcess( proc );
 			proc.setCorrelatedProcess( corrProc );
-			canSpawnSession = false;
 		}
 
 		currProcess = ( corrProc == null ) ? proc : corrProc;

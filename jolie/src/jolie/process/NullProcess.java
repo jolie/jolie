@@ -37,7 +37,7 @@ public class NullProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return getInstance();
+		return this;
 	}
 	
 	public void run()

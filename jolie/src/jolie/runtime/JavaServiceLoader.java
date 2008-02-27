@@ -22,12 +22,32 @@
 
 package jolie.runtime;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import jolie.Interpreter;
 import jolie.net.JavaCommChannel;
 
 
 public class JavaServiceLoader extends EmbeddedServiceLoader
 {
+	private static URLClassLoader javaServiceClassLoader = null;
+	
+	private static URLClassLoader getClassLoader()
+		throws MalformedURLException, IOException
+	{
+		if ( javaServiceClassLoader == null )
+			javaServiceClassLoader = URLClassLoader.newInstance(
+					new URL[] {
+								new URL( "file://" + new File("").getCanonicalPath() + "/" )
+							}
+					);
+		return javaServiceClassLoader;
+	}
+	
 	private String servicePath;
 	
 	public JavaServiceLoader( String servicePath )
@@ -40,7 +60,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 	{
 		try {
 			Object obj =
-				ClassLoader.getSystemClassLoader().loadClass( servicePath ).newInstance();
+				getClassLoader().loadClass( servicePath ).newInstance();
 			if ( !(obj instanceof JavaService) )
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
