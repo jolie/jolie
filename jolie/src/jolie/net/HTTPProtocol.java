@@ -109,9 +109,6 @@ public class HTTPProtocol extends CommProtocol
 		throws SOAPException
 	{
 		Element currentElement;
-		
-		//if ( value.isDefined() )
-			//element.appendChild( doc.createTextNode( value.strValue() ) );
 
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {

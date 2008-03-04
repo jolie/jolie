@@ -21,10 +21,14 @@
 
 package jolie;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,6 +100,19 @@ public class Interpreter
 	public static void registerPipeListener( String key, PipeListener value )
 	{
 		pipes.put( key, value );
+	}
+	
+	private static URLClassLoader classLoader = null;
+	public static URLClassLoader getClassLoader()
+		throws MalformedURLException, IOException
+	{
+		if ( classLoader == null )
+			classLoader = URLClassLoader.newInstance(
+					new URL[] {
+							new URL( "file://" + new File("").getCanonicalPath() + "/" )
+						}
+					);
+		return classLoader;
 	}
 	
 	public static CommChannel getNewPipeChannel( String pipeId )

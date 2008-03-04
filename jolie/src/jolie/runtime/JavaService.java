@@ -22,51 +22,16 @@
 
 package jolie.runtime;
 
-import java.util.List;
 import java.util.Vector;
 
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.InternalCommChannel;
 
 
 abstract public class JavaService
 {
-	static private class InternalCommChannel extends CommChannel
-	{
-		private List< CommMessage > ilist, olist;
-		
-		public InternalCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
-		{
-			this.ilist = ilist;
-			this.olist = olist;
-		}
-		
-		public void send( CommMessage message )
-		{
-			synchronized( olist ) {
-				olist.add( message );
-				olist.notifyAll();
-			}
-		}
-		
-		public CommMessage recv()
-		{
-			CommMessage ret = null;
-			synchronized( ilist ) {
-				try {
-					while( ilist.isEmpty() )
-						ilist.wait();
-				} catch( InterruptedException ie ) {}
-				ret = ilist.remove( 0 );
-			}
-			return ret;
-		}
-		
-		public void close()
-		{}
-	}
-	
 	private Interpreter interpreter;
 	
 	public void setInterpreter( Interpreter interpreter )
@@ -80,8 +45,8 @@ abstract public class JavaService
 							new Vector< CommMessage >(),
 							new Vector< CommMessage >()
 							);
-		c.ilist.add( message );
+		c.inputList().add( message );
 		interpreter.commCore().scheduleReceive( c, null );
-		return new InternalCommChannel( c.olist, c.ilist );
+		return new InternalCommChannel( c.outputList(), c.inputList() );
 	}
 }

@@ -19,34 +19,51 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.net;
 
-package jolie.runtime;
+import java.util.List;
 
-import jolie.Interpreter;
-import jolie.net.JavaCommChannel;
-
-
-public class JavaServiceLoader extends EmbeddedServiceLoader
+public class InternalCommChannel extends CommChannel
 {
-	private String servicePath;
+	private List< CommMessage > ilist, olist;
 	
-	public JavaServiceLoader( String servicePath )
+	public InternalCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
 	{
-		this.servicePath = servicePath;
+		this.ilist = ilist;
+		this.olist = olist;
 	}
-
-	public void load()
-		throws EmbeddedServiceLoadingException
+	
+	public List< CommMessage > inputList()
 	{
-		try {
-			Object obj =
-				Interpreter.getClassLoader().loadClass( servicePath ).newInstance();
-			if ( !(obj instanceof JavaService) )
-				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
-			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
-			setChannel(	new JavaCommChannel( (JavaService)obj )	);
-		} catch( Exception e ) {
-			throw new EmbeddedServiceLoadingException( e );
+		return ilist;
+	}
+	
+	public List< CommMessage > outputList()
+	{
+		return olist;
+	}
+	
+	public void send( CommMessage message )
+	{
+		synchronized( olist ) {
+			olist.add( message );
+			olist.notifyAll();
 		}
 	}
+	
+	public CommMessage recv()
+	{
+		CommMessage ret = null;
+		synchronized( ilist ) {
+			try {
+				while( ilist.isEmpty() )
+					ilist.wait();
+			} catch( InterruptedException ie ) {}
+			ret = ilist.remove( 0 );
+		}
+		return ret;
+	}
+	
+	public void close()
+	{}
 }
