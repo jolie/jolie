@@ -81,8 +81,8 @@ public class SolicitResponseProcess implements Process
 				( outputExpression == null ) ?
 						new CommMessage( operation.id() ) :
 						new CommMessage( operation.id(), outputExpression.evaluate() );
+			
 			channel.send( message );
-
 			message = channel.recv();
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );

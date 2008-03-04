@@ -22,6 +22,7 @@
 package jolie.net.http;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class HTTPMessage
@@ -32,7 +33,7 @@ public class HTTPMessage
 	
 	private Type type;
 	private byte[] content;
-	private HashMap< String, String > propMap = new HashMap< String, String > ();
+	private Map< String, String > propMap = new HashMap< String, String > ();
 	
 	private int httpCode;
 	private String requestPath;

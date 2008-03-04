@@ -27,11 +27,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-public class SODEPProtocol implements CommProtocol
-{	
+public class SODEPProtocol extends CommProtocol
+{
+	/*public SODEPProtocol( Value configuration )
+	{
+		super( configuration );
+	}*/
+	
 	public SODEPProtocol clone()
 	{
-		return new SODEPProtocol();
+		return new SODEPProtocol(/* configuration */);
 	}
 
 	public void send( OutputStream ostream, CommMessage message )

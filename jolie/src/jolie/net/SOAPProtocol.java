@@ -72,7 +72,7 @@ import org.xml.sax.SAXException;
  * 2007 - Totally re-built by Fabrizio Montesi, exploiting new JOLIE capabilities
  * 
  */
-public class SOAPProtocol implements CommProtocol
+public class SOAPProtocol extends CommProtocol
 {
 	private URI uri;
 	private String messageNamespace;
@@ -80,11 +80,12 @@ public class SOAPProtocol implements CommProtocol
 	
 	public SOAPProtocol clone()
 	{
-		return new SOAPProtocol( uri, messageNamespace );
+		return new SOAPProtocol( /*configuration,*/ uri, messageNamespace );
 	}
 
-	public SOAPProtocol( URI uri, String messageNamespace )
+	public SOAPProtocol( /*Value configuration, */URI uri, String messageNamespace )
 	{
+		//super( configuration );
 		this.uri = uri;
 		this.messageNamespace = messageNamespace;
 	}

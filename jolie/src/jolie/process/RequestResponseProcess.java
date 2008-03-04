@@ -78,7 +78,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			return parent.inputVarPath;
 		}
 		
-		public synchronized void recvMessage( CommChannel channel, CommMessage message )
+		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
 			if ( parent.correlatedProcess != null )
 				parent.correlatedProcess.inputReceived();
@@ -86,6 +86,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			this.channel = channel;
 			this.message = message;
 			this.notify();
+
+			return true;
 		}	
 	}
 

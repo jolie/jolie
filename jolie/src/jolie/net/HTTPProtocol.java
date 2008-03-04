@@ -24,7 +24,6 @@
 package jolie.net;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.Map.Entry;
 
@@ -62,24 +62,48 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class HTTPProtocol implements CommProtocol
+
+public class HTTPProtocol extends CommProtocol
 {
 	private URI uri;
 	private String inputId = null;
+	private TransformerFactory transformerFactory;
+	private Transformer transformer;
+	private DocumentBuilderFactory docBuilderFactory;
+	private DocumentBuilder docBuilder;
 	
-	public HTTPProtocol( URI uri )
+	public HTTPProtocol( /*Value configuration,*/ URI uri )
 	{
+		//super( configuration );
 		this.uri = uri;
+		docBuilderFactory = DocumentBuilderFactory.newInstance();
+		docBuilderFactory.setNamespaceAware( true );
+		try {
+			docBuilder = docBuilderFactory.newDocumentBuilder();
+			transformerFactory = TransformerFactory.newInstance();
+			transformer = transformerFactory.newTransformer();
+		} catch( Exception e ) {
+			Interpreter.getInstance().logger().severe( e.getMessage() );
+		}
 	}
+	
+	private HTTPProtocol()
+	{}
 	
 	public HTTPProtocol clone()
 	{
-		return new HTTPProtocol( uri );
+		HTTPProtocol ret = new HTTPProtocol();
+		ret.docBuilderFactory = docBuilderFactory;
+		ret.docBuilder = docBuilder;
+		ret.uri = uri;
+		ret.transformer = transformer;
+		ret.transformerFactory = transformerFactory;
+		return ret;
 	}
 	
 	private void valueToDocument(
 			Value value,
-			Element element,
+			Node node,
 			Document doc
 			)
 		throws SOAPException
@@ -92,7 +116,7 @@ public class HTTPProtocol implements CommProtocol
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			for( Value val : entry.getValue() ) {
 				currentElement = doc.createElement( entry.getKey() );
-				element.appendChild( currentElement );
+				node.appendChild( currentElement );
 				for( Entry< String, Value > attrEntry : val.attributes().entrySet() ) {
 					currentElement.setAttribute(
 							attrEntry.getKey(),
@@ -110,23 +134,11 @@ public class HTTPProtocol implements CommProtocol
 	{
 		try {
 			String xmlString = new String();
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware( true );
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document doc = builder.newDocument();
 
-			Element root = doc.createElement( "root" );
-			xmlString += message.value().strValue();
-			valueToDocument( message.value(), root, doc );
+			Document doc = docBuilder.newDocument();
+			valueToDocument( message.value(), doc, doc );
 			
-			NodeList list = root.getChildNodes();
-			for( int i = 0; i < list.getLength(); i++ )
-				doc.appendChild( list.item( i ) );
-
-			TransformerFactory tranFactory = TransformerFactory.newInstance();
-			Transformer transformer = tranFactory.newTransformer();
-
-            Source src = new DOMSource( doc );
+			Source src = new DOMSource( doc );
             ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
             Result dest = new StreamResult( tmpStream );
             transformer.transform( src, dest );
@@ -164,13 +176,12 @@ public class HTTPProtocol implements CommProtocol
 			
 			inputId = message.inputId();
 			
-			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
+			//Writer writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
+			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
 			writer.flush();
 		} catch( SOAPException se ) {
 			throw new IOException( se );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
 		} catch( TransformerException te ) {
 			throw new IOException( te );
 		}

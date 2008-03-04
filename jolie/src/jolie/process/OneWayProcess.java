@@ -70,7 +70,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			}
 		}
 
-		public synchronized void recvMessage( CommChannel channel, CommMessage message )
+		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
 			if ( parent.correlatedProcess != null )
 				parent.correlatedProcess.inputReceived();
@@ -80,6 +80,8 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			try {
 				channel.close();
 			} catch( IOException ioe ) {}
+			
+			return true;
 		}
 	}
 	

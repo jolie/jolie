@@ -26,6 +26,6 @@ import jolie.net.CommMessage;
 
 public interface InputProcessExecution extends Process
 {
-	public void recvMessage( CommChannel channel, CommMessage message );
+	public boolean recvMessage( CommChannel channel, CommMessage message );
 	public Process parent();
 }

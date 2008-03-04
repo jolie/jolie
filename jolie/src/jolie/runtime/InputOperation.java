@@ -70,8 +70,9 @@ abstract public class InputOperation extends Operation implements InputHandler
 				path = ((InputOperationProcess)pe.parent()).inputVarPath();
 			
 			CommChannelHandler.currentThread().setExecutionThread( entry.getValue() );
-			if ( entry.getValue().checkCorrelation( path, message ) ) {
-				entry.getKey().recvMessage( channel, message );
+			if ( entry.getValue().checkCorrelation( path, message )
+					&& entry.getKey().recvMessage( channel, message )
+					) {
 				procsMap.remove( entry.getKey() );
 				return;
 			}
@@ -90,8 +91,8 @@ abstract public class InputOperation extends Operation implements InputHandler
 			else if ( process instanceof NDChoiceProcess.Execution )
 				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().inputId() );
 			
-			if ( ethread.checkCorrelation( path, pair.value() ) ) {
-				process.recvMessage( pair.key(), pair.value() );
+			if ( ethread.checkCorrelation( path, pair.value() )
+					&& process.recvMessage( pair.key(), pair.value() ) ) {
 				mesgList.remove( pair );
 				return;
 			}

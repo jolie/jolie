@@ -323,7 +323,7 @@ public class Interpreter
 		
 		commCore = new CommCore( this, connectionsLimit );
 	}
-	
+
 	private String getHelpString()
 	{
 		StringBuilder helpBuilder = new StringBuilder();

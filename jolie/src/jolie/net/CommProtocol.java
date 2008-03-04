@@ -22,17 +22,24 @@
 
 package jolie.net;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 
-public interface CommProtocol extends Cloneable
+abstract public class CommProtocol implements Cloneable
 {
-	public CommMessage recv( InputStream istream )
+	/*protected Value configuration;
+
+	protected CommProtocol( Value configuration )
+	{
+		this.configuration = configuration;
+	}*/
+	
+	abstract public CommMessage recv( InputStream istream )
 		throws IOException;
 
-	public void send( OutputStream ostream, CommMessage message )
+	abstract public void send( OutputStream ostream, CommMessage message )
 		throws IOException;
 
-	public CommProtocol clone();
+	abstract public CommProtocol clone();
 }

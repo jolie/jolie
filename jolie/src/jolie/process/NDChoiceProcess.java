@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,8 +30,8 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.runtime.InputHandler;
+import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
 /** Implements a non-deterministic choice.
@@ -62,7 +63,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			}
 		}
 		
-		private ConcurrentHashMap< String, InputChoice > inputMap =
+		private Map< String, InputChoice > inputMap =
 			new ConcurrentHashMap< String, InputChoice >();
 		private NDChoiceProcess parent;
 		private InputChoice choice = null;
@@ -100,38 +101,41 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 					} catch( InterruptedException e ) {}
 				}
 			}
+			
+			for( InputChoice c : inputMap.values() )
+				c.inputHandler.cancelWaiting( this );
+
 			assert( choice != null );
 			
 			choice.inputProcess.runBehaviour( channel, message );
-			choice.process.run();			
+			
+			// Clean up for the garbage collector
+			inputMap = null;
+			channel = null;
+			message = null;			
+			
+			choice.process.run();
 		}
-		
-		public boolean hasReceivedMessage()
+
+		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
-			return ( choice != null );
-		}
-		
-		public void recvMessage( CommChannel channel, CommMessage message )
-		{
+			if ( choice != null )
+				return false;
+
 			if ( parent.correlatedProcess != null )
 				parent.correlatedProcess.inputReceived();
 
-			choice = inputMap.get( message.inputId() );
+			choice = inputMap.remove( message.inputId() );
 			assert( choice != null );
-			inputMap.remove( message.inputId() );
 
 			this.channel = channel;
 			this.message = message;
 
-			for( InputChoice c : inputMap.values() )
-				c.inputHandler.cancelWaiting( this );
-
-			synchronized( this ) {
-				this.notify();
-			}
+			this.notify();
+			return true;
 		}
 		
-		public VariablePath inputVarPath( String inputId )
+		public synchronized VariablePath inputVarPath( String inputId )
 		{
 			InputChoice c = inputMap.get( inputId );
 			if ( c != null && c.inputProcess instanceof InputOperationProcess )
