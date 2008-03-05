@@ -50,10 +50,11 @@ import javax.xml.transform.stream.StreamResult;
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
+import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.Operation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,9 +73,9 @@ public class HTTPProtocol extends CommProtocol
 	private DocumentBuilderFactory docBuilderFactory;
 	private DocumentBuilder docBuilder;
 	
-	public HTTPProtocol( /*Value configuration,*/ URI uri )
+	public HTTPProtocol( VariablePath configurationPath, URI uri )
 	{
-		//super( configuration );
+		super( configurationPath );
 		this.uri = uri;
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
@@ -87,12 +88,14 @@ public class HTTPProtocol extends CommProtocol
 		}
 	}
 	
-	private HTTPProtocol()
-	{}
+	private HTTPProtocol( VariablePath configurationPath )
+	{
+		super( configurationPath );
+	}
 	
 	public HTTPProtocol clone()
 	{
-		HTTPProtocol ret = new HTTPProtocol();
+		HTTPProtocol ret = new HTTPProtocol( configurationPath );
 		ret.docBuilderFactory = docBuilderFactory;
 		ret.docBuilder = docBuilder;
 		ret.uri = uri;
@@ -144,7 +147,7 @@ public class HTTPProtocol extends CommProtocol
 
 			String messageString = new String();
 			try {
-				Operation operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
+				InputOperation operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
 				if ( operation != null ) {
 					// We're responding to a request
 					messageString += "HTTP/1.1 200 OK\n";

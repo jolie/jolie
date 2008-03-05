@@ -11,10 +11,7 @@ import java.util.Vector;
 
 import jolie.Constants.OperandType;
 import jolie.deploy.InputPort;
-import jolie.deploy.InputPortType;
-import jolie.deploy.OutputPortType;
-import jolie.deploy.PortCreationException;
-import jolie.deploy.PortType;
+import jolie.deploy.OutputPort;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -34,7 +31,7 @@ import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -50,16 +47,13 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Procedure;
-import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
@@ -70,6 +64,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SubRoutineCallStatement;
+import jolie.lang.parse.ast.SubRoutineNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -91,7 +87,6 @@ import jolie.process.CorrelatedInputProcess;
 import jolie.process.CorrelatedProcess;
 import jolie.process.CurrentHandlerProcess;
 import jolie.process.DeepCopyProcess;
-import jolie.process.DefinitionProcess;
 import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
@@ -117,6 +112,7 @@ import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SolicitResponseProcess;
+import jolie.process.SubRoutineProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
@@ -131,6 +127,7 @@ import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
+import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
 import jolie.runtime.IsIntExpression;
@@ -140,6 +137,7 @@ import jolie.runtime.NotCondition;
 import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.OrCondition;
+import jolie.runtime.OutputOperation;
 import jolie.runtime.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.SolicitResponseOperation;
@@ -200,54 +198,65 @@ public class OOITBuilder implements OLVisitor
 		interpreter.setCorrelationSet( cset );
 	}
 		
-	public void visit( InputPortTypeInfo n )
+	public void visit( InputPortInfo n )
 	{
-		InputPortType pt = new InputPortType( n.id() );
+		Vector< InputOperation > operations = new Vector< InputOperation > ();
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 			try {
-				pt.addOperation( interpreter.getInputOperation( op.id() ) );
+				operations.add( interpreter.getInputOperation( op.id() ) );
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
 			}
 		}
-		interpreter.register( n.id(), pt );
+		interpreter.register( n.id(), new InputPort( n.id(), operations ) );
 	}
 		
-	public void visit( OutputPortTypeInfo n )
+	public void visit( OutputPortInfo n )
 	{
-		OutputPortType pt = new OutputPortType( n.id(), n.namespace() );
+		Vector< OutputOperation > operations = new Vector< OutputOperation > ();
+		OutputOperation oo;
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 			try {
-				pt.addOperation( interpreter.getOutputOperation( op.id() ) );
+				oo = interpreter.getOutputOperation( op.id() );
+				operations.add( oo );
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
 			}
 		}
-		interpreter.register( n.id(), pt );
-	}
-		
-	public void visit( PortInfo n )
-	{
-		try {
-			PortType pt = interpreter.getPortType( n.portType() );
-			interpreter.register( n.id(), pt.createPort( n.id(), n.protocolId() ) );
-		} catch( InvalidIdException e ) {
-			error( n.context(), e );
-		} catch( PortCreationException pce ) {
-			error( n.context(), pce );
+		Process protocolConfigurationProcess = null;
+		if ( n.protocolConfiguration() != null ) {
+			n.protocolConfiguration().accept( this );
+			protocolConfigurationProcess = currProcess;
 		}
+		
+		//if ( n.protocolId() == null )
+			//error( n.context(), "you must specify a protocol for output port " + n.id() );
+
+		interpreter.register( n.id(), new OutputPort(
+						n.id(),
+						operations,
+						n.protocolId(),
+						protocolConfigurationProcess,
+						n.location()
+					)
+				);
 	}
 	
 	public void visit( EmbeddedServiceNode n )
 	{
+		VariablePath path = null;
+		try {
+			path = interpreter.getOutputPort( n.portId() ).locationVariablePath();
+		} catch( InvalidIdException iie ) {}
+
 		try {
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(
 						n.type(),
 						n.servicePath(),
-						getGlobalVariablePath( n.channelVariablePath() )
+						path
 						) );
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
@@ -268,21 +277,30 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		Constants.ProtocolId pId = port.protocolId();
+		Constants.ProtocolId pId = n.protocolId();
 		CommProtocol protocol = null;
 		
-		if ( pId == Constants.ProtocolId.SOAP )
-			protocol = new SOAPProtocol( n.uri(), "" );
-		else if ( pId == Constants.ProtocolId.SODEP )
-			protocol = new SODEPProtocol();
-		else if ( pId == Constants.ProtocolId.HTTP )
-			protocol = new HTTPProtocol( n.uri() );
+		Vector< Pair< String, Expression > > path =
+					new Vector< Pair< String, Expression > >();
+		path.add( new Pair< String, Expression >( "global", null ) );
+		path.add( new Pair< String, Expression >( n.id(), null ) );
+		path.add( new Pair< String, Expression >( "protocol", null ) );
+		VariablePath configurationPath = new VariablePath( path, null, false );
+		
+		if ( pId.equals( Constants.ProtocolId.SOAP ) )
+			protocol = new SOAPProtocol( configurationPath, n.location() );
+		else if ( pId.equals( Constants.ProtocolId.SODEP ) )
+			protocol = new SODEPProtocol( configurationPath );
+		else if ( pId.equals( Constants.ProtocolId.HTTP ) )
+			protocol = new HTTPProtocol( configurationPath, n.location() );
 		else
-			error( n.context(), "Unsupported protocol specified for port " + port.id() );
+			error( n.context(), "Unsupported protocol specified for service " + n.id() );
+		
+		n.protocolConfiguration().accept( this );
 		
 		if ( protocol != null ) {
 			try {
-				interpreter.commCore().addService( n.uri(), protocol, inputPorts );
+				interpreter.commCore().addService( n.location(), inputPorts, protocol, currProcess );
 			} catch( UnsupportedCommMediumException e ) {
 				error( n.context(), e );
 			} catch( IOException ioe ) {
@@ -325,9 +343,9 @@ public class OOITBuilder implements OLVisitor
 		interpreter.register( decl.id(), new SolicitResponseOperation( decl.id() ) );
 	}
 	
-	public void visit( Procedure n )
+	public void visit( SubRoutineNode n )
 	{
-		DefinitionProcess def;
+		SubRoutineProcess def;
 		
 		if ( "main".equals( n.id() ) ) {
 			canSpawnSession = true;
@@ -336,7 +354,7 @@ public class OOITBuilder implements OLVisitor
 			def = new MainDefinitionProcess();
 			canSpawnSession = false;
 		} else {
-			def = new DefinitionProcess( n.id() );
+			def = new SubRoutineProcess( n.id() );
 			n.body().accept( this );
 		}
 
@@ -470,12 +488,10 @@ public class OOITBuilder implements OLVisitor
 			n.outputExpression().accept( this );
 			outputExpression = currExpression;
 		}
-		n.locationExpression().accept( this );
 		try {
 			currProcess =
 				new NotificationProcess(
 						interpreter.getNotificationOperation( n.id() ),
-						currExpression,
 						outputExpression
 						);
 		} catch( InvalidIdException e ) {
@@ -490,8 +506,6 @@ public class OOITBuilder implements OLVisitor
 			n.outputExpression().accept( this );
 			outputExpression = currExpression;
 		}
-		n.locationExpression().accept( this );
-		Expression location = currExpression;
 		try {
 			Process installProcess = NullProcess.getInstance();
 			if ( n.handlersFunction() != null )
@@ -499,7 +513,6 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new SolicitResponseProcess(
 						interpreter.getSolicitResponseOperation( n.id() ),
-						location,
 						outputExpression,
 						getGlobalVariablePath( n.inputVarPath() ),
 						installProcess
@@ -631,7 +644,7 @@ public class OOITBuilder implements OLVisitor
 		currProcess = CurrentHandlerProcess.getInstance();
 	}
 
-	public void visit( ProcedureCallStatement n )
+	public void visit( SubRoutineCallStatement n )
 	{
 		try {
 			currProcess = new CallProcess( interpreter.getDefinition( n.id() ) );

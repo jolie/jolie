@@ -41,8 +41,6 @@ import java.util.logging.Logger;
 
 import jolie.deploy.InputPort;
 import jolie.deploy.OutputPort;
-import jolie.deploy.Port;
-import jolie.deploy.PortType;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -52,7 +50,7 @@ import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.PipeListener;
-import jolie.process.DefinitionProcess;
+import jolie.process.SubRoutineProcess;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -85,10 +83,10 @@ public class Interpreter
 			new Vector< EmbeddedServiceLoader >();
 	private Logger logger = Logger.getLogger( "JOLIE" );
 	
-	private Map< String, DefinitionProcess > definitions = 
-				new HashMap< String, DefinitionProcess >();
-	private Map< String, Port > ports = new HashMap< String, Port >();
-	private Map< String, PortType > portTypes = new HashMap< String, PortType >();
+	private Map< String, SubRoutineProcess > definitions = 
+				new HashMap< String, SubRoutineProcess >();
+	private Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
+	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
 	private Map< String, InputOperation > inputOperations = 
 				new HashMap< String, InputOperation>();
 	private Map< String, OutputOperation > outputOperations = 
@@ -113,6 +111,11 @@ public class Interpreter
 						}
 					);
 		return classLoader;
+	}
+	
+	public Collection< OutputPort > outputPorts()
+	{
+		return outputPorts.values();
 	}
 	
 	public static CommChannel getNewPipeChannel( String pipeId )
@@ -181,8 +184,8 @@ public class Interpreter
 	public OutputPort getOutputPort( String key )
 		throws InvalidIdException
 	{
-		Port ret;
-		if ( (ret=ports.get( key )) == null || !(ret instanceof OutputPort) )
+		OutputPort ret;
+		if ( (ret=outputPorts.get( key )) == null )
 			throw new InvalidIdException( key );
 		return (OutputPort)ret;
 	}
@@ -190,41 +193,32 @@ public class Interpreter
 	public InputPort getInputPort( String key )
 		throws InvalidIdException
 	{
-		Port ret;
-		if ( (ret=ports.get( key )) == null || !(ret instanceof InputPort) )
+		InputPort ret;
+		if ( (ret=inputPorts.get( key )) == null )
 			throw new InvalidIdException( key );
 		return (InputPort)ret;
 	}
 	
-	public PortType getPortType( String key )
+	public SubRoutineProcess getDefinition( String key )
 		throws InvalidIdException
 	{
-		PortType ret;
-		if ( (ret=portTypes.get( key )) == null )
-			throw new InvalidIdException( key );
-		return ret;
-	}
-	
-	public DefinitionProcess getDefinition( String key )
-		throws InvalidIdException
-	{
-		DefinitionProcess ret;
+		SubRoutineProcess ret;
 		if ( (ret=definitions.get( key )) == null )
 			throw new InvalidIdException( key );
 		return ret;
 	}
 	
-	public void register( String key, PortType value )
+	public void register( String key, InputPort value )
 	{
-		portTypes.put( key, value );
+		inputPorts.put( key, value );
 	}
 	
-	public void register( String key, Port value )
+	public void register( String key, OutputPort value )
 	{
-		ports.put( key, value );
+		outputPorts.put( key, value );
 	}
 	
-	public void register( String key, DefinitionProcess value )
+	public void register( String key, SubRoutineProcess value )
 	{
 		definitions.put( key, value );
 	}
@@ -385,7 +379,7 @@ public class Interpreter
 		/**
 		 * Order is important. CommCore needs the OOIT to initialize.
 		 */
-		DefinitionProcess main = null;
+		SubRoutineProcess main = null;
 		if ( buildOOIT() == false )
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		

@@ -21,20 +21,134 @@
 
 package jolie.deploy;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
+import java.util.Vector;
+
 import jolie.Constants;
+import jolie.net.CommChannel;
+import jolie.net.CommProtocol;
+import jolie.net.HTTPProtocol;
+import jolie.net.SOAPProtocol;
+import jolie.net.SODEPProtocol;
+import jolie.process.AssignmentProcess;
+import jolie.process.NullProcess;
+import jolie.process.Process;
+import jolie.process.SequentialProcess;
+import jolie.runtime.AbstractIdentifiableObject;
+import jolie.runtime.Expression;
+import jolie.runtime.OutputOperation;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.util.Pair;
 
-public class OutputPort extends Port
+public class OutputPort extends AbstractIdentifiableObject
 {
-	private OutputPortType outputPortType;
+	private Collection< OutputOperation > operations;
+	private Constants.ProtocolId protocolId;
+	private Process configurationProcess;
+	private VariablePath locationVariablePath, protocolConfigurationVariablePath;
 
-	public OutputPort( String id, OutputPortType portType, Constants.ProtocolId protocolId )
+	public OutputPort(
+			String id,
+			Collection< OutputOperation > operations,
+			Constants.ProtocolId protocolId,
+			Process protocolConfigurationProcess,
+			URI locationURI
+			)
 	{
-		super( id, protocolId );
-		this.outputPortType = portType;
+		super( id );
+		this.operations = operations;
+		this.protocolId = protocolId;
+		
+		// Create the location VariablePath
+		Vector< Pair< String, Expression > > path =
+					new Vector< Pair< String, Expression > >();
+		path.add( new Pair< String, Expression >( id, null ) );
+		path.add( new Pair< String, Expression >( "location", null ) );
+		this.locationVariablePath = new VariablePath( path, null, false );
+		
+		// Create the configuration Process
+		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
+			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
+		SequentialProcess s = new SequentialProcess();
+		s.addChild( a );
+		s.addChild( protocolConfigurationProcess );
+		this.configurationProcess = s;
+		
+		path = new Vector< Pair< String, Expression > >();
+		path.add( new Pair< String, Expression >( id, null ) );
+		path.add( new Pair< String, Expression >( "protocol", null ) );
+		this.protocolConfigurationVariablePath = new VariablePath( path, null, false );
+		
+		for( OutputOperation op : operations )
+			op.setOutputPort( this );
 	}
 	
-	public OutputPortType outputPortType()
+	private CommProtocol getProtocol( URI uri )
+		throws URISyntaxException, IOException
 	{
-		return outputPortType;
+		if ( protocolId == null )
+			throw new IOException( "Unknown protocol for output port " + id() );
+		CommProtocol ret = null;
+		if ( protocolId.equals( Constants.ProtocolId.SODEP ) ) {
+			ret = new SODEPProtocol( protocolConfigurationVariablePath );
+		} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
+			ret = new SOAPProtocol(
+						protocolConfigurationVariablePath,
+						uri
+					);
+		} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
+			ret = new HTTPProtocol(
+						protocolConfigurationVariablePath,
+						uri
+					);
+		}
+		
+		assert( ret != null );
+		return ret;
 	}
+	
+	public CommChannel createCommChannel()
+		throws URISyntaxException, IOException
+	{
+		CommChannel channel;
+		Value loc = locationVariablePath.getValue();
+		if ( loc.isChannel() )
+			channel = loc.channelValue();
+		else {
+			URI uri = new URI( loc.strValue() );
+			CommProtocol protocol = getProtocol( uri );
+			channel =
+				CommChannel.createCommChannel(
+					uri,
+					protocol
+					);
+		}
+		
+		return channel;
+	}
+	
+	public VariablePath locationVariablePath()
+	{
+		return locationVariablePath;
+	}
+	
+	public Collection< OutputOperation > operations()
+	{
+		return operations;
+	}
+	
+	public Constants.ProtocolId protocolId()
+	{
+		return protocolId;
+	}
+	
+	public Process configurationProcess()
+	{
+		return configurationProcess;
+	}
+	
 }

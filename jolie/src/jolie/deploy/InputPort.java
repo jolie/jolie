@@ -21,20 +21,23 @@
 
 package jolie.deploy;
 
-import jolie.Constants;
+import java.util.Collection;
 
-public class InputPort extends Port
+import jolie.runtime.AbstractIdentifiableObject;
+import jolie.runtime.InputOperation;
+
+public class InputPort extends AbstractIdentifiableObject
 {
-	private InputPortType inputPortType;
-
-	public InputPort( String id, InputPortType portType, Constants.ProtocolId protocolId )
+	private Collection< InputOperation > operations;
+	
+	public InputPort( String id, Collection< InputOperation > operations )
 	{
-		super( id, protocolId );
-		this.inputPortType = portType;
+		super( id );
+		this.operations = operations;
 	}
 	
-	public InputPortType inputPortType()
+	public Collection< InputOperation > operations()
 	{
-		return inputPortType;
+		return operations;
 	}
 }

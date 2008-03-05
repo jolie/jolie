@@ -19,32 +19,32 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.deploy;
 
+package jolie.runtime;
 
-public class OperationDeployInfo implements Cloneable
+/** Generic abstract class for an univocally identifiable object (among its kind).
+ * 
+ * @author Fabrizio Montesi
+ * @version 0.1
+ *
+ */
+abstract public class AbstractIdentifiableObject
 {
-	private PortType portType;
-	
-	public OperationDeployInfo clone()
+	private String id;
+
+	/** Constructor.
+	 * 
+	 * @param id The identifier of the object in the global map.
+	 */
+	public AbstractIdentifiableObject( String id )
 	{
-		OperationDeployInfo retval = new OperationDeployInfo();
-		retval.setPortType( portType );
-		return retval;
+		this.id = id;
 	}
 	
-	public void setPortType( PortType portType )
+	/** Returns this global object identifier.
+	 */
+	public final String id()
 	{
-		this.portType = portType;
-	}
-	
-	public PortType portType()
-	{
-		return portType;
-	}
-	
-	public OperationDeployInfo()
-	{
-		portType = null;
+		return id;
 	}
 }

@@ -25,7 +25,6 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +34,7 @@ import java.util.logging.Logger;
 import jolie.Constants;
 import jolie.Interpreter;
 import jolie.deploy.InputPort;
+import jolie.process.Process;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 
@@ -44,7 +44,6 @@ import jolie.runtime.InvalidIdException;
 public class CommCore
 {
 	private Vector< CommListener > listeners = new Vector< CommListener >();
-	private HashMap< URI, Collection< InputPort > > serviceMap = new HashMap< URI, Collection< InputPort > >();
 	
 	private ThreadGroup threadGroup;
 	
@@ -75,13 +74,27 @@ public class CommCore
 		return threadGroup;
 	}
 	
+	private Collection< Process > protocolConfigurations = new Vector< Process > ();
+	
+	public Collection< Process > protocolConfigurations()
+	{
+		return protocolConfigurations;
+	}
+	
 	/** Adds an input service.
 	 * @param uri
 	 * @param protocol
 	 */
-	public void addService( URI uri, CommProtocol protocol, Collection< InputPort > inputPorts )
+	public void addService(
+				URI uri,
+				Collection< InputPort > inputPorts,
+				CommProtocol protocol,
+				Process protocolConfigurationProcess
+			)
 		throws UnsupportedCommMediumException, IOException
 	{
+		protocolConfigurations.add( protocolConfigurationProcess );
+
 		CommListener listener = null;
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
 		if ( medium.equals( Constants.MediumId.SOCKET ) ) {
@@ -94,12 +107,6 @@ public class CommCore
 		
 		assert listener != null;
 		listeners.add( listener );
-		serviceMap.put( uri, inputPorts );
-	}
-	
-	public HashMap< URI, Collection< InputPort > > serviceMap()
-	{
-		return serviceMap;
 	}
 	
 	private ExecutorService executorService;
@@ -154,6 +161,7 @@ public class CommCore
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
 		else
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
+		
 		for( CommListener listener : listeners )
 			listener.start();
 	}

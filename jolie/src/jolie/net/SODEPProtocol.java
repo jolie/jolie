@@ -27,16 +27,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+import jolie.runtime.VariablePath;
+
 public class SODEPProtocol extends CommProtocol
 {
-	/*public SODEPProtocol( Value configuration )
+	public SODEPProtocol( VariablePath configurationPath )
 	{
-		super( configuration );
-	}*/
+		super( configurationPath );
+	}
 	
 	public SODEPProtocol clone()
 	{
-		return new SODEPProtocol(/* configuration */);
+		return new SODEPProtocol( configurationPath );
 	}
 
 	public void send( OutputStream ostream, CommMessage message )

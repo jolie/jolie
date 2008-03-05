@@ -22,7 +22,6 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.net.CommChannel;
@@ -30,26 +29,23 @@ import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.SolicitResponseOperation;
-import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
 {
 	private SolicitResponseOperation operation;
 	private VariablePath inputVarPath; // each may be null
-	private Expression location, outputExpression;
+	private Expression outputExpression;
 	private Process installProcess;
 
 	public SolicitResponseProcess(
 			SolicitResponseOperation operation,
-			Expression location,
 			Expression outputExpression,
 			VariablePath inputVarPath,
 			Process installProcess
 			)
 	{
 		this.operation = operation;
-		this.location = location;
 		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
 		this.installProcess = installProcess;
@@ -57,7 +53,7 @@ public class SolicitResponseProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new SolicitResponseProcess( operation, location, outputExpression, inputVarPath, installProcess );
+		return new SolicitResponseProcess( operation, outputExpression, inputVarPath, installProcess );
 	}
 	
 	public void run()
@@ -65,18 +61,7 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			Value loc = location.evaluate();
-			if ( loc.isChannel() )
-				channel = loc.channelValue();
-			else {
-				URI uri = new URI( location.evaluate().strValue() );
-				channel =
-					CommChannel.createCommChannel(
-						uri,
-						operation.getOutputProtocol( uri )
-						);
-			}
-
+			channel = operation.outputPort().createCommChannel();
 			CommMessage message =
 				( outputExpression == null ) ?
 						new CommMessage( operation.id() ) :

@@ -39,7 +39,7 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  * 
  */
-abstract public class InputOperation extends Operation implements InputHandler
+abstract public class InputOperation extends AbstractIdentifiableObject implements InputHandler
 {
 	private HashMap< InputProcessExecution, ExecutionThread > procsMap =
 						new HashMap< InputProcessExecution, ExecutionThread >();

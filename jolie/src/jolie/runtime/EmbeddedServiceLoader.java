@@ -78,10 +78,12 @@ public abstract class EmbeddedServiceLoader
 	
 	protected void setChannel( CommChannel channel )
 	{
-		if ( channelDest instanceof VariablePath ) {
-			((VariablePath)channelDest).getValue().setChannel( channel );
-		} else if ( channelDest instanceof Value ) {
-			((Value)channelDest).setChannel( channel );
+		if ( channelDest != null ) {
+			if ( channelDest instanceof VariablePath ) {
+				((VariablePath)channelDest).getValue().setChannel( channel );
+			} else if ( channelDest instanceof Value ) {
+				((Value)channelDest).setChannel( channel );
+			}
 		}
 	}
 	

@@ -26,14 +26,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jolie.runtime.VariablePath;
+
 abstract public class CommProtocol implements Cloneable
 {
-	/*protected Value configuration;
+	protected VariablePath configurationPath;
 
-	protected CommProtocol( Value configuration )
+	protected CommProtocol( VariablePath configurationPath )
 	{
-		this.configuration = configuration;
-	}*/
+		this.configurationPath = configurationPath;
+	}
 	
 	abstract public CommMessage recv( InputStream istream )
 		throws IOException;

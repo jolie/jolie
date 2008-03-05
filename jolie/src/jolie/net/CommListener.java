@@ -54,7 +54,7 @@ abstract public class CommListener extends JolieThread
 	public boolean canHandleInputOperation( InputOperation operation )
 	{
 		for( InputPort port : inputPorts ) {
-			if ( port.inputPortType().operations().contains( operation ) )
+			if ( port.operations().contains( operation ) )
 				return true;
 		}
 		return false;

@@ -50,10 +50,11 @@ import javax.xml.transform.dom.DOMSource;
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
+import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.Operation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -75,19 +76,17 @@ import org.xml.sax.SAXException;
 public class SOAPProtocol extends CommProtocol
 {
 	private URI uri;
-	private String messageNamespace;
 	private String inputId = null;
 	
 	public SOAPProtocol clone()
 	{
-		return new SOAPProtocol( /*configuration,*/ uri, messageNamespace );
+		return new SOAPProtocol( configurationPath, uri );
 	}
 
-	public SOAPProtocol( /*Value configuration, */URI uri, String messageNamespace )
+	public SOAPProtocol( VariablePath configurationPath, URI uri )
 	{
-		//super( configuration );
+		super( configurationPath );
 		this.uri = uri;
-		this.messageNamespace = messageNamespace;
 	}
 	
 	private void valueToSOAPBody(
@@ -126,6 +125,7 @@ public class SOAPProtocol extends CommProtocol
 		throws IOException
 	{
 		try {
+			String messageNamespace = configurationPath.getValue().getChildren( "namespace" ).first().strValue();
 			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
@@ -142,7 +142,7 @@ public class SOAPProtocol extends CommProtocol
 
 			String messageString = new String();
 			String soapAction = null;
-			Operation operation = null;
+			InputOperation operation = null;
 			try {
 				operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
 			} catch( InvalidIdException iie ) {}

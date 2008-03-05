@@ -19,23 +19,35 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.deploy;
 
-import jolie.Constants;
-import jolie.runtime.AbstractMappedGlobalObject;
+package jolie.process;
 
-abstract public class Port extends AbstractMappedGlobalObject
+import jolie.runtime.AbstractIdentifiableObject;
+import jolie.runtime.FaultException;
+
+public class SubRoutineProcess extends AbstractIdentifiableObject implements Process
 {
-	private Constants.ProtocolId protocolId;
-	
-	public Port( String id, Constants.ProtocolId protocolId )
+	private Process process = null;
+
+	public SubRoutineProcess( String id )
 	{
 		super( id );
-		this.protocolId = protocolId;
 	}
 	
-	public Constants.ProtocolId protocolId()
+	public Process clone( TransformationReason reason )
 	{
-		return protocolId;
+		return new SubRoutineProcess( id() );
+	}
+
+	public void setProcess( Process process )
+	{
+		this.process = process;
+	}
+
+	public void run()
+		throws FaultException
+	{
+		if ( process != null )
+			process.run();
 	}
 }

@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.Interpreter;
+import jolie.deploy.OutputPort;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
@@ -29,7 +30,7 @@ import jolie.runtime.InvalidIdException;
 
 
 
-public class MainDefinitionProcess extends DefinitionProcess
+public class MainDefinitionProcess extends SubRoutineProcess
 {
 	public MainDefinitionProcess()
 	{
@@ -40,11 +41,25 @@ public class MainDefinitionProcess extends DefinitionProcess
 		throws FaultException
 	{
 		try {
-			for( EmbeddedServiceLoader loader : Interpreter.getInstance().embeddedServiceLoaders() )
+			Interpreter interpreter = Interpreter.getInstance();
+			
+			for( OutputPort outputPort : Interpreter.getInstance().outputPorts() ) {
+				try {
+					outputPort.configurationProcess().run();
+				} catch( FaultException fe ) {
+					// If this happens, it's a bug in the SemanticVerifier
+					assert( false );
+				}
+			}
+			
+			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() )
 				loader.load();
+			
+			for( Process p : interpreter.commCore().protocolConfigurations() )
+				p.run();
 		
 			try {
-				DefinitionProcess p = Interpreter.getInstance().getDefinition( "init" );
+				SubRoutineProcess p = Interpreter.getInstance().getDefinition( "init" );
 				p.run();
 			} catch( InvalidIdException e ) {}
 			
