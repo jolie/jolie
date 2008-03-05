@@ -24,10 +24,10 @@ package jolie.lang.parse;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -45,7 +45,7 @@ import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
@@ -60,16 +60,13 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Procedure;
-import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
@@ -80,6 +77,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SubRoutineCallStatement;
+import jolie.lang.parse.ast.SubRoutineNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -95,11 +94,10 @@ public class SemanticVerifier implements OLVisitor
 	private Program program;
 	private boolean valid = true;
 	
-	private Set< String > inputPortTypes = new HashSet< String >();
-	private Set< String > outputPortTypes = new HashSet< String >();
-	private HashMap< String, PortInfo > ports = new HashMap< String, PortInfo >();
+	private Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
+	private Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
 	
-	private Set< String > procedureNames = new HashSet< String > ();
+	private Set< String > subroutineNames = new HashSet< String > ();
 	private HashMap< String, OperationDeclaration > operations = 
 						new HashMap< String, OperationDeclaration >();
 	private boolean mainDefined = false;
@@ -142,65 +140,36 @@ public class SemanticVerifier implements OLVisitor
 			node.accept( this );
 	}
 	
-	public void visit( InputPortTypeInfo n )
+	public void visit( InputPortInfo n )
 	{
-		if ( inputPortTypes.contains( n.id() ) )
+		if ( inputPorts.get( n.id() ) != null )
 			error( n, "input port type " + n.id() + " has been already defined" );
-		inputPortTypes.add( n.id() );
+		inputPorts.put( n.id(), n );
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
 	}
 	
-	public void visit( OutputPortTypeInfo n )
+	public void visit( OutputPortInfo n )
 	{
-		if ( outputPortTypes.contains( n.id() ) )
+		if ( outputPorts.get( n.id() ) != null )
 			error( n, "output port type " + n.id() + " has been already defined" );
-		outputPortTypes.add( n.id() );
+		outputPorts.put( n.id(), n );
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
 	}
-	
-	public void visit( PortInfo n )
-	{
-		if ( inputPortTypes.contains( n.id() ) )
-			error( n, "Port name " + n.id() +
-					" has been already defined as an input port type" );
-		
-		if ( outputPortTypes.contains( n.id() ) )
-			error( n, "Port name " + n.id() +
-					" has been already defined as an output port type" );
-		
-		if ( ports.get( n.id() ) != null )
-			error( n, "Port name " + n.id() + " has been already defined" );
-		else
-			ports.put( n.id(), n );
-		
-		if (	!( inputPortTypes.contains( n.portType() ) ) &&
-				!( outputPortTypes.contains( n.portType() ) ) )
-			error( n, "Port " + n.id() + " tries to use an undefined port type (" + n.portType() + ")" );
-	}
-	
+
 	public void visit( ServiceInfo n )
 	{
-		PortInfo port;
-		Constants.ProtocolId protocolId = null;
 		for( String p : n.inputPorts() ) {
-			port = ports.get( p );
-			if ( port == null )
-				error( n, "Service at URI " + n.uri().toString() + " specifies an undefined port (" + p + ")" );
-			else {
-				if ( protocolId == null )
-					protocolId = port.protocolId();
-				else if ( protocolId != port.protocolId() )
-					error( n, "Service at URI " + n.uri().toString() + " specifies ports with different protocols" );
-			}
+			if ( inputPorts.get( p ) == null )
+				error( n, "Service at URI " + n.location().toString() + " specifies an undefined port (" + p + ")" );
 		}
 	}
 	
 	private boolean isDefined( String id )
 	{
 		if (	operations.get( id ) != null ||
-				procedureNames.contains( id )
+				subroutineNames.contains( id )
 				)
 			return true;
 			
@@ -239,12 +208,12 @@ public class SemanticVerifier implements OLVisitor
 			operations.put( n.id(), n );
 	}
 		
-	public void visit( Procedure n )
+	public void visit( SubRoutineNode n )
 	{
 		if ( isDefined( n.id() ) )
 			error( n, "Procedure " + n.id() + " uses an already defined identifier" );
 		else
-			procedureNames.add( n.id() );
+			subroutineNames.add( n.id() );
 		
 		if ( "main".equals( n.id() ) )
 			mainDefined = true;
@@ -295,7 +264,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( PointerStatement n ) {}
 	public void visit( DeepCopyStatement n ) {}
 	public void visit( IfStatement n ) {}
-	public void visit( ProcedureCallStatement n ) {}
+	public void visit( SubRoutineCallStatement n ) {}
 	public void visit( WhileStatement n ) {}
 	public void visit( OrConditionNode n ) {}
 	public void visit( AndConditionNode n ) {}

@@ -27,20 +27,20 @@ import jolie.lang.parse.ParsingContext;
 
 public class NotificationOperationStatement extends OLSyntaxNode
 {
-	private String id;
-	private OLSyntaxNode locationExpression, outputExpression;
+	private String id, outputPortId;
+	private OLSyntaxNode outputExpression;
 	
 	public NotificationOperationStatement(
 			ParsingContext context,
 			String id,
-			OLSyntaxNode locationExpression,
+			String outputPortId,
 			OLSyntaxNode outputExpression
 			)
 	{
 		super( context );
 		this.id = id;
 		this.outputExpression = outputExpression;
-		this.locationExpression = locationExpression;
+		this.outputPortId = outputPortId;
 	}
 	
 	public String id()
@@ -48,9 +48,9 @@ public class NotificationOperationStatement extends OLSyntaxNode
 		return id;
 	}
 	
-	public OLSyntaxNode locationExpression()
+	public String outputPortId()
 	{
-		return locationExpression;
+		return outputPortId;
 	}
 	
 	public OLSyntaxNode outputExpression()

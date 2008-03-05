@@ -24,19 +24,48 @@ package jolie.lang.parse.ast;
 import java.net.URI;
 import java.util.Collection;
 
+import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
 public class ServiceInfo extends OLSyntaxNode
 {
-	private URI uri;
+	private String id;
+	private URI location;
 	private Collection< String > inputPorts;
+	private Constants.ProtocolId protocolId;
+	private OLSyntaxNode protocolConfiguration;
 	
-	public ServiceInfo( ParsingContext context, URI uri, Collection< String > inputPorts )
+	public ServiceInfo(
+			ParsingContext context,
+			String id,
+			URI location,
+			Collection< String > inputPorts,
+			Constants.ProtocolId protocolId,
+			OLSyntaxNode protocolConfiguration
+			)
 	{
 		super( context );
-		this.uri = uri;
+		this.id = id;
+		this.location = location;
 		this.inputPorts = inputPorts;
+		this.protocolId = protocolId;
+		this.protocolConfiguration = protocolConfiguration;
+	}
+	
+	public String id()
+	{
+		return id;
+	}
+	
+	public OLSyntaxNode protocolConfiguration()
+	{
+		return protocolConfiguration;
+	}
+	
+	public Constants.ProtocolId protocolId()
+	{
+		return protocolId;
 	}
 	
 	public Collection< String > inputPorts()
@@ -44,9 +73,9 @@ public class ServiceInfo extends OLSyntaxNode
 		return inputPorts;
 	}
 	
-	public URI uri()
+	public URI location()
 	{
-		return uri;
+		return location;
 	}
 	
 	public void accept( OLVisitor visitor )

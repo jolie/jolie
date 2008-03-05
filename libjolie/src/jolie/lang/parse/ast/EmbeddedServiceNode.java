@@ -28,19 +28,19 @@ import jolie.lang.parse.ParsingContext;
 public class EmbeddedServiceNode extends OLSyntaxNode
 {
 	private String servicePath;
-	private VariablePathNode channelVariablePath;
+	private String portId;
 	private Constants.EmbeddedServiceType type;
 	
 	public EmbeddedServiceNode(
 			ParsingContext context,
 			Constants.EmbeddedServiceType type,
 			String servicePath,
-			VariablePathNode channelVariablePath )
+			String portId )
 	{
 		super( context );
 		this.type = type;
 		this.servicePath = servicePath;
-		this.channelVariablePath = channelVariablePath;
+		this.portId = portId;
 	}
 	
 	public Constants.EmbeddedServiceType type()
@@ -53,9 +53,9 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 		return servicePath;
 	}
 	
-	public VariablePathNode channelVariablePath()
+	public String portId()
 	{
-		return channelVariablePath;
+		return portId;
 	}
 	
 	public void accept( OLVisitor visitor )

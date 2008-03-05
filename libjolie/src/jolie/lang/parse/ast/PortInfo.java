@@ -21,27 +21,25 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.Constants;
-import jolie.lang.parse.OLVisitor;
+import java.util.Collection;
+import java.util.Vector;
+
 import jolie.lang.parse.ParsingContext;
 
-
-public class PortInfo extends OLSyntaxNode
+abstract public class PortInfo extends OLSyntaxNode
 {
-	private String id, portType;
-	private Constants.ProtocolId protocolId;
+	private String id;
+	private Vector< OperationDeclaration > operations = new Vector< OperationDeclaration >();
 	
-	public PortInfo( ParsingContext context, String id, String portType, Constants.ProtocolId protocolId )
+	public PortInfo( ParsingContext context, String id )
 	{
 		super( context );
 		this.id = id;
-		this.protocolId = protocolId;
-		this.portType = portType;
 	}
-
-	public void accept( OLVisitor visitor )
+	
+	public Collection< OperationDeclaration > operations()
 	{
-		visitor.visit( this );
+		return operations;
 	}
 	
 	public String id()
@@ -49,13 +47,8 @@ public class PortInfo extends OLSyntaxNode
 		return id;
 	}
 	
-	public String portType()
+	public void addOperation( OperationDeclaration decl )
 	{
-		return portType;
-	}
-	
-	public Constants.ProtocolId protocolId()
-	{
-		return protocolId;
+		operations.add( decl );
 	}
 }

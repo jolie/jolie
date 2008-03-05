@@ -24,27 +24,24 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
-public class OutputPortTypeInfo extends PortTypeInfo
-{	
-	private String namespace = new String(); 
-	
-	public OutputPortTypeInfo( ParsingContext context, String id )
+
+public class SubRoutineCallStatement extends OLSyntaxNode
+{
+	private String id;
+
+	public SubRoutineCallStatement( ParsingContext context, String id )
 	{
-		super( context, id );
+		super( context );
+		this.id = id;
+	}
+	
+	public String id()
+	{
+		return id;
 	}
 	
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
-	}
-	
-	public String namespace()
-	{
-		return namespace;
-	}
-	
-	public void setNamespace( String namespace )
-	{
-		this.namespace = namespace;
 	}
 }

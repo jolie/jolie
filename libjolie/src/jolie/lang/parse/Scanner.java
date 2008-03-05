@@ -66,11 +66,10 @@ public class Scanner
 		OP_N,				///< Notification
 		OP_SR,				///< SolicitResponse
 		MAIN,				///< main
-		DEFINE, 			///< define
+		SUB, 				///< sub
 		MAJOR_OR_EQUAL,		///< >=
 		MINOR_OR_EQUAL,		///< <=
 		NOT_EQUAL,			///< !=
-		LINKS,				///< links
 		NULL_PROCESS,		///< nullProcess
 		WHILE,				///< while
 		CONCURRENT,			///< concurrent
@@ -93,6 +92,7 @@ public class Scanner
 		HASH,					///< #
 		FOR,					///< for
 		FOREACH,				///< foreach
+		WITH,					///< with
 		DECREMENT,				///< --
 		IS_STRING,				///< is_string
 		IS_INT,					///< is_int
@@ -116,7 +116,7 @@ public class Scanner
 	 * @version 1.0
 	 *
 	 */
-	public class Token
+	static public class Token
 	{
 		private TokenType type;
 		private String content;
@@ -260,11 +260,6 @@ public class Scanner
 			line++;
 	}
 	
-	/*public char currentCharacter()
-	{
-		return ch;
-	}*/
-	
 	public byte currentByte()
 	{
 		return (byte)currByte;
@@ -377,10 +372,8 @@ public class Scanner
 							retval = new Token( TokenType.INCLUDE );
 						else if ( "main".equals( str ) )
 							retval = new Token( TokenType.MAIN );
-						else if ( "define".equals( str ) )
-							retval = new Token( TokenType.DEFINE );
-						else if ( "links".equals( str ) )
-							retval = new Token( TokenType.LINKS );
+						else if ( "sub".equals( str ) )
+							retval = new Token( TokenType.SUB );
 						else if ( "nullProcess".equals( str ) )
 							retval = new Token( TokenType.NULL_PROCESS );
 						else if ( "while".equals( str ) )
@@ -437,6 +430,8 @@ public class Scanner
 							retval = new Token( TokenType.CURRENT_HANDLER );
 						else if ( "init".equals( str ) )
 							retval = new Token( TokenType.INIT );
+						else if ( "with".equals( str ) )
+							retval = new Token( TokenType.WITH );
 						else
 							retval = new Token( TokenType.ID, str );
 					}

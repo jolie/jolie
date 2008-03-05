@@ -28,14 +28,14 @@ import jolie.lang.parse.ParsingContext;
 public class SolicitResponseOperationStatement extends OLSyntaxNode
 {
 	private VariablePathNode inputVarPath;
-	private String id;
-	private OLSyntaxNode locationExpression, outputExpression;
+	private String id, outputPortId;
+	private OLSyntaxNode outputExpression;
 	private InstallFunctionNode handlersFunction;
 	
 	public SolicitResponseOperationStatement(
 			ParsingContext context,
 			String id,
-			OLSyntaxNode locationExpression,
+			String outputPortId,
 			OLSyntaxNode outputExpression,
 			VariablePathNode inputVarPath,
 			InstallFunctionNode handlersFunction
@@ -45,7 +45,7 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode
 		this.id = id;
 		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
-		this.locationExpression = locationExpression;
+		this.outputPortId = outputPortId;
 		this.handlersFunction = handlersFunction;
 	}
 	
@@ -59,9 +59,9 @@ public class SolicitResponseOperationStatement extends OLSyntaxNode
 		return id;
 	}
 	
-	public OLSyntaxNode locationExpression()
+	public String outputPortId()
 	{
-		return locationExpression;
+		return outputPortId;
 	}
 	
 	public OLSyntaxNode outputExpression()

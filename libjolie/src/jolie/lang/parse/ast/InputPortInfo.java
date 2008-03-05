@@ -24,9 +24,9 @@ package jolie.lang.parse.ast;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
-public class InputPortTypeInfo extends PortTypeInfo
+public class InputPortInfo extends PortInfo
 {	
-	public InputPortTypeInfo( ParsingContext context, String id )
+	public InputPortInfo( ParsingContext context, String id )
 	{
 		super( context, id );
 	}

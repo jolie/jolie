@@ -22,6 +22,8 @@
 package jolie.lang.parse;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Vector;
 
 
 /** Skeleton implementation of a JOLIE Scanner based parser.
@@ -33,6 +35,7 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
+	private Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
 	
 	/** Constructor
 	 * 
@@ -43,6 +46,11 @@ public abstract class AbstractParser
 		this.scanner = scanner;
 	}
 	
+	protected void addTokens( Collection< Scanner.Token > tokens )
+	{
+		this.tokens.addAll( tokens );
+	}
+	
 	/** Gets a new token.
 	 * 
 	 * @throws IOException If the internal scanner raises one.
@@ -50,7 +58,10 @@ public abstract class AbstractParser
 	protected void getToken()
 		throws IOException
 	{
-		token = scanner.getToken();
+		if ( tokens.size() > 0 )
+			token = tokens.remove( 0 );
+		else
+			token = scanner.getToken();
 	}
 	
 	/**

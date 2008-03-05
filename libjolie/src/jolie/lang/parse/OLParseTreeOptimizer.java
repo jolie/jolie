@@ -39,7 +39,7 @@ import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortTypeInfo;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
@@ -53,16 +53,13 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OrConditionNode;
-import jolie.lang.parse.ast.OutputPortTypeInfo;
+import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Procedure;
-import jolie.lang.parse.ast.ProcedureCallStatement;
 import jolie.lang.parse.ast.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
@@ -73,6 +70,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SubRoutineCallStatement;
+import jolie.lang.parse.ast.SubRoutineNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -126,24 +125,36 @@ public class OLParseTreeOptimizer
 			program.addChild( p );
 		}
 		
-		public void visit( InputPortTypeInfo p )
+		public void visit( InputPortInfo p )
 		{
 			program.addChild( p );
 		}
 		
-		public void visit( OutputPortTypeInfo p )
+		public void visit( OutputPortInfo p )
 		{
-			program.addChild( p );
+			if ( p.protocolConfiguration() != null ) {
+				p.protocolConfiguration().accept( this );
+				p.setProtocolConfiguration( currNode );
+			}
+			program.addChild( p	);
 		}
-		
-		public void visit( PortInfo p )
-		{
-			program.addChild( p );
-		}
-		
+
 		public void visit( ServiceInfo p )
 		{
-			program.addChild( p );
+			if ( p.protocolConfiguration() != null ) {
+				p.protocolConfiguration().accept( this );
+				program.addChild(
+						new ServiceInfo(
+								p.context(),
+								p.id(),
+								p.location(),
+								p.inputPorts(),
+								p.protocolId(),
+								currNode
+						)
+					);
+			} else
+				program.addChild( p );
 		}
 	
 		public void visit( OneWayOperationDeclaration decl )
@@ -163,10 +174,10 @@ public class OLParseTreeOptimizer
 			program.addChild( n );
 		}
 
-		public void visit( Procedure procedure )
+		public void visit( SubRoutineNode procedure )
 		{
 			procedure.body().accept( this );
-			program.addChild( new Procedure( procedure.context(), procedure.id(), currNode ) );
+			program.addChild( new SubRoutineNode( procedure.context(), procedure.id(), currNode ) );
 		}
 		
 		public void visit( ParallelStatement stm )
@@ -342,7 +353,7 @@ public class OLParseTreeOptimizer
 		public void visit( AssignStatement n ) { currNode = n; }
 		public void visit( DeepCopyStatement n ) { currNode = n; }
 		public void visit( PointerStatement n ) { currNode = n; }
-		public void visit( ProcedureCallStatement n ) { currNode = n; }
+		public void visit( SubRoutineCallStatement n ) { currNode = n; }
 		public void visit( OrConditionNode n ) { currNode = n; }
 		public void visit( AndConditionNode n ) { currNode = n; }
 		public void visit( NotConditionNode n ) { currNode = n; }

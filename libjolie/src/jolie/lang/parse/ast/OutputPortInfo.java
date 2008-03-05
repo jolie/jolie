@@ -21,27 +21,55 @@
 
 package jolie.lang.parse.ast;
 
+import java.net.URI;
+
+import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
-
-public class ProcedureCallStatement extends OLSyntaxNode
-{
-	private String id;
-
-	public ProcedureCallStatement( ParsingContext context, String id )
+public class OutputPortInfo extends PortInfo
+{	
+	private Constants.ProtocolId protocolId = null;
+	private OLSyntaxNode protocolConfiguration = null;
+	private URI location = null;
+	
+	public OutputPortInfo( ParsingContext context, String id )
 	{
-		super( context );
-		this.id = id;
+		super( context, id );
 	}
 	
-	public String id()
+	public void setProtocolId( Constants.ProtocolId protocolId )
 	{
-		return id;
+		this.protocolId = protocolId;
+	}
+	
+	public void setProtocolConfiguration( OLSyntaxNode protocolConfiguration )
+	{
+		this.protocolConfiguration = protocolConfiguration;
+	}
+	
+	public void setLocation( URI location )
+	{
+		this.location = location;
 	}
 	
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+	
+	public Constants.ProtocolId protocolId()
+	{
+		return protocolId;
+	}
+	
+	public OLSyntaxNode protocolConfiguration()
+	{
+		return protocolConfiguration;
+	}
+	
+	public URI location()
+	{
+		return location;
 	}
 }
