@@ -344,10 +344,10 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		String serviceName;
-		Collection< String > ports = null;
-		URI serviceLocation = null;
-		Constants.ProtocolId protocolId = null;
-		OLSyntaxNode protocolConfiguration = null;
+		Collection< String > ports;
+		URI serviceLocation;
+		Constants.ProtocolId protocolId;
+		OLSyntaxNode protocolConfiguration;
 		
 		while( token.isKeyword( "service" ) ) {
 			getToken();
@@ -357,6 +357,8 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			ports = null;
 			serviceLocation = null;
+			protocolId = null;
+			protocolConfiguration = null;
 			while( token.isNot( Scanner.TokenType.RCURLY ) ) {
 				if ( token.isKeyword( "Location" ) ) {
 					if ( serviceLocation != null )
@@ -401,7 +403,8 @@ public class OLParser extends AbstractParser
 						getToken();
 						protocolConfiguration = parseInVariablePathProcess();
 					}
-				}
+				} else
+					throwException( "Unrecognized token in service " + serviceName );
 			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 			if ( serviceLocation == null )
