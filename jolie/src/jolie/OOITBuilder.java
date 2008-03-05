@@ -282,10 +282,9 @@ public class OOITBuilder implements OLVisitor
 		
 		Vector< Pair< String, Expression > > path =
 					new Vector< Pair< String, Expression > >();
-		path.add( new Pair< String, Expression >( "global", null ) );
 		path.add( new Pair< String, Expression >( n.id(), null ) );
 		path.add( new Pair< String, Expression >( "protocol", null ) );
-		VariablePath configurationPath = new VariablePath( path, null, false );
+		VariablePath configurationPath = new VariablePath( path, null, true );
 		
 		if ( pId.equals( Constants.ProtocolId.SOAP ) )
 			protocol = new SOAPProtocol( configurationPath, n.location() );

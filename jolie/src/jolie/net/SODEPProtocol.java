@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import jolie.runtime.VariablePath;
 
@@ -44,13 +46,28 @@ public class SODEPProtocol extends CommProtocol
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
+		GZIPOutputStream gzip = null;
+		String compression = configurationPath.getValue().getChildren( "compression" ).first().strValue();
+		if ( "gzip".equals( compression ) ) {
+			gzip = new GZIPOutputStream( ostream );
+			ostream = gzip;
+		}
+		
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( message );
+		
+		if ( gzip != null )
+			gzip.finish();
 	}
 
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
+		String compression = configurationPath.getValue().getChildren( "compression" ).first().strValue();
+		if ( "gzip".equals( compression ) ) {
+			istream = new GZIPInputStream( istream );
+		}
+		
 		ObjectInputStream ios = new ObjectInputStream( istream );
 		Object obj = null;
 		try {
