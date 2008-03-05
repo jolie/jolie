@@ -133,17 +133,29 @@ public class HTTPProtocol extends CommProtocol
 		throws IOException
 	{
 		try {
-			String xmlString = new String();
-
-			Document doc = docBuilder.newDocument();
-			valueToDocument( message.value(), doc, doc );
+			String contentString = null;
+			String contentType = "text/plain";
 			
-			Source src = new DOMSource( doc );
-            ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-            Result dest = new StreamResult( tmpStream );
-            transformer.transform( src, dest );
+			String format = configurationPath.getValue().getChildren( "format" ).first().strValue();
+			if ( format.equals( "xml" ) ) {
+				Document doc = docBuilder.newDocument();
+				valueToDocument( message.value(), doc, doc );
 			
-			xmlString += new String( tmpStream.toByteArray() );
+				Source src = new DOMSource( doc );
+				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+				Result dest = new StreamResult( tmpStream );
+				transformer.transform( src, dest );
+			
+				contentString = new String( tmpStream.toByteArray() );
+				
+				contentType = "text/xml";
+			} else if ( format.equals( "raw" ) ) {
+				contentString = message.value().strValue();
+				contentType = "text/plain";
+			} else if ( format.equals( "html" ) ) {
+				contentString = message.value().strValue();
+				contentType = "text/html";
+			}
 
 			String messageString = new String();
 			try {
@@ -168,15 +180,14 @@ public class HTTPProtocol extends CommProtocol
 				throw new IOException( iie );
 			}
 
-			messageString += "Content-Type: text/xml; charset=\"utf-8\"\n";
-			messageString += "Content-Length: " + xmlString.length() + '\n';
-			messageString += '\n' + xmlString + '\n';
+			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\n";
+			messageString += "Content-Length: " + contentString.length() + '\n';
+			messageString += '\n' + contentString + '\n';
 			
 			//System.out.println( "Sending: " + messageString );
 			
 			inputId = message.inputId();
 			
-			//Writer writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
 			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
 			writer.flush();
