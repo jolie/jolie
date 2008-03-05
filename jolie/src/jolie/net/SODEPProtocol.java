@@ -56,6 +56,7 @@ public class SODEPProtocol extends CommProtocol
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( message );
 		
+		oos.flush();
 		if ( gzip != null )
 			gzip.finish();
 	}
