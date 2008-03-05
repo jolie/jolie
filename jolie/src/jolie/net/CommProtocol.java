@@ -30,7 +30,7 @@ import jolie.runtime.VariablePath;
 
 abstract public class CommProtocol implements Cloneable
 {
-	protected VariablePath configurationPath;
+	protected final VariablePath configurationPath;
 
 	protected CommProtocol( VariablePath configurationPath )
 	{
