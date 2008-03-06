@@ -93,7 +93,8 @@ public class CommCore
 			)
 		throws UnsupportedCommMediumException, IOException
 	{
-		protocolConfigurations.add( protocolConfigurationProcess );
+		if ( protocolConfigurationProcess != null )
+			protocolConfigurations.add( protocolConfigurationProcess );
 
 		CommListener listener = null;
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );

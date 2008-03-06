@@ -295,7 +295,9 @@ public class OOITBuilder implements OLVisitor
 		else
 			error( n.context(), "Unsupported protocol specified for service " + n.id() );
 		
-		n.protocolConfiguration().accept( this );
+		currProcess = null;
+		if ( n.protocolConfiguration() != null )
+			n.protocolConfiguration().accept( this );
 		
 		if ( protocol != null ) {
 			try {

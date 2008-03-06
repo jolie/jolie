@@ -32,14 +32,16 @@ import jolie.Interpreter;
 import jolie.runtime.InvalidIdException;
 
 
-/** A communication channel is an abstraction which permits to send and receive messages.
+/** A communication channel permits to send and receive messages.
  * 
  * @author Fabrizio Montesi
  * @see CommProtocol
  * @see CommMessage
  */
 abstract public class CommChannel
-{	
+{
+	//private boolean canBeClosed = true;
+
 	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
@@ -75,7 +77,27 @@ abstract public class CommChannel
 	abstract public void send( CommMessage message )
 		throws IOException;
 	
-	/** Closes the communication channel. */
 	abstract public void close()
 		throws IOException;
+
+	/** Closes the communication channel */
+	/*public void close()
+		throws IOException
+	{
+		if ( canBeClosed )
+			closeImpl();*/
+		/*else
+			Interpreter.getInstance().commCore().
+			*/
+	//}
+	
+	/*public void setCanBeClosed( boolean canBeClosed )
+	{
+		this.canBeClosed = canBeClosed;
+	}*/
+
+	/** Implements the communication channel closing operation. */
+	/*protected void closeImpl()
+		throws IOException
+	{}*/
 }
