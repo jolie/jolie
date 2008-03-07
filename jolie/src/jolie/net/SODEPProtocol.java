@@ -47,7 +47,7 @@ public class SODEPProtocol extends CommProtocol
 		throws IOException
 	{
 		GZIPOutputStream gzip = null;
-		String compression = configurationPath.getValue().getChildren( "compression" ).first().strValue();
+		String compression = getParameterVector( "compression" ).first().strValue();
 		if ( "gzip".equals( compression ) ) {
 			gzip = new GZIPOutputStream( ostream );
 			ostream = gzip;
@@ -63,7 +63,7 @@ public class SODEPProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		String compression = configurationPath.getValue().getChildren( "compression" ).first().strValue();
+		String compression = getParameterVector( "compression" ).first().strValue();
 		if ( "gzip".equals( compression ) ) {
 			istream = new GZIPInputStream( istream );
 		}

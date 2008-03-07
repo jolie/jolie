@@ -136,7 +136,7 @@ public class HTTPProtocol extends CommProtocol
 			String contentString = null;
 			String contentType = "text/plain";
 			
-			String format = configurationPath.getValue().getChildren( "format" ).first().strValue();
+			String format = getParameterVector( "format" ).first().strValue();
 			if ( format.equals( "xml" ) ) {
 				Document doc = docBuilder.newDocument();
 				valueToDocument( message.value(), doc, doc );

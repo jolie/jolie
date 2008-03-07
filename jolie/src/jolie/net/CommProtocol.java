@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 abstract public class CommProtocol implements Cloneable
@@ -35,6 +36,11 @@ abstract public class CommProtocol implements Cloneable
 	protected CommProtocol( VariablePath configurationPath )
 	{
 		this.configurationPath = configurationPath;
+	}
+	
+	protected ValueVector getParameterVector( String id )
+	{
+		return configurationPath.getValue().getChildren( id );
 	}
 	
 	abstract public CommMessage recv( InputStream istream )

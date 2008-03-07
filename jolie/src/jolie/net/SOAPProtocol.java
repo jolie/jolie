@@ -26,13 +26,16 @@ package jolie.net;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Map.Entry;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -46,6 +49,8 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
@@ -62,6 +67,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSTerm;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
 
 /** Implements the SOAP over HTTP protocol.
  * 
@@ -99,11 +116,11 @@ public class SOAPProtocol extends CommProtocol
 		String type = null;
 		SOAPElement currentElement;
 		if ( value.isDefined() ) {
-			if ( value.isInt() )
+			/*if ( value.isInt() )
 				type = "int";
 			else
 				type = "string";
-			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );
+			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );*/
 			element.addTextNode( value.strValue() );
 		}
 
@@ -121,22 +138,123 @@ public class SOAPProtocol extends CommProtocol
 		}
 	}
 	
+	/*private void evaluateParticle(
+			Value value,
+			XSParticle particle,
+			SOAPElement element,
+			SOAPEnvelope soapEnvelope
+			)
+	*/
+	
+	private void valueToTypedSOAP(
+			Value value,
+			XSElementDecl xsDecl,
+			SOAPElement element,
+			SOAPEnvelope envelope
+			)
+		throws SOAPException
+	{
+		XSType type = xsDecl.getType();
+		
+		if ( type.isSimpleType() ) {
+			element.addTextNode( value.strValue() );
+		} else if ( type.isComplexType() ) {
+			String str, name;
+			Value currValue;
+			XSComplexType complexT = type.asComplexType();
+
+			// Iterate over attributes
+			Collection< ? extends XSAttributeUse > attributeUses = complexT.getAttributeUses();
+			for( XSAttributeUse attrUse : attributeUses ) {
+				name = attrUse.getDecl().getName();
+				if ( (currValue=value.attributes().get( name )) != null )
+					element.addAttribute( envelope.createName( name ), currValue.strValue() );
+			}
+			
+			
+			XSParticle particle;
+			XSContentType contentT;
+			contentT = complexT.getContentType();
+			if ( contentT.asSimpleType() != null )
+				element.addTextNode( value.strValue() );
+			else if ( (particle=contentT.asParticle()) != null ) {
+				XSTerm term = particle.getTerm();
+				XSElementDecl elementDecl;
+				XSModelGroupDecl modelGroupDecl;
+				XSModelGroup modelGroup = null;
+				//int size = value.children().size();
+				//if ( particle.getMinOccurs()
+				// It's a simple element, repeated some times
+				if ( (elementDecl=term.asElementDecl()) != null ) {
+				} else if ( (modelGroupDecl=term.asModelGroupDecl()) != null ) {
+					modelGroup = modelGroupDecl.getModelGroup();
+				} else if ( term.isModelGroup() )
+					modelGroup = term.asModelGroup();
+				
+				if ( modelGroup != null ) {
+					XSModelGroup.Compositor compositor = modelGroup.getCompositor();
+					if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
+						XSParticle[] children = modelGroup.getChildren();
+						XSTerm currTerm;
+						XSElementDecl currElementDecl;
+						Value v;
+						for( int i = 0; i < children.length; i++ ) {
+							currTerm = children[i].getTerm();
+							if ( currTerm.isElementDecl() ) {
+								currElementDecl = currTerm.asElementDecl(); 
+								name = currElementDecl.getName();
+								v = value.children().get( name ).remove( 0 );
+								valueToTypedSOAP(
+										v,
+										currElementDecl,
+										element.addChildElement( envelope.createName( name ) ),
+										envelope );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
-	{
+	{		
 		try {
-			String messageNamespace = configurationPath.getValue().getChildren( "namespace" ).first().strValue();
+			String inputId = message.inputId();
+			try {
+				Interpreter.getInstance().getRequestResponseOperation( inputId );
+				
+				// We're responding to a request
+				inputId += "Response";
+			} catch( InvalidIdException iie ) {}
+			
+			
+			/**/
+			
+			String messageNamespace = getParameterVector( "namespace" ).first().strValue();
 			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			Name operationName = soapEnvelope.createName( message.inputId(), "", messageNamespace );
+			Name operationName = soapEnvelope.createName( inputId, "jolie", messageNamespace );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 			
-			valueToSOAPBody( message.value(), opBody, soapEnvelope );
+			Value schemaPath = getParameterVector( "schema" ).first();
+			if ( schemaPath.isString() ) {
+				XSOMParser schemaParser = new XSOMParser();
+		
+				schemaParser.parse( new File( schemaPath.strValue() ) );
+				XSSchemaSet schemaSet = schemaParser.getResult();
+				
+				
+				valueToTypedSOAP( message.value(), schemaSet.getElementDecl( messageNamespace, inputId ), opBody, soapEnvelope );
+			} else
+				valueToSOAPBody( message.value(), opBody, soapEnvelope );
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
+			
 			String soapString = "\n<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 								new String( tmpStream.toByteArray() );
 
@@ -176,6 +294,8 @@ public class SOAPProtocol extends CommProtocol
 			writer.flush();
 		} catch( SOAPException se ) {
 			throw new IOException( se );
+		} catch( SAXException saxe ) {
+			throw new IOException( saxe );
 		}
 	}
 	
@@ -220,7 +340,6 @@ public class SOAPProtocol extends CommProtocol
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
@@ -255,6 +374,21 @@ public class SOAPProtocol extends CommProtocol
 			DOMSource dom = new DOMSource( doc );
 
 			soapMessage.getSOAPPart().setContent( dom );
+
+			Value schemaPath = getParameterVector( "schema" ).first();
+			if ( schemaPath.isString() ) {
+				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+				soapMessage.writeTo( tmpStream );
+			
+				//System.out.println( tmpStream.toString() );
+				
+				if ( schemaPath.isString() ) {
+					Schema schema =
+						SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
+								.newSchema( new File( schemaPath.strValue() ) );
+					schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+				}				
+			}
 			
 			Value value = Value.create();
 			xmlNodeToValue(
@@ -280,149 +414,5 @@ public class SOAPProtocol extends CommProtocol
 		}
 		
 		return retVal;
-		
-		/*HTTPScanner.Token token;
-		HTTPScanner scanner = new HTTPScanner( istream, "network" );
-		int httpCode = 0;
-		
-		token = scanner.getToken();
-		if ( !token.isA( HTTPScanner.TokenType.POST ) ) {
-			if ( token.isA( HTTPScanner.TokenType.HTTP ) ) {
-				// Revise these checks.. for example, 1.1 and not int/int
-				token = scanner.getToken();
-				if ( token.type() != HTTPScanner.TokenType.DIVIDE )
-					throw new IOException( "Malformed HTTP SOAP packet received." );
-				token = scanner.getToken();
-				if ( token.type() != HTTPScanner.TokenType.INT )
-					throw new IOException( "Malformed HTTP SOAP packet received." );
-				token = scanner.getToken();
-				if ( token.type() != HTTPScanner.TokenType.DOT )
-					throw new IOException( "Malformed HTTP SOAP packet received." );
-				token = scanner.getToken();
-				if ( token.type() != HTTPScanner.TokenType.INT )
-					throw new IOException( "Malformed HTTP SOAP packet received." );
-				token = scanner.getToken();
-				if ( token.type() != HTTPScanner.TokenType.INT )
-					throw new IOException( "Malformed HTTP SOAP packet received." );
-				httpCode = Integer.parseInt( token.content() );
-			} else
-				throw new IOException( "Malformed HTTP SOAP packet received." );
-		}
-		while( !token.isA( HTTPScanner.TokenType.ERROR ) &&
-				!token.isA( HTTPScanner.TokenType.EOF ) && 
-				!token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )
-			token = scanner.getToken();
-		
-		if ( !token.isA( HTTPScanner.TokenType.CONTENTLENGTH ) )
-			throw new IOException( "Malformed SOAP packet (element content-length)." );
-		
-		token = scanner.getToken();
-		if ( !token.isA( HTTPScanner.TokenType.COLON ) )
-			throw new IOException( "Malformed SOAP packet (element content-length)." );
-		token = scanner.getToken();
-		if ( !token.isA( HTTPScanner.TokenType.INT ) )
-			throw new IOException( "Malformed SOAP packet (element content-length)." );
-
-		int length = Integer.parseInt( token.content() );
-
-		byte buffer[] = new byte[ length ];
-		istream.read( buffer );
-		
-		CommMessage message = null;
-		try {
-			MessageFactory messageFactory =
-				MessageFactory.newInstance( SOAPConstants.SOAP_1_2_PROTOCOL ); //SOAPConstants.DYNAMIC_SOAP_PROTOCOL );
-			SOAPMessage soapMessage =
-				messageFactory.createMessage();
-			
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware( true );
-			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			InputSource src = new InputSource( new ByteArrayInputStream( buffer ) );
-
-			Document doc = builder.parse( src );
-			DOMSource dom = new DOMSource( doc );
-
-			soapMessage.getSOAPPart().setContent( dom );
-
-			if ( httpCode != 0 && httpCode != 200 ) {
-				String exMesg =	"\n--> Received an HTTP error packet\n" +
-									"\tHTTP Code: " + httpCode + '\n';
-				try {
-					exMesg += 
-						"\tSOAP Fault Message: "
-						+ soapMessage.getSOAPBody().getFault().getFaultString() + '\n';
-				} catch ( NullPointerException npe ) {}
-				throw new IOException( exMesg );
-			}
-
-			Node opNode = soapMessage.getSOAPBody().getFirstChild();
-			Operation operation = Operation.getByWSDLBoundName( opNode.getLocalName() );
-		
-			message = new CommMessage( operation.id() );
-
-			NodeList nodeList = opNode.getChildNodes();
-
-			Vector< String > varNames = operation.deployInfo().inVarNames();
-			if ( varNames == null )
-				throw new IOException( "Error: missing WSDL input variable names in operation " + operation.id() );
-			
-			int namesSize = varNames.size();
-			
-			if ( nodeList.getLength() != namesSize )
-				throw new IOException( "Received malformed SOAP Packet: wrong variables number" );
-			
-			Node currNode;
-			String nodeName;
-			int j;
-			List< Value > list = new Vector< Value >();
-			for( int k = 0; k < namesSize; k++ )
-				list.add( Value.createValue() );
-			Value tempVar;
-			for( int i = 0; i < nodeList.getLength(); i++ ) {
-				currNode = nodeList.item( i );
-				nodeName = currNode.getLocalName();
-				j = 0;
-				for( String str : varNames ) {
-					if ( str.equals( nodeName ) )
-						break;
-					else
-						j++;
-				}
-
-				if ( j >= namesSize )
-					throw new IOException( "Received malformed SOAP packet: corresponding variable name not found: " + nodeName );
-				if ( currNode.getFirstChild() == null )
-					tempVar = Value.createValue( "" );
-				else {
-					try {
-						tempVar = Value.createValue( Integer.parseInt( currNode.getFirstChild().getNodeValue() ) );
-					} catch( NumberFormatException e ) {
-						tempVar = Value.createValue( currNode.getFirstChild().getNodeValue() );
-					}
-				}
-				list.set( j, tempVar );
-			}
-			message.addAllValues( list );
-			*/
-			/**
-			 * This is needed to maintain information useful in a RequestResponse.
-			 */
-			//this.deployInfo = operation.deployInfo();
-			/*this.uri = new URI( "localhost/response" );
-		} catch( SOAPException se ) {
-			throw new IOException( se );
-		} catch( ParserConfigurationException pce ) {
-			throw new IOException( pce );
-		} catch( SAXException saxe ) {
-			throw new IOException( saxe );
-		} catch( InvalidIdException iie ) {
-			throw new IOException( "Received invalid operation name: " + iie.getMessage() );
-		} catch( URISyntaxException ue ) {
-			throw new IOException( ue );
-		}
-		
-		return message;*/
 	}
 }
