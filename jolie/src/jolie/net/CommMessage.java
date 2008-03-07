@@ -68,8 +68,9 @@ public class CommMessage implements Externalizable
 	public CommMessage( String inputId, Value value )
 	{
 		this.inputId = inputId;
-		this.value = Value.create();
-		this.value.deepCopy( value );
+		// TODO Make this only when strictly necessary.
+		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
+		this.value = Value.createDeepCopy( value );
 	}
 	
 	public CommMessage( String inputId )
