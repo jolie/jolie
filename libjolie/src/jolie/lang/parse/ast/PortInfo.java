@@ -22,14 +22,16 @@
 package jolie.lang.parse.ast;
 
 import java.util.Collection;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.Map;
 
 import jolie.lang.parse.ParsingContext;
 
 abstract public class PortInfo extends OLSyntaxNode
 {
 	private String id;
-	private Vector< OperationDeclaration > operations = new Vector< OperationDeclaration >();
+	private Map< String, OperationDeclaration > operationsMap =
+						new HashMap< String, OperationDeclaration > ();
 	
 	public PortInfo( ParsingContext context, String id )
 	{
@@ -39,7 +41,12 @@ abstract public class PortInfo extends OLSyntaxNode
 	
 	public Collection< OperationDeclaration > operations()
 	{
-		return operations;
+		return operationsMap.values();
+	}
+	
+	public Map< String, OperationDeclaration > operationsMap()
+	{
+		return operationsMap;
 	}
 	
 	public String id()
@@ -49,6 +56,6 @@ abstract public class PortInfo extends OLSyntaxNode
 	
 	public void addOperation( OperationDeclaration decl )
 	{
-		operations.add( decl );
+		operationsMap.put( decl.id(), decl );
 	}
 }

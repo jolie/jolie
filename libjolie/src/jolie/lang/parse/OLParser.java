@@ -547,6 +547,8 @@ public class OLParser extends AbstractParser
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
+				if ( p.containsOperationId( token.content() ) )
+					throwException( "Notification operation " + token.content() + " already specified in output port " + p.id() );
 				p.addOperation(
 					new NotificationOperationDeclaration( getContext(), token.content() )
 				);
@@ -571,6 +573,8 @@ public class OLParser extends AbstractParser
 		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
+				if ( p.containsOperationId( token.content() ) )
+					throwException( "SolicitResponse operation " + token.content() + " already specified in output port " + p.id() );
 				p.addOperation(
 					new SolicitResponseOperationDeclaration( getContext(), token.content() )
 				);

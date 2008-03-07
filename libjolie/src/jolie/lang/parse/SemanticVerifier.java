@@ -154,6 +154,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( outputPorts.get( n.id() ) != null )
 			error( n, "output port type " + n.id() + " has been already defined" );
 		outputPorts.put( n.id(), n );
+		
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
 	}
@@ -193,20 +194,10 @@ public class SemanticVerifier implements OLVisitor
 	}
 		
 	public void visit( NotificationOperationDeclaration n )
-	{
-		if ( isDefined( n.id() ) )
-			error( n, "Operation " + n.id() + " uses an already defined identifier" );
-		else
-			operations.put( n.id(), n );
-	}
+	{}
 		
 	public void visit( SolicitResponseOperationDeclaration n )
-	{
-		if ( isDefined( n.id() ) )
-			error( n, "Operation " + n.id() + " uses an already defined identifier" );
-		else
-			operations.put( n.id(), n );
-	}
+	{}
 		
 	public void visit( SubRoutineNode n )
 	{
@@ -240,6 +231,35 @@ public class SemanticVerifier implements OLVisitor
 			pair.value().accept( this );
 		}
 	}
+	
+	public void visit( NotificationOperationStatement n )
+	{
+		OutputPortInfo p = outputPorts.get( n.outputPortId() );
+		if ( p == null )
+			error( n, n.outputPortId() + " is not a valid output port" );
+		else {
+			OperationDeclaration decl = p.operationsMap().get( n.id() );
+			if ( decl == null )
+				error( n, "Operation " + n.id() + " has not been declared in output port type " + p.id() );
+			else if ( !( decl instanceof NotificationOperationDeclaration ) )
+				error( n, "Operation " + n.id() + " is not a valid notification operation in output port type " + p.id() );
+		} 
+	}
+	
+	public void visit( SolicitResponseOperationStatement n )
+	{
+		OutputPortInfo p = outputPorts.get( n.outputPortId() );
+		if ( p == null )
+			error( n, n.outputPortId() + " is not a valid output port" );
+		else {
+			OperationDeclaration decl = p.operationsMap().get( n.id() );
+			if ( decl == null )
+				error( n, "Operation " + n.id() + " has not been declared in output port type " + p.id() );
+			else if ( !( decl instanceof SolicitResponseOperationDeclaration ) )
+				error( n, "Operation " + n.id() + " is not a valid solicit response operation in output port type " + p.id() );
+		} 
+	}
+	
 		
 	public void visit( ThrowStatement n ) {}
 	public void visit( CompensateStatement n ) {}
@@ -251,8 +271,6 @@ public class SemanticVerifier implements OLVisitor
 	 */
 	public void visit( OneWayOperationStatement n ) {}
 	public void visit( RequestResponseOperationStatement n ) {}
-	public void visit( NotificationOperationStatement n ) {}
-	public void visit( SolicitResponseOperationStatement n ) {}
 	public void visit( LinkInStatement n ) {}
 	public void visit( LinkOutStatement n ) {}
 	public void visit( SynchronizedStatement n ) {}

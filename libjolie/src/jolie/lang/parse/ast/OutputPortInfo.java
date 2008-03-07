@@ -38,6 +38,15 @@ public class OutputPortInfo extends PortInfo
 		super( context, id );
 	}
 	
+	public boolean containsOperationId( String id )
+	{
+		for( OperationDeclaration decl : operations() )
+			if ( decl.id().equals( id ) )
+				return true;
+		
+		return false;
+	}
+	
 	public void setProtocolId( Constants.ProtocolId protocolId )
 	{
 		this.protocolId = protocolId;
