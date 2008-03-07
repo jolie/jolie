@@ -113,7 +113,7 @@ public class SOAPProtocol extends CommProtocol
 			)
 		throws SOAPException
 	{
-		String type = null;
+		//String type = null;
 		SOAPElement currentElement;
 		if ( value.isDefined() ) {
 			/*if ( value.isInt() )
@@ -138,14 +138,6 @@ public class SOAPProtocol extends CommProtocol
 		}
 	}
 	
-	/*private void evaluateParticle(
-			Value value,
-			XSParticle particle,
-			SOAPElement element,
-			SOAPEnvelope soapEnvelope
-			)
-	*/
-	
 	private void valueToTypedSOAP(
 			Value value,
 			XSElementDecl xsDecl,
@@ -159,7 +151,7 @@ public class SOAPProtocol extends CommProtocol
 		if ( type.isSimpleType() ) {
 			element.addTextNode( value.strValue() );
 		} else if ( type.isComplexType() ) {
-			String str, name;
+			String name;
 			Value currValue;
 			XSComplexType complexT = type.asComplexType();
 
@@ -179,14 +171,15 @@ public class SOAPProtocol extends CommProtocol
 				element.addTextNode( value.strValue() );
 			else if ( (particle=contentT.asParticle()) != null ) {
 				XSTerm term = particle.getTerm();
-				XSElementDecl elementDecl;
+//				XSElementDecl elementDecl;
 				XSModelGroupDecl modelGroupDecl;
 				XSModelGroup modelGroup = null;
 				//int size = value.children().size();
 				//if ( particle.getMinOccurs()
 				// It's a simple element, repeated some times
-				if ( (elementDecl=term.asElementDecl()) != null ) {
-				} else if ( (modelGroupDecl=term.asModelGroupDecl()) != null ) {
+				/*if ( (elementDecl=term.asElementDecl()) != null ) {
+
+				} else */if ( (modelGroupDecl=term.asModelGroupDecl()) != null ) {
 					modelGroup = modelGroupDecl.getModelGroup();
 				} else if ( term.isModelGroup() )
 					modelGroup = term.asModelGroup();
@@ -198,17 +191,23 @@ public class SOAPProtocol extends CommProtocol
 						XSTerm currTerm;
 						XSElementDecl currElementDecl;
 						Value v;
+						ValueVector vec;
 						for( int i = 0; i < children.length; i++ ) {
 							currTerm = children[i].getTerm();
 							if ( currTerm.isElementDecl() ) {
 								currElementDecl = currTerm.asElementDecl(); 
 								name = currElementDecl.getName();
-								v = value.children().get( name ).remove( 0 );
-								valueToTypedSOAP(
+								if ( (vec=value.children().get( name )) != null ) {
+									v = vec.remove( 0 );
+									valueToTypedSOAP(
 										v,
 										currElementDecl,
 										element.addChildElement( envelope.createName( name ) ),
 										envelope );
+								} else {
+									// TODO improve this error message.
+									throw new SOAPException( "Invalid variable type: expected " + name );
+								}
 							}
 						}
 					}
@@ -247,8 +246,9 @@ public class SOAPProtocol extends CommProtocol
 				schemaParser.parse( new File( schemaPath.strValue() ) );
 				XSSchemaSet schemaSet = schemaParser.getResult();
 				
-				
-				valueToTypedSOAP( message.value(), schemaSet.getElementDecl( messageNamespace, inputId ), opBody, soapEnvelope );
+				XSElementDecl elementDecl = schemaSet.getElementDecl( messageNamespace, inputId );
+				if ( elementDecl != null )
+					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
 			} else
 				valueToSOAPBody( message.value(), opBody, soapEnvelope );
 
@@ -379,9 +379,9 @@ public class SOAPProtocol extends CommProtocol
 			if ( schemaPath.isString() ) {
 				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 				soapMessage.writeTo( tmpStream );
-			
+
 				//System.out.println( tmpStream.toString() );
-				
+
 				if ( schemaPath.isString() ) {
 					Schema schema =
 						SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 

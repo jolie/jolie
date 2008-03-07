@@ -29,6 +29,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
@@ -75,8 +76,11 @@ public class SolicitResponseProcess implements Process
 			if ( message.isFault() )
 				throw new FaultException( message.faultName() );
 
-			if ( inputVarPath != null )				
-				inputVarPath.getValue().deepCopy( message.value() );
+			if ( inputVarPath != null )	 {
+				Value v = inputVarPath.getValue();
+				v.erase();
+				v.deepCopy( message.value() );
+			}
 			
 			installProcess.run();
 		} catch( IOException ioe ) {

@@ -295,7 +295,6 @@ class ValueImpl extends Value implements Externalizable
 /**
  * @author Fabrizio Montesi
  *
- * @todo Make the creation of the necessary internal data lazy? Less performance and less memory consumption.
  */
 abstract public class Value implements Expression
 {
@@ -354,6 +353,13 @@ abstract public class Value implements Expression
 		}
 		
 		return retVal;
+	}
+	
+	public static Value createDeepCopy( Value value )
+	{
+		Value ret = Value.create();
+		ret.deepCopy( value );
+		return ret;
 	}
 	
 	/**
