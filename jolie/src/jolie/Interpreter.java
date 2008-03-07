@@ -55,11 +55,8 @@ import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
-import jolie.runtime.OutputOperation;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -89,8 +86,6 @@ public class Interpreter
 	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
 	private Map< String, InputOperation > inputOperations = 
 				new HashMap< String, InputOperation>();
-	private Map< String, OutputOperation > outputOperations = 
-				new HashMap< String, OutputOperation>();
 	
 	private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
@@ -135,16 +130,7 @@ public class Interpreter
 			throw new InvalidIdException( key );
 		return ret;
 	}
-	
-	public OutputOperation getOutputOperation( String key )
-		throws InvalidIdException
-	{
-		OutputOperation ret;
-		if ( (ret=outputOperations.get( key )) == null )
-			throw new InvalidIdException( key );
-		return ret;
-	}
-	
+		
 	public OneWayOperation getOneWayOperation( String key )
 		throws InvalidIdException
 	{
@@ -161,24 +147,6 @@ public class Interpreter
 		if ( (ret=inputOperations.get( key )) == null || !(ret instanceof RequestResponseOperation) )
 			throw new InvalidIdException( key );
 		return (RequestResponseOperation)ret;
-	}
-	
-	public SolicitResponseOperation getSolicitResponseOperation( String key )
-		throws InvalidIdException
-	{
-		OutputOperation ret;
-		if ( (ret=outputOperations.get( key )) == null || !(ret instanceof SolicitResponseOperation) )
-			throw new InvalidIdException( key );
-		return (SolicitResponseOperation)ret;
-	}
-	
-	public NotificationOperation getNotificationOperation( String key )
-		throws InvalidIdException
-	{
-		OutputOperation ret;
-		if ( (ret=outputOperations.get( key )) == null || !(ret instanceof NotificationOperation) )
-			throw new InvalidIdException( key );
-		return (NotificationOperation)ret;
 	}
 	
 	public OutputPort getOutputPort( String key )
@@ -226,11 +194,6 @@ public class Interpreter
 	public void register( String key, InputOperation value )
 	{
 		inputOperations.put( key, value );
-	}
-	
-	public void register( String key, OutputOperation value )
-	{
-		outputOperations.put( key, value );
 	}
 	
 	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n )

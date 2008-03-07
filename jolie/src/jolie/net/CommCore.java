@@ -100,7 +100,7 @@ public class CommCore
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
 		if ( medium.equals( Constants.MediumId.SOCKET ) ) {
 			listener = new SocketListener( interpreter, protocol, uri.getPort(), inputPorts );
-		} else if ( medium.equals( Constants.MediumId.PIPE ) ) { 
+		} else if ( medium.equals( Constants.MediumId.PIPE ) ) {
 			listener = new PipeListener( interpreter, protocol, inputPorts );
 			Interpreter.registerPipeListener( uri.getSchemeSpecificPart(), (PipeListener)listener );
 		} else

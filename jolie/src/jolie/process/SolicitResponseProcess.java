@@ -24,28 +24,31 @@ package jolie.process;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import jolie.deploy.OutputPort;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
-import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
 {
-	private SolicitResponseOperation operation;
+	private String operationId;
+	private OutputPort outputPort;
 	private VariablePath inputVarPath; // each may be null
 	private Expression outputExpression;
 	private Process installProcess;
 
 	public SolicitResponseProcess(
-			SolicitResponseOperation operation,
+			String operationId,
+			OutputPort outputPort,
 			Expression outputExpression,
 			VariablePath inputVarPath,
 			Process installProcess
 			)
 	{
-		this.operation = operation;
+		this.operationId = operationId;
+		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
 		this.installProcess = installProcess;
@@ -53,7 +56,7 @@ public class SolicitResponseProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new SolicitResponseProcess( operation, outputExpression, inputVarPath, installProcess );
+		return new SolicitResponseProcess( operationId, outputPort, outputExpression, inputVarPath, installProcess );
 	}
 	
 	public void run()
@@ -61,11 +64,11 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			channel = operation.outputPort().createCommChannel();
+			channel = outputPort.createCommChannel();
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), outputExpression.evaluate() );
+						new CommMessage( operationId ) :
+						new CommMessage( operationId, outputExpression.evaluate() );
 			
 			channel.send( message );
 			message = channel.recv();

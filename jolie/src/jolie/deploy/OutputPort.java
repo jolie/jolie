@@ -39,21 +39,20 @@ import jolie.process.Process;
 import jolie.process.SequentialProcess;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Expression;
-import jolie.runtime.OutputOperation;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
 public class OutputPort extends AbstractIdentifiableObject
 {
-	private Collection< OutputOperation > operations;
+	private Collection< String > operations;
 	private Constants.ProtocolId protocolId;
 	private Process configurationProcess;
 	private VariablePath locationVariablePath, protocolConfigurationVariablePath;
 
 	public OutputPort(
 			String id,
-			Collection< OutputOperation > operations,
+			Collection< String > operations,
 			Constants.ProtocolId protocolId,
 			Process protocolConfigurationProcess,
 			URI locationURI
@@ -82,9 +81,6 @@ public class OutputPort extends AbstractIdentifiableObject
 		path.add( new Pair< String, Expression >( id, null ) );
 		path.add( new Pair< String, Expression >( "protocol", null ) );
 		this.protocolConfigurationVariablePath = new VariablePath( path, null, false );
-		
-		for( OutputOperation op : operations )
-			op.setOutputPort( this );
 	}
 	
 	private CommProtocol getProtocol( URI uri )
@@ -136,7 +132,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		return locationVariablePath;
 	}
 	
-	public Collection< OutputOperation > operations()
+	public Collection< String > operations()
 	{
 		return operations;
 	}

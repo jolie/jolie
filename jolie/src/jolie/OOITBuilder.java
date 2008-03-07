@@ -134,13 +134,10 @@ import jolie.runtime.IsIntExpression;
 import jolie.runtime.IsRealExpression;
 import jolie.runtime.IsStringExpression;
 import jolie.runtime.NotCondition;
-import jolie.runtime.NotificationOperation;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.OrCondition;
-import jolie.runtime.OutputOperation;
 import jolie.runtime.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.SolicitResponseOperation;
 import jolie.runtime.SumExpression;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
@@ -211,20 +208,16 @@ public class OOITBuilder implements OLVisitor
 		}
 		interpreter.register( n.id(), new InputPort( n.id(), operations ) );
 	}
+	
+	public void visit( NotificationOperationDeclaration n ) {}
+	public void visit( SolicitResponseOperationDeclaration n ) {}
 		
 	public void visit( OutputPortInfo n )
 	{
-		Vector< OutputOperation > operations = new Vector< OutputOperation > ();
-		OutputOperation oo;
-		for( OperationDeclaration op : n.operations() ) {
-			op.accept( this );
-			try {
-				oo = interpreter.getOutputOperation( op.id() );
-				operations.add( oo );
-			} catch( InvalidIdException e ) {
-				error( n.context(), e );
-			}
-		}
+		Vector< String > operations = new Vector< String > ();
+		for( OperationDeclaration op : n.operations() )
+			operations.add( op.id() );
+
 		Process protocolConfigurationProcess = null;
 		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
@@ -332,16 +325,6 @@ public class OOITBuilder implements OLVisitor
 				decl.id(),
 				new RequestResponseOperation( decl.id(), decl.faultNames() ) 
 						);
-	}
-		
-	public void visit( NotificationOperationDeclaration decl )
-	{
-		interpreter.register( decl.id(), new NotificationOperation( decl.id() ) );
-	}
-		
-	public void visit( SolicitResponseOperationDeclaration decl )
-	{
-		interpreter.register( decl.id(), new SolicitResponseOperation( decl.id() ) );
 	}
 	
 	public void visit( SubRoutineNode n )
@@ -492,7 +475,8 @@ public class OOITBuilder implements OLVisitor
 		try {
 			currProcess =
 				new NotificationProcess(
-						interpreter.getNotificationOperation( n.id() ),
+						n.id(),
+						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression
 						);
 		} catch( InvalidIdException e ) {
@@ -513,7 +497,8 @@ public class OOITBuilder implements OLVisitor
 				installProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 			currProcess =
 				new SolicitResponseProcess(
-						interpreter.getSolicitResponseOperation( n.id() ),
+						n.id(),
+						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression,
 						getGlobalVariablePath( n.inputVarPath() ),
 						installProcess

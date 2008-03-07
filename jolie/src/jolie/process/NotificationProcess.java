@@ -25,28 +25,31 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
+import jolie.deploy.OutputPort;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Expression;
-import jolie.runtime.OutputOperation;
 
 public class NotificationProcess implements Process
 {
-	private OutputOperation operation;
+	private String operationId;
+	private OutputPort outputPort;
 	private Expression outputExpression;
 
 	public NotificationProcess(
-			OutputOperation operation,
+			String operationId,
+			OutputPort outputPort,
 			Expression outputExpression
 			)
 	{
-		this.operation = operation;
+		this.operationId = operationId;
+		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new NotificationProcess( operation, outputExpression );
+		return new NotificationProcess( operationId, outputPort, outputExpression );
 	}
 	
 	public void run()
@@ -57,10 +60,10 @@ public class NotificationProcess implements Process
 		try {
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), outputExpression.evaluate() );
+						new CommMessage( operationId ) :
+						new CommMessage( operationId, outputExpression.evaluate() );
 
-			CommChannel channel = operation.outputPort().createCommChannel();
+			CommChannel channel = outputPort.createCommChannel();
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {
