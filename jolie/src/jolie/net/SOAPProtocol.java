@@ -236,7 +236,7 @@ public class SOAPProtocol extends CommProtocol
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			Name operationName = soapEnvelope.createName( inputId, "jolie", messageNamespace );
+			Name operationName = soapEnvelope.createName( inputId, null, messageNamespace );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 			
 			Value schemaPath = getParameterVector( "schema" ).first();
@@ -287,7 +287,7 @@ public class SOAPProtocol extends CommProtocol
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				Interpreter.getInstance().logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
-			
+
 			inputId = message.inputId();
 			
 			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
