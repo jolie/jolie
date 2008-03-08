@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: jolie.Jolie
+Class-Path: ext/relaxngDatatype.jar ext/xsom.jar
