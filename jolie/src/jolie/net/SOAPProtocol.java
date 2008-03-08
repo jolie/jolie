@@ -285,7 +285,8 @@ public class SOAPProtocol extends CommProtocol
 				messageString += soapAction;
 			messageString += soapString + '\n';
 			
-			//System.out.println( "Sending: " + messageString );
+			if ( getParameterVector( "debug" ).first().intValue() > 0 )
+				Interpreter.getInstance().logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 			
 			inputId = message.inputId();
 			
@@ -374,20 +375,20 @@ public class SOAPProtocol extends CommProtocol
 			DOMSource dom = new DOMSource( doc );
 
 			soapMessage.getSOAPPart().setContent( dom );
-
-			Value schemaPath = getParameterVector( "schema" ).first();
-			if ( schemaPath.isString() ) {
+			
+			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 				soapMessage.writeTo( tmpStream );
 
-				//System.out.println( tmpStream.toString() );
+				Interpreter.getInstance().logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
+			}
 
-				if ( schemaPath.isString() ) {
-					Schema schema =
-						SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-								.newSchema( new File( schemaPath.strValue() ) );
-					schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
-				}				
+			Value schemaPath = getParameterVector( "schema" ).first();
+			if ( schemaPath.isString() ) {
+				Schema schema =
+					SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
+							.newSchema( new File( schemaPath.strValue() ) );
+				schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
 			}
 			
 			Value value = Value.create();
