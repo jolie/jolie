@@ -236,16 +236,19 @@ public class SOAPProtocol extends CommProtocol
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			Name operationName = soapEnvelope.createName( inputId, null, messageNamespace );
+			String prefix = "jolie";
+			if ( getParameterVector( "msxmlFix" ).first().intValue() > 0 )
+				prefix = null;
+			Name operationName = soapEnvelope.createName( inputId, prefix, messageNamespace );
 			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 			
 			Value schemaPath = getParameterVector( "schema" ).first();
 			if ( schemaPath.isString() ) {
 				XSOMParser schemaParser = new XSOMParser();
-		
+
 				schemaParser.parse( new File( schemaPath.strValue() ) );
 				XSSchemaSet schemaSet = schemaParser.getResult();
-				
+
 				XSElementDecl elementDecl = schemaSet.getElementDecl( messageNamespace, inputId );
 				if ( elementDecl != null )
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
