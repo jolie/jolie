@@ -286,7 +286,7 @@ public class SOAPProtocol extends CommProtocol
 			messageString += soapString + '\n';
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
-				Interpreter.getInstance().logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
+				Interpreter.getInstance().logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
 			
 			inputId = message.inputId();
 			
