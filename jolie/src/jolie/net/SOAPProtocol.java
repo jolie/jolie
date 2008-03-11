@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -75,7 +76,6 @@ import org.xml.sax.SAXException;
 import com.sun.xml.xsom.XSAttributeDecl;
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSModelGroup;
@@ -227,8 +227,10 @@ public class SOAPProtocol extends CommProtocol
 			Collection< ? extends XSAttributeUse > attributeUses = complexT.getAttributeUses();
 			for( XSAttributeUse attrUse : attributeUses ) {
 				name = attrUse.getDecl().getName();
-				if ( (currValue=value.attributes().get( name )) != null )
-					element.addAttribute( envelope.createName( name ), currValue.strValue() );
+				if ( (currValue=value.attributes().get( name )) != null ) {
+					QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
+					element.addAttribute( attrName, currValue.strValue() );
+				}
 			}
 			
 			
