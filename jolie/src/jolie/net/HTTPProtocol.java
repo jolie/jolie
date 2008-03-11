@@ -224,10 +224,7 @@ public class HTTPProtocol extends CommProtocol
 	{
 		try {
 			if ( message.size() > 0 ) {
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				factory.setNamespaceAware( true );
-				DocumentBuilder builder = factory.newDocumentBuilder();
-
+				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 
 				Document doc = builder.parse( src );
@@ -261,11 +258,6 @@ public class HTTPProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		/*String line;
-		BufferedReader reader = new BufferedReader( new InputStreamReader( istream ) );
-		while( (line=reader.readLine()) != null )
-			System.out.println( line );*/
-		
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
 		CommMessage retVal = null;

@@ -280,7 +280,7 @@ public class OOITBuilder implements OLVisitor
 		VariablePath configurationPath = new VariablePath( path, null, true );
 		
 		if ( pId.equals( Constants.ProtocolId.SOAP ) )
-			protocol = new SOAPProtocol( configurationPath, n.location() );
+			protocol = new SOAPProtocol( configurationPath, n.location(), interpreter );
 		else if ( pId.equals( Constants.ProtocolId.SODEP ) )
 			protocol = new SODEPProtocol( configurationPath );
 		else if ( pId.equals( Constants.ProtocolId.HTTP ) )

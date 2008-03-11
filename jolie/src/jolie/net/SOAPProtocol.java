@@ -23,7 +23,6 @@
 
 package jolie.net;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,8 +30,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.XMLConstants;
@@ -48,7 +50,9 @@ import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -68,13 +72,16 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.sun.xml.xsom.XSAttributeDecl;
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSModelGroupDecl;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
@@ -83,8 +90,6 @@ import com.sun.xml.xsom.parser.XSOMParser;
 /** Implements the SOAP over HTTP protocol.
  * 
  * @author Fabrizio Montesi
- * @todo Implement the message WSDL namespace information.
- * @todo Various checks should be made from the deploy parser.
  * 
  * 2006 - Initially written by Fabrizio Montesi and Mauro Silvagni
  * 2007 - Totally re-built by Fabrizio Montesi, exploiting new JOLIE capabilities
@@ -94,19 +99,68 @@ public class SOAPProtocol extends CommProtocol
 {
 	private URI uri;
 	private String inputId = null;
-	
+	private Interpreter interpreter;
+	private MessageFactory messageFactory;
+	private XSSchemaSet schemaSet = null;
+
 	public SOAPProtocol clone()
 	{
-		return new SOAPProtocol( configurationPath, uri );
+		SOAPProtocol ret = new SOAPProtocol( configurationPath );
+		ret.uri = uri;
+		ret.interpreter = interpreter;
+		ret.messageFactory = messageFactory;
+		return ret;
+	}
+	
+	private SOAPProtocol( VariablePath configurationPath )
+	{
+		super( configurationPath );
 	}
 
-	public SOAPProtocol( VariablePath configurationPath, URI uri )
+	public SOAPProtocol( VariablePath configurationPath, URI uri, Interpreter interpreter )
 	{
 		super( configurationPath );
 		this.uri = uri;
+		this.interpreter = interpreter;
+		try {
+			this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+		} catch( SOAPException e ) {
+			interpreter.logger().severe( e.getMessage() );
+		}
 	}
 	
-	private void valueToSOAPBody(
+	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
+	
+	private XSSchemaSet getSchemaSet()
+		throws IOException, SAXException
+	{
+		if ( schemaSet == null ) {
+			ValueVector vec = getParameterVector( "schema" );
+			if ( vec.size() > 0 ) {
+				XSOMParser schemaParser = new XSOMParser();
+				for( Value v : vec )
+					schemaParser.parse( new File( v.strValue() ) );
+				schemaSet = schemaParser.getResult();
+				String nsPrefix = "jolie";
+				int i = 1;
+				for( XSSchema schema : schemaSet.getSchemas() ) {
+					if ( !schema.getTargetNamespace().equals( XMLConstants.W3C_XML_SCHEMA_NS_URI ) )
+						namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
+				}
+			}
+		}
+
+		return schemaSet;
+	}
+	
+	private void initNamespacePrefixes( SOAPElement element )
+		throws SOAPException
+	{
+		for( Entry< String, String > entry : namespacePrefixMap.entrySet() )
+			element.addNamespaceDeclaration( entry.getValue(), entry.getKey() );
+	}
+	
+	private static void valueToSOAPBody(
 			Value value,
 			SOAPElement element,
 			SOAPEnvelope soapEnvelope
@@ -136,6 +190,20 @@ public class SOAPProtocol extends CommProtocol
 				valueToSOAPBody( val, currentElement, soapEnvelope );
 			}
 		}
+	}
+	
+	private String getPrefixOrNull( XSAttributeDecl decl )
+	{
+		if ( decl.getOwnerSchema().attributeFormDefault() )
+			return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
+		return null;
+	}
+	
+	private String getPrefixOrNull( XSElementDecl decl )
+	{
+		if ( decl.getOwnerSchema().elementFormDefault() )
+			return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
+		return null;
 	}
 	
 	private void valueToTypedSOAP(
@@ -192,21 +260,28 @@ public class SOAPProtocol extends CommProtocol
 						XSElementDecl currElementDecl;
 						Value v;
 						ValueVector vec;
+						String prefix;
 						for( int i = 0; i < children.length; i++ ) {
 							currTerm = children[i].getTerm();
 							if ( currTerm.isElementDecl() ) {
-								currElementDecl = currTerm.asElementDecl(); 
+								currElementDecl = currTerm.asElementDecl();
 								name = currElementDecl.getName();
+								prefix = getPrefixOrNull( currElementDecl );
+								SOAPElement childElement = null;
+								if ( prefix == null )
+									childElement = element.addChildElement( name );
+								else
+									childElement = element.addChildElement( name, prefix );
 								if ( (vec=value.children().get( name )) != null ) {
 									v = vec.remove( 0 );
 									valueToTypedSOAP(
 										v,
 										currElementDecl,
-										element.addChildElement( envelope.createName( name ) ),
+										childElement,
 										envelope );
 								} else {
 									// TODO improve this error message.
-									throw new SOAPException( "Invalid variable type: expected " + name );
+									throw new SOAPException( "Invalid variable structure: expected " + name );
 								}
 							}
 						}
@@ -222,38 +297,36 @@ public class SOAPProtocol extends CommProtocol
 		try {
 			String inputId = message.inputId();
 			try {
-				Interpreter.getInstance().getRequestResponseOperation( inputId );
+				interpreter.getRequestResponseOperation( inputId );
 				
 				// We're responding to a request
 				inputId += "Response";
 			} catch( InvalidIdException iie ) {}
-			
-			
-			/**/
-			
+
 			String messageNamespace = getParameterVector( "namespace" ).first().strValue();
-			MessageFactory messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			String prefix = "jolie";
-			if ( getParameterVector( "msxmlFix" ).first().intValue() > 0 )
-				prefix = null;
-			Name operationName = soapEnvelope.createName( inputId, prefix, messageNamespace );
-			SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 			
-			Value schemaPath = getParameterVector( "schema" ).first();
-			if ( schemaPath.isString() ) {
-				XSOMParser schemaParser = new XSOMParser();
-
-				schemaParser.parse( new File( schemaPath.strValue() ) );
-				XSSchemaSet schemaSet = schemaParser.getResult();
-
-				XSElementDecl elementDecl = schemaSet.getElementDecl( messageNamespace, inputId );
-				if ( elementDecl != null )
-					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
-			} else
+			XSSchemaSet schemaSet = getSchemaSet();
+			XSElementDecl elementDecl;
+			if ( schemaSet == null ||
+					(elementDecl=schemaSet.getElementDecl( messageNamespace, inputId )) == null
+					) {
+				Name operationName = soapEnvelope.createName( inputId );
+				SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 				valueToSOAPBody( message.value(), opBody, soapEnvelope );
+			} else {
+				initNamespacePrefixes( soapEnvelope );
+				Name operationName = null;
+				if ( elementDecl.getOwnerSchema().elementFormDefault() )
+					operationName = soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null );
+				else
+					operationName = soapEnvelope.createName( inputId );
+							
+				SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+				valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
+			}
 
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
@@ -265,7 +338,7 @@ public class SOAPProtocol extends CommProtocol
 			String soapAction = null;
 			InputOperation operation = null;
 			try {
-				operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
+				operation = interpreter.getRequestResponseOperation( message.inputId() );
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
@@ -289,11 +362,11 @@ public class SOAPProtocol extends CommProtocol
 			messageString += soapString + '\n';
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
-				Interpreter.getInstance().logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
+				interpreter.logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
 
 			inputId = message.inputId();
 			
-			BufferedWriter writer = new BufferedWriter( new OutputStreamWriter( ostream ) );
+			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
 			writer.flush();
 		} catch( SOAPException se ) {
@@ -303,7 +376,7 @@ public class SOAPProtocol extends CommProtocol
 		}
 	}
 	
-	private void xmlNodeToValue( Value value, Node node )
+	private static void xmlNodeToValue( Value value, Node node )
 	{
 		Node currNode;
 		
@@ -352,28 +425,13 @@ public class SOAPProtocol extends CommProtocol
 		CommMessage retVal = null;
 		
 		try {
-			MessageFactory messageFactory =
-				MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
-			SOAPMessage soapMessage =
-				messageFactory.createMessage();
+			SOAPMessage soapMessage = messageFactory.createMessage();
 			
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware( true );
 			DocumentBuilder builder = factory.newDocumentBuilder();
 
 			InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
-			
-			
-			// Debug incoming message
-			
-			/*BufferedReader r = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
-			String p;
-			System.out.println("---");
-			while( (p=r.readLine()) != null ) 
-				System.out.println(p);
-			System.out.println("---");
-			*/
-			
 			Document doc = builder.parse( src );
 			DOMSource dom = new DOMSource( doc );
 
@@ -383,14 +441,18 @@ public class SOAPProtocol extends CommProtocol
 				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 				soapMessage.writeTo( tmpStream );
 
-				Interpreter.getInstance().logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
+				interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 			}
 
-			Value schemaPath = getParameterVector( "schema" ).first();
-			if ( schemaPath.isString() ) {
+			ValueVector schemaPaths = getParameterVector( "schema" );
+			if ( schemaPaths.size() > 0 ) {
+				Source[] sources = new Source[ schemaPaths.size() ];
+				for( int i = 0; i < schemaPaths.size(); i++ )
+					sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
+				
 				Schema schema =
 					SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-							.newSchema( new File( schemaPath.strValue() ) );
+							.newSchema( sources );
 				schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
 			}
 			
@@ -405,8 +467,6 @@ public class SOAPProtocol extends CommProtocol
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET
 					) {
-				// @todo -- Beware, this does not handle a querystring or nested paths! 
-				//retVal = new CommMessage( message.requestPath(), value );
 				retVal = new CommMessage( soapMessage.getSOAPBody().getFirstChild().getLocalName(), value );
 			}
 		} catch( SOAPException se ) {

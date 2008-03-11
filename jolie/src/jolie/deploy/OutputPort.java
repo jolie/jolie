@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Vector;
 
 import jolie.Constants;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommProtocol;
 import jolie.net.HTTPProtocol;
@@ -94,7 +95,8 @@ public class OutputPort extends AbstractIdentifiableObject
 		} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
 			ret = new SOAPProtocol(
 						protocolConfigurationVariablePath,
-						uri
+						uri,
+						Interpreter.getInstance()
 					);
 		} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
 			ret = new HTTPProtocol(

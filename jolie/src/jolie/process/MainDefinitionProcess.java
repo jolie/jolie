@@ -59,7 +59,7 @@ public class MainDefinitionProcess extends SubRoutineProcess
 				p.run();
 		
 			try {
-				SubRoutineProcess p = Interpreter.getInstance().getDefinition( "init" );
+				SubRoutineProcess p = interpreter.getDefinition( "init" );
 				p.run();
 			} catch( InvalidIdException e ) {}
 			
