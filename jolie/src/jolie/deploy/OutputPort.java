@@ -84,29 +84,33 @@ public class OutputPort extends AbstractIdentifiableObject
 		this.protocolConfigurationVariablePath = new VariablePath( path, null, false );
 	}
 	
+	private CommProtocol protocol = null;
+	
 	private CommProtocol getProtocol( URI uri )
 		throws URISyntaxException, IOException
 	{
-		if ( protocolId == null )
-			throw new IOException( "Unknown protocol for output port " + id() );
-		CommProtocol ret = null;
-		if ( protocolId.equals( Constants.ProtocolId.SODEP ) ) {
-			ret = new SODEPProtocol( protocolConfigurationVariablePath );
-		} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
-			ret = new SOAPProtocol(
-						protocolConfigurationVariablePath,
-						uri,
-						Interpreter.getInstance()
-					);
-		} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
-			ret = new HTTPProtocol(
-						protocolConfigurationVariablePath,
-						uri
-					);
+		if ( protocol == null ) {
+			if ( protocolId == null )
+				throw new IOException( "Unknown protocol for output port " + id() );
+			if ( protocolId.equals( Constants.ProtocolId.SODEP ) ) {
+				protocol = new SODEPProtocol( protocolConfigurationVariablePath );
+			} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
+				protocol = new SOAPProtocol(
+							protocolConfigurationVariablePath,
+							uri,
+							Interpreter.getInstance()
+						);
+			} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
+				protocol = new HTTPProtocol(
+							protocolConfigurationVariablePath,
+							uri
+						);
+			}
+			assert( protocol != null );
 		}
 		
-		assert( ret != null );
-		return ret;
+		
+		return protocol;
 	}
 	
 	public CommChannel createCommChannel()
