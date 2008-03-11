@@ -109,6 +109,7 @@ public class SOAPProtocol extends CommProtocol
 		ret.uri = uri;
 		ret.interpreter = interpreter;
 		ret.messageFactory = messageFactory;
+		ret.schemaSet = schemaSet;
 		return ret;
 	}
 	
