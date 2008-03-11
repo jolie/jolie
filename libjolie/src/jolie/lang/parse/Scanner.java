@@ -189,8 +189,15 @@ public class Scanner
 	public String readWord()
 		throws IOException
 	{
+		return readWord( true );
+	}
+	
+	public String readWord( boolean readChar )
+		throws IOException
+	{
 		String buffer = new String();
-		readChar();
+		if ( readChar )
+			readChar();
 		do {
 			buffer += ch;
 			readChar();
@@ -249,7 +256,7 @@ public class Scanner
 		return ( c == '\n' || c == '\r' );
 	}
 	
-	protected void readChar()
+	public void readChar()
 		throws IOException
 	{
 		currByte = stream.read();
