@@ -32,7 +32,7 @@ public class HTTPMessage
 	}
 	
 	private Type type;
-	private byte[] content;
+	private byte[] content = null;
 	private Map< String, String > propMap = new HashMap< String, String > ();
 	
 	private int httpCode;
@@ -76,6 +76,8 @@ public class HTTPMessage
 	
 	public int size()
 	{
+		if ( content == null )
+			return 0;
 		return content.length;
 	}
 	

@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -133,8 +134,9 @@ public class HTTPProtocol extends CommProtocol
 		throws IOException
 	{
 		try {
-			String contentString = null;
+			String contentString = "";
 			String contentType = "text/plain";
+			String queryString = "";
 			
 			String format = getParameterVector( "format" ).first().strValue();
 			if ( format.equals( "xml" ) ) {
@@ -155,36 +157,56 @@ public class HTTPProtocol extends CommProtocol
 			} else if ( format.equals( "html" ) ) {
 				contentString = message.value().strValue();
 				contentType = "text/html";
+			} else if ( format.equals( "rest" ) ) {
+				StringBuilder querySB = new StringBuilder();
+				querySB.append( message.value().strValue() );
+				if ( message.value().children().size() > 0 ) {
+					querySB.append( '?' );
+					ValueVector vec;
+					String key;
+					for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
+						key = entry.getKey();
+						vec = entry.getValue();
+						for( Value v : vec )
+							querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
+					}
+					queryString = querySB.substring( 0, querySB.length() - 1 );
+				}
 			}
 
 			String messageString = new String();
+			InputOperation operation = null;
 			try {
-				InputOperation operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
-				if ( operation != null ) {
-					// We're responding to a request
-					messageString += "HTTP/1.1 200 OK\n";
-				} else {
-					// We're sending a notification or a solicit
-					String path = new String();
-					if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
-						path += "/";
-					path += uri.getPath();
-					if ( path.endsWith( "/" ) == false )
-						path += "/";
-					path += message.inputId();
-					
-					messageString += "POST " + path + " HTTP/1.1\n";
-					messageString += "Host: " + uri.getHost() + '\n';
-				}
-			} catch( InvalidIdException iie ) {
-				throw new IOException( iie );
-			}
+				operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
+			} catch( InvalidIdException iie ) {}
 
+			if ( operation != null ) {
+				// We're responding to a request
+				messageString += "HTTP/1.1 200 OK\n";
+			} else {
+				// We're sending a notification or a solicit
+				String path = new String();
+				if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
+					path += "/";
+				path += uri.getPath();
+				if ( path.endsWith( "/" ) == false )
+					path += "/";
+				path += message.inputId();
+				
+				String method = "GET";
+				if ( getParameterVector( "method" ).first().strValue().length() > 0 )
+					method = getParameterVector( "method" ).first().strValue().toUpperCase();
+				
+				messageString += method + " " + path + queryString + " HTTP/1.1\n";
+				messageString += "Host: " + uri.getHost() + '\n';
+			}
+			
 			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\n";
 			messageString += "Content-Length: " + contentString.length() + '\n';
 			messageString += '\n' + contentString + '\n';
 			
-			//System.out.println( "Sending: " + messageString );
+			if ( getParameterVector( "debug" ).first().intValue() > 0 )
+				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + messageString ); 
 			
 			inputId = message.inputId();
 			
@@ -226,12 +248,13 @@ public class HTTPProtocol extends CommProtocol
 			if ( message.size() > 0 ) {
 				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				//InputSource src = new InputSource( new StringReader(new String( message.content() ).trim()) );
 
 				Document doc = builder.parse( src );
 
 				elementsToSubValues(
 							value,
-							doc.getDocumentElement().getFirstChild().getChildNodes()
+							doc.getChildNodes()
 						);
 			}
 		} catch( ParserConfigurationException pce ) {
@@ -260,6 +283,10 @@ public class HTTPProtocol extends CommProtocol
 	{
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
+		
+		if ( getParameterVector( "debug" ).first().intValue() > 0 )
+				Interpreter.getInstance().logger().info( "[HTTP debug] Receiving:\n" + (( message.content() == null ) ? "" : new String( message.content() )) );
+		
 		CommMessage retVal = null;
 		Value messageValue = Value.create();
 		

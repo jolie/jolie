@@ -21,9 +21,10 @@
 
 package jolie.net.http;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Vector;
 
 import jolie.lang.parse.Scanner;
 
@@ -132,6 +133,13 @@ public class HTTPParser
 		return message;
 	}
 	
+	public static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
+		throws IOException
+	{
+		int r = 0;
+		while( (r+=stream.read( buffer, offset+r, length-r )) < length ); 
+	}
+	
 	private void readContent( HTTPMessage message )
 		throws IOException
 	{
@@ -146,34 +154,43 @@ public class HTTPParser
 		if ( p != null && p.equals( "chunked" ) )
 			chunked = true;
 		
-		byte buffer[] = new byte[ contentLength ];
+		byte buffer[] = null;
 		if ( contentLength > 0 ) {
+			buffer = new byte[ contentLength ];
 			InputStream stream = scanner.inputStream();
-			BufferedInputStream reader = new BufferedInputStream( stream );
-
 			buffer[0] = scanner.currentByte();
-			reader.read( buffer, 0, contentLength );
+			blockingRead( stream, buffer, 0, contentLength );
 		} else if ( chunked ) {
-			byte tmp[] = new byte[ 1024*64 ];
-			//int total = 0;
-			int l = 0;
-			String lStr;
-			
 			InputStream stream = scanner.inputStream();
-			BufferedInputStream reader = new BufferedInputStream( stream );
+			Vector< byte[] > chunks = new Vector< byte[] > ();
+			byte[] chunk;
 			
-			//do {
-				lStr = scanner.readWord();
+			int l;
+			int total = 0;
+			boolean keepRun = true;
+			String lStr = scanner.readWord();
+			while( keepRun ) {
 				l = Integer.parseInt( lStr, 16 );
-				scanner.eatSeparators();
-				tmp[0] = scanner.currentByte();
-				reader.read( tmp, 1, l - 1 );
-				while( !token.isEOF() && token.isNot( Scanner.TokenType.ERROR ) )
-					getToken();
-			//} while( l > 0 );
-			buffer = new byte[ l ];
-			for( int i = 0; i < l; i++ )
-				buffer[i] = tmp[i];
+				if ( l > 0 ) {
+					total += l;
+					chunk = new byte[ l ];
+					scanner.eatSeparators();
+					chunk[0] = scanner.currentByte();
+					blockingRead( stream, chunk, 1, l - 1 );
+					chunks.add( chunk );
+					if ( stream.available() > 0 ) {
+						scanner.readChar();
+						scanner.eatSeparators();
+						lStr = scanner.readWord( false );
+					} else
+						keepRun = false;
+				} else
+					keepRun = false;
+			}
+			ByteBuffer b = ByteBuffer.allocate( total );
+			for( byte[] c : chunks )
+				b.put( c );
+			buffer = b.array();
 		}
 		
 		message.setContent( buffer );
