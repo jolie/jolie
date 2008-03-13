@@ -80,7 +80,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			try {
 				channel.close();
 			} catch( IOException ioe ) {}
-			
+
 			return true;
 		}
 	}

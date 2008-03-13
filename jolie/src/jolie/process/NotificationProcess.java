@@ -63,7 +63,7 @@ public class NotificationProcess implements Process
 						new CommMessage( operationId ) :
 						new CommMessage( operationId, outputExpression.evaluate() );
 
-			CommChannel channel = outputPort.createCommChannel();
+			CommChannel channel = outputPort.getCommChannel();
 			channel.send( message );
 			channel.close();
 		} catch( IOException ioe ) {

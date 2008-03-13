@@ -110,10 +110,10 @@ public class OutputPort extends AbstractIdentifiableObject
 		}
 		
 		
-		return protocol;
+		return protocol.clone();
 	}
-	
-	public CommChannel createCommChannel()
+
+	public CommChannel getCommChannel()
 		throws URISyntaxException, IOException
 	{
 		CommChannel channel;

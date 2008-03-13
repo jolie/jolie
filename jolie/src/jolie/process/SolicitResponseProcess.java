@@ -65,7 +65,7 @@ public class SolicitResponseProcess implements Process
 	{
 		CommChannel channel = null;
 		try {
-			channel = outputPort.createCommChannel();
+			channel = outputPort.getCommChannel();
 			CommMessage message =
 				( outputExpression == null ) ?
 						new CommMessage( operationId ) :
