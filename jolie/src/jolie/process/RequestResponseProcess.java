@@ -177,7 +177,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 		try {
 			channel.send( response );
-			channel.close();
+			channel.disposeForInput();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		}

@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.SocketChannel;
 
+import jolie.Interpreter;
+
 public class SocketCommChannel extends CommChannel
 {
 	private SocketChannel socketChannel;
@@ -50,6 +52,21 @@ public class SocketCommChannel extends CommChannel
 		this.protocol = protocol;
 		protocol.setChannel( this );
 		toBeClosed = false; // Socket connections are kept open by default
+	}
+	
+	public SocketChannel socketChannel()
+	{
+		return socketChannel;
+	}
+	
+	protected InputStream inputStream()
+	{
+		return istream;
+	}
+	
+	protected void disposeForInputImpl()
+	{
+		Interpreter.getInstance().commCore().addToSelectionPool( this );
 	}
 	
 	/** Receives a message from the channel. */

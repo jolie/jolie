@@ -23,7 +23,12 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -157,14 +162,74 @@ public class CommCore
 	
 	/** Initializes the communication core. */
 	public void init()
+		throws IOException
 	{
 		if ( connectionsLimit > 0 )
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
 		else
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		
+		selectorThread = new SelectorThread();
+		selectorThread.start();
+		
 		for( CommListener listener : listeners )
 			listener.start();
+	}
+	
+	private SelectorThread selectorThread;
+	
+	private class SelectorThread extends Thread {
+		private Selector selector;
+		public SelectorThread()
+			throws IOException
+		{
+			this.selector = Selector.open();
+		}
+		
+		public void run()
+		{
+			SocketCommChannel channel;
+			InputStream stream;
+			while( true ) {
+				try {
+					selector.select();
+					synchronized( this ) {
+						for( SelectionKey key : selector.selectedKeys() ) {
+							channel = (SocketCommChannel)key.attachment();
+							key.cancel();
+							key.channel().configureBlocking( true );
+							stream = channel.inputStream();
+							stream.mark( 1 );
+							// It could just be a closing read
+							if ( stream.read() != -1 ) {
+								stream.reset();
+								scheduleReceive( channel, channel.parentListener() );
+							}
+						}
+					}
+				} catch( IOException ioe ) {
+					ioe.printStackTrace();
+				}
+			}
+		}
+		
+		public void register( SocketCommChannel channel )
+		{
+			try {
+				synchronized( this ) {
+					selector.wakeup();
+					SocketChannel socketChannel = channel.socketChannel();
+					socketChannel.configureBlocking( false );
+					socketChannel.register( selector, SelectionKey.OP_READ, channel );
+				}
+			} catch( ClosedChannelException cce ) {}
+			catch( IOException ioe ) {}
+		}
+	}
+	
+	public void addToSelectionPool( SocketCommChannel channel )
+	{
+		selectorThread.register( channel );
 	}
 
 	/** Shutdowns the communication core, interrupting every communication-related thread. */

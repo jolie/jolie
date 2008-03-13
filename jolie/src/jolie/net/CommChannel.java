@@ -43,8 +43,8 @@ import jolie.runtime.InvalidIdException;
 abstract public class CommChannel implements Channel
 {
 	protected boolean toBeClosed = true;
-	//private SelectableChannel selectableChannel = null;
-
+	private CommListener listener = null;
+	
 	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
 	{
@@ -68,6 +68,16 @@ abstract public class CommChannel implements Channel
 		return channel;
 	}
 	
+	public void setParentListener( CommListener listener )
+	{
+		this.listener = listener;
+	}
+	
+	public CommListener parentListener()
+	{
+		return listener;
+	}
+	
 	/** Receives a message from the channel. */
 	abstract public CommMessage recv()
 		throws IOException;
@@ -84,12 +94,23 @@ abstract public class CommChannel implements Channel
 	}*/
 	
 	/** Closes the communication channel */
-	public void close()
+	final public void close()
 		throws IOException
 	{
 		if ( toBeClosed )
 			closeImpl();
 	}
+	
+	final public void disposeForInput()
+		throws IOException
+	{
+		if ( toBeClosed )
+			closeImpl();
+		else
+			disposeForInputImpl();
+	}
+	
+	protected void disposeForInputImpl() {}
 	
 	public void setToBeClosed( boolean toBeClosed )
 	{
