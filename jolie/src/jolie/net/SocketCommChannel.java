@@ -22,12 +22,15 @@
 
 package jolie.net;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.SocketChannel;
 
-public class StreamingCommChannel extends CommChannel
+public class SocketCommChannel extends CommChannel
 {
+	private SocketChannel socketChannel;
 	private InputStream istream;
 	private OutputStream ostream;
 	private CommProtocol protocol;
@@ -38,22 +41,17 @@ public class StreamingCommChannel extends CommChannel
 	 * @param ostream the channel output stream.
 	 * @param protocol the protocol to use to send and receive messages.
 	 */
-	public StreamingCommChannel( InputStream istream, OutputStream ostream, CommProtocol protocol )
+	public SocketCommChannel( SocketChannel socketChannel, CommProtocol protocol )
+		throws IOException
 	{
-		this.istream = istream;
-		this.ostream = ostream;
+		this.socketChannel = socketChannel;
+		this.istream = new BufferedInputStream( socketChannel.socket().getInputStream() );
+		this.ostream = socketChannel.socket().getOutputStream();
 		this.protocol = protocol;
+		protocol.setChannel( this );
+		toBeClosed = false; // Socket connections are kept open by default
 	}
 	
-	/**
-	 * Returns the raw OutputStream associated with this communication channel.
-	 * @return the raw OutputStream associated with this communication channel.
-	 */
-	public OutputStream outputStream()
-	{
-		return ostream;
-	}
-
 	/** Receives a message from the channel. */
 	public CommMessage recv()
 		throws IOException
@@ -69,11 +67,14 @@ public class StreamingCommChannel extends CommChannel
 	}
 
 	/** Closes the communication channel */
-	public void close()
+	protected void closeImpl()
 		throws IOException
 	{
-		istream.close();
-		ostream.close();
+		socketChannel.close();
 	}
 
+	public boolean isOpen()
+	{
+		return socketChannel.isOpen();
+	}
 }

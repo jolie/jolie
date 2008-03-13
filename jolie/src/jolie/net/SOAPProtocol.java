@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,16 +98,17 @@ import com.sun.xml.xsom.parser.XSOMParser;
  */
 public class SOAPProtocol extends CommProtocol
 {
-	private URI uri;
 	private String inputId = null;
 	private Interpreter interpreter;
 	private MessageFactory messageFactory;
 	private XSSchemaSet schemaSet = null;
+	private VariablePath locationVariablePath;
+	private URI uri = null;
 
 	public SOAPProtocol clone()
 	{
 		SOAPProtocol ret = new SOAPProtocol( configurationPath );
-		ret.uri = uri;
+		ret.locationVariablePath = locationVariablePath;
 		ret.interpreter = interpreter;
 		ret.messageFactory = messageFactory;
 		ret.schemaSet = schemaSet;
@@ -117,11 +119,23 @@ public class SOAPProtocol extends CommProtocol
 	{
 		super( configurationPath );
 	}
-
+	
 	public SOAPProtocol( VariablePath configurationPath, URI uri, Interpreter interpreter )
 	{
 		super( configurationPath );
 		this.uri = uri;
+		this.interpreter = interpreter;
+		try {
+			this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+		} catch( SOAPException e ) {
+			interpreter.logger().severe( e.getMessage() );
+		}
+	}
+
+	public SOAPProtocol( VariablePath configurationPath, VariablePath locationVariablePath, Interpreter interpreter )
+	{
+		super( configurationPath );
+		this.locationVariablePath = locationVariablePath;
 		this.interpreter = interpreter;
 		try {
 			this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
@@ -294,6 +308,14 @@ public class SOAPProtocol extends CommProtocol
 		}
 	}
 	
+	private URI getURI()
+		throws URISyntaxException
+	{
+		if ( uri == null )
+			return new URI( locationVariablePath.getValue().strValue() );
+		return uri;
+	}
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{		
@@ -348,11 +370,11 @@ public class SOAPProtocol extends CommProtocol
 				messageString += "HTTP/1.1 200 OK\n";
 			} else {
 				// We're sending a notification or a solicit
-				String path = uri.getPath();
+				String path = getURI().getPath();
 				if ( path == null || path.length() == 0 )
 					path = "*";
 				messageString += "POST " + path + " HTTP/1.1\n";
-				messageString += "Host: " + uri.getHost() + '\n';
+				messageString += "Host: " + getURI().getHost() + '\n';
 				soapAction =
 					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
 			}
@@ -376,6 +398,8 @@ public class SOAPProtocol extends CommProtocol
 			throw new IOException( se );
 		} catch( SAXException saxe ) {
 			throw new IOException( saxe );
+		} catch( URISyntaxException urie ) {
+			throw new IOException( urie );
 		}
 	}
 	
@@ -425,6 +449,12 @@ public class SOAPProtocol extends CommProtocol
 	{
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
+		
+		if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
+			channel.setToBeClosed( true );
+		else
+			channel.setToBeClosed( false );
+		
 		CommMessage retVal = null;
 		
 		try {

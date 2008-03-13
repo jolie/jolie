@@ -23,9 +23,11 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.Channel;
+import java.nio.channels.SocketChannel;
 
 import jolie.Constants;
 import jolie.Interpreter;
@@ -38,9 +40,10 @@ import jolie.runtime.InvalidIdException;
  * @see CommProtocol
  * @see CommMessage
  */
-abstract public class CommChannel
+abstract public class CommChannel implements Channel
 {
-	//private boolean canBeClosed = true;
+	protected boolean toBeClosed = true;
+	//private SelectableChannel selectableChannel = null;
 
 	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
@@ -49,12 +52,9 @@ abstract public class CommChannel
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
 		
 		if ( medium == Constants.MediumId.SOCKET ) {
-			Socket socket = new Socket( uri.getHost(), uri.getPort() );
-			channel = new StreamingCommChannel(
-						socket.getInputStream(),
-						socket.getOutputStream(),
-						protocol
-						);
+			SocketChannel socketChannel = 
+						SocketChannel.open( new InetSocketAddress( uri.getHost(), uri.getPort() ) );
+			channel = new SocketCommChannel( socketChannel, protocol );
 		} else if ( medium == Constants.MediumId.PIPE ) {
 			String id = uri.getSchemeSpecificPart();
 			try {
@@ -62,7 +62,6 @@ abstract public class CommChannel
 			} catch( InvalidIdException e ) {
 				throw new IOException( e );
 			}
-			
 		} else
 			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
 		
@@ -77,27 +76,27 @@ abstract public class CommChannel
 	abstract public void send( CommMessage message )
 		throws IOException;
 	
-	abstract public void close()
-		throws IOException;
-
+	
+	/*
+	public SelectableChannel getSelectableChannel()
+	{
+		return selectableChannel;
+	}*/
+	
 	/** Closes the communication channel */
-	/*public void close()
+	public void close()
 		throws IOException
 	{
-		if ( canBeClosed )
-			closeImpl();*/
-		/*else
-			Interpreter.getInstance().commCore().
-			*/
-	//}
+		if ( toBeClosed )
+			closeImpl();
+	}
 	
-	/*public void setCanBeClosed( boolean canBeClosed )
+	public void setToBeClosed( boolean toBeClosed )
 	{
-		this.canBeClosed = canBeClosed;
-	}*/
+		this.toBeClosed = toBeClosed;
+	}
 
 	/** Implements the communication channel closing operation. */
-	/*protected void closeImpl()
-		throws IOException
-	{}*/
+	abstract protected void closeImpl()
+		throws IOException;
 }

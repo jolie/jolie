@@ -21,7 +21,6 @@
 
 package jolie.net;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -53,9 +52,8 @@ public class SocketListener extends CommListener
 			SocketChannel socketChannel;
 			CommChannel channel;
 			while ( (socketChannel = serverChannel.accept()) != null ) {
-				channel = new StreamingCommChannel(
-							new BufferedInputStream( socketChannel.socket().getInputStream() ),
-							socketChannel.socket().getOutputStream(),
+				channel = new SocketCommChannel(
+							socketChannel,
 							createProtocol() );
 				
 				interpreter().commCore().scheduleReceive( channel, this );

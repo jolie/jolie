@@ -171,10 +171,10 @@ public class HTTPParser
 			String lStr = scanner.readWord();
 			while( keepRun ) {
 				l = Integer.parseInt( lStr, 16 );
+				scanner.eatSeparators();
 				if ( l > 0 ) {
 					total += l;
 					chunk = new byte[ l ];
-					scanner.eatSeparators();
 					chunk[0] = scanner.currentByte();
 					blockingRead( stream, chunk, 1, l - 1 );
 					chunks.add( chunk );
@@ -195,7 +195,7 @@ public class HTTPParser
 		
 		message.setContent( buffer );
 	}
-	
+
 	public HTTPMessage parse()
 		throws IOException
 	{

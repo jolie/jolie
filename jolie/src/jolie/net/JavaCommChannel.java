@@ -95,9 +95,12 @@ public class JavaCommChannel extends CommChannel
 		return ret;
 	}
 
-	public void close()
+	protected void closeImpl()
+	{}
+	
+	public boolean isOpen()
 	{
-		//javaService = null;
+		return true;
 	}
 	
 	public boolean hasData()

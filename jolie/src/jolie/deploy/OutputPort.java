@@ -97,13 +97,13 @@ public class OutputPort extends AbstractIdentifiableObject
 			} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
 				protocol = new SOAPProtocol(
 							protocolConfigurationVariablePath,
-							uri,
+							locationVariablePath,
 							Interpreter.getInstance()
 						);
 			} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
 				protocol = new HTTPProtocol(
 							protocolConfigurationVariablePath,
-							uri
+							locationVariablePath
 						);
 			}
 			assert( protocol != null );
@@ -112,22 +112,26 @@ public class OutputPort extends AbstractIdentifiableObject
 		
 		return protocol.clone();
 	}
+	
+	private CommChannel channel = null;
+	private URI channelURI = null;
 
 	public CommChannel getCommChannel()
 		throws URISyntaxException, IOException
 	{
-		CommChannel channel;
 		Value loc = locationVariablePath.getValue();
 		if ( loc.isChannel() )
 			channel = loc.channelValue();
 		else {
 			URI uri = new URI( loc.strValue() );
-			CommProtocol protocol = getProtocol( uri );
-			channel =
-				CommChannel.createCommChannel(
-					uri,
-					protocol
-					);
+			if ( !uri.equals( channelURI ) || !channel.isOpen() ) {
+				channel =
+					CommChannel.createCommChannel(
+							uri,
+							getProtocol( uri )
+						);
+				channelURI = uri;
+			}
 		}
 		
 		return channel;

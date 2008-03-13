@@ -64,6 +64,11 @@ public class InternalCommChannel extends CommChannel
 		return ret;
 	}
 	
-	public void close()
+	protected void closeImpl()
 	{}
+	
+	public boolean isOpen()
+	{
+		return true;
+	}
 }

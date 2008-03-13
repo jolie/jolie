@@ -32,10 +32,16 @@ import jolie.runtime.VariablePath;
 abstract public class CommProtocol implements Cloneable
 {
 	protected final VariablePath configurationPath;
+	protected CommChannel channel = null;
 
 	protected CommProtocol( VariablePath configurationPath )
 	{
 		this.configurationPath = configurationPath;
+	}
+	
+	public void setChannel( CommChannel channel )
+	{
+		this.channel = channel;
 	}
 	
 	protected ValueVector getParameterVector( String id )

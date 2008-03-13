@@ -64,6 +64,12 @@ public class HTTPMessage
 		return propMap.get( name );
 	}
 	
+	public String getPropertyOrEmptyString( String name )
+	{
+		String ret = propMap.get( name );
+		return ( ret == null ) ? "" : ret;
+	}
+	
 	public String reason()
 	{
 		return reason;

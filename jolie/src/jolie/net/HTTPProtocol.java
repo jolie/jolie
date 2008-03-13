@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.Map.Entry;
 
@@ -67,17 +68,33 @@ import org.xml.sax.SAXException;
 
 public class HTTPProtocol extends CommProtocol
 {
-	private URI uri;
 	private String inputId = null;
 	private TransformerFactory transformerFactory;
 	private Transformer transformer;
 	private DocumentBuilderFactory docBuilderFactory;
 	private DocumentBuilder docBuilder;
+	private VariablePath locationVariablePath;
+	private URI uri = null;
 	
 	public HTTPProtocol( VariablePath configurationPath, URI uri )
 	{
 		super( configurationPath );
 		this.uri = uri;
+		docBuilderFactory = DocumentBuilderFactory.newInstance();
+		docBuilderFactory.setNamespaceAware( true );
+		try {
+			docBuilder = docBuilderFactory.newDocumentBuilder();
+			transformerFactory = TransformerFactory.newInstance();
+			transformer = transformerFactory.newTransformer();
+		} catch( Exception e ) {
+			Interpreter.getInstance().logger().severe( e.getMessage() );
+		}
+	}
+	
+	public HTTPProtocol( VariablePath configurationPath, VariablePath locationVariablePath )
+	{
+		super( configurationPath );
+		this.locationVariablePath = locationVariablePath;
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
 		try {
@@ -99,7 +116,7 @@ public class HTTPProtocol extends CommProtocol
 		HTTPProtocol ret = new HTTPProtocol( configurationPath );
 		ret.docBuilderFactory = docBuilderFactory;
 		ret.docBuilder = docBuilder;
-		ret.uri = uri;
+		ret.locationVariablePath = locationVariablePath;
 		ret.transformer = transformer;
 		ret.transformerFactory = transformerFactory;
 		return ret;
@@ -128,6 +145,14 @@ public class HTTPProtocol extends CommProtocol
 				valueToDocument( val, currentElement, doc );
 			}
 		}
+	}
+	
+	private URI getURI()
+		throws URISyntaxException
+	{
+		if ( uri == null )
+			return new URI( locationVariablePath.getValue().strValue() );
+		return uri;
 	}
 	
 	public void send( OutputStream ostream, CommMessage message )
@@ -184,6 +209,7 @@ public class HTTPProtocol extends CommProtocol
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK\n";
 			} else {
+				URI uri = getURI();
 				// We're sending a notification or a solicit
 				String path = new String();
 				if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
@@ -217,6 +243,8 @@ public class HTTPProtocol extends CommProtocol
 			throw new IOException( se );
 		} catch( TransformerException te ) {
 			throw new IOException( te );
+		} catch( URISyntaxException urie ) {
+			throw new IOException( urie );
 		}
 	}
 	
@@ -283,6 +311,11 @@ public class HTTPProtocol extends CommProtocol
 	{
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
+		
+		if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
+			channel.setToBeClosed( true );
+		else
+			channel.setToBeClosed( false );
 		
 		if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				Interpreter.getInstance().logger().info( "[HTTP debug] Receiving:\n" + (( message.content() == null ) ? "" : new String( message.content() )) );
