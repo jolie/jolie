@@ -334,9 +334,14 @@ public class OOITBuilder implements OLVisitor
 		if ( "main".equals( n.id() ) ) {
 			canSpawnSession = true;
 			n.body().accept( this );
+			canSpawnSession = false;
+			if ( currProcess instanceof CorrelatedInputProcess ) {
+				CorrelatedProcess corrProc = new CorrelatedProcess( currProcess );
+				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
+				currProcess = corrProc;
+			}
 			currProcess = new ScopeProcess( "main", currProcess );
 			def = new MainDefinitionProcess();
-			canSpawnSession = false;
 		} else {
 			def = new SubRoutineProcess( n.id() );
 			n.body().accept( this );

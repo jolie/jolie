@@ -21,8 +21,10 @@
 
 package jolie.net.http;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 public class HTTPMessage
@@ -31,6 +33,11 @@ public class HTTPMessage
 		RESPONSE, POST, GET, ERROR
 	}
 	
+	public enum Version {
+		HTTP_1_0, HTTP_1_1
+	}
+
+	private Version version;
 	private Type type;
 	private byte[] content = null;
 	private Map< String, String > propMap = new HashMap< String, String > ();
@@ -44,9 +51,24 @@ public class HTTPMessage
 		this.type = type;
 	}
 	
+	protected void setVersion( Version version )
+	{
+		this.version = version;
+	}
+	
+	public Version version()
+	{
+		return version;
+	}
+	
 	public void setContent( byte[] content )
 	{
 		this.content = content;
+	}
+	
+	public Collection< Entry< String, String > > properties()
+	{
+		return propMap.entrySet();
 	}
 	
 	public void setRequestPath( String path )

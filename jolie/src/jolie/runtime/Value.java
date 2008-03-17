@@ -391,8 +391,8 @@ abstract public class Value implements Expression
 		return this;
 	}
 	
-	abstract protected Object valueObject();
-	abstract protected void setValueObject( Object object );
+	abstract public Object valueObject();
+	abstract public void setValueObject( Object object );
 	
 	public boolean equals( Value val )
 	{

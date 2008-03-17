@@ -55,6 +55,7 @@ public class SocketListener extends CommListener
 				channel = new SocketCommChannel(
 							socketChannel,
 							createProtocol() );
+				channel.setParentListener( this );
 				interpreter().commCore().scheduleReceive( channel, this );
 				channel = null; // Dispose for garbage collection
 			}

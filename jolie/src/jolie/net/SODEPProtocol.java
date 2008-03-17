@@ -69,14 +69,12 @@ public class SODEPProtocol extends CommProtocol
 		}
 		
 		ObjectInputStream ios = new ObjectInputStream( istream );
-		Object obj = null;
+		CommMessage ret = null;
 		try {
-			obj = ios.readObject();
-			if ( !( obj instanceof CommMessage ) )
-				throw new IOException( "Received malformed SODEP packet" );
+			ret = CommMessage.createFromExternal( ios );
 		} catch( ClassNotFoundException e ) {
 			throw new IOException( "Received malformed SODEP packet" );
 		}
-		return (CommMessage)obj;
+		return ret;
 	}
 }

@@ -141,6 +141,7 @@ public class PipeListener extends CommListener
 								currentChannel.protocol.clone(),
 								currentChannel.ostream,
 								currentChannel.istream );
+					channel.setParentListener( this );
 					interpreter().commCore().scheduleReceive( channel, this );	
 					currentChannel = null;
 				}

@@ -44,6 +44,14 @@ public class CommMessage implements Externalizable
 	
 	public CommMessage() {}
 	
+	public static CommMessage createFromExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		CommMessage m = new CommMessage();
+		m.readExternal( in );
+		return m;
+	}
+	
 	public void readExternal( ObjectInput in )
 		throws IOException, ClassNotFoundException
 	{

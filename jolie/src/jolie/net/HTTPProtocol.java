@@ -311,14 +311,32 @@ public class HTTPProtocol extends CommProtocol
 	{
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
+		HTTPMessage.Version version = message.version();
+		if ( version == null || version.equals( HTTPMessage.Version.HTTP_1_1 ) ) {
+			// The default is to keep the connection open, unless Connection: close is specified
+			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
+				channel.setToBeClosed( true );
+			else
+				channel.setToBeClosed( false );
+		} else if ( version.equals( HTTPMessage.Version.HTTP_1_0 ) ) {
+			// The default is to close the connection, unless Connection: Keep-Alive is specified
+			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) )
+				channel.setToBeClosed( false );
+			else
+				channel.setToBeClosed( true );
+		}
 		
-		if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
-			channel.setToBeClosed( true );
-		else
-			channel.setToBeClosed( false );
-		
-		if ( getParameterVector( "debug" ).first().intValue() > 0 )
-				Interpreter.getInstance().logger().info( "[HTTP debug] Receiving:\n" + (( message.content() == null ) ? "" : new String( message.content() )) );
+		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+			StringBuilder debugSB = new StringBuilder();
+			debugSB.append( "[HTTP debug] Receiving:\n" );
+			debugSB.append( "--> Header properties\n" );
+			for( Entry< String, String > entry : message.properties() )
+				debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+			debugSB.append( "--> Message content\n" );
+			if ( message.content() != null )
+				debugSB.append( message.content() );
+			Interpreter.getInstance().logger().info( debugSB.toString() );
+		}
 		
 		CommMessage retVal = null;
 		Value messageValue = Value.create();
@@ -336,7 +354,24 @@ public class HTTPProtocol extends CommProtocol
 		} else if (
 				message.type() == HTTPMessage.Type.POST ||
 				message.type() == HTTPMessage.Type.GET ) {
-			retVal = new CommMessage( message.requestPath(), messageValue );
+			String opId = message.requestPath();
+			InputOperation op = null;
+			try {
+				op = Interpreter.getInstance().getInputOperation( opId );
+			} catch( InvalidIdException iie ) {}
+			
+			if ( op == null || !channel.parentListener().canHandleInputOperation( op ) ) {
+				String defaultOpId = getParameterVector( "default" ).first().strValue();
+				if ( defaultOpId.length() > 0 ) {
+					Value body = messageValue;
+					messageValue = Value.create();
+					messageValue.getChildren( "body" ).add( body );
+					messageValue.getChildren( "operation" ).first().setStrValue( opId );
+					opId = defaultOpId;
+				}
+			}
+			
+			retVal = new CommMessage( opId, messageValue );
 		}
 		
 		return retVal;

@@ -98,7 +98,11 @@ public class HTTPParser
 			throw new IOException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
-		if ( !( "1.1".equals( version ) || "1.0".equals( version ) ) )
+		if ( "1.0".equals( version ) )
+			message.setVersion( HTTPMessage.Version.HTTP_1_0 );
+		else if ( "1.1".equals( version ) )
+			message.setVersion( HTTPMessage.Version.HTTP_1_1 );
+		else
 			throw new IOException( "Unsupported HTTP version specified: " + version );
 		
 		return message;
