@@ -256,14 +256,14 @@ public class HTTPProtocol extends CommProtocol
 			node = list.item( i );
 			switch( node.getNodeType() ) {
 			case Node.ATTRIBUTE_NODE:
-				value.getAttribute( node.getNodeName() ).setStrValue( node.getNodeValue() );
+				value.getAttribute( node.getNodeName() ).setValue( node.getNodeValue() );
 				break;
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( node.getLocalName() );
 				elementsToSubValues( childValue, node.getChildNodes() ); 
 				break;
 			case Node.TEXT_NODE:
-				value.setStrValue( node.getNodeValue() );
+				value.setValue( node.getNodeValue() );
 				break;
 			}
 		}
@@ -302,7 +302,7 @@ public class HTTPProtocol extends CommProtocol
 		s = line.split( "&" );
 		for( int i = 0; i < s.length; i++ ) {
 			pair = s[i].split( "=", 2 );
-			value.getChildren( pair[0] ).first().setStrValue( pair[1] );
+			value.getChildren( pair[0] ).first().setValue( pair[1] );
 		}		
 	}
 	
@@ -366,7 +366,7 @@ public class HTTPProtocol extends CommProtocol
 					Value body = messageValue;
 					messageValue = Value.create();
 					messageValue.getChildren( "body" ).add( body );
-					messageValue.getChildren( "operation" ).first().setStrValue( opId );
+					messageValue.getChildren( "operation" ).first().setValue( opId );
 					opId = defaultOpId;
 				}
 			}

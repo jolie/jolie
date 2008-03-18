@@ -412,7 +412,7 @@ public class SOAPProtocol extends CommProtocol
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				value.getAttribute( currNode.getNodeName() ).setStrValue( currNode.getNodeValue() );
+				value.getAttribute( currNode.getNodeName() ).setValue( currNode.getNodeValue() );
 			}
 		}
 		
@@ -427,7 +427,7 @@ public class SOAPProtocol extends CommProtocol
 				xmlNodeToValue( childValue, currNode );
 				break;
 			case Node.TEXT_NODE:
-				value.setStrValue( currNode.getNodeValue() );
+				value.setValue( currNode.getNodeValue() );
 				break;
 			}
 		}
@@ -436,11 +436,11 @@ public class SOAPProtocol extends CommProtocol
 		if ( (attr=value.attributes().get( "type" )) != null ) {
 			String type = attr.strValue();
 			if ( "xsd:int".equals( type ) )
-				value.setIntValue( value.intValue() );
+				value.setValue( value.intValue() );
 			else if ( "xsd:double".equals( type ) )
-				value.setDoubleValue( value.doubleValue() );
+				value.setValue( value.doubleValue() );
 			else if ( "xsd:string".equals( type ) )
-				value.setStrValue( value.strValue() );
+				value.setValue( value.strValue() );
 		}
 	}
 	

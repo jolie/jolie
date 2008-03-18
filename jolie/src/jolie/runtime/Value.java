@@ -37,6 +37,11 @@ class ValueLink extends Value implements Cloneable
 {
 	private VariablePath linkPath;
 	
+	public void setValueObject( Object object )
+	{
+		linkPath.getValue().setValueObject( object );
+	}
+	
 	public void erase()
 	{
 		linkPath.getValue().erase();
@@ -83,9 +88,9 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().getAttribute( attributeId );
 	}
 	
-	public void setValueObject( Object object )
+	public void setValue( Object object )
 	{
-		linkPath.getValue().setValueObject( object );
+		linkPath.getValue().setValue( object );
 	}
 	
 	public Object valueObject()
@@ -111,6 +116,11 @@ class ValueImpl extends Value implements Externalizable
 	private Object valueObject;
 	private ConcurrentHashMap< String, ValueVector > children = null;
 	private ConcurrentHashMap< String, Value > attributes = null;
+	
+	public void setValueObject( Object object )
+	{
+		valueObject = object;
+	}
 	
 	public void erase()
 	{
@@ -253,7 +263,7 @@ class ValueImpl extends Value implements Externalizable
 		return valueObject;
 	}
 	
-	public void setValueObject( Object object )
+	public void setValue( Object object )
 	{
 		valueObject = object;
 	}
@@ -271,25 +281,25 @@ class ValueImpl extends Value implements Externalizable
 	public ValueImpl( String val )
 	{
 		super();
-		setStrValue( val );
+		setValue( val );
 	}
 	
 	public ValueImpl( int val )
 	{
 		super();
-		setIntValue( val );
+		setValue( val );
 	}
 	
 	public ValueImpl( double val )
 	{
 		super();
-		setDoubleValue( val );
+		setValue( val );
 	}
 	
 	public ValueImpl( Value val )
 	{
 		valueObject = val.valueObject();
-	}
+	} 
 }
 
 /**
@@ -392,8 +402,25 @@ abstract public class Value implements Expression
 	}
 	
 	abstract public Object valueObject();
-	abstract public void setValueObject( Object object );
+	abstract protected void setValueObject( Object object );
 	
+	public void setValue( Object object )
+	{
+		setValueObject( object );
+	}
+	public void setValue( String object )
+	{
+		setValueObject( object );
+	}
+	public void setValue( Integer object )
+	{
+		setValueObject( object );
+	}
+	public void setValue( Double object )
+	{
+		setValueObject( object );
+	}
+		
 	public boolean equals( Value val )
 	{
 		if ( val.isDefined() ) {
@@ -407,16 +434,6 @@ abstract public class Value implements Expression
 			return( o != null && o.equals( val.valueObject() ) );
 		}
 		return( !isDefined() );
-	}
-	
-	public void setStrValue( String value )
-	{
-		setValueObject( value );
-	}
-	
-	public void setDoubleValue( double value )
-	{
-		setValueObject( new Double( value ) );
 	}
 	
 	public final boolean isInt()
@@ -446,7 +463,7 @@ abstract public class Value implements Expression
 	
 	public void setChannel( CommChannel value )
 	{
-		setValueObject( value );
+		setValue( value );
 	}
 	
 	public CommChannel channelValue()
@@ -454,11 +471,6 @@ abstract public class Value implements Expression
 		if( !isChannel() )
 			return null;
 		return (CommChannel)valueObject();
-	}
-	
-	public void setIntValue( int value )
-	{
-		setValueObject( new Integer( value ) );
 	}
 
 	public String strValue()
@@ -512,11 +524,11 @@ abstract public class Value implements Expression
 	{
 		if ( isDefined() ) {
 			if ( isInt() )
-				setIntValue( intValue() + val.intValue() );
+				setValue( intValue() + val.intValue() );
 			else if ( isDouble() )
-				setDoubleValue( doubleValue() + val.doubleValue() );
+				setValue( doubleValue() + val.doubleValue() );
 			else
-				setStrValue( strValue() + val.strValue() );
+				setValue( strValue() + val.strValue() );
 		} else
 			assignValue( val );
 	}
@@ -526,18 +538,18 @@ abstract public class Value implements Expression
 		if ( !isDefined() )
 			assignValue( val );
 		else if ( isInt() )
-			setIntValue( intValue() - val.intValue() );
+			setValue( intValue() - val.intValue() );
 		else if ( isDouble() )
-			setDoubleValue( doubleValue() - val.doubleValue() );
+			setValue( doubleValue() - val.doubleValue() );
 	}
 	
 	public final synchronized void multiply( Value val )
 	{
 		if ( isDefined() ) {
 			if ( isInt() )
-				setIntValue( intValue() * val.intValue() );
+				setValue( intValue() * val.intValue() );
 			else if ( isDouble() )
-				setDoubleValue( doubleValue() * val.doubleValue() );
+				setValue( doubleValue() * val.doubleValue() );
 		} else
 			assignValue( val );
 	}
@@ -547,13 +559,13 @@ abstract public class Value implements Expression
 		if ( !isDefined() )
 			assignValue( val );
 		else if ( isInt() )
-			setIntValue( intValue() / val.intValue() );
+			setValue( intValue() / val.intValue() );
 		else if ( isDouble() )
-			setDoubleValue( doubleValue() / val.doubleValue() );
+			setValue( doubleValue() / val.doubleValue() );
 	}
 	
 	public final synchronized void assignValue( Value val )
 	{
-		setValueObject( val.valueObject() );
+		setValue( val.valueObject() );
 	}
 }

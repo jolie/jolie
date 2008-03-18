@@ -57,7 +57,7 @@ public class ForEachProcess implements Process
 		Value target = targetPath.getValue();
 		VariablePath currPath;
 		for( String id : target.children().keySet() ) {
-			keyPath.getValue().setStrValue( id );
+			keyPath.getValue().setValue( id );
 			currPath = targetPath.clone();
 			currPath.addPathNode( id, null );
 			valuePath.makePointer( currPath );

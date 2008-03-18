@@ -45,13 +45,13 @@ public class PreIncrementProcess implements Process, Expression
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value val = varPath.getValue();
-		val.setIntValue( val.intValue() + 1 );
+		val.setValue( val.intValue() + 1 );
 	}
 	
 	public Value evaluate()
 	{
 		Value val = varPath.getValue();
-		val.setIntValue( val.intValue() + 1 );
+		val.setValue( val.intValue() + 1 );
 		return val;
 	}
 }
