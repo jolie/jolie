@@ -296,7 +296,7 @@ public class SOAPProtocol extends CommProtocol
 										currElementDecl,
 										childElement,
 										envelope );
-								} else {
+								} else if ( children[i].getMinOccurs() > 0 ) {
 									// TODO improve this error message.
 									throw new SOAPException( "Invalid variable structure: expected " + name );
 								}
