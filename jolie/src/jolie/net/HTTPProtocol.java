@@ -207,7 +207,7 @@ public class HTTPProtocol extends CommProtocol
 
 			if ( operation != null ) {
 				// We're responding to a request
-				messageString += "HTTP/1.1 200 OK\n";
+				messageString += "HTTP/1.1 200 OK\r\n";
 			} else {
 				URI uri = getURI();
 				// We're sending a notification or a solicit
@@ -223,13 +223,13 @@ public class HTTPProtocol extends CommProtocol
 				if ( getParameterVector( "method" ).first().strValue().length() > 0 )
 					method = getParameterVector( "method" ).first().strValue().toUpperCase();
 				
-				messageString += method + " " + path + queryString + " HTTP/1.1\n";
-				messageString += "Host: " + uri.getHost() + '\n';
+				messageString += method + " " + path + queryString + " HTTP/1.1\r\n";
+				messageString += "Host: " + uri.getHost() + "\r\n";
 			}
 			
-			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\n";
-			messageString += "Content-Length: " + contentString.length() + '\n';
-			messageString += '\n' + contentString + '\n';
+			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\r\n";
+			messageString += "Content-Length: " + contentString.length() + "\r\n";
+			messageString += "\r\n" + contentString + "\r\n";
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + messageString ); 

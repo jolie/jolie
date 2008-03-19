@@ -367,24 +367,24 @@ public class SOAPProtocol extends CommProtocol
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
-				messageString += "HTTP/1.1 200 OK\n";
+				messageString += "HTTP/1.1 200 OK\r\n";
 			} else {
 				// We're sending a notification or a solicit
 				String path = getURI().getPath();
 				if ( path == null || path.length() == 0 )
 					path = "*";
-				messageString += "POST " + path + " HTTP/1.1\n";
-				messageString += "Host: " + getURI().getHost() + '\n';
+				messageString += "POST " + path + " HTTP/1.1\r\n";
+				messageString += "Host: " + getURI().getHost() + "\r\n";
 				soapAction =
-					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\n";
+					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\r\n";
 			}
 			
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
-			messageString += "Content-Type: text/xml; charset=\"utf-8\"\n";
-			messageString += "Content-Length: " + soapString.length() + '\n';
+			messageString += "Content-Type: text/xml; charset=\"utf-8\"\r\n";
+			messageString += "Content-Length: " + soapString.length() + "\r\n";
 			if ( soapAction != null )
 				messageString += soapAction;
-			messageString += soapString + '\n';
+			messageString += soapString + "\r\n";
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				interpreter.logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
