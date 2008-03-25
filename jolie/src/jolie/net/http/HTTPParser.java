@@ -159,12 +159,7 @@ public class HTTPParser
 			chunked = true;
 		
 		byte buffer[] = null;
-		if ( contentLength > 0 ) {
-			buffer = new byte[ contentLength ];
-			InputStream stream = scanner.inputStream();
-			buffer[0] = scanner.currentByte();
-			blockingRead( stream, buffer, 0, contentLength );
-		} else if ( chunked ) {
+		if ( chunked ) {
 			InputStream stream = scanner.inputStream();
 			Vector< byte[] > chunks = new Vector< byte[] > ();
 			byte[] chunk;
@@ -175,26 +170,30 @@ public class HTTPParser
 			String lStr = scanner.readWord();
 			while( keepRun ) {
 				l = Integer.parseInt( lStr, 16 );
-				scanner.eatSeparators();
 				if ( l > 0 ) {
+					scanner.eatSeparators();
 					total += l;
 					chunk = new byte[ l ];
 					chunk[0] = scanner.currentByte();
 					blockingRead( stream, chunk, 1, l - 1 );
 					chunks.add( chunk );
-					if ( stream.available() > 0 ) {
-						scanner.readChar();
-						scanner.eatSeparators();
-						lStr = scanner.readWord( false );
-					} else
-						keepRun = false;
-				} else
+					scanner.readChar();
+					scanner.eatSeparators();
+					lStr = scanner.readWord( false );
+				} else {
+					stream.skip( 3 ); // We eat trailing chars of the HTTP message
 					keepRun = false;
+				}
 			}
 			ByteBuffer b = ByteBuffer.allocate( total );
 			for( byte[] c : chunks )
 				b.put( c );
 			buffer = b.array();
+		} else if ( contentLength > 0 ) {
+			buffer = new byte[ contentLength ];
+			InputStream stream = scanner.inputStream();
+			blockingRead( stream, buffer, 0, contentLength );
+			stream.skip( 2 ); // We eat trailing chars of the HTTP message
 		}
 		
 		message.setContent( buffer );

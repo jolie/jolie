@@ -450,10 +450,20 @@ public class SOAPProtocol extends CommProtocol
 		HTTPParser parser = new HTTPParser( istream );
 		HTTPMessage message = parser.parse();
 		
-		if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
-			channel.setToBeClosed( true );
-		else
-			channel.setToBeClosed( false );
+		HTTPMessage.Version version = message.version();
+		if ( version == null || version.equals( HTTPMessage.Version.HTTP_1_1 ) ) {
+			// The default is to keep the connection open, unless Connection: close is specified
+			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
+				channel.setToBeClosed( true );
+			else
+				channel.setToBeClosed( false );
+		} else if ( version.equals( HTTPMessage.Version.HTTP_1_0 ) ) {
+			// The default is to close the connection, unless Connection: Keep-Alive is specified
+			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) )
+				channel.setToBeClosed( false );
+			else
+				channel.setToBeClosed( true );
+		}
 		
 		CommMessage retVal = null;
 		
