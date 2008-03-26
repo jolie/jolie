@@ -181,7 +181,7 @@ public class HTTPParser
 					scanner.eatSeparators();
 					lStr = scanner.readWord( false );
 				} else {
-					stream.skip( 3 ); // We eat trailing chars of the HTTP message
+					//stream.skip( 3 ); // We eat trailing chars of the HTTP message
 					keepRun = false;
 				}
 			}
@@ -193,7 +193,7 @@ public class HTTPParser
 			buffer = new byte[ contentLength ];
 			InputStream stream = scanner.inputStream();
 			blockingRead( stream, buffer, 0, contentLength );
-			stream.skip( 2 ); // We eat trailing chars of the HTTP message
+			//stream.skip( 2 ); // We eat trailing chars of the HTTP message
 		}
 		
 		message.setContent( buffer );
@@ -206,6 +206,7 @@ public class HTTPParser
 		HTTPMessage message = parseMessageType();
 		parseHeaderProperties( message );
 		readContent( message );
+		scanner.eatSeparatorsUntilEOF();
 		return message;
 	}
 }

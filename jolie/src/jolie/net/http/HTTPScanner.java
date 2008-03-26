@@ -253,6 +253,6 @@ public class HTTPScanner extends Scanner
 			retval = new Token( TokenType.ERROR );
 		
 		return retval;
-	}
+	}	
 }
 
