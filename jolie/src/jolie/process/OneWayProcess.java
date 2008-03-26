@@ -77,10 +77,6 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 			this.message = message;
 			this.notify();
-			try {
-				channel.disposeForInput();
-			} catch( IOException ioe ) {}
-
 			return true;
 		}
 	}
@@ -134,5 +130,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			val.erase();
 			val.deepCopy( message.value() );
 		}
+		
+		try {
+			if ( channel != null )
+				channel.disposeForInput();
+		} catch( IOException ioe ) {}
 	}
 }
