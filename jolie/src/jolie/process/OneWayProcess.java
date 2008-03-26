@@ -130,7 +130,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			val.erase();
 			val.deepCopy( message.value() );
 		}
-		
+
 		try {
 			if ( channel != null )
 				channel.disposeForInput();
