@@ -244,6 +244,13 @@ public class Scanner
 			readChar();
 	}
 	
+	public void eatSeparatorsUntilEOF()
+		throws IOException
+	{
+		while( isSeparator( ch ) && stream.available() > 0 )
+			readChar();
+	}
+	
 	public static boolean isSeparator( int c )
 	{
 		if ( isNewLineChar( c ) || c == '\t' || c == ' ' )
