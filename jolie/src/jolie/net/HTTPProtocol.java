@@ -208,10 +208,6 @@ public class HTTPProtocol extends CommProtocol
 			if ( operation != null ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK\r\n";
-				if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-					channel.setToBeClosed( true );
-					messageString += "Connection: close\r\n";
-				}
 			} else {
 				URI uri = getURI();
 				// We're sending a notification or a solicit
@@ -229,6 +225,11 @@ public class HTTPProtocol extends CommProtocol
 				
 				messageString += method + " " + path + queryString + " HTTP/1.1\r\n";
 				messageString += "Host: " + uri.getHost() + "\r\n";
+			}
+			
+			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
+				channel.setToBeClosed( true );
+				messageString += "Connection: close\r\n";
 			}
 			
 			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\r\n";

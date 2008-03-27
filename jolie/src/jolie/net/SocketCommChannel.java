@@ -89,9 +89,4 @@ public class SocketCommChannel extends CommChannel
 	{
 		socketChannel.close();
 	}
-
-	public boolean isOpen()
-	{
-		return socketChannel.isOpen();
-	}
 }

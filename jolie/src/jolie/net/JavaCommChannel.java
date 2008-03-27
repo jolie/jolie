@@ -98,11 +98,6 @@ public class JavaCommChannel extends CommChannel
 	protected void closeImpl()
 	{}
 	
-	public boolean isOpen()
-	{
-		return true;
-	}
-	
 	public boolean hasData()
 	{
 		return( lastMessage != null );

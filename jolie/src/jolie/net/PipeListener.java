@@ -37,7 +37,6 @@ public class PipeListener extends CommListener
 		protected CommProtocol protocol;
 		protected ByteArrayOutputStream istream;
 		protected ByteArrayOutputStream ostream;
-		private boolean isOpen = true;
 
 		public ByteArrayCommChannel(
 				CommProtocol protocol,
@@ -55,13 +54,7 @@ public class PipeListener extends CommListener
 		{
 			synchronized( ostream ) {
 				ostream.close();
-				isOpen = false;
 			}
-		}
-		
-		public boolean isOpen()
-		{
-			return isOpen;
 		}
 
 		public CommMessage recv()

@@ -44,6 +44,7 @@ abstract public class CommChannel implements Channel
 {
 	protected boolean toBeClosed = true;
 	private CommListener listener = null;
+	private boolean isOpen = false;
 	
 	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
 		throws IOException, URISyntaxException
@@ -78,6 +79,11 @@ abstract public class CommChannel implements Channel
 		return listener;
 	}
 	
+	final public boolean isOpen()
+	{
+		return isOpen;
+	}
+	
 	/** Receives a message from the channel. */
 	abstract public CommMessage recv()
 		throws IOException;
@@ -86,19 +92,14 @@ abstract public class CommChannel implements Channel
 	abstract public void send( CommMessage message )
 		throws IOException;
 	
-	
-	/*
-	public SelectableChannel getSelectableChannel()
-	{
-		return selectableChannel;
-	}*/
-	
 	/** Closes the communication channel */
 	final public void close()
 		throws IOException
 	{
-		if ( toBeClosed )
+		if ( toBeClosed ) {
 			closeImpl();
+			isOpen = false;
+		}
 	}
 	
 	final public void disposeForInput()

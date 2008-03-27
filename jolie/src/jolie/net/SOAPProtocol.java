@@ -362,16 +362,13 @@ public class SOAPProtocol extends CommProtocol
 			String messageString = new String();
 			String soapAction = null;
 			InputOperation operation = null;
+			
 			try {
 				operation = interpreter.getRequestResponseOperation( message.inputId() );
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK\r\n";
-				if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-					channel.setToBeClosed( true );
-					messageString += "Connection: close\r\n";
-				}
 			} else {
 				// We're sending a notification or a solicit
 				String path = getURI().getPath();
@@ -381,6 +378,11 @@ public class SOAPProtocol extends CommProtocol
 				messageString += "Host: " + getURI().getHost() + "\r\n";
 				soapAction =
 					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\r\n";
+			}
+			
+			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
+				channel.setToBeClosed( true );
+				messageString += "Connection: close\r\n";
 			}
 			
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
