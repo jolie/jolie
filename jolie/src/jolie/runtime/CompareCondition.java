@@ -27,7 +27,7 @@ import jolie.lang.parse.Scanner;
 
 /**
  * @author Fabrizio Montesi
- * @todo Clean up code.
+ * TODO Clean up code.
  *
  */
 public class CompareCondition implements Condition

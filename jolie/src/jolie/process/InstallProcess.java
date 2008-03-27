@@ -44,7 +44,7 @@ public class InstallProcess implements Process
 	}
 
 	/**
-	 * @todo perhaps the currentThread() thing can be stored in a local var. Check if this causes concurrency problems.
+	 * TODO perhaps the currentThread() thing can be stored in a local var. Check if this causes concurrency problems.
 	 */
 	public void run()
 	{

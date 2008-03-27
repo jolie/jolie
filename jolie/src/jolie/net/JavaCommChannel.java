@@ -69,7 +69,7 @@ public class JavaCommChannel extends CommChannel
 						}
 					}
 				} else {
-					// @todo Verify that it is void
+					// TODO Verify that this method is void
 					// It's a One-Way
 					try {
 						method.invoke( javaService, args );

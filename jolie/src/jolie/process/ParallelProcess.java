@@ -45,7 +45,7 @@ public class ParallelProcess implements Process
 	}
 	
 	/**
-	 * @todo Embed this into the constructor
+	 * TODO Embed this into the constructor
 	 */
 	public void addChild( Process process )
 	{

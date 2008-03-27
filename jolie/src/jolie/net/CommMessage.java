@@ -76,7 +76,7 @@ public class CommMessage implements Externalizable
 	public CommMessage( String inputId, Value value )
 	{
 		this.inputId = inputId;
-		// TODO Make this only when strictly necessary.
+		// TODO This is a performance hit! Make this only when strictly necessary.
 		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
 		this.value = Value.createDeepCopy( value );
 	}

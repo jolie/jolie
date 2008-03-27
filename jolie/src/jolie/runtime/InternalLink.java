@@ -35,7 +35,7 @@ import jolie.util.Pair;
  * 
  * @author Fabrizio Montesi
  * 
- * @todo improve efficiency of linkIn list
+ * TODO rewrite this in order to use the CommCore mechanisms
  */
 public class InternalLink implements InputHandler
 {

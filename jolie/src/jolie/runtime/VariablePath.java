@@ -45,7 +45,6 @@ public class VariablePath implements Expression, Cloneable
 	}
 
 	/**
-	 * @TODO Do we want to support attribute checking?
 	 * @param otherVarPath
 	 * @return
 	 */

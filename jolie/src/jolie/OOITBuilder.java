@@ -368,11 +368,6 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new SynchronizedProcess( n.id(), currProcess );
 	}
 		
-	/**
-	 * @todo we should not create multiple CorrelatedInputProcess through procedures. Perhaps limit them to main{} ?
-	 * @todo allow ndchoice at the beginning of main to be CorrelatedInputProcess
-	 * @todo allow input operations at the beginning of main to be CorrelatedInputProcess
-	 */
 	public void visit( SequenceStatement n )
 	{
 		SequentialProcess proc = new SequentialProcess();
