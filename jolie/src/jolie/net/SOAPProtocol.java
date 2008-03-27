@@ -512,41 +512,45 @@ public class SOAPProtocol extends CommProtocol
 		CommMessage retVal = null;
 		
 		try {
-			SOAPMessage soapMessage = messageFactory.createMessage();
-			
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware( true );
-			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
-			Document doc = builder.parse( src );
-			DOMSource dom = new DOMSource( doc );
-
-			soapMessage.getSOAPPart().setContent( dom );
-			
-			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-				soapMessage.writeTo( tmpStream );
-
-				interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
-			}
-
-			ValueVector schemaPaths = getParameterVector( "schema" );
-			if ( schemaPaths.size() > 0 ) {
-				Source[] sources = new Source[ schemaPaths.size() ];
-				for( int i = 0; i < schemaPaths.size(); i++ )
-					sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
-				
-				Schema schema =
-					SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-							.newSchema( sources );
-				schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
-			}
-			
 			Value value = Value.create();
-			xmlNodeToValue(
-					value, soapMessage.getSOAPBody().getFirstChild()
-					);
+			String messageId = message.getPropertyOrEmptyString( "soapaction" );
+			if ( message.content() != null ) {
+				SOAPMessage soapMessage = messageFactory.createMessage();
+				
+				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				factory.setNamespaceAware( true );
+				DocumentBuilder builder = factory.newDocumentBuilder();
+	
+				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				Document doc = builder.parse( src );
+				DOMSource dom = new DOMSource( doc );
+	
+				soapMessage.getSOAPPart().setContent( dom );
+				
+				if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+					soapMessage.writeTo( tmpStream );
+	
+					interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
+				}
+	
+				ValueVector schemaPaths = getParameterVector( "schema" );
+				if ( schemaPaths.size() > 0 ) {
+					Source[] sources = new Source[ schemaPaths.size() ];
+					for( int i = 0; i < schemaPaths.size(); i++ )
+						sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
+					
+					Schema schema =
+						SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
+								.newSchema( sources );
+					schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+				}
+				
+				xmlNodeToValue(
+						value, soapMessage.getSOAPBody().getFirstChild()
+						);
+				messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
+			}
 			
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
 				retVal = new CommMessage( inputId, value );
@@ -554,7 +558,7 @@ public class SOAPProtocol extends CommProtocol
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET
 					) {
-				retVal = new CommMessage( soapMessage.getSOAPBody().getFirstChild().getLocalName(), value );
+				retVal = new CommMessage( messageId, value );
 			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );
