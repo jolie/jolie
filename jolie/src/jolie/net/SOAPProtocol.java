@@ -109,7 +109,7 @@ public class SOAPProtocol extends CommProtocol
 	private XSSchemaSet schemaSet = null;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
-	final private static String CRLF = "\n\r";
+	final private static String CRLF = new String( new char[] { 13, 10 } );
 
 	public SOAPProtocol clone()
 	{
@@ -532,7 +532,6 @@ public class SOAPProtocol extends CommProtocol
 				if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 					soapMessage.writeTo( tmpStream );
-	
 					interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 				}
 	

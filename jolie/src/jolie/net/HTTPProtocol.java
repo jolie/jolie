@@ -76,7 +76,7 @@ public class HTTPProtocol extends CommProtocol
 	private VariablePath locationVariablePath;
 	private URI uri = null;
 	
-	final private static String CRLF = "\n\r";
+	final private static String CRLF = new String( new char[] { 13, 10 } );
 	
 	public HTTPProtocol( VariablePath configurationPath, URI uri )
 	{
