@@ -109,6 +109,7 @@ public class SOAPProtocol extends CommProtocol
 	private XSSchemaSet schemaSet = null;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
+	final private static String CRLF = "\n\r";
 
 	public SOAPProtocol clone()
 	{
@@ -406,29 +407,29 @@ public class SOAPProtocol extends CommProtocol
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
-				messageString += "HTTP/1.1 200 OK\r\n";
+				messageString += "HTTP/1.1 200 OK" + CRLF;
 			} else {
 				// We're sending a notification or a solicit
 				String path = getURI().getPath();
 				if ( path == null || path.length() == 0 )
 					path = "*";
-				messageString += "POST " + path + " HTTP/1.1\r\n";
-				messageString += "Host: " + getURI().getHost() + "\r\n";
+				messageString += "POST " + path + " HTTP/1.1" + CRLF;
+				messageString += "Host: " + getURI().getHost() + CRLF;
 				soapAction =
-					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + "\"\r\n";
+					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + '\"' + CRLF;
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 				channel.setToBeClosed( true );
-				messageString += "Connection: close\r\n";
+				messageString += "Connection: close" + CRLF;
 			}
 			
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
-			messageString += "Content-Type: text/xml; charset=\"utf-8\"\r\n";
-			messageString += "Content-Length: " + soapString.length() + "\r\n";
+			messageString += "Content-Type: text/xml; charset=\"utf-8\"" + CRLF;
+			messageString += "Content-Length: " + soapString.length() + CRLF;
 			if ( soapAction != null )
 				messageString += soapAction;
-			messageString += soapString + "\r\n";
+			messageString += soapString + CRLF;
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				interpreter.logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
