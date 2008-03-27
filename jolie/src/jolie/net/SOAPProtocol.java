@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
  *   Copyright (C) by Mauro Silvagni                                       *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -51,6 +52,8 @@ import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPHeader;
+import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
@@ -92,8 +95,10 @@ import com.sun.xml.xsom.parser.XSOMParser;
  * 
  * @author Fabrizio Montesi
  * 
- * 2006 - Initially written by Fabrizio Montesi and Mauro Silvagni
- * 2007 - Totally re-built by Fabrizio Montesi, exploiting new JOLIE capabilities
+ * 2006 - Fabrizio Montesi, Mauro Silvagni: first write.
+ * 2007 - Fabrizio Montesi: rewritten from scratch, exploiting new JOLIE capabilities.
+ * 2008 - Fabrizio Montesi: initial support for schemas.
+ * 2008 - Claudio Guidi: initial support for WS-Addressing.
  * 
  */
 public class SOAPProtocol extends CommProtocol
@@ -332,7 +337,40 @@ public class SOAPProtocol extends CommProtocol
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
-			
+
+			if ( getParameterVector( "wsAddressing" ).first().intValue() == 1 ) {
+				SOAPHeader soapHeader = soapEnvelope.getHeader();
+				// WS-Addressing namespace
+				soapHeader.addNamespaceDeclaration( "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
+				// Message ID
+				Name messageIdName = soapEnvelope.createName( "MessageID", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
+				SOAPHeaderElement messageIdElement = soapHeader.addHeaderElement(messageIdName);
+				// TODO: message ID generation
+				messageIdElement.setValue( "uuid:1" );
+				// Action element
+				Name actionName = soapEnvelope.createName( "Action", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
+				SOAPHeaderElement actionElement = soapHeader.addHeaderElement( actionName );
+				/* TODO: the action element could be specified within the parameter.
+				 * Perhaps wsAddressing.action ?
+				 * We could also allow for giving a prefix or a suffix to the operation name,
+				 * like wsAddressing.action.prefix, wsAddressing.action.suffix
+				 */
+				actionElement.setValue( message.inputId() );
+				// From element
+				Name fromName = soapEnvelope.createName( "From", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
+				SOAPHeaderElement fromElement = soapHeader.addHeaderElement( fromName );
+				Name addressName = soapEnvelope.createName( "Address", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
+				SOAPElement addressElement = fromElement.addChildElement( addressName );
+				addressElement.setValue( "http://schemas.xmlsoap.org/ws/2004/03/addressing/role/anonymous" );
+				// To element
+				/*if ( operation == null ) {
+					// we are sending a Notification or a Solicit
+					Name toName = soapEnvelope.createName("To", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing");
+					SOAPHeaderElement toElement=soapHeader.addHeaderElement(toName);
+					toElement.setValue(getURI().getHost());
+				}*/
+			}
+
 			XSSchemaSet schemaSet = getSchemaSet();
 			XSElementDecl elementDecl;
 			if ( schemaSet == null ||
