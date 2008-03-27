@@ -191,6 +191,25 @@ public class HTTPParser
 			buffer = new byte[ contentLength ];
 			InputStream stream = scanner.inputStream();
 			blockingRead( stream, buffer, 0, contentLength );
+		} else {
+			HTTPMessage.Version version = message.version();
+			if ( // Will the connection be closed?
+				// HTTP 1.1
+				((version == null || version.equals( HTTPMessage.Version.HTTP_1_1 ))
+				&&
+				message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ))
+				||
+				// HTTP 1.0
+				(version.equals( HTTPMessage.Version.HTTP_1_0 )
+				&&
+				!message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" )
+				)
+			) {
+				contentLength = scanner.inputStream().available();
+				buffer = new byte[ contentLength ];
+				InputStream stream = scanner.inputStream();
+				blockingRead( stream, buffer, 0, contentLength );
+			}
 		}
 		
 		message.setContent( buffer );
