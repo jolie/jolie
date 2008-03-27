@@ -514,8 +514,7 @@ public class SOAPProtocol extends CommProtocol
 		try {
 			Value value = Value.create();
 			String messageId = message.getPropertyOrEmptyString( "soapaction" );
-			if ( messageId.isEmpty() )
-				throw new IOException( "Received SOAP Message without a specified operation" );				
+
 			if ( message.content() != null ) {
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				
@@ -560,6 +559,8 @@ public class SOAPProtocol extends CommProtocol
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET
 					) {
+				if ( messageId.isEmpty() )
+					throw new IOException( "Received SOAP Message without a specified operation" );
 				retVal = new CommMessage( messageId, value );
 			}
 		} catch( SOAPException se ) {
