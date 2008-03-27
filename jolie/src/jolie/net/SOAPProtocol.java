@@ -64,6 +64,7 @@ import javax.xml.validation.SchemaFactory;
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
+import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
@@ -511,10 +512,10 @@ public class SOAPProtocol extends CommProtocol
 		}
 		
 		CommMessage retVal = null;
+		String messageId = message.getPropertyOrEmptyString( "soapaction" );
 		
 		try {
 			Value value = Value.create();
-			String messageId = message.getPropertyOrEmptyString( "soapaction" );
 
 			if ( message.content() != null ) {
 				SOAPMessage soapMessage = messageFactory.createMessage();
@@ -535,6 +536,8 @@ public class SOAPProtocol extends CommProtocol
 					interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 				}
 	
+				messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
+				
 				ValueVector schemaPaths = getParameterVector( "schema" );
 				if ( schemaPaths.size() > 0 ) {
 					Source[] sources = new Source[ schemaPaths.size() ];
@@ -550,7 +553,6 @@ public class SOAPProtocol extends CommProtocol
 				xmlNodeToValue(
 						value, soapMessage.getSOAPBody().getFirstChild()
 						);
-				messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
 			}
 			
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
@@ -568,7 +570,7 @@ public class SOAPProtocol extends CommProtocol
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
 		} catch( SAXException saxe ) {
-			throw new IOException( saxe );
+			retVal = new CommMessage( messageId, new FaultException( "InvalidType" ) );
 		}
 		
 		return retVal;
