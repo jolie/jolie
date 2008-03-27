@@ -90,7 +90,7 @@ import jolie.util.Pair;
 public class OLParseTreeOptimizer
 {	
 	/**
-	 * @todo Optimize expressions and conditions
+	 * TODO Optimize expressions and conditions
 	 *
 	 */
 	private class OptimizerVisitor implements OLVisitor

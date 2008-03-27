@@ -267,7 +267,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( Scope n ) {}
 	
 	/*
-	 * @todo Must check operation names in opNames and links in linkNames and locks in lockNames
+	 * TODO Must check operation names in opNames and links in linkNames and locks in lockNames
 	 */
 	public void visit( OneWayOperationStatement n ) {}
 	public void visit( RequestResponseOperationStatement n ) {}
@@ -276,7 +276,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( SynchronizedStatement n ) {}
 		
 	/**
-	 * @todo Must assign to a variable in varNames
+	 * TODO Must assign to a variable in varNames
 	 */
 	public void visit( AssignStatement n ) {}
 	public void visit( PointerStatement n ) {}

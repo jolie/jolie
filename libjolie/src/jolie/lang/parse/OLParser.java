@@ -912,7 +912,7 @@ public class OLParser extends AbstractParser
 				new Vector< Pair< String, OLSyntaxNode > >();
 
 		String id;
-		// @todo: this is buggy, as it allows lists ending with a comma
+		// TODO: this is buggy, as it allows lists ending with a comma
 		while( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.THIS ) ) {
 			if ( token.is( Scanner.TokenType.ID ) )
 				id = token.content();
