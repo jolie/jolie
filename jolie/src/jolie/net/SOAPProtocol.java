@@ -368,6 +368,10 @@ public class SOAPProtocol extends CommProtocol
 			if ( operation != null ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK\r\n";
+				if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
+					channel.setToBeClosed( true );
+					messageString += "Connection: close\r\n";
+				}
 			} else {
 				// We're sending a notification or a solicit
 				String path = getURI().getPath();
