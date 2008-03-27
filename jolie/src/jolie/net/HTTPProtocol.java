@@ -76,6 +76,8 @@ public class HTTPProtocol extends CommProtocol
 	private VariablePath locationVariablePath;
 	private URI uri = null;
 	
+	final private static String CRLF = "\n\r";
+	
 	public HTTPProtocol( VariablePath configurationPath, URI uri )
 	{
 		super( configurationPath );
@@ -207,7 +209,7 @@ public class HTTPProtocol extends CommProtocol
 
 			if ( operation != null ) {
 				// We're responding to a request
-				messageString += "HTTP/1.1 200 OK\r\n";
+				messageString += "HTTP/1.1 200 OK" + CRLF;
 			} else {
 				URI uri = getURI();
 				// We're sending a notification or a solicit
@@ -223,18 +225,18 @@ public class HTTPProtocol extends CommProtocol
 				if ( getParameterVector( "method" ).first().strValue().length() > 0 )
 					method = getParameterVector( "method" ).first().strValue().toUpperCase();
 				
-				messageString += method + " " + path + queryString + " HTTP/1.1\r\n";
-				messageString += "Host: " + uri.getHost() + "\r\n";
+				messageString += method + " " + path + queryString + " HTTP/1.1" + CRLF;
+				messageString += "Host: " + uri.getHost() + CRLF;
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 				channel.setToBeClosed( true );
-				messageString += "Connection: close\r\n";
+				messageString += "Connection: close" + CRLF;
 			}
 			
-			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"\r\n";
-			messageString += "Content-Length: " + contentString.length() + "\r\n";
-			messageString += "\r\n" + contentString + "\r\n";
+			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"" + CRLF;
+			messageString += "Content-Length: " + contentString.length() + CRLF;
+			messageString += CRLF + contentString + CRLF;
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + messageString ); 

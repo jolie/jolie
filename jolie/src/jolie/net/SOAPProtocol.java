@@ -395,7 +395,7 @@ public class SOAPProtocol extends CommProtocol
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
 			
-			String soapString = "\n<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+			String soapString = CRLF + "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 								new String( tmpStream.toByteArray() );
 
 			String messageString = new String();
