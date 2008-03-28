@@ -219,7 +219,7 @@ public class Interpreter
 	public void logUnhandledFault( FaultException f )
 	{
 		//if ( verbose )
-		System.out.println( "Thrown unhandled fault: " + f.fault() ); 
+		System.out.println( "Thrown unhandled fault: " + f.faultName() ); 
 	}
 	
 	public Constants.ExecutionMode executionMode()
