@@ -44,6 +44,8 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.Detail;
+import javax.xml.soap.DetailEntry;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
@@ -52,6 +54,7 @@ import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.soap.SOAPMessage;
@@ -182,7 +185,7 @@ public class SOAPProtocol extends CommProtocol
 			element.addNamespaceDeclaration( entry.getValue(), entry.getKey() );
 	}
 	
-	private static void valueToSOAPBody(
+	private static void valueToSOAPElement(
 			Value value,
 			SOAPElement element,
 			SOAPEnvelope soapEnvelope
@@ -209,7 +212,7 @@ public class SOAPProtocol extends CommProtocol
 							attrEntry.getValue().strValue()
 							);
 				}
-				valueToSOAPBody( val, currentElement, soapEnvelope );
+				valueToSOAPElement( val, currentElement, soapEnvelope );
 			}
 		}
 	}
@@ -373,26 +376,36 @@ public class SOAPProtocol extends CommProtocol
 				}*/
 			}
 
-			XSSchemaSet schemaSet = getSchemaSet();
-			XSElementDecl elementDecl;
-			if ( schemaSet == null ||
-					(elementDecl=schemaSet.getElementDecl( messageNamespace, inputId )) == null
-					) {
-				Name operationName = soapEnvelope.createName( inputId );
-				SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
-				valueToSOAPBody( message.value(), opBody, soapEnvelope );
+			if ( message.isFault() ) {
+				FaultException f = message.fault();
+				SOAPFault soapFault = soapBody.addFault();
+				soapFault.setFaultCode( soapEnvelope.createQName( "Server", soapEnvelope.getPrefix() ) );
+				soapFault.setFaultString( f.getMessage() );
+				Detail detail = soapFault.addDetail();
+				DetailEntry de = detail.addDetailEntry( soapEnvelope.createName( f.faultName(), null, messageNamespace ) );
+				valueToSOAPElement( f.value(), de, soapEnvelope );
 			} else {
-				initNamespacePrefixes( soapEnvelope );
-				Name operationName = null;
-				if ( elementDecl.getOwnerSchema().elementFormDefault() )
-					operationName = soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null );
-				else
-					operationName = soapEnvelope.createName( inputId );
-							
-				SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
-				valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
+				XSSchemaSet schemaSet = getSchemaSet();
+				XSElementDecl elementDecl;
+				if ( schemaSet == null ||
+						(elementDecl=schemaSet.getElementDecl( messageNamespace, inputId )) == null
+					) {
+					Name operationName = soapEnvelope.createName( inputId );
+					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+					valueToSOAPElement( message.value(), opBody, soapEnvelope );
+				} else {
+					initNamespacePrefixes( soapEnvelope );
+					Name operationName = null;
+					if ( elementDecl.getOwnerSchema().elementFormDefault() )
+						operationName = soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null );
+					else
+						operationName = soapEnvelope.createName( inputId );
+								
+					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
+				}
 			}
-
+			
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
 			
@@ -513,10 +526,10 @@ public class SOAPProtocol extends CommProtocol
 		
 		CommMessage retVal = null;
 		String messageId = message.getPropertyOrEmptyString( "soapaction" );
+		FaultException fault = null;
+		Value value = Value.create();
 		
 		try {
-			Value value = Value.create();
-
 			if ( message.content() != null ) {
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				
@@ -535,42 +548,63 @@ public class SOAPProtocol extends CommProtocol
 					soapMessage.writeTo( tmpStream );
 					interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 				}
-	
-				messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
 				
-				ValueVector schemaPaths = getParameterVector( "schema" );
-				if ( schemaPaths.size() > 0 ) {
-					Source[] sources = new Source[ schemaPaths.size() ];
-					for( int i = 0; i < schemaPaths.size(); i++ )
-						sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
+				SOAPFault soapFault = soapMessage.getSOAPBody().getFault(); 
+				if ( soapFault == null ) {
+					messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
 					
-					Schema schema =
-						SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-								.newSchema( sources );
-					schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+					xmlNodeToValue(
+							value, soapMessage.getSOAPBody().getFirstChild()
+							);
+					
+					ValueVector schemaPaths = getParameterVector( "schema" );
+					if ( schemaPaths.size() > 0 ) {
+						Source[] sources = new Source[ schemaPaths.size() ];
+						for( int i = 0; i < schemaPaths.size(); i++ )
+							sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
+						
+						Schema schema =
+							SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
+									.newSchema( sources );
+						schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+					}
+				} else {
+					String faultName = "UnknownFault";
+					Value faultValue = Value.create();
+					Detail d = soapFault.getDetail();
+					if ( d != null ) {
+						Node n = d.getFirstChild();
+						if ( n != null ) {
+							faultName = n.getLocalName();
+							xmlNodeToValue(
+									faultValue, n
+							);
+						} else {
+							faultValue.setValue( soapFault.getFaultString() );
+						}
+					}
+					fault = new FaultException( faultName, faultValue );
 				}
-				
-				xmlNodeToValue(
-						value, soapMessage.getSOAPBody().getFirstChild()
-						);
 			}
 			
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
-				retVal = new CommMessage( inputId, value );
+				if ( fault != null && message.httpCode() == 500 )
+					fault = new FaultException( "InternalServerError", "" );
+				retVal = new CommMessage( inputId, value, fault );
 			} else if (
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET
 					) {
 				if ( messageId.isEmpty() )
 					throw new IOException( "Received SOAP Message without a specified operation" );
-				retVal = new CommMessage( messageId, value );
+				retVal = new CommMessage( messageId, value, fault );
 			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
 		} catch( SAXException saxe ) {
-			retVal = new CommMessage( messageId, new FaultException( "InvalidType" ) );
+			retVal = new CommMessage( messageId, value, new FaultException( "InvalidType" ) );
 		}
 		
 		return retVal;

@@ -40,7 +40,7 @@ public class CommMessage implements Externalizable
 	
 	private String inputId;
 	private Value value;
-	private boolean fault = false;
+	private FaultException fault = null;
 	
 	public CommMessage() {}
 	
@@ -56,7 +56,7 @@ public class CommMessage implements Externalizable
 		throws IOException, ClassNotFoundException
 	{
 		inputId = in.readUTF();
-		fault = in.readBoolean();
+		fault = FaultException.createFromExternal( in );
 		value = Value.createFromExternal( in );
 	}
 	
@@ -64,7 +64,12 @@ public class CommMessage implements Externalizable
 		throws IOException
 	{
 		out.writeUTF( inputId );
-		out.writeBoolean( fault );
+		if ( fault == null ) {
+			out.writeBoolean( false );
+		} else {
+			out.writeBoolean( true );
+			fault.writeExternal( out );
+		}
 		value.writeExternal( out );
 	}
 	
@@ -81,17 +86,25 @@ public class CommMessage implements Externalizable
 		this.value = Value.createDeepCopy( value );
 	}
 	
+	public CommMessage( String inputId, FaultException f )
+	{
+		this.inputId = inputId;
+		this.value = Value.create();
+		this.fault = f;
+	}
+	
+	public CommMessage( String inputId, Value value, FaultException f )
+	{
+		this.inputId = inputId;
+		// TODO see above performance hit.
+		this.value = Value.createDeepCopy( value );
+		fault = f;
+	}
+	
 	public CommMessage( String inputId )
 	{
 		this.inputId = inputId;
 		this.value = Value.create();
-	}
-
-	public CommMessage( String inputId, FaultException f )
-	{
-		this.inputId = inputId;
-		this.value = Value.create( f.fault() );
-		fault = true;
 	}
 	
 	public Value value()
@@ -106,11 +119,11 @@ public class CommMessage implements Externalizable
 
 	public boolean isFault()
 	{
-		return fault;
+		return ( fault != null );
 	}
 	
-	public String faultName()
+	public FaultException fault()
 	{
-		return value.strValue();
+		return fault;
 	}
 }
