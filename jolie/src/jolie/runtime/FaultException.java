@@ -21,24 +21,84 @@
 
 package jolie.runtime;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import jolie.Constants;
 
-public class FaultException extends Exception
+public class FaultException extends Exception implements Externalizable
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
+	private String faultName;
+	private Value value;
 	
-	public FaultException( String message )
+	public FaultException() {}
+	
+	public FaultException( String faultName, String message )
 	{
-		super( message );
+		super();
+		this.faultName = faultName;
+		this.value = Value.create( message );
 	}
 	
-	public FaultException( Exception e )
+	public FaultException( String faultName, Value value )
+	{
+		super();
+		this.faultName = faultName;
+		this.value = value;
+	}
+	
+	public FaultException( String faultName )
+	{
+		super();
+		this.faultName = faultName;
+		this.value = Value.create();
+	}
+	
+	public static FaultException createFromExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		FaultException f = null;
+		if ( in.readBoolean() ) {
+			f = new FaultException();
+			f.readExternal( in );
+		}
+		return f;
+	}
+	
+	public void readExternal( ObjectInput in )
+		throws IOException, ClassNotFoundException
+	{
+		faultName = in.readUTF();
+		value = Value.createFromExternal( in );
+	}
+	
+	public void writeExternal( ObjectOutput out )
+		throws IOException
+	{
+		out.writeUTF( faultName );
+		value.writeExternal( out );
+	}
+	
+	/*public FaultException( Exception e )
 	{
 		super( e );
+	}*/
+	
+	public String getMessage()
+	{
+		return value.strValue();
 	}
 	
-	public String fault()
+	public Value value()
 	{
-		return getMessage();
+		return value;
+	}
+	
+	public String faultName()
+	{
+		return faultName;
 	}
 }

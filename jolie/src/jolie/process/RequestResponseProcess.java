@@ -157,7 +157,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 						new CommMessage( operation.id() ) :
 						new CommMessage( operation.id(), outputExpression.evaluate() );
 		} catch( FaultException f ) {
-			if ( !operation.faultNames().contains( f.fault() ) ) {
+			if ( !operation.faultNames().contains( f.faultName() ) ) {
 				Interpreter.getInstance().logger().severe(
 					"Request-Response process for " + operation.id() +
 					"threw an undeclared fault for that operation" );
@@ -165,7 +165,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				if ( it.hasNext() ) {
 					String newFault = it.next();
 					Interpreter.getInstance().logger().warning(
-						"Converting Request-Response fault " + f.fault() +
+						"Converting Request-Response fault " + f.faultName() +
 						" to " + newFault );
 					f = new FaultException( newFault );
 				} else

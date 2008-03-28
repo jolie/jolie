@@ -73,14 +73,15 @@ public class SolicitResponseProcess implements Process
 			
 			channel.send( message );
 			message = channel.recv();
-			if ( message.isFault() )
-				throw new FaultException( message.faultName() );
-
+			
 			if ( inputVarPath != null )	 {
 				Value v = inputVarPath.getValue();
 				v.erase();
 				v.deepCopy( message.value() );
 			}
+			
+			if ( message.isFault() )
+				throw message.fault();
 			
 			installProcess.run();
 		} catch( IOException ioe ) {

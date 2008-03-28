@@ -88,7 +88,7 @@ public class CorrelatedProcess implements Process
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		Process p = null;
-		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.fault(), true )) == null )
+		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.faultName(), true )) == null )
 			ethread.popScope();
 		
 		try {

@@ -62,7 +62,7 @@ public class ScopeProcess implements Process
 					}
 				}
 			} catch( FaultException f ) {
-				p = ethread.getFaultHandler( f.fault(), true );
+				p = ethread.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
 					this.runScope( p );
 				} else
