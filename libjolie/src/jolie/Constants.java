@@ -62,7 +62,8 @@ public final class Constants
 		UNSUPPORTED,
 		SOCKET,
 		PIPE,
-		FILE
+		FILE,
+		DBUS
 	}
 	
 	public enum VariableType {
@@ -94,6 +95,8 @@ public final class Constants
 			return MediumId.PIPE;
 		else if ( "file".equals( str ) )
 			return MediumId.FILE;
+		else if ( "dbus".equals( str ) )
+			return MediumId.DBUS;
 		
 		return MediumId.UNSUPPORTED;
 	}
