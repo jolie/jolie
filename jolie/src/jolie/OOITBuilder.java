@@ -10,8 +10,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import jolie.Constants.OperandType;
-import jolie.deploy.InputPort;
-import jolie.deploy.OutputPort;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -77,6 +75,8 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommProtocol;
 import jolie.net.HTTPProtocol;
+import jolie.net.InputPort;
+import jolie.net.OutputPort;
 import jolie.net.SOAPProtocol;
 import jolie.net.SODEPProtocol;
 import jolie.net.UnsupportedCommMediumException;

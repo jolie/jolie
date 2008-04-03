@@ -30,7 +30,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Collection;
 
 import jolie.Interpreter;
-import jolie.deploy.InputPort;
 
 public class SocketListener extends CommListener
 {

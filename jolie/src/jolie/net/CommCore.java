@@ -38,7 +38,6 @@ import java.util.logging.Logger;
 
 import jolie.Constants;
 import jolie.Interpreter;
-import jolie.deploy.InputPort;
 import jolie.process.Process;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;

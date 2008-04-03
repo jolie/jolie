@@ -39,8 +39,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import jolie.deploy.InputPort;
-import jolie.deploy.OutputPort;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -49,6 +47,8 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.InputPort;
+import jolie.net.OutputPort;
 import jolie.net.PipeListener;
 import jolie.process.SubRoutineProcess;
 import jolie.runtime.EmbeddedServiceLoader;

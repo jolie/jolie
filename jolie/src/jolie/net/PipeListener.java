@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.util.Collection;
 
 import jolie.Interpreter;
-import jolie.deploy.InputPort;
 
 public class PipeListener extends CommListener
 {

@@ -25,9 +25,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
-import jolie.deploy.OutputPort;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.OutputPort;
 import jolie.runtime.Expression;
 
 public class NotificationProcess implements Process

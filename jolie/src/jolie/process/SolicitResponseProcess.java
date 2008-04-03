@@ -24,9 +24,9 @@ package jolie.process;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import jolie.deploy.OutputPort;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.OutputPort;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;

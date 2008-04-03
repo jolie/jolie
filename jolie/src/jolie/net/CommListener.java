@@ -26,7 +26,6 @@ import java.util.Collection;
 
 import jolie.Interpreter;
 import jolie.JolieThread;
-import jolie.deploy.InputPort;
 import jolie.runtime.InputOperation;
 
 /** Base class for a communication input listener.

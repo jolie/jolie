@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.deploy;
+package jolie.net;
 
 import java.util.Collection;
 

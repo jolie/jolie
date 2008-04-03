@@ -33,6 +33,9 @@ import jolie.Constants;
 import jolie.Interpreter;
 import jolie.runtime.InvalidIdException;
 
+import org.freedesktop.dbus.DBusConnection;
+import org.freedesktop.dbus.exceptions.DBusException;
+
 
 /** A communication channel permits to send and receive messages.
  * 
@@ -46,7 +49,7 @@ abstract public class CommChannel implements Channel
 	private CommListener listener = null;
 	private boolean isOpen = false;
 	
-	public static CommChannel createCommChannel( URI uri, CommProtocol protocol )
+	public static CommChannel createCommChannel( URI uri, OutputPort port )
 		throws IOException, URISyntaxException
 	{
 		CommChannel channel = null;
@@ -55,12 +58,24 @@ abstract public class CommChannel implements Channel
 		if ( medium == Constants.MediumId.SOCKET ) {
 			SocketChannel socketChannel = 
 						SocketChannel.open( new InetSocketAddress( uri.getHost(), uri.getPort() ) );
-			channel = new SocketCommChannel( socketChannel, protocol );
+			channel = new SocketCommChannel( socketChannel, port.getProtocol( uri ) );
 		} else if ( medium == Constants.MediumId.PIPE ) {
 			String id = uri.getSchemeSpecificPart();
 			try {
 				channel = Interpreter.getNewPipeChannel( id );
 			} catch( InvalidIdException e ) {
+				throw new IOException( e );
+			}
+		} else if ( medium == Constants.MediumId.DBUS ) {
+			try {
+				String[] ss = uri.getSchemeSpecificPart().split( ":" );
+				DBusConnection c = null;
+				if ( "system".equals( ss[0] ) )
+					c = DBusConnection.getConnection( DBusConnection.SYSTEM );
+				else if ( "session".equals( ss[0] ) )
+					c = DBusConnection.getConnection( DBusConnection.SESSION );
+				channel = new DBusCommChannel( c, ss[1], ss[2], port );
+			} catch( DBusException e ) {
 				throw new IOException( e );
 			}
 		} else

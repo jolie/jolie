@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.deploy;
+package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,11 +29,6 @@ import java.util.Vector;
 
 import jolie.Constants;
 import jolie.Interpreter;
-import jolie.net.CommChannel;
-import jolie.net.CommProtocol;
-import jolie.net.HTTPProtocol;
-import jolie.net.SOAPProtocol;
-import jolie.net.SODEPProtocol;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
@@ -86,7 +81,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	
 	private CommProtocol protocol = null;
 	
-	private CommProtocol getProtocol( URI uri )
+	protected CommProtocol getProtocol( URI uri )
 		throws URISyntaxException, IOException
 	{
 		if ( protocol == null ) {
@@ -125,11 +120,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		else {
 			URI uri = new URI( loc.strValue() );
 			if ( !uri.equals( channelURI ) || !channel.isOpen() ) {
-				channel =
-					CommChannel.createCommChannel(
-							uri,
-							getProtocol( uri )
-						);
+				channel = CommChannel.createCommChannel( uri, this );
 				channelURI = uri;
 			}
 		}

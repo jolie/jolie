@@ -22,7 +22,7 @@
 package jolie.process;
 
 import jolie.Interpreter;
-import jolie.deploy.OutputPort;
+import jolie.net.OutputPort;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
