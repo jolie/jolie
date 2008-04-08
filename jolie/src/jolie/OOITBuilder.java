@@ -30,6 +30,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -128,6 +129,7 @@ import jolie.runtime.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
 import jolie.runtime.ExpressionCondition;
 import jolie.runtime.InputOperation;
+import jolie.runtime.InstallFixedVariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
 import jolie.runtime.IsIntExpression;
@@ -737,6 +739,14 @@ public class OOITBuilder implements OLVisitor
 	public void visit( VariableExpressionNode n )
 	{
 		currExpression = getGlobalVariablePath( n.variablePath() );
+	}
+	
+	public void visit( InstallFixedVariableExpressionNode n )
+	{
+		currExpression =
+				new InstallFixedVariablePath(
+					getGlobalVariablePath( n.variablePath() )
+				);
 	}
 	
 	public void visit( NullProcessStatement n )

@@ -112,7 +112,12 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new RequestResponseProcess( operation, inputVarPath, outputExpression, process.clone( reason ) );
+		return new RequestResponseProcess(
+					operation,
+					(VariablePath)inputVarPath.cloneExpression( reason ),
+					(VariablePath)outputExpression.cloneExpression( reason ),
+					process.clone( reason )
+				);
 	}
 	
 	public void setCorrelatedProcess( CorrelatedProcess process )

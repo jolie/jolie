@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class IsRealExpression implements Expression
 {
 	private VariablePath path;
@@ -29,6 +31,11 @@ public class IsRealExpression implements Expression
 	public IsRealExpression( VariablePath path )
 	{
 		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new IsRealExpression( path );
 	}
 
 	public Value evaluate()

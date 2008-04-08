@@ -116,7 +116,8 @@ abstract public class ExecutionThread extends JolieThread
 	public void kill()
 	{
 		killed = true;
-		interrupt();
+		//TODO verify this interrupt()
+		//interrupt();
 	}
 
 	public void clearKill()

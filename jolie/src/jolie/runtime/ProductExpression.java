@@ -25,6 +25,7 @@ package jolie.runtime;
 import java.util.Vector;
 
 import jolie.Constants;
+import jolie.process.TransformationReason;
 
 public class ProductExpression implements Expression
 {
@@ -33,6 +34,20 @@ public class ProductExpression implements Expression
 	public ProductExpression()
 	{
 		children = new Vector< Operand >();
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		ProductExpression ret = new ProductExpression();
+		for( Operand operand : children ) {
+			ret.children.add(
+					new Operand(
+							operand.type(),
+							operand.expression().cloneExpression( reason )
+						)
+					);
+		}
+		return ret;
 	}
 	
 	public Value evaluate()

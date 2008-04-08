@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class NotCondition implements Condition
 {
 	private Condition condition;
@@ -29,6 +31,11 @@ public class NotCondition implements Condition
 	public NotCondition( Condition condition )
 	{
 		this.condition = condition;
+	}
+	
+	public Condition cloneCondition( TransformationReason reason )
+	{
+		return new NotCondition( condition.cloneCondition( reason ) );
 	}
 	
 	public boolean evaluate()

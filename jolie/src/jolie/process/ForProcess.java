@@ -40,7 +40,12 @@ public class ForProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new ForProcess( init, condition, post, process.clone( reason ) );
+		return new ForProcess(
+					init.clone( reason ),
+					condition.cloneCondition( reason ),
+					post.clone( reason ),
+					process.clone( reason )
+				);
 	}
 	
 	public void run()
@@ -52,6 +57,8 @@ public class ForProcess implements Process
 		init.run();
 		while ( condition.evaluate() ) {
 			process.run();
+			if ( ExecutionThread.currentThread().isKilled() )
+				return;
 			post.run();
 		}
 	}

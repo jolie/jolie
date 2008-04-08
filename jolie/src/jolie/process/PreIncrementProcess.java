@@ -28,29 +28,34 @@ import jolie.runtime.Value;
 
 public class PreIncrementProcess implements Process, Expression
 {
-	private VariablePath varPath;
+	private VariablePath path;
 
 	public PreIncrementProcess( VariablePath varPath )
 	{
-		this.varPath = varPath;
+		this.path = varPath;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new PreIncrementProcess( varPath );
+		return new PreIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new PreIncrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}
 	
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		Value val = varPath.getValue();
+		Value val = path.getValue();
 		val.setValue( val.intValue() + 1 );
 	}
 	
 	public Value evaluate()
 	{
-		Value val = varPath.getValue();
+		Value val = path.getValue();
 		val.setValue( val.intValue() + 1 );
 		return val;
 	}

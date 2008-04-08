@@ -21,53 +21,5 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Value;
-
-public class ForEachProcess implements Process
-{
-	private VariablePath keyPath, valuePath, targetPath;
-	private Process process;
-
-	public ForEachProcess(
-			VariablePath keyPath,
-			VariablePath valuePath,
-			VariablePath targetPath,
-			Process process )
-	{
-		this.keyPath = keyPath;
-		this.valuePath = valuePath;
-		this.targetPath = targetPath;
-		this.process = process;
-	}
-	
-	public Process clone( TransformationReason reason )
-	{
-		return new ForEachProcess(
-					(VariablePath) keyPath.cloneExpression( reason ),
-					(VariablePath) valuePath.cloneExpression( reason ),
-					(VariablePath) targetPath.cloneExpression( reason ),
-					process.clone( reason )
-				);
-	}
-	
-	public void run()
-		throws FaultException
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		
-		Value target = targetPath.getValue();
-		VariablePath currPath;
-		for( String id : target.children().keySet() ) {
-			keyPath.getValue().setValue( id );
-			currPath = targetPath.clone();
-			currPath.addPathNode( id, null );
-			valuePath.makePointer( currPath );
-			
-			process.run();
-		}
-	}
-}
+public interface TransformationReason
+{}

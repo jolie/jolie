@@ -38,7 +38,10 @@ public class WhileProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new WhileProcess( condition, process.clone( reason ) );
+		return new WhileProcess(
+					condition.cloneCondition( reason ),
+					process.clone( reason )
+				);
 	}
 	
 	public void run()

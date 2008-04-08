@@ -65,7 +65,7 @@ public class IfProcess implements Process
 	{
 		IfProcess p = new IfProcess();
 		for( CPPair pair : pairs )
-			p.addPair( pair.condition, pair.process.clone( reason ) );
+			p.addPair( pair.condition.cloneCondition( reason ), pair.process.clone( reason ) );
 		p.elseProcess = elseProcess.clone( reason );
 		return p;
 	}

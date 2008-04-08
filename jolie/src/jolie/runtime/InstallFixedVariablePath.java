@@ -19,55 +19,38 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Value;
+package jolie.runtime;
 
-public class ForEachProcess implements Process
+import jolie.process.TransformationReason;
+
+public class InstallFixedVariablePath implements Expression
 {
-	private VariablePath keyPath, valuePath, targetPath;
-	private Process process;
+	private VariablePath path;
+	private Value fixedEvaluation;
 
-	public ForEachProcess(
-			VariablePath keyPath,
-			VariablePath valuePath,
-			VariablePath targetPath,
-			Process process )
+	public InstallFixedVariablePath( VariablePath path )
 	{
-		this.keyPath = keyPath;
-		this.valuePath = valuePath;
-		this.targetPath = targetPath;
-		this.process = process;
+		this.path = path;
+		this.fixedEvaluation = null;
 	}
 	
-	public Process clone( TransformationReason reason )
+	private InstallFixedVariablePath( Value fixedEvaluation )
 	{
-		return new ForEachProcess(
-					(VariablePath) keyPath.cloneExpression( reason ),
-					(VariablePath) valuePath.cloneExpression( reason ),
-					(VariablePath) targetPath.cloneExpression( reason ),
-					process.clone( reason )
-				);
+		this.path = null;
+		this.fixedEvaluation = fixedEvaluation;
 	}
 	
-	public void run()
-		throws FaultException
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
+		if ( reason instanceof HandlerInstallationReason )
+			return new InstallFixedVariablePath( Value.createClone( path.getValue() ) );
 		
-		Value target = targetPath.getValue();
-		VariablePath currPath;
-		for( String id : target.children().keySet() ) {
-			keyPath.getValue().setValue( id );
-			currPath = targetPath.clone();
-			currPath.addPathNode( id, null );
-			valuePath.makePointer( currPath );
-			
-			process.run();
-		}
+		return new InstallFixedVariablePath( path );
+	}
+	
+	public Value evaluate()
+	{
+		return fixedEvaluation;
 	}
 }

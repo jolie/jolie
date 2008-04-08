@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
 public class VariablePath implements Expression, Cloneable
@@ -42,6 +43,11 @@ public class VariablePath implements Expression, Cloneable
 		for( Pair< String, Expression > p : path )
 			list.add( new Pair< String, Expression >( p.key(), p.value() ) );
 		return new VariablePath( list, attribute, global );
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return clone();
 	}
 
 	/**

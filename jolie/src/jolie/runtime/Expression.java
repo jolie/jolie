@@ -23,10 +23,12 @@
 package jolie.runtime;
 
 import jolie.Constants;
+import jolie.process.TransformationReason;
 
 public interface Expression
 {
 	public Value evaluate();
+	public Expression cloneExpression( TransformationReason reason );
 	
 	public class Operand
 	{

@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class CastIntExpression implements Expression
 {
 	private VariablePath path;
@@ -29,6 +31,11 @@ public class CastIntExpression implements Expression
 	public CastIntExpression( VariablePath path )
 	{
 		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new CastIntExpression( (VariablePath) path.cloneExpression( reason ) );
 	}
 	
 	public Value evaluate()

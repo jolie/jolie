@@ -49,7 +49,18 @@ public class AssignmentProcess implements Process, Expression
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new AssignmentProcess( varPath, expression );
+		return new AssignmentProcess(
+					(VariablePath)varPath.cloneExpression( reason ),
+					expression.cloneExpression( reason )
+				);
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new AssignmentProcess(
+					(VariablePath)varPath.cloneExpression( reason ),
+					expression.cloneExpression( reason )
+				);
 	}
 	
 	/** Evaluates the expression and stores its value in the variable. */

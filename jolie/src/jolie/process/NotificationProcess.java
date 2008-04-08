@@ -49,7 +49,12 @@ public class NotificationProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new NotificationProcess( operationId, outputPort, outputExpression );
+		//System.out.println("CIAO");
+		return new NotificationProcess(
+					operationId,
+					outputPort,
+					outputExpression.cloneExpression( reason )
+				);
 	}
 	
 	public void run()

@@ -22,7 +22,9 @@
 
 package jolie.runtime;
 
-public class HandlerInstallationReason implements jolie.process.Process.TransformationReason
+import jolie.process.TransformationReason;
+
+public class HandlerInstallationReason implements TransformationReason
 {
 	private String handlerId;
 	

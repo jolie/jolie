@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.net.CommChannel;
+import jolie.process.TransformationReason;
 
 class ValueLink extends Value implements Cloneable
 {
@@ -567,5 +568,10 @@ abstract public class Value implements Expression
 	public final synchronized void assignValue( Value val )
 	{
 		setValue( val.valueObject() );
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return Value.createClone( this );
 	}
 }

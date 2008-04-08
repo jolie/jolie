@@ -41,10 +41,10 @@ class ParallelThread extends StatelessThread
 	{
 		try {
 			process().run();
+			parent.terminationNotify( this );
 		} catch( FaultException f ) {
 			parent.signalFault( this, f );
 		}
-		parent.terminationNotify( this );
 	}
 }
 
@@ -58,7 +58,6 @@ public class ParallelExecution
 	{
 		for( Process proc : procs )
 			threads.add( new ParallelThread( proc, this ) );
-		
 		//ethread = ExecutionThread.currentThread();
 	}
 	
@@ -69,40 +68,45 @@ public class ParallelExecution
 			for( ParallelThread t : threads )
 				t.start();
 
-			try {
-				wait();
-			} catch( InterruptedException e ) {}
-		
-			if ( fault != null ) {
-				for( ParallelThread t : threads )
-					t.kill();
-			}
-		
-			while ( threads.size() > 0 ) {
+			while ( fault == null && !threads.isEmpty() ) {
 				try {
-					//threads.firstElement().join();
 					wait();
 				} catch( InterruptedException e ) {}
 			}
-		
-			if ( fault != null )
+
+			if ( fault != null ) {
+				for( ParallelThread t : threads )
+					t.kill();
+				while ( !threads.isEmpty() ) {
+					try {
+						wait();
+					} catch( InterruptedException e ) {}
+				}
 				throw fault;
+			}
 		}
 	}
 	
-	public synchronized void terminationNotify( ParallelThread thread )
+	public void terminationNotify( ParallelThread thread )
 	{
-		threads.remove( thread );
-				
-		if ( threads.size() < 1 )
-			notify();
+		synchronized( this ) {
+			threads.remove( thread );
+			
+			if ( threads.isEmpty() )
+				notify();
+		}
 	}
 	
 		
-	public synchronized void signalFault( ParallelThread thread, FaultException f )
+	public void signalFault( ParallelThread thread, FaultException f )
 	{
-		threads.remove( thread );
-		fault = f;
-		notify();
+		synchronized( this ) {
+			threads.remove( thread );
+			if ( fault == null ) {
+				fault = f;
+				notify();
+			} else if ( threads.isEmpty() )
+				notify();
+		}
 	}
 }

@@ -22,7 +22,10 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public interface Condition
 {
 	public boolean evaluate();
+	public Condition cloneCondition( TransformationReason reason );
 }

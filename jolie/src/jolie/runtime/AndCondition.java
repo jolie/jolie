@@ -24,6 +24,8 @@ package jolie.runtime;
 
 import java.util.Vector;
 
+import jolie.process.TransformationReason;
+
 /** Provides the support for a "logical and" chain of other conditions. 
  * 
  * @author Fabrizio Montesi
@@ -37,6 +39,14 @@ public class AndCondition implements Condition
 	public AndCondition()
 	{
 		children = new Vector< Condition >();
+	}
+	
+	public Condition cloneCondition( TransformationReason reason )
+	{
+		AndCondition ret = new AndCondition();
+		for( Condition c : children )
+			ret.addChild( c.cloneCondition( reason ) );
+		return ret;
 	}
 	
 	/** Applies the "logical and" rule.

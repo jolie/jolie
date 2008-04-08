@@ -23,6 +23,7 @@
 package jolie.runtime;
 
 import jolie.lang.parse.Scanner;
+import jolie.process.TransformationReason;
 
 
 /**
@@ -40,6 +41,15 @@ public class CompareCondition implements Condition
 		leftExpression = left;
 		rightExpression = right;
 		this.opType = opType;
+	}
+	
+	public Condition cloneCondition( TransformationReason reason )
+	{
+		return new CompareCondition(
+					leftExpression.cloneExpression( reason ),
+					rightExpression.cloneExpression( reason ),
+					opType
+				);
 	}
 	
 	public boolean evaluate()

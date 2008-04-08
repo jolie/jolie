@@ -24,6 +24,7 @@ package jolie.process;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.OutputPort;
@@ -57,12 +58,21 @@ public class SolicitResponseProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new SolicitResponseProcess( operationId, outputPort, outputExpression, inputVarPath, installProcess );
+		return new SolicitResponseProcess(
+					operationId,
+					outputPort,
+					outputExpression.cloneExpression( reason ),
+					(VariablePath)inputVarPath.cloneExpression( reason ),
+					installProcess.clone( reason )
+				);
 	}
 	
 	public void run()
 		throws FaultException
 	{
+		if ( ExecutionThread.currentThread().isKilled() )
+			return;
+		
 		CommChannel channel = null;
 		try {
 			channel = outputPort.getCommChannel();

@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class ExpressionCondition implements Condition
 {
 	private Expression expression;
@@ -29,6 +31,11 @@ public class ExpressionCondition implements Condition
 	public ExpressionCondition( Expression expression )
 	{
 		this.expression = expression;
+	}
+	
+	public Condition cloneCondition( TransformationReason reason )
+	{
+		return new ExpressionCondition( expression.cloneExpression( reason ) );
 	}
 	
 	public boolean evaluate()

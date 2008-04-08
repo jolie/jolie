@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class ValueVectorSizeExpression implements Expression
 {
 	private VariablePath path;
@@ -29,6 +31,11 @@ public class ValueVectorSizeExpression implements Expression
 	public ValueVectorSizeExpression( VariablePath path )
 	{
 		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new ValueVectorSizeExpression( path );
 	}
 	
 	public Value evaluate()

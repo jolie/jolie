@@ -48,7 +48,7 @@ public class RunProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new RunProcess( expression );
+		return new RunProcess( expression.cloneExpression( reason ) );
 	}
 	
 	public void run()

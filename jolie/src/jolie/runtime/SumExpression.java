@@ -25,6 +25,7 @@ package jolie.runtime;
 import java.util.Vector;
 
 import jolie.Constants;
+import jolie.process.TransformationReason;
 
 public class SumExpression implements Expression
 {
@@ -33,6 +34,20 @@ public class SumExpression implements Expression
 	public SumExpression()
 	{
 		children = new Vector< Operand >();
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		SumExpression ret = new SumExpression();
+		for( Operand operand : children ) {
+			ret.children.add(
+					new Operand(
+							operand.type(),
+							operand.expression().cloneExpression( reason )
+						)
+					);
+		}
+		return ret;
 	}
 	
 	public Value evaluate()

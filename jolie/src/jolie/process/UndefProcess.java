@@ -35,7 +35,7 @@ public class UndefProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new UndefProcess( varPath );
+		return new UndefProcess( (VariablePath)varPath.cloneExpression( reason ) );
 	}
 	
 	public void run()

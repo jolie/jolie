@@ -22,6 +22,8 @@
 
 package jolie.runtime;
 
+import jolie.process.TransformationReason;
+
 public class IsDefinedExpression implements Expression
 {
 	private VariablePath path;
@@ -29,6 +31,11 @@ public class IsDefinedExpression implements Expression
 	public IsDefinedExpression( VariablePath path )
 	{
 		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new IsDefinedExpression( path );
 	}
 	
 	public Value evaluate()

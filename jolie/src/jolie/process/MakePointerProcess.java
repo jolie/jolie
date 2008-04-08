@@ -36,7 +36,10 @@ public class MakePointerProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new MakePointerProcess( leftPath, rightPath );
+		return new MakePointerProcess(
+				(VariablePath)leftPath.cloneExpression( reason ),
+				(VariablePath)rightPath.cloneExpression( reason )
+				);
 	}
 	
 	public void run()

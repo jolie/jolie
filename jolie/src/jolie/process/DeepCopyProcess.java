@@ -33,12 +33,15 @@ public class DeepCopyProcess implements Process
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
-	
+
 	public Process clone( TransformationReason reason )
 	{
-		return new DeepCopyProcess( leftPath, rightPath );
+		return new DeepCopyProcess(
+					(VariablePath)leftPath.cloneExpression( reason ),
+					(VariablePath)rightPath.cloneExpression( reason )
+				);
 	}
-	
+
 	public void run()
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
