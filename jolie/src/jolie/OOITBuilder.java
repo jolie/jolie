@@ -63,8 +63,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SubRoutineCallStatement;
-import jolie.lang.parse.ast.SubRoutineNode;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -113,7 +113,7 @@ import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SolicitResponseProcess;
-import jolie.process.SubRoutineProcess;
+import jolie.process.DefinitionProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
@@ -329,9 +329,9 @@ public class OOITBuilder implements OLVisitor
 						);
 	}
 	
-	public void visit( SubRoutineNode n )
+	public void visit( DefinitionNode n )
 	{
-		SubRoutineProcess def;
+		DefinitionProcess def;
 		
 		if ( "main".equals( n.id() ) ) {
 			canSpawnSession = true;
@@ -345,7 +345,7 @@ public class OOITBuilder implements OLVisitor
 			currProcess = new ScopeProcess( "main", currProcess );
 			def = new MainDefinitionProcess();
 		} else {
-			def = new SubRoutineProcess( n.id() );
+			def = new DefinitionProcess( n.id() );
 			n.body().accept( this );
 		}
 
@@ -632,7 +632,7 @@ public class OOITBuilder implements OLVisitor
 		currProcess = CurrentHandlerProcess.getInstance();
 	}
 
-	public void visit( SubRoutineCallStatement n )
+	public void visit( DefinitionCallStatement n )
 	{
 		try {
 			currProcess = new CallProcess( interpreter.getDefinition( n.id() ) );

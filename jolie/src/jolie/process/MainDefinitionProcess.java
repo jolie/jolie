@@ -30,7 +30,7 @@ import jolie.runtime.InvalidIdException;
 
 
 
-public class MainDefinitionProcess extends SubRoutineProcess
+public class MainDefinitionProcess extends DefinitionProcess
 {
 	public MainDefinitionProcess()
 	{
@@ -59,7 +59,7 @@ public class MainDefinitionProcess extends SubRoutineProcess
 				p.run();
 		
 			try {
-				SubRoutineProcess p = interpreter.getDefinition( "init" );
+				DefinitionProcess p = interpreter.getDefinition( "init" );
 				p.run();
 			} catch( InvalidIdException e ) {}
 			

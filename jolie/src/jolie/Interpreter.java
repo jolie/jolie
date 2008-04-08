@@ -50,7 +50,7 @@ import jolie.net.CommCore;
 import jolie.net.InputPort;
 import jolie.net.OutputPort;
 import jolie.net.PipeListener;
-import jolie.process.SubRoutineProcess;
+import jolie.process.DefinitionProcess;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -80,8 +80,8 @@ public class Interpreter
 			new Vector< EmbeddedServiceLoader >();
 	private Logger logger = Logger.getLogger( "JOLIE" );
 	
-	private Map< String, SubRoutineProcess > definitions = 
-				new HashMap< String, SubRoutineProcess >();
+	private Map< String, DefinitionProcess > definitions = 
+				new HashMap< String, DefinitionProcess >();
 	private Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
 	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
 	private Map< String, InputOperation > inputOperations = 
@@ -167,10 +167,10 @@ public class Interpreter
 		return (InputPort)ret;
 	}
 	
-	public SubRoutineProcess getDefinition( String key )
+	public DefinitionProcess getDefinition( String key )
 		throws InvalidIdException
 	{
-		SubRoutineProcess ret;
+		DefinitionProcess ret;
 		if ( (ret=definitions.get( key )) == null )
 			throw new InvalidIdException( key );
 		return ret;
@@ -186,7 +186,7 @@ public class Interpreter
 		outputPorts.put( key, value );
 	}
 	
-	public void register( String key, SubRoutineProcess value )
+	public void register( String key, DefinitionProcess value )
 	{
 		definitions.put( key, value );
 	}
@@ -342,7 +342,7 @@ public class Interpreter
 		/**
 		 * Order is important. CommCore needs the OOIT to initialize.
 		 */
-		SubRoutineProcess main = null;
+		DefinitionProcess main = null;
 		if ( buildOOIT() == false )
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		

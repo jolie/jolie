@@ -25,18 +25,18 @@ import jolie.runtime.FaultException;
 
 /** Makes a Definition object (a sub-routine) executing its content. 
  * 
- * @see SubRoutineProcess
+ * @see DefinitionProcess
  * @author Fabrizio Montesi
  */
 public class CallProcess implements Process
 {
-	private SubRoutineProcess definition;
+	private DefinitionProcess definition;
 	
 	/** Constructor
 	 * 
 	 * @param definition the definition to execute.
 	 */
-	public CallProcess( SubRoutineProcess definition )
+	public CallProcess( DefinitionProcess definition )
 	{
 		this.definition = definition;
 	}

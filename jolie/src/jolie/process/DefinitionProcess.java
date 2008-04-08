@@ -25,18 +25,18 @@ package jolie.process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 
-public class SubRoutineProcess extends AbstractIdentifiableObject implements Process
+public class DefinitionProcess extends AbstractIdentifiableObject implements Process
 {
 	private Process process = null;
 
-	public SubRoutineProcess( String id )
+	public DefinitionProcess( String id )
 	{
 		super( id );
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new SubRoutineProcess( id() );
+		return new DefinitionProcess( id() );
 	}
 
 	public void setProcess( Process process )
