@@ -52,6 +52,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -101,10 +102,12 @@ import jolie.util.Pair;
  *
  */
 public class OLParser extends AbstractParser
-{	
+{
 	private Program program = new Program( new ParsingContext() );
 	private HashMap< String, Scanner.Token > constantsMap =
 					new HashMap< String, Scanner.Token > ();
+	
+	private boolean insideInstallFunction = false;
 
 	public OLParser( Scanner scanner )
 	{
@@ -908,6 +911,8 @@ public class OLParser extends AbstractParser
 	private InstallFunctionNode parseInstallFunction()
 		throws IOException, ParserException
 	{
+		boolean backup = insideInstallFunction;
+		insideInstallFunction = true;
 		Vector< Pair< String, OLSyntaxNode > > vec =
 				new Vector< Pair< String, OLSyntaxNode > >();
 
@@ -927,6 +932,7 @@ public class OLParser extends AbstractParser
 				getToken();
 		}
 		
+		insideInstallFunction = backup;
 		return new InstallFunctionNode( vec );
 	}
 	
@@ -1323,6 +1329,14 @@ public class OLParser extends AbstractParser
 			path = parseVariablePath( varId );
 		} else if ( token.is( Scanner.TokenType.DOT ) ) {
 			path = parsePrefixedVariablePath();
+		} else if ( insideInstallFunction && token.is( Scanner.TokenType.CARET ) ) {
+			getToken();
+			String varId = token.content();
+			getToken();
+			path = parseVariablePath( varId );
+			retVal = new InstallFixedVariableExpressionNode( getContext(), path );
+			
+			return retVal;
 		}
 
 		if ( path != null ) {
@@ -1420,15 +1434,15 @@ public class OLParser extends AbstractParser
 						);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
-				getToken();
-				eat( Scanner.TokenType.LPAREN, "expected (" );
-				assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-				String varId = token.content();
-				getToken();
-				retVal = new TypeCastExpressionNode(
-							getContext(), Constants.VariableType.REAL, parseVariablePath( varId )
-							);
-				eat( Scanner.TokenType.RPAREN, "expected )" );
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
+			String varId = token.content();
+			getToken();
+			retVal = new TypeCastExpressionNode(
+						getContext(), Constants.VariableType.REAL, parseVariablePath( varId )
+						);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );

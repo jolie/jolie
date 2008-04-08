@@ -40,6 +40,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
@@ -139,4 +140,5 @@ public interface OLVisitor
 	public void visit( SynchronizedStatement n );
 	public void visit( CurrentHandlerStatement n );
 	public void visit( EmbeddedServiceNode n );
+	public void visit( InstallFixedVariableExpressionNode n );
 }

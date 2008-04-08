@@ -46,6 +46,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
@@ -295,6 +296,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( ProductExpressionNode n ) {}
 	public void visit( SumExpressionNode n ) {}
 	public void visit( VariableExpressionNode n ) {}
+	public void visit( InstallFixedVariableExpressionNode n ) {}
 	public void visit( NullProcessStatement n ) {}
 	public void visit( ExitStatement n ) {}
 	public void visit( ExecutionInfo n ) {}

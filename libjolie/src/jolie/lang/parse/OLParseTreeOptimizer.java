@@ -40,6 +40,7 @@ import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
@@ -303,6 +304,24 @@ public class OLParseTreeOptimizer
 			currNode = new WhileStatement( n.context(), condition, currNode );
 		}
 		
+		public void visit( ForStatement n )
+		{
+			n.init().accept( this );
+			OLSyntaxNode init = currNode;
+			n.condition().accept( this );
+			OLSyntaxNode condition = currNode;
+			n.post().accept( this );
+			OLSyntaxNode post = currNode;
+			n.body().accept( this );
+			currNode = new ForStatement( n.context(), init, condition, post, currNode );
+		}
+		
+		public void visit( ForEachStatement n )
+		{
+			n.body().accept( this );
+			currNode = new ForEachStatement( n.context(), n.keyPath(), n.valuePath(), n.targetPath(), currNode );
+		}
+		
 		public void visit( RequestResponseOperationStatement n )
 		{
 			OLSyntaxNode outputExpression = null;
@@ -365,6 +384,7 @@ public class OLParseTreeOptimizer
 		public void visit( ProductExpressionNode n ) { currNode = n; }
 		public void visit( SumExpressionNode n ) { currNode = n; }
 		public void visit( VariableExpressionNode n ) { currNode = n; }
+		public void visit( InstallFixedVariableExpressionNode n ) { currNode = n; }
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
@@ -374,8 +394,6 @@ public class OLParseTreeOptimizer
 		public void visit( PreDecrementStatement n ) { currNode = n; }
 		public void visit( PostDecrementStatement n ) { currNode = n; }
 		public void visit( UndefStatement n ) { currNode = n; }
-		public void visit( ForStatement n ) { currNode = n; }
-		public void visit( ForEachStatement n ) { currNode = n; }
 		public void visit( IsTypeExpressionNode n ) { currNode = n; }
 		public void visit( TypeCastExpressionNode n ) { currNode = n; }
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }

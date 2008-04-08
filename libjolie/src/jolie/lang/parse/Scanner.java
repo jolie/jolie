@@ -60,6 +60,7 @@ public class Scanner
 		OR,					///< ||
 		PARALLEL,			///< |
 		NOT,				///< !
+		CARET,				///< ^
 		COLON,				///< :
 		OP_OW,				///< OneWay
 		OP_RR,				///< RequestResponse
@@ -355,6 +356,8 @@ public class Scanner
 							//retval = new Token( TokenType.DOT );
 						else if ( ch == '#' )
 							retval = new Token( TokenType.HASH );
+						else if ( ch == '^' )
+							retval = new Token( TokenType.CARET );
 						
 						readChar();
 					}
