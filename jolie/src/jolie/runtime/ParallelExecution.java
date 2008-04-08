@@ -69,9 +69,17 @@ public class ParallelExecution
 				t.start();
 
 			while ( fault == null && !threads.isEmpty() ) {
+				ExecutionThread ethread = ExecutionThread.currentThread();
 				try {
+					ethread.setCanBeInterrupted( true );
 					wait();
-				} catch( InterruptedException e ) {}
+					ethread.setCanBeInterrupted( false );
+				} catch( InterruptedException e ) {
+					if ( ethread.isKilled() ) {
+						for( ParallelThread t : threads )
+							t.kill();
+					}
+				}
 			}
 
 			if ( fault != null ) {
