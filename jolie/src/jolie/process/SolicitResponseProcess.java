@@ -62,7 +62,7 @@ public class SolicitResponseProcess implements Process
 					operationId,
 					outputPort,
 					outputExpression.cloneExpression( reason ),
-					(VariablePath)inputVarPath.cloneExpression( reason ),
+					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
 					installProcess.clone( reason )
 				);
 	}
