@@ -47,7 +47,11 @@ public class VariablePath implements Expression, Cloneable
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return clone();
+		List< Pair< String, Expression > > list =
+			new Vector< Pair< String, Expression > >();
+		for( Pair< String, Expression > p : path )
+			list.add( new Pair< String, Expression >( p.key(), p.value().cloneExpression( reason ) ) );
+		return new VariablePath( list, attribute.cloneExpression( reason ), global );
 	}
 
 	/**
