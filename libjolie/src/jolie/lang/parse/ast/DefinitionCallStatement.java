@@ -25,11 +25,11 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
 
-public class SubRoutineCallStatement extends OLSyntaxNode
+public class DefinitionCallStatement extends OLSyntaxNode
 {
 	private String id;
 
-	public SubRoutineCallStatement( ParsingContext context, String id )
+	public DefinitionCallStatement( ParsingContext context, String id )
 	{
 		super( context );
 		this.id = id;

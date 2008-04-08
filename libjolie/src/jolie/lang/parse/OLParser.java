@@ -84,8 +84,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SubRoutineCallStatement;
-import jolie.lang.parse.ast.SubRoutineNode;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -599,7 +599,7 @@ public class OLParser extends AbstractParser
 		boolean initDefined = false;
 		do {
 			if ( token.is( Scanner.TokenType.SUB ) )
-				program.addChild( parseProcedure() );
+				program.addChild( parseDefinition() );
 			else if ( token.is( Scanner.TokenType.MAIN ) ) {
 				if ( mainDefined )
 					throwException( "you must specify only one main definition" );
@@ -615,37 +615,42 @@ public class OLParser extends AbstractParser
 		} while( keepRun );
 	}
 	
-	private SubRoutineNode parseMain()
+	private DefinitionNode parseMain()
 		throws IOException, ParserException
 	{
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		SubRoutineNode retVal = new SubRoutineNode( getContext(), "main", parseProcess() );
+		DefinitionNode retVal = new DefinitionNode( getContext(), "main", parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
 	}
 	
-	private SubRoutineNode parseInit()
+	private DefinitionNode parseInit()
 		throws IOException, ParserException
 	{
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		SubRoutineNode retVal = new SubRoutineNode( getContext(), "init", parseProcess() );
+		DefinitionNode retVal = new DefinitionNode( getContext(), "init", parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
 	}
 	
-	private SubRoutineNode parseProcedure()
+	private DefinitionNode parseDefinition()
 		throws IOException, ParserException
 	{
 		getToken();
-		assertToken( Scanner.TokenType.ID, "expected procedure identifier" );
-		String procedureId = token.content();
+		assertToken( Scanner.TokenType.ID, "expected definition identifier" );
+		String definitionId = token.content();
 		getToken();
-		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		SubRoutineNode retVal = new SubRoutineNode( getContext(), procedureId, parseProcess() );
-		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
-		
+		eat( Scanner.TokenType.LCURLY, "expected { after definition declaration" );
+		DefinitionNode retVal =
+					new DefinitionNode(
+							getContext(),
+							definitionId,
+							parseProcess()
+						);
+		eat( Scanner.TokenType.RCURLY, "expected } after definition declaration" );
+
 		return retVal;
 	}
 	
@@ -730,7 +735,7 @@ public class OLParser extends AbstractParser
 				getToken();
 				retVal = parseOutputOperationStatement( id );
 			} else
-				retVal = new SubRoutineCallStatement( getContext(), id );
+				retVal = new DefinitionCallStatement( getContext(), id );
 		} else if (	token.is( Scanner.TokenType.WITH ) ) {
 			getToken();
 			retVal = parseInVariablePathProcess();

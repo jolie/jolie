@@ -70,8 +70,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SubRoutineCallStatement;
-import jolie.lang.parse.ast.SubRoutineNode;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -88,7 +88,7 @@ public interface OLVisitor
 	public void visit( NotificationOperationDeclaration decl );
 	public void visit( RequestResponseOperationDeclaration decl );
 	public void visit( SolicitResponseOperationDeclaration decl );
-	public void visit( SubRoutineNode n );
+	public void visit( DefinitionNode n );
 	public void visit( ParallelStatement n );
 	public void visit( SequenceStatement n );
 	public void visit( NDChoiceStatement n );
@@ -100,7 +100,7 @@ public interface OLVisitor
 	public void visit( LinkOutStatement n );
 	public void visit( AssignStatement n );
 	public void visit( IfStatement n );
-	public void visit( SubRoutineCallStatement n );
+	public void visit( DefinitionCallStatement n );
 	public void visit( WhileStatement n );
 	public void visit( OrConditionNode n );
 	public void visit( AndConditionNode n );

@@ -78,8 +78,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SubRoutineCallStatement;
-import jolie.lang.parse.ast.SubRoutineNode;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -200,7 +200,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( SolicitResponseOperationDeclaration n )
 	{}
 		
-	public void visit( SubRoutineNode n )
+	public void visit( DefinitionNode n )
 	{
 		if ( isDefined( n.id() ) )
 			error( n, "Procedure " + n.id() + " uses an already defined identifier" );
@@ -283,7 +283,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( PointerStatement n ) {}
 	public void visit( DeepCopyStatement n ) {}
 	public void visit( IfStatement n ) {}
-	public void visit( SubRoutineCallStatement n ) {}
+	public void visit( DefinitionCallStatement n ) {}
 	public void visit( WhileStatement n ) {}
 	public void visit( OrConditionNode n ) {}
 	public void visit( AndConditionNode n ) {}

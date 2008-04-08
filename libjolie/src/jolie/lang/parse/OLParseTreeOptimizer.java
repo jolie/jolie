@@ -71,8 +71,8 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SubRoutineCallStatement;
-import jolie.lang.parse.ast.SubRoutineNode;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -175,10 +175,10 @@ public class OLParseTreeOptimizer
 			program.addChild( n );
 		}
 
-		public void visit( SubRoutineNode procedure )
+		public void visit( DefinitionNode procedure )
 		{
 			procedure.body().accept( this );
-			program.addChild( new SubRoutineNode( procedure.context(), procedure.id(), currNode ) );
+			program.addChild( new DefinitionNode( procedure.context(), procedure.id(), currNode ) );
 		}
 		
 		public void visit( ParallelStatement stm )
@@ -372,7 +372,7 @@ public class OLParseTreeOptimizer
 		public void visit( AssignStatement n ) { currNode = n; }
 		public void visit( DeepCopyStatement n ) { currNode = n; }
 		public void visit( PointerStatement n ) { currNode = n; }
-		public void visit( SubRoutineCallStatement n ) { currNode = n; }
+		public void visit( DefinitionCallStatement n ) { currNode = n; }
 		public void visit( OrConditionNode n ) { currNode = n; }
 		public void visit( AndConditionNode n ) { currNode = n; }
 		public void visit( NotConditionNode n ) { currNode = n; }

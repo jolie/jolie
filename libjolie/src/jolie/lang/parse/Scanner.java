@@ -40,6 +40,7 @@ public class Scanner
 		RSQUARE,			///< ]
 		LCURLY,				///< {
 		RCURLY,				///< }
+		DOLLAR,				///< $
 		STRING,				///< "[[:graph:]]*"
 		CHOICE,				///< ++
 		MINUS,				///< The minus sign -
@@ -358,6 +359,8 @@ public class Scanner
 							retval = new Token( TokenType.HASH );
 						else if ( ch == '^' )
 							retval = new Token( TokenType.CARET );
+						else if ( ch == '$' )
+							retval = new Token( TokenType.DOLLAR );
 						
 						readChar();
 					}

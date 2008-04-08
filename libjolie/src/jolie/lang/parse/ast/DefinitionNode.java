@@ -25,12 +25,12 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
 
-public class SubRoutineNode extends OLSyntaxNode
+public class DefinitionNode extends OLSyntaxNode
 {
 	private String id;
 	private OLSyntaxNode body;
 
-	public SubRoutineNode( ParsingContext context, String id, OLSyntaxNode body )
+	public DefinitionNode( ParsingContext context, String id, OLSyntaxNode body )
 	{
 		super( context );
 		this.id = id;
