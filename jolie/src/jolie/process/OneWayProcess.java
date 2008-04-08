@@ -61,8 +61,12 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			try {
 				parent.operation.signForMessage( this );
 				synchronized( this ) {
-					if( message == null )
+					if( message == null ) {
+						ExecutionThread ethread = ExecutionThread.currentThread();
+						ethread.setCanBeInterrupted( true );
 						this.wait();
+						ethread.setCanBeInterrupted( false );
+					}
 				}
 				parent.runBehaviour( null, message );
 			} catch( InterruptedException ie ) {

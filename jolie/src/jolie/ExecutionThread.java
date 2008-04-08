@@ -94,8 +94,14 @@ abstract public class ExecutionThread extends JolieThread
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
 	private ExecutionThread parent;
 	private boolean killed = false;
+	private boolean canBeInterrupted = false;
 	
 	private CorrelatedProcess notifyProc = null;
+	
+	public void setCanBeInterrupted( boolean b )
+	{
+		canBeInterrupted = b;
+	}
 	
 	public ExecutionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{
@@ -116,8 +122,8 @@ abstract public class ExecutionThread extends JolieThread
 	public void kill()
 	{
 		killed = true;
-		//TODO verify this interrupt()
-		//interrupt();
+		if( canBeInterrupted )
+			interrupt();
 	}
 
 	public void clearKill()
