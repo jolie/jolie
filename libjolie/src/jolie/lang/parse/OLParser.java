@@ -44,6 +44,8 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -84,8 +86,6 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -404,7 +404,7 @@ public class OLParser extends AbstractParser
 									) );
 						// Protocol configuration
 						getToken();
-						protocolConfiguration = parseInVariablePathProcess();
+						protocolConfiguration = parseInVariablePathProcess( false );
 					}
 				} else
 					throwException( "Unrecognized token in service " + serviceName );
@@ -476,7 +476,7 @@ public class OLParser extends AbstractParser
 									) );
 					// Protocol configuration
 					getToken();
-					p.setProtocolConfiguration( parseInVariablePathProcess() );
+					p.setProtocolConfiguration( parseInVariablePathProcess( false ) );
 				}
 			} else
 				keepRun = false;
@@ -689,14 +689,24 @@ public class OLParser extends AbstractParser
 	
 	private Vector< Vector< Scanner.Token > > inVariablePaths = new Vector< Vector< Scanner.Token > >();
 	
-	private OLSyntaxNode parseInVariablePathProcess()
+	private OLSyntaxNode parseInVariablePathProcess( boolean withConstruct )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode ret = null;
 		Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
-		while( token.isNot( Scanner.TokenType.RPAREN ) ) {
-			tokens.add( token );
+		
+		if ( withConstruct ) {
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			while( token.isNot( Scanner.TokenType.RPAREN ) ) {
+				tokens.add( token );
+				getToken();
+			}
 			getToken();
+		} else {
+			while( token.isNot( Scanner.TokenType.LCURLY ) ) {
+				tokens.add( token );
+				getToken();
+			}
 		}
 		inVariablePaths.add( tokens );
 		
@@ -738,7 +748,7 @@ public class OLParser extends AbstractParser
 				retVal = new DefinitionCallStatement( getContext(), id );
 		} else if (	token.is( Scanner.TokenType.WITH ) ) {
 			getToken();
-			retVal = parseInVariablePathProcess();
+			retVal = parseInVariablePathProcess( true );
 		} else if ( token.is( Scanner.TokenType.DOT ) && inVariablePaths.size() > 0 ) {
 			retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
@@ -792,11 +802,6 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			VariablePathNode keyPath = parseVariablePath( varId );
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			assertToken( Scanner.TokenType.ID, "expected variable path" );
-			varId = token.content();
-			getToken();
-			VariablePathNode valuePath = parseVariablePath( varId );
 			eatKeyword( "in", "expected in" );
 			assertToken( Scanner.TokenType.ID, "expected variable path" );
 			varId = token.content();
@@ -806,7 +811,7 @@ public class OLParser extends AbstractParser
 			
 			OLSyntaxNode body = parseBasicStatement();
 			
-			retVal = new ForEachStatement( getContext(), keyPath, valuePath, targetPath, body );
+			retVal = new ForEachStatement( getContext(), keyPath, targetPath, body );
 		} else if ( token.is( Scanner.TokenType.RUN ) ) { // run( <Expression> )
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -995,14 +1000,24 @@ public class OLParser extends AbstractParser
 				expr = parseExpression();
 				eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			}
-			path.append( new Pair< String, OLSyntaxNode >( varId, expr ) );
+			path.append( new Pair< OLSyntaxNode, OLSyntaxNode >(
+							new ConstantStringExpression( getContext(), varId ), expr
+						)
+					);
 		}
 		
-		String node;
+		OLSyntaxNode nodeExpr = null;
 		while( token.is( Scanner.TokenType.DOT ) ) {
 			getToken();
-			assertToken( Scanner.TokenType.ID, "expected nested node identifier" );
-			node = token.content();
+			if ( token.is( Scanner.TokenType.ID ) ) {
+				nodeExpr = new ConstantStringExpression( getContext(), token.content() );
+			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
+				getToken();
+				nodeExpr = parseExpression();
+				assertToken( Scanner.TokenType.RPAREN, "expected )" );
+			} else			
+				assertToken( Scanner.TokenType.ID, "expected nested node identifier" );
+
 			getToken();
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
@@ -1012,7 +1027,9 @@ public class OLParser extends AbstractParser
 				expr = null;
 			}
 			
-			path.append( new Pair< String, OLSyntaxNode >( node, expr ) );
+			path.append(
+					new Pair< OLSyntaxNode, OLSyntaxNode >( nodeExpr, expr )
+				);
 		}
 		
 		if ( parseAttribute && token.is( Scanner.TokenType.COLON ) ) {

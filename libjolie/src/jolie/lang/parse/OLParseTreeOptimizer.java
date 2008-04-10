@@ -319,7 +319,7 @@ public class OLParseTreeOptimizer
 		public void visit( ForEachStatement n )
 		{
 			n.body().accept( this );
-			currNode = new ForEachStatement( n.context(), n.keyPath(), n.valuePath(), n.targetPath(), currNode );
+			currNode = new ForEachStatement( n.context(), n.keyPath(), n.targetPath(), currNode );
 		}
 		
 		public void visit( RequestResponseOperationStatement n )

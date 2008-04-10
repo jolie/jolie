@@ -29,13 +29,13 @@ import jolie.util.Pair;
 
 public class VariablePathNode
 {
-	private List< Pair< String, OLSyntaxNode > > path;
+	private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
 	private OLSyntaxNode attribute = null;
 	private boolean global;
 
 	public VariablePathNode( boolean global )
 	{
-		path = new LinkedList< Pair< String, OLSyntaxNode > >();
+		path = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
 		this.global = global;
 	}
 	
@@ -44,12 +44,12 @@ public class VariablePathNode
 		return global;
 	}
 	
-	public void append( Pair< String, OLSyntaxNode > node )
+	public void append( Pair< OLSyntaxNode, OLSyntaxNode > node )
 	{
 		path.add( node );
 	}
 	
-	public List< Pair< String, OLSyntaxNode > > path()
+	public List< Pair< OLSyntaxNode, OLSyntaxNode > > path()
 	{
 		return path;
 	}
