@@ -598,7 +598,7 @@ public class OLParser extends AbstractParser
 		boolean keepRun = true;
 		boolean initDefined = false;
 		do {
-			if ( token.is( Scanner.TokenType.SUB ) )
+			if ( token.is( Scanner.TokenType.DEFINE ) )
 				program.addChild( parseDefinition() );
 			else if ( token.is( Scanner.TokenType.MAIN ) ) {
 				if ( mainDefined )
@@ -694,7 +694,7 @@ public class OLParser extends AbstractParser
 	{
 		OLSyntaxNode ret = null;
 		Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
-		while( token.isNot( Scanner.TokenType.LCURLY ) ) {
+		while( token.isNot( Scanner.TokenType.RPAREN ) ) {
 			tokens.add( token );
 			getToken();
 		}
