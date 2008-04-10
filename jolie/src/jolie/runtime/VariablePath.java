@@ -32,25 +32,25 @@ import jolie.util.Pair;
 
 public class VariablePath implements Expression, Cloneable
 {
-	private List< Pair< String, Expression > > path; // Expression may be null
+	private List< Pair< Expression, Expression > > path; // Expression may be null
 	private Expression attribute; // may be null
 	private boolean global;
 	
 	public VariablePath clone()
 	{
-		List< Pair< String, Expression > > list =
-			new Vector< Pair< String, Expression > >();
-		for( Pair< String, Expression > p : path )
-			list.add( new Pair< String, Expression >( p.key(), p.value() ) );
+		List< Pair< Expression, Expression > > list =
+			new Vector< Pair< Expression, Expression > >();
+		for( Pair< Expression, Expression > p : path )
+			list.add( new Pair< Expression, Expression >( p.key(), p.value() ) );
 		return new VariablePath( list, attribute, global );
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		List< Pair< String, Expression > > list =
-			new Vector< Pair< String, Expression > >();
-		for( Pair< String, Expression > p : path )
-			list.add( new Pair< String, Expression >( p.key(), ( p.value() == null ) ? null : p.value().cloneExpression( reason ) ) );
+		List< Pair< Expression, Expression > > list =
+			new Vector< Pair< Expression, Expression > >();
+		for( Pair< Expression, Expression > p : path )
+			list.add( new Pair< Expression, Expression >( p.key().cloneExpression( reason ), ( p.value() == null ) ? null : p.value().cloneExpression( reason ) ) );
 		return new VariablePath( list, ( attribute == null ) ? null : attribute.cloneExpression( reason ), global );
 	}
 
@@ -69,14 +69,14 @@ public class VariablePath implements Expression, Cloneable
 			return null;
 
 		int i, myIndex, otherIndex;
-		Pair< String, Expression > pair, otherPair;
+		Pair< Expression, Expression > pair, otherPair;
 		Expression expr, otherExpr;
 		for( i = 0; i < path.size(); i++ ) {
 			pair = path.get( i );
 			otherPair = otherVarPath.path.get( i );
 			
 			// *.element_name is not a subpath of *.other_name
-			if ( !pair.key().equals( otherPair.key() ) )
+			if ( !pair.key().evaluate().strValue().equals( otherPair.key().evaluate().strValue() ) )
 				return null;
 			
 			// If element name is equal, check for the same index
@@ -90,21 +90,21 @@ public class VariablePath implements Expression, Cloneable
 		}
 		
 		// Now i represents the beginning of the subpath, we can just copy it from there
-		List< Pair< String, Expression > > subPath =
-			new Vector< Pair< String, Expression > >();
+		List< Pair< Expression, Expression > > subPath =
+			new Vector< Pair< Expression, Expression > >();
 		for( ; i < otherVarPath.path.size(); i++ )
 			subPath.add( otherVarPath.path.get( i ) );
 		
 		return new VariablePath( subPath, null, global );
 	}
 	
-	public void addPathNode( String nodeName, Expression expression )
+	public void addPathNode( Expression nodeExpr, Expression expression )
 	{
-		path.add( new Pair< String, Expression >( nodeName, expression ) );
+		path.add( new Pair< Expression, Expression >( nodeExpr, expression ) );
 	}
 	
 	public VariablePath(
-			List< Pair< String, Expression > > path,
+			List< Pair< Expression, Expression > > path,
 			Expression attribute,
 			boolean global
 			)
@@ -124,15 +124,16 @@ public class VariablePath implements Expression, Cloneable
 	
 	public void undef()
 	{
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair = null;
+		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
 			pair = it.next();
-			currVector = currValue.children().get( pair.key() );
+			String keyStr = pair.key().evaluate().strValue();
+			currVector = currValue.children().get( keyStr );
 			if ( currVector == null || currVector.size() < 1 )
 				return;
 			if ( pair.value() == null ) {
@@ -140,7 +141,7 @@ public class VariablePath implements Expression, Cloneable
 					currValue = currVector.first();
 				} else { // We're finished
 					if ( attribute == null ) {
-						currValue.children().remove( pair.key() );
+						currValue.children().remove( keyStr );
 					} else {
 						currVector.first().attributes().remove( attribute.evaluate().strValue() );
 					}
@@ -173,13 +174,14 @@ public class VariablePath implements Expression, Cloneable
 	{
 		Value currValue = rootValue;
 
-		for( Pair< String, Expression > pair : path ) {
+		for( Pair< Expression, Expression > pair : path ) {
+			String keyStr = pair.key().evaluate().strValue();
 			if ( pair.value() == null )
 				currValue =
-					currValue.getChildren( pair.key() ).first();
+					currValue.getChildren( keyStr ).first();
 			else
 				currValue =
-					currValue.getChildren( pair.key() ).get( pair.value().evaluate().intValue() );
+					currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 		}
 		
 		if ( attribute == null )
@@ -190,15 +192,15 @@ public class VariablePath implements Expression, Cloneable
 	
 	public Value getValueOrNull()
 	{
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair = null;
+		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
 			pair = it.next();
-			currVector = currValue.children().get( pair.key() );
+			currVector = currValue.children().get( pair.key().evaluate().strValue() );
 			if ( currVector == null )
 				return null;
 			if ( pair.value() == null ) {
@@ -237,14 +239,14 @@ public class VariablePath implements Expression, Cloneable
 	
 	public ValueVector getValueVector()
 	{
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair;
+		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 
 		while( it.hasNext() ) {
 			pair = it.next();
-			currVector = currValue.getChildren( pair.key() );
+			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
 			if ( it.hasNext() ) {
 				if ( pair.value() != null ) {
 					currValue = currVector.get( pair.value().evaluate().intValue() );
@@ -259,21 +261,22 @@ public class VariablePath implements Expression, Cloneable
 	
 	public void makePointer( VariablePath rightPath )
 	{
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair = null;
+		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
 			pair = it.next();
-			currVector = currValue.getChildren( pair.key() );
+			String keyStr = pair.key().evaluate().strValue();
+			currVector = currValue.getChildren( keyStr );
 			if ( pair.value() == null ) {
 				if ( it.hasNext() ) {
 					currValue = currVector.first();
 				} else { // We're finished
 					if ( attribute == null ) {
-						currValue.children().put( pair.key(), ValueVector.createLink( rightPath ) );
+						currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
 					} else {
 						currVector.first().attributes().put( attribute.evaluate().strValue(), Value.createLink( rightPath ) );
 					}
@@ -295,15 +298,15 @@ public class VariablePath implements Expression, Cloneable
 	
 	private Object getValueOrValueVector()
 	{
-		Iterator< Pair< String, Expression > > it = path.iterator();
-		Pair< String, Expression > pair = null;
+		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
 		while( it.hasNext() ) {
 			pair = it.next();
-			currVector = currValue.getChildren( pair.key() );
+			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
 			if ( pair.value() == null ) {
 				if ( it.hasNext() ) {
 					currValue = currVector.first();

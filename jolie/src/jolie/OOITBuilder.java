@@ -275,10 +275,10 @@ public class OOITBuilder implements OLVisitor
 		Constants.ProtocolId pId = n.protocolId();
 		CommProtocol protocol = null;
 		
-		Vector< Pair< String, Expression > > path =
-					new Vector< Pair< String, Expression > >();
-		path.add( new Pair< String, Expression >( n.id(), null ) );
-		path.add( new Pair< String, Expression >( "protocol", null ) );
+		Vector< Pair< Expression, Expression > > path =
+					new Vector< Pair< Expression, Expression > >();
+		path.add( new Pair< Expression, Expression >( Value.create( n.id() ), null ) );
+		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
 		VariablePath configurationPath = new VariablePath( path, null, true );
 		
 		if ( pId.equals( Constants.ProtocolId.SOAP ) )
@@ -571,14 +571,16 @@ public class OOITBuilder implements OLVisitor
 		
 		Expression backupExpr = currExpression;
 		
-		LinkedList< Pair< String, Expression > > list =
-							new LinkedList< Pair< String, Expression > >();
+		LinkedList< Pair< Expression, Expression > > list =
+							new LinkedList< Pair< Expression, Expression > >();
 		Expression attribute = null;
-		for( Pair< String, OLSyntaxNode > pair : path.path() ) {
+		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
+			pair.key().accept( this );
+			Expression keyExpr = currExpression;
 			currExpression = null;
 			if ( pair.value() != null )
 				pair.value().accept( this );
-			list.add( new Pair< String, Expression >( pair.key(), currExpression ) );
+			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
 		}
 		if ( path.attribute() != null ) {
 			path.attribute().accept( this );
@@ -843,7 +845,6 @@ public class OOITBuilder implements OLVisitor
 		currProcess =
 			new ForEachProcess(
 				getGlobalVariablePath( n.keyPath() ),
-				getGlobalVariablePath( n.valuePath() ),
 				getGlobalVariablePath( n.targetPath() ),
 				currProcess
 				);

@@ -341,7 +341,7 @@ public class HTTPProtocol extends CommProtocol
 				debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
 			debugSB.append( "--> Message content\n" );
 			if ( message.content() != null )
-				debugSB.append( message.content() );
+				debugSB.append( new String( message.content() ) );
 			Interpreter.getInstance().logger().info( debugSB.toString() );
 		}
 		

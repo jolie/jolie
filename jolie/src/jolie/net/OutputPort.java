@@ -59,10 +59,10 @@ public class OutputPort extends AbstractIdentifiableObject
 		this.protocolId = protocolId;
 		
 		// Create the location VariablePath
-		Vector< Pair< String, Expression > > path =
-					new Vector< Pair< String, Expression > >();
-		path.add( new Pair< String, Expression >( id, null ) );
-		path.add( new Pair< String, Expression >( "location", null ) );
+		Vector< Pair< Expression, Expression > > path =
+					new Vector< Pair< Expression, Expression > >();
+		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
+		path.add( new Pair< Expression, Expression >( Value.create( "location" ), null ) );
 		this.locationVariablePath = new VariablePath( path, null, false );
 		
 		// Create the configuration Process
@@ -73,9 +73,9 @@ public class OutputPort extends AbstractIdentifiableObject
 		s.addChild( protocolConfigurationProcess );
 		this.configurationProcess = s;
 		
-		path = new Vector< Pair< String, Expression > >();
-		path.add( new Pair< String, Expression >( id, null ) );
-		path.add( new Pair< String, Expression >( "protocol", null ) );
+		path = new Vector< Pair< Expression, Expression > >();
+		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
+		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
 		this.protocolConfigurationVariablePath = new VariablePath( path, null, false );
 	}
 	
