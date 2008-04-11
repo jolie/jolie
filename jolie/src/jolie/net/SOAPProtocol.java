@@ -64,6 +64,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import jolie.Constants;
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
@@ -193,7 +194,6 @@ public class SOAPProtocol extends CommProtocol
 		throws SOAPException
 	{
 		//String type = null;
-		SOAPElement currentElement;
 		if ( value.isDefined() ) {
 			/*if ( value.isInt() )
 				type = "int";
@@ -202,19 +202,60 @@ public class SOAPProtocol extends CommProtocol
 			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );*/
 			element.addTextNode( value.strValue() );
 		}
-
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			for( Value val : entry.getValue() ) {
-				currentElement = element.addChildElement( entry.getKey() );
-				for( Entry< String, Value > attrEntry : val.attributes().entrySet() ) {
-					currentElement.addAttribute(
-							soapEnvelope.createName( attrEntry.getKey() ),
-							attrEntry.getValue().strValue()
-							);
-				}
-				valueToSOAPElement( val, currentElement, soapEnvelope );
+		
+		Map< String, ValueVector > attrs = getAttributesOrNull( value );
+		if ( attrs != null ) {
+			for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
+				element.addAttribute(
+					soapEnvelope.createName( attrEntry.getKey() ),
+					attrEntry.getValue().first().strValue()
+				);
 			}
 		}
+
+		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			if ( !entry.getKey().startsWith( "@" ) ) {
+				for( Value val : entry.getValue() ) {
+					valueToSOAPElement(
+								val,
+								element.addChildElement( entry.getKey() ),
+								soapEnvelope
+							);
+				}
+			}
+		}
+	}
+	
+	private static Map< String, ValueVector > getAttributesOrNull( Value value )
+	{
+		Map< String, ValueVector > ret = null;
+		ValueVector vec = value.children().get( Constants.Predefined.ATTRIBUTES.token().content() );
+		if ( vec != null && vec.size() > 0 )
+			ret = vec.first().children();
+		
+		if ( ret == null )
+			ret = new HashMap< String, ValueVector >();
+		
+		return ret;
+	}
+	
+	private static Value getAttributeOrNull( Value value, String attrName )
+	{
+		Value ret = null;
+		Map< String, ValueVector > attrs = getAttributesOrNull( value );
+		if ( attrs != null ) {
+			ValueVector vec = attrs.get( attrName );
+			if ( vec != null && vec.size() > 0 )
+				ret = vec.first();
+		}
+		
+		return ret;
+	}
+	
+	private static Value getAttribute( Value value, String attrName )
+	{
+		return value.getChildren( Constants.Predefined.ATTRIBUTES.token().content() ).first()
+					.getChildren( attrName ).first();
 	}
 	
 	private String getPrefixOrNull( XSAttributeDecl decl )
@@ -252,7 +293,7 @@ public class SOAPProtocol extends CommProtocol
 			Collection< ? extends XSAttributeUse > attributeUses = complexT.getAttributeUses();
 			for( XSAttributeUse attrUse : attributeUses ) {
 				name = attrUse.getDecl().getName();
-				if ( (currValue=value.attributes().get( name )) != null ) {
+				if ( (currValue=getAttributeOrNull( value, name )) != null ) {
 					QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
 					element.addAttribute( attrName, currValue.strValue() );
 				}
@@ -471,7 +512,7 @@ public class SOAPProtocol extends CommProtocol
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				value.getAttribute( currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+				getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
 			}
 		}
 		
@@ -492,7 +533,7 @@ public class SOAPProtocol extends CommProtocol
 		}
 		
 		Value attr;
-		if ( (attr=value.attributes().get( "type" )) != null ) {
+		if ( (attr=getAttributeOrNull( value, "type" )) != null ) {
 			String type = attr.strValue();
 			if ( "xsd:int".equals( type ) )
 				value.setValue( value.intValue() );

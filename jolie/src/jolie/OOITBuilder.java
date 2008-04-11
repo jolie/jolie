@@ -22,6 +22,8 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
+import jolie.lang.parse.ast.DefinitionCallStatement;
+import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -63,8 +65,6 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.ServiceInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -88,6 +88,7 @@ import jolie.process.CorrelatedInputProcess;
 import jolie.process.CorrelatedProcess;
 import jolie.process.CurrentHandlerProcess;
 import jolie.process.DeepCopyProcess;
+import jolie.process.DefinitionProcess;
 import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
@@ -113,7 +114,6 @@ import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SolicitResponseProcess;
-import jolie.process.DefinitionProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
@@ -279,7 +279,7 @@ public class OOITBuilder implements OLVisitor
 					new Vector< Pair< Expression, Expression > >();
 		path.add( new Pair< Expression, Expression >( Value.create( n.id() ), null ) );
 		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
-		VariablePath configurationPath = new VariablePath( path, null, true );
+		VariablePath configurationPath = new VariablePath( path, true );
 		
 		if ( pId.equals( Constants.ProtocolId.SOAP ) )
 			protocol = new SOAPProtocol( configurationPath, n.location(), interpreter );
@@ -573,7 +573,6 @@ public class OOITBuilder implements OLVisitor
 		
 		LinkedList< Pair< Expression, Expression > > list =
 							new LinkedList< Pair< Expression, Expression > >();
-		Expression attribute = null;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
@@ -582,14 +581,10 @@ public class OOITBuilder implements OLVisitor
 				pair.value().accept( this );
 			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
 		}
-		if ( path.attribute() != null ) {
-			path.attribute().accept( this );
-			attribute = currExpression;
-		}
 		
 		currExpression = backupExpr;
 		
-		return new VariablePath( list, attribute, path.isGlobal() );
+		return new VariablePath( list, path.isGlobal() );
 	}
 	
 	public void visit( PointerStatement n )

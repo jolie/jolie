@@ -63,7 +63,7 @@ public class OutputPort extends AbstractIdentifiableObject
 					new Vector< Pair< Expression, Expression > >();
 		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
 		path.add( new Pair< Expression, Expression >( Value.create( "location" ), null ) );
-		this.locationVariablePath = new VariablePath( path, null, false );
+		this.locationVariablePath = new VariablePath( path, false );
 		
 		// Create the configuration Process
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
@@ -76,7 +76,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		path = new Vector< Pair< Expression, Expression > >();
 		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
 		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
-		this.protocolConfigurationVariablePath = new VariablePath( path, null, false );
+		this.protocolConfigurationVariablePath = new VariablePath( path, false );
 	}
 	
 	private CommProtocol protocol = null;

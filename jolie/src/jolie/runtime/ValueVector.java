@@ -174,6 +174,11 @@ abstract public class ValueVector implements Iterable< Value >
 		return get( 0 );
 	}
 	
+	public boolean isEmpty()
+	{
+		return ( size() < 1 );
+	}
+	
 	abstract public void add( Value value );
 	abstract public boolean isLink();
 	abstract public int size();

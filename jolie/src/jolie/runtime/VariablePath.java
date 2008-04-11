@@ -33,7 +33,6 @@ import jolie.util.Pair;
 public class VariablePath implements Expression, Cloneable
 {
 	private List< Pair< Expression, Expression > > path; // Expression may be null
-	private Expression attribute; // may be null
 	private boolean global;
 	
 	public VariablePath clone()
@@ -42,7 +41,7 @@ public class VariablePath implements Expression, Cloneable
 			new Vector< Pair< Expression, Expression > >();
 		for( Pair< Expression, Expression > p : path )
 			list.add( new Pair< Expression, Expression >( p.key(), p.value() ) );
-		return new VariablePath( list, attribute, global );
+		return new VariablePath( list, global );
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
@@ -51,7 +50,7 @@ public class VariablePath implements Expression, Cloneable
 			new Vector< Pair< Expression, Expression > >();
 		for( Pair< Expression, Expression > p : path )
 			list.add( new Pair< Expression, Expression >( p.key().cloneExpression( reason ), ( p.value() == null ) ? null : p.value().cloneExpression( reason ) ) );
-		return new VariablePath( list, ( attribute == null ) ? null : attribute.cloneExpression( reason ), global );
+		return new VariablePath( list, global );
 	}
 
 	/**
@@ -95,7 +94,7 @@ public class VariablePath implements Expression, Cloneable
 		for( ; i < otherVarPath.path.size(); i++ )
 			subPath.add( otherVarPath.path.get( i ) );
 		
-		return new VariablePath( subPath, null, global );
+		return new VariablePath( subPath, global );
 	}
 	
 	public void addPathNode( Expression nodeExpr, Expression expression )
@@ -105,12 +104,10 @@ public class VariablePath implements Expression, Cloneable
 	
 	public VariablePath(
 			List< Pair< Expression, Expression > > path,
-			Expression attribute,
 			boolean global
 			)
 	{
 		this.path = path;
-		this.attribute = attribute;
 		this.global = global;
 	}
 	
@@ -140,11 +137,7 @@ public class VariablePath implements Expression, Cloneable
 				if ( it.hasNext() ) {
 					currValue = currVector.first();
 				} else { // We're finished
-					if ( attribute == null ) {
-						currValue.children().remove( keyStr );
-					} else {
-						currVector.first().attributes().remove( attribute.evaluate().strValue() );
-					}
+					currValue.children().remove( keyStr );
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
@@ -153,13 +146,8 @@ public class VariablePath implements Expression, Cloneable
 						return;
 					currValue = currVector.get( index );
 				} else {
-					if ( attribute == null ) {
-						if ( currVector.size() > index )
-							currVector.remove( index );
-					} else {
-						if ( currVector.size() > index )
-							currVector.get( index ).attributes().remove( attribute.evaluate().strValue() );
-					}
+					if ( currVector.size() > index )
+						currVector.remove( index );
 				}
 			}
 		}
@@ -184,10 +172,7 @@ public class VariablePath implements Expression, Cloneable
 					currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 		}
 		
-		if ( attribute == null )
-			return currValue;
-		
-		return currValue.getAttribute( attribute.evaluate().strValue() );
+		return currValue;
 	}
 	
 	public Value getValueOrNull()
@@ -205,19 +190,14 @@ public class VariablePath implements Expression, Cloneable
 				return null;
 			if ( pair.value() == null ) {
 				if ( it.hasNext() ) {
-					if ( currVector.size() < 1 )
+					if ( currVector.isEmpty() )
 						return null;
 					currValue = currVector.first();
 				} else { // We're finished
-					if ( currVector.size() < 1 )
+					if ( currVector.isEmpty() )
 						return null;
-					if ( attribute == null ) {
+					else
 						return currVector.first();
-					} else {
-						if ( currVector.size() < 1 )
-							return null;
-						return currVector.first().attributes().get( attribute.evaluate().strValue() );
-					}
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
@@ -225,11 +205,7 @@ public class VariablePath implements Expression, Cloneable
 					return null;
 				currValue = currVector.get( index );
 				if ( !it.hasNext() ) {
-					if ( attribute == null ) {
-						return currValue;
-					} else {
-						return currValue.attributes().get( attribute.evaluate().strValue() );
-					}
+					return currValue;
 				}
 			}
 		}
@@ -275,22 +251,14 @@ public class VariablePath implements Expression, Cloneable
 				if ( it.hasNext() ) {
 					currValue = currVector.first();
 				} else { // We're finished
-					if ( attribute == null ) {
-						currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
-					} else {
-						currVector.first().attributes().put( attribute.evaluate().strValue(), Value.createLink( rightPath ) );
-					}
+					currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( it.hasNext() ) {
 					currValue = currVector.get( index );
 				} else {
-					if ( attribute == null ) {
-						currVector.set( Value.createLink( rightPath ), index );
-					} else {
-						currVector.get( index ).attributes().put( attribute.evaluate().strValue(), Value.createLink( rightPath ) );
-					}
+					currVector.set( Value.createLink( rightPath ), index );
 				}
 			}
 		}
@@ -311,22 +279,14 @@ public class VariablePath implements Expression, Cloneable
 				if ( it.hasNext() ) {
 					currValue = currVector.first();
 				} else { // We're finished
-					if ( attribute == null ) {
-						return currVector;
-					} else {
-						return currVector.first().getAttribute( attribute.evaluate().strValue() );
-					}
+					return currVector;
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( it.hasNext() ) {
 					currValue = currVector.get( index );
 				} else {
-					if ( attribute == null ) {
-						return currVector.get( index );
-					} else {
-						return currVector.get( index ).getAttribute( attribute.evaluate().strValue() );
-					}
+					return currVector.get( index );
 				}
 			}
 		}

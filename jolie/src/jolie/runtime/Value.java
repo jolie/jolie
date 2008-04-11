@@ -79,16 +79,6 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue().children();
 	}
 	
-	public Map< String, Value > attributes()
-	{
-		return linkPath.getValue().attributes();
-	}
-	
-	public Value getAttribute( String attributeId )
-	{
-		return linkPath.getValue().getAttribute( attributeId );
-	}
-	
 	public void setValue( Object object )
 	{
 		linkPath.getValue().setValue( object );
@@ -116,7 +106,6 @@ class ValueImpl extends Value implements Externalizable
 	
 	private Object valueObject;
 	private ConcurrentHashMap< String, ValueVector > children = null;
-	private ConcurrentHashMap< String, Value > attributes = null;
 	
 	public void setValueObject( Object object )
 	{
@@ -127,7 +116,6 @@ class ValueImpl extends Value implements Externalizable
 	{
 		valueObject = null;
 		children = null;
-		attributes = null;
 	}
 	
 	public void readExternal( ObjectInput in )
@@ -135,20 +123,12 @@ class ValueImpl extends Value implements Externalizable
 	{
 		valueObject = in.readObject();
 				
-		int n = in.readInt(); // How many attributes?
-		int i;
 		ValueImpl v;
 		String s;
-		for( i = 0; i < n; i++ ) {
-			s = in.readUTF();
-			v = new ValueImpl();
-			v.readExternal( in );
-			attributes().put( s, v );
-		}
-		
+		int n, i, size, k;
 		n = in.readInt(); // How many children?
 		ValueVector vec;
-		int size, k;
+		
 		for( i = 0; i < n; i++ ) {
 			s = in.readUTF();
 			vec = ValueVector.create();
@@ -170,12 +150,6 @@ class ValueImpl extends Value implements Externalizable
 		else
 			out.writeObject( null );
 		
-		out.writeInt( attributes().size() );
-		for( Entry< String, Value > entry : attributes().entrySet() ) {
-			out.writeUTF( entry.getKey() );
-			entry.getValue().writeExternal( out );
-		}
-		
 		out.writeInt( children().size() );
 		for( Entry< String, ValueVector > entry : children().entrySet() ) {
 			out.writeUTF( entry.getKey() );
@@ -195,17 +169,6 @@ class ValueImpl extends Value implements Externalizable
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
 		assignValue( value );
-		Value currVal = null;
-		
-		for( Entry< String, Value > entry : value.attributes().entrySet() ) {
-			if ( copyLinks && entry.getValue().isLink() ) {
-				currVal = ((ValueLink)entry.getValue()).clone();
-			} else {
-				currVal = new ValueImpl();
-				currVal._deepCopy( entry.getValue(), copyLinks );
-			}
-			attributes().put( entry.getKey(), currVal );
-		}
 	
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( copyLinks && entry.getValue().isLink() )
@@ -252,13 +215,6 @@ class ValueImpl extends Value implements Externalizable
 		return children;
 	}
 	
-	public Map< String, Value > attributes()
-	{
-		if ( attributes == null )
-			attributes = new ConcurrentHashMap< String, Value >();
-		return attributes;
-	}
-	
 	public Object valueObject()
 	{
 		return valueObject;
@@ -267,16 +223,6 @@ class ValueImpl extends Value implements Externalizable
 	public void setValue( Object object )
 	{
 		valueObject = object;
-	}
-	
-	public Value getAttribute( String attributeId )
-	{
-		Value attr = attributes().get( attributeId );
-		if ( attr == null ) {
-			attr = new ValueImpl();
-			attributes().put( attributeId, attr );
-		}
-		return attr;
 	}
 	
 	public ValueImpl( String val )
@@ -392,10 +338,6 @@ abstract public class Value implements Expression
 	abstract public Value getNewChild( String childId );
 	
 	abstract public Map< String, ValueVector > children();
-
-	abstract public Map< String, Value > attributes();
-	
-	abstract public Value getAttribute( String attributeId );
 	
 	public Value evaluate()
 	{

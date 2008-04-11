@@ -35,6 +35,8 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -49,6 +51,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import jolie.Constants;
 import jolie.Interpreter;
 import jolie.net.http.HTTPMessage;
 import jolie.net.http.HTTPParser;
@@ -124,6 +127,25 @@ public class HTTPProtocol extends CommProtocol
 		return ret;
 	}
 	
+	private static Map< String, ValueVector > getAttributesOrNull( Value value )
+	{
+		Map< String, ValueVector > ret = null;
+		ValueVector vec = value.children().get( Constants.Predefined.ATTRIBUTES.token().content() );
+		if ( vec != null && vec.size() > 0 )
+			ret = vec.first().children();
+		
+		if ( ret == null )
+			ret = new HashMap< String, ValueVector >();
+		
+		return ret;
+	}
+	
+	private static Value getAttribute( Value value, String attrName )
+	{
+		return value.getChildren( Constants.Predefined.ATTRIBUTES.token().content() ).first()
+					.getChildren( attrName ).first();
+	}
+	
 	private void valueToDocument(
 			Value value,
 			Node node,
@@ -134,17 +156,22 @@ public class HTTPProtocol extends CommProtocol
 		Element currentElement;
 
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			for( Value val : entry.getValue() ) {
-				currentElement = doc.createElement( entry.getKey() );
-				node.appendChild( currentElement );
-				for( Entry< String, Value > attrEntry : val.attributes().entrySet() ) {
-					currentElement.setAttribute(
-							attrEntry.getKey(),
-							attrEntry.getValue().strValue()
-							);
+			if ( !entry.getKey().startsWith( "@" ) ) {
+				for( Value val : entry.getValue() ) {
+					currentElement = doc.createElement( entry.getKey() );
+					node.appendChild( currentElement );
+					Map< String, ValueVector > attrs = getAttributesOrNull( val );
+					if ( attrs != null ) {
+						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
+							currentElement.setAttribute(
+								attrEntry.getKey(),
+								attrEntry.getValue().first().strValue()
+								);
+						}
+					}
+					currentElement.appendChild( doc.createTextNode( val.strValue() ) );
+					valueToDocument( val, currentElement, doc );
 				}
-				currentElement.appendChild( doc.createTextNode( val.strValue() ) );
-				valueToDocument( val, currentElement, doc );
 			}
 		}
 	}
@@ -263,7 +290,7 @@ public class HTTPProtocol extends CommProtocol
 			node = list.item( i );
 			switch( node.getNodeType() ) {
 			case Node.ATTRIBUTE_NODE:
-				value.getAttribute( node.getNodeName() ).setValue( node.getNodeValue() );
+				getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
 				break;
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( node.getLocalName() );
