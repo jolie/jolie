@@ -21,8 +21,49 @@
 
 package jolie;
 
+import jolie.lang.parse.Scanner;
+
+
 public final class Constants
 {
+	static public enum Predefined {
+		ATTRIBUTES( "Attributes", "@Attributes" );
+		
+		private final String id;
+		private final Scanner.Token token;
+		
+		public static Predefined get( String id )
+		{
+			for( Predefined p : Predefined.values() ) {
+				if ( p.id.equals( id ) )
+					return p;
+			}
+			return null;
+		}
+		
+		Predefined( String id, String content )
+		{
+			this.id = id;
+			this.token = new Scanner.Token( Scanner.TokenType.STRING, content );
+		}
+		
+		Predefined( String id, Integer content )
+		{
+			this.id = id;
+			this.token = new Scanner.Token( Scanner.TokenType.INT, content.toString() );
+		}
+		
+		public String id()
+		{
+			return id;
+		}
+		
+		public Scanner.Token token()
+		{
+			return token;
+		}
+	}
+
 	public static final String VERSION = "JOLIE 1.0_tp1";
 	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );

@@ -221,7 +221,7 @@ public class OLParser extends AbstractParser
 				list = new Vector< VariablePathNode > ();
 				varId = token.content();
 				getToken();
-				list.add( parseVariablePath( varId, false ) );
+				list.add( parseVariablePath( varId ) );
 				if ( token.is( Scanner.TokenType.COLON ) ) {
 					getToken();
 					while( token.is( Scanner.TokenType.ID ) ) {
@@ -308,7 +308,12 @@ public class OLParser extends AbstractParser
 	private boolean checkConstant()
 	{
 		if ( token.is( Scanner.TokenType.ID ) ) {
-			Scanner.Token t = constantsMap.get( token.content() );
+			Scanner.Token t = null;
+			Constants.Predefined p = Constants.Predefined.get( token.content() );
+			if ( p != null )
+				t = p.token();
+			else
+				t = constantsMap.get( token.content() );
 			if ( t != null ) {
 				token = t;
 				return true;
@@ -802,15 +807,15 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			VariablePathNode keyPath = parseVariablePath( varId );
-			eatKeyword( "in", "expected in" );
+			eat( Scanner.TokenType.COLON, "expected :" );
 			assertToken( Scanner.TokenType.ID, "expected variable path" );
 			varId = token.content();
 			getToken();
 			VariablePathNode targetPath = parseVariablePath( varId );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-			
+
 			OLSyntaxNode body = parseBasicStatement();
-			
+
 			retVal = new ForEachStatement( getContext(), keyPath, targetPath, body );
 		} else if ( token.is( Scanner.TokenType.RUN ) ) { // run( <Expression> )
 			getToken();
@@ -982,12 +987,6 @@ public class OLParser extends AbstractParser
 	private VariablePathNode parseVariablePath( String varId )
 		throws IOException, ParserException
 	{
-		return parseVariablePath( varId, true );
-	}
-	
-	private VariablePathNode parseVariablePath( String varId, boolean parseAttribute )
-		throws IOException, ParserException
-	{
 		OLSyntaxNode expr = null;
 		VariablePathNode path = null;
 		
@@ -1030,11 +1029,6 @@ public class OLParser extends AbstractParser
 			path.append(
 					new Pair< OLSyntaxNode, OLSyntaxNode >( nodeExpr, expr )
 				);
-		}
-		
-		if ( parseAttribute && token.is( Scanner.TokenType.COLON ) ) {
-			getToken();
-			path.setAttribute( parseExpression() );
 		}
 		return path;
 	}

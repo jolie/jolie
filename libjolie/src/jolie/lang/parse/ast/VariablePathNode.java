@@ -30,7 +30,6 @@ import jolie.util.Pair;
 public class VariablePathNode
 {
 	private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
-	private OLSyntaxNode attribute = null;
 	private boolean global;
 
 	public VariablePathNode( boolean global )
@@ -52,15 +51,5 @@ public class VariablePathNode
 	public List< Pair< OLSyntaxNode, OLSyntaxNode > > path()
 	{
 		return path;
-	}
-	
-	public OLSyntaxNode attribute()
-	{
-		return attribute;
-	}
-	
-	public void setAttribute( OLSyntaxNode attribute )
-	{
-		this.attribute = attribute;
 	}
 }
