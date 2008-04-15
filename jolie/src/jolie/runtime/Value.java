@@ -22,10 +22,9 @@
 
 package jolie.runtime;
 
-import java.io.Externalizable;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +47,7 @@ class ValueLink extends Value implements Cloneable
 		linkPath.getValue().erase();
 	}
 
-	public void writeExternal( ObjectOutput out )
+	public void writeExternal( DataOutput out )
 		throws IOException
 	{
 		linkPath.getValue().writeExternal( out );
@@ -100,7 +99,7 @@ class ValueLink extends Value implements Cloneable
 	}
 }
 
-class ValueImpl extends Value implements Externalizable
+class ValueImpl extends Value
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -118,7 +117,7 @@ class ValueImpl extends Value implements Externalizable
 		children = null;
 	}
 	
-	public void readExternal( ObjectInput in )
+	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		ValueType type = ValueType.readType( in );
@@ -143,7 +142,7 @@ class ValueImpl extends Value implements Externalizable
 		}
 	}
 	
-	public void writeExternal( ObjectOutput out )
+	public void writeExternal( DataOutput out )
 		throws IOException
 	{
 		ValueType type = ValueType.fromObject( valueObject );
@@ -242,10 +241,10 @@ class ValueImpl extends Value implements Externalizable
  */
 abstract public class Value implements Expression
 {
-	abstract public void writeExternal( ObjectOutput out )
+	abstract public void writeExternal( DataOutput out )
 		throws IOException;
 	
-	public static Value createFromExternal( ObjectInput in )
+	public static Value createFromExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		ValueImpl v = new ValueImpl();

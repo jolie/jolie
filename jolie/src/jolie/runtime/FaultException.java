@@ -21,14 +21,13 @@
 
 package jolie.runtime;
 
-import java.io.Externalizable;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 import jolie.Constants;
 
-public class FaultException extends Exception implements Externalizable
+public class FaultException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	private String faultName;
@@ -57,7 +56,7 @@ public class FaultException extends Exception implements Externalizable
 		this.value = Value.create();
 	}
 	
-	public static FaultException createFromExternal( ObjectInput in )
+	public static FaultException createFromExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		FaultException f = null;
@@ -68,14 +67,14 @@ public class FaultException extends Exception implements Externalizable
 		return f;
 	}
 	
-	public void readExternal( ObjectInput in )
+	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		faultName = in.readUTF();
 		value = Value.createFromExternal( in );
 	}
 	
-	public void writeExternal( ObjectOutput out )
+	public void writeExternal( DataOutput out )
 		throws IOException
 	{
 		out.writeUTF( faultName );
