@@ -29,6 +29,7 @@ import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
@@ -129,10 +130,9 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	public void runBehaviour( CommChannel channel, CommMessage message )
 	{
 		if ( varPath != null ) {
-			/*Value val = varPath.getValue();
+			Value val = varPath.getValue();
 			val.erase();
-			val.deepCopy( message.value() );*/
-			varPath.getValue().deepCopy( message.value() );
+			val.deepCopy( message.value() );
 		}
 
 		try {
