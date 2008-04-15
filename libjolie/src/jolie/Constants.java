@@ -21,9 +21,9 @@
 
 package jolie;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -125,42 +125,42 @@ public final class Constants
 	 */
 	static public enum ValueType {
 		UNDEFINED((byte)0) {
-			public Object readObject( ObjectInput in ) throws IOException {
+			public Object readObject( DataInput in ) throws IOException {
 				return null;
 			}
-			public void writeObject( ObjectOutput out, Object obj ) throws IOException {}
+			public void writeObject( DataOutput out, Object obj ) throws IOException {}
 		},
 		STRING((byte)1) {
-			public Object readObject( ObjectInput in ) throws IOException {
+			public Object readObject( DataInput in ) throws IOException {
 				return in.readUTF();
 			}
-			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+			public void writeObject( DataOutput out, Object obj ) throws IOException {
 				out.writeUTF( (String)obj );
 			}
 		},
 		INT((byte)2) {
-			public Object readObject( ObjectInput in ) throws IOException {
+			public Object readObject( DataInput in ) throws IOException {
 				return in.readInt();
 			}
-			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+			public void writeObject( DataOutput out, Object obj ) throws IOException {
 				out.writeInt( (Integer)obj );
 			}
 		},
 		DOUBLE((byte)3) {
-			public Object readObject( ObjectInput in ) throws IOException {
+			public Object readObject( DataInput in ) throws IOException {
 				return in.readDouble();
 			}
-			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+			public void writeObject( DataOutput out, Object obj ) throws IOException {
 				out.writeDouble( (Double)obj );
 			}
 		};
 
-		abstract public Object readObject( ObjectInput in )
+		abstract public Object readObject( DataInput in )
 			throws IOException;
-		abstract public void writeObject( ObjectOutput out, Object obj )
+		abstract public void writeObject( DataOutput out, Object obj )
 			throws IOException;
 
-		public static ValueType readType( ObjectInput in )
+		public static ValueType readType( DataInput in )
 			throws IOException
 		{
 			Byte b = in.readByte();
@@ -170,7 +170,7 @@ public final class Constants
 			return ret;
 		}
 		
-		public void writeType( ObjectOutput out )
+		public void writeType( DataOutput out )
 			throws IOException
 		{
 			out.write( id );
