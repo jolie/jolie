@@ -453,7 +453,9 @@ abstract public class Value implements Expression
 	public final synchronized void add( Value val )
 	{
 		if ( isDefined() ) {
-			if ( isInt() )
+			if ( val.isString() )
+				setValue( strValue() + val.strValue() );
+			else if ( isInt() )
 				setValue( intValue() + val.intValue() );
 			else if ( isDouble() )
 				setValue( doubleValue() + val.doubleValue() );
