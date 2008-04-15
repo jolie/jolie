@@ -21,10 +21,10 @@
 
 package jolie.net;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -53,7 +53,7 @@ public class SODEPProtocol extends CommProtocol
 			ostream = gzip;
 		}
 		
-		ObjectOutputStream oos = new ObjectOutputStream( ostream );
+		DataOutputStream oos = new DataOutputStream( ostream );
 		message.writeExternal( oos );
 		oos.flush();
 		if ( gzip != null )
@@ -68,7 +68,7 @@ public class SODEPProtocol extends CommProtocol
 			istream = new GZIPInputStream( istream );
 		}
 		
-		ObjectInputStream ios = new ObjectInputStream( istream );
+		DataInputStream ios = new DataInputStream( istream );
 		CommMessage ret = null;
 		try {
 			ret = CommMessage.createFromExternal( ios );

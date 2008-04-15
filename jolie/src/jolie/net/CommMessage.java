@@ -22,10 +22,9 @@
 
 package jolie.net;
 
-import java.io.Externalizable;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -34,7 +33,7 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  *
  */
-public class CommMessage implements Externalizable
+public class CommMessage
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -44,7 +43,7 @@ public class CommMessage implements Externalizable
 	
 	public CommMessage() {}
 	
-	public static CommMessage createFromExternal( ObjectInput in )
+	public static CommMessage createFromExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		CommMessage m = new CommMessage();
@@ -52,7 +51,7 @@ public class CommMessage implements Externalizable
 		return m;
 	}
 	
-	public void readExternal( ObjectInput in )
+	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		inputId = in.readUTF();
@@ -60,7 +59,7 @@ public class CommMessage implements Externalizable
 		value = Value.createFromExternal( in );
 	}
 	
-	public void writeExternal( ObjectOutput out )
+	public void writeExternal( DataOutput out )
 		throws IOException
 	{
 		out.writeUTF( inputId );
