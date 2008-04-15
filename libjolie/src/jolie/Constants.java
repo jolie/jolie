@@ -77,8 +77,8 @@ public final class Constants
 		}
 	}
 
-	public static final String VERSION = "JOLIE 1.0_tp1";
-	public static final String COPYRIGHT = "(C) 2006-2007 the JOLIE team";
+	public static final String VERSION = "JOLIE 1.0_tp2";
+	public static final String COPYRIGHT = "(C) 2006-2007-2008 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static final String GLOBAL = "global";
 
