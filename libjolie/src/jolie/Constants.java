@@ -21,13 +21,20 @@
 
 package jolie;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.HashMap;
+import java.util.Map;
+
 import jolie.lang.parse.Scanner;
 
 
 public final class Constants
 {
 	static public enum Predefined {
-		ATTRIBUTES( "Attributes", "@Attributes" );
+		ATTRIBUTES( "@Attributes", "@Attributes" ),
+		PI( "PI", java.lang.Math.PI );
 		
 		private final String id;
 		private final Scanner.Token token;
@@ -51,6 +58,12 @@ public final class Constants
 		{
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.INT, content.toString() );
+		}
+		
+		Predefined( String id, Double content )
+		{
+			this.id = id;
+			this.token = new Scanner.Token( Scanner.TokenType.REAL, content.toString() );
 		}
 		
 		public String id()
@@ -107,11 +120,89 @@ public final class Constants
 		DBUS
 	}
 	
-	public enum VariableType {
-		UNDEFINED,	///< Undefined variable.
-		INT,		///< Integer variable.
-		STRING,		///< String variable.
-		REAL		///< Double variable.
+	/**
+	 * Pay attention that every type has a different byte identifier!
+	 */
+	static public enum ValueType {
+		UNDEFINED((byte)0) {
+			public Object readObject( ObjectInput in ) throws IOException {
+				return null;
+			}
+			public void writeObject( ObjectOutput out, Object obj ) throws IOException {}
+		},
+		STRING((byte)1) {
+			public Object readObject( ObjectInput in ) throws IOException {
+				return in.readUTF();
+			}
+			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+				out.writeUTF( (String)obj );
+			}
+		},
+		INT((byte)2) {
+			public Object readObject( ObjectInput in ) throws IOException {
+				return in.readInt();
+			}
+			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+				out.writeInt( (Integer)obj );
+			}
+		},
+		DOUBLE((byte)3) {
+			public Object readObject( ObjectInput in ) throws IOException {
+				return in.readDouble();
+			}
+			public void writeObject( ObjectOutput out, Object obj ) throws IOException {
+				out.writeDouble( (Double)obj );
+			}
+		};
+
+		abstract public Object readObject( ObjectInput in )
+			throws IOException;
+		abstract public void writeObject( ObjectOutput out, Object obj )
+			throws IOException;
+
+		public static ValueType readType( ObjectInput in )
+			throws IOException
+		{
+			Byte b = in.readByte();
+			ValueType ret;
+			if( (ret=typeMap.get( b )) == null )
+				return UNDEFINED;
+			return ret;
+		}
+		
+		public void writeType( ObjectOutput out )
+			throws IOException
+		{
+			out.write( id );
+		}
+
+		private static Map< Byte, ValueType > typeMap =
+				new HashMap< Byte, ValueType >();
+		private byte id;
+		
+		ValueType( byte id )
+		{
+			this.id = id;
+		}
+		
+		static {
+			for( ValueType t : ValueType.values() )
+				typeMap.put( t.id, t );
+		}
+		
+		public static ValueType fromObject( Object obj )
+		{
+			if ( obj == null )
+				return UNDEFINED;
+			else if ( obj instanceof Integer )
+				return INT;
+			else if ( obj instanceof String )
+				return STRING;
+			else if ( obj instanceof Double )
+				return DOUBLE;
+			
+			return UNDEFINED;
+		}
 	}
 	
 	public static long serialVersionUID() { return 1L; }
