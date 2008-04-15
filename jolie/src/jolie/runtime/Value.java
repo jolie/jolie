@@ -26,11 +26,11 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import jolie.Constants.ValueType;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 
@@ -121,7 +121,8 @@ class ValueImpl extends Value implements Externalizable
 	public void readExternal( ObjectInput in )
 		throws IOException, ClassNotFoundException
 	{
-		valueObject = in.readObject();
+		ValueType type = ValueType.readType( in );
+		valueObject = type.readObject( in );
 				
 		ValueImpl v;
 		String s;
@@ -145,11 +146,10 @@ class ValueImpl extends Value implements Externalizable
 	public void writeExternal( ObjectOutput out )
 		throws IOException
 	{
-		if ( valueObject != null && (valueObject instanceof Serializable || valueObject instanceof Externalizable) )
-			out.writeObject( valueObject );
-		else
-			out.writeObject( null );
-		
+		ValueType type = ValueType.fromObject( valueObject );
+		type.writeType( out );
+		type.writeObject( out, valueObject );
+
 		out.writeInt( children().size() );
 		for( Entry< String, ValueVector > entry : children().entrySet() ) {
 			out.writeUTF( entry.getKey() );
@@ -225,24 +225,11 @@ class ValueImpl extends Value implements Externalizable
 		valueObject = object;
 	}
 	
-	public ValueImpl( String val )
+	protected ValueImpl( Object object )
 	{
-		super();
-		setValue( val );
+		valueObject = object;
 	}
-	
-	public ValueImpl( int val )
-	{
-		super();
-		setValue( val );
-	}
-	
-	public ValueImpl( double val )
-	{
-		super();
-		setValue( val );
-	}
-	
+
 	public ValueImpl( Value val )
 	{
 		valueObject = val.valueObject();
@@ -283,14 +270,14 @@ abstract public class Value implements Expression
 		return new ValueImpl( str );
 	}
 	
-	public static Value create( int i )
+	public static Value create( Integer i )
 	{
-		return new ValueImpl( new Integer( i ) );
+		return new ValueImpl( i );
 	}
 	
-	public static Value create( double d )
+	public static Value create( Double d )
 	{
-		return new ValueImpl( new Double( d ) );
+		return new ValueImpl( d );
 	}
 	
 	public static Value create( Value value )
@@ -404,9 +391,9 @@ abstract public class Value implements Expression
 		return ( valueObject() != null );
 	}
 	
-	public void setChannel( CommChannel value )
+	public void setValue( CommChannel value )
 	{
-		setValue( value );
+		setValueObject( value );
 	}
 	
 	public CommChannel channelValue()

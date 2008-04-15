@@ -80,9 +80,9 @@ public abstract class EmbeddedServiceLoader
 	{
 		if ( channelDest != null ) {
 			if ( channelDest instanceof VariablePath ) {
-				((VariablePath)channelDest).getValue().setChannel( channel );
+				((VariablePath)channelDest).getValue().setValue( channel );
 			} else if ( channelDest instanceof Value ) {
-				((Value)channelDest).setChannel( channel );
+				((Value)channelDest).setValue( channel );
 			}
 		}
 	}

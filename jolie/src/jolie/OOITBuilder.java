@@ -797,11 +797,11 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( TypeCastExpressionNode n )
 	{
-		if ( n.type() == Constants.VariableType.INT ) {
+		if ( n.type() == Constants.ValueType.INT ) {
 			currExpression = new CastIntExpression( getGlobalVariablePath( n.variablePath() ) );
-		} else if ( n.type() == Constants.VariableType.REAL ) {
+		} else if ( n.type() == Constants.ValueType.DOUBLE ) {
 			currExpression = new CastRealExpression( getGlobalVariablePath( n.variablePath() ) );
-		} else if ( n.type() == Constants.VariableType.STRING ) {
+		} else if ( n.type() == Constants.ValueType.STRING ) {
 			currExpression = new CastStringExpression( getGlobalVariablePath( n.variablePath() ) );
 		}
 	}
