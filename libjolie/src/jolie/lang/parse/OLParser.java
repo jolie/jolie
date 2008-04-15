@@ -1133,6 +1133,8 @@ public class OLParser extends AbstractParser
 			String varId = token.content();
 			getToken();
 			ret = parseVariablePath( varId );
+		} else if ( token.is( Scanner.TokenType.DOT ) ) {
+			ret = parsePrefixedVariablePath();
 		}
 		eat( Scanner.TokenType.RPAREN, "expected )" );
 		
