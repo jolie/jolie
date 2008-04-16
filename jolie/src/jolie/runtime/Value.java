@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.Constants.ValueType;
 import jolie.net.CommChannel;
+import jolie.net.SODEPProtocol;
 import jolie.process.TransformationReason;
 
 class ValueLink extends Value implements Cloneable
@@ -130,7 +131,7 @@ class ValueImpl extends Value
 		ValueVector vec;
 		
 		for( i = 0; i < n; i++ ) {
-			s = in.readUTF();
+			s = SODEPProtocol.readString( in );
 			vec = ValueVector.create();
 			size = in.readInt();
 			for( k = 0; k < size; k++ ) {
@@ -151,7 +152,7 @@ class ValueImpl extends Value
 
 		out.writeInt( children().size() );
 		for( Entry< String, ValueVector > entry : children().entrySet() ) {
-			out.writeUTF( entry.getKey() );
+			SODEPProtocol.writeString( out, entry.getKey() );
 			out.writeInt( entry.getValue().size() );
 			for( Value v : entry.getValue() )
 				v.writeExternal( out );

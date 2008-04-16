@@ -26,6 +26,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import jolie.Constants;
+import jolie.net.SODEPProtocol;
 
 public class FaultException extends Exception
 {
@@ -77,14 +78,9 @@ public class FaultException extends Exception
 	public void writeExternal( DataOutput out )
 		throws IOException
 	{
-		out.writeUTF( faultName );
+		SODEPProtocol.writeString( out, faultName );
 		value.writeExternal( out );
 	}
-	
-	/*public FaultException( Exception e )
-	{
-		super( e );
-	}*/
 	
 	public String getMessage()
 	{

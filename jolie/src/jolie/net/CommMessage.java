@@ -54,7 +54,7 @@ public class CommMessage
 	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
-		inputId = in.readUTF();
+		inputId = SODEPProtocol.readString( in );
 		fault = FaultException.createFromExternal( in );
 		value = Value.createFromExternal( in );
 	}
@@ -62,7 +62,7 @@ public class CommMessage
 	public void writeExternal( DataOutput out )
 		throws IOException
 	{
-		out.writeUTF( inputId );
+		SODEPProtocol.writeString( out, inputId );
 		if ( fault == null ) {
 			out.writeBoolean( false );
 		} else {

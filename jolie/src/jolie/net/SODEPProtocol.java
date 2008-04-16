@@ -21,18 +21,54 @@
 
 package jolie.net;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import jolie.runtime.VariablePath;
 
+/**
+ * TODO Optimize the string reading/writing handling by implementing the entire protocol here.
+ */
 public class SODEPProtocol extends CommProtocol
 {
+	public static String readString( DataInput in )
+		throws IOException
+	{
+		int len = in.readInt();
+		if ( len > 0 ) {
+			byte[] bb = new byte[ len ];
+			in.readFully( bb );
+			return new String( bb, jolie.Constants.stringCharset );
+		}
+		return "";
+	}
+	
+	public static void writeString( DataOutput out, String str )
+		throws IOException
+	{
+		if ( str.isEmpty() ) {
+			out.writeInt( 0 );
+		} else {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			Writer writer = new OutputStreamWriter( bos, jolie.Constants.stringCharset );
+			writer.write( str );
+			writer.close();
+			byte[] bb = bos.toByteArray();
+			out.writeInt( bb.length );
+			out.write( bb );
+		}
+	}
+	
 	public SODEPProtocol( VariablePath configurationPath )
 	{
 		super( configurationPath );
