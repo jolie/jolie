@@ -21,9 +21,13 @@
 
 package jolie;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,6 +79,11 @@ public final class Constants
 		{
 			return token;
 		}
+	}
+	
+	public final static Charset stringCharset;
+	static {
+		stringCharset = Charset.forName( "UTF8" );
 	}
 
 	public static final String VERSION = "JOLIE 1.0_tp2";
@@ -132,10 +141,27 @@ public final class Constants
 		},
 		STRING((byte)1) {
 			public Object readObject( DataInput in ) throws IOException {
-				return in.readUTF();
+				int len = in.readInt();
+				if ( len > 0 ) {
+					byte[] bb = new byte[ len ];
+					in.readFully( bb );
+					return new String( bb, jolie.Constants.stringCharset );
+				}
+				return "";
 			}
 			public void writeObject( DataOutput out, Object obj ) throws IOException {
-				out.writeUTF( (String)obj );
+				String str = (String)obj;
+				if ( str.isEmpty() ) {
+					out.writeInt( 0 );
+				} else {
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					Writer writer = new OutputStreamWriter( bos, jolie.Constants.stringCharset );
+					writer.write( str );
+					writer.close();
+					byte[] bb = bos.toByteArray();
+					out.writeInt( bb.length );
+					out.write( bb );
+				}
 			}
 		},
 		INT((byte)2) {
