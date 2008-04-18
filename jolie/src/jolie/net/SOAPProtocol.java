@@ -37,6 +37,7 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 import java.util.Map.Entry;
 
 import javax.xml.XMLConstants;
@@ -600,14 +601,20 @@ public class SOAPProtocol extends CommProtocol
 					
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if ( schemaPaths.size() > 0 ) {
-						Source[] sources = new Source[ schemaPaths.size() ];
-						for( int i = 0; i < schemaPaths.size(); i++ )
-							sources[ i ] = new StreamSource( new File( schemaPaths.get( i ).strValue() ) );
+						Vector< Source > sources = new Vector< Source >();
+						Value schemaPath;
+						for( int i = 0; i < schemaPaths.size(); i++ ) {
+							schemaPath = schemaPaths.get( i );
+							if ( schemaPath.getChildren( "validate" ).first().intValue() > 0 )
+								sources.add( new StreamSource( new File( schemaPaths.get( i ).strValue() ) ) );
+						}
 						
-						Schema schema =
-							SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-									.newSchema( sources );
-						schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+						if ( !sources.isEmpty() ) {
+							Schema schema =
+								SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
+									.newSchema( (Source[])sources.toArray() );
+							schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
+						}
 					}
 				} else {
 					String faultName = "UnknownFault";

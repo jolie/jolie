@@ -174,6 +174,7 @@ public class CommCore
 										message.fault()
 								);
 					oChannel.send( rMessage );
+					oChannel.setToBeClosed( false );
 					oChannel.setRedirectionChannel( channel );
 					oChannel.disposeForInput();
 				} else {
