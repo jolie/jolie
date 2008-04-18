@@ -90,6 +90,7 @@ public class PipeListener extends CommListener
 		public PipeCommChannel( PipeListener listener, CommProtocol protocol )
 		{
 			super( protocol, new ByteArrayOutputStream(), new ByteArrayOutputStream() );
+			this.toBeClosed = false;
 			this.listener = listener;
 		}
 		public void send( CommMessage message )
@@ -102,6 +103,12 @@ public class PipeListener extends CommListener
 					listener.notify();
 			}
 		}
+		/*protected void disposeForInputImpl()
+		{
+			synchronized( istream ) {
+				
+			}
+		}*/
 	}
 	
 	protected PipeCommChannel currentChannel = null;

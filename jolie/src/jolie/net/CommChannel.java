@@ -49,6 +49,18 @@ abstract public class CommChannel implements Channel
 	private CommListener listener = null;
 	private boolean isOpen = false;
 	
+	private CommChannel redirectionChannel = null;
+	
+	public void setRedirectionChannel( CommChannel redirectionChannel )
+	{
+		this.redirectionChannel = redirectionChannel;
+	}
+	
+	public CommChannel redirectionChannel()
+	{
+		return redirectionChannel;
+	}
+	
 	public static CommChannel createCommChannel( URI uri, OutputPort port )
 		throws IOException, URISyntaxException
 	{

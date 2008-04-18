@@ -157,7 +157,7 @@ public class CommCore
 								", not specified in the appropriate redirection table."
 							);
 					}
-					CommChannel oChannel = port.getCommChannel( interpreter.mainThread().state().root() );
+					CommChannel oChannel = port.getCommChannel();
 					String rPath = new String();
 					if ( ss.length <= 2 )
 						rPath = "/";

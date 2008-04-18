@@ -114,13 +114,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	public CommChannel getCommChannel()
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( null );
-	}
-	
-	public CommChannel getCommChannel( Value rootValue )
-		throws URISyntaxException, IOException
-	{
-		Value loc = ( rootValue == null ) ? locationVariablePath.getValue() : locationVariablePath.getValue( rootValue );
+		Value loc = locationVariablePath.getValue();
 		if ( loc.isChannel() )
 			channel = loc.channelValue();
 		else {
