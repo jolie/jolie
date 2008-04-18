@@ -151,7 +151,8 @@ public class OLParseTreeOptimizer
 								p.location(),
 								p.inputPorts(),
 								p.protocolId(),
-								currNode
+								currNode,
+								p.redirectionMap()
 						)
 					);
 			} else

@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -363,10 +364,11 @@ public class OLParser extends AbstractParser
 			serviceName = token.content();
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			ports = null;
+			ports = new Vector< String >();
 			serviceLocation = null;
 			protocolId = null;
 			protocolConfiguration = null;
+			Map< String, String > redirectionMap = new HashMap< String, String > ();
 			while( token.isNot( Scanner.TokenType.RCURLY ) ) {
 				if ( token.isKeyword( "Location" ) ) {
 					if ( serviceLocation != null )
@@ -382,7 +384,7 @@ public class OLParser extends AbstractParser
 					}
 					getToken();
 				} else if ( token.isKeyword( "Ports" ) ) {
-					if ( ports != null )
+					if ( !ports.isEmpty() )
 						throwException( "Ports already defined for service " + serviceName );
 					getToken();
 					eat( Scanner.TokenType.COLON, "expected : after Ports" );
@@ -411,17 +413,34 @@ public class OLParser extends AbstractParser
 						getToken();
 						protocolConfiguration = parseInVariablePathProcess( false );
 					}
+				} else if ( token.isKeyword( "Redirects" ) ) {
+					getToken();
+					eat( Scanner.TokenType.LCURLY, "expected {" );
+					String subLocationName;
+					while( token.is( Scanner.TokenType.ID ) ) {
+						subLocationName = token.content();
+						getToken();
+						eat( Scanner.TokenType.ARROW, "expected =>" );
+						assertToken( Scanner.TokenType.ID, "expected outputPort identifier" );
+						redirectionMap.put( subLocationName, token.content() );
+						getToken();
+						if ( token.is( Scanner.TokenType.COMMA ) ) {
+							getToken();
+						} else
+							break;
+					}
+					eat( Scanner.TokenType.RCURLY, "expected }" );
 				} else
 					throwException( "Unrecognized token in service " + serviceName );
 			}
 			eat( Scanner.TokenType.RCURLY, "} expected" );
 			if ( serviceLocation == null )
 				throwException( "expected service URI for service " + serviceName );
-			else if ( ports == null )
-				throwException( "expected input ports for service " + serviceName );
+			else if ( ports.isEmpty() && redirectionMap.isEmpty() )
+				throwException( "expected input ports or redirections for service " + serviceName );
 			else if ( protocolId == null )
 				throwException( "expected protocol for service " + serviceName );
-			program.addChild( new ServiceInfo( getContext(), serviceName, serviceLocation, ports, protocolId, protocolConfiguration ) );
+			program.addChild( new ServiceInfo( getContext(), serviceName, serviceLocation, ports, protocolId, protocolConfiguration, redirectionMap ) );
 		}
 	}
 
