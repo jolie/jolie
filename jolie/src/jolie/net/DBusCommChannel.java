@@ -155,7 +155,7 @@ public class DBusCommChannel extends CommChannel
 			paramClassName = message.value().valueObject().getClass().getName();
 		try {
 			sourceProgram =	new StringCodeJavaFileObject(
-							objectName, buildDBusJavaInterface( message.inputId(), paramClassName )
+							objectName, buildDBusJavaInterface( message.operationName(), paramClassName )
 						);
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
@@ -186,15 +186,15 @@ public class DBusCommChannel extends CommChannel
 			Method m = null;
 			Object ret = null;
 			if ( paramClassName.isEmpty() ) {
-				m = o.getClass().getDeclaredMethod( message.inputId() );
+				m = o.getClass().getDeclaredMethod( message.operationName() );
 				ret = m.invoke( o );
 			} else {
-				m = o.getClass().getDeclaredMethod( message.inputId(), message.value().valueObject().getClass() );
+				m = o.getClass().getDeclaredMethod( message.operationName(), message.value().valueObject().getClass() );
 				ret = m.invoke( o, message.value().valueObject() );
 			}
 			Value value = Value.create();
 			value.setValue( ret );
-			recvMessages.add( new CommMessage( message.inputId(), value ) );
+			recvMessages.add( new CommMessage( message.operationName(), "/", value ) );
 		} catch( DBusException e ) {
 			throw new IOException( e );
 		} catch( NoSuchMethodException e ) {

@@ -37,11 +37,12 @@ public class CommMessage
 {
 	private static final long serialVersionUID = 1L;
 	
-	private String inputId;
+	private String operationName;
+	private String resourcePath;
 	private Value value;
 	private FaultException fault = null;
 	
-	public CommMessage() {}
+	private CommMessage() {}
 	
 	public static CommMessage createFromExternal( DataInput in )
 		throws IOException, ClassNotFoundException
@@ -54,7 +55,8 @@ public class CommMessage
 	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
-		inputId = SODEPProtocol.readString( in );
+		resourcePath = SODEPProtocol.readString( in );
+		operationName = SODEPProtocol.readString( in );
 		fault = FaultException.createFromExternal( in );
 		value = Value.createFromExternal( in );
 	}
@@ -62,7 +64,8 @@ public class CommMessage
 	public void writeExternal( DataOutput out )
 		throws IOException
 	{
-		SODEPProtocol.writeString( out, inputId );
+		SODEPProtocol.writeString( out, resourcePath );
+		SODEPProtocol.writeString( out, operationName );
 		if ( fault == null ) {
 			out.writeBoolean( false );
 		} else {
@@ -74,35 +77,44 @@ public class CommMessage
 	
 	public static CommMessage createEmptyMessage()
 	{
-		return new CommMessage( "" );
+		return new CommMessage( "", "/" );
 	}
 	
-	public CommMessage( String inputId, Value value )
+	public String resourcePath()
 	{
-		this.inputId = inputId;
+		return resourcePath;
+	}
+	
+	public CommMessage( String operationName, String resourcePath, Value value )
+	{
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
 		// TODO This is a performance hit! Make this only when strictly necessary.
 		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
 		this.value = Value.createDeepCopy( value );
 	}
 	
-	public CommMessage( String inputId, FaultException f )
+	public CommMessage( String operationName, String resourcePath, FaultException f )
 	{
-		this.inputId = inputId;
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
 		this.value = Value.create();
 		this.fault = f;
 	}
 	
-	public CommMessage( String inputId, Value value, FaultException f )
+	public CommMessage( String operationName, String resourcePath, Value value, FaultException f )
 	{
-		this.inputId = inputId;
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
 		// TODO see above performance hit.
 		this.value = Value.createDeepCopy( value );
 		fault = f;
 	}
 	
-	public CommMessage( String inputId )
+	public CommMessage( String inputId, String resourcePath )
 	{
-		this.inputId = inputId;
+		this.operationName = inputId;
+		this.resourcePath = resourcePath;
 		this.value = Value.create();
 	}
 	
@@ -111,9 +123,9 @@ public class CommMessage
 		return value;
 	}
 	
-	public String inputId()
+	public String operationName()
 	{
-		return inputId;
+		return operationName;
 	}
 
 	public boolean isFault()

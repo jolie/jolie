@@ -23,6 +23,7 @@
 package jolie.net;
 
 import java.util.Collection;
+import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.JolieThread;
@@ -37,17 +38,29 @@ abstract public class CommListener extends JolieThread
 
 	private CommProtocol protocol;
 	private Collection< InputPort > inputPorts;
+	private Map< String, OutputPort > redirectionMap;
 	
-	public CommListener( Interpreter interpreter, CommProtocol protocol, Collection< InputPort > inputPorts )
+	public CommListener(
+				Interpreter interpreter,
+				CommProtocol protocol,
+				Collection< InputPort > inputPorts,
+				Map< String, OutputPort > redirectionMap
+			)
 	{
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocol = protocol;
 		this.inputPorts = inputPorts;
+		this.redirectionMap = redirectionMap;
 	}
 	
 	public CommProtocol createProtocol()
 	{
 		return protocol.clone();
+	}
+	
+	public Map< String, OutputPort > redirectionMap()
+	{
+		return redirectionMap;
 	}
 	
 	public boolean canHandleInputOperation( InputOperation operation )

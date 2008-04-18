@@ -2,12 +2,15 @@ package jolie;
 
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import jolie.Constants.OperandType;
 import jolie.lang.parse.OLVisitor;
@@ -296,7 +299,18 @@ public class OOITBuilder implements OLVisitor
 		
 		if ( protocol != null ) {
 			try {
-				interpreter.commCore().addService( n.location(), inputPorts, protocol, currProcess );
+				Map< String, OutputPort > redirectionMap =
+							new HashMap< String, OutputPort > ();
+				OutputPort oPort = null;
+				for( Entry< String, String > entry : n.redirectionMap().entrySet() ) {
+					try {
+						oPort = interpreter.getOutputPort( entry.getValue() );
+					} catch( InvalidIdException e ) {
+						error( n.context(), "Unknown output port: " + entry.getValue() );
+					}
+					redirectionMap.put( entry.getKey(), oPort );
+				}
+				interpreter.commCore().addService( n.location(), inputPorts, protocol, currProcess, redirectionMap );
 			} catch( UnsupportedCommMediumException e ) {
 				error( n.context(), e );
 			} catch( IOException ioe ) {

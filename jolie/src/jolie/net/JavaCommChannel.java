@@ -46,7 +46,7 @@ public class JavaCommChannel extends CommChannel
 			try {
 				Class<?>[] params = new Class[] { CommMessage.class };
 				Method method = javaService.getClass().getMethod(
-						message.inputId(),
+						message.operationName(),
 						params
 						);
 				Object[] args = new Object[] { message };
@@ -59,8 +59,10 @@ public class JavaCommChannel extends CommChannel
 						if ( t instanceof FaultException ) {
 							// The operation threw a fault
 							FaultException f = (FaultException) t;
+							//TODO support resourcePath
 							lastMessage = new CommMessage(
-										message.inputId(),
+										message.operationName(),
+										"/",
 										f
 										);
 						} else {

@@ -237,18 +237,34 @@ abstract public class ExecutionThread extends JolieThread
 	
 	public synchronized boolean checkCorrelation( VariablePath recvPath, CommMessage message )
 	{
+		if ( recvPath == null )
+			return true;
+
 		VariablePath path;
 		Value correlationValue;
+		Value mValue = null;
+		Value cValue;
 		for( List< VariablePath > list : Interpreter.getInstance().correlationSet() ) {
+			cValue = null;
+			correlationValue = list.get( 0 ).getValue();
 			for( VariablePath p : list ) {
 				if ( (path=recvPath.containedSubPath( p )) != null ) {
-					correlationValue = list.get( 0 ).getValue();
+					mValue = path.getValue( message.value() );
 					if (
-							correlationValue.isDefined() &&
-							!path.getValue( message.value() ).equals( correlationValue ) )
+						correlationValue.isDefined() &&
+						!mValue.equals( correlationValue )
+					) {
 						return false;
+					} else if ( !correlationValue.isDefined() ) {
+						// Every correlated value must be equal
+						if ( cValue != null && !cValue.equals( mValue ) )
+							return false;
+						cValue = mValue;
+					}
 				}
 			}
+			if ( cValue != null )
+				correlationValue.assignValue( cValue );
 		}
 		
 		return true;

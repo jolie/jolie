@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
@@ -63,10 +64,11 @@ public class NotificationProcess implements Process
 			return;
 
 		try {
+			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operationId ) :
-						new CommMessage( operationId, outputExpression.evaluate() );
+						new CommMessage( operationId, uri.getPath() ) :
+						new CommMessage( operationId, uri.getPath(), outputExpression.evaluate() );
 
 			CommChannel channel = outputPort.getCommChannel();
 			channel.send( message );

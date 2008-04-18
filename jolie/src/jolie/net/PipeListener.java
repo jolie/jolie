@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Map;
 
 import jolie.Interpreter;
 
@@ -106,10 +107,15 @@ public class PipeListener extends CommListener
 	protected PipeCommChannel currentChannel = null;
 	protected boolean waiting = false;
 	
-	public PipeListener( Interpreter interpreter, CommProtocol protocol, Collection< InputPort > inputPorts )
+	public PipeListener(
+			Interpreter interpreter,
+			CommProtocol protocol,
+			Collection< InputPort > inputPorts,
+			Map< String, OutputPort > redirectionMap
+			)
 		throws IOException
 	{
-		super( interpreter, protocol, inputPorts );
+		super( interpreter, protocol, inputPorts, redirectionMap );
 	}
 	
 	public CommChannel createPipeCommChannel()

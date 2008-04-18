@@ -28,6 +28,7 @@ import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.Map;
 
 import jolie.Interpreter;
 
@@ -35,10 +36,16 @@ public class SocketListener extends CommListener
 {
 	private ServerSocketChannel serverChannel;
 
-	public SocketListener( Interpreter interpreter, CommProtocol protocol, int port, Collection< InputPort > inputPorts )
+	public SocketListener(
+				Interpreter interpreter,
+				CommProtocol protocol,
+				int port,
+				Collection< InputPort > inputPorts,
+				Map< String, OutputPort > redirectionMap
+			)
 		throws IOException
 	{
-		super( interpreter, protocol, inputPorts );
+		super( interpreter, protocol, inputPorts, redirectionMap );
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();

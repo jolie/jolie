@@ -65,7 +65,7 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 		for( Entry< InputProcessExecution, ExecutionThread > entry : procsMap.entrySet() ) {
 			pe = entry.getKey();
 			if ( pe instanceof NDChoiceProcess.Execution )
-				path = ((NDChoiceProcess.Execution)pe).inputVarPath( message.inputId() );
+				path = ((NDChoiceProcess.Execution)pe).inputVarPath( message.operationName() );
 			else if ( pe.parent() instanceof InputOperationProcess )
 				path = ((InputOperationProcess)pe.parent()).inputVarPath();
 			
@@ -89,7 +89,7 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 			if ( process instanceof InputOperationProcess )
 				path = ((InputOperationProcess) process).inputVarPath();
 			else if ( process instanceof NDChoiceProcess.Execution )
-				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().inputId() );
+				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().operationName() );
 			
 			if ( ethread.checkCorrelation( path, pair.value() )
 					&& process.recvMessage( pair.key(), pair.value() ) ) {

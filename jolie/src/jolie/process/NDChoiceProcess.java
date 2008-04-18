@@ -125,7 +125,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			if ( parent.correlatedProcess != null )
 				parent.correlatedProcess.inputReceived();
 
-			choice = inputMap.remove( message.inputId() );
+			choice = inputMap.remove( message.operationName() );
 			assert( choice != null );
 
 			this.channel = channel;

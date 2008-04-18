@@ -231,7 +231,7 @@ public class HTTPProtocol extends CommProtocol
 			String messageString = new String();
 			InputOperation operation = null;
 			try {
-				operation = Interpreter.getInstance().getRequestResponseOperation( message.inputId() );
+				operation = Interpreter.getInstance().getRequestResponseOperation( message.operationName() );
 			} catch( InvalidIdException iie ) {}
 
 			if ( operation != null ) {
@@ -246,7 +246,7 @@ public class HTTPProtocol extends CommProtocol
 				path += uri.getPath();
 				if ( path.endsWith( "/" ) == false )
 					path += "/";
-				path += message.inputId();
+				path += message.operationName();
 				
 				String method = "GET";
 				if ( getParameterVector( "method" ).first().strValue().length() > 0 )
@@ -268,7 +268,7 @@ public class HTTPProtocol extends CommProtocol
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + messageString ); 
 			
-			inputId = message.inputId();
+			inputId = message.operationName();
 			
 			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
@@ -384,7 +384,7 @@ public class HTTPProtocol extends CommProtocol
 		}
 		
 		if ( message.type() == HTTPMessage.Type.RESPONSE ) {
-			retVal = new CommMessage( inputId, messageValue );
+			retVal = new CommMessage( inputId, "/", messageValue );
 		} else if (
 				message.type() == HTTPMessage.Type.POST ||
 				message.type() == HTTPMessage.Type.GET ) {
@@ -405,7 +405,8 @@ public class HTTPProtocol extends CommProtocol
 				}
 			}
 			
-			retVal = new CommMessage( opId, messageValue );
+			//TODO support resourcePath
+			retVal = new CommMessage( opId, "/", messageValue );
 		}
 		
 		return retVal;

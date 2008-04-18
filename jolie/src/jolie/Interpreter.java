@@ -330,6 +330,13 @@ public class Interpreter
 		return globalValue;
 	}
 	
+	private SessionThread mainExec;
+	
+	public SessionThread mainThread()
+	{
+		return mainExec;
+	}
+	
 	/**
 	 * Runs the interpreter behaviour specified by command line.
 	 * The default behaviour is to execute the input code.
@@ -357,7 +364,7 @@ public class Interpreter
 			assert false;
 		}
 		
-		SessionThread mainExec = new SessionThread( this, main );
+		mainExec = new SessionThread( this, main );
 		
 		// Initialize program arguments in the args variabile.
 		ValueVector args = ValueVector.create();

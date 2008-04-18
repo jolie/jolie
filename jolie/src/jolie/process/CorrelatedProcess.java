@@ -30,8 +30,8 @@ import jolie.runtime.FaultException;
 public class CorrelatedProcess implements Process
 {
 	private Process process;
-	//private ExecutionThread waitingThread = null;
 	private boolean waiting = false;
+	private SessionThread spawnModel;
 	
 	public CorrelatedProcess( Process process )
 	{
@@ -46,15 +46,18 @@ public class CorrelatedProcess implements Process
 	private void startSession()
 	{
 		waiting = true;
-		new SessionThread( process, ExecutionThread.currentThread(), this ).start();
-		//waitingThread.start();
+		SessionThread toStart = spawnModel;
+		spawnModel = new SessionThread( process, spawnModel, this );
+		toStart.start();
 	}
 	
 	public void run()
 		throws FaultException
 	{
-		if ( Interpreter.getInstance().executionMode() != Constants.ExecutionMode.SINGLE ) {
-			while( !Interpreter.getInstance().exiting() ) {
+		spawnModel = new SessionThread( process, ExecutionThread.currentThread(), this );
+		Interpreter interpreter = Interpreter.getInstance();
+		if ( interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
+			while( !interpreter.exiting() ) {
 				startSession();
 				synchronized( this ) {
 					if ( waiting ) { // We are still waiting for an input

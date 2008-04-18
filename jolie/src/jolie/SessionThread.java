@@ -42,7 +42,7 @@ public class SessionThread extends ExecutionThread
 	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
 	{
 		super( process, parent, notifyObj );
-		
+
 		assert( parent != null );
 		
 		state = parent.state().clone();

@@ -25,11 +25,13 @@ package jolie.net;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,11 +50,11 @@ import jolie.runtime.InvalidIdException;
 public class CommCore
 {
 	private Vector< CommListener > listeners = new Vector< CommListener >();
-	
+
 	private ThreadGroup threadGroup;
-	
+
 	private Logger logger = Logger.getLogger( "JOLIE" );
-	
+
 	private int connectionsLimit = -1;
 	private Interpreter interpreter;
 
@@ -93,7 +95,8 @@ public class CommCore
 				URI uri,
 				Collection< InputPort > inputPorts,
 				CommProtocol protocol,
-				Process protocolConfigurationProcess
+				Process protocolConfigurationProcess,
+				Map< String, OutputPort > redirectionMap
 			)
 		throws UnsupportedCommMediumException, IOException
 	{
@@ -103,13 +106,13 @@ public class CommCore
 		CommListener listener = null;
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
 		if ( medium.equals( Constants.MediumId.SOCKET ) ) {
-			listener = new SocketListener( interpreter, protocol, uri.getPort(), inputPorts );
+			listener = new SocketListener( interpreter, protocol, uri.getPort(), inputPorts, redirectionMap );
 		} else if ( medium.equals( Constants.MediumId.PIPE ) ) {
-			listener = new PipeListener( interpreter, protocol, inputPorts );
+			listener = new PipeListener( interpreter, protocol, inputPorts, redirectionMap );
 			Interpreter.registerPipeListener( uri.getSchemeSpecificPart(), (PipeListener)listener );
 		} else
 			throw new UnsupportedCommMediumException( uri.getScheme() );
-		
+
 		assert listener != null;
 		listeners.add( listener );
 	}
@@ -137,19 +140,52 @@ public class CommCore
 		{
 			try {
 				CommMessage message = channel.recv();
-				InputOperation operation =
-						interpreter.getInputOperation( message.inputId() );
-				if ( listener != null && !listener.canHandleInputOperation( operation ) )
-					Interpreter.getInstance().logger().warning(
+				String[] ss = message.resourcePath().split( "/" );
+				if ( listener != null && ss.length > 1 ) {
+					// We should check for redirection
+					OutputPort port = listener.redirectionMap().get( ss[1] );
+					if ( port == null ) {
+						Interpreter.getInstance().logger().warning(
+								"Discarded a message for resource " + ss[1] +
+								", not specified in the appropriate redirection table."
+							);
+					}
+					CommChannel channel = port.getCommChannel( interpreter.mainThread().state().root() );
+					String rPath = new String();
+					if ( ss.length <= 2 )
+						rPath = "/";
+					else {
+						for( int i = 2; i < ss.length; i++ ) {
+							rPath += "/" + ss[ i ];
+						}
+					}
+					CommMessage rMessage =
+								new CommMessage(
+										message.operationName(),
+										rPath,
+										message.value(),
+										message.fault()
+								);
+					channel.send( rMessage );
+					channel.disposeForInput();
+				} else {
+
+					InputOperation operation =
+						interpreter.getInputOperation( message.operationName() );
+					if ( listener != null && !listener.canHandleInputOperation( operation ) )
+						Interpreter.getInstance().logger().warning(
 								"Discarded a message for operation " + operation +
 								", not specified in an input port at the receiving service."
 							);
-				else
-					operation.recvMessage( channel, message );
+					else
+						operation.recvMessage( channel, message );
+				}
 			} catch( IOException ioe ) {
 				ioe.printStackTrace();
 			} catch( InvalidIdException iie ) {
 				iie.printStackTrace();
+			} catch( URISyntaxException e ) {
+				e.printStackTrace();
 			}
 		}
 	}

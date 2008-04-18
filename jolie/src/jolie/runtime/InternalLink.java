@@ -68,7 +68,7 @@ public class InternalLink implements InputHandler
 				//inMap.put( Thread.currentThread(), process );
 				//inMa.addFirst( process );
 			else {
-				process.recvMessage( null, new CommMessage( id() ) );
+				process.recvMessage( null, new CommMessage( id(), "/" ) );
 				Thread t = outList.removeLast();
 				synchronized( t ) {
 					t.notify();
@@ -149,7 +149,7 @@ public class InternalLink implements InputHandler
 					} catch( InterruptedException e ) {}
 				}
 			} else {
-				pair.value().recvMessage( null, new CommMessage( id() ) );
+				pair.value().recvMessage( null, new CommMessage( id(), "/" ) );
 				synchronized( pair.key() ) {
 					pair.key().notify();
 				}

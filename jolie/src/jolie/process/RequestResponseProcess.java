@@ -157,10 +157,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		CommMessage response = null;
 		try {
 			process.run();
+			//TODO support resourcePath
 			response =
 				( outputExpression == null ) ?
-						new CommMessage( operation.id() ) :
-						new CommMessage( operation.id(), outputExpression.evaluate() );
+						new CommMessage( operation.id(), "/" ) :
+						new CommMessage( operation.id(), "/", outputExpression.evaluate() );
 		} catch( FaultException f ) {
 			if ( !operation.faultNames().contains( f.faultName() ) ) {
 				Interpreter.getInstance().logger().severe(
@@ -176,7 +177,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				} else
 					Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
 			}
-			response = new CommMessage( operation.id(), f );
+			//TODO support resourcePath
+			response = new CommMessage( operation.id(), "/", f );
 			fault = f;
 		}
 

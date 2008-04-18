@@ -62,7 +62,7 @@ public class MainDefinitionProcess extends DefinitionProcess
 				DefinitionProcess p = interpreter.getDefinition( "init" );
 				p.run();
 			} catch( InvalidIdException e ) {}
-			
+
 			super.run();
 		} catch( EmbeddedServiceLoadingException e ) {
 			Interpreter.getInstance().logger().severe( e.getMessage() );

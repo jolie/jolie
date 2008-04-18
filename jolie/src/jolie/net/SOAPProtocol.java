@@ -371,7 +371,7 @@ public class SOAPProtocol extends CommProtocol
 		throws IOException
 	{		
 		try {
-			String inputId = message.inputId();
+			String inputId = message.operationName();
 			try {
 				interpreter.getRequestResponseOperation( inputId );
 				
@@ -401,7 +401,7 @@ public class SOAPProtocol extends CommProtocol
 				 * We could also allow for giving a prefix or a suffix to the operation name,
 				 * like wsAddressing.action.prefix, wsAddressing.action.suffix
 				 */
-				actionElement.setValue( message.inputId() );
+				actionElement.setValue( message.operationName() );
 				// From element
 				Name fromName = soapEnvelope.createName( "From", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
 				SOAPHeaderElement fromElement = soapHeader.addHeaderElement( fromName );
@@ -458,7 +458,7 @@ public class SOAPProtocol extends CommProtocol
 			InputOperation operation = null;
 			
 			try {
-				operation = interpreter.getRequestResponseOperation( message.inputId() );
+				operation = interpreter.getRequestResponseOperation( message.operationName() );
 			} catch( InvalidIdException iie ) {}
 			if ( operation != null ) {
 				// We're responding to a request
@@ -471,7 +471,7 @@ public class SOAPProtocol extends CommProtocol
 				messageString += "POST " + path + " HTTP/1.1" + CRLF;
 				messageString += "Host: " + getURI().getHost() + CRLF;
 				soapAction =
-					"SOAPAction: \"" + messageNamespace + "/" + message.inputId() + '\"' + CRLF;
+					"SOAPAction: \"" + messageNamespace + "/" + message.operationName() + '\"' + CRLF;
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
@@ -489,7 +489,7 @@ public class SOAPProtocol extends CommProtocol
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
 				interpreter.logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
 
-			inputId = message.inputId();
+			inputId = message.operationName();
 			
 			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
@@ -631,21 +631,24 @@ public class SOAPProtocol extends CommProtocol
 			if ( message.type() == HTTPMessage.Type.RESPONSE ) { 
 				if ( fault != null && message.httpCode() == 500 )
 					fault = new FaultException( "InternalServerError", "" );
-				retVal = new CommMessage( inputId, value, fault );
+				//TODO support resourcePath
+				retVal = new CommMessage( inputId, "/", value, fault );
 			} else if (
 					message.type() == HTTPMessage.Type.POST ||
 					message.type() == HTTPMessage.Type.GET
 					) {
 				if ( messageId.isEmpty() )
 					throw new IOException( "Received SOAP Message without a specified operation" );
-				retVal = new CommMessage( messageId, value, fault );
+				//TODO support resourcePath
+				retVal = new CommMessage( messageId, "/", value, fault );
 			}
 		} catch( SOAPException se ) {
 			throw new IOException( se );
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
 		} catch( SAXException saxe ) {
-			retVal = new CommMessage( messageId, value, new FaultException( "InvalidType" ) );
+			//TODO support resourcePath
+			retVal = new CommMessage( messageId, "/", value, new FaultException( "InvalidType" ) );
 		}
 		
 		return retVal;
