@@ -136,12 +136,19 @@ public class CommCore
 			this.listener = listener;
 		}
 		
-		public void run()
+		private void redirectMessage( CommMessage message )
+			throws IOException
+		{
+			channel.redirectionChannel().send( message );
+		}
+		
+		private void handleMessage( CommMessage message )
+			throws IOException
 		{
 			try {
-				CommMessage message = channel.recv();
 				String[] ss = message.resourcePath().split( "/" );
 				if ( listener != null && ss.length > 1 ) {
+					CommChannelHandler.currentThread().setExecutionThread( interpreter.mainThread() );
 					// We should check for redirection
 					OutputPort port = listener.redirectionMap().get( ss[1] );
 					if ( port == null ) {
@@ -150,7 +157,7 @@ public class CommCore
 								", not specified in the appropriate redirection table."
 							);
 					}
-					CommChannel channel = port.getCommChannel( interpreter.mainThread().state().root() );
+					CommChannel oChannel = port.getCommChannel( interpreter.mainThread().state().root() );
 					String rPath = new String();
 					if ( ss.length <= 2 )
 						rPath = "/";
@@ -166,10 +173,10 @@ public class CommCore
 										message.value(),
 										message.fault()
 								);
-					channel.send( rMessage );
-					channel.disposeForInput();
+					oChannel.send( rMessage );
+					oChannel.setRedirectionChannel( channel );
+					oChannel.disposeForInput();
 				} else {
-
 					InputOperation operation =
 						interpreter.getInputOperation( message.operationName() );
 					if ( listener != null && !listener.canHandleInputOperation( operation ) )
@@ -180,11 +187,22 @@ public class CommCore
 					else
 						operation.recvMessage( channel, message );
 				}
-			} catch( IOException ioe ) {
-				ioe.printStackTrace();
 			} catch( InvalidIdException iie ) {
 				iie.printStackTrace();
 			} catch( URISyntaxException e ) {
+				e.printStackTrace();
+			}
+		}
+		
+		public void run()
+		{
+			try {
+				CommMessage message = channel.recv();
+				if ( channel.redirectionChannel() == null )
+					handleMessage( message );
+				else
+					redirectMessage( message );
+			} catch( IOException e ) {
 				e.printStackTrace();
 			}
 		}
@@ -235,7 +253,7 @@ public class CommCore
 							key.channel().configureBlocking( true );
 							stream = channel.inputStream();
 							stream.mark( 1 );
-							// It could just be a closing read
+							// It could just be a closing read. If not, receive it.
 							if ( stream.read() != -1 ) {
 								stream.reset();
 								scheduleReceive( channel, channel.parentListener() );
@@ -243,7 +261,8 @@ public class CommCore
 						}
 					}
 				} catch( IOException ioe ) {
-					ioe.printStackTrace();
+					// TODO Handle this properly
+					//ioe.printStackTrace();
 				}
 			}
 		}
