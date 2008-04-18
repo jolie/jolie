@@ -71,7 +71,7 @@ public class FaultException extends Exception
 	public void readExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
-		faultName = in.readUTF();
+		faultName = SODEPProtocol.readString( in );
 		value = Value.createFromExternal( in );
 	}
 	

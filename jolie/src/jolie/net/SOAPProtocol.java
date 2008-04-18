@@ -372,7 +372,7 @@ public class SOAPProtocol extends CommProtocol
 		throws IOException
 	{		
 		try {
-			String inputId = message.operationName();
+			inputId = message.operationName();
 			try {
 				interpreter.getRequestResponseOperation( inputId );
 				

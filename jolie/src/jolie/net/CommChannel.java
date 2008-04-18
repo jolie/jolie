@@ -66,7 +66,7 @@ abstract public class CommChannel implements Channel
 	{
 		CommChannel channel = null;
 		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
-		
+
 		if ( medium == Constants.MediumId.SOCKET ) {
 			SocketChannel socketChannel = 
 						SocketChannel.open( new InetSocketAddress( uri.getHost(), uri.getPort() ) );
