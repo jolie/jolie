@@ -103,12 +103,18 @@ public class PipeListener extends CommListener
 					listener.notify();
 			}
 		}
-		/*protected void disposeForInputImpl()
+
+		protected void disposeForInputImpl()
 		{
 			synchronized( istream ) {
-				
+				while( new ByteArrayInputStream( istream.toByteArray() ).available() <= 0 ) {
+					try {
+						istream.wait();
+					} catch( InterruptedException ie ) {}
+				}
 			}
-		}*/
+			Interpreter.getInstance().commCore().scheduleReceive( this, null );
+		}
 	}
 	
 	protected PipeCommChannel currentChannel = null;

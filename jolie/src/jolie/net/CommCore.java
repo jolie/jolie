@@ -173,9 +173,9 @@ public class CommCore
 										message.value(),
 										message.fault()
 								);
+					oChannel.setRedirectionChannel( channel );
 					oChannel.send( rMessage );
 					oChannel.setToBeClosed( false );
-					oChannel.setRedirectionChannel( channel );
 					oChannel.disposeForInput();
 				} else {
 					InputOperation operation =

@@ -120,6 +120,7 @@ public class SOAPProtocol extends CommProtocol
 	public SOAPProtocol clone()
 	{
 		SOAPProtocol ret = new SOAPProtocol( configurationPath );
+		ret.inputId = inputId;
 		ret.locationVariablePath = locationVariablePath;
 		ret.interpreter = interpreter;
 		ret.messageFactory = messageFactory;
