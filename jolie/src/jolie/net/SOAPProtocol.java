@@ -115,6 +115,9 @@ public class SOAPProtocol extends CommProtocol
 	private XSSchemaSet schemaSet = null;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
+	
+	private boolean received = false;
+	
 	final private static String CRLF = new String( new char[] { 13, 10 } );
 
 	public SOAPProtocol clone()
@@ -125,6 +128,7 @@ public class SOAPProtocol extends CommProtocol
 		ret.interpreter = interpreter;
 		ret.messageFactory = messageFactory;
 		ret.schemaSet = schemaSet;
+		ret.received = received;
 		return ret;
 	}
 	
@@ -374,12 +378,12 @@ public class SOAPProtocol extends CommProtocol
 	{		
 		try {
 			inputId = message.operationName();
-			try {
-				interpreter.getRequestResponseOperation( inputId );
-				
+			
+			if ( received ) {
 				// We're responding to a request
 				inputId += "Response";
-			} catch( InvalidIdException iie ) {}
+				received = false;
+			}
 
 			String messageNamespace = getParameterVector( "namespace" ).first().strValue();
 			SOAPMessage soapMessage = messageFactory.createMessage();
@@ -658,6 +662,8 @@ public class SOAPProtocol extends CommProtocol
 			//TODO support resourcePath
 			retVal = new CommMessage( messageId, "/", value, new FaultException( "InvalidType" ) );
 		}
+		
+		received = true;
 		
 		return retVal;
 	}

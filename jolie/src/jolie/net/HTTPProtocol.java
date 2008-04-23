@@ -78,6 +78,7 @@ public class HTTPProtocol extends CommProtocol
 	private DocumentBuilder docBuilder;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
+	private boolean received = false;
 	
 	final private static String CRLF = new String( new char[] { 13, 10 } );
 	
@@ -124,6 +125,7 @@ public class HTTPProtocol extends CommProtocol
 		ret.locationVariablePath = locationVariablePath;
 		ret.transformer = transformer;
 		ret.transformerFactory = transformerFactory;
+		ret.received = received;
 		return ret;
 	}
 	
@@ -229,14 +231,11 @@ public class HTTPProtocol extends CommProtocol
 			}
 
 			String messageString = new String();
-			InputOperation operation = null;
-			try {
-				operation = Interpreter.getInstance().getRequestResponseOperation( message.operationName() );
-			} catch( InvalidIdException iie ) {}
-
-			if ( operation != null ) {
+			
+			if ( received ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK" + CRLF;
+				received = false;
 			} else {
 				URI uri = getURI();
 				// We're sending a notification or a solicit
@@ -408,6 +407,8 @@ public class HTTPProtocol extends CommProtocol
 			//TODO support resourcePath
 			retVal = new CommMessage( opId, "/", messageValue );
 		}
+		
+		received = true;
 		
 		return retVal;
 	}
