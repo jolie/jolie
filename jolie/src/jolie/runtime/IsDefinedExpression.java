@@ -41,6 +41,6 @@ public class IsDefinedExpression implements Expression
 	public Value evaluate()
 	{
 		Value v = path.getValueOrNull();
-		return Value.create( ( v == null ) ? 0 : 1 );
+		return Value.create( ( v == null ) ? false : v.isDefined() );
 	}
 }

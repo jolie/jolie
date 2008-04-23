@@ -152,7 +152,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		if ( !operation.faultNames().contains( f.faultName() ) ) {
 			Interpreter.getInstance().logger().severe(
 				"Request-Response process for " + operation.id() +
-				"threw an undeclared fault for that operation" );
+				" threw an undeclared fault for that operation" );
 			Iterator< String > it = operation.faultNames().iterator();
 			if ( it.hasNext() ) {
 				String newFault = it.next();

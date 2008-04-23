@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
 Main-Class: jolie.Jolie
-Class-Path: ext/relaxngDatatype.jar ext/dbus.jar
+Class-Path: ext/relaxngDatatype.jar ext/dbus.jar ext/jdbc-postgresql.jar

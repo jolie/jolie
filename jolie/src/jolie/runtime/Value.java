@@ -104,7 +104,7 @@ class ValueImpl extends Value
 {
 	private static final long serialVersionUID = 1L;
 	
-	private Object valueObject;
+	private Object valueObject = null;
 	private ConcurrentHashMap< String, ValueVector > children = null;
 	
 	public void setValueObject( Object object )
@@ -263,6 +263,11 @@ abstract public class Value implements Expression
 	public static Value create()
 	{
 		return new ValueImpl();
+	}
+	
+	public static Value create( Boolean bool )
+	{
+		return new ValueImpl( ( bool == true ) ? 1 : 0 );
 	}
 	
 	public static Value create( String str )

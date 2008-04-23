@@ -310,7 +310,7 @@ public class OOITBuilder implements OLVisitor
 					}
 					redirectionMap.put( entry.getKey(), oPort );
 				}
-				interpreter.commCore().addService( n.location(), inputPorts, protocol, currProcess, redirectionMap );
+				interpreter.commCore().addService( n.id(), n.location(), inputPorts, protocol, currProcess, redirectionMap );
 			} catch( UnsupportedCommMediumException e ) {
 				error( n.context(), e );
 			} catch( IOException ioe ) {

@@ -31,7 +31,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,7 +51,7 @@ import jolie.runtime.InvalidIdException;
  */
 public class CommCore
 {
-	private Vector< CommListener > listeners = new Vector< CommListener >();
+	private Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
 
 	private ThreadGroup threadGroup;
 
@@ -87,11 +89,17 @@ public class CommCore
 		return protocolConfigurations;
 	}
 	
+	public CommListener getListenerByServiceName( String serviceName )
+	{
+		return listenersMap.get( serviceName );
+	}
+	
 	/** Adds an input service.
 	 * @param uri
 	 * @param protocol
 	 */
 	public void addService(
+				String serviceName,
 				URI uri,
 				Collection< InputPort > inputPorts,
 				CommProtocol protocol,
@@ -114,7 +122,7 @@ public class CommCore
 			throw new UnsupportedCommMediumException( uri.getScheme() );
 
 		assert listener != null;
-		listeners.add( listener );
+		listenersMap.put( serviceName, listener );
 	}
 	
 	private ExecutorService executorService;
@@ -226,8 +234,8 @@ public class CommCore
 		selectorThread = new SelectorThread();
 		selectorThread.start();
 		
-		for( CommListener listener : listeners )
-			listener.start();
+		for( Entry< String, CommListener > entry : listenersMap.entrySet() )
+			entry.getValue().start();
 	}
 	
 	private SelectorThread selectorThread;

@@ -60,8 +60,8 @@ public class CompareCondition implements Condition
 		rightVal = rightExpression.evaluate();
 		
 		if ( opType == Scanner.TokenType.EQUAL ) {
-			if ( leftVal.isString() && rightVal.isString() )
-				retval = leftVal.strValue().equals( rightVal.strValue() );
+			if ( leftVal.equals( rightVal ) )
+				retval = true;
 			else
 				retval = ( leftVal.intValue() == rightVal.intValue() );
 		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
