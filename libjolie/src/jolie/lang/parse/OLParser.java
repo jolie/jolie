@@ -404,6 +404,8 @@ public class OLParser extends AbstractParser
 						addTokens( Arrays.asList(
 									new Scanner.Token( Scanner.TokenType.ID, Constants.GLOBAL ),
 									new Scanner.Token( Scanner.TokenType.DOT ),
+									new Scanner.Token( Scanner.TokenType.ID, "services" ),
+									new Scanner.Token( Scanner.TokenType.DOT ),
 									new Scanner.Token( Scanner.TokenType.ID, serviceName ),
 									new Scanner.Token( Scanner.TokenType.DOT ),
 									new Scanner.Token( Scanner.TokenType.ID, "protocol" ),
