@@ -77,14 +77,14 @@ public class ParallelExecution
 				} catch( InterruptedException e ) {
 					if ( ethread.isKilled() ) {
 						for( ParallelThread t : threads )
-							t.kill();
+							t.kill( ethread.killerFault() );
 					}
 				}
 			}
 
 			if ( fault != null ) {
 				for( ParallelThread t : threads )
-					t.kill();
+					t.kill( fault );
 				while ( !threads.isEmpty() ) {
 					try {
 						wait();

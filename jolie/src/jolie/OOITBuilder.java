@@ -343,6 +343,14 @@ public class OOITBuilder implements OLVisitor
 						);
 	}
 	
+	// TODO use this in every session spawner creation
+	private CorrelatedProcess makeSessionSpawner( CorrelatedInputProcess process )
+	{
+		CorrelatedProcess ret = new CorrelatedProcess( process );
+		process.setCorrelatedProcess( ret );
+		return ret;
+	}
+	
 	public void visit( DefinitionNode n )
 	{
 		DefinitionProcess def;
@@ -352,9 +360,7 @@ public class OOITBuilder implements OLVisitor
 			n.body().accept( this );
 			canSpawnSession = false;
 			if ( currProcess instanceof CorrelatedInputProcess ) {
-				CorrelatedProcess corrProc = new CorrelatedProcess( currProcess );
-				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
-				currProcess = corrProc;
+				currProcess = makeSessionSpawner( (CorrelatedInputProcess)currProcess );
 			}
 			currProcess = new ScopeProcess( "main", currProcess );
 			def = new MainDefinitionProcess();
@@ -389,6 +395,7 @@ public class OOITBuilder implements OLVisitor
 		SequentialProcess proc = new SequentialProcess();
 		Iterator< OLSyntaxNode > it = n.children().iterator();
 		OLSyntaxNode node;
+		boolean origSpawnSession;
 		while( it.hasNext() ) {
 			node = it.next();
 			node.accept( this );
@@ -397,6 +404,7 @@ public class OOITBuilder implements OLVisitor
 				 * Do not use multiple CorrelatedInputProcess
 				 * in the same sequence!
 				 */
+				origSpawnSession = canSpawnSession;
 				canSpawnSession = false;
 				SequentialProcess sequence = new SequentialProcess();
 				CorrelatedProcess corrProc = new CorrelatedProcess( sequence );
@@ -408,7 +416,7 @@ public class OOITBuilder implements OLVisitor
 					sequence.addChild( currProcess );
 				}
 				currProcess = corrProc;
-				canSpawnSession = true;
+				canSpawnSession = origSpawnSession;
 			}
 			proc.addChild( currProcess );
 			if ( !it.hasNext() ) // Dirty trick, remove this
@@ -462,6 +470,9 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( RequestResponseOperationStatement n )
 	{
+		boolean origSpawnSession = canSpawnSession;
+		canSpawnSession = false;
+		
 		Expression outputExpression = null;
 		if ( n.outputExpression() != null ) {
 			n.outputExpression().accept( this );
@@ -479,6 +490,8 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
 		}
+
+		canSpawnSession = origSpawnSession;
 	}
 		
 	public void visit( NotificationOperationStatement n )

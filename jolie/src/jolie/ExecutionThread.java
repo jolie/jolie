@@ -93,8 +93,8 @@ abstract public class ExecutionThread extends JolieThread
 	private Process process;
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
 	private ExecutionThread parent;
-	private boolean killed = false;
 	private boolean canBeInterrupted = false;
+	private FaultException killerFault = null;
 	
 	private CorrelatedProcess notifyProc = null;
 	
@@ -119,21 +119,26 @@ abstract public class ExecutionThread extends JolieThread
 		this.notifyProc = null;
 	}
 
-	public void kill()
+	public void kill( FaultException fault )
 	{
-		killed = true;
+		killerFault = fault;
 		if( canBeInterrupted )
 			interrupt();
+	}
+	
+	public FaultException killerFault()
+	{
+		return killerFault;
 	}
 
 	public void clearKill()
 	{
-		killed = false;
+		killerFault = null;
 	}
 
 	public boolean isKilled()
 	{
-		return killed;
+		return (killerFault != null);
 	}
 	
 	public void run()

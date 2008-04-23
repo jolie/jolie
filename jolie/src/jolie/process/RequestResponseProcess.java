@@ -64,13 +64,17 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			try {
 				parent.operation.signForMessage( this );
 				synchronized( this ) {
-					if( message == null )
+					if( message == null ) {
+						ExecutionThread ethread = ExecutionThread.currentThread();
+						ethread.setCanBeInterrupted( true );
 						this.wait();
+						ethread.setCanBeInterrupted( false );
+					}
 				}
+				parent.runBehaviour( channel, message );
 			} catch( InterruptedException ie ) {
 				parent.operation.cancelWaiting( this );
 			}
-			parent.runBehaviour( channel, message );
 		}
 		
 		public VariablePath inputVarPath()
@@ -143,6 +147,26 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		return operation;
 	}
 	
+	private CommMessage createFaultMessage( FaultException f )
+	{
+		if ( !operation.faultNames().contains( f.faultName() ) ) {
+			Interpreter.getInstance().logger().severe(
+				"Request-Response process for " + operation.id() +
+				"threw an undeclared fault for that operation" );
+			Iterator< String > it = operation.faultNames().iterator();
+			if ( it.hasNext() ) {
+				String newFault = it.next();
+				Interpreter.getInstance().logger().warning(
+					"Converting Request-Response fault " + f.faultName() +
+					" to " + newFault );
+				f = new FaultException( newFault );
+			} else
+				Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
+		}
+		//TODO support resourcePath
+		return new CommMessage( operation.id(), "/", f );
+	}
+	
 	public void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
@@ -157,28 +181,18 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		CommMessage response = null;
 		try {
 			process.run();
-			//TODO support resourcePath
-			response =
+			ExecutionThread ethread = ExecutionThread.currentThread();
+			if ( ethread.isKilled() ) {
+				response = createFaultMessage( ethread.killerFault() );
+			} else {
+				//TODO support resourcePath
+				response =
 				( outputExpression == null ) ?
 						new CommMessage( operation.id(), "/" ) :
 						new CommMessage( operation.id(), "/", outputExpression.evaluate() );
-		} catch( FaultException f ) {
-			if ( !operation.faultNames().contains( f.faultName() ) ) {
-				Interpreter.getInstance().logger().severe(
-					"Request-Response process for " + operation.id() +
-					"threw an undeclared fault for that operation" );
-				Iterator< String > it = operation.faultNames().iterator();
-				if ( it.hasNext() ) {
-					String newFault = it.next();
-					Interpreter.getInstance().logger().warning(
-						"Converting Request-Response fault " + f.faultName() +
-						" to " + newFault );
-					f = new FaultException( newFault );
-				} else
-					Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
 			}
-			//TODO support resourcePath
-			response = new CommMessage( operation.id(), "/", f );
+		} catch( FaultException f ) {
+			response = createFaultMessage( f );
 			fault = f;
 		}
 
