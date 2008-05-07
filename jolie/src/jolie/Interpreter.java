@@ -271,10 +271,11 @@ public class Interpreter
 		String olFilepath = null;
 		int connectionsLimit = -1;
 		Vector< String > includeVec = new Vector< String > ();
-		includeVec.add( "." );
+		String pwd = new File( "" ).getCanonicalPath();
+		includeVec.add( pwd );
 		includeVec.add( "include" );
 		Vector< String > libVec = new Vector< String > ();
-		libVec.add( "." );
+		libVec.add( pwd );
 		libVec.add( "ext" );
 		for( int i = 0; i < args.length; i++ ) {
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
@@ -317,7 +318,6 @@ public class Interpreter
 				urls.add( new URL( "jar:file://" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file://" + path + "/" ) );
-				urls.add( new URL( "jar:file://" + path + "/jolieJavaServices.jar!/" ) );
 			}
 		}
 		classLoader = URLClassLoader.newInstance( urls.toArray( new URL[] {} ) );
