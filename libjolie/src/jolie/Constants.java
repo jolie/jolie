@@ -89,8 +89,10 @@ public final class Constants
 	public static final String VERSION = "JOLIE 1.0_tp2";
 	public static final String COPYRIGHT = "(C) 2006-2007-2008 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );
+	public static String fileSeparator = System.getProperty( "file.separator" );
+	public static String pathSeparator = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
-
+	
 	public enum EmbeddedServiceType {
 		JAVA, JOLIE, UNSUPPORTED
 	}

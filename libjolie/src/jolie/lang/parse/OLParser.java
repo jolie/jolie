@@ -23,6 +23,7 @@ package jolie.lang.parse;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -109,10 +110,12 @@ public class OLParser extends AbstractParser
 					new HashMap< String, Scanner.Token > ();
 	
 	private boolean insideInstallFunction = false;
+	private String[] includePaths;
 
-	public OLParser( Scanner scanner )
+	public OLParser( Scanner scanner, String[] includePaths )
 	{
 		super( scanner );
+		this.includePaths = includePaths;
 	}
 	
 	public Program parse()
@@ -299,7 +302,20 @@ public class OLParser extends AbstractParser
 			getToken();
 			Scanner oldScanner = scanner();
 			assertToken( Scanner.TokenType.STRING, "expected filename to include" );
-			setScanner( new Scanner( new FileInputStream( token.content() ), token.content() ) );
+			String includeStr = token.content();
+			InputStream stream = null;
+			for( int i = 0; i < includePaths.length && stream == null; i++ ) {
+				stream = new FileInputStream(
+							includePaths[ i ] +
+							jolie.Constants.fileSeparator +
+							includeStr
+						);
+			}
+
+			if ( stream == null ) {
+				throwException( "File not found: " + includeStr );
+			}
+			setScanner( new Scanner( stream, includeStr ) );
 			parse();
 			setScanner( oldScanner );
 			getToken();
