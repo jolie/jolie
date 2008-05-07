@@ -176,7 +176,7 @@ public class DBusCommChannel extends CommChannel
 		try {
 			objectClass =
 				(Class< ? extends DBusInterface >)
-					Interpreter.getClassLoader().loadClass( objectName );
+					Interpreter.getInstance().getClassLoader().loadClass( objectName );
 		} catch( ClassNotFoundException e ) {
 			throw new IOException( e );
 		}

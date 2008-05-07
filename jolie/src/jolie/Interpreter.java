@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
@@ -90,14 +89,8 @@ public class Interpreter
 	private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
-	private String[] libPaths = new String[ 0 ];
 	private String[] includePaths = new String[ 0 ];
 	private String[] args = new String[ 0 ];
-	
-	public String[] libPaths()
-	{
-		return libPaths;
-	}
 	
 	public String[] args()
 	{
@@ -114,31 +107,7 @@ public class Interpreter
 		pipes.put( key, value );
 	}
 	
-	private static URLClassLoader classLoader = null;
-	public static URLClassLoader getClassLoader()
-		throws MalformedURLException, IOException
-	{
-		if ( classLoader == null ) {
-			Vector< URL > urls = new Vector< URL >();
-			/*for( String path : libPaths ) {
-				urls.add( new URL( "file://" + path + "/" ) );
-			}*/
-			String pwd = new File("").getCanonicalPath();
-			urls.add( new URL( "file://" + pwd + "/" ) );
-			urls.add( new URL( "file://" + pwd + "/ext/" ) );
-			urls.add( new URL( "jar:file://" + pwd + "/ext/jolieJavaServices.jar!/" ) );
-			String[] jarPaths = new File("ext").list();
-			if ( jarPaths != null ) {
-				for( int i = 0; i < jarPaths.length; i++ ) {
-					if ( jarPaths[ i ].endsWith( ".jar" ) ) {
-						urls.add( new URL( "jar:file://" + pwd + "/ext/" + jarPaths[ i ] + "!/" ) );
-					}
-				}
-			}
-			classLoader = URLClassLoader.newInstance( urls.toArray( new URL[] {} ) );
-		}
-		return classLoader;
-	}
+	private URLClassLoader classLoader;
 	
 	public Collection< OutputPort > outputPorts()
 	{
@@ -284,6 +253,11 @@ public class Interpreter
 		return ((JolieThread)Thread.currentThread()).interpreter();
 	}
 	
+	public URLClassLoader getClassLoader()
+	{
+		return classLoader;
+	}
+	
 	/** Constructor.
 	 * 
 	 * @param args The command line arguments.
@@ -337,13 +311,23 @@ public class Interpreter
 				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
 		}
 		
+		Vector< URL > urls = new Vector< URL >();
+		for( String path : libVec ) {
+			if ( path.endsWith( ".jar" ) ) {
+				urls.add( new URL( "jar:file://" + path + "!/" ) );
+			} else if ( new File( path ).isDirectory() ) {
+				urls.add( new URL( "file://" + path + "/" ) );
+				urls.add( new URL( "jar:file://" + path + "/jolieJavaServices.jar!/" ) );
+			}
+		}
+		classLoader = URLClassLoader.newInstance( urls.toArray( new URL[] {} ) );
+		
+		includePaths = includeVec.toArray( includePaths );
+		
 		if ( olFilepath == null )
 			throw new CommandLineException( "Input file not specified." );
 		
 		this.args = args;
-		
-		includePaths = includeVec.toArray( includePaths );
-		libPaths = libVec.toArray( libPaths );
 		
 		InputStream olStream = new FileInputStream( olFilepath );
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );

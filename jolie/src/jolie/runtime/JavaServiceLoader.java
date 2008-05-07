@@ -40,7 +40,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 	{
 		try {
 			Object obj =
-				Interpreter.getClassLoader().loadClass( servicePath ).newInstance();
+				Interpreter.getInstance().getClassLoader().loadClass( servicePath ).newInstance();
 			if ( !(obj instanceof JavaService) )
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
