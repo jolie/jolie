@@ -90,7 +90,9 @@ public class Interpreter
 	private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
-	private String[] libPaths, includePaths, args;
+	private String[] libPaths = new String[ 0 ];
+	private String[] includePaths = new String[ 0 ];
+	private String[] args = new String[ 0 ];
 	
 	public String[] libPaths()
 	{
@@ -418,12 +420,12 @@ public class Interpreter
 		mainExec = new SessionThread( this, main );
 		
 		// Initialize program arguments in the args variabile.
-		ValueVector args = ValueVector.create();
+		ValueVector jArgs = ValueVector.create();
 		
 		for( String s : arguments )
-			args.add( Value.create( s ) );
+			jArgs.add( Value.create( s ) );
 
-		mainExec.state().root().getChildren( "args" ).deepCopy( args );
+		mainExec.state().root().getChildren( "args" ).deepCopy( jArgs );
 		
 		mainExec.start();
 		
@@ -448,6 +450,7 @@ public class Interpreter
 			this.thread = thread;
 		}
 		
+		@Override
 		public void run()
 		{
 			try {
@@ -481,6 +484,7 @@ public class Interpreter
 		}
 	}
 	
+	@Override
 	protected void finalize()
 	{
 		// Clean up here if we're a sub-interpreter
