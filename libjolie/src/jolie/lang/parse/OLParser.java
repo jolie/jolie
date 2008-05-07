@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -304,12 +305,16 @@ public class OLParser extends AbstractParser
 			assertToken( Scanner.TokenType.STRING, "expected filename to include" );
 			String includeStr = token.content();
 			InputStream stream = null;
+			File f;
 			for( int i = 0; i < includePaths.length && stream == null; i++ ) {
-				stream = new FileInputStream(
+				f = new File(
 							includePaths[ i ] +
 							jolie.Constants.fileSeparator +
 							includeStr
 						);
+				if ( f.exists() ) {
+					stream = new FileInputStream( f );
+				}
 			}
 
 			if ( stream == null ) {
