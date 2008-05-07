@@ -62,7 +62,8 @@ public class RunProcess implements Process
 				String codeStr = val.strValue();
 				OLParser parser =
 					new OLParser(
-							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown" )
+							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown" ),
+							Interpreter.getInstance().includePaths()
 						);
 				Program program = parser.parse();
 				program = (new OLParseTreeOptimizer( program )).optimize();

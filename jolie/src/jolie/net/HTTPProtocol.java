@@ -125,7 +125,7 @@ public class HTTPProtocol extends CommProtocol
 		ret.locationVariablePath = locationVariablePath;
 		ret.transformer = transformer;
 		ret.transformerFactory = transformerFactory;
-		ret.received = received;
+		//ret.received = received;
 		return ret;
 	}
 	

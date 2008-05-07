@@ -56,6 +56,11 @@ public class PipeListener extends CommListener
 				ostream.close();
 			}
 		}
+	
+		final public void refreshProtocol()
+		{
+			this.protocol = this.protocol.clone();
+		}
 
 		public CommMessage recv()
 			throws IOException

@@ -128,7 +128,7 @@ public class SOAPProtocol extends CommProtocol
 		ret.interpreter = interpreter;
 		ret.messageFactory = messageFactory;
 		ret.schemaSet = schemaSet;
-		ret.received = received;
+		//ret.received = received;
 		return ret;
 	}
 	

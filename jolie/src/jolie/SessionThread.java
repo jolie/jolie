@@ -24,9 +24,18 @@ package jolie;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 
-public class SessionThread extends ExecutionThread
+public class SessionThread extends ExecutionThread implements Cloneable
 {
 	private jolie.State state;
+	
+	public SessionThread clone()
+	{
+		SessionThread ret = new SessionThread( process, parent, notifyProc );
+		ret.state = state.clone();
+		for( Scope s : scopeStack )
+			ret.scopeStack.push( s.clone() );
+		return ret;
+	}
 	
 	public void setState( jolie.State state )
 	{
@@ -39,9 +48,9 @@ public class SessionThread extends ExecutionThread
 		state = new jolie.State();
 	}
 	
-	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyObj )
+	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{
-		super( process, parent, notifyObj );
+		super( process, parent, notifyProc );
 
 		assert( parent != null );
 		

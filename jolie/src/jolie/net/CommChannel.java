@@ -61,6 +61,9 @@ abstract public class CommChannel implements Channel
 		return redirectionChannel;
 	}
 	
+	public void refreshProtocol()
+	{}
+	
 	public static CommChannel createCommChannel( URI uri, OutputPort port )
 		throws IOException, URISyntaxException
 	{
@@ -79,6 +82,9 @@ abstract public class CommChannel implements Channel
 				throw new IOException( e );
 			}
 		} else if ( medium == Constants.MediumId.DBUS ) {
+			/**
+			 * TODO remove this, in favour of a JavaService implementation
+			 */
 			try {
 				String[] ss = uri.getSchemeSpecificPart().split( ":" );
 				DBusConnection c = null;
@@ -90,6 +96,7 @@ abstract public class CommChannel implements Channel
 			} catch( DBusException e ) {
 				throw new IOException( e );
 			}
+			// </TODO>
 		} else
 			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
 		

@@ -54,6 +54,11 @@ public class SocketCommChannel extends CommChannel
 		toBeClosed = false; // Socket connections are kept open by default
 	}
 	
+	final public void refreshProtocol()
+	{
+		this.protocol = this.protocol.clone();
+	}
+	
 	public SocketChannel socketChannel()
 	{
 		return socketChannel;

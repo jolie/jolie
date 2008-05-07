@@ -90,6 +90,23 @@ public class Interpreter
 	private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
+	private String[] libPaths, includePaths, args;
+	
+	public String[] libPaths()
+	{
+		return libPaths;
+	}
+	
+	public String[] args()
+	{
+		return args;
+	}
+	
+	public String[] includePaths()
+	{
+		return includePaths;
+	}
+
 	public static void registerPipeListener( String key, PipeListener value )
 	{
 		pipes.put( key, value );
@@ -99,12 +116,25 @@ public class Interpreter
 	public static URLClassLoader getClassLoader()
 		throws MalformedURLException, IOException
 	{
-		if ( classLoader == null )
-			classLoader = URLClassLoader.newInstance(
-					new URL[] {
-							new URL( "file://" + new File("").getCanonicalPath() + "/" )
-						}
-					);
+		if ( classLoader == null ) {
+			Vector< URL > urls = new Vector< URL >();
+			/*for( String path : libPaths ) {
+				urls.add( new URL( "file://" + path + "/" ) );
+			}*/
+			String pwd = new File("").getCanonicalPath();
+			urls.add( new URL( "file://" + pwd + "/" ) );
+			urls.add( new URL( "file://" + pwd + "/ext/" ) );
+			urls.add( new URL( "jar:file://" + pwd + "/ext/jolieJavaServices.jar!/" ) );
+			String[] jarPaths = new File("ext").list();
+			if ( jarPaths != null ) {
+				for( int i = 0; i < jarPaths.length; i++ ) {
+					if ( jarPaths[ i ].endsWith( ".jar" ) ) {
+						urls.add( new URL( "jar:file://" + pwd + "/ext/" + jarPaths[ i ] + "!/" ) );
+					}
+				}
+			}
+			classLoader = URLClassLoader.newInstance( urls.toArray( new URL[] {} ) );
+		}
 		return classLoader;
 	}
 	
@@ -264,11 +294,28 @@ public class Interpreter
 	{
 		String olFilepath = null;
 		int connectionsLimit = -1;
-
+		Vector< String > includeVec = new Vector< String > ();
+		includeVec.add( "." );
+		includeVec.add( "include" );
+		Vector< String > libVec = new Vector< String > ();
+		libVec.add( "." );
+		libVec.add( "ext" );
 		for( int i = 0; i < args.length; i++ ) {
-			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) )
+			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
 				throw new CommandLineException( getHelpString() );
-			else if ( "-l".equals( args[ i ] ) ) {
+			} else if ( "-i".equals( args[ i ] ) ) {
+				i++;
+				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
+				for( String s : tmp ) {
+					includeVec.add( s );
+				}
+			} else if ( "-l".equals( args[ i ] ) ) {
+				i++;
+				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
+				for( String s : tmp ) {
+					libVec.add( s );
+				}
+			} else if ( "--connlimit".equals( args[ i ] ) ) {
 				i++;
 				connectionsLimit = Integer.parseInt( args[ i ] );
 			} else if ( "--version".equals( args[ i ] ) )
@@ -291,10 +338,13 @@ public class Interpreter
 		if ( olFilepath == null )
 			throw new CommandLineException( "Input file not specified." );
 		
+		this.args = args;
+		
+		includePaths = includeVec.toArray( includePaths );
+		libPaths = libVec.toArray( libPaths );
+		
 		InputStream olStream = new FileInputStream( olFilepath );
-		
-		olParser = new OLParser( new Scanner( olStream, olFilepath ) );
-		
+		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
 		commCore = new CommCore( this, connectionsLimit );
 	}
 
@@ -306,8 +356,9 @@ public class Interpreter
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
+		//TODO include doc for -l and -i
 		helpBuilder.append(
-				getOptionString( "-l [number]", "Set max connections limit" ) );
+				getOptionString( "--connlimit [number]", "Set max connections limit" ) );
 		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(

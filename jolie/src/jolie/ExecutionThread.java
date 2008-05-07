@@ -23,6 +23,7 @@ package jolie;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import jolie.net.CommChannelHandler;
@@ -36,8 +37,8 @@ import jolie.runtime.VariablePath;
 abstract public class ExecutionThread extends JolieThread
 {
 	protected class Scope implements Cloneable {
-		private HashMap< String, Process > faultMap = new HashMap< String, Process >();
-		private HashMap< String, Process > compMap = new HashMap< String, Process >();
+		private Map< String, Process > faultMap = new HashMap< String, Process >();
+		private Map< String, Process > compMap = new HashMap< String, Process >();
 		private String id;
 		
 		public Scope clone()
@@ -90,13 +91,13 @@ abstract public class ExecutionThread extends JolieThread
 		}
 	}
 
-	private Process process;
+	protected Process process;
 	protected Stack< Scope > scopeStack = new Stack< Scope >();
-	private ExecutionThread parent;
+	protected ExecutionThread parent;
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	
-	private CorrelatedProcess notifyProc = null;
+	protected CorrelatedProcess notifyProc = null;
 	
 	public void setCanBeInterrupted( boolean b )
 	{
@@ -264,10 +265,14 @@ abstract public class ExecutionThread extends JolieThread
 						// Every correlated value must be equal
 						if ( cValue != null && !cValue.equals( mValue ) )
 							return false;
-						cValue = mValue;
+						else if ( cValue == null )
+							cValue = mValue;
 					}
 				}
 			}
+			
+			// TODO this must become a List!
+			// CSet values should be set only if the whole message is valid.
 			if ( cValue != null )
 				correlationValue.assignValue( cValue );
 		}

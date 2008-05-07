@@ -35,7 +35,21 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	public JolieServiceLoader( String servicePath )
 		throws IOException, CommandLineException
 	{
-		interpreter = new Interpreter( servicePath.split( " " ) );
+		String[] args = new String[ 0 ];
+		Interpreter currInterpreter = Interpreter.getInstance();
+		if ( currInterpreter != null ) {
+			args = currInterpreter.args();
+		}
+		String[] ss = servicePath.split( " " );
+		String[] newArgs = new String[ args.length + ss.length ];
+		int i;
+		for( i = 0; i < args.length; i++ ) {
+			newArgs[ i ] = args[ i ];
+		}
+		for( int k = 0; k < ss.length; k++, i++ ) {
+			newArgs[ i ] = ss[ k ];
+		}
+		interpreter = new Interpreter( newArgs );
 	}
 
 	public void load()

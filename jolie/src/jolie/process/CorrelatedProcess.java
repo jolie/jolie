@@ -46,9 +46,7 @@ public class CorrelatedProcess implements Process
 	private void startSession()
 	{
 		waiting = true;
-		SessionThread toStart = spawnModel;
-		spawnModel = new SessionThread( process, spawnModel, this );
-		toStart.start();
+		spawnModel.clone().start();
 	}
 	
 	public void run()
