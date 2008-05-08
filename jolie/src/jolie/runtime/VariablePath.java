@@ -35,6 +35,7 @@ public class VariablePath implements Expression, Cloneable
 	private List< Pair< Expression, Expression > > path; // Expression may be null
 	private boolean global;
 	
+	@Override
 	public VariablePath clone()
 	{
 		List< Pair< Expression, Expression > > list =
@@ -111,12 +112,17 @@ public class VariablePath implements Expression, Cloneable
 		this.global = global;
 	}
 	
-	private Value getRootValue()
+	public static Value getRootValue( boolean global )
 	{
 		if ( global )
 			return Interpreter.getInstance().globalValue();
 		
 		return ExecutionThread.currentThread().state().root();
+	}
+	
+	private Value getRootValue()
+	{
+		return getRootValue( global );
 	}
 	
 	public void undef()

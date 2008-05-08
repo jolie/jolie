@@ -26,6 +26,8 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionThread;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePathBuilder;
 
 public class CorrelatedProcess implements Process
 {
@@ -93,10 +95,17 @@ public class CorrelatedProcess implements Process
 			ethread.popScope();
 		
 		try {
-			if ( p == null )
+			if ( p == null ) {
 				Interpreter.getInstance().logUnhandledFault( f );
-			else
+			} else {
+				Value scopeValue =
+						new VariablePathBuilder( false )
+						.add( ethread.currentScopeId(), 0 )
+						.toVariablePath()
+						.getValue();
+				scopeValue.getChildren( f.faultName() ).set( f.value(), 0 );
 				p.run();
+			}
 		
 			synchronized( this ) {
 				if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {

@@ -21,10 +21,12 @@
 
 package jolie.runtime;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.io.PrintStream;
 import jolie.Constants;
 import jolie.net.SODEPProtocol;
 
@@ -35,6 +37,26 @@ public class FaultException extends Exception
 	private Value value;
 	
 	public FaultException() {}
+	
+	public FaultException( String faultName, Throwable t )
+	{
+		super();
+		this.faultName = faultName;
+		this.value = Value.create( t.getMessage() );
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		t.printStackTrace( new PrintStream( bs ) );
+		this.value.getChildren( "stackTrace" ).first().setValue( bs.toString() );
+	}
+	
+	public FaultException( Throwable t )
+	{
+		super();
+		this.faultName = t.getClass().getName();
+		this.value = Value.create( t.getMessage() );
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		t.printStackTrace( new PrintStream( bs ) );
+		this.value.getChildren( "stackTrace" ).first().setValue( bs.toString() );
+	}
 	
 	public FaultException( String faultName, String message )
 	{
@@ -82,6 +104,7 @@ public class FaultException extends Exception
 		value.writeExternal( out );
 	}
 	
+	@Override
 	public String getMessage()
 	{
 		return value.strValue();

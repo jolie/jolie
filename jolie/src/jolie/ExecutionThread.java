@@ -30,17 +30,18 @@ import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
+import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 abstract public class ExecutionThread extends JolieThread
 {
-	protected class Scope implements Cloneable {
+	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
 		private Map< String, Process > faultMap = new HashMap< String, Process >();
 		private Map< String, Process > compMap = new HashMap< String, Process >();
-		private String id;
 		
+		@Override
 		public Scope clone()
 		{
 			Scope ret = new Scope( id );
@@ -51,7 +52,7 @@ abstract public class ExecutionThread extends JolieThread
 	
 		public Scope( String id )
 		{
-			this.id = id;
+			super( id );
 		}
 		
 		public void installCompensation( Process process )
@@ -142,6 +143,7 @@ abstract public class ExecutionThread extends JolieThread
 		return (killerFault != null);
 	}
 	
+	@Override
 	public void run()
 	{
 		try {
@@ -175,6 +177,14 @@ abstract public class ExecutionThread extends JolieThread
 	public synchronized boolean hasScope()
 	{
 		return !scopeStack.empty();
+	}
+	
+	public synchronized String currentScopeId()
+	{
+		if( scopeStack.empty() && parent != null )
+			return parent.currentScopeId();
+		
+		return scopeStack.peek().id();
 	}
 
 	public synchronized Process getFaultHandler( String id, boolean erase )

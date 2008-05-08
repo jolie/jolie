@@ -32,6 +32,7 @@ import jolie.net.OutputPort;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
@@ -92,8 +93,9 @@ public class SolicitResponseProcess implements Process
 				v.deepCopy( message.value() );
 			}
 			
-			if ( message.isFault() )
+			if ( message.isFault() ) {
 				throw message.fault();
+			}
 			
 			installProcess.run();
 		} catch( IOException ioe ) {

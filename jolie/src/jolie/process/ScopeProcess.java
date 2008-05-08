@@ -23,6 +23,8 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePathBuilder;
 
 public class ScopeProcess implements Process
 {
@@ -64,9 +66,16 @@ public class ScopeProcess implements Process
 			} catch( FaultException f ) {
 				p = ethread.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
+					Value scopeValue =
+							new VariablePathBuilder( false )
+							.add( ethread.currentScopeId(), 0 )
+							.toVariablePath()
+							.getValue();
+					scopeValue.getChildren( f.faultName() ).set( f.value(), 0 );
 					this.runScope( p );
-				} else
+				} else {
 					fault = f;
+				}
 			}
 		}
 	}

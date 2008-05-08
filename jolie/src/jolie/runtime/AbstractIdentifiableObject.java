@@ -30,7 +30,7 @@ package jolie.runtime;
  */
 abstract public class AbstractIdentifiableObject
 {
-	private String id;
+	protected String id;
 
 	/** Constructor.
 	 * 
@@ -41,7 +41,7 @@ abstract public class AbstractIdentifiableObject
 		this.id = id;
 	}
 	
-	/** Returns this global object identifier.
+	/** Returns this object identifier.
 	 */
 	public final String id()
 	{

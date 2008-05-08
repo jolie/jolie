@@ -23,20 +23,35 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
 
 
 public class ThrowProcess implements Process
 {
-	private String id;
+	private FaultException fault;
 	
 	public ThrowProcess( String id )
 	{
-		this.id = id;
+		VariablePath path =
+					new VariablePathBuilder( false )
+					.add( id, 0 )
+					.toVariablePath();
+		fault = new FaultException(
+					id,
+					Value.createLink( path )
+				);
+	}
+	
+	private ThrowProcess( FaultException fault )
+	{
+		this.fault = fault;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new ThrowProcess( id );
+		return new ThrowProcess( fault );
 	}
 	
 	public void run()
@@ -44,6 +59,7 @@ public class ThrowProcess implements Process
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		throw new FaultException( id );
+		
+		throw fault;
 	}
 }

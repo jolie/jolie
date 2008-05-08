@@ -19,49 +19,36 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.runtime;
 
-import jolie.process.CorrelatedProcess;
-import jolie.process.Process;
+import java.util.List;
+import java.util.Vector;
+import jolie.util.Pair;
 
-public class SessionThread extends ExecutionThread implements Cloneable
+public class VariablePathBuilder
 {
-	private jolie.State state;
+	private List< Pair< Expression, Expression > > list =
+					new Vector< Pair< Expression, Expression > > ();
+	private boolean global;
 	
-	@Override
-	public SessionThread clone()
+	public VariablePathBuilder( boolean global )
 	{
-		SessionThread ret = new SessionThread( process, parent, notifyProc );
-		ret.state = state.clone();
-		for( Scope s : scopeStack )
-			ret.scopeStack.push( s.clone() );
-		return ret;
+		this.global = global;
 	}
 	
-	public void setState( jolie.State state )
+	public VariablePathBuilder add( String id, int index )
 	{
-		this.state = state;
+		list.add(
+				new Pair< Expression, Expression >(
+						Value.create( id ),
+						Value.create( index )
+					)
+			);
+		return this;
 	}
 	
-	public SessionThread( Interpreter interpreter, Process process )
+	public VariablePath toVariablePath()
 	{
-		super( interpreter, process );
-		state = new jolie.State();
-	}
-	
-	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
-	{
-		super( process, parent, notifyProc );
-
-		assert( parent != null );
-		
-		state = parent.state().clone();
-		for( Scope s : parent.scopeStack )
-			scopeStack.push( s.clone() );
-	}
-	
-	public jolie.State state()
-	{
-		return state;
+		return new VariablePath( list, global );
 	}
 }
