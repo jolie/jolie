@@ -53,6 +53,7 @@ public class DBusCommChannel extends CommChannel
 			super( new URI( className.replace( '.', '/' ) + ".java" ), Kind.SOURCE );
 			this.sourceCode = sourceCode;
 		}
+		@Override
 		public CharSequence getCharContent( boolean ignoreEncodingErrors )
 			throws IOException
 		{
