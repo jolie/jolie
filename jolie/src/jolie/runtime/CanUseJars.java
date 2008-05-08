@@ -19,27 +19,19 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.runtime;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-public class JolieClassLoader extends URLClassLoader
+/**
+ * Instructs the JolieClassLoader to load the specified
+ * jar library files before instantiating a JavaService.
+ *
+ * @author Fabrizio Montesi
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CanUseJars
 {
-	public JolieClassLoader( URL[] urls )
-	{
-		super( urls );
-	}
-	
-	public void addJarResource( String jarName )
-		throws MalformedURLException, IOException
-	{
-		URL url = findResource( jarName );
-		if ( url == null ) {
-			throw new IOException( "Resource not found: " + jarName );
-		}
-		addURL( new URL( "jar:" + url + "!/" ) );
-	}
+	String[] value();
 }

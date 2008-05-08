@@ -54,6 +54,7 @@ class ValueLink extends Value implements Cloneable
 		linkPath.getValue().writeExternal( out );
 	}
 	
+	@Override
 	public ValueLink clone()
 	{
 		return new ValueLink( linkPath );
@@ -78,12 +79,7 @@ class ValueLink extends Value implements Cloneable
 	{
 		return linkPath.getValue().children();
 	}
-	
-	public void setValue( Object object )
-	{
-		linkPath.getValue().setValue( object );
-	}
-	
+		
 	public Object valueObject()
 	{
 		return linkPath.getValue().valueObject();

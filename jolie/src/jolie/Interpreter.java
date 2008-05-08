@@ -315,9 +315,9 @@ public class Interpreter
 		Vector< URL > urls = new Vector< URL >();
 		for( String path : libVec ) {
 			if ( path.endsWith( ".jar" ) ) {
-				urls.add( new URL( "jar:file://" + path + "!/" ) );
+				urls.add( new URL( "jar:file:" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
-				urls.add( new URL( "file://" + path + "/" ) );
+				urls.add( new URL( "file:" + path + "/" ) );
 			}
 		}
 		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ) );

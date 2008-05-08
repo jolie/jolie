@@ -39,7 +39,7 @@ abstract public class JavaService
 		this.interpreter = interpreter;
 	}
 	
-	protected CommChannel sendMessage( CommMessage message )
+	public CommChannel sendMessage( CommMessage message )
 	{
 		InternalCommChannel c = new InternalCommChannel(
 							new Vector< CommMessage >(),
