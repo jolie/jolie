@@ -107,7 +107,7 @@ public class Interpreter
 		pipes.put( key, value );
 	}
 	
-	private URLClassLoader classLoader;
+	private JolieClassLoader classLoader;
 	
 	public Collection< OutputPort > outputPorts()
 	{
@@ -253,7 +253,7 @@ public class Interpreter
 		return ((JolieThread)Thread.currentThread()).interpreter();
 	}
 	
-	public URLClassLoader getClassLoader()
+	public JolieClassLoader getClassLoader()
 	{
 		return classLoader;
 	}
@@ -320,7 +320,7 @@ public class Interpreter
 				urls.add( new URL( "file://" + path + "/" ) );
 			}
 		}
-		classLoader = URLClassLoader.newInstance( urls.toArray( new URL[] {} ) );
+		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ) );
 		
 		includePaths = includeVec.toArray( includePaths );
 		

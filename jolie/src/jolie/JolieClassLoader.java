@@ -19,44 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie;
 
-package jolie.runtime;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
-import jolie.Interpreter;
-import jolie.JolieClassLoader;
-import jolie.net.JavaCommChannel;
-
-
-public class JavaServiceLoader extends EmbeddedServiceLoader
+public class JolieClassLoader extends URLClassLoader
 {
-	private String servicePath;
-	
-	public JavaServiceLoader( String servicePath )
+	public JolieClassLoader( URL[] urls )
 	{
-		this.servicePath = servicePath;
+		super( urls );
 	}
-
-	public void load()
-		throws EmbeddedServiceLoadingException
+	
+	public void addJarResource( String jarName )
+		throws MalformedURLException, IOException
 	{
-		try {
-			JolieClassLoader cl = Interpreter.getInstance().getClassLoader();
-			Class<?> c = cl.loadClass( servicePath );
-			NeedsJars annotation = c.getAnnotation( NeedsJars.class );
-			for( String filename : annotation.value() ) {
-				/*
-				 * TODO jar unloading when service is unloaded?
-				 * Consider other services needing the same jars in that.
-				 */
-				cl.addJarResource( filename );
-			}
-			Object obj = c.newInstance();
-			if ( !(obj instanceof JavaService) )
-				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
-			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
-			setChannel(	new JavaCommChannel( (JavaService)obj )	);
-		} catch( Exception e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		}
+		URL url = findResource( jarName );
+		if ( url == null )
+			throw new IOException( "Resource not found: " + jarName );
+		addURL( new URL( "jar:" + url + "!/" ) );
 	}
 }
