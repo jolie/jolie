@@ -647,7 +647,7 @@ public class OLParser extends AbstractParser
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) )
 				program.addChild( parseDefinition() );
-			else if ( token.is( Scanner.TokenType.MAIN ) ) {
+			else if ( token.isKeyword( "main" ) ) {
 				if ( mainDefined )
 					throwException( "you must specify only one main definition" );
 				program.addChild( parseMain() );

@@ -67,7 +67,6 @@ public class Scanner
 		OP_RR,				///< RequestResponse
 		OP_N,				///< Notification
 		OP_SR,				///< SolicitResponse
-		MAIN,				///< main
 		DEFINE, 			///< define
 		MAJOR_OR_EQUAL,		///< >=
 		MINOR_OR_EQUAL,		///< <=
@@ -390,8 +389,6 @@ public class Scanner
 							retval = new Token( TokenType.OR );
 						else if ( "include".equals( str ) )
 							retval = new Token( TokenType.INCLUDE );
-						else if ( "main".equals( str ) )
-							retval = new Token( TokenType.MAIN );
 						else if ( "define".equals( str ) )
 							retval = new Token( TokenType.DEFINE );
 						else if ( "nullProcess".equals( str ) )
