@@ -33,6 +33,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return linkPath.getValueVector().remove( i );
 	}
 	
+	@Override
 	public ValueVectorLink clone()
 	{
 		return new ValueVectorLink( linkPath );

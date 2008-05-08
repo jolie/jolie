@@ -25,9 +25,9 @@ package jolie.runtime;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.Constants.ValueType;
 import jolie.net.CommChannel;
@@ -105,7 +105,7 @@ class ValueImpl extends Value
 	private static final long serialVersionUID = 1L;
 	
 	private Object valueObject = null;
-	private ConcurrentHashMap< String, ValueVector > children = null;
+	private Map< String, ValueVector > children = null;
 	
 	public void setValueObject( Object object )
 	{
@@ -169,12 +169,13 @@ class ValueImpl extends Value
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
 		assignValue( value );
-	
+
+		Map< String, ValueVector > myChildren = children();
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( copyLinks && entry.getValue().isLink() )
-				children().put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+				myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 			else {
-				ValueVector vec = getChildren( entry.getKey() );
+				ValueVector vec = getChildren( entry.getKey(), myChildren );
 				ValueVector otherVector = entry.getValue();
 				Value v;
 				for( int i = 0; i < otherVector.size(); i++ ) {
@@ -188,12 +189,24 @@ class ValueImpl extends Value
 		}
 	}
 	
-	public ValueVector getChildren( String childId )
+	private static ValueVector getChildren( String childId, Map< String, ValueVector > children )
 	{
-		ValueVector v = children().get( childId );
+		ValueVector v = children.get( childId );
 		if ( v == null ) {
 			v = ValueVector.create();
-			children().put( childId, v );
+			children.put( childId, v );
+		}
+		
+		return v;
+	}
+	
+	public ValueVector getChildren( String childId )
+	{
+		Map< String, ValueVector > myChildren = children();
+		ValueVector v = myChildren.get( childId );
+		if ( v == null ) {
+			v = ValueVector.create();
+			myChildren.put( childId, v );
 		}
 	
 		return v;
@@ -211,7 +224,7 @@ class ValueImpl extends Value
 	public Map< String, ValueVector > children()
 	{
 		if ( children == null )
-			children = new ConcurrentHashMap< String, ValueVector > ();
+			children = new HashMap< String, ValueVector > ();
 		return children;
 	}
 	
@@ -219,12 +232,7 @@ class ValueImpl extends Value
 	{
 		return valueObject;
 	}
-	
-	public void setValue( Object object )
-	{
-		valueObject = object;
-	}
-	
+
 	protected ValueImpl( Object object )
 	{
 		valueObject = object;
@@ -455,7 +463,7 @@ abstract public class Value implements Expression
 		return r;
 	}
 	
-	public final synchronized void add( Value val )
+	public final void add( Value val )
 	{
 		if ( isDefined() ) {
 			if ( val.isString() )
@@ -470,7 +478,7 @@ abstract public class Value implements Expression
 			assignValue( val );
 	}
 	
-	public final synchronized void subtract( Value val )
+	public final void subtract( Value val )
 	{
 		if ( !isDefined() )
 			assignValue( val );
@@ -480,7 +488,7 @@ abstract public class Value implements Expression
 			setValue( doubleValue() - val.doubleValue() );
 	}
 	
-	public final synchronized void multiply( Value val )
+	public final void multiply( Value val )
 	{
 		if ( isDefined() ) {
 			if ( isInt() )
@@ -491,7 +499,7 @@ abstract public class Value implements Expression
 			assignValue( val );
 	}
 	
-	public final synchronized void divide( Value val )
+	public final void divide( Value val )
 	{
 		if ( !isDefined() )
 			assignValue( val );
@@ -501,7 +509,7 @@ abstract public class Value implements Expression
 			setValue( doubleValue() / val.doubleValue() );
 	}
 	
-	public final synchronized void assignValue( Value val )
+	public final void assignValue( Value val )
 	{
 		setValue( val.valueObject() );
 	}
