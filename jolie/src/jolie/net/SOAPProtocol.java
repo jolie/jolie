@@ -432,10 +432,10 @@ public class SOAPProtocol extends CommProtocol
 				DetailEntry de = detail.addDetailEntry( soapEnvelope.createName( f.faultName(), null, messageNamespace ) );
 				valueToSOAPElement( f.value(), de, soapEnvelope );
 			} else {
-				XSSchemaSet schemaSet = getSchemaSet();
+				XSSchemaSet sSet = getSchemaSet();
 				XSElementDecl elementDecl;
-				if ( schemaSet == null ||
-						(elementDecl=schemaSet.getElementDecl( messageNamespace, inputId )) == null
+				if ( sSet == null ||
+						(elementDecl=sSet.getElementDecl( messageNamespace, inputId )) == null
 					) {
 					Name operationName = soapEnvelope.createName( inputId );
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
@@ -447,8 +447,16 @@ public class SOAPProtocol extends CommProtocol
 						operationName = soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null );
 					else
 						operationName = soapEnvelope.createName( inputId );
-								
-					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
+					
+					boolean wrapped = true;
+					Value vStyle = getParameterVector( "style" ).first();
+					if ( "document".equals( vStyle.strValue() ) ) {
+						wrapped = ( vStyle.getChildren( "wrapped" ).first().intValue() > 0 );
+					}
+					SOAPElement opBody = soapBody;
+					if ( wrapped ) {
+						opBody = soapBody.addBodyElement( operationName );
+					}
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
 				}
 			}
@@ -465,7 +473,7 @@ public class SOAPProtocol extends CommProtocol
 			
 			try {
 				operation = interpreter.getRequestResponseOperation( message.operationName() );
-			} catch( InvalidIdException iie ) {}
+			} catch( InvalidIdException e ) {}
 			if ( operation != null ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK" + CRLF;
