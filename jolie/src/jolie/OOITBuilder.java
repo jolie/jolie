@@ -153,7 +153,7 @@ public class OOITBuilder implements OLVisitor
 {
 	private Program program;
 	private boolean valid = true;
-	private Interpreter interpreter;
+	final private Interpreter interpreter;
 
 	public OOITBuilder( Interpreter interpreter, Program program )
 	{
@@ -280,18 +280,23 @@ public class OOITBuilder implements OLVisitor
 		
 		Vector< Pair< Expression, Expression > > path =
 					new Vector< Pair< Expression, Expression > >();
+		path.add( new Pair< Expression, Expression >( Value.create( "services" ), null ) );
 		path.add( new Pair< Expression, Expression >( Value.create( n.id() ), null ) );
 		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
 		VariablePath configurationPath = new VariablePath( path, true );
 		
-		if ( pId.equals( Constants.ProtocolId.SOAP ) )
-			protocol = new SOAPProtocol( configurationPath, n.location(), interpreter );
-		else if ( pId.equals( Constants.ProtocolId.SODEP ) )
-			protocol = new SODEPProtocol( configurationPath );
-		else if ( pId.equals( Constants.ProtocolId.HTTP ) )
-			protocol = new HTTPProtocol( configurationPath, n.location() );
-		else
-			error( n.context(), "Unsupported protocol specified for service " + n.id() );
+		try {
+			if ( pId.equals( Constants.ProtocolId.SOAP ) )
+				protocol = new SOAPProtocol( configurationPath, n.location(), interpreter );
+			else if ( pId.equals( Constants.ProtocolId.SODEP ) )
+				protocol = new SODEPProtocol( configurationPath );
+			else if ( pId.equals( Constants.ProtocolId.HTTP ) )
+				protocol = new HTTPProtocol( configurationPath, n.location() );
+			else
+				error( n.context(), "Unsupported protocol specified for service " + n.id() );
+		} catch( Exception e ) {
+			error( n.context(), e );
+		}
 		
 		currProcess = null;
 		if ( n.protocolConfiguration() != null )
@@ -363,15 +368,13 @@ public class OOITBuilder implements OLVisitor
 				currProcess = makeSessionSpawner( (CorrelatedInputProcess)currProcess );
 			}
 			currProcess = new ScopeProcess( "main", currProcess );
-			def = new MainDefinitionProcess();
+			def = new MainDefinitionProcess( currProcess );
 		} else {
-			def = new DefinitionProcess( n.id() );
 			n.body().accept( this );
+			def = new DefinitionProcess( currProcess );
 		}
 
-		def.setProcess( currProcess );
 		interpreter.register( n.id(), def );
-		// currProcess = def;
 	}
 		
 	public void visit( ParallelStatement n )
@@ -549,7 +552,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ThrowStatement n )
 	{
-		currProcess = new ThrowProcess( n.id() );
+		currProcess = new ThrowProcess( n.id(), getGlobalVariablePath( n.variablePath() ) );
 	}
 	
 	public void visit( CompensateStatement n )

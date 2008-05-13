@@ -26,21 +26,21 @@ import jolie.process.Process;
 
 public class SessionThread extends ExecutionThread implements Cloneable
 {
-	private jolie.State state;
+	final private jolie.State state;
+	
+	private SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc, jolie.State state )
+	{
+		super( process, parent, notifyProc );
+		this.state = state;
+	}
 	
 	@Override
 	public SessionThread clone()
 	{
-		SessionThread ret = new SessionThread( process, parent, notifyProc );
-		ret.state = state.clone();
+		SessionThread ret = new SessionThread( process, parent, notifyProc, state.clone() );
 		for( Scope s : scopeStack )
 			ret.scopeStack.push( s.clone() );
 		return ret;
-	}
-	
-	public void setState( jolie.State state )
-	{
-		this.state = state;
 	}
 	
 	public SessionThread( Interpreter interpreter, Process process )

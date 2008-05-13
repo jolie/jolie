@@ -38,8 +38,8 @@ import jolie.runtime.VariablePath;
 abstract public class ExecutionThread extends JolieThread
 {
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
-		private Map< String, Process > faultMap = new HashMap< String, Process >();
-		private Map< String, Process > compMap = new HashMap< String, Process >();
+		final private Map< String, Process > faultMap = new HashMap< String, Process >();
+		final private Map< String, Process > compMap = new HashMap< String, Process >();
 		
 		@Override
 		public Scope clone()
@@ -92,13 +92,13 @@ abstract public class ExecutionThread extends JolieThread
 		}
 	}
 
-	protected Process process;
-	protected Stack< Scope > scopeStack = new Stack< Scope >();
-	protected ExecutionThread parent;
+	final protected Process process;
+	final protected Stack< Scope > scopeStack = new Stack< Scope >();
+	final protected ExecutionThread parent;
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	
-	protected CorrelatedProcess notifyProc = null;
+	final protected CorrelatedProcess notifyProc;
 	
 	public void setCanBeInterrupted( boolean b )
 	{
@@ -249,7 +249,6 @@ abstract public class ExecutionThread extends JolieThread
 	}
 	
 	abstract public jolie.State state();
-	abstract protected void setState( jolie.State state );
 	
 	public synchronized boolean checkCorrelation( VariablePath recvPath, CommMessage message )
 	{

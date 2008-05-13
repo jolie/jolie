@@ -24,7 +24,7 @@ package jolie;
 
 public class JolieThread extends Thread
 {
-	private Interpreter interpreter;
+	final private Interpreter interpreter;
 	
 	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
 	{

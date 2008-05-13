@@ -28,10 +28,10 @@ import jolie.runtime.Value;
 
 public class State implements Cloneable
 {
-	private Value root;
-	private HashMap< String, InternalLink > linksMap =
+	final private Value root;
+	final private HashMap< String, InternalLink > linksMap =
 				new HashMap< String, InternalLink >();
-	private HashMap< String, Object > locksMap =
+	final private HashMap< String, Object > locksMap =
 				new HashMap< String, Object >();
 	
 	private State( Value root )
@@ -64,6 +64,7 @@ public class State implements Cloneable
 		this.root = Value.create();
 	}
 	
+	@Override
 	public State clone()
 	{
 		return new State( Value.createClone( root ) );

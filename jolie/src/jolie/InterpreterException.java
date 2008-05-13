@@ -23,7 +23,7 @@ package jolie;
 
 public class InterpreterException extends Exception
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
+	final private static long serialVersionUID = Constants.serialVersionUID();
 	
 	public InterpreterException( String message )
 	{

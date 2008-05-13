@@ -27,7 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,27 +65,27 @@ import jolie.runtime.VariablePath;
  */
 public class Interpreter
 {
-	private CommCore commCore = null;
+	final private CommCore commCore;
 	private OLParser olParser;
 	//private boolean verbose = false;
 	private boolean exiting = false;
-	private Set< List< VariablePath > > correlationSet =
+	final private Set< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
-	private Value globalValue;
-	private LinkedList< String > arguments = new LinkedList< String >();
-	private Vector< EmbeddedServiceLoader > embeddedServiceLoaders =
+	final private Value globalValue = Value.create();
+	final private LinkedList< String > arguments = new LinkedList< String >();
+	final private Vector< EmbeddedServiceLoader > embeddedServiceLoaders =
 			new Vector< EmbeddedServiceLoader >();
-	private Logger logger = Logger.getLogger( "JOLIE" );
+	final private Logger logger = Logger.getLogger( "JOLIE" );
 	
-	private Map< String, DefinitionProcess > definitions = 
+	final private Map< String, DefinitionProcess > definitions = 
 				new HashMap< String, DefinitionProcess >();
-	private Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
-	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	private Map< String, InputOperation > inputOperations = 
+	final private Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
+	final private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
+	final private Map< String, InputOperation > inputOperations = 
 				new HashMap< String, InputOperation>();
 	
-	private static Map< String, PipeListener > pipes =
+	final private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
 	private String[] includePaths = new String[ 0 ];
@@ -235,7 +234,8 @@ public class Interpreter
 	
 	public void setCorrelationSet( Set< List< VariablePath > > set )
 	{
-		correlationSet = set;
+		correlationSet.clear();
+		correlationSet.addAll( set );
 	}
 	
 	public Set< List< VariablePath > > correlationSet()
@@ -384,7 +384,7 @@ public class Interpreter
 		throws InterpreterException, IOException
 	{
 		/**
-		 * Order is important. CommCore needs the OOIT to initialize.
+		 * Order is important. CommCore needs the OOIT to be initialized.
 		 */
 		DefinitionProcess main = null;
 		if ( buildOOIT() == false )
@@ -392,8 +392,6 @@ public class Interpreter
 		
 		commCore.init();
 		
-		globalValue = Value.create();
-
 		try {
 			main = getDefinition( "main" );
 		} catch ( InvalidIdException e ) {
@@ -456,6 +454,7 @@ public class Interpreter
 	{
 		try {
 			Program program = olParser.parse();
+			olParser = null; // Free memory
 			program = (new OLParseTreeOptimizer( program )).optimize();
 			if ( !(new SemanticVerifier( program )).validate() )
 				throw new InterpreterException( "Exiting" );
