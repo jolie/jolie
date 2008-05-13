@@ -32,8 +32,8 @@ import jolie.runtime.Value;
  */
 public class AssignmentProcess implements Process, Expression
 {
-	private VariablePath varPath;
-	private Expression expression;
+	final private VariablePath varPath;
+	final private Expression expression;
 
 	/** Constructor.
 	 * 

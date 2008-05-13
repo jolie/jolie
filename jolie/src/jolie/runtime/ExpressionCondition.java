@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class ExpressionCondition implements Condition
 {
-	private Expression expression;
+	final private Expression expression;
 		
 	public ExpressionCondition( Expression expression )
 	{

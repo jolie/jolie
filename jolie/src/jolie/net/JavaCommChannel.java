@@ -30,7 +30,7 @@ import jolie.runtime.JavaService;
 
 public class JavaCommChannel extends CommChannel
 {
-	private Object javaService;
+	final private Object javaService;
 	private CommMessage lastMessage = null;
 	
 	public JavaCommChannel( JavaService javaService )

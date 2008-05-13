@@ -37,11 +37,11 @@ import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process
 {
-	private String operationId;
-	private OutputPort outputPort;
-	private VariablePath inputVarPath; // each may be null
-	private Expression outputExpression;
-	private Process installProcess;
+	final private String operationId;
+	final private OutputPort outputPort;
+	final private VariablePath inputVarPath;
+	final private Expression outputExpression;
+	final private Process installProcess;
 
 	public SolicitResponseProcess(
 			String operationId,

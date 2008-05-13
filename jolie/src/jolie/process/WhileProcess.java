@@ -27,8 +27,8 @@ import jolie.runtime.FaultException;
 
 public class WhileProcess implements Process
 {
-	private Condition condition;
-	private Process process;
+	final private Condition condition;
+	final private Process process;
 
 	public WhileProcess( Condition condition, Process process )
 	{

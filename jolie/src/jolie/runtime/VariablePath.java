@@ -32,8 +32,8 @@ import jolie.util.Pair;
 
 public class VariablePath implements Expression, Cloneable
 {
-	private List< Pair< Expression, Expression > > path; // Expression may be null
-	private boolean global;
+	final private List< Pair< Expression, Expression > > path; // Expression may be null
+	final private boolean global;
 	
 	@Override
 	public VariablePath clone()

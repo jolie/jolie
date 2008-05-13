@@ -41,10 +41,10 @@ import jolie.util.Pair;
  */
 abstract public class InputOperation extends AbstractIdentifiableObject implements InputHandler
 {
-	private HashMap< InputProcessExecution, ExecutionThread > procsMap =
+	final private HashMap< InputProcessExecution, ExecutionThread > procsMap =
 						new HashMap< InputProcessExecution, ExecutionThread >();
 	
-	private LinkedList< Pair< CommChannel, CommMessage > > mesgList =
+	final private LinkedList< Pair< CommChannel, CommMessage > > mesgList =
 						new LinkedList< Pair< CommChannel, CommMessage > > ();
 	
 	public InputOperation( String id )

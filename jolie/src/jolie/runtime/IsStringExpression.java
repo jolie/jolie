@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class IsStringExpression implements Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 	
 	public IsStringExpression( VariablePath path )
 	{

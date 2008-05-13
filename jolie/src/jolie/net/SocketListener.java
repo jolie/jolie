@@ -34,7 +34,7 @@ import jolie.Interpreter;
 
 public class SocketListener extends CommListener
 {
-	private ServerSocketChannel serverChannel;
+	final private ServerSocketChannel serverChannel;
 
 	public SocketListener(
 				Interpreter interpreter,
@@ -52,6 +52,7 @@ public class SocketListener extends CommListener
 		socket.bind( new InetSocketAddress( port ) );
 	}
 	
+	@Override
 	public void run()
 	{
 		try {

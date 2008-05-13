@@ -25,7 +25,7 @@ import java.util.List;
 
 public class InternalCommChannel extends CommChannel
 {
-	private List< CommMessage > ilist, olist;
+	final private List< CommMessage > ilist, olist;
 	
 	public InternalCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
 	{

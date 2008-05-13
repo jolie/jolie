@@ -35,8 +35,8 @@ public class PipeListener extends CommListener
 	static class ByteArrayCommChannel extends CommChannel
 	{
 		protected CommProtocol protocol;
-		protected ByteArrayOutputStream istream;
-		protected ByteArrayOutputStream ostream;
+		final protected ByteArrayOutputStream istream;
+		final protected ByteArrayOutputStream ostream;
 
 		public ByteArrayCommChannel(
 				CommProtocol protocol,
@@ -57,6 +57,7 @@ public class PipeListener extends CommListener
 			}
 		}
 	
+		@Override
 		final public void refreshProtocol()
 		{
 			this.protocol = this.protocol.clone();
@@ -91,13 +92,14 @@ public class PipeListener extends CommListener
 	}
 	
 	static class PipeCommChannel extends ByteArrayCommChannel {
-		private PipeListener listener;
+		final private PipeListener listener;
 		public PipeCommChannel( PipeListener listener, CommProtocol protocol )
 		{
 			super( protocol, new ByteArrayOutputStream(), new ByteArrayOutputStream() );
 			this.toBeClosed = false;
 			this.listener = listener;
 		}
+		@Override
 		public void send( CommMessage message )
 			throws IOException
 		{
@@ -109,6 +111,7 @@ public class PipeListener extends CommListener
 			}
 		}
 
+		@Override
 		protected void disposeForInputImpl()
 		{
 			synchronized( istream ) {
@@ -122,7 +125,7 @@ public class PipeListener extends CommListener
 		}
 	}
 	
-	protected PipeCommChannel currentChannel = null;
+	private PipeCommChannel currentChannel = null;
 	protected boolean waiting = false;
 	
 	public PipeListener(
@@ -142,6 +145,7 @@ public class PipeListener extends CommListener
 		return new PipeCommChannel( this, createProtocol() );
 	}
 	
+	@Override
 	public void run()
 	{
 		CommChannel channel;

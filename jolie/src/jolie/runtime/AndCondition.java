@@ -33,7 +33,7 @@ import jolie.process.TransformationReason;
  */
 public class AndCondition implements Condition
 {
-	private Vector< Condition > children;
+	final private Vector< Condition > children;
 	
 	/** Constructor */
 	public AndCondition()

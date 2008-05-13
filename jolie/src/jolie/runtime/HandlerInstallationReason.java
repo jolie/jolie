@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class HandlerInstallationReason implements TransformationReason
 {
-	private String handlerId;
+	final private String handlerId;
 	
 	public HandlerInstallationReason( String handlerId )
 	{

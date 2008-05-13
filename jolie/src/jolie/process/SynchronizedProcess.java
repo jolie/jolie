@@ -26,8 +26,8 @@ import jolie.runtime.FaultException;
 
 public class SynchronizedProcess implements Process
 {
-	private String id;
-	private Process process;
+	final private String id;
+	final private Process process;
 	
 	public SynchronizedProcess( String id, Process process )
 	{

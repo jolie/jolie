@@ -28,7 +28,7 @@ import jolie.runtime.InputOperation;
 
 public class InputPort extends AbstractIdentifiableObject
 {
-	private Collection< InputOperation > operations;
+	final private Collection< InputOperation > operations;
 	
 	public InputPort( String id, Collection< InputOperation > operations )
 	{

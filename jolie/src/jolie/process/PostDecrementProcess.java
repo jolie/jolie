@@ -28,7 +28,7 @@ import jolie.runtime.VariablePath;
 
 public class PostDecrementProcess implements Process, Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 
 	public PostDecrementProcess( VariablePath varPath )
 	{

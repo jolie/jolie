@@ -27,9 +27,9 @@ import jolie.util.Pair;
 
 public class VariablePathBuilder
 {
-	private List< Pair< Expression, Expression > > list =
+	final private List< Pair< Expression, Expression > > list =
 					new Vector< Pair< Expression, Expression > > ();
-	private boolean global;
+	final private boolean global;
 	
 	public VariablePathBuilder( boolean global )
 	{

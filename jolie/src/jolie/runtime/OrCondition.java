@@ -28,7 +28,7 @@ import jolie.process.TransformationReason;
 
 public class OrCondition implements Condition
 {
-	private Vector< Condition > children;
+	final private Vector< Condition > children;
 	
 	public OrCondition()
 	{

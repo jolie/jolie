@@ -33,8 +33,8 @@ import jolie.process.TransformationReason;
  */
 public class CompareCondition implements Condition
 {
-	private Expression leftExpression, rightExpression;
-	private Scanner.TokenType opType;
+	final private Expression leftExpression, rightExpression;
+	final private Scanner.TokenType opType;
 	
 	public CompareCondition( Expression left, Expression right, Scanner.TokenType opType )
 	{

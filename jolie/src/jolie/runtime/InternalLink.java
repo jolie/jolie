@@ -40,14 +40,14 @@ import jolie.util.Pair;
 public class InternalLink implements InputHandler
 {
 	//private LinkedList< Thread > inList = new LinkedList< Thread >();
-	private LinkedList< Pair< ExecutionThread, InputProcessExecution > > inList = new LinkedList< Pair< ExecutionThread, InputProcessExecution > >();
+	final private LinkedList< Pair< ExecutionThread, InputProcessExecution > > inList = new LinkedList< Pair< ExecutionThread, InputProcessExecution > >();
 	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
-	private LinkedList< Thread > outList = new LinkedList< Thread >();
+	final private LinkedList< Thread > outList = new LinkedList< Thread >();
 	
 	/*private LinkedList< InputProcess > procsList;
 	private LinkedList< Process > outList;*/
 	
-	private String id;
+	final private String id;
 	
 	public InternalLink( String id )
 	{

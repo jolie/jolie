@@ -34,7 +34,7 @@ public class HTTPParser
 	private static final String GET = "GET";
 	private static final String POST = "POST";
 	
-	private HTTPScanner scanner;
+	final private HTTPScanner scanner;
 	private Scanner.Token token;
 	
 	private void getToken()
@@ -137,6 +137,7 @@ public class HTTPParser
 		return message;
 	}
 	
+	@SuppressWarnings( "empty-statement" )
 	public static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
 		throws IOException
 	{
@@ -150,8 +151,13 @@ public class HTTPParser
 		String p;
 		int contentLength = 0;
 		p = message.getProperty( "content-length" );
-		if ( p != null )
-			contentLength = Integer.parseInt( p );
+		if ( p != null && !p.isEmpty() ) {
+			try {
+				contentLength = Integer.parseInt( p );
+			} catch( NumberFormatException e ) {
+				contentLength = 0;
+			}
+		}
 		
 		boolean chunked = false;
 		p = message.getProperty( "transfer-encoding" );

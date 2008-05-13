@@ -40,7 +40,7 @@ public class HTTPMessage
 	private Version version;
 	private Type type;
 	private byte[] content = null;
-	private Map< String, String > propMap = new HashMap< String, String > ();
+	final private Map< String, String > propMap = new HashMap< String, String > ();
 	
 	private int httpCode;
 	private String requestPath;

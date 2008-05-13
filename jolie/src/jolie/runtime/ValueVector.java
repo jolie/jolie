@@ -26,7 +26,7 @@ import java.util.Vector;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
-	private VariablePath linkPath;
+	final private VariablePath linkPath;
 	
 	public Value remove( int i )
 	{
@@ -82,7 +82,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 
 class ValueVectorImpl extends ValueVector
 {
-	private Vector< Value > values;
+	final private Vector< Value > values;
 	
 	public boolean isLink()
 	{

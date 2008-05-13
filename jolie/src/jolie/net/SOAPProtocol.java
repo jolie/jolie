@@ -110,8 +110,8 @@ import com.sun.xml.xsom.parser.XSOMParser;
 public class SOAPProtocol extends CommProtocol
 {
 	private String inputId = null;
-	private Interpreter interpreter;
-	private MessageFactory messageFactory;
+	final private Interpreter interpreter;
+	final private MessageFactory messageFactory;
 	private XSSchemaSet schemaSet = null;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
@@ -122,43 +122,47 @@ public class SOAPProtocol extends CommProtocol
 
 	public SOAPProtocol clone()
 	{
-		SOAPProtocol ret = new SOAPProtocol( configurationPath );
+		SOAPProtocol ret =
+				new SOAPProtocol(
+					configurationPath,
+					locationVariablePath,
+					interpreter,
+					messageFactory
+				);
 		ret.inputId = inputId;
-		ret.locationVariablePath = locationVariablePath;
-		ret.interpreter = interpreter;
-		ret.messageFactory = messageFactory;
 		ret.schemaSet = schemaSet;
-		//ret.received = received;
 		return ret;
 	}
 	
-	private SOAPProtocol( VariablePath configurationPath )
-	{
-		super( configurationPath );
-	}
-	
-	public SOAPProtocol( VariablePath configurationPath, URI uri, Interpreter interpreter )
-	{
-		super( configurationPath );
-		this.uri = uri;
-		this.interpreter = interpreter;
-		try {
-			this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
-		} catch( SOAPException e ) {
-			interpreter.logger().severe( e.getMessage() );
-		}
-	}
-
-	public SOAPProtocol( VariablePath configurationPath, VariablePath locationVariablePath, Interpreter interpreter )
+	private SOAPProtocol(
+			VariablePath configurationPath,
+			VariablePath locationVariablePath,
+			Interpreter interpreter,
+			MessageFactory messageFactory
+		)
 	{
 		super( configurationPath );
 		this.locationVariablePath = locationVariablePath;
 		this.interpreter = interpreter;
-		try {
-			this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
-		} catch( SOAPException e ) {
-			interpreter.logger().severe( e.getMessage() );
-		}
+		this.messageFactory = messageFactory;
+	}
+	
+	public SOAPProtocol( VariablePath configurationPath, URI uri, Interpreter interpreter )
+		throws SOAPException
+	{
+		super( configurationPath );
+		this.uri = uri;
+		this.interpreter = interpreter;
+		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+	}
+
+	public SOAPProtocol( VariablePath configurationPath, VariablePath locationVariablePath, Interpreter interpreter )
+		throws SOAPException
+	{
+		super( configurationPath );
+		this.locationVariablePath = locationVariablePath;
+		this.interpreter = interpreter;
+		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 	}
 	
 	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();

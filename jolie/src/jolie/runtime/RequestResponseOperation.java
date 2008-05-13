@@ -26,7 +26,7 @@ import java.util.Collection;
 
 public class RequestResponseOperation extends InputOperation
 {
-	private Collection< String > faultNames;
+	final private Collection< String > faultNames;
 
 	public RequestResponseOperation( String id,
 			Collection< String > faultNames )

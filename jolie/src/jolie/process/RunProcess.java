@@ -39,7 +39,7 @@ import jolie.runtime.Value;
 
 public class RunProcess implements Process
 {
-	private Expression expression;
+	final private Expression expression;
 	
 	public RunProcess( Expression expression )
 	{

@@ -102,9 +102,10 @@ public class DBusCommChannel extends CommChannel
 		return code.toString();
 	}
 	
-	private List< CommMessage > recvMessages = new Vector< CommMessage >();
-	private DBusConnection connection;
-	private String serviceName, path, objectName;
+	final private List< CommMessage > recvMessages = new Vector< CommMessage >();
+	final private DBusConnection connection;
+	final private String serviceName, objectName;
+	private String path;
 	
 	public DBusCommChannel(
 			DBusConnection connection,

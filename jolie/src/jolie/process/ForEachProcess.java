@@ -27,8 +27,8 @@ import jolie.runtime.VariablePath;
 
 public class ForEachProcess implements Process
 {
-	private VariablePath keyPath, targetPath;
-	private Process process;
+	final private VariablePath keyPath, targetPath;
+	final private Process process;
 
 	public ForEachProcess(
 			VariablePath keyPath,

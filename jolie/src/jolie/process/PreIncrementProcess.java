@@ -28,7 +28,7 @@ import jolie.runtime.Value;
 
 public class PreIncrementProcess implements Process, Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 
 	public PreIncrementProcess( VariablePath varPath )
 	{

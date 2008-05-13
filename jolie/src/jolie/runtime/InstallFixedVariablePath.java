@@ -26,8 +26,8 @@ import jolie.process.TransformationReason;
 
 public class InstallFixedVariablePath implements Expression
 {
-	private VariablePath path;
-	private Value fixedEvaluation;
+	final private VariablePath path;
+	final private Value fixedEvaluation;
 
 	public InstallFixedVariablePath( VariablePath path )
 	{

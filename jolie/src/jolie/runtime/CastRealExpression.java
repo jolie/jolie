@@ -25,7 +25,7 @@ import jolie.process.TransformationReason;
 
 public class CastRealExpression implements Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 	
 	public CastRealExpression( VariablePath path )
 	{

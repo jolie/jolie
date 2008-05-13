@@ -30,7 +30,7 @@ import jolie.Interpreter;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
 {
-	private Interpreter interpreter;
+	final private Interpreter interpreter;
 	
 	public JolieServiceLoader( String servicePath )
 		throws IOException, CommandLineException

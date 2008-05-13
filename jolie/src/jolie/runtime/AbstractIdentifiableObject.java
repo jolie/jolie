@@ -30,7 +30,7 @@ package jolie.runtime;
  */
 abstract public class AbstractIdentifiableObject
 {
-	protected String id;
+	final protected String id;
 
 	/** Constructor.
 	 * 

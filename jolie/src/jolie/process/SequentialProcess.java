@@ -28,7 +28,7 @@ import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
 {
-	private Vector< Process > children;
+	final private Vector< Process > children;
 	
 	public SequentialProcess()
 	{

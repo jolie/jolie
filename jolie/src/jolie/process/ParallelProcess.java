@@ -28,7 +28,7 @@ import jolie.runtime.ParallelExecution;
 
 public class ParallelProcess implements Process
 {
-	private Vector< Process > children = new Vector< Process > ();
+	final private Vector< Process > children = new Vector< Process > ();
 	
 	public void run()
 		throws FaultException

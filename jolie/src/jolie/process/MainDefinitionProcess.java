@@ -32,9 +32,9 @@ import jolie.runtime.InvalidIdException;
 
 public class MainDefinitionProcess extends DefinitionProcess
 {
-	public MainDefinitionProcess()
+	public MainDefinitionProcess( Process process )
 	{
-		super( "main" );
+		super( process );
 	}
 	
 	@Override

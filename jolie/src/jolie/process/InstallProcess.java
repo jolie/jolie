@@ -31,7 +31,7 @@ import jolie.util.Pair;
 public class InstallProcess implements Process
 {
 	// The compensation is identified by an empty string
-	private List< Pair< String, Process > > pairs;
+	final private List< Pair< String, Process > > pairs;
 
 	public InstallProcess( List< Pair< String, Process > > pairs )
 	{

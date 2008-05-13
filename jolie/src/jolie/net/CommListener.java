@@ -36,9 +36,9 @@ abstract public class CommListener extends JolieThread
 {
 	private static int index = 0;
 
-	private CommProtocol protocol;
-	private Collection< InputPort > inputPorts;
-	private Map< String, OutputPort > redirectionMap;
+	final private CommProtocol protocol;
+	final private Collection< InputPort > inputPorts;
+	final private Map< String, OutputPort > redirectionMap;
 	
 	public CommListener(
 				Interpreter interpreter,
@@ -71,6 +71,4 @@ abstract public class CommListener extends JolieThread
 		}
 		return false;
 	}
-
-	abstract public void run();
 }

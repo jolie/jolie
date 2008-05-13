@@ -31,7 +31,7 @@ import jolie.runtime.VariablePathBuilder;
 
 public class CorrelatedProcess implements Process
 {
-	private Process process;
+	final private Process process;
 	private boolean waiting = false;
 	private SessionThread spawnModel;
 	

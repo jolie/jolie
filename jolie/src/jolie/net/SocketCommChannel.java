@@ -32,9 +32,9 @@ import jolie.Interpreter;
 
 public class SocketCommChannel extends CommChannel
 {
-	private SocketChannel socketChannel;
-	private InputStream istream;
-	private OutputStream ostream;
+	final private SocketChannel socketChannel;
+	final private InputStream istream;
+	final private OutputStream ostream;
 	private CommProtocol protocol;
 	
 	/** Constructor.
@@ -54,6 +54,7 @@ public class SocketCommChannel extends CommChannel
 		toBeClosed = false; // Socket connections are kept open by default
 	}
 	
+	@Override
 	final public void refreshProtocol()
 	{
 		this.protocol = this.protocol.clone();
@@ -69,6 +70,7 @@ public class SocketCommChannel extends CommChannel
 		return istream;
 	}
 	
+	@Override
 	protected void disposeForInputImpl()
 	{
 		Interpreter.getInstance().commCore().addToSelectionPool( this );

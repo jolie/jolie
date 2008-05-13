@@ -27,8 +27,8 @@ import jolie.runtime.FaultException;
 
 public class ForProcess implements Process
 {
-	private Condition condition;
-	private Process init, post, process;
+	final private Condition condition;
+	final private Process init, post, process;
 
 	public ForProcess( Process init, Condition condition, Process post, Process process )
 	{

@@ -30,8 +30,8 @@ public class ScopeProcess implements Process
 {
 	private class Execution
 	{
-		private ScopeProcess parent;
-		private ExecutionThread ethread;
+		final private ScopeProcess parent;
+		final private ExecutionThread ethread;
 		private boolean shouldMerge = true;
 		private FaultException fault = null;
 		
@@ -80,8 +80,8 @@ public class ScopeProcess implements Process
 		}
 	}
 	
-	protected String id;
-	protected Process process;
+	final private String id;
+	final private Process process;
 	
 	public ScopeProcess( String id, Process process )
 	{

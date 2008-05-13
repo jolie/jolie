@@ -29,7 +29,7 @@ import jolie.process.TransformationReason;
 
 public class ProductExpression implements Expression
 {
-	private Vector< Operand > children;
+	final private Vector< Operand > children;
 	
 	public ProductExpression()
 	{

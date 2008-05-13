@@ -32,8 +32,8 @@ public interface Expression
 	
 	public class Operand
 	{
-		private Constants.OperandType type;
-		private Expression expression;
+		final private Constants.OperandType type;
+		final private Expression expression;
 						
 		public Operand( Constants.OperandType type, Expression expression )
 		{

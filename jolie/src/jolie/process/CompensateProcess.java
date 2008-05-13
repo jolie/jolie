@@ -27,7 +27,7 @@ import jolie.runtime.FaultException;
 
 public class CompensateProcess implements Process
 {
-	private String id;
+	final private String id;
 	
 	public CompensateProcess( String id )
 	{

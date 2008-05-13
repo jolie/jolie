@@ -27,37 +27,35 @@ import jolie.ExecutionThread;
 import jolie.StatelessThread;
 import jolie.process.Process;
 
-class ParallelThread extends StatelessThread
-{
-	private ParallelExecution parent;
-	
-	public ParallelThread( Process process, ParallelExecution parent )
-	{
-		super( ExecutionThread.currentThread(), process );
-		this.parent = parent;
-	}
-
-	public void run()
-	{
-		try {
-			process().run();
-			parent.terminationNotify( this );
-		} catch( FaultException f ) {
-			parent.signalFault( this, f );
-		}
-	}
-}
-
 public class ParallelExecution
 {
-	private Vector< ParallelThread > threads = new Vector< ParallelThread >();
+	class ParallelThread extends StatelessThread
+	{
+		public ParallelThread( Process process )
+		{
+			super( ExecutionThread.currentThread(), process );
+		}
+
+		@Override
+		public void run()
+		{
+			try {
+				process().run();
+				terminationNotify( this );
+			} catch( FaultException f ) {
+				signalFault( this, f );
+			}
+		}
+	}
+	
+	final private Vector< ParallelThread > threads = new Vector< ParallelThread >();
 	private FaultException fault = null;
 	//private ExecutionThread ethread;
 
 	public ParallelExecution( Vector< Process > procs )
 	{
 		for( Process proc : procs )
-			threads.add( new ParallelThread( proc, this ) );
+			threads.add( new ParallelThread( proc ) );
 		//ethread = ExecutionThread.currentThread();
 	}
 	
@@ -95,7 +93,7 @@ public class ParallelExecution
 		}
 	}
 	
-	public void terminationNotify( ParallelThread thread )
+	private void terminationNotify( ParallelThread thread )
 	{
 		synchronized( this ) {
 			threads.remove( thread );
@@ -106,7 +104,7 @@ public class ParallelExecution
 	}
 	
 		
-	public void signalFault( ParallelThread thread, FaultException f )
+	private void signalFault( ParallelThread thread, FaultException f )
 	{
 		synchronized( this ) {
 			threads.remove( thread );

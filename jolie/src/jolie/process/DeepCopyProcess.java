@@ -26,7 +26,7 @@ import jolie.runtime.VariablePath;
 
 public class DeepCopyProcess implements Process
 {
-	private VariablePath leftPath, rightPath;
+	final private VariablePath leftPath, rightPath;
 
 	public DeepCopyProcess( VariablePath leftPath, VariablePath rightPath )
 	{

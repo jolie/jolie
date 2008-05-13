@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class IsRealExpression implements Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 
 	public IsRealExpression( VariablePath path )
 	{

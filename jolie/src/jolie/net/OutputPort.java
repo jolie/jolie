@@ -27,6 +27,8 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Vector;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
 import jolie.Constants;
 import jolie.Interpreter;
 import jolie.process.AssignmentProcess;
@@ -41,10 +43,10 @@ import jolie.util.Pair;
 
 public class OutputPort extends AbstractIdentifiableObject
 {
-	private Collection< String > operations;
-	private Constants.ProtocolId protocolId;
-	private Process configurationProcess;
-	private VariablePath locationVariablePath, protocolConfigurationVariablePath;
+	final private Collection< String > operations;
+	final private Constants.ProtocolId protocolId;
+	final private Process configurationProcess;
+	final private VariablePath locationVariablePath, protocolConfigurationVariablePath;
 
 	public OutputPort(
 			String id,
@@ -96,10 +98,16 @@ public class OutputPort extends AbstractIdentifiableObject
 							Interpreter.getInstance()
 						);
 			} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
-				protocol = new HTTPProtocol(
+				try {
+					protocol = new HTTPProtocol(
 							protocolConfigurationVariablePath,
 							locationVariablePath
 						);
+				} catch( ParserConfigurationException e ) {
+					throw new IOException( e );
+				} catch( TransformerConfigurationException e ) {
+					throw new IOException( e );
+				}
 			}
 			assert( protocol != null );
 		}

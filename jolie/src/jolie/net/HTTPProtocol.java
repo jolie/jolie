@@ -46,6 +46,7 @@ import javax.xml.soap.SOAPException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -72,10 +73,10 @@ import org.xml.sax.SAXException;
 public class HTTPProtocol extends CommProtocol
 {
 	private String inputId = null;
-	private TransformerFactory transformerFactory;
-	private Transformer transformer;
-	private DocumentBuilderFactory docBuilderFactory;
-	private DocumentBuilder docBuilder;
+	final private TransformerFactory transformerFactory;
+	final private Transformer transformer;
+	final private DocumentBuilderFactory docBuilderFactory;
+	final private DocumentBuilder docBuilder;
 	private VariablePath locationVariablePath;
 	private URI uri = null;
 	private boolean received = false;
@@ -83,49 +84,57 @@ public class HTTPProtocol extends CommProtocol
 	final private static String CRLF = new String( new char[] { 13, 10 } );
 	
 	public HTTPProtocol( VariablePath configurationPath, URI uri )
+		throws ParserConfigurationException, TransformerConfigurationException
 	{
 		super( configurationPath );
 		this.uri = uri;
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
-		try {
-			docBuilder = docBuilderFactory.newDocumentBuilder();
-			transformerFactory = TransformerFactory.newInstance();
-			transformer = transformerFactory.newTransformer();
-		} catch( Exception e ) {
-			Interpreter.getInstance().logger().severe( e.getMessage() );
-		}
+		docBuilder = docBuilderFactory.newDocumentBuilder();
+		transformerFactory = TransformerFactory.newInstance();
+		transformer = transformerFactory.newTransformer();
 	}
 	
 	public HTTPProtocol( VariablePath configurationPath, VariablePath locationVariablePath )
+		throws ParserConfigurationException, TransformerConfigurationException
 	{
 		super( configurationPath );
 		this.locationVariablePath = locationVariablePath;
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
-		try {
-			docBuilder = docBuilderFactory.newDocumentBuilder();
-			transformerFactory = TransformerFactory.newInstance();
-			transformer = transformerFactory.newTransformer();
-		} catch( Exception e ) {
-			Interpreter.getInstance().logger().severe( e.getMessage() );
-		}
+		docBuilder = docBuilderFactory.newDocumentBuilder();
+		transformerFactory = TransformerFactory.newInstance();
+		transformer = transformerFactory.newTransformer();
 	}
 	
-	private HTTPProtocol( VariablePath configurationPath )
+	private HTTPProtocol(
+			VariablePath configurationPath,
+			VariablePath locationVariablePath,
+			DocumentBuilderFactory docBuilderFactory,
+			DocumentBuilder docBuilder,
+			TransformerFactory transformerFactory,
+			Transformer transformer
+		)
 	{
 		super( configurationPath );
+		this.locationVariablePath = locationVariablePath;
+		this.docBuilderFactory = docBuilderFactory;
+		this.docBuilder = docBuilder;
+		this.transformerFactory = transformerFactory;
+		this.transformer = transformer;
 	}
 	
 	public HTTPProtocol clone()
 	{
-		HTTPProtocol ret = new HTTPProtocol( configurationPath );
-		ret.docBuilderFactory = docBuilderFactory;
-		ret.docBuilder = docBuilder;
-		ret.locationVariablePath = locationVariablePath;
-		ret.transformer = transformer;
-		ret.transformerFactory = transformerFactory;
-		//ret.received = received;
+		HTTPProtocol ret =
+				new HTTPProtocol(
+					configurationPath,
+					locationVariablePath,
+					docBuilderFactory,
+					docBuilder,
+					transformerFactory,
+					transformer
+				);
 		return ret;
 	}
 	
@@ -195,17 +204,19 @@ public class HTTPProtocol extends CommProtocol
 			String queryString = "";
 			
 			String format = getParameterVector( "format" ).first().strValue();
-			if ( format.equals( "xml" ) ) {
+			if ( format.isEmpty() || format.equals( "xml" ) ) {
 				Document doc = docBuilder.newDocument();
-				valueToDocument( message.value(), doc, doc );
-			
+				Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
+				doc.appendChild( root );
+				valueToDocument( message.value(), root, doc );
+
 				Source src = new DOMSource( doc );
 				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 				Result dest = new StreamResult( tmpStream );
 				transformer.transform( src, dest );
-			
+
 				contentString = new String( tmpStream.toByteArray() );
-				
+
 				contentType = "text/xml";
 			} else if ( format.equals( "raw" ) ) {
 				contentString = message.value().strValue();
@@ -358,7 +369,7 @@ public class HTTPProtocol extends CommProtocol
 			else
 				channel.setToBeClosed( true );
 		}
-		
+
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Receiving:\n" );

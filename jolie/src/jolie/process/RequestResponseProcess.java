@@ -41,7 +41,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	{
 		private CommMessage message;
 		private CommChannel channel;
-		private RequestResponseProcess parent;
+		final private RequestResponseProcess parent;
 		
 		public Execution( RequestResponseProcess parent )
 		{
@@ -96,10 +96,10 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	}
 
 	
-	protected RequestResponseOperation operation;
-	protected VariablePath inputVarPath;
-	protected Expression outputExpression;
-	protected Process process;
+	final protected RequestResponseOperation operation;
+	final protected VariablePath inputVarPath;
+	final protected Expression outputExpression;
+	final protected Process process;
 	protected CorrelatedProcess correlatedProcess = null;
 	
 	public RequestResponseProcess(

@@ -22,26 +22,20 @@
 
 package jolie.process;
 
-import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 
-public class DefinitionProcess extends AbstractIdentifiableObject implements Process
+public class DefinitionProcess implements Process
 {
-	private Process process = null;
+	final private Process process;
 
-	public DefinitionProcess( String id )
+	public DefinitionProcess( Process process )
 	{
-		super( id );
+		this.process = process;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new DefinitionProcess( id() );
-	}
-
-	public void setProcess( Process process )
-	{
-		this.process = process;
+		return new DefinitionProcess( process.clone( reason ) );
 	}
 
 	public void run()

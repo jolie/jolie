@@ -26,7 +26,7 @@ import jolie.runtime.VariablePath;
 
 public class MakePointerProcess implements Process
 {
-	private VariablePath leftPath, rightPath;
+	final private VariablePath leftPath, rightPath;
 
 	public MakePointerProcess( VariablePath leftPath, VariablePath rightPath )
 	{

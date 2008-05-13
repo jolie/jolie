@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class NotCondition implements Condition
 {
-	private Condition condition;
+	final private Condition condition;
 	
 	public NotCondition( Condition condition )
 	{

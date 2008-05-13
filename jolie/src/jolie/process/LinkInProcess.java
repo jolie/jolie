@@ -29,7 +29,7 @@ import jolie.runtime.InternalLink;
 
 public class LinkInProcess implements InputProcess
 {
-	private String link;
+	final private String link;
 	
 	public LinkInProcess( String link )
 	{

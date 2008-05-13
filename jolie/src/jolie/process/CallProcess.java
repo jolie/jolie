@@ -30,7 +30,7 @@ import jolie.runtime.FaultException;
  */
 public class CallProcess implements Process
 {
-	private DefinitionProcess definition;
+	final private DefinitionProcess definition;
 	
 	/** Constructor
 	 * 

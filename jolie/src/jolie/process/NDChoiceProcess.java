@@ -65,7 +65,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		
 		private Map< String, InputChoice > inputMap =
 			new ConcurrentHashMap< String, InputChoice >();
-		private NDChoiceProcess parent;
+		final private NDChoiceProcess parent;
 		private InputChoice choice = null;
 		private CommChannel channel;
 		private CommMessage message;

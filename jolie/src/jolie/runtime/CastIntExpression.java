@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class CastIntExpression implements Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 	
 	public CastIntExpression( VariablePath path )
 	{

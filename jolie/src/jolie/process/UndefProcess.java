@@ -26,7 +26,7 @@ import jolie.runtime.VariablePath;
 
 public class UndefProcess implements Process
 {
-	private VariablePath varPath;
+	final private VariablePath varPath;
 
 	public UndefProcess( VariablePath varPath )
 	{

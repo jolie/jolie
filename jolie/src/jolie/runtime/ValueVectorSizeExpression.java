@@ -26,7 +26,7 @@ import jolie.process.TransformationReason;
 
 public class ValueVectorSizeExpression implements Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 	
 	public ValueVectorSizeExpression( VariablePath path )
 	{

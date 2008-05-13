@@ -28,7 +28,7 @@ import jolie.runtime.Value;
 
 public class PreDecrementProcess implements Process, Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 
 	public PreDecrementProcess( VariablePath varPath )
 	{

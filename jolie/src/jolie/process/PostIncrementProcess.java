@@ -28,7 +28,7 @@ import jolie.runtime.Value;
 
 public class PostIncrementProcess implements Process, Expression
 {
-	private VariablePath path;
+	final private VariablePath path;
 
 	public PostIncrementProcess( VariablePath varPath )
 	{

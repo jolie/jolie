@@ -34,6 +34,7 @@ public class HTTPScanner extends Scanner
 		super( stream, sourceName );
 	}
 
+	@Override
 	public Token getToken()
 		throws IOException
 	{

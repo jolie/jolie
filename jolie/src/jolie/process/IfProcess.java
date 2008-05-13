@@ -32,8 +32,8 @@ public class IfProcess implements Process
 {
 	private class CPPair
 	{
-		private Condition condition;
-		private Process process;
+		final private Condition condition;
+		final private Process process;
 		
 		public CPPair( Condition condition, Process process )
 		{
@@ -52,7 +52,7 @@ public class IfProcess implements Process
 		}
 	}
 	
-	private Vector< CPPair > pairs;
+	final private Vector< CPPair > pairs;
 	private Process elseProcess;
 	
 	public IfProcess()

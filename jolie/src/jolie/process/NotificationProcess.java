@@ -33,9 +33,9 @@ import jolie.runtime.Expression;
 
 public class NotificationProcess implements Process
 {
-	private String operationId;
-	private OutputPort outputPort;
-	private Expression outputExpression;
+	final private String operationId;
+	final private OutputPort outputPort;
+	final private Expression outputExpression;
 
 	public NotificationProcess(
 			String operationId,

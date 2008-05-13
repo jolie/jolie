@@ -25,19 +25,14 @@ import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.runtime.VariablePathBuilder;
 
 
 public class ThrowProcess implements Process
 {
-	private FaultException fault;
+	final private FaultException fault;
 	
-	public ThrowProcess( String id )
+	public ThrowProcess( String id, VariablePath path )
 	{
-		VariablePath path =
-					new VariablePathBuilder( false )
-					.add( id, 0 )
-					.toVariablePath();
 		fault = new FaultException(
 					id,
 					Value.createLink( path )

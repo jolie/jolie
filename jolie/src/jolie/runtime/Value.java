@@ -36,7 +36,7 @@ import jolie.process.TransformationReason;
 
 class ValueLink extends Value implements Cloneable
 {
-	private VariablePath linkPath;
+	final private VariablePath linkPath;
 	
 	public void setValueObject( Object object )
 	{

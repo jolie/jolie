@@ -37,7 +37,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	private class Execution implements InputProcessExecution
 	{
 		protected CommMessage message = null;
-		protected OneWayProcess parent;
+		final protected OneWayProcess parent;
 		protected CommChannel channel = null;
 		
 		public Execution( OneWayProcess parent )
@@ -85,8 +85,8 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		}
 	}
 	
-	protected InputOperation operation;
-	protected VariablePath varPath;
+	final protected InputOperation operation;
+	final protected VariablePath varPath;
 	protected CorrelatedProcess correlatedProcess = null;
 
 	public OneWayProcess(

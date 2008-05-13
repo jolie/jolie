@@ -51,20 +51,27 @@ import jolie.runtime.InvalidIdException;
  */
 public class CommCore
 {
-	private Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
+	final private Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
 
-	private ThreadGroup threadGroup;
+	final private ThreadGroup threadGroup;
 
-	private Logger logger = Logger.getLogger( "JOLIE" );
+	final private Logger logger = Logger.getLogger( "JOLIE" );
 
-	private int connectionsLimit = -1;
-	private Interpreter interpreter;
+	final private int connectionsLimit;
+	final private Interpreter interpreter;
 
 	public CommCore( Interpreter interpreter, int connectionsLimit )
+		throws IOException
 	{
 		this.interpreter = interpreter;
 		this.connectionsLimit = connectionsLimit;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
+		if ( connectionsLimit > 0 ) {
+			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
+		} else {
+			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
+		}
+		selectorThread = new SelectorThread();
 	}
 	
 	public Logger logger()
@@ -82,7 +89,7 @@ public class CommCore
 		return threadGroup;
 	}
 	
-	private Collection< Process > protocolConfigurations = new Vector< Process > ();
+	final private Collection< Process > protocolConfigurations = new Vector< Process > ();
 	
 	public Collection< Process > protocolConfigurations()
 	{
@@ -125,7 +132,7 @@ public class CommCore
 		listenersMap.put( serviceName, listener );
 	}
 	
-	private ExecutorService executorService;
+	final private ExecutorService executorService;
 	
 	private class CommThreadFactory implements ThreadFactory {
 		public Thread newThread( Runnable r )
@@ -135,8 +142,8 @@ public class CommCore
 	}
 
 	private class CommChannelHandlerRunnable implements Runnable {
-		private CommChannel channel;
-		private CommListener listener;
+		final private CommChannel channel;
+		final private CommListener listener;
 		
 		public CommChannelHandlerRunnable( CommChannel channel, CommListener listener )
 		{
@@ -225,20 +232,14 @@ public class CommCore
 	/** Initializes the communication core. */
 	public void init()
 		throws IOException
-	{
-		if ( connectionsLimit > 0 )
-			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
-		else
-			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
-		
-		selectorThread = new SelectorThread();
+	{		
 		selectorThread.start();
 		
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() )
 			entry.getValue().start();
 	}
 	
-	private SelectorThread selectorThread;
+	final private SelectorThread selectorThread;
 	
 	private class SelectorThread extends Thread {
 		private Selector selector;
