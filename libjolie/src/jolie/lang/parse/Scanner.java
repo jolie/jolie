@@ -211,10 +211,10 @@ public class Scanner
 	{
 		String buffer = new String();
 		readChar();
-		do {
+		while( !isNewLineChar( ch ) ) {
 			buffer += ch;
 			readChar();
-		} while( !isNewLineChar( ch ) );
+		}
 		return buffer;
 	}
 	

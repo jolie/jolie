@@ -27,9 +27,9 @@ import jolie.lang.parse.ParsingContext;
 
 public class RequestResponseOperationStatement extends OLSyntaxNode
 {
-	private VariablePathNode inputVarPath;
-	private OLSyntaxNode process, outputExpression;
-	private String id;
+	final private VariablePathNode inputVarPath;
+	final private OLSyntaxNode process, outputExpression;
+	final private String id;
 	
 	public RequestResponseOperationStatement(
 			ParsingContext context,

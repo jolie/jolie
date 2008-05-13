@@ -31,12 +31,11 @@ import jolie.lang.parse.ParsingContext;
 
 public class AndConditionNode extends OLSyntaxNode
 {
-	private List< OLSyntaxNode > children;
+	final private List< OLSyntaxNode > children = new Vector< OLSyntaxNode >();
 
 	public AndConditionNode( ParsingContext context )
 	{
 		super( context );
-		children = new Vector< OLSyntaxNode >();
 	}
 	
 	public List< OLSyntaxNode > children()

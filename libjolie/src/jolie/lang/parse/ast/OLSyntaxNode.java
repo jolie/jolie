@@ -26,7 +26,7 @@ import jolie.lang.parse.ParsingContext;
 
 abstract public class OLSyntaxNode
 {
-	private ParsingContext context;
+	final private ParsingContext context;
 	
 	public OLSyntaxNode( ParsingContext context )
 	{

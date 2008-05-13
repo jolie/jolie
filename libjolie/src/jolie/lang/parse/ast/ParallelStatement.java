@@ -31,7 +31,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ParallelStatement extends OLSyntaxNode
 {
-	private List< OLSyntaxNode > children;
+	final private List< OLSyntaxNode > children;
 
 	public ParallelStatement( ParsingContext context )
 	{

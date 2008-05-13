@@ -33,7 +33,7 @@ import jolie.util.Pair;
 
 public class ProductExpressionNode extends OLSyntaxNode
 {
-	private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+	final private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
 	public ProductExpressionNode( ParsingContext context )
 	{

@@ -27,8 +27,8 @@ import jolie.lang.parse.ParsingContext;
 
 public class OneWayOperationStatement extends OLSyntaxNode
 {
-	private VariablePathNode inputVarPath;
-	private String id;
+	final private VariablePathNode inputVarPath;
+	final private String id;
 	
 	public OneWayOperationStatement( ParsingContext context, String id, VariablePathNode inputVarPath )
 	{

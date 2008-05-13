@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class RunStatement extends OLSyntaxNode
 {
-	private OLSyntaxNode expression;
+	final private OLSyntaxNode expression;
 
 	public RunStatement( ParsingContext context, OLSyntaxNode expression )
 	{

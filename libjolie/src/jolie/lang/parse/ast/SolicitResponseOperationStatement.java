@@ -27,10 +27,10 @@ import jolie.lang.parse.ParsingContext;
 
 public class SolicitResponseOperationStatement extends OLSyntaxNode
 {
-	private VariablePathNode inputVarPath;
-	private String id, outputPortId;
-	private OLSyntaxNode outputExpression;
-	private InstallFunctionNode handlersFunction;
+	final private VariablePathNode inputVarPath;
+	final private String id, outputPortId;
+	final private OLSyntaxNode outputExpression;
+	final private InstallFunctionNode handlersFunction;
 	
 	public SolicitResponseOperationStatement(
 			ParsingContext context,

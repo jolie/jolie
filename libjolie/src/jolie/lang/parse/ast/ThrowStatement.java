@@ -27,12 +27,26 @@ import jolie.lang.parse.ParsingContext;
 
 public class ThrowStatement extends OLSyntaxNode
 {
-	private String id;
+	final private String id;
+	final private VariablePathNode path;
 
 	public ThrowStatement( ParsingContext context, String id )
 	{
 		super( context );
 		this.id = id;
+		this.path = null;
+	}
+	
+	public ThrowStatement( ParsingContext context, String id, VariablePathNode path )
+	{
+		super( context );
+		this.id = id;
+		this.path = path;
+	}
+	
+	public VariablePathNode variablePath()
+	{
+		return path;
 	}
 	
 	public String id()

@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class InstallStatement extends OLSyntaxNode
 {
-	private InstallFunctionNode handlersFunction;
+	final private InstallFunctionNode handlersFunction;
 
 	public InstallStatement( ParsingContext context, InstallFunctionNode handlersFunction )
 	{

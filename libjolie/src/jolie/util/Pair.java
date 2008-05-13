@@ -23,8 +23,8 @@ package jolie.util;
 
 public class Pair< K, V >
 {
-	private K key;
-	private V value;
+	final private K key;
+	final private V value;
 	
 	public Pair( K key, V value )
 	{

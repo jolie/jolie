@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class PostIncrementStatement extends OLSyntaxNode
 {
-	private VariablePathNode variablePath;
+	final private VariablePathNode variablePath;
 
 	public PostIncrementStatement( ParsingContext context, VariablePathNode variablePath )
 	{

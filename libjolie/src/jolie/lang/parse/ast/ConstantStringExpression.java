@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ConstantStringExpression extends OLSyntaxNode
 {
-	private String value;
+	final private String value;
 
 	public ConstantStringExpression( ParsingContext context, String value )
 	{

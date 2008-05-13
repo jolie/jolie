@@ -29,8 +29,8 @@ import jolie.lang.parse.ParsingContext;
 
 abstract public class PortInfo extends OLSyntaxNode
 {
-	private String id;
-	private Map< String, OperationDeclaration > operationsMap =
+	final private String id;
+	final private Map< String, OperationDeclaration > operationsMap =
 						new HashMap< String, OperationDeclaration > ();
 	
 	public PortInfo( ParsingContext context, String id )

@@ -31,7 +31,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class OrConditionNode extends OLSyntaxNode
 {
-	private List< OLSyntaxNode > children;
+	final private List< OLSyntaxNode > children;
 
 	public OrConditionNode( ParsingContext context )
 	{

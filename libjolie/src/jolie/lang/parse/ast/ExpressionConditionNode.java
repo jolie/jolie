@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ExpressionConditionNode extends OLSyntaxNode
 {
-	private OLSyntaxNode expression;
+	final private OLSyntaxNode expression;
 
 	public ExpressionConditionNode( ParsingContext context, OLSyntaxNode expression )
 	{

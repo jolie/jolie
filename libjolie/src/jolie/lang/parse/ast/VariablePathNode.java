@@ -29,8 +29,8 @@ import jolie.util.Pair;
 
 public class VariablePathNode
 {
-	private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
-	private boolean global;
+	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
+	final private boolean global;
 
 	public VariablePathNode( boolean global )
 	{

@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class DefinitionCallStatement extends OLSyntaxNode
 {
-	private String id;
+	final private String id;
 
 	public DefinitionCallStatement( ParsingContext context, String id )
 	{

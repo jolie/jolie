@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class VariableExpressionNode extends OLSyntaxNode
 {
-	private VariablePathNode variablePath;
+	final private VariablePathNode variablePath;
 
 	public VariableExpressionNode( ParsingContext context, VariablePathNode variablePath )
 	{

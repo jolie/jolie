@@ -919,8 +919,18 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			checkConstant();
 			assertToken( Scanner.TokenType.ID, "expected fault identifier" );
-			retVal = new ThrowStatement( getContext(), token.content() );
+			String faultName = token.content();
 			getToken();
+			if ( token.is( Scanner.TokenType.RPAREN ) ) {
+				retVal = new ThrowStatement( getContext(), faultName );
+			} else {
+				eat( Scanner.TokenType.COMMA, "expected , or )" );
+				assertToken( Scanner.TokenType.ID, "expected variable path" );
+				String varId = token.content();
+				getToken();
+				VariablePathNode path = parseVariablePath( varId );
+				retVal = new ThrowStatement( getContext(), faultName, path );
+			}
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.INSTALL ) ) {
 			getToken();

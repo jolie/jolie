@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ForStatement extends OLSyntaxNode
 {
-	private OLSyntaxNode init, condition, post, body;
+	final private OLSyntaxNode init, condition, post, body;
 
 	public ForStatement(
 			ParsingContext context,

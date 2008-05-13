@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class LinkInStatement extends OLSyntaxNode
 {
-	private String id;
+	final private String id;
 
 	public LinkInStatement( ParsingContext context, String id )
 	{

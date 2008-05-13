@@ -29,7 +29,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class CorrelationSetInfo extends OLSyntaxNode
 {
-	private Set< List< VariablePathNode > > cset;
+	final private Set< List< VariablePathNode > > cset;
 	
 	public CorrelationSetInfo( ParsingContext context, Set< List< VariablePathNode > > cset )
 	{

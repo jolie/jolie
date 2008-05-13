@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class PointerStatement extends OLSyntaxNode
 {
-	private VariablePathNode leftPath, rightPath;
+	final private VariablePathNode leftPath, rightPath;
 
 	public PointerStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath )
 	{

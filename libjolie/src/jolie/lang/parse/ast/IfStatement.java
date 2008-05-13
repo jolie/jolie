@@ -32,7 +32,7 @@ import jolie.util.Pair;
 
 public class IfStatement extends OLSyntaxNode
 {
-	private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
+	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 	private OLSyntaxNode elseProcess;
 
 	public IfStatement( ParsingContext context )

@@ -32,7 +32,7 @@ import jolie.util.Pair;
 
 public class NDChoiceStatement extends OLSyntaxNode
 {
-	private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
+	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 
 	public NDChoiceStatement( ParsingContext context )
 	{

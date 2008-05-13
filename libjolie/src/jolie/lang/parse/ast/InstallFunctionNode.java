@@ -28,7 +28,7 @@ import jolie.util.Pair;
 
 public class InstallFunctionNode
 {
-	private List< Pair< String, OLSyntaxNode > > pairs;
+	final private List< Pair< String, OLSyntaxNode > > pairs;
 
 	public InstallFunctionNode( List< Pair< String, OLSyntaxNode > > pairs )
 	{

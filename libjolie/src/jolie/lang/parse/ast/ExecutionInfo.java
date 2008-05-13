@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ExecutionInfo extends OLSyntaxNode
 {
-	private Constants.ExecutionMode mode;
+	final private Constants.ExecutionMode mode;
 	
 	public ExecutionInfo( ParsingContext context, Constants.ExecutionMode mode )
 	{

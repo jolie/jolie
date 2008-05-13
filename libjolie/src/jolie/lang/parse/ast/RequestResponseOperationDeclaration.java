@@ -29,7 +29,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration
 {
-	private Collection< String > faultNames;
+	final private Collection< String > faultNames;
 
 	public RequestResponseOperationDeclaration(
 			ParsingContext context,

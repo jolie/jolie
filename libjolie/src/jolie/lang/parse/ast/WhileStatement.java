@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class WhileStatement extends OLSyntaxNode
 {
-	private OLSyntaxNode condition, body;
+	final private OLSyntaxNode condition, body;
 
 	public WhileStatement( ParsingContext context, OLSyntaxNode condition, OLSyntaxNode body )
 	{

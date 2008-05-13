@@ -23,9 +23,9 @@ package jolie.util;
 
 public class Triple< K, V, Z >
 {
-	private K first;
-	private V second;
-	private Z third;
+	final private K first;
+	final private V second;
+	final private Z third;
 	
 	public Triple( K first, V second, Z third )
 	{

@@ -31,12 +31,12 @@ import jolie.lang.parse.ParsingContext;
 
 public class ServiceInfo extends OLSyntaxNode
 {
-	private String id;
-	private URI location;
-	private Collection< String > inputPorts;
-	private Constants.ProtocolId protocolId;
-	private OLSyntaxNode protocolConfiguration;
-	private Map< String, String > redirectionMap;
+	final private String id;
+	final private URI location;
+	final private Collection< String > inputPorts;
+	final private Constants.ProtocolId protocolId;
+	final private OLSyntaxNode protocolConfiguration;
+	final private Map< String, String > redirectionMap;
 	
 	public ServiceInfo(
 			ParsingContext context,

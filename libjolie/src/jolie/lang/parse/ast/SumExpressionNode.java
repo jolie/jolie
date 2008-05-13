@@ -33,7 +33,7 @@ import jolie.util.Pair;
 
 public class SumExpressionNode extends OLSyntaxNode
 {
-	private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+	final private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
 	public SumExpressionNode( ParsingContext context )
 	{
