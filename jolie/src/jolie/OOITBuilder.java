@@ -78,11 +78,8 @@ import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommProtocol;
-import jolie.net.HTTPProtocol;
 import jolie.net.InputPort;
 import jolie.net.OutputPort;
-import jolie.net.SOAPProtocol;
-import jolie.net.SODEPProtocol;
 import jolie.net.UnsupportedCommMediumException;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
@@ -228,11 +225,9 @@ public class OOITBuilder implements OLVisitor
 			n.protocolConfiguration().accept( this );
 			protocolConfigurationProcess = currProcess;
 		}
-		
-		//if ( n.protocolId() == null )
-			//error( n.context(), "you must specify a protocol for output port " + n.id() );
 
 		interpreter.register( n.id(), new OutputPort(
+						interpreter,
 						n.id(),
 						operations,
 						n.protocolId(),
@@ -275,7 +270,7 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		Constants.ProtocolId pId = n.protocolId();
+		String pId = n.protocolId();
 		CommProtocol protocol = null;
 		
 		Vector< Pair< Expression, Expression > > path =
@@ -286,15 +281,8 @@ public class OOITBuilder implements OLVisitor
 		VariablePath configurationPath = new VariablePath( path, true );
 		
 		try {
-			if ( pId.equals( Constants.ProtocolId.SOAP ) )
-				protocol = new SOAPProtocol( configurationPath, n.location(), interpreter );
-			else if ( pId.equals( Constants.ProtocolId.SODEP ) )
-				protocol = new SODEPProtocol( configurationPath );
-			else if ( pId.equals( Constants.ProtocolId.HTTP ) )
-				protocol = new HTTPProtocol( configurationPath, n.location() );
-			else
-				error( n.context(), "Unsupported protocol specified for service " + n.id() );
-		} catch( Exception e ) {
+			protocol = interpreter.commCore().createCommProtocol( pId, configurationPath, n.location() );
+		} catch( IOException e ) {
 			error( n.context(), e );
 		}
 		
@@ -316,8 +304,6 @@ public class OOITBuilder implements OLVisitor
 					redirectionMap.put( entry.getKey(), oPort );
 				}
 				interpreter.commCore().addService( n.id(), n.location(), inputPorts, protocol, currProcess, redirectionMap );
-			} catch( UnsupportedCommMediumException e ) {
-				error( n.context(), e );
 			} catch( IOException ioe ) {
 				error( n.context(), ioe );
 			}

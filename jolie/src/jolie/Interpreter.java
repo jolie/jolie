@@ -24,6 +24,7 @@ package jolie;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -277,6 +278,7 @@ public class Interpreter
 		Vector< String > libVec = new Vector< String > ();
 		libVec.add( pwd );
 		libVec.add( "ext" );
+		libVec.add( "lib" );
 		for( int i = 0; i < args.length; i++ ) {
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
 				throw new CommandLineException( getHelpString() );
@@ -312,15 +314,29 @@ public class Interpreter
 				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
 		}
 		
+		commCore = new CommCore( this, connectionsLimit );
+		
 		Vector< URL > urls = new Vector< URL >();
 		for( String path : libVec ) {
 			if ( path.endsWith( ".jar" ) ) {
 				urls.add( new URL( "jar:file:" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
+			} else if ( path.endsWith( "/*" ) ) {
+				File dir = new File( path.substring( 0, path.length() - 2 ) );
+				String jars[] = dir.list( new FilenameFilter() {
+					public boolean accept( File dir, String filename ) {
+						return filename.endsWith( ".jar" );
+					}
+				});
+				if ( jars != null ) {
+					for( String jarPath : jars ) {
+						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + Constants.fileSeparator + jarPath + "!/" ) );
+					}
+				}
 			}
 		}
-		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ) );
+		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
 		
 		includePaths = includeVec.toArray( includePaths );
 		
@@ -331,7 +347,6 @@ public class Interpreter
 		
 		InputStream olStream = new FileInputStream( olFilepath );
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
-		commCore = new CommCore( this, connectionsLimit );
 	}
 
 	private String getHelpString()

@@ -31,7 +31,6 @@ import java.util.Map.Entry;
 
 import jolie.Constants.ValueType;
 import jolie.net.CommChannel;
-import jolie.net.SODEPProtocol;
 import jolie.process.TransformationReason;
 
 class ValueLink extends Value implements Cloneable
@@ -46,12 +45,6 @@ class ValueLink extends Value implements Cloneable
 	public void erase()
 	{
 		linkPath.getValue().erase();
-	}
-
-	public void writeExternal( DataOutput out )
-		throws IOException
-	{
-		linkPath.getValue().writeExternal( out );
 	}
 	
 	@Override
@@ -87,6 +80,7 @@ class ValueLink extends Value implements Cloneable
 	
 	public ValueLink( VariablePath path )
 	{
+		assert( path != null );
 		linkPath = path;
 	}
 	
@@ -112,47 +106,6 @@ class ValueImpl extends Value
 	{
 		valueObject = null;
 		children = null;
-	}
-	
-	public void readExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		ValueType type = ValueType.readType( in );
-		valueObject = type.readObject( in );
-				
-		ValueImpl v;
-		String s;
-		int n, i, size, k;
-		n = in.readInt(); // How many children?
-		ValueVector vec;
-		
-		for( i = 0; i < n; i++ ) {
-			s = SODEPProtocol.readString( in );
-			vec = ValueVector.create();
-			size = in.readInt();
-			for( k = 0; k < size; k++ ) {
-				v = new ValueImpl();
-				v.readExternal( in );
-				vec.add( v );
-			}
-			children().put( s, vec );
-		}
-	}
-	
-	public void writeExternal( DataOutput out )
-		throws IOException
-	{
-		ValueType type = ValueType.fromObject( valueObject );
-		type.writeType( out );
-		type.writeObject( out, valueObject );
-
-		out.writeInt( children().size() );
-		for( Entry< String, ValueVector > entry : children().entrySet() ) {
-			SODEPProtocol.writeString( out, entry.getKey() );
-			out.writeInt( entry.getValue().size() );
-			for( Value v : entry.getValue() )
-				v.writeExternal( out );
-		}
 	}
 	
 	public ValueImpl() {}
@@ -246,17 +199,6 @@ class ValueImpl extends Value
  */
 abstract public class Value implements Expression
 {
-	abstract public void writeExternal( DataOutput out )
-		throws IOException;
-	
-	public static Value createFromExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		ValueImpl v = new ValueImpl();
-		v.readExternal( in );
-		return v;
-	}
-	
 	abstract public boolean isLink();
 	
 	public static Value createLink( VariablePath path )
@@ -363,14 +305,15 @@ abstract public class Value implements Expression
 	public boolean equals( Value val )
 	{
 		if ( val.isDefined() ) {
-			/*if ( val.isInt() )
-				return ( isInt() && intValue() == val.intValue() );
-			else if ( val.isDouble() )
-				return ( isDouble() && doubleValue() == val.doubleValue() );
-			else
-				return ( isString() && strValue().equals( val.strValue() ) );*/
-			Object o = valueObject();
-			return( o != null && o.equals( val.valueObject() ) );
+			if ( isString() ) {
+				return strValue().equals( val.strValue() );
+			} else if ( isInt() ) {
+				return intValue() == val.intValue();
+			} else if ( isDouble() ) {
+				return doubleValue() == val.doubleValue();
+			} else if ( valueObject() != null ) {
+				return valueObject().equals( val.valueObject() );
+			}
 		}
 		return( !isDefined() );
 	}

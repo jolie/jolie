@@ -19,19 +19,37 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.net.ext;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collection;
+import java.util.Map;
+import jolie.Interpreter;
+import jolie.net.CommCore;
+import jolie.net.CommListener;
+import jolie.net.CommProtocol;
+import jolie.net.InputPort;
+import jolie.net.OutputPort;
 
 /**
- * Instructs the JolieClassLoader to load the specified
- * jar library files before instantiating a JavaService.
- *
+ * 
  * @author Fabrizio Montesi
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface NeedsJars
+abstract public class CommListenerFactory
 {
-	String[] value();
+	protected CommCore commCore = null;
+	public void setCommCore( CommCore commCore )
+	{
+		this.commCore = commCore;
+	}
+	
+	abstract public CommListener createListener(
+									Interpreter interpreter,
+									CommProtocol protocol,
+									Collection< InputPort > inputPorts,
+									Map< String, OutputPort > redirectionMap,
+									URI location
+								)
+		throws IOException;
 }

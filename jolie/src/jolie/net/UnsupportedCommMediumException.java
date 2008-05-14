@@ -21,9 +21,10 @@
 
 package jolie.net;
 
+import java.io.IOException;
 import jolie.Constants;
 
-public class UnsupportedCommMediumException extends Exception
+public class UnsupportedCommMediumException extends IOException
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	

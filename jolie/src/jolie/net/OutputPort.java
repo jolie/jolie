@@ -27,11 +27,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Vector;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.SOAPException;
-import javax.xml.transform.TransformerConfigurationException;
-import jolie.Constants;
-import jolie.Interpreter;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
@@ -41,23 +36,27 @@ import jolie.runtime.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.util.Pair;
+import jolie.Interpreter;
 
 public class OutputPort extends AbstractIdentifiableObject
 {
+	final private Interpreter interpreter;
 	final private Collection< String > operations;
-	final private Constants.ProtocolId protocolId;
+	final private String protocolId;
 	final private Process configurationProcess;
 	final private VariablePath locationVariablePath, protocolConfigurationVariablePath;
 
 	public OutputPort(
+			Interpreter interpreter,
 			String id,
 			Collection< String > operations,
-			Constants.ProtocolId protocolId,
+			String protocolId,
 			Process protocolConfigurationProcess,
 			URI locationURI
 			)
 	{
 		super( id );
+		this.interpreter = interpreter;
 		this.operations = operations;
 		this.protocolId = protocolId;
 		
@@ -84,41 +83,25 @@ public class OutputPort extends AbstractIdentifiableObject
 	
 	private CommProtocol protocol = null;
 	
-	protected CommProtocol getProtocol( URI uri )
-		throws URISyntaxException, IOException
+	public CommProtocol getProtocol()
+		throws IOException, URISyntaxException
 	{
-		if ( protocol == null ) {
-			if ( protocolId == null )
-				throw new IOException( "Unknown protocol for output port " + id() );
-			if ( protocolId.equals( Constants.ProtocolId.SODEP ) ) {
-				protocol = new SODEPProtocol( protocolConfigurationVariablePath );
-			} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
-				try {
-					protocol = new SOAPProtocol(
-							protocolConfigurationVariablePath,
-							locationVariablePath,
-							Interpreter.getInstance()
-						);
-				} catch( SOAPException e ) {
-					throw new IOException( e );
-				}
-			} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
-				try {
-					protocol = new HTTPProtocol(
-							protocolConfigurationVariablePath,
-							locationVariablePath
-						);
-				} catch( ParserConfigurationException e ) {
-					throw new IOException( e );
-				} catch( TransformerConfigurationException e ) {
-					throw new IOException( e );
-				}
+		CommProtocol retVal = protocol;
+		if ( retVal == null ) {
+			if ( protocolId == null ) {
+				throw new IOException( "Unspecified protocol for output port " + id() );
 			}
-			assert( protocol != null );
+			retVal = interpreter.commCore().createCommProtocol(
+				protocolId,
+				protocolConfigurationVariablePath,
+				new URI( locationVariablePath.getValue().strValue() )
+			);
+		} else {
+			retVal = retVal.clone();
 		}
 		
 		
-		return protocol.clone();
+		return retVal;
 	}
 	
 	private CommChannel channel = null;
@@ -133,7 +116,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		else {
 			URI uri = new URI( loc.strValue() );
 			if ( !uri.equals( channelURI ) || !channel.isOpen() ) {
-				channel = CommChannel.createCommChannel( uri, this );
+				channel = interpreter.commCore().createCommChannel( uri, this );
 				channelURI = uri;
 			} else
 				channel.refreshProtocol();
@@ -145,17 +128,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	public VariablePath locationVariablePath()
 	{
 		return locationVariablePath;
-	}
-	
-	public Collection< String > operations()
-	{
-		return operations;
-	}
-	
-	public Constants.ProtocolId protocolId()
-	{
-		return protocolId;
-	}
+	}	
 	
 	public Process configurationProcess()
 	{

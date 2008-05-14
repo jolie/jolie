@@ -19,42 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.net;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.channels.SocketChannel;
+import jolie.net.ext.CommChannelFactory;
 
-
-/** Starter class of the Interpreter.
- * @author Fabrizio Montesi
- */
-public class Jolie
+public class SocketCommChannelFactory extends CommChannelFactory
 {
-	/** Entry point of program execution.
-	 * 
-	 * @param args The command line arguments.
-	 * TODO Standardize the exit codes.
-	 */
-	public static void main( String[] args )
+	public CommChannel createChannel( URI location, OutputPort port )
+		throws IOException
 	{
-		int exitCode = 0;
+		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
+		SocketCommChannel ret = null;
 		try {
-			(new Interpreter( args )).run( true );
-		} catch( CommandLineException cle ) {
-			System.out.println( cle.getMessage() );
-		} catch( FileNotFoundException fe ) {
-			System.out.println( fe.getMessage() );
-			exitCode = 1;
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-			exitCode = 2;
-		} catch( InterpreterException ie ) {
-			ie.printStackTrace();
-			exitCode = 3;
-		} catch( Exception e ) {
-			e.printStackTrace();
-			exitCode = 4;
+			ret = new SocketCommChannel( channel, port.getProtocol() );
+		} catch( URISyntaxException e ) {
+			throw new IOException( e );
 		}
-		System.exit( exitCode );
+		return ret;
 	}
 }

@@ -22,15 +22,101 @@
 package jolie;
 
 import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ext.ProtocolIdentifier;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.CanUseJars;
 
 public class JolieClassLoader extends URLClassLoader
 {
-	public JolieClassLoader( URL[] urls )
+	final private Interpreter interpreter;
+	public JolieClassLoader( URL[] urls, Interpreter interpreter )
+		throws IOException
 	{
 		super( urls );
+		this.interpreter = interpreter;
+		for( URL url : urls ) {
+			if ( "jar".equals( url.getProtocol() ) ) {
+				checkJarJolieExtensions( (JarURLConnection)url.openConnection() );
+			}
+		}
+	}
+	
+	@Override
+	public Class<?> loadClass( String className )
+		throws ClassNotFoundException
+	{
+		Class<?> c = super.loadClass( className );
+		AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
+		if ( needsJars != null ) {
+			for( String filename : needsJars.value() ) {
+				/*
+				 * TODO jar unloading when service is unloaded?
+				 * Consider other services needing the same jars in that.
+				 */
+				try {
+					addJarResource( filename );
+				} catch( MalformedURLException e ) {
+				} catch( IOException e ) {
+				}
+			}
+		}
+		CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
+		if ( canUseJars != null ) {
+			for( String filename : canUseJars.value() ) {
+				/*
+				 * TODO jar unloading when service is unloaded?
+				 * Consider other services needing the same jars in that.
+				 */
+				try {
+					addJarResource( filename );
+				} catch( Exception e ) {}
+			}
+		}
+		
+		return c;
+	}
+	
+	private void checkForProtocolExtension( Attributes attrs )
+		throws IOException
+	{
+		String className = attrs.getValue( Constants.Manifest.ProtocolExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadClass( className );
+				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommProtocolFactory > fClass = (Class< ? extends CommProtocolFactory >)c;
+					ProtocolIdentifier pId = c.getAnnotation( ProtocolIdentifier.class );
+					if ( pId == null ) {
+						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
+					}
+					CommProtocolFactory factory = fClass.newInstance();
+					factory.setCommCore( interpreter.commCore() );
+					interpreter.commCore().setCommProtocolFactory( pId.value(), factory );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			}
+		}
+	}
+	
+	private void checkJarJolieExtensions( JarURLConnection jarConnection )
+		throws IOException
+	{
+		Manifest manifest = jarConnection.getManifest();
+		Attributes attrs = manifest.getMainAttributes();
+		checkForProtocolExtension( attrs );
 	}
 	
 	public void addJarResource( String jarName )
@@ -41,5 +127,11 @@ public class JolieClassLoader extends URLClassLoader
 			throw new IOException( "Resource not found: " + jarName );
 		}
 		addURL( new URL( "jar:" + url + "!/" ) );
+		URLConnection urlConn = url.openConnection();
+		if ( urlConn instanceof JarURLConnection ) {
+			checkJarJolieExtensions( (JarURLConnection)urlConn );
+		} else {
+			throw new IOException( "Jar file not found: " + jarName );
+		}
 	}
 }

@@ -55,5 +55,6 @@ abstract public class CommProtocol implements Cloneable
 	abstract public void send( OutputStream ostream, CommMessage message )
 		throws IOException;
 
+	@Override
 	abstract public CommProtocol clone();
 }

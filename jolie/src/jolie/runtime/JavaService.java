@@ -39,6 +39,11 @@ abstract public class JavaService
 		this.interpreter = interpreter;
 	}
 	
+	protected Interpreter interpreter()
+	{
+		return interpreter;
+	}
+	
 	public CommChannel sendMessage( CommMessage message )
 	{
 		InternalCommChannel c = new InternalCommChannel(

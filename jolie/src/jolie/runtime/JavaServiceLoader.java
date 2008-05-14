@@ -44,28 +44,6 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 		try {
 			JolieClassLoader cl = Interpreter.getInstance().getClassLoader();
 			c = cl.loadClass( servicePath );
-			NeedsJars needsJars = c.getAnnotation( NeedsJars.class );
-			if ( needsJars != null ) {
-				for( String filename : needsJars.value() ) {
-					/*
-					 * TODO jar unloading when service is unloaded?
-					 * Consider other services needing the same jars in that.
-					 */
-					cl.addJarResource( filename );
-				}
-			}
-			CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
-			if ( canUseJars != null ) {
-				for( String filename : canUseJars.value() ) {
-					/*
-					 * TODO jar unloading when service is unloaded?
-					 * Consider other services needing the same jars in that.
-					 */
-					try {
-						cl.addJarResource( filename );
-					} catch( Exception e ) {}
-				}
-			}
 			Object obj = c.newInstance();
 			if ( !(obj instanceof JavaService) )
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
@@ -74,8 +52,6 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 		} catch( InstantiationException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( IllegalAccessException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( IOException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( ClassNotFoundException e ) {
 			throw new EmbeddedServiceLoadingException( e );

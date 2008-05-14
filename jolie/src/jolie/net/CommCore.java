@@ -40,11 +40,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
-import jolie.Constants;
 import jolie.Interpreter;
+import jolie.net.ext.CommChannelFactory;
+import jolie.net.ext.CommListenerFactory;
+import jolie.net.ext.CommProtocolFactory;
 import jolie.process.Process;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.VariablePath;
 
 /** Handles networking communications.
  * The CommCore class represent the communication core of JOLIE.
@@ -59,6 +62,11 @@ public class CommCore
 
 	final private int connectionsLimit;
 	final private Interpreter interpreter;
+	
+	public Interpreter interpreter()
+	{
+		return interpreter;
+	}
 
 	public CommCore( Interpreter interpreter, int connectionsLimit )
 		throws IOException
@@ -72,6 +80,14 @@ public class CommCore
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
 		selectorThread = new SelectorThread();
+		
+		//TODO make socket an extension, too?
+		CommListenerFactory listenerFactory = new SocketListenerFactory();
+		listenerFactory.setCommCore( this );
+		listenerFactories.put( "socket", listenerFactory );
+		CommChannelFactory channelFactory = new SocketCommChannelFactory();
+		channelFactory.setCommCore( this );
+		channelFactories.put( "socket", channelFactory );
 	}
 	
 	public Logger logger()
@@ -101,6 +117,53 @@ public class CommCore
 		return listenersMap.get( serviceName );
 	}
 	
+	final private Map< String, CommChannelFactory > channelFactories = 
+						new HashMap< String, CommChannelFactory > ();
+	
+	public void setCommChannelFactory( String id, CommChannelFactory factory )
+	{
+		channelFactories.put( id, factory );
+	}
+	
+	public CommChannel createCommChannel( URI uri, OutputPort port )
+		throws IOException
+	{
+		String medium = uri.getScheme();
+		CommChannelFactory factory = channelFactories.get( medium );		
+		if ( factory == null ) {
+			throw new UnsupportedCommMediumException( medium );
+		}
+		
+		return factory.createChannel( uri, port );
+	}
+	
+	final private Map< String, CommProtocolFactory > protocolFactories = 
+						new HashMap< String, CommProtocolFactory > ();
+	
+	public void setCommProtocolFactory( String id, CommProtocolFactory factory )
+	{
+		protocolFactories.put( id, factory );
+	}
+	
+	public CommProtocol createCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
+		throws IOException
+	{
+		CommProtocolFactory factory = protocolFactories.get( protocolId );		
+		if ( factory == null ) {
+			throw new UnsupportedCommProtocolException( protocolId );
+		}
+		
+		return factory.createProtocol( configurationPath, uri );
+	}
+	
+	final private Map< String, CommListenerFactory > listenerFactories = 
+						new HashMap< String, CommListenerFactory > ();
+	
+	public void setCommListenerFactory( String id, CommListenerFactory factory )
+	{
+		listenerFactories.put( id, factory );
+	}
+	
 	/** Adds an input service.
 	 * @param uri
 	 * @param protocol
@@ -113,22 +176,19 @@ public class CommCore
 				Process protocolConfigurationProcess,
 				Map< String, OutputPort > redirectionMap
 			)
-		throws UnsupportedCommMediumException, IOException
+		throws IOException
 	{
 		if ( protocolConfigurationProcess != null )
 			protocolConfigurations.add( protocolConfigurationProcess );
 
 		CommListener listener = null;
-		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
-		if ( medium.equals( Constants.MediumId.SOCKET ) ) {
-			listener = new SocketListener( interpreter, protocol, uri.getPort(), inputPorts, redirectionMap );
-		} else if ( medium.equals( Constants.MediumId.PIPE ) ) {
-			listener = new PipeListener( interpreter, protocol, inputPorts, redirectionMap );
-			Interpreter.registerPipeListener( uri.getSchemeSpecificPart(), (PipeListener)listener );
-		} else
-			throw new UnsupportedCommMediumException( uri.getScheme() );
+		String medium = uri.getScheme();
+		CommListenerFactory factory = listenerFactories.get( medium );
+		if ( factory == null ) {
+			throw new UnsupportedCommMediumException( medium );
+		}
 
-		assert listener != null;
+		listener = factory.createListener( interpreter, protocol, inputPorts, redirectionMap, uri );
 		listenersMap.put( serviceName, listener );
 	}
 	
@@ -249,6 +309,7 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
+		@Override
 		public void run()
 		{
 			SocketCommChannel channel;

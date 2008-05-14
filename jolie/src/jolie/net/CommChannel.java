@@ -23,18 +23,9 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.Channel;
-import java.nio.channels.SocketChannel;
 
-import jolie.Constants;
-import jolie.Interpreter;
-import jolie.runtime.InvalidIdException;
 
-import org.freedesktop.dbus.DBusConnection;
-import org.freedesktop.dbus.exceptions.DBusException;
 
 
 /** A communication channel permits to send and receive messages.
@@ -63,45 +54,6 @@ abstract public class CommChannel implements Channel
 	
 	public void refreshProtocol()
 	{}
-	
-	public static CommChannel createCommChannel( URI uri, OutputPort port )
-		throws IOException, URISyntaxException
-	{
-		CommChannel channel = null;
-		Constants.MediumId medium = Constants.stringToMediumId( uri.getScheme() );
-
-		if ( medium == Constants.MediumId.SOCKET ) {
-			SocketChannel socketChannel = 
-						SocketChannel.open( new InetSocketAddress( uri.getHost(), uri.getPort() ) );
-			channel = new SocketCommChannel( socketChannel, port.getProtocol( uri ) );
-		} else if ( medium == Constants.MediumId.PIPE ) {
-			String id = uri.getSchemeSpecificPart();
-			try {
-				channel = Interpreter.getNewPipeChannel( id );
-			} catch( InvalidIdException e ) {
-				throw new IOException( e );
-			}
-		} else if ( medium == Constants.MediumId.DBUS ) {
-			/**
-			 * TODO remove this, in favour of a JavaService implementation
-			 */
-			try {
-				String[] ss = uri.getSchemeSpecificPart().split( ":" );
-				DBusConnection c = null;
-				if ( "system".equals( ss[0] ) )
-					c = DBusConnection.getConnection( DBusConnection.SYSTEM );
-				else if ( "session".equals( ss[0] ) )
-					c = DBusConnection.getConnection( DBusConnection.SESSION );
-				channel = new DBusCommChannel( c, ss[1], ss[2], port );
-			} catch( DBusException e ) {
-				throw new IOException( e );
-			}
-			// </TODO>
-		} else
-			throw new IOException( "Unsupported communication medium: " + uri.getScheme() );
-		
-		return channel;
-	}
 	
 	public void setParentListener( CommListener listener )
 	{

@@ -24,6 +24,7 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 
 public class ScopeProcess implements Process

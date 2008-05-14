@@ -28,7 +28,6 @@ import java.io.IOException;
 
 import java.io.PrintStream;
 import jolie.Constants;
-import jolie.net.SODEPProtocol;
 
 public class FaultException extends Exception
 {
@@ -79,7 +78,7 @@ public class FaultException extends Exception
 		this.value = Value.create();
 	}
 	
-	public static FaultException createFromExternal( DataInput in )
+	/*public static FaultException createFromExternal( DataInput in )
 		throws IOException, ClassNotFoundException
 	{
 		FaultException f = null;
@@ -102,7 +101,7 @@ public class FaultException extends Exception
 	{
 		SODEPProtocol.writeString( out, faultName );
 		value.writeExternal( out );
-	}
+	}*/
 	
 	@Override
 	public String getMessage()

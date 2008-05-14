@@ -19,42 +19,19 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.runtime;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-
-/** Starter class of the Interpreter.
+/**
+ * Instructs the JolieClassLoader to load the specified
+ * jar library files before instantiating a JavaService.
+ *
  * @author Fabrizio Montesi
  */
-public class Jolie
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AndJarDeps
 {
-	/** Entry point of program execution.
-	 * 
-	 * @param args The command line arguments.
-	 * TODO Standardize the exit codes.
-	 */
-	public static void main( String[] args )
-	{
-		int exitCode = 0;
-		try {
-			(new Interpreter( args )).run( true );
-		} catch( CommandLineException cle ) {
-			System.out.println( cle.getMessage() );
-		} catch( FileNotFoundException fe ) {
-			System.out.println( fe.getMessage() );
-			exitCode = 1;
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-			exitCode = 2;
-		} catch( InterpreterException ie ) {
-			ie.printStackTrace();
-			exitCode = 3;
-		} catch( Exception e ) {
-			e.printStackTrace();
-			exitCode = 4;
-		}
-		System.exit( exitCode );
-	}
+	String[] value();
 }

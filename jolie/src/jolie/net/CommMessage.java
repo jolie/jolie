@@ -37,43 +37,10 @@ public class CommMessage
 {
 	private static final long serialVersionUID = 1L;
 	
-	private String operationName;
-	private String resourcePath;
-	private Value value;
-	private FaultException fault = null;
-	
-	private CommMessage() {}
-	
-	public static CommMessage createFromExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		CommMessage m = new CommMessage();
-		m.readExternal( in );
-		return m;
-	}
-	
-	public void readExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		resourcePath = SODEPProtocol.readString( in );
-		operationName = SODEPProtocol.readString( in );
-		fault = FaultException.createFromExternal( in );
-		value = Value.createFromExternal( in );
-	}
-	
-	public void writeExternal( DataOutput out )
-		throws IOException
-	{
-		SODEPProtocol.writeString( out, resourcePath );
-		SODEPProtocol.writeString( out, operationName );
-		if ( fault == null ) {
-			out.writeBoolean( false );
-		} else {
-			out.writeBoolean( true );
-			fault.writeExternal( out );
-		}
-		value.writeExternal( out );
-	}
+	final private String operationName;
+	final private String resourcePath;
+	final private Value value;
+	final private FaultException fault;
 	
 	public static CommMessage createEmptyMessage()
 	{
@@ -92,6 +59,7 @@ public class CommMessage
 		// TODO This is a performance hit! Make this only when strictly necessary.
 		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
 		this.value = Value.createDeepCopy( value );
+		this.fault = null;
 	}
 	
 	public CommMessage( String operationName, String resourcePath, FaultException f )
@@ -116,6 +84,7 @@ public class CommMessage
 		this.operationName = inputId;
 		this.resourcePath = resourcePath;
 		this.value = Value.create();
+		this.fault = null;
 	}
 	
 	public Value value()
