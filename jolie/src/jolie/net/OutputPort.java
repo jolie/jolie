@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.SOAPException;
 import javax.xml.transform.TransformerConfigurationException;
 import jolie.Constants;
 import jolie.Interpreter;
@@ -92,11 +93,15 @@ public class OutputPort extends AbstractIdentifiableObject
 			if ( protocolId.equals( Constants.ProtocolId.SODEP ) ) {
 				protocol = new SODEPProtocol( protocolConfigurationVariablePath );
 			} else if ( protocolId.equals( Constants.ProtocolId.SOAP ) ) {
-				protocol = new SOAPProtocol(
+				try {
+					protocol = new SOAPProtocol(
 							protocolConfigurationVariablePath,
 							locationVariablePath,
 							Interpreter.getInstance()
 						);
+				} catch( SOAPException e ) {
+					throw new IOException( e );
+				}
 			} else if ( protocolId.equals( Constants.ProtocolId.HTTP ) ) {
 				try {
 					protocol = new HTTPProtocol(
