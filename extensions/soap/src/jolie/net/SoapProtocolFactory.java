@@ -25,11 +25,11 @@ import java.io.IOException;
 import java.net.URI;
 import javax.xml.soap.SOAPException;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.ProtocolIdentifier;
+import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@ProtocolIdentifier("soap")
+@Identifier("soap")
 @AndJarDeps({"relaxngDatatype.jar","xsom.jar"})
 public class SoapProtocolFactory extends CommProtocolFactory
 {
