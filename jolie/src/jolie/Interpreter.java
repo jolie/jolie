@@ -322,7 +322,7 @@ public class Interpreter
 				urls.add( new URL( "jar:file:" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
-			} else if ( path.endsWith( "/*" ) ) {
+			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
 				File dir = new File( path.substring( 0, path.length() - 2 ) );
 				String jars[] = dir.list( new FilenameFilter() {
 					public boolean accept( File dir, String filename ) {

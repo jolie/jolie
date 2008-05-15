@@ -22,7 +22,6 @@
 
 package jolie.net;
 
-import jolie.net.*;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +30,11 @@ import java.nio.channels.SocketChannel;
 
 import jolie.Interpreter;
 
-public class SocketCommChannel extends CommChannel
+public class SocketCommChannel extends StreamingCommChannel
 {
 	final private SocketChannel socketChannel;
 	final private InputStream istream;
 	final private OutputStream ostream;
-	private CommProtocol protocol;
 	
 	/** Constructor.
 	 * 
@@ -47,18 +45,12 @@ public class SocketCommChannel extends CommChannel
 	public SocketCommChannel( SocketChannel socketChannel, CommProtocol protocol )
 		throws IOException
 	{
+		super( protocol );
 		this.socketChannel = socketChannel;
 		this.istream = new BufferedInputStream( socketChannel.socket().getInputStream() );
 		this.ostream = socketChannel.socket().getOutputStream();
-		this.protocol = protocol;
-		protocol.setChannel( this );
+
 		toBeClosed = false; // Socket connections are kept open by default
-	}
-	
-	@Override
-	final public void refreshProtocol()
-	{
-		this.protocol = this.protocol.clone();
 	}
 	
 	public SocketChannel socketChannel()
@@ -69,12 +61,6 @@ public class SocketCommChannel extends CommChannel
 	protected InputStream inputStream()
 	{
 		return istream;
-	}
-	
-	@Override
-	protected void disposeForInputImpl()
-	{
-		Interpreter.getInstance().commCore().addToSelectionPool( this );
 	}
 	
 	/** Receives a message from the channel. */
@@ -89,6 +75,12 @@ public class SocketCommChannel extends CommChannel
 		throws IOException
 	{
 		protocol.send( ostream, message );
+	}
+	
+	@Override
+	protected void disposeForInputImpl()
+	{
+		Interpreter.getInstance().commCore().addToSelectionPool( this );
 	}
 
 	/** Closes the communication channel */

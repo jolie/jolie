@@ -22,14 +22,10 @@
 
 package jolie.runtime;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jolie.Constants.ValueType;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 

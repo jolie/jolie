@@ -19,13 +19,20 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.ext;
+package jolie.net;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ProtocolIdentifier
+abstract public class StreamingCommChannel extends CommChannel
 {
-	public String value();
+	protected CommProtocol protocol;
+	public StreamingCommChannel( CommProtocol protocol )
+	{
+		this.protocol = protocol;
+		protocol.setChannel( this );
+	}
+	
+	@Override
+	final public void refreshProtocol()
+	{
+		this.protocol = this.protocol.clone();
+	}
 }

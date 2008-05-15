@@ -29,8 +29,10 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import jolie.net.ext.CommChannelFactory;
+import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.ProtocolIdentifier;
+import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 
@@ -84,6 +86,60 @@ public class JolieClassLoader extends URLClassLoader
 		return c;
 	}
 	
+	private void checkForChannelExtension( Attributes attrs )
+		throws IOException
+	{
+		String className = attrs.getValue( Constants.Manifest.ChannelExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadClass( className );
+				if ( CommChannelFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommChannelFactory > fClass = (Class< ? extends CommChannelFactory >)c;
+					Identifier pId = c.getAnnotation( Identifier.class );
+					if ( pId == null ) {
+						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
+					}
+					CommChannelFactory factory = fClass.newInstance();
+					factory.setCommCore( interpreter.commCore() );
+					interpreter.commCore().setCommChannelFactory( pId.value(), factory );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			}
+		}
+	}
+	
+	private void checkForListenerExtension( Attributes attrs )
+		throws IOException
+	{
+		String className = attrs.getValue( Constants.Manifest.ListenerExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadClass( className );
+				if ( CommListenerFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommListenerFactory > fClass = (Class< ? extends CommListenerFactory >)c;
+					Identifier pId = c.getAnnotation( Identifier.class );
+					if ( pId == null ) {
+						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
+					}
+					CommListenerFactory factory = fClass.newInstance();
+					factory.setCommCore( interpreter.commCore() );
+					interpreter.commCore().setCommListenerFactory( pId.value(), factory );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			}
+		}
+	}
+	
 	private void checkForProtocolExtension( Attributes attrs )
 		throws IOException
 	{
@@ -93,7 +149,7 @@ public class JolieClassLoader extends URLClassLoader
 				Class<?> c = loadClass( className );
 				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
 					Class< ? extends CommProtocolFactory > fClass = (Class< ? extends CommProtocolFactory >)c;
-					ProtocolIdentifier pId = c.getAnnotation( ProtocolIdentifier.class );
+					Identifier pId = c.getAnnotation( Identifier.class );
 					if ( pId == null ) {
 						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
 					}
@@ -116,6 +172,8 @@ public class JolieClassLoader extends URLClassLoader
 	{
 		Manifest manifest = jarConnection.getManifest();
 		Attributes attrs = manifest.getMainAttributes();
+		checkForChannelExtension( attrs );
+		checkForListenerExtension( attrs );
 		checkForProtocolExtension( attrs );
 	}
 	

@@ -62,13 +62,8 @@ public class CompareCondition implements Condition
 		if ( opType == Scanner.TokenType.EQUAL ) {
 			if ( leftVal.equals( rightVal ) )
 				retval = true;
-			else
-				retval = ( leftVal.intValue() == rightVal.intValue() );
 		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
-			if ( leftVal.isString() && rightVal.isString() )
-				retval = !(leftVal.strValue().equals( rightVal.strValue() ));
-			else
-				retval = ( leftVal.intValue() != rightVal.intValue() );
+			retval = !(leftVal.strValue().equals( rightVal.strValue() ));
 		} else if ( opType == Scanner.TokenType.LANGLE )
 			retval = ( leftVal.intValue() < rightVal.intValue() );
 		else if ( opType == Scanner.TokenType.RANGLE )
