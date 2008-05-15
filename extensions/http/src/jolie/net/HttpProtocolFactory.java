@@ -26,10 +26,10 @@ import java.net.URI;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.ProtocolIdentifier;
+import jolie.net.ext.Identifier;
 import jolie.runtime.VariablePath;
 
-@ProtocolIdentifier("http")
+@Identifier("http")
 public class HttpProtocolFactory extends CommProtocolFactory
 {
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
