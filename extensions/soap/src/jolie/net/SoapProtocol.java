@@ -367,7 +367,6 @@ public class SoapProtocol extends CommProtocol
 			if ( received ) {
 				// We're responding to a request
 				inputId += "Response";
-				received = false;
 			}
 
 			String messageNamespace = getParameterVector( "namespace" ).first().strValue();
@@ -456,12 +455,10 @@ public class SoapProtocol extends CommProtocol
 			String soapAction = null;
 			InputOperation operation = null;
 			
-			try {
-				operation = interpreter.getRequestResponseOperation( message.operationName() );
-			} catch( InvalidIdException e ) {}
-			if ( operation != null ) {
+			if ( received ) {
 				// We're responding to a request
 				messageString += "HTTP/1.1 200 OK" + CRLF;
+				received = false;
 			} else {
 				// We're sending a notification or a solicit
 				String path = uri.getPath();
