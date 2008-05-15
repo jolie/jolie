@@ -375,8 +375,8 @@ public class OLParser extends AbstractParser
 	{
 		String serviceName;
 		Collection< String > ports;
+		String protocolId;
 		URI serviceLocation;
-		Constants.ProtocolId protocolId;
 		OLSyntaxNode protocolConfiguration;
 		
 		while( token.isKeyword( "service" ) ) {
@@ -419,7 +419,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.COLON, "expected :" );
 					checkConstant();
 					assertToken( Scanner.TokenType.ID, "expected protocol identifier" );
-					protocolId = Constants.stringToProtocolId( token.content() );
+					protocolId = token.content();
 					getToken();
 					if ( token.is( Scanner.TokenType.LCURLY ) ) {
 						addTokens( Arrays.asList(
@@ -512,7 +512,7 @@ public class OLParser extends AbstractParser
 				eat( Scanner.TokenType.COLON, "expected :" );
 				checkConstant();
 				assertToken( Scanner.TokenType.ID, "expected protocol identifier" );
-				p.setProtocolId( Constants.stringToProtocolId( token.content() ) );
+				p.setProtocolId( token.content() );
 				getToken();
 				if ( token.is( Scanner.TokenType.LCURLY ) ) {
 					addTokens( Arrays.asList(

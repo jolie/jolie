@@ -36,6 +36,12 @@ import jolie.lang.parse.Scanner;
 
 public final class Constants
 {
+	static public class Manifest {
+		final public static String ChannelExtension = "X-JOLIE-ChannelExtension";
+		final public static String ListenerExtension = "X-JOLIE-ListenerExtension";
+		final public static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
+	}
+	
 	static public enum Predefined {
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
 		PI( "PI", java.lang.Math.PI );
@@ -116,7 +122,7 @@ public final class Constants
 		MULTIPLY, DIVIDE
 	}
 	
-	public enum ProtocolId {
+	/*public enum ProtocolId {
 		UNSUPPORTED,
 		SODEP,
 		SOAP,
@@ -129,7 +135,7 @@ public final class Constants
 		PIPE,
 		FILE,
 		DBUS
-	}
+	}*/
 	
 	/**
 	 * Pay attention that every type has a different byte identifier!
@@ -235,7 +241,7 @@ public final class Constants
 	
 	public static long serialVersionUID() { return 1L; }
 	
-	public static ProtocolId stringToProtocolId( String str )
+	/*public static ProtocolId stringToProtocolId( String str )
 	{
 		if ( "soap".equals( str ) )
 			return ProtocolId.SOAP;
@@ -259,5 +265,5 @@ public final class Constants
 			return MediumId.DBUS;
 		
 		return MediumId.UNSUPPORTED;
-	}
+	}*/
 }

@@ -25,7 +25,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 
-import jolie.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
@@ -34,7 +33,7 @@ public class ServiceInfo extends OLSyntaxNode
 	final private String id;
 	final private URI location;
 	final private Collection< String > inputPorts;
-	final private Constants.ProtocolId protocolId;
+	final private String protocolId;
 	final private OLSyntaxNode protocolConfiguration;
 	final private Map< String, String > redirectionMap;
 	
@@ -43,7 +42,7 @@ public class ServiceInfo extends OLSyntaxNode
 			String id,
 			URI location,
 			Collection< String > inputPorts,
-			Constants.ProtocolId protocolId,
+			String protocolId,
 			OLSyntaxNode protocolConfiguration,
 			Map< String, String > redirectionMap
 			)
@@ -72,7 +71,7 @@ public class ServiceInfo extends OLSyntaxNode
 		return protocolConfiguration;
 	}
 	
-	public Constants.ProtocolId protocolId()
+	public String protocolId()
 	{
 		return protocolId;
 	}
