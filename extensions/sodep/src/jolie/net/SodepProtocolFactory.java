@@ -24,10 +24,10 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.ProtocolIdentifier;
+import jolie.net.ext.Identifier;
 import jolie.runtime.VariablePath;
 
-@ProtocolIdentifier("sodep")
+@Identifier("sodep")
 public class SodepProtocolFactory extends CommProtocolFactory
 {
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
