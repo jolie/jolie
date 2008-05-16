@@ -32,8 +32,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,8 +81,7 @@ public class CommCore
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
-		selectorThread = new SelectorThread();
-		
+				
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new SocketListenerFactory();
 		listenerFactory.setCommCore( this );
@@ -293,13 +294,81 @@ public class CommCore
 	public void init()
 		throws IOException
 	{		
-		selectorThread.start();
-		
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() )
 			entry.getValue().start();
 	}
 	
-	final private SelectorThread selectorThread;
+	private PollingThread pollingThread = null;
+	
+	private PollingThread pollingThread()
+	{
+		if ( pollingThread == null ) {
+			pollingThread = new PollingThread();
+			pollingThread.start();
+		}
+		return pollingThread;
+	}
+	
+	private class PollingThread extends Thread {
+		final private Set< CommChannel > channels = new HashSet< CommChannel >();
+		
+		@Override
+		public void run()
+		{
+			while( true ) {
+				synchronized( this ) {
+					if ( channels.isEmpty() ) {
+						// Do not busy-wait for no reason
+						try {
+							this.wait();
+						} catch( InterruptedException e ) {}
+					}
+					for( CommChannel channel : channels ) {
+						if ( ((PollableCommChannel)channel).isReady() ) {
+							channels.remove( channel );
+							scheduleReceive( channel, channel.parentListener() );
+						}
+					}
+				}
+				try {
+					Thread.sleep( 100 ); // 100msec sleep
+				} catch( InterruptedException e ) {}
+			}
+		}
+		
+		public void register( CommChannel channel )
+			throws IOException
+		{
+			if ( channel instanceof PollableCommChannel ) {
+				throw new IOException( "Channels registering for polling must implement PollableCommChannel interface");
+			}
+			
+			synchronized( this ) {
+				channels.add( channel );
+				if ( channels.size() == 1 ) { // set was empty
+					this.notify();
+				}
+			}
+		}
+	}
+	
+	public void registerForPolling( CommChannel channel )
+		throws IOException
+	{
+		pollingThread().register( channel );
+	}
+	
+	private SelectorThread selectorThread = null;
+	
+	private SelectorThread selectorThread()
+		throws IOException
+	{
+		if ( selectorThread == null ) {
+			selectorThread = new SelectorThread();
+			selectorThread.start();
+		}
+		return selectorThread;
+	}
 	
 	private class SelectorThread extends Thread {
 		private Selector selector;
@@ -352,9 +421,10 @@ public class CommCore
 		}
 	}
 	
-	public void addToSelectionPool( SocketCommChannel channel )
+	public void registerForSelection( SocketCommChannel channel )
+		throws IOException
 	{
-		selectorThread.register( channel );
+		selectorThread().register( channel );
 	}
 
 	/** Shutdowns the communication core, interrupting every communication-related thread. */

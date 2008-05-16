@@ -21,19 +21,7 @@
 
 package jolie.net;
 
-abstract public class StreamingCommChannel extends CommChannel
+public interface PollableCommChannel
 {
-	protected CommProtocol protocol;
-	public StreamingCommChannel( CommProtocol protocol )
-	{
-		this.protocol = protocol;
-		protocol.setChannel( this );
-	}
-	
-	@Override
-	final public void refreshProtocol()
-	{
-		this.protocol = this.protocol.clone();
-		this.protocol.setChannel( this );
-	}
+	public boolean isReady();
 }

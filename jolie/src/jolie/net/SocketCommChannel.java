@@ -79,8 +79,9 @@ public class SocketCommChannel extends StreamingCommChannel
 	
 	@Override
 	protected void disposeForInputImpl()
+		throws IOException
 	{
-		Interpreter.getInstance().commCore().addToSelectionPool( this );
+		Interpreter.getInstance().commCore().registerForSelection( this );
 	}
 
 	/** Closes the communication channel */

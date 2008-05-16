@@ -38,7 +38,7 @@ abstract public class CommChannel implements Channel
 {
 	protected boolean toBeClosed = true;
 	private CommListener listener = null;
-	private boolean isOpen = false;
+	private boolean isOpen = true;
 	
 	private CommChannel redirectionChannel = null;
 	
@@ -97,7 +97,11 @@ abstract public class CommChannel implements Channel
 			disposeForInputImpl();
 	}
 	
-	protected void disposeForInputImpl() {}
+	protected void disposeForInputImpl()
+		throws IOException
+	{
+		closeImpl();
+	}
 	
 	public void setToBeClosed( boolean toBeClosed )
 	{

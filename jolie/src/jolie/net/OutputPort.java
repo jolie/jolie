@@ -118,8 +118,9 @@ public class OutputPort extends AbstractIdentifiableObject
 			if ( !uri.equals( channelURI ) || !channel.isOpen() ) {
 				channel = interpreter.commCore().createCommChannel( uri, this );
 				channelURI = uri;
-			} else
+			} else {
 				channel.refreshProtocol();
+			}
 		}
 		
 		return channel;
