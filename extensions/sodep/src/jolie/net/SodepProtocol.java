@@ -31,12 +31,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import jolie.Constants.ValueType;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -44,26 +45,28 @@ import jolie.runtime.VariablePath;
 
 public class SodepProtocol extends CommProtocol
 {
-	private static String readString( DataInput in )
+	private Charset stringCharset = Charset.forName( "UTF8" );
+	
+	private String readString( DataInput in )
 		throws IOException
 	{
 		int len = in.readInt();
 		if ( len > 0 ) {
 			byte[] bb = new byte[ len ];
 			in.readFully( bb );
-			return new String( bb, jolie.Constants.stringCharset );
+			return new String( bb, stringCharset );
 		}
 		return "";
 	}
 	
-	private static void writeString( DataOutput out, String str )
+	private void writeString( DataOutput out, String str )
 		throws IOException
 	{
 		if ( str.isEmpty() ) {
 			out.writeInt( 0 );
 		} else {
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			Writer writer = new OutputStreamWriter( bos, jolie.Constants.stringCharset );
+			Writer writer = new OutputStreamWriter( bos, stringCharset );
 			writer.write( str );
 			writer.close();
 			byte[] bb = bos.toByteArray();
@@ -72,20 +75,31 @@ public class SodepProtocol extends CommProtocol
 		}
 	}
 	
-	private static void writeFault( DataOutput out, FaultException fault )
+	private void writeFault( DataOutput out, FaultException fault )
 		throws IOException
 	{
 		writeString( out, fault.faultName() );
 		writeValue( out, fault.value() );
 	}
 	
-	private static void writeValue( DataOutput out, Value value )
+	private void writeValue( DataOutput out, Value value )
 		throws IOException
 	{
 		Object valueObject = value.valueObject();
-		ValueType type = ValueType.fromObject( valueObject );
-		type.writeType( out );
-		type.writeObject( out, valueObject );
+		if ( valueObject == null ) {
+			out.writeByte( 0 );
+		} else if ( valueObject instanceof String ) {
+			out.writeByte( 1 );
+			writeString( out, (String)valueObject );
+		} else if ( valueObject instanceof Integer ) {
+			out.writeByte( 2 );
+			out.writeInt( ((Integer)valueObject).intValue() );
+		} else if ( valueObject instanceof Double ) {
+			out.writeByte( 3 );
+			out.writeDouble( ((Double)valueObject).doubleValue() );
+		} else {
+			out.writeByte( 0 );
+		}
 
 		Map< String, ValueVector > children = value.children();
 		out.writeInt( children.size() );
@@ -97,7 +111,7 @@ public class SodepProtocol extends CommProtocol
 		}
 	}
 	
-	private static void writeMessage( DataOutput out, CommMessage message )
+	private void writeMessage( DataOutput out, CommMessage message )
 		throws IOException
 	{
 		writeString( out, message.resourcePath() );
@@ -112,12 +126,21 @@ public class SodepProtocol extends CommProtocol
 		writeValue( out, message.value() );
 	}
 	
-	private static Value readValue( DataInput in )
+	private Value readValue( DataInput in )
 		throws IOException
 	{
-		ValueType type = ValueType.readType( in );
 		Value value = Value.create();
-		value.setValue( type.readObject( in ) );
+		Object valueObject = null;
+		byte b = in.readByte();
+		if ( b == 1 ) { // String
+			valueObject = readString( in );
+		} else if ( b == 2 ) { // Integer
+			valueObject = new Integer( in.readInt() );
+		} else if ( b == 3 ) { // Double
+			valueObject = new Double( in.readInt() );
+		}
+
+		value.setValue( valueObject );
 				
 		Map< String, ValueVector > children = value.children();
 		String s;
@@ -137,7 +160,7 @@ public class SodepProtocol extends CommProtocol
 		return value;
 	}
 	
-	private static FaultException readFault( DataInput in )
+	private FaultException readFault( DataInput in )
 		throws IOException
 	{
 		String faultName = readString( in );
@@ -145,7 +168,7 @@ public class SodepProtocol extends CommProtocol
 		return new FaultException( faultName, value );
 	}
 	
-	private static CommMessage readMessage( DataInput in )
+	private CommMessage readMessage( DataInput in )
 		throws IOException
 	{
 		String resourcePath = readString( in );
@@ -171,6 +194,16 @@ public class SodepProtocol extends CommProtocol
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
+		if ( getParameterVector( "keepAlive" ).first().intValue() == 0 ) {
+			channel.setToBeClosed( true );
+		} else {
+			channel.setToBeClosed( false );
+		}
+
+		String charset = getParameterVector( "charset" ).first().strValue();
+		if ( !charset.isEmpty() ) {
+			stringCharset = Charset.forName( charset );
+		}
 		GZIPOutputStream gzip = null;
 		String compression = getParameterVector( "compression" ).first().strValue();
 		if ( "gzip".equals( compression ) ) {
@@ -188,6 +221,16 @@ public class SodepProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
+		if ( getParameterVector( "keepAlive" ).first().intValue() == 0 ) {
+			channel.setToBeClosed( true );
+		} else {
+			channel.setToBeClosed( false );
+		}
+
+		String charset = getParameterVector( "charset" ).first().strValue();
+		if ( !charset.isEmpty() ) {
+			stringCharset = Charset.forName( charset );
+		}
 		String compression = getParameterVector( "compression" ).first().strValue();
 		if ( "gzip".equals( compression ) ) {
 			istream = new GZIPInputStream( istream );
