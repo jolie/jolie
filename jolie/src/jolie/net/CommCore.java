@@ -331,7 +331,7 @@ public class CommCore
 					}
 				}
 				try {
-					Thread.sleep( 100 ); // 100msec sleep
+					Thread.sleep( 50 ); // msecs
 				} catch( InterruptedException e ) {}
 			}
 		}
@@ -339,7 +339,7 @@ public class CommCore
 		public void register( CommChannel channel )
 			throws IOException
 		{
-			if ( channel instanceof PollableCommChannel ) {
+			if ( !(channel instanceof PollableCommChannel) ) {
 				throw new IOException( "Channels registering for polling must implement PollableCommChannel interface");
 			}
 			
