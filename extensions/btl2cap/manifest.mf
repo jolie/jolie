@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: jolie.net.BTL2CapChannelFactory
+X-JOLIE-ListenerExtension: jolie.net.BTL2CapListenerFactory
