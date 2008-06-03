@@ -22,15 +22,22 @@
 package jolie.net;
 
 import java.util.List;
+import java.util.Vector;
 
-public class InternalCommChannel extends CommChannel
+public class ListCommChannel extends CommChannel
 {
-	final private List< CommMessage > ilist, olist;
+	final protected List< CommMessage > ilist, olist;
 	
-	public InternalCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
+	public ListCommChannel( List< CommMessage > ilist, List< CommMessage > olist )
 	{
 		this.ilist = ilist;
 		this.olist = olist;
+	}
+	
+	public ListCommChannel()
+	{
+		this.ilist = new Vector< CommMessage >();
+		this.olist = new Vector< CommMessage >();
 	}
 	
 	public List< CommMessage > inputList()

@@ -24,11 +24,50 @@ package jolie.process;
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InternalLink;
 
 public class LinkInProcess implements InputProcess
 {
+	private class Execution extends AbstractInputProcessExecution< LinkInProcess >
+	{
+		public Execution( LinkInProcess parent )
+		{
+			super( parent );
+		}
+		
+		public Process clone( TransformationReason reason )
+		{
+			return new Execution( parent );
+		}
+
+		public void run()
+			throws FaultException
+		{
+			/*try {
+				parent.operation.signForMessage( this );
+				synchronized( this ) {
+					if( message == null ) {
+						ExecutionThread ethread = ExecutionThread.currentThread();
+						ethread.setCanBeInterrupted( true );
+						this.wait();
+						ethread.setCanBeInterrupted( false );
+					}
+				}
+				parent.runBehaviour( null, message );
+			} catch( InterruptedException ie ) {
+				parent.operation.cancelWaiting( this );
+			}*/
+		}
+
+		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
+		{
+			this.notify();
+			return true;
+		}
+	}
+	
 	final private String link;
 	
 	public LinkInProcess( String link )

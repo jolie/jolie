@@ -21,11 +21,17 @@
 
 package jolie.process;
 
-import jolie.net.CommChannel;
-import jolie.net.CommMessage;
-
-public interface InputProcessExecution< T extends Process > extends Process
+abstract public class AbstractInputProcessExecution< T extends Process >
+	implements InputProcessExecution< T >
 {
-	public boolean recvMessage( CommChannel channel, CommMessage message );
-	public T parent();
+	final protected T parent;
+	public AbstractInputProcessExecution( T parent )
+	{
+		this.parent = parent;
+	}
+	
+	final public T parent()
+	{
+		return parent;
+	}
 }

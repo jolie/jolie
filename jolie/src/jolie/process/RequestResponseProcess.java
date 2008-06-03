@@ -37,25 +37,19 @@ import jolie.runtime.VariablePath;
 
 public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	private class Execution implements InputProcessExecution
+	private class Execution  extends AbstractInputProcessExecution< RequestResponseProcess >
 	{
 		private CommMessage message;
 		private CommChannel channel;
-		final private RequestResponseProcess parent;
 		
 		public Execution( RequestResponseProcess parent )
 		{
-			this.parent = parent;
+			super( parent );
 		}
 		
 		public Process clone( TransformationReason reason )
 		{
 			return new Execution( parent );
-		}
-		
-		public Process parent()
-		{
-			return parent;
 		}
 		
 		public void run()

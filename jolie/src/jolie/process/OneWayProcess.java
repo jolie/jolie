@@ -34,32 +34,26 @@ import jolie.runtime.VariablePath;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
-	private class Execution implements InputProcessExecution
+	private class Execution extends AbstractInputProcessExecution< OneWayProcess >
 	{
 		protected CommMessage message = null;
-		final protected OneWayProcess parent;
 		protected CommChannel channel = null;
 		
 		public Execution( OneWayProcess parent )
 		{
-			this.parent = parent;
+			super( parent );
 		}
 		
 		public Process clone( TransformationReason reason )
 		{
 			return new Execution( parent );
 		}
-		
-		public Process parent()
-		{
-			return parent;
-		}
 
 		public void run()
 			throws FaultException
 		{
 			try {
-				parent.operation.signForMessage( this );
+				operation.signForMessage( this );
 				synchronized( this ) {
 					if( message == null ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();

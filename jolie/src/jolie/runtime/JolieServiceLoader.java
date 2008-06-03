@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import jolie.CommandLineException;
 import jolie.Interpreter;
+import jolie.net.ListCommChannel;
 
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
@@ -57,6 +58,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	{
 		try {
 			interpreter.run( false );
+			setChannel( new ListCommChannel() );
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

@@ -19,13 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.net;
 
-import jolie.net.CommChannel;
-import jolie.net.CommMessage;
+import jolie.Interpreter;
 
-public interface InputProcessExecution< T extends Process > extends Process
+public class LocalCommChannel extends ListCommChannel
 {
-	public boolean recvMessage( CommChannel channel, CommMessage message );
-	public T parent();
+	//todo per domaniss
+	final private Interpreter interpreter;
+	
+	public LocalCommChannel( Interpreter interpreter )
+	{
+		this.interpreter = interpreter;
+	}
+	
+	@Override
+	public void send( CommMessage message )
+	{
+		olist.add( message );
+		interpreter.commCore().scheduleReceive(
+					new ListCommChannel( olist, ilist ), null
+				);
+	}
 }

@@ -27,7 +27,7 @@ import java.util.Vector;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.InternalCommChannel;
+import jolie.net.ListCommChannel;
 
 
 abstract public class JavaService
@@ -46,12 +46,12 @@ abstract public class JavaService
 	
 	public CommChannel sendMessage( CommMessage message )
 	{
-		InternalCommChannel c = new InternalCommChannel(
+		ListCommChannel c = new ListCommChannel(
 							new Vector< CommMessage >(),
 							new Vector< CommMessage >()
 							);
 		c.inputList().add( message );
 		interpreter.commCore().scheduleReceive( c, null );
-		return new InternalCommChannel( c.outputList(), c.inputList() );
+		return new ListCommChannel( c.outputList(), c.inputList() );
 	}
 }

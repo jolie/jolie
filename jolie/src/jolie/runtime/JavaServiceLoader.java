@@ -22,7 +22,6 @@
 
 package jolie.runtime;
 
-import java.io.IOException;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.net.JavaCommChannel;

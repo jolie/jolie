@@ -49,7 +49,7 @@ import jolie.util.Pair;
  */
 public class NDChoiceProcess implements CorrelatedInputProcess
 {
-	public class Execution implements InputProcessExecution
+	public class Execution extends AbstractInputProcessExecution< NDChoiceProcess >
 	{
 		private class InputChoice {
 			protected InputHandler inputHandler;
@@ -65,24 +65,18 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		
 		private Map< String, InputChoice > inputMap =
 			new ConcurrentHashMap< String, InputChoice >();
-		final private NDChoiceProcess parent;
 		private InputChoice choice = null;
 		private CommChannel channel;
 		private CommMessage message;
 	
 		public Execution( NDChoiceProcess parent )
 		{
-			this.parent = parent;
+			super( parent );
 		}
 		
 		public Process clone( TransformationReason reason )
 		{
 			return new Execution( parent );
-		}
-		
-		public Process parent()
-		{
-			return parent;
 		}
 	
 		public void run()
