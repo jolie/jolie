@@ -25,7 +25,6 @@ import jolie.Interpreter;
 
 public class LocalCommChannel extends ListCommChannel
 {
-	//todo per domaniss
 	final private Interpreter interpreter;
 	
 	public LocalCommChannel( Interpreter interpreter )

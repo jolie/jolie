@@ -247,6 +247,7 @@ public class OOITBuilder implements OLVisitor
 		try {
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(
+						interpreter,
 						n.type(),
 						n.servicePath(),
 						path

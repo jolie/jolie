@@ -23,11 +23,13 @@
 package jolie.runtime;
 
 import jolie.Constants;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 
 public abstract class EmbeddedServiceLoader
 {
 	private static EmbeddedServiceLoader createLoader(
+				Interpreter interpreter,
 				Constants.EmbeddedServiceType type,
 				String servicePath
 			)
@@ -38,7 +40,7 @@ public abstract class EmbeddedServiceLoader
 			if ( type == Constants.EmbeddedServiceType.JAVA ) {
 				ret = new JavaServiceLoader( servicePath );
 			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
-				ret = new JolieServiceLoader( servicePath );
+				ret = new JolieServiceLoader( interpreter, servicePath );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
@@ -51,25 +53,27 @@ public abstract class EmbeddedServiceLoader
 	}
 	
 	public static EmbeddedServiceLoader create(
+				Interpreter interpreter,
 				Constants.EmbeddedServiceType type,
 				String servicePath,
 				Value channelValue
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		EmbeddedServiceLoader ret = createLoader( type, servicePath );
+		EmbeddedServiceLoader ret = createLoader( interpreter, type, servicePath );
 		ret.channelDest = channelValue;
 		return ret;
 	}
 	
 	public static EmbeddedServiceLoader create(
+				Interpreter interpreter,
 				Constants.EmbeddedServiceType type,
 				String servicePath,
 				VariablePath channelPath
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		EmbeddedServiceLoader ret = createLoader( type, servicePath );
+		EmbeddedServiceLoader ret = createLoader( interpreter, type, servicePath );
 		ret.channelDest = channelPath;
 		return ret;
 	}

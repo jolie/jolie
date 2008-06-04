@@ -24,33 +24,36 @@ package jolie.runtime;
 
 import java.io.IOException;
 
+import java.util.Vector;
 import jolie.CommandLineException;
 import jolie.Interpreter;
-import jolie.net.ListCommChannel;
+import jolie.net.LocalCommChannel;
 
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
 {
 	final private Interpreter interpreter;
 	
-	public JolieServiceLoader( String servicePath )
+	public JolieServiceLoader( Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException
 	{
 		String[] args = new String[ 0 ];
-		Interpreter currInterpreter = Interpreter.getInstance();
 		if ( currInterpreter != null ) {
 			args = currInterpreter.args();
 		}
 		String[] ss = servicePath.split( " " );
-		String[] newArgs = new String[ args.length + ss.length ];
+		Vector< String > newArgs = new Vector< String >();
+		
 		int i;
 		for( i = 0; i < args.length; i++ ) {
-			newArgs[ i ] = args[ i ];
+			if ( !args[ i ].endsWith( ".ol" ) ) {
+				newArgs.add( args[ i ] );
+			}
 		}
 		for( int k = 0; k < ss.length; k++, i++ ) {
-			newArgs[ i ] = ss[ k ];
+			newArgs.add( ss[ k ] );
 		}
-		interpreter = new Interpreter( newArgs );
+		interpreter = new Interpreter( newArgs.toArray( args ) );
 	}
 
 	public void load()
@@ -58,7 +61,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	{
 		try {
 			interpreter.run( false );
-			setChannel( new ListCommChannel() );
+			setChannel( new LocalCommChannel( interpreter ) );
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
