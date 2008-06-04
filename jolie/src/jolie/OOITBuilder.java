@@ -431,7 +431,11 @@ public class OOITBuilder implements OLVisitor
 			if ( guard instanceof CorrelatedInputProcess )
 				((CorrelatedInputProcess) guard).setCorrelatedProcess( corrProc );
 			pair.value().accept( this );
+			try {
 			branches.add( new Pair< InputProcess, Process >( (InputProcess)guard, currProcess ) );
+			} catch( Exception e ) {
+				e.printStackTrace();
+			}
 		}
 		
 		NDChoiceProcess proc = new NDChoiceProcess( branches );
