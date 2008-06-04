@@ -171,8 +171,9 @@ public class OLParser extends AbstractParser
 							assertToken( Scanner.TokenType.ID, "expected output port name" );
 							portId = token.content();
 							getToken();
-						} else
+						} else {
 							portId = null;
+						}
 						program.addChild(
 								new EmbeddedServiceNode(
 											getContext(),
@@ -180,11 +181,12 @@ public class OLParser extends AbstractParser
 											servicePath,
 											portId
 										)
-										);
-						if ( token.is( Scanner.TokenType.COMMA ) )
+									);
+						if ( token.is( Scanner.TokenType.COMMA ) ) {
 							getToken();
-						else
+						} else {
 							break;
+						}
 					}
 				} else if ( token.isKeyword( "Jolie" ) ) {
 					getToken();
@@ -198,8 +200,9 @@ public class OLParser extends AbstractParser
 							assertToken( Scanner.TokenType.ID, "expected output port name" );
 							portId = token.content();
 							getToken();
-						} else
+						} else {
 							portId = null;
+						}
 						program.addChild(
 								new EmbeddedServiceNode(
 											getContext(),
@@ -207,7 +210,7 @@ public class OLParser extends AbstractParser
 											servicePath,
 											portId
 										)
-										);
+									);
 						if ( token.is( Scanner.TokenType.COMMA ) )
 							getToken();
 						else
