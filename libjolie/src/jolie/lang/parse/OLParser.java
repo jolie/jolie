@@ -193,12 +193,19 @@ public class OLParser extends AbstractParser
 					while( token.is( Scanner.TokenType.STRING ) ) {
 						servicePath = token.content();
 						getToken();
+						if ( token.isKeyword( "in" ) ) {
+							eatKeyword( "in", "expected in" );
+							assertToken( Scanner.TokenType.ID, "expected output port name" );
+							portId = token.content();
+							getToken();
+						} else
+							portId = null;
 						program.addChild(
 								new EmbeddedServiceNode(
 											getContext(),
 											Constants.EmbeddedServiceType.JOLIE,
 											servicePath,
-											null
+											portId
 										)
 										);
 						if ( token.is( Scanner.TokenType.COMMA ) )
