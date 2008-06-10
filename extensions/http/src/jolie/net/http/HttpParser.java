@@ -67,14 +67,63 @@ public class HttpParser
 	{
 		String name, value;
 		getToken();
+		HttpMessage.Cookie cookie;
 		while( token.is( Scanner.TokenType.ID ) ) {
 			name = token.content();
 			getToken();
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
-			message.setProperty( name.toLowerCase(), value );
+			if ( "set-cookie".equals( name.toLowerCase() ) ) {
+				cookie = parseSetCookie( value );
+				if ( (cookie=parseSetCookie( value )) != null ) {
+					message.addSetCookie( cookie );
+				}
+			} else {
+				message.setProperty( name.toLowerCase(), value );
+			}
 			getToken();
 		}
+	}
+	
+	private HttpMessage.Cookie parseSetCookie( String cookieString )
+	{
+		String ss[] = cookieString.split( ";" );
+		if ( ss.length > 0 ) {
+			boolean secure = false;
+			String domain = "";
+			String path = "";
+			String expires = "";
+			String nameValue[] = ss[ 0 ].split( "=", 2 );
+			if ( ss.length > 1 ) {
+				String kv[];
+				for( int i = 1; i < ss.length; i++ ) {
+					if ( "secure".equals( ss[ i ] ) ) {
+						secure = true;
+					} else {
+						kv = ss[ i ].split( "=", 2 );
+						if ( kv.length > 1 ) {
+							kv[ 0 ] = kv[ 0 ].trim();
+							if ( "expires".equalsIgnoreCase( kv[ 0 ] ) ) {
+								expires = kv[ 1 ];
+							} else if ( "path".equalsIgnoreCase( kv[ 0 ] ) ) {
+								path = kv[ 1 ];
+							} else if ( "domain".equalsIgnoreCase( kv[ 0 ] ) ) {
+								domain = kv[ 1 ];
+							}
+						}
+					}
+				}
+			}
+			return new HttpMessage.Cookie(
+					nameValue[0],
+					nameValue[1],
+					domain,
+					path,
+					expires,
+					secure
+				);
+		}
+		return null;
 	}
 	
 	private HttpMessage parseRequest()

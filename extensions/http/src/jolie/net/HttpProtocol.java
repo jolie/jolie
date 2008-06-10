@@ -34,9 +34,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -175,6 +175,43 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
+	private final static String BOUNDARY = "----Jol13H77p$$Bound4r1$$";
+	
+	private static String getCookieString( CommMessage message, String hostname )
+	{
+		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
+		String cookieString = "";
+		String domain;
+		// TODO check for cookie expiration
+		for( Value v : cookieVec ) {
+			domain = v.getChildren( "domain" ).first().strValue();
+			if ( !domain.isEmpty() && hostname.endsWith( domain ) ) {
+				cookieString +=
+							v.getChildren( "name" ).first().strValue() + "=" +
+							v.getChildren( "value" ).first().strValue() + "; ";
+			}
+		}
+		return ( cookieString.isEmpty() ? "" : "Cookie: " + cookieString + CRLF );
+	}
+	
+	private static String getSetCookieString( CommMessage message )
+	{
+		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
+		String ret = "";
+		// TODO check for cookie expiration
+		for( Value v : cookieVec ) {
+			ret += "Set-Cookie: " +
+					v.getFirstChild( "name" ).strValue() + "=" +
+					v.getFirstChild( "value" ).strValue() + "; " +
+					"expires=" + v.getFirstChild( "expires" ).strValue() + "; " +
+					"path=" + v.getFirstChild( "path" ).strValue() + "; " +
+					"domain=" + v.getFirstChild( "domain" ).strValue() +
+					( (v.getFirstChild( "secure" ).intValue() > 0) ? "; secure" : "" ) +
+					CRLF;
+		}
+		return ret;
+	}
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
@@ -219,13 +256,40 @@ public class HttpProtocol extends CommProtocol
 					}
 					queryString = querySB.substring( 0, querySB.length() - 1 );
 				}
+			} else if ( format.equals( "multipart/form-data" ) ) {
+				contentType = "multipart/form-data; boundary=" + BOUNDARY;
+				for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
+					contentString += "--" + BOUNDARY + CRLF;
+					contentString += "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF;
+					contentString += entry.getValue().first().strValue() + CRLF;
+				}
+				contentString += "--" + BOUNDARY + "--";
+			} else if ( format.equals( "x-www-form-urlencoded" ) ) {
+				contentType = "x-www-form-urlencoded";
+				Iterator< Entry< String, ValueVector > > it =
+					message.value().children().entrySet().iterator();
+				Entry< String, ValueVector > entry;
+				while( it.hasNext() ) {
+					entry = it.next();
+					contentString += entry.getKey() + "=" + URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" );
+					if ( it.hasNext() ) {
+						contentString += "&";
+					}
+				}
 			}
 
 			String messageString = new String();
 			
 			if ( received ) {
 				// We're responding to a request
-				messageString += "HTTP/1.1 200 OK" + CRLF;
+				String redirect = message.value().getFirstChild( Constants.Predefined.REDIRECT.token().content() ).strValue();
+				if ( redirect.isEmpty() ) {
+					messageString += "HTTP/1.1 200 OK" + CRLF;
+				} else {
+					messageString += "HTTP/1.1 303 See Other" + CRLF;
+					messageString += "Location: " + redirect + CRLF;
+				}
+				messageString += getSetCookieString( message );
 				received = false;
 			} else {
 				// We're sending a notification or a solicit
@@ -235,14 +299,25 @@ public class HttpProtocol extends CommProtocol
 				path += uri.getPath();
 				if ( path.endsWith( "/" ) == false )
 					path += "/";
-				path += message.operationName();
+				String opName = message.operationName();
+				ValueVector vec;
+				if (
+					(vec=getParameterVector( "aliases" ).first().children().get( opName )) == null
+					) {
+					path += opName;
+				} else {
+					path += vec.first().strValue();
+				}
 				
 				String method = "GET";
-				if ( getParameterVector( "method" ).first().strValue().length() > 0 )
+				if ( getParameterVector( "method" ).first().strValue().length() > 0 ) {
 					method = getParameterVector( "method" ).first().strValue().toUpperCase();
+				}
 				
 				messageString += method + " " + path + queryString + " HTTP/1.1" + CRLF;
 				messageString += "Host: " + uri.getHost() + CRLF;
+				
+				messageString += getCookieString( message, uri.getHost() );
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
@@ -250,7 +325,12 @@ public class HttpProtocol extends CommProtocol
 				messageString += "Connection: close" + CRLF;
 			}
 			
-			messageString += "Content-Type: " + contentType + "; charset=\"utf-8\"" + CRLF;
+			String charset = getParameterVector( "charset" ).first().strValue();
+			if ( !charset.isEmpty() ) {
+				charset = "; charset=\"" + charset + "\"";
+			}
+			
+			messageString += "Content-Type: " + contentType + charset + CRLF;
 			messageString += "Content-Length: " + contentString.length() + CRLF;
 			messageString += CRLF + contentString + CRLF;
 			
@@ -269,7 +349,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void elementsToSubValues( Value value, NodeList list )
+	private static void elementsToSubValues( Value value, NodeList list )
 	{
 		Node node;
 		Value childValue;
@@ -313,7 +393,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void parseForm( HttpMessage message, Value value )
+	private static void parseForm( HttpMessage message, Value value )
 		throws IOException
 	{
 		BufferedReader reader = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
@@ -325,6 +405,22 @@ public class HttpProtocol extends CommProtocol
 			pair = s[i].split( "=", 2 );
 			value.getChildren( pair[0] ).first().setValue( pair[1] );
 		}		
+	}
+	
+	private static void checkForSetCookie( HttpMessage message, Value value )
+	{
+		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
+		Value currValue;
+		for( HttpMessage.Cookie cookie : message.setCookies() ) {
+			currValue = Value.create();
+			currValue.getNewChild( "expires" ).setValue( cookie.expirationDate() );
+			currValue.getNewChild( "path" ).setValue( cookie.path() );
+			currValue.getNewChild( "name" ).setValue( cookie.name() );
+			currValue.getNewChild( "value" ).setValue( cookie.value() );
+			currValue.getNewChild( "domain" ).setValue( cookie.domain() );
+			currValue.getNewChild( "secure" ).setValue( (cookie.secure() ? 1 : 0) );
+			cookieVec.add( currValue );
+		}
 	}
 	
 	public CommMessage recv( InputStream istream )
@@ -351,8 +447,12 @@ public class HttpProtocol extends CommProtocol
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Receiving:\n" );
 			debugSB.append( "--> Header properties\n" );
-			for( Entry< String, String > entry : message.properties() )
+			for( Entry< String, String > entry : message.properties() ) {
 				debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+			}
+			for( HttpMessage.Cookie cookie : message.setCookies() ) {
+				debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
+			}
 			debugSB.append( "--> Message content\n" );
 			if ( message.content() != null )
 				debugSB.append( new String( message.content() ) );
@@ -364,13 +464,17 @@ public class HttpProtocol extends CommProtocol
 		
 		if ( message.size() > 0 ) {
 			String type = message.getProperty( "content-type" );
-			if ( "application/x-www-form-urlencoded".equals( type ) )
+			if ( "application/x-www-form-urlencoded".equals( type ) ) {
 				parseForm( message, messageValue );
-			else
+			} else if ( "text/xml".equals( type ) ) {
 				parseXML( message, messageValue );
+			} else {
+				messageValue.setValue( new String( message.content() ) );
+			}
 		}
 		
 		if ( message.type() == HttpMessage.Type.RESPONSE ) {
+			checkForSetCookie( message, messageValue );
 			retVal = new CommMessage( inputId, "/", messageValue );
 		} else if (
 				message.type() == HttpMessage.Type.POST ||

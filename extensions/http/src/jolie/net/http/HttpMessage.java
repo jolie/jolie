@@ -23,8 +23,10 @@ package jolie.net.http;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 
 public class HttpMessage
@@ -36,16 +38,91 @@ public class HttpMessage
 	public enum Version {
 		HTTP_1_0, HTTP_1_1
 	}
+	
+	static public class Cookie {
+		private final String name, value, domain, path, expirationDate;
+		private final boolean secure;
+		
+		public Cookie(
+				String name,
+				String value,
+				String domain,
+				String path,
+				String expirationDate,
+				boolean secure
+			)
+		{
+			this.name = name;
+			this.value = value;
+			this.domain = domain;
+			this.path = path;
+			this.expirationDate = expirationDate;
+			this.secure = secure;
+		}
+		
+		@Override
+		public String toString()
+		{
+			return(
+				name + "=" + value + "; " +
+				"expires=" + expirationDate + "; " +
+				"domain=" + domain + "; " +
+				"path=" + path +
+				( ( secure ) ? ( "; secure" ) : "" )
+			);
+		}
+		
+		public String name()
+		{
+			return name;
+		}
+		
+		public String value()
+		{
+			return value;
+		}
+		
+		public String path()
+		{
+			return path;
+		}
+		
+		public String domain()
+		{
+			return domain;
+		}
+		
+		public String expirationDate()
+		{
+			return expirationDate;
+		}
+		
+		public boolean secure()
+		{
+			return secure;
+		}
+	}
 
 	private Version version;
 	private Type type;
 	private byte[] content = null;
 	final private Map< String, String > propMap = new HashMap< String, String > ();
+	final private List< Cookie > setCookies = new Vector< Cookie > ();
 	
 	private int httpCode;
 	private String requestPath;
 	private String reason;
 
+	public void addSetCookie( Cookie cookie )
+	{
+		setCookies.add( cookie );
+	}
+	
+	public List< Cookie > setCookies()
+	{
+		return setCookies;
+	}
+	
 	public HttpMessage( Type type )
 	{
 		this.type = type;
