@@ -44,7 +44,9 @@ public final class Constants
 	
 	static public enum Predefined {
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
-		PI( "PI", java.lang.Math.PI );
+		COOKIES( "@Cookies", "@Cookies" ),
+		PI( "PI", java.lang.Math.PI ),
+		REDIRECT( "@Redirect", "@Redirect" );
 		
 		private final String id;
 		private final Scanner.Token token;
