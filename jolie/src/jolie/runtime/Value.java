@@ -29,55 +29,72 @@ import java.util.Map.Entry;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 
+/**
+ * Handles JOLIE internal data representation.
+ * @author Fabrizio Montesi
+ * 2007 - Claudio Guidi: added support for double values
+ * 2008 - Fabrizio Montesi: new system for internal value storing
+ */
+
+
 class ValueLink extends Value implements Cloneable
 {
 	final private VariablePath linkPath;
 	
+	// We need this in order to distinguish links in embedded interpreters.
+	final private Value rootValue;
+	
+	private Value getLinkedValue()
+	{
+		return linkPath.getValue( rootValue );
+	}
+	
 	public void setValueObject( Object object )
 	{
-		linkPath.getValue().setValueObject( object );
+		getLinkedValue().setValueObject( object );
 	}
 	
 	public void erase()
 	{
-		linkPath.getValue().erase();
+		getLinkedValue().erase();
 	}
 	
 	@Override
 	public ValueLink clone()
 	{
-		return new ValueLink( linkPath );
+		return new ValueLink( linkPath, rootValue );
 	}
 	
 	public void _deepCopy( Value value, boolean copyLinks )
 	{
-		linkPath.getValue()._deepCopy( value, copyLinks );
+		getLinkedValue()._deepCopy( value, copyLinks );
 	}
 	
 	public ValueVector getChildren( String childId )
 	{
-		return linkPath.getValue().getChildren( childId );
+		return getLinkedValue().getChildren( childId );
 	}
 	
 	public Value getNewChild( String childId )
 	{
-		return linkPath.getValue().getNewChild( childId );
+		return getLinkedValue().getNewChild( childId );
 	}
 	
 	public Map< String, ValueVector > children()
 	{
-		return linkPath.getValue().children();
+		return getLinkedValue().children();
 	}
 		
 	public Object valueObject()
 	{
-		return linkPath.getValue().valueObject();
+		return getLinkedValue().valueObject();
 	}	
 	
-	public ValueLink( VariablePath path )
+	public ValueLink( VariablePath path, Value rootValue )
 	{
 		assert( path != null );
 		linkPath = path;
+		this.rootValue = rootValue;
 	}
 	
 	public boolean isLink()
@@ -199,7 +216,13 @@ abstract public class Value implements Expression
 	
 	public static Value createLink( VariablePath path )
 	{
-		return new ValueLink( path );
+		Value rootValue;
+		if ( path.isGlobal() ) {
+			rootValue = jolie.Interpreter.getInstance().globalValue();
+		} else {
+			rootValue = jolie.ExecutionThread.currentThread().state().root();
+		}
+		return new ValueLink( path, rootValue );
 	}
 	
 	public static Value create()
@@ -272,6 +295,11 @@ abstract public class Value implements Expression
 	abstract public Value getNewChild( String childId );
 	
 	abstract public Map< String, ValueVector > children();
+	
+	public Value getFirstChild( String childId )
+	{
+		return getChildren( childId ).first();
+	}
 	
 	public Value evaluate()
 	{

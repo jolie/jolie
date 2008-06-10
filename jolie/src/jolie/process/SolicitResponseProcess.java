@@ -32,7 +32,6 @@ import jolie.net.OutputPort;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
 public class SolicitResponseProcess implements Process

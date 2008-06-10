@@ -21,8 +21,8 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
+import jolie.Interpreter;
 
 public class SynchronizedProcess implements Process
 {
@@ -43,7 +43,7 @@ public class SynchronizedProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		synchronized( ExecutionThread.currentThread().state().getLock( id ) ) {
+		synchronized( Interpreter.getInstance().getLock( id ) ) {
 			process.run();
 		}
 	}

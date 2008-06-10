@@ -35,6 +35,11 @@ public class VariablePath implements Expression, Cloneable
 	final private List< Pair< Expression, Expression > > path; // Expression may be null
 	final private boolean global;
 	
+	public boolean isGlobal()
+	{
+		return global;
+	}
+	
 	@Override
 	public VariablePath clone()
 	{
@@ -219,12 +224,12 @@ public class VariablePath implements Expression, Cloneable
 		return null;
 	}
 	
-	public ValueVector getValueVector()
+	public ValueVector getValueVector( Value rootValue )
 	{
 		Iterator< Pair< Expression, Expression > > it = path.iterator();
 		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
-		Value currValue = getRootValue();
+		Value currValue = rootValue;
 
 		while( it.hasNext() ) {
 			pair = it.next();
@@ -239,6 +244,11 @@ public class VariablePath implements Expression, Cloneable
 		}
 
 		return currVector;
+	}
+	
+	public ValueVector getValueVector()
+	{
+		return getValueVector( getRootValue() );
 	}
 	
 	public void makePointer( VariablePath rightPath )

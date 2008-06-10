@@ -86,6 +86,9 @@ public class Interpreter
 	final private Map< String, InputOperation > inputOperations = 
 				new HashMap< String, InputOperation>();
 	
+	final private HashMap< String, Object > locksMap =
+				new HashMap< String, Object >();
+	
 	final private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
@@ -347,6 +350,16 @@ public class Interpreter
 		
 		InputStream olStream = new FileInputStream( olFilepath );
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
+	}
+	
+	public Object getLock( String id )
+	{
+		Object l = locksMap.get( id );
+		if ( l == null ) {
+			l = new Object();
+			locksMap.put( id, l );
+		}
+		return l;
 	}
 
 	private String getHelpString()

@@ -31,8 +31,6 @@ public class State implements Cloneable
 	final private Value root;
 	final private HashMap< String, InternalLink > linksMap =
 				new HashMap< String, InternalLink >();
-	final private HashMap< String, Object > locksMap =
-				new HashMap< String, Object >();
 	
 	private State( Value root )
 	{
@@ -45,16 +43,6 @@ public class State implements Cloneable
 		if ( l == null ) {
 			l = new InternalLink( id );
 			linksMap.put( id, l );
-		}
-		return l;
-	}
-	
-	public Object getLock( String id )
-	{
-		Object l = locksMap.get( id );
-		if ( l == null ) {
-			l = new Object();
-			locksMap.put( id, l );
 		}
 		return l;
 	}

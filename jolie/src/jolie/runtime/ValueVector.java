@@ -23,60 +23,71 @@ package jolie.runtime;
 
 import java.util.Iterator;
 import java.util.Vector;
+import jolie.ExecutionThread;
+import jolie.Interpreter;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
 	final private VariablePath linkPath;
 	
+	// We need this in order to distinguish links in embedded interpreters.
+	final private Value rootValue;
+
 	public Value remove( int i )
 	{
-		return linkPath.getValueVector().remove( i );
+		return getLinkedValueVector().remove( i );
 	}
 	
 	@Override
 	public ValueVectorLink clone()
 	{
-		return new ValueVectorLink( linkPath );
+		return new ValueVectorLink( linkPath, rootValue );
 	}
-	
-	public ValueVectorLink( VariablePath path )
+
+	public ValueVectorLink( VariablePath path, Value rootValue )
 	{
 		linkPath = path;
+		this.rootValue = rootValue;
 	}
-	
+
 	public boolean isLink()
 	{
 		return true;
 	}
 	
+	private ValueVector getLinkedValueVector()
+	{
+		return linkPath.getValueVector( rootValue );
+	}
+	
 	public Value get( int i )
 	{
-		return linkPath.getValueVector().get( i );
+		return getLinkedValueVector().get( i );
 	}
 	
 	public void deepCopy( ValueVector vec )
 	{
-		linkPath.getValueVector().deepCopy( vec );
+		getLinkedValueVector().deepCopy( vec );
 	}
 	
 	public Iterator< Value > iterator()
 	{
-		return linkPath.getValueVector().iterator();
+		return getLinkedValueVector().iterator();
 	}
 	
 	public int size()
 	{
-		return linkPath.getValueVector().size();
+		return getLinkedValueVector().size();
 	}
 	
 	public void add( Value value )
 	{
-		linkPath.getValueVector().add( value );
+		getLinkedValueVector().add( value );
 	}
 	
 	public void set( Value value, int i )
 	{
-		linkPath.getValueVector().set( value, i );
+		getLinkedValueVector().set( value, i );
 	}
 }
 
@@ -152,7 +163,13 @@ abstract public class ValueVector implements Iterable< Value >
 	
 	public static ValueVector createLink( VariablePath path )
 	{
-		return new ValueVectorLink( path );
+		Value rootValue;
+		if ( path.isGlobal() ) {
+			rootValue = Interpreter.getInstance().globalValue();
+		} else {
+			rootValue = ExecutionThread.currentThread().state().root();
+		}
+		return new ValueVectorLink( path, rootValue );
 	}
 	
 	public static ValueVector createClone( ValueVector vec )
