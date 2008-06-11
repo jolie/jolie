@@ -43,6 +43,6 @@ public class LinkOutProcess implements Process
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		InternalLink.getById( link ).linkOut();
+		InternalLink.getById( link ).recvMessage( null, null );
 	}
 }

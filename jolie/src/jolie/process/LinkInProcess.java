@@ -32,6 +32,8 @@ public class LinkInProcess implements InputProcess
 {
 	private class Execution extends AbstractInputProcessExecution< LinkInProcess >
 	{
+		protected CommMessage message = null;
+		
 		public Execution( LinkInProcess parent )
 		{
 			super( parent );
@@ -45,8 +47,9 @@ public class LinkInProcess implements InputProcess
 		public void run()
 			throws FaultException
 		{
-			/*try {
-				parent.operation.signForMessage( this );
+			InternalLink link = InternalLink.getById( linkId );
+			try {
+				link.signForMessage( this );
 				synchronized( this ) {
 					if( message == null ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();
@@ -55,43 +58,44 @@ public class LinkInProcess implements InputProcess
 						ethread.setCanBeInterrupted( false );
 					}
 				}
-				parent.runBehaviour( null, message );
 			} catch( InterruptedException ie ) {
-				parent.operation.cancelWaiting( this );
-			}*/
+				link.cancelWaiting( this );
+			}
 		}
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
+			this.message = message;
 			this.notify();
 			return true;
 		}
 	}
 	
-	final private String link;
+	final private String linkId;
 	
 	public LinkInProcess( String link )
 	{
-		this.link = link;
+		this.linkId = link;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new LinkInProcess( link );
+		return new LinkInProcess( linkId  );
 	}
 	
 	public InputHandler getInputHandler()
 	{
-		return InternalLink.getById( link );
+		return InternalLink.getById( linkId  );
 	}
 
 	public void runBehaviour( CommChannel channel, CommMessage message )
 	{}
 	
 	public void run()
+		throws FaultException
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		//InternalLink.getById( link ).linkIn( this );
+		(new Execution( this )).run();
 	}
 }

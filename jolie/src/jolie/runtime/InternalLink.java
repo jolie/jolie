@@ -22,141 +22,57 @@
 
 package jolie.runtime;
 
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
 
+import java.util.List;
+import java.util.Vector;
 import jolie.ExecutionThread;
+import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.process.InputProcessExecution;
-import jolie.util.Pair;
 
 
 /** Internal synchronization link for parallel processes.
  * 
  * @author Fabrizio Montesi
- * 
- * TODO rewrite this in order to use the CommCore mechanisms
  */
-public class InternalLink implements InputHandler
+public class InternalLink extends AbstractIdentifiableObject implements InputHandler
 {
-	//private LinkedList< Thread > inList = new LinkedList< Thread >();
-	final private LinkedList< Pair< ExecutionThread, InputProcessExecution > > inList = new LinkedList< Pair< ExecutionThread, InputProcessExecution > >();
-	//private HashMap< Thread, InputProcess > inMap = new HashMap< Thread, InputProcess >();
-	final private LinkedList< Thread > outList = new LinkedList< Thread >();
-	
-	/*private LinkedList< InputProcess > procsList;
-	private LinkedList< Process > outList;*/
-	
-	final private String id;
+	final private List< InputProcessExecution > procsList =
+					new Vector< InputProcessExecution > ();
+	private int signals = 0;
+	final private CommMessage linkMessage;
 	
 	public InternalLink( String id )
 	{
-		this.id = id;
+		super( id );
+		linkMessage = new CommMessage( id, "" );
 	}
 	
-	public String id()
+	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
-		return id;
+		for( int i = 0; i < procsList.size(); i++ ) {
+			if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
+				procsList.remove( i );
+				return;
+			}
+		}
+		signals++;
 	}
-	
+
 	public synchronized void signForMessage( InputProcessExecution process )
 	{
-		synchronized( Thread.currentThread() ) {
-			if ( outList.isEmpty() )
-				inList.addFirst(
-					new Pair< ExecutionThread, InputProcessExecution >( ExecutionThread.currentThread(), process ) );
-				//inMap.put( Thread.currentThread(), process );
-				//inMa.addFirst( process );
-			else {
-				process.recvMessage( null, new CommMessage( id(), "/" ) );
-				Thread t = outList.removeLast();
-				synchronized( t ) {
-					t.notify();
-				}
-			}
+		if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
+			signals--;
+		} else {
+			procsList.add( process );
 		}
 	}
 	
 	public synchronized void cancelWaiting( InputProcessExecution process ) 
 	{
-		for( Pair< ExecutionThread, InputProcessExecution > pair : inList ) {
-			if ( pair.key() == ExecutionThread.currentThread() ) {
-				inList.remove( pair );
-				break;
-			}
-		}
-		//inMap.remove( Thread.currentThread() );
+		procsList.remove( process );
 	}
 
-	public void linkIn( InputProcessExecution process )
-	{
-		Pair< ExecutionThread, InputProcessExecution > pair =
-			new Pair< ExecutionThread, InputProcessExecution >( ExecutionThread.currentThread(), process );
-
-		Thread t = null, currThread = Thread.currentThread();
-		synchronized( this ) {
-			try {
-				t = outList.removeLast();
-			} catch( NoSuchElementException e ) {
-				inList.addFirst( pair );
-				//inMap.put( currThread, process );
-				//inList.addFirst( currThread );
-			} 
-		}
-		
-		synchronized( currThread ) {
-			if ( t == null ) {
-				boolean wait = false;
-				synchronized( this ) {
-					wait = inList.contains( pair );
-					//wait = inMap.containsKey( currThread );
-					//wait = inList.contains( currThread );
-				}
-				if ( wait ) {
-					try {
-						currThread.wait();
-					} catch( InterruptedException e ) {}
-				}
-			} else {
-				synchronized( t ) {
-					t.notify();
-				}
-			}
-		}
-	}
-	
-	public void linkOut()
-	{
-		Pair< ExecutionThread, InputProcessExecution > pair = null;
-		ExecutionThread currThread = ExecutionThread.currentThread();
-		synchronized( this ) {
-			try {
-				pair = inList.removeLast();
-			} catch( NoSuchElementException e ) {
-				outList.addFirst( currThread );
-			} 
-		}
-		
-		synchronized( currThread ) {
-			if ( pair == null ) {
-				boolean wait = false;
-				synchronized( this ) {
-					wait = outList.contains( currThread );
-				}
-				if ( wait ) {
-					try {
-						currThread.wait();
-					} catch( InterruptedException e ) {}
-				}
-			} else {
-				pair.value().recvMessage( null, new CommMessage( id(), "/" ) );
-				synchronized( pair.key() ) {
-					pair.key().notify();
-				}
-			}
-		}
-	}
-	
 	public static InternalLink getById( String id )
 	{
 		return ExecutionThread.currentThread().state().getLink( id ); 
