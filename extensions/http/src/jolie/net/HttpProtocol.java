@@ -185,7 +185,8 @@ public class HttpProtocol extends CommProtocol
 		// TODO check for cookie expiration
 		for( Value v : cookieVec ) {
 			domain = v.getChildren( "domain" ).first().strValue();
-			if ( !domain.isEmpty() && hostname.endsWith( domain ) ) {
+			if ( domain.isEmpty() ||
+					(!domain.isEmpty() && hostname.endsWith( domain )) ) {
 				cookieString +=
 							v.getChildren( "name" ).first().strValue() + "=" +
 							v.getChildren( "value" ).first().strValue() + "; ";
@@ -259,9 +260,11 @@ public class HttpProtocol extends CommProtocol
 			} else if ( format.equals( "multipart/form-data" ) ) {
 				contentType = "multipart/form-data; boundary=" + BOUNDARY;
 				for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
-					contentString += "--" + BOUNDARY + CRLF;
-					contentString += "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF;
-					contentString += entry.getValue().first().strValue() + CRLF;
+					if ( !entry.getKey().startsWith( "@" ) ) {
+						contentString += "--" + BOUNDARY + CRLF;
+						contentString += "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF;
+						contentString += entry.getValue().first().strValue() + CRLF;
+					}
 				}
 				contentString += "--" + BOUNDARY + "--";
 			} else if ( format.equals( "x-www-form-urlencoded" ) ) {
