@@ -293,8 +293,13 @@ public class HttpProtocol extends CommProtocol
 				joliex.gwt.client.Value v = new joliex.gwt.client.Value();
 				JolieGWTConverter.jolieToGwtValue( message.value(), v );
 				try {
-					contentString +=
-						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v );
+					if ( message.isFault() ) {
+						contentString +=
+							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], message.fault() );
+					} else {
+						contentString +=
+							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v );
+					}
 				} catch( SerializationException e ) {
 					e.printStackTrace();
 				}
