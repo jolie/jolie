@@ -23,13 +23,13 @@
 
 package jolie.net;
 
-import jolie.net.*;
-import java.io.BufferedReader;
+import com.google.gwt.user.client.rpc.SerializationException;
+import com.google.gwt.user.server.rpc.RPC;
+import com.google.gwt.user.server.rpc.RPCRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -57,12 +57,14 @@ import jolie.Constants;
 import jolie.Interpreter;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
+import jolie.net.http.JolieGWTConverter;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
+import joliex.gwt.client.JolieService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -213,6 +215,8 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 	
+	private String requestFormat = null;
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
@@ -221,7 +225,13 @@ public class HttpProtocol extends CommProtocol
 			String contentType = "text/plain";
 			String queryString = "";
 			
-			String format = getParameterVector( "format" ).first().strValue();
+			String format = null;
+			if ( received && requestFormat != null ) {
+				format = requestFormat;
+				requestFormat = null;
+			} else {
+				format = getParameterVector( "format" ).first().strValue();
+			}
 			if ( format.isEmpty() || format.equals( "xml" ) ) {
 				Document doc = docBuilder.newDocument();
 				Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
@@ -278,6 +288,15 @@ public class HttpProtocol extends CommProtocol
 					if ( it.hasNext() ) {
 						contentString += "&";
 					}
+				}
+			} else if ( format.equals( "text/x-gwt-rpc" ) ) {
+				joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+				JolieGWTConverter.jolieToGwtValue( message.value(), v );
+				try {
+					contentString +=
+						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v );
+				} catch( SerializationException e ) {
+					e.printStackTrace();
 				}
 			}
 
@@ -399,15 +418,23 @@ public class HttpProtocol extends CommProtocol
 	private static void parseForm( HttpMessage message, Value value )
 		throws IOException
 	{
-		BufferedReader reader = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( message.content() ) ) );
-		String line;
+		String line = new String( message.content(), "UTF8" );
 		String[] s, pair;
-		line = reader.readLine();
 		s = line.split( "&" );
 		for( int i = 0; i < s.length; i++ ) {
 			pair = s[i].split( "=", 2 );
 			value.getChildren( pair[0] ).first().setValue( pair[1] );
 		}		
+	}
+	
+	private static String parseGWTRPC( HttpMessage message, Value value )
+		throws IOException
+	{
+		RPCRequest request = RPC.decodeRequest( new String( message.content(), "UTF8" ) );
+		String operationName = (String)request.getParameters()[0];
+		joliex.gwt.client.Value requestValue = (joliex.gwt.client.Value)request.getParameters()[1];
+		JolieGWTConverter.gwtToJolieValue( requestValue, value );
+		return operationName;
 	}
 	
 	private static void checkForSetCookie( HttpMessage message, Value value )
@@ -464,13 +491,17 @@ public class HttpProtocol extends CommProtocol
 		
 		CommMessage retVal = null;
 		Value messageValue = Value.create();
+		String opId = null;
 		
 		if ( message.size() > 0 ) {
-			String type = message.getProperty( "content-type" );
+			String type = message.getProperty( "content-type" ).split( ";" )[0];
 			if ( "application/x-www-form-urlencoded".equals( type ) ) {
 				parseForm( message, messageValue );
 			} else if ( "text/xml".equals( type ) ) {
 				parseXML( message, messageValue );
+			} else if ( "text/x-gwt-rpc".equals( type ) ) {
+				opId = parseGWTRPC( message, messageValue );
+				requestFormat = "text/x-gwt-rpc";
 			} else {
 				messageValue.setValue( new String( message.content() ) );
 			}
@@ -482,7 +513,9 @@ public class HttpProtocol extends CommProtocol
 		} else if (
 				message.type() == HttpMessage.Type.POST ||
 				message.type() == HttpMessage.Type.GET ) {
-			String opId = message.requestPath();
+			if ( opId == null ) {
+				opId = message.requestPath();
+			}
 			InputOperation op = null;
 			try {
 				op = Interpreter.getInstance().getInputOperation( opId );
@@ -493,7 +526,7 @@ public class HttpProtocol extends CommProtocol
 				if ( defaultOpId.length() > 0 ) {
 					Value body = messageValue;
 					messageValue = Value.create();
-					messageValue.getChildren( "body" ).add( body );
+					messageValue.getChildren( "data" ).add( body );
 					messageValue.getChildren( "operation" ).first().setValue( opId );
 					opId = defaultOpId;
 				}

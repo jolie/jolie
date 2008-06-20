@@ -27,9 +27,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ext.Identifier;
+import jolie.runtime.CanUseJars;
 import jolie.runtime.VariablePath;
 
 @Identifier("http")
+@CanUseJars({"gwt-servlet.jar","jolie-gwt.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
