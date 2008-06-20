@@ -22,9 +22,6 @@
 package jolie.runtime;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 
 import java.io.PrintStream;
 import jolie.Constants;
@@ -32,10 +29,8 @@ import jolie.Constants;
 public class FaultException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	private String faultName;
-	private Value value;
-	
-	public FaultException() {}
+	final private String faultName;
+	final private Value value;
 	
 	public FaultException( String faultName, Throwable t )
 	{
@@ -44,7 +39,7 @@ public class FaultException extends Exception
 		this.value = Value.create( t.getMessage() );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getChildren( "stackTrace" ).first().setValue( bs.toString() );
+		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
 	}
 	
 	public FaultException( Throwable t )
@@ -54,7 +49,7 @@ public class FaultException extends Exception
 		this.value = Value.create( t.getMessage() );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getChildren( "stackTrace" ).first().setValue( bs.toString() );
+		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
 	}
 	
 	public FaultException( String faultName, String message )
@@ -77,31 +72,6 @@ public class FaultException extends Exception
 		this.faultName = faultName;
 		this.value = Value.create();
 	}
-	
-	/*public static FaultException createFromExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		FaultException f = null;
-		if ( in.readBoolean() ) {
-			f = new FaultException();
-			f.readExternal( in );
-		}
-		return f;
-	}
-	
-	public void readExternal( DataInput in )
-		throws IOException, ClassNotFoundException
-	{
-		faultName = SODEPProtocol.readString( in );
-		value = Value.createFromExternal( in );
-	}
-	
-	public void writeExternal( DataOutput out )
-		throws IOException
-	{
-		SODEPProtocol.writeString( out, faultName );
-		value.writeExternal( out );
-	}*/
 	
 	@Override
 	public String getMessage()

@@ -340,6 +340,7 @@ public class Interpreter
 			}
 		}
 		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
+		Thread.currentThread().setContextClassLoader( classLoader );
 		
 		includePaths = includeVec.toArray( includePaths );
 		
@@ -415,9 +416,10 @@ public class Interpreter
 		 * Order is important. CommCore needs the OOIT to be initialized.
 		 */
 		DefinitionProcess main = null;
-		if ( buildOOIT() == false )
+		if ( buildOOIT() == false ) {
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
-		
+		}
+
 		commCore.init();
 		
 		try {
@@ -434,7 +436,7 @@ public class Interpreter
 		
 		for( String s : arguments )
 			jArgs.add( Value.create( s ) );
-
+		
 		mainExec.state().root().getChildren( "args" ).deepCopy( jArgs );
 		
 		mainExec.start();
