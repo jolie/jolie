@@ -44,6 +44,7 @@ public final class Constants
 	
 	static public enum Predefined {
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
+		CONTENT_TYPE( "@ContentType", "@ContentType" ),
 		COOKIES( "@Cookies", "@Cookies" ),
 		PI( "PI", java.lang.Math.PI ),
 		REDIRECT( "@Redirect", "@Redirect" );
