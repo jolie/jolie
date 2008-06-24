@@ -21,16 +21,6 @@
 
 package jolie;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
 import jolie.lang.parse.Scanner;
 
 
@@ -45,6 +35,7 @@ public final class Constants
 	static public enum Predefined {
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
 		CONTENT_TYPE( "@ContentType", "@ContentType" ),
+		CONTENT_TRANSFER_ENCODING( "@ContentTransferEncoding", "@ContentTransferEncoding" ),
 		COOKIES( "@Cookies", "@Cookies" ),
 		PI( "PI", java.lang.Math.PI ),
 		REDIRECT( "@Redirect", "@Redirect" );
@@ -98,7 +89,7 @@ public final class Constants
 		DOUBLE
 	}
 	
-	public static final String VERSION = "JOLIE 1.0_alpha1";
+	public static final String VERSION = "JOLIE 1.0_alpha2";
 	public static final String COPYRIGHT = "(C) 2006-2007-2008 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static String fileSeparator = System.getProperty( "file.separator" );
@@ -111,10 +102,11 @@ public final class Constants
 	
 	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
 	{
-		if ( "jolie".equalsIgnoreCase( str ) )
+		if ( "jolie".equalsIgnoreCase( str ) ) {
 			return EmbeddedServiceType.JOLIE;
-		else if ( "java".equalsIgnoreCase( str ) )
+		} else if ( "java".equalsIgnoreCase( str ) ) {
 			return EmbeddedServiceType.JAVA;
+		}
 		
 		return EmbeddedServiceType.UNSUPPORTED;
 	}
