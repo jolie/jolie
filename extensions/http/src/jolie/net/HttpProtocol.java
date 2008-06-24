@@ -290,13 +290,13 @@ public class HttpProtocol extends CommProtocol
 					}
 				}
 			} else if ( format.equals( "text/x-gwt-rpc" ) ) {
-				joliex.gwt.client.Value v = new joliex.gwt.client.Value();
-				JolieGWTConverter.jolieToGwtValue( message.value(), v );
 				try {
 					if ( message.isFault() ) {
 						contentString +=
-							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], message.fault() );
+							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) );
 					} else {
+						joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+						JolieGWTConverter.jolieToGwtValue( message.value(), v );
 						contentString +=
 							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v );
 					}
@@ -304,7 +304,7 @@ public class HttpProtocol extends CommProtocol
 					e.printStackTrace();
 				}
 			}
-
+			
 			String messageString = new String();
 			
 			if ( received ) {
@@ -356,13 +356,30 @@ public class HttpProtocol extends CommProtocol
 			if ( !charset.isEmpty() ) {
 				charset = "; charset=\"" + charset + "\"";
 			}
+						
+			String t = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
+			if ( !t.isEmpty() ) {
+				contentType = t;
+			}
 			
 			messageString += "Content-Type: " + contentType + charset + CRLF;
-			messageString += "Content-Length: " + contentString.length() + CRLF;
-			messageString += CRLF + contentString + CRLF;
+			String encoding = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
+			if ( !encoding.isEmpty() ) {
+				messageString += "Content-Transfer-Encoding: " + encoding + CRLF;
+			}
 			
-			if ( getParameterVector( "debug" ).first().intValue() > 0 )
-				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + messageString ); 
+			messageString += "Content-Length: " + contentString.length() + CRLF;
+			
+			
+			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+				String debugStr = messageString;
+				if ( getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0 ) {
+					debugStr = messageString + CRLF + contentString + CRLF;
+				}
+				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + debugStr ); 
+			}
+			
+			messageString += CRLF + contentString + CRLF;
 			
 			inputId = message.operationName();
 			

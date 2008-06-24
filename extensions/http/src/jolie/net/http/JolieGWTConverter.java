@@ -47,6 +47,15 @@ public class JolieGWTConverter
 		}
 	}
 	
+	public static joliex.gwt.client.FaultException jolieToGwtFault( jolie.runtime.FaultException fault )
+	{
+		joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+		if ( fault.value() != null ) {
+			jolieToGwtValue( fault.value(), v );
+		}
+		return new joliex.gwt.client.FaultException( fault.faultName(), v );
+	}
+	
 	public static void jolieToGwtValue( jolie.runtime.Value value, joliex.gwt.client.Value retValue )
 	{	
 		if ( value.isString() ) {
@@ -55,7 +64,7 @@ public class JolieGWTConverter
 			retValue.setValue( value.intValue() );
 		} else if ( value.isDouble() ) {
 			retValue.setValue( value.doubleValue() );
-		} else {
+		} else if ( value.valueObject() != null ) {
 			retValue.setValue( value.valueObject().toString() );
 		}
 		
