@@ -427,7 +427,7 @@ public class HttpProtocol extends CommProtocol
 
 				elementsToSubValues(
 							value,
-							doc.getChildNodes()
+							doc.getFirstChild().getChildNodes()
 						);
 			}
 		} catch( ParserConfigurationException pce ) {
