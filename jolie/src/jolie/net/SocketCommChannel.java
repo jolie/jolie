@@ -71,7 +71,7 @@ public class SocketCommChannel extends StreamingCommChannel
 	}
 	
 	/** Sends a message through the channel. */
-	public void send( CommMessage message )
+	public synchronized void send( CommMessage message )
 		throws IOException
 	{
 		protocol.send( ostream, message );

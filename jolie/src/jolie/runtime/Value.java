@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -381,8 +382,9 @@ abstract public class Value implements Expression
 
 	public String strValue()
 	{
-		if ( valueObject() == null )
+		if ( valueObject() == null ) {
 			return new String();
+		}
 		return valueObject().toString();
 	}
 	
