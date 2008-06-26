@@ -70,6 +70,11 @@ abstract public class CommChannel implements Channel
 		return isOpen;
 	}
 	
+	final public boolean canBeReused()
+	{
+		return isOpen && !toBeClosed;
+	}
+	
 	/** Receives a message from the channel. */
 	abstract public CommMessage recv()
 		throws IOException;

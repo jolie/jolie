@@ -111,11 +111,11 @@ public class OutputPort extends AbstractIdentifiableObject
 		throws URISyntaxException, IOException
 	{
 		Value loc = locationVariablePath.getValue();
-		if ( loc.isChannel() )
+		if ( loc.isChannel() ) {
 			channel = loc.channelValue();
-		else {
+		} else {
 			URI uri = new URI( loc.strValue() );
-			if ( !uri.equals( channelURI ) || !channel.isOpen() ) {
+			if ( !uri.equals( channelURI ) || !channel.canBeReused() ) {
 				channel = interpreter.commCore().createCommChannel( uri, this );
 				channelURI = uri;
 			} else {

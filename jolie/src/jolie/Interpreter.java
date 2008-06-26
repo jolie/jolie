@@ -301,15 +301,14 @@ public class Interpreter
 			} else if ( "--connlimit".equals( args[ i ] ) ) {
 				i++;
 				connectionsLimit = Integer.parseInt( args[ i ] );
-			} else if ( "--version".equals( args[ i ] ) )
+			} else if ( "--version".equals( args[ i ] ) ) {
 				throw new CommandLineException( getVersionString() );
-			/*else if ( "--verbose".equals( args[ i ] ) )
-				verbose = true;*/
-			else if ( args[ i ].endsWith( ".ol" ) ) {
-				if ( olFilepath == null )
+			} else if ( args[ i ].endsWith( ".ol" ) ) {
+				if ( olFilepath == null ) {
 					olFilepath = args[ i ];
-				else
+				} else {
 					throw new CommandLineException( "You can specify only an input file." );
+				}
 			} else {
 				for( int j = i; j < args.length; j++ ) {
 					arguments.add( args[ j ] );
@@ -341,7 +340,6 @@ public class Interpreter
 			}
 		}
 		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
-		Thread.currentThread().setContextClassLoader( classLoader );
 		
 		includePaths = includeVec.toArray( includePaths );
 		
@@ -350,7 +348,25 @@ public class Interpreter
 		
 		this.args = args;
 		
-		InputStream olStream = new FileInputStream( olFilepath );
+		InputStream olStream = null;
+		try {
+			olStream = new FileInputStream( olFilepath );
+		} catch( FileNotFoundException e ) {
+			File f;
+			for( int i = 0; i < includePaths.length && olStream == null; i++ ) {
+				f = new File(
+							includePaths[ i ] +
+							jolie.Constants.fileSeparator +
+							olFilepath
+						);
+				if ( f.exists() ) {
+					olStream = new FileInputStream( f );
+				}
+			}
+			if ( olStream == null ) {
+				throw new FileNotFoundException( olFilepath );
+			}
+		}
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
 	}
 	

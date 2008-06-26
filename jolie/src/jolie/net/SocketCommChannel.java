@@ -64,7 +64,7 @@ public class SocketCommChannel extends StreamingCommChannel
 	}
 	
 	/** Receives a message from the channel. */
-	public CommMessage recv()
+	public synchronized CommMessage recv()
 		throws IOException
 	{
 		return protocol.recv( istream );

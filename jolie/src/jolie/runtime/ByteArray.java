@@ -19,64 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.runtime;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.nio.channels.ClosedChannelException;
-import jolie.ExecutionThread;
-import jolie.net.CommChannel;
-import jolie.net.CommMessage;
-import jolie.net.OutputPort;
-import jolie.runtime.Expression;
-
-public class NotificationProcess implements Process
+public class ByteArray
 {
-	final private String operationId;
-	final private OutputPort outputPort;
-	final private Expression outputExpression;
-
-	public NotificationProcess(
-			String operationId,
-			OutputPort outputPort,
-			Expression outputExpression
-			)
+	final private byte[] buffer;
+	
+	public ByteArray( byte[] buffer )
 	{
-		this.operationId = operationId;
-		this.outputPort = outputPort;
-		this.outputExpression = outputExpression;
+		this.buffer = buffer;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public int size()
 	{
-		return new NotificationProcess(
-					operationId,
-					outputPort,
-					outputExpression.cloneExpression( reason )
-				);
+		return buffer.length;
 	}
 	
-	public void run()
+	public byte[] getBytes()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-
-		try {
-			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
-			CommMessage message =
-				( outputExpression == null ) ?
-						new CommMessage( operationId, uri.getPath() ) :
-						new CommMessage( operationId, uri.getPath(), outputExpression.evaluate() );
-
-			CommChannel channel = outputPort.getCommChannel();
-			channel.send( message );
-			channel.close();
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-		} catch( URISyntaxException ue ) {
-			ue.printStackTrace();
-		}
+		return buffer;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return new String( buffer );
 	}
 }

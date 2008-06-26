@@ -42,12 +42,9 @@ class ValueLink extends Value implements Cloneable
 {
 	final private VariablePath linkPath;
 	
-	// We need this in order to distinguish links in embedded interpreters.
-	final private Value rootValue;
-	
 	private Value getLinkedValue()
 	{
-		return linkPath.getValue( rootValue );
+		return linkPath.getValue();
 	}
 	
 	public void setValueObject( Object object )
@@ -63,7 +60,7 @@ class ValueLink extends Value implements Cloneable
 	@Override
 	public ValueLink clone()
 	{
-		return new ValueLink( linkPath, rootValue );
+		return new ValueLink( linkPath );
 	}
 	
 	public void _deepCopy( Value value, boolean copyLinks )
@@ -91,11 +88,10 @@ class ValueLink extends Value implements Cloneable
 		return getLinkedValue().valueObject();
 	}	
 	
-	public ValueLink( VariablePath path, Value rootValue )
+	public ValueLink( VariablePath path )
 	{
 		assert( path != null );
 		linkPath = path;
-		this.rootValue = rootValue;
 	}
 	
 	public boolean isLink()
@@ -135,18 +131,19 @@ class ValueImpl extends Value
 
 		Map< String, ValueVector > myChildren = children();
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			if ( copyLinks && entry.getValue().isLink() )
+			if ( copyLinks && entry.getValue().isLink() ) {
 				myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
-			else {
+			} else {
 				ValueVector vec = getChildren( entry.getKey(), myChildren );
 				ValueVector otherVector = entry.getValue();
 				Value v;
 				for( int i = 0; i < otherVector.size(); i++ ) {
 					v = otherVector.get( i );
-					if ( copyLinks && v.isLink() )
-						vec.set( Value.createClone( v ), i );
-					else
+					if ( copyLinks && v.isLink() ) {
+						vec.set( ((ValueLink)v).clone(), i );
+					} else {
 						vec.get( i )._deepCopy( v, copyLinks );
+					}
 				}
 			}
 		}
@@ -217,13 +214,7 @@ abstract public class Value implements Expression
 	
 	public static Value createLink( VariablePath path )
 	{
-		Value rootValue;
-		if ( path.isGlobal() ) {
-			rootValue = jolie.Interpreter.getInstance().globalValue();
-		} else {
-			rootValue = jolie.ExecutionThread.currentThread().state().root();
-		}
-		return new ValueLink( path, rootValue );
+		return new ValueLink( path );
 	}
 	
 	public static Value create()
@@ -346,6 +337,11 @@ abstract public class Value implements Expression
 	public final boolean isInt()
 	{
 		return ( valueObject() instanceof Integer );
+	}
+	
+	public final boolean isByteArray()
+	{
+		return ( valueObject() instanceof ByteArray );
 	}
 	
 	public final boolean isDouble()

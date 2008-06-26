@@ -53,8 +53,9 @@ public class MainDefinitionProcess extends DefinitionProcess
 				}
 			}
 			
-			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() )
+			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
 				loader.load();
+			}
 			
 			for( Process p : interpreter.commCore().protocolConfigurations() )
 				p.run();
@@ -66,7 +67,8 @@ public class MainDefinitionProcess extends DefinitionProcess
 
 			super.run();
 		} catch( EmbeddedServiceLoadingException e ) {
-			Interpreter.getInstance().logger().severe( e.getMessage() );
+			//Interpreter.getInstance().logger().severe( e.getMessage() );
+			e.printStackTrace();
 		}
 	}
 }

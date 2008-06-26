@@ -29,9 +29,6 @@ import jolie.Interpreter;
 class ValueVectorLink extends ValueVector implements Cloneable
 {
 	final private VariablePath linkPath;
-	
-	// We need this in order to distinguish links in embedded interpreters.
-	final private Value rootValue;
 
 	public Value remove( int i )
 	{
@@ -41,13 +38,12 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	@Override
 	public ValueVectorLink clone()
 	{
-		return new ValueVectorLink( linkPath, rootValue );
+		return new ValueVectorLink( linkPath );
 	}
 
-	public ValueVectorLink( VariablePath path, Value rootValue )
+	public ValueVectorLink( VariablePath path )
 	{
 		linkPath = path;
-		this.rootValue = rootValue;
 	}
 
 	public boolean isLink()
@@ -57,7 +53,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	
 	private ValueVector getLinkedValueVector()
 	{
-		return linkPath.getValueVector( rootValue );
+		return linkPath.getValueVector();
 	}
 	
 	public Value get( int i )
@@ -163,13 +159,7 @@ abstract public class ValueVector implements Iterable< Value >
 	
 	public static ValueVector createLink( VariablePath path )
 	{
-		Value rootValue;
-		if ( path.isGlobal() ) {
-			rootValue = Interpreter.getInstance().globalValue();
-		} else {
-			rootValue = ExecutionThread.currentThread().state().root();
-		}
-		return new ValueVectorLink( path, rootValue );
+		return new ValueVectorLink( path );
 	}
 	
 	public static ValueVector createClone( ValueVector vec )
