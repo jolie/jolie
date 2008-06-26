@@ -58,6 +58,7 @@ import jolie.Interpreter;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.JolieGWTConverter;
+import jolie.runtime.ByteArray;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
@@ -224,14 +225,19 @@ public class HttpProtocol extends CommProtocol
 			String contentString = "";
 			String contentType = "text/plain";
 			String queryString = "";
+			ByteArray binaryContent = null;
 			
 			String format = null;
 			if ( received && requestFormat != null ) {
 				format = requestFormat;
 				requestFormat = null;
 			} else {
-				format = getParameterVector( "format" ).first().strValue();
+				format = message.value().getFirstChild( jolie.Constants.Predefined.FORMAT.token().content() ).strValue();
+				if ( format.isEmpty() ) {
+					format = getParameterVector( "format" ).first().strValue();
+				}
 			}
+
 			if ( format.isEmpty() || format.equals( "xml" ) ) {
 				Document doc = docBuilder.newDocument();
 				Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
@@ -246,9 +252,11 @@ public class HttpProtocol extends CommProtocol
 				contentString = new String( tmpStream.toByteArray() );
 
 				contentType = "text/xml";
-			} else if ( format.equals( "raw" ) ) {
-				contentString = message.value().strValue();
-				contentType = "text/plain";
+			} else if ( format.equals( "binary" ) ) {
+				if ( message.value().isByteArray() ) {
+					binaryContent = (ByteArray)message.value().valueObject();
+				}
+				contentType = "application/octet-stream";
 			} else if ( format.equals( "html" ) ) {
 				contentString = message.value().strValue();
 				contentType = "text/html";
@@ -354,21 +362,23 @@ public class HttpProtocol extends CommProtocol
 			
 			String charset = getParameterVector( "charset" ).first().strValue();
 			if ( !charset.isEmpty() ) {
-				charset = "; charset=\"" + charset + "\"";
+				charset = "; charset=" + charset;
 			}
 						
 			String t = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
 			if ( !t.isEmpty() ) {
 				contentType = t;
 			}
-			
 			messageString += "Content-Type: " + contentType + charset + CRLF;
+
 			String encoding = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
 			if ( !encoding.isEmpty() ) {
 				messageString += "Content-Transfer-Encoding: " + encoding + CRLF;
 			}
 			
-			messageString += "Content-Length: " + contentString.length() + CRLF;
+			messageString += "Content-Length: " +
+					( ( binaryContent == null ) ? contentString.length() : binaryContent.size() ) +
+					CRLF;
 			
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
@@ -379,12 +389,18 @@ public class HttpProtocol extends CommProtocol
 				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + debugStr ); 
 			}
 			
-			messageString += CRLF + contentString + CRLF;
+			messageString += CRLF;
 			
 			inputId = message.operationName();
 			
 			Writer writer = new OutputStreamWriter( ostream );
 			writer.write( messageString );
+			if ( binaryContent == null ) {
+				writer.write( contentString );
+			} else {
+				ostream.write( binaryContent.getBytes() );
+			}
+			writer.write( CRLF );
 			writer.flush();
 		} catch( SOAPException se ) {
 			throw new IOException( se );
@@ -552,6 +568,11 @@ public class HttpProtocol extends CommProtocol
 					messageValue.getChildren( "operation" ).first().setValue( opId );
 					opId = defaultOpId;
 				}
+			}
+			
+			String userAgent;
+			if ( (userAgent=message.getProperty( "user-agent" )) != null ) {
+				messageValue.getNewChild( Constants.Predefined.USER_AGENT.token().content() ).setValue( userAgent );
 			}
 			
 			//TODO support resourcePath
