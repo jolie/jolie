@@ -21,6 +21,7 @@
 
 package jolie;
 
+import java.nio.charset.Charset;
 import jolie.lang.parse.Scanner;
 
 
@@ -37,8 +38,10 @@ public final class Constants
 		CONTENT_TYPE( "@ContentType", "@ContentType" ),
 		CONTENT_TRANSFER_ENCODING( "@ContentTransferEncoding", "@ContentTransferEncoding" ),
 		COOKIES( "@Cookies", "@Cookies" ),
+		FORMAT( "@Format", "@Format" ),
 		PI( "PI", java.lang.Math.PI ),
-		REDIRECT( "@Redirect", "@Redirect" );
+		REDIRECT( "@Redirect", "@Redirect" ),
+		USER_AGENT( "@UserAgent", "@UserAgent" );
 		
 		private final String id;
 		private final Scanner.Token token;
@@ -95,6 +98,12 @@ public final class Constants
 	public static String fileSeparator = System.getProperty( "file.separator" );
 	public static String pathSeparator = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
+	
+	public static final Charset defaultCharset;
+	
+	static {
+		defaultCharset = Charset.forName( "UTF-8" );
+	}
 	
 	public enum EmbeddedServiceType {
 		JAVA, JOLIE, UNSUPPORTED
