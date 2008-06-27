@@ -5,7 +5,7 @@ include "string_utils.iol"
 include "config.iol"
 
 constants {
-	Location_EventClientService = "socket://localhost:10111"
+	Location_EventClientService = "socket://192.168.1.20:10111"
 }
 
 cset {
