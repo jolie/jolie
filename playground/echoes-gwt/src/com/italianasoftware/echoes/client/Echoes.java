@@ -40,7 +40,6 @@ import com.google.gwt.user.client.ui.ScrollPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import joliex.gwt.client.JolieCallback;
 import joliex.gwt.client.JolieService;
 import joliex.gwt.client.Value;
 
@@ -87,15 +86,27 @@ public class Echoes implements EntryPoint
 		} );
 	}
 	
-	private void getState()
+	private int sid = -1;
+	
+	private void startClientSession()
 	{
 		Value val = getLocationValue();
 		JolieService.Util.getInstance().call(
-			"getState", val, new EchoesCallback() {
+			"startClientSession", val, new EchoesCallback() {
 			@Override
 			public void onSuccess( Value response ) {
 				setWidgetValues( response );
+				sid = response.getFirstChild( "sid" ).intValue();
 				logicalClock = response.getFirstChild( "logicalClock" ).intValue();
+				
+				Window.addWindowCloseListener( new WindowCloseListener() {
+					public String onWindowClosing() {
+						closeClientSession();
+						return null;
+					}
+
+					public void onWindowClosed() {}
+				} );
 			}
 		} );
 	}
@@ -104,6 +115,7 @@ public class Echoes implements EntryPoint
 	
 	private void setWidgetValues( Value state )
 	{
+		state = state.getFirstChild( "state" );
 		playlistBox.clear();
 		for( Value v : state.getFirstChild( "playlist" ).getChildren( "song" ) ) {
 			playlistBox.addItem( v.strValue() );
@@ -263,7 +275,7 @@ public class Echoes implements EntryPoint
 		final Button connectButton = new NativeButton( "Connect" );
 		connectButton.addClickListener( new ClickListener() {
 			public void onClick( Widget arg0 ) {
-				getState();
+				startClientSession();
 				waitForStateChange();
 				connectButton.setText( "Connected" );
 				connectButton.setEnabled( false );
@@ -374,26 +386,23 @@ public class Echoes implements EntryPoint
 				setVolume( volume );
 			}
 		} );
-		
-		/*
-		getState();
-		
-		waitForStateChange();
-		*/
-		
-		Window.addWindowCloseListener( new WindowCloseListener() {
-			public String onWindowClosing() {
-				closeEchoesSession();
-				return null;
-			}
-
-			public void onWindowClosed() {}
-		} );
 	}
 	
-	private void closeEchoesSession()
+	private void closeClientSession()
 	{
-		
+		final DialogBox dialog = new DialogBox();
+		dialog.add( new Label( "Exiting..." ) );
+		dialog.center();
+		dialog.show();
+		Value v = getLocationValue();
+		v.getNewChild( "sid" ).setValue( sid );
+		JolieService.Util.getInstance().call(
+			"closeClientSession", v, new EchoesCallback() {
+			@Override
+			public void onSuccess( Value response ) {
+				dialog.hide();
+			}
+		} );
 	}
 	
 	private void addVolumeMenuItems( ListBox volumeMenu )
