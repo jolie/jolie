@@ -6,10 +6,11 @@ include "config.iol"
 
 constants {
 	Location_EventClientService = "socket://192.168.1.20:10111"
+	//Location_EventClientService = "socket://localhost:10111"
 }
 
 cset {
-	Amarok.location
+	Amarok.location, sid
 }
 
 execution { concurrent }
@@ -32,7 +33,9 @@ RequestResponse:
 	play, pause,
 	previous, next,
 	waitForStateChange, getLyrics,
-	playByIndex, getState, setVolume
+	playByIndex, setVolume,
+	startClientSession,
+	closeClientSession
 }
 
 outputPort Amarok {
@@ -47,14 +50,14 @@ SolicitResponse:
 
 inputPort ClientHandlingPort {
 OneWay:
-	fireClientUpdate
+	fireClientUpdate, cancelWaitForEvent
 }
 
 outputPort Myself {
 Location: Location_EventClientService
 Protocol: sodep
 Notification:
-	fireClientUpdate
+	fireClientUpdate, cancelWaitForEvent
 }
 
 outputPort EventManager {
@@ -103,7 +106,10 @@ init
 	logicalClock -> global.logicalClockMap.(Amarok.location);
 	state -> global.stateMap.(Amarok.location);
 	eventRegistrationMap -> global.eventRegistrationMap;
-	waiters -> global.waitersMap.(Amarok.location)
+	waiters -> global.waitersMap.(Amarok.location);
+	counter -> global.counter;
+
+	counter = 0
 }
 
 main
@@ -112,7 +118,11 @@ main
 	[ default( request )( response ) {
 		scope( s ) {
 			install( FileNotFound => println@Console( "File not found: " + file.filename ) );
-			file.filename = DocumentRootDirectory + request.operation;
+
+			s = request.operation;
+			s.regex = "\\?";
+			split@StringUtils( s )( ss );
+			file.filename = DocumentRootDirectory + ss.result[0];
 			checkFileExtension;
 			readFile@File( file )( response );
 			if ( is_defined( type ) ) {
@@ -160,7 +170,7 @@ main
 		synchronized( lock ) {
 			//undef( response );
 			if ( logicalClock > request.logicalClock ) {
-				response[0] << state[0];
+				response.state[0] << state[0];
 				response.logicalClock = logicalClock
 			}
 		};
@@ -168,27 +178,52 @@ main
 			synchronized( lock ) {
 				waiters++
 			};
-			fireClientUpdate( Amarok.location );
+			[ fireClientUpdate( Amarok.location ) ] {
+				synchronized( lock ) {
+					response.state[0] << state[0];
+					response.logicalClock = logicalClock
+				}
+			}
+			[ cancelWaitForEvent( sid ) ] { nullProcess }
+			;
 			synchronized( lock ) {
-				waiters--;
-				response[0] << state[0];
-				response.logicalClock = logicalClock
+				waiters--
 			}
 		}
 	} ] { nullProcess }
 
-	[ getState( request )( response ) {
-		// Register us to get events if not already done before.
-		if ( !is_defined( eventRegistrationMap.(Amarok.location) ) ) {
+	[ closeClientSession( request )( response ) {
+		if ( --eventRegistrationMap.(Amarok.location) < 1 ) {
+			undef( eventRegistrationMap.(Amarok.location) );
 			EventManager.location = Amarok.location + "/EventManager";
-			eventRegistrationMap.(Amarok.location) = 1;
+			eventRegistration.location = Location_EventClientService;
+			unregister@EventManager( eventRegistration )
+		}
+		|
+		cancelWaitForEvent@Myself( request.sid )
+	} ] { nullProcess }
+
+	[ startClientSession( request )( response ) {
+		synchronized( lock ) {
+			if ( !is_defined( eventRegistrationMap.(Amarok.location) ) ) {
+				register = 1;
+				eventRegistrationMap.(Amarok.location) = 1
+			} else {
+				register = 0;
+				++eventRegistrationMap.(Amarok.location)
+			};
+			response.sid = counter++
+		};
+		// Register us to get events if not already done before.
+		if ( register ) {
+			EventManager.location = Amarok.location + "/EventManager";
 			eventRegistration.location = Location_EventClientService;
 			eventRegistration.callbackData = Amarok.location;
 			registerForAll@EventManager( eventRegistration );
 			buildState
 		};
 		synchronized( lock ) {
-			response[0] << state[0];
+			response.state[0] << state[0];
 			response.logicalClock = logicalClock
 		}
 	} ] { nullProcess }
