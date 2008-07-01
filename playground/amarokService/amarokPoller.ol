@@ -52,6 +52,7 @@ define checkForStateChanges
 
 define buildState
 {
+	//undef( state );
 	getNowPlaying@Amarok()( state.nowPlaying );
 	getVolume@Amarok()( state.volume );
 	getPlaylist@Amarok()( state.playlist )
