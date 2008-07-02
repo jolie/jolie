@@ -491,6 +491,18 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
+	private static void checkForCookies( HttpMessage message, Value value )
+	{
+		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
+		Value v;
+		for( Entry< String, String > entry : message.cookies().entrySet() ) {
+			v = Value.create();
+			v.getNewChild( "name" ).setValue( entry.getKey() );
+			v.getNewChild( "value" ).setValue( entry.getValue() );
+			cookieVec.add( v );
+		}
+	}
+	
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
@@ -520,6 +532,9 @@ public class HttpProtocol extends CommProtocol
 			}
 			for( HttpMessage.Cookie cookie : message.setCookies() ) {
 				debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
+			}
+			for( Entry< String, String > entry : message.cookies().entrySet() ) {
+				debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
 			}
 			debugSB.append( "--> Message content\n" );
 			if ( message.content() != null )
@@ -574,6 +589,8 @@ public class HttpProtocol extends CommProtocol
 			if ( (userAgent=message.getProperty( "user-agent" )) != null ) {
 				messageValue.getNewChild( Constants.Predefined.USER_AGENT.token().content() ).setValue( userAgent );
 			}
+			
+			checkForCookies( message, messageValue );
 			
 			//TODO support resourcePath
 			retVal = new CommMessage( opId, "/", messageValue );

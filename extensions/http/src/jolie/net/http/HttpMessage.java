@@ -109,10 +109,22 @@ public class HttpMessage
 	final private Map< String, String > propMap = new HashMap< String, String > ();
 	final private List< Cookie > setCookies = new Vector< Cookie > ();
 	
+	final private Map< String, String > cookies = new HashMap< String, String >();
+	
 	private int httpCode;
 	private String requestPath;
 	private String reason;
 
+	public void addCookie( String name, String value )
+	{
+		cookies.put( name, value);
+	}
+	
+	public Map< String, String > cookies()
+	{
+		return cookies;
+	}
+	
 	public void addSetCookie( Cookie cookie )
 	{
 		setCookies.add( cookie );

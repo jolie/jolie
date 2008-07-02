@@ -74,9 +74,15 @@ public class HttpParser
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
 			if ( "set-cookie".equals( name.toLowerCase() ) ) {
-				cookie = parseSetCookie( value );
+				//cookie = parseSetCookie( value );
 				if ( (cookie=parseSetCookie( value )) != null ) {
 					message.addSetCookie( cookie );
+				}
+			} else if ( "cookie".equals( name.toLowerCase() ) ) {
+				String ss[] = value.split(  ";" );
+				for( String s : ss ) {
+					String nv[] = s.split( "=" );
+					message.addCookie( nv[0], nv[1] );
 				}
 			} else {
 				message.setProperty( name.toLowerCase(), value );
