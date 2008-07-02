@@ -101,11 +101,12 @@ public class Echoes implements EntryPoint
 				
 				Window.addWindowCloseListener( new WindowCloseListener() {
 					public String onWindowClosing() {
-						closeClientSession();
 						return null;
 					}
 
-					public void onWindowClosed() {}
+					public void onWindowClosed() {
+						closeClientSession();
+					}
 				} );
 			}
 		} );
@@ -131,7 +132,9 @@ public class Echoes implements EntryPoint
 	{
 		lyricsDialog = new DialogBox();
 		VerticalPanel vPanel = new VerticalPanel();
+		vPanel.setHeight( "100%" );
 		vPanel.setHorizontalAlignment( VerticalPanel.ALIGN_CENTER );
+		vPanel.setVerticalAlignment( VerticalPanel.ALIGN_MIDDLE );
 		lyricsDialog.add( vPanel );
 		
 		lyrics = new HTML();
