@@ -1,0 +1,14 @@
+com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException, true
+java.lang.Exception, false
+java.lang.RuntimeException, false
+java.lang.String, true
+java.lang.Throwable, false
+java.util.HashMap, true
+java.util.IdentityHashMap, true
+java.util.LinkedHashMap, true
+java.util.Stack, true
+java.util.Vector, true
+joliex.gwt.client.FaultException, true
+joliex.gwt.client.Value, true
+joliex.gwt.client.Value$Type, true
+joliex.gwt.client.ValueVector, true

@@ -1,0 +1,363 @@
+Reachable types computed on: Tue Jul 01 21:53:47 CEST 2008
+com.google.gwt.i18n.client.impl.ConstantMap
+   Serialization status
+      Not serializable
+   Path
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.lang.String>
+   Serialization status
+      Not serializable
+   Path
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.lang.String>' is reachable from field 'values' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>
+   Serialization status
+      Not serializable
+   Path
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException
+   Serialization status
+      Instantiable
+   Path
+      Started from 'com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException'
+
+com.google.gwt.user.client.ui.FastStringMap<T>
+   Serialization status
+      Not serializable
+   Path
+      'com.google.gwt.user.client.ui.FastStringMap<T>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+com.google.gwt.user.client.ui.FastStringMap<T>.ImplMapEntry<T>
+   Serialization status
+      Not serializable
+   Path
+      'com.google.gwt.user.client.ui.FastStringMap<T>.ImplMapEntry<T>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.lang.Exception
+   Serialization status
+      Field serializable
+   Path
+      Started from 'com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException'
+
+java.lang.Object
+   Serialization status
+      Not serializable
+   Path
+      Started from 'java.lang.String'
+
+java.lang.RuntimeException
+   Serialization status
+      Field serializable
+   Path
+      Started from 'com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException'
+
+java.lang.String
+   Serialization status
+      Instantiable
+   Path
+      Started from 'java.lang.String'
+
+java.lang.Throwable
+   Serialization status
+      Field serializable
+   Path
+      Started from 'com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException'
+
+java.util.AbstractHashMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.LinkedHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractHashMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.IdentityHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractHashMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.AbstractHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractHashMap<K, V>.MapEntryNull<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.AbstractHashMap<K, V>.MapEntryNull<>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractHashMap<K, V>.MapEntryString<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.AbstractHashMap<K, V>.MapEntryString<>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractList<E>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Vector<joliex.gwt.client.Value>' is reachable from field 'values' of type 'joliex.gwt.client.ValueVector'
+      'joliex.gwt.client.ValueVector' is reachable from type argument 1 of type 'java.util.Map<K, V>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.AbstractMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.AbstractMapEntry<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.AbstractMapEntry<K, V>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Collections.6<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Collections.6<>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.EnumMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.EnumMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.EnumMap<K, V>.MapEntry<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.EnumMap<K, V>.MapEntry<>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.HashMap<K, V>
+   Serialization status
+      Field serializable
+   Path
+      'java.util.LinkedHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.HashMap<K, V>
+   Serialization status
+      Instantiable
+   Path
+      'java.util.HashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.IdentityHashMap<K, V>
+   Serialization status
+      Instantiable
+   Path
+      'java.util.IdentityHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.LinkedHashMap<K, V>
+   Serialization status
+      Instantiable
+   Path
+      'java.util.LinkedHashMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.LinkedHashMap<K, V>.ChainEntry<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.LinkedHashMap<K, V>.ChainEntry<>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Map<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Map<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Map<K, V>.Entry<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Map<K, V>.Entry<K, V>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Map.Entry<java.lang.String, java.lang.String>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.MapEntryImpl<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.MapEntryImpl<K, V>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.SortedMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.SortedMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Stack<E>
+   Serialization status
+      Instantiable
+   Path
+      'java.util.Stack<E>' is reachable as a subtype of type 'class java.util.Vector<joliex.gwt.client.Value>'
+      'java.util.Vector<joliex.gwt.client.Value>' is reachable from field 'values' of type 'joliex.gwt.client.ValueVector'
+      'joliex.gwt.client.ValueVector' is reachable from type argument 1 of type 'java.util.Map<K, V>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.TreeMap<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.TreeMap<K, V>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.TreeMap<K, V>.Node<K, V>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.TreeMap<K, V>.Node<K, V>' is reachable as a subtype of type 'interface java.util.Map.Entry<java.lang.String, java.lang.String>'
+      'java.util.Map.Entry<java.lang.String, java.lang.String>' is reachable from type argument 0 of type 'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<T>'
+      'com.google.gwt.i18n.client.impl.ConstantMap.OrderedConstantSet<java.util.Map.Entry<java.lang.String, java.lang.String>>' is reachable from field 'entries' of type 'com.google.gwt.i18n.client.impl.ConstantMap'
+      'com.google.gwt.i18n.client.impl.ConstantMap' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.TreeMap<K, V>.SubMap<>
+   Serialization status
+      Not serializable
+   Path
+      'java.util.TreeMap<K, V>.SubMap<>' is reachable as a subtype of type 'interface java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Vector<E>
+   Serialization status
+      Field serializable
+   Path
+      'java.util.Vector<joliex.gwt.client.Value>' is reachable from field 'values' of type 'joliex.gwt.client.ValueVector'
+      'joliex.gwt.client.ValueVector' is reachable from type argument 1 of type 'java.util.Map<K, V>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+java.util.Vector<joliex.gwt.client.Value>
+   Serialization status
+      Instantiable
+   Path
+      'java.util.Vector<joliex.gwt.client.Value>' is reachable from field 'values' of type 'joliex.gwt.client.ValueVector'
+      'joliex.gwt.client.ValueVector' is reachable from type argument 1 of type 'java.util.Map<K, V>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+joliex.gwt.client.FaultException
+   Serialization status
+      Instantiable
+   Path
+      Started from 'joliex.gwt.client.FaultException'
+
+joliex.gwt.client.Value
+   Serialization status
+      Instantiable
+   Path
+      Started from 'joliex.gwt.client.Value'
+
+joliex.gwt.client.Value.Type
+   Serialization status
+      Instantiable
+   Path
+      'joliex.gwt.client.Value.Type' is reachable from field 'type' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
+joliex.gwt.client.ValueVector
+   Serialization status
+      Instantiable
+   Path
+      'joliex.gwt.client.ValueVector' is reachable from type argument 1 of type 'java.util.Map<K, V>'
+      'java.util.Map<java.lang.String, joliex.gwt.client.ValueVector>' is reachable from field 'children' of type 'joliex.gwt.client.Value'
+      Started from 'joliex.gwt.client.Value'
+
