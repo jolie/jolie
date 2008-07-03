@@ -455,7 +455,7 @@ public class SoapProtocol extends CommProtocol
 							soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null )
 						);
 					}
-					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
+					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped );
 				}
 			}
 			
