@@ -271,11 +271,28 @@ public class SoapProtocol extends CommProtocol
 		return null;
 	}
 	
+	private String getPrefix( XSElementDecl decl )
+	{
+		return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
+	}
+	
 	private void valueToTypedSOAP(
 			Value value,
 			XSElementDecl xsDecl,
 			SOAPElement element,
 			SOAPEnvelope envelope
+			)
+		throws SOAPException
+	{
+		valueToTypedSOAP( value, xsDecl, element, envelope, true );
+	}
+	
+	private void valueToTypedSOAP(
+			Value value,
+			XSElementDecl xsDecl,
+			SOAPElement element,
+			SOAPEnvelope envelope,
+			boolean first // Ugly fix! This should be removed as soon as another option arises.
 			)
 		throws SOAPException
 	{
@@ -302,9 +319,9 @@ public class SoapProtocol extends CommProtocol
 			XSParticle particle;
 			XSContentType contentT;
 			contentT = complexT.getContentType();
-			if ( contentT.asSimpleType() != null )
+			if ( contentT.asSimpleType() != null ) {
 				element.addTextNode( value.strValue() );
-			else if ( (particle=contentT.asParticle()) != null ) {
+			} else if ( (particle=contentT.asParticle()) != null ) {
 				XSTerm term = particle.getTerm();
 //				XSElementDecl elementDecl;
 				XSModelGroupDecl modelGroupDecl;
@@ -333,7 +350,7 @@ public class SoapProtocol extends CommProtocol
 							if ( currTerm.isElementDecl() ) {
 								currElementDecl = currTerm.asElementDecl();
 								name = currElementDecl.getName();
-								prefix = getPrefixOrNull( currElementDecl );
+								prefix = ( first ) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
 								SOAPElement childElement = null;
 								if ( prefix == null )
 									childElement = element.addChildElement( name );
@@ -345,7 +362,8 @@ public class SoapProtocol extends CommProtocol
 										v,
 										currElementDecl,
 										childElement,
-										envelope );
+										envelope,
+										false );
 								} else if ( children[i].getMinOccurs() > 0 ) {
 									// TODO improve this error message.
 									throw new SOAPException( "Invalid variable structure: expected " + name );
@@ -425,13 +443,7 @@ public class SoapProtocol extends CommProtocol
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 					valueToSOAPElement( message.value(), opBody, soapEnvelope );
 				} else {
-					initNamespacePrefixes( soapEnvelope );
-					Name operationName = null;
-					if ( elementDecl.getOwnerSchema().elementFormDefault() )
-						operationName = soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null );
-					else
-						operationName = soapEnvelope.createName( inputId );
-					
+					initNamespacePrefixes( soapEnvelope );					
 					boolean wrapped = true;
 					Value vStyle = getParameterVector( "style" ).first();
 					if ( "document".equals( vStyle.strValue() ) ) {
@@ -439,7 +451,9 @@ public class SoapProtocol extends CommProtocol
 					}
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
-						opBody = soapBody.addBodyElement( operationName );
+						opBody = soapBody.addBodyElement(
+							soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null )
+						);
 					}
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope );
 				}
