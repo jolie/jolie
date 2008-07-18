@@ -80,7 +80,6 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.net.CommProtocol;
 import jolie.net.InputPort;
 import jolie.net.OutputPort;
-import jolie.net.UnsupportedCommMediumException;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
@@ -354,7 +353,18 @@ public class OOITBuilder implements OLVisitor
 			if ( currProcess instanceof CorrelatedInputProcess ) {
 				currProcess = makeSessionSpawner( (CorrelatedInputProcess)currProcess );
 			}
-			currProcess = new ScopeProcess( "main", currProcess );
+			
+			SequentialProcess mainProcessBody = new SequentialProcess();
+			try {
+				mainProcessBody.addChild( interpreter.getDefinition( "init" ) );
+			} catch( InvalidIdException e ) {}
+			mainProcessBody.addChild( currProcess );
+			currProcess = mainProcessBody;
+			
+			currProcess = new ScopeProcess(
+				"main",
+				currProcess
+			);
 			def = new MainDefinitionProcess( currProcess );
 		} else {
 			n.body().accept( this );
@@ -428,11 +438,14 @@ public class OOITBuilder implements OLVisitor
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
 			guard = currProcess;
-			if ( guard instanceof CorrelatedInputProcess )
+			if ( guard instanceof CorrelatedInputProcess ) {
 				((CorrelatedInputProcess) guard).setCorrelatedProcess( corrProc );
+			}
 			pair.value().accept( this );
 			try {
-			branches.add( new Pair< InputProcess, Process >( (InputProcess)guard, currProcess ) );
+				branches.add(
+					new Pair< InputProcess, Process >( (InputProcess)guard, currProcess )
+				);
 			} catch( Exception e ) {
 				e.printStackTrace();
 			}
@@ -543,7 +556,12 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ThrowStatement n )
 	{
-		currProcess = new ThrowProcess( n.id(), getGlobalVariablePath( n.variablePath() ) );
+		Expression expression = null;
+		if ( n.expression() != null ) {
+			n.expression().accept( this );
+			expression = currExpression;
+		}
+		currProcess = new ThrowProcess( n.id(), expression );
 	}
 	
 	public void visit( CompensateStatement n )
@@ -818,12 +836,13 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( TypeCastExpressionNode n )
 	{
+		n.expression().accept( this );
 		if ( n.type() == Constants.ValueType.INT ) {
-			currExpression = new CastIntExpression( getGlobalVariablePath( n.variablePath() ) );
+			currExpression = new CastIntExpression( currExpression );
 		} else if ( n.type() == Constants.ValueType.DOUBLE ) {
-			currExpression = new CastRealExpression( getGlobalVariablePath( n.variablePath() ) );
+			currExpression = new CastRealExpression( currExpression );
 		} else if ( n.type() == Constants.ValueType.STRING ) {
-			currExpression = new CastStringExpression( getGlobalVariablePath( n.variablePath() ) );
+			currExpression = new CastStringExpression( currExpression );
 		}
 	}
 	
