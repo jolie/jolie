@@ -28,14 +28,14 @@ import jolie.lang.parse.ParsingContext;
 
 public class TypeCastExpressionNode extends OLSyntaxNode
 {
-	final private VariablePathNode variablePath;
+	final private OLSyntaxNode expression;
 	final private Constants.ValueType type;
 
-	public TypeCastExpressionNode( ParsingContext context, Constants.ValueType type, VariablePathNode variablePath )
+	public TypeCastExpressionNode( ParsingContext context, Constants.ValueType type, OLSyntaxNode expression )
 	{
 		super( context );
 		this.type = type;
-		this.variablePath = variablePath;
+		this.expression = expression;
 	}
 	
 	public Constants.ValueType type()
@@ -43,9 +43,9 @@ public class TypeCastExpressionNode extends OLSyntaxNode
 		return type;
 	}
 	
-	public VariablePathNode variablePath()
+	public OLSyntaxNode expression()
 	{
-		return variablePath;
+		return expression;
 	}
 	
 	public void accept( OLVisitor visitor )
