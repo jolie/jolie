@@ -26,7 +26,7 @@ import jolie.runtime.FaultException;
 
 public class DefinitionProcess implements Process
 {
-	final private Process process;
+	final protected Process process;
 
 	public DefinitionProcess( Process process )
 	{
@@ -41,7 +41,8 @@ public class DefinitionProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( process != null )
+		if ( process != null ) {
 			process.run();
+		}
 	}
 }

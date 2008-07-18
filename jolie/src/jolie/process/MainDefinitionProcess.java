@@ -57,13 +57,9 @@ public class MainDefinitionProcess extends DefinitionProcess
 				loader.load();
 			}
 			
-			for( Process p : interpreter.commCore().protocolConfigurations() )
+			for( Process p : interpreter.commCore().protocolConfigurations() ) {
 				p.run();
-		
-			try {
-				DefinitionProcess p = interpreter.getDefinition( "init" );
-				p.run();
-			} catch( InvalidIdException e ) {}
+			}
 
 			super.run();
 		} catch( EmbeddedServiceLoadingException e ) {
