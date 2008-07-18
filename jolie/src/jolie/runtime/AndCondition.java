@@ -50,23 +50,25 @@ public class AndCondition implements Condition
 	}
 	
 	/** Applies the "logical and" rule.
-	 * Implemented as short and: starting from left, the first condition which
+	 * Implemented as short and: starting from left, the first condition that
 	 * evaluates as false makes this "logical and" condition 
 	 * evaluation returning false, without checking the other conditions.  
 	 * @return true if every condition is satisfied, false otherwise.
 	 */
 	public boolean evaluate()
 	{
-		for( Condition condition : children )
-			if ( condition.evaluate() == false )
+		for( Condition condition : children ) {
+			if ( condition.evaluate() == false ) {
 				return false;
+			}
+		}
 
 		return true;
 	}
 	
 	/** Adds a condition to the "logical and" group.
 	 * The condition will be checked by the evaluate method. 
-	 * @param condition The condition to add.
+	 * @param condition the condition to add.
 	 */
 	public void addChild( Condition condition )
 	{

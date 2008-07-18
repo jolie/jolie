@@ -26,24 +26,20 @@ import jolie.process.TransformationReason;
 
 public class CastStringExpression implements Expression
 {
-	final private VariablePath path;
+	final private Expression expression;
 	
-	public CastStringExpression( VariablePath path )
+	public CastStringExpression( Expression expression )
 	{
-		this.path = path;
+		this.expression = expression;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new CastStringExpression( (VariablePath) path.cloneExpression( reason ) );
+		return new CastStringExpression( expression.cloneExpression( reason ) );
 	}
 	
 	public Value evaluate()
 	{
-		Value v = path.getValueOrNull();
-		if ( v == null )
-			return Value.create();
-
-		return Value.create( v.strValue() );
+		return Value.create( expression.evaluate().strValue() );
 	}
 }

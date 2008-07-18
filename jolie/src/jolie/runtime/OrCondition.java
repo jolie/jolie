@@ -45,9 +45,11 @@ public class OrCondition implements Condition
 	
 	public boolean evaluate()
 	{
-		for( Condition cond : children )
-			if ( cond.evaluate() )
+		for( Condition cond : children ) {
+			if ( cond.evaluate() ) {
 				return true;
+			}
+		}
 
 		return false;
 	}
