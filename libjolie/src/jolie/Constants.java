@@ -42,7 +42,7 @@ public final class Constants
 		PI( "PI", java.lang.Math.PI ),
 		REDIRECT( "@Redirect", "@Redirect" ),
 		USER_AGENT( "@UserAgent", "@UserAgent" );
-		
+
 		private final String id;
 		private final Scanner.Token token;
 		

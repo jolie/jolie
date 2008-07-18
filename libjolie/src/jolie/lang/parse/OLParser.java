@@ -935,11 +935,12 @@ public class OLParser extends AbstractParser
 				retVal = new ThrowStatement( getContext(), faultName );
 			} else {
 				eat( Scanner.TokenType.COMMA, "expected , or )" );
-				assertToken( Scanner.TokenType.ID, "expected variable path" );
+				OLSyntaxNode expression = parseExpression();
+				/*assertToken( Scanner.TokenType.ID, "expected variable path" );
 				String varId = token.content();
 				getToken();
-				VariablePathNode path = parseVariablePath( varId );
-				retVal = new ThrowStatement( getContext(), faultName, path );
+				VariablePathNode path = parseVariablePath( varId );*/
+				retVal = new ThrowStatement( getContext(), faultName, expression );
 			}
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.INSTALL ) ) {
@@ -1509,32 +1510,23 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.CAST_INT ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
 			retVal = new TypeCastExpressionNode(
-						getContext(), Constants.ValueType.INT, parseVariablePath( varId )
-						);
+				getContext(), Constants.ValueType.INT, parseExpression()
+			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
 			retVal = new TypeCastExpressionNode(
-						getContext(), Constants.ValueType.DOUBLE, parseVariablePath( varId )
-						);
+				getContext(), Constants.ValueType.DOUBLE, parseExpression()
+			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
 			retVal = new TypeCastExpressionNode(
-						getContext(), Constants.ValueType.STRING, parseVariablePath( varId )
-						);
+				getContext(), Constants.ValueType.STRING, parseExpression()
+			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
 
