@@ -31,6 +31,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -330,7 +331,7 @@ public class CommCore
 	}
 	
 	private class PollingThread extends Thread {
-		final private Set< CommChannel > channels = new HashSet< CommChannel >();
+		final private Set< CommChannel > channels = Collections.synchronizedSet( new HashSet< CommChannel >() );
 		
 		@Override
 		public void run()

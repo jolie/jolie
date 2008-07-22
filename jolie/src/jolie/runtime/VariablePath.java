@@ -171,17 +171,17 @@ public class VariablePath implements Expression, Cloneable
 	
 	private void setCache( ExecutionThread ethread, Value value )
 	{
-		cache.put( ethread, value );
+	//	cache.put( ethread, value );
 	}
 	
 	private void setCache( ExecutionThread ethread, ValueVector vec )
 	{
-		cache.put( ethread, vec );
+	//	cache.put( ethread, vec );
 	}
 	
 	private void setNullCache( ExecutionThread ethread )
 	{
-		cache.put( ethread, null );
+	//	cache.put( ethread, null );
 	}
 	
 	public Value getValue( Value rootValue )
