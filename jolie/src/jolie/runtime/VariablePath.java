@@ -21,8 +21,9 @@
 
 package jolie.runtime;
 
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import jolie.ExecutionThread;
@@ -32,7 +33,9 @@ import jolie.util.Pair;
 
 public class VariablePath implements Expression, Cloneable
 {
-	final private List< Pair< Expression, Expression > > path; // Expression may be null
+	private Map< ExecutionThread, Object > cache = new HashMap< ExecutionThread, Object >();	
+	
+	final private Pair< Expression, Expression >[] path; // Expression may be null
 	final private boolean global;
 	
 	public boolean isGlobal()
@@ -70,15 +73,15 @@ public class VariablePath implements Expression, Cloneable
 			return null;
 
 		// If the other path is shorter than this, it's not a subpath.
-		if ( otherVarPath.path.size() < path.size() )
+		if ( otherVarPath.path.length < path.length )
 			return null;
 
 		int i, myIndex, otherIndex;
 		Pair< Expression, Expression > pair, otherPair;
 		Expression expr, otherExpr;
-		for( i = 0; i < path.size(); i++ ) {
-			pair = path.get( i );
-			otherPair = otherVarPath.path.get( i );
+		for( i = 0; i < path.length; i++ ) {
+			pair = path[i];
+			otherPair = otherVarPath.path[i];
 			
 			// *.element_name is not a subpath of *.other_name
 			if ( !pair.key().evaluate().strValue().equals( otherPair.key().evaluate().strValue() ) )
@@ -97,62 +100,63 @@ public class VariablePath implements Expression, Cloneable
 		// Now i represents the beginning of the subpath, we can just copy it from there
 		List< Pair< Expression, Expression > > subPath =
 			new Vector< Pair< Expression, Expression > >();
-		for( ; i < otherVarPath.path.size(); i++ )
-			subPath.add( otherVarPath.path.get( i ) );
+		for( ; i < otherVarPath.path.length; i++ )
+			subPath.add( otherVarPath.path[i] );
 		
 		return new VariablePath( subPath, global );
 	}
-	
-	public void addPathNode( Expression nodeExpr, Expression expression )
-	{
-		path.add( new Pair< Expression, Expression >( nodeExpr, expression ) );
-	}
-	
+
 	public VariablePath(
 			List< Pair< Expression, Expression > > path,
 			boolean global
 			)
 	{
-		this.path = path;
+		this.path = new Pair[ path.size() ];
+		for( int i = 0; i < path.size(); i++ ) {
+			this.path[i] = path.get( i );
+		}
 		this.global = global;
 	}
 	
-	public static Value getRootValue( boolean global )
+	final private Value getRootValue()
 	{
-		if ( global )
+		if ( global ) {
 			return Interpreter.getInstance().globalValue();
+		}
 		
 		return ExecutionThread.currentThread().state().root();
 	}
-	
-	private Value getRootValue()
+
+	private void eraseCache( ExecutionThread ethread )
 	{
-		return getRootValue( global );
+		cache.remove( ethread );
 	}
 	
 	public void undef()
 	{
-		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		eraseCache( ExecutionThread.currentThread() );
+		
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
+		String keyStr;
 
-		while( it.hasNext() ) {
-			pair = it.next();
-			String keyStr = pair.key().evaluate().strValue();
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
+			keyStr = pair.key().evaluate().strValue();
 			currVector = currValue.children().get( keyStr );
 			if ( currVector == null || currVector.size() < 1 )
 				return;
 			if ( pair.value() == null ) {
-				if ( it.hasNext() ) {
-					currValue = currVector.first();
+				if ( (i+1) < path.length ) {
+					currValue = currVector.get( 0 );
 				} else { // We're finished
 					currValue.children().remove( keyStr );
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
-				if ( it.hasNext() ) {
+				if ( (i+1) < path.length ) {
 					if ( currVector.size() <= index )
 						return;
 					currValue = currVector.get( index );
@@ -166,112 +170,176 @@ public class VariablePath implements Expression, Cloneable
 	
 	public Value getValue()
 	{
-		return getValue( getRootValue() );
+		return getValue( null );
+	}
+	
+	private void setCache( ExecutionThread ethread, Value value )
+	{
+		cache.put( ethread, value );
+	}
+	
+	private void setCache( ExecutionThread ethread, ValueVector vec )
+	{
+		cache.put( ethread, vec );
+	}
+	
+	private void setNullCache( ExecutionThread ethread )
+	{
+		cache.put( ethread, null );
 	}
 	
 	public Value getValue( Value rootValue )
 	{
-		Value currValue = rootValue;
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		Object o;
+		if ( (o=cache.get( ethread )) != null ) {
+			if ( o instanceof Value ) {
+				return (Value)o;
+			} else if ( o instanceof ValueVector ) {
+				return ((ValueVector)o).get( 0 );
+			}
+		}
+		
+		if ( rootValue == null ) {
+			rootValue = getRootValue();
+		}
 
+		Value currValue = rootValue;
+		String keyStr;
 		for( Pair< Expression, Expression > pair : path ) {
-			String keyStr = pair.key().evaluate().strValue();
+			keyStr = pair.key().evaluate().strValue();
 			if ( pair.value() == null )
 				currValue =
-					currValue.getChildren( keyStr ).first();
+					currValue.getFirstChild( keyStr );
 			else
 				currValue =
 					currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 		}
 		
+		setCache( ethread, currValue );
 		return currValue;
 	}
 	
 	public Value getValueOrNull()
 	{
-		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		Object o;
+		if ( cache.containsKey( ethread ) ) {
+			if ( (o=cache.get( ethread )) == null ) {
+				return null;
+			} else {
+				if ( o instanceof Value ) {
+					return (Value)o;
+				} else if ( o instanceof ValueVector ) {
+					return ((ValueVector)o).get( 0 );
+				}
+			}
+		}
+		
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
-		while( it.hasNext() ) {
-			pair = it.next();
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
 			currVector = currValue.children().get( pair.key().evaluate().strValue() );
-			if ( currVector == null )
+			if ( currVector == null ) {
+				setNullCache( ethread );
 				return null;
+			}
 			if ( pair.value() == null ) {
-				if ( it.hasNext() ) {
-					if ( currVector.isEmpty() )
+				if ( (i+1) < path.length ) {
+					if ( currVector.isEmpty() ) {
+						setNullCache( ethread );
 						return null;
-					currValue = currVector.first();
+					}
+					currValue = currVector.get( 0 );
 				} else { // We're finished
-					if ( currVector.isEmpty() )
+					if ( currVector.isEmpty() ) {
+						setNullCache( ethread );
 						return null;
-					else
-						return currVector.first();
+					} else {
+						setCache( ethread, currVector );
+						return currVector.get( 0 );
+					}
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
-				if ( currVector.size() <= index )
+				if ( currVector.size() <= index ) {
+					setNullCache( ethread );
 					return null;
+				}
 				currValue = currVector.get( index );
-				if ( !it.hasNext() ) {
+				if ( (i+1) >= path.length ) {
+					setCache( ethread, currValue );
 					return currValue;
 				}
 			}
 		}
 
+		setNullCache( ethread );
 		return null;
 	}
 	
 	public ValueVector getValueVector( Value rootValue )
 	{
-		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		Object o;
+		if ( (o=cache.get( ethread )) != null && o instanceof ValueVector ) {
+			return (ValueVector)o;
+		}
+		
+		if ( rootValue == null ) {
+			rootValue = getRootValue();
+		}
+		
 		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
 		Value currValue = rootValue;
 
-		while( it.hasNext() ) {
-			pair = it.next();
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
 			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
-			if ( it.hasNext() ) {
+			if ( (i+1) < path.length ) {
 				if ( pair.value() != null ) {
 					currValue = currVector.get( pair.value().evaluate().intValue() );
 				} else {
-					currValue = currVector.first();
+					currValue = currVector.get( 0 );
 				}
 			}
 		}
-
+		
+		setCache( ethread, currVector );
 		return currVector;
 	}
 	
 	public ValueVector getValueVector()
 	{
-		return getValueVector( getRootValue() );
+		return getValueVector( null );
 	}
 	
 	public void makePointer( VariablePath rightPath )
 	{
-		Iterator< Pair< Expression, Expression > > it = path.iterator();
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
+		String keyStr;
 
-		while( it.hasNext() ) {
-			pair = it.next();
-			String keyStr = pair.key().evaluate().strValue();
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
+			keyStr = pair.key().evaluate().strValue();
 			currVector = currValue.getChildren( keyStr );
 			if ( pair.value() == null ) {
-				if ( it.hasNext() ) {
-					currValue = currVector.first();
+				if ( (i+1) < path.length ) {
+					currValue = currVector.get( 0 );
 				} else { // We're finished
 					currValue.children().put( keyStr, ValueVector.createLink( rightPath ) );
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
-				if ( it.hasNext() ) {
+				if ( (i+1) < path.length ) {
 					currValue = currVector.get( index );
 				} else {
 					currVector.set( Value.createLink( rightPath ), index );
@@ -282,31 +350,40 @@ public class VariablePath implements Expression, Cloneable
 	
 	private Object getValueOrValueVector()
 	{
-		Iterator< Pair< Expression, Expression > > it = path.iterator();
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		Object o;
+		if ( (o=cache.get( ethread )) != null ) {
+			return o;
+		}
+		
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
 		int index;
 
-		while( it.hasNext() ) {
-			pair = it.next();
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
 			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
 			if ( pair.value() == null ) {
-				if ( it.hasNext() ) {
-					currValue = currVector.first();
+				if ( (i+1) < path.length ) {
+					currValue = currVector.get( 0 );
 				} else { // We're finished
+					setCache( ethread, currVector );
 					return currVector;
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
-				if ( it.hasNext() ) {
+				if ( (i+1) < path.length ) {
 					currValue = currVector.get( index );
 				} else {
-					return currVector.get( index );
+					Value ret = currVector.get( index );
+					setCache( ethread, ret );
+					return ret;
 				}
 			}
 		}
 
+		setCache( ethread, currValue );
 		return currValue;
 	}
 	
@@ -328,9 +405,9 @@ public class VariablePath implements Expression, Cloneable
 	
 	public Value evaluate()
 	{
-		Value v = getValueOrNull();
+		final Value v = getValueOrNull();
 		if ( v == null )
-			return Value.create();
-		return v.evaluate();
+			return Value.UNDEFINED_VALUE;
+		return v;
 	}
 }

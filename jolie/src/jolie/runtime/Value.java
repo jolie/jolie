@@ -22,7 +22,6 @@
 
 package jolie.runtime;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -66,16 +65,6 @@ class ValueLink extends Value implements Cloneable
 	public void _deepCopy( Value value, boolean copyLinks )
 	{
 		getLinkedValue()._deepCopy( value, copyLinks );
-	}
-	
-	public ValueVector getChildren( String childId )
-	{
-		return getLinkedValue().getChildren( childId );
-	}
-	
-	public Value getNewChild( String childId )
-	{
-		return getLinkedValue().getNewChild( childId );
 	}
 	
 	public Map< String, ValueVector > children()
@@ -160,27 +149,6 @@ class ValueImpl extends Value
 		return v;
 	}
 	
-	public ValueVector getChildren( String childId )
-	{
-		Map< String, ValueVector > myChildren = children();
-		ValueVector v = myChildren.get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			myChildren.put( childId, v );
-		}
-	
-		return v;
-	}
-	
-	public Value getNewChild( String childId )
-	{
-		ValueVector vec = getChildren( childId );
-		Value retVal = new ValueImpl();
-		vec.add( retVal );
-		
-		return retVal;
-	}
-	
 	public Map< String, ValueVector > children()
 	{
 		if ( children == null )
@@ -211,6 +179,8 @@ class ValueImpl extends Value
 abstract public class Value implements Expression
 {
 	abstract public boolean isLink();
+	
+	static final public Value UNDEFINED_VALUE = Value.create();
 	
 	public static Value createLink( VariablePath path )
 	{
@@ -279,27 +249,41 @@ abstract public class Value implements Expression
 	}
 	
 	abstract public void erase();
-		
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
-	
-	abstract public ValueVector getChildren( String childId );
-	
-	abstract public Value getNewChild( String childId );
-	
 	abstract public Map< String, ValueVector > children();
+	abstract public Object valueObject();
+	abstract protected void setValueObject( Object object );
+
+	public ValueVector getChildren( String childId )
+	{
+		final Map< String, ValueVector > myChildren = children();
+		ValueVector v = myChildren.get( childId );
+		if ( v == null ) {
+			v = ValueVector.create();
+			myChildren.put( childId, v );
+		}
+
+		return v;
+	}
+	
+	public Value getNewChild( String childId )
+	{
+		final ValueVector vec = getChildren( childId );
+		Value retVal = new ValueImpl();
+		vec.add( retVal );
+		
+		return retVal;
+	}
 	
 	public Value getFirstChild( String childId )
 	{
-		return getChildren( childId ).first();
+		return getChildren( childId ).get( 0 );
 	}
 	
 	public Value evaluate()
 	{
 		return this;
 	}
-	
-	abstract public Object valueObject();
-	abstract protected void setValueObject( Object object );
 	
 	public void setValue( Object object )
 	{
@@ -378,10 +362,13 @@ abstract public class Value implements Expression
 
 	public String strValue()
 	{
+		Object o = valueObject();
 		if ( valueObject() == null ) {
-			return new String();
+			return ""; // new String();
+		} else if ( o instanceof String ) {
+			return (String)o;
 		}
-		return valueObject().toString();
+		return o.toString();
 	}
 	
 	public int intValue()

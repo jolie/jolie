@@ -22,60 +22,41 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
 import jolie.Constants;
 import jolie.process.TransformationReason;
 
 public class SumExpression implements Expression
 {
-	final private Vector< Operand > children;
+	final private Operand[] children;
 	
-	public SumExpression()
+	public SumExpression( Operand[] children )
 	{
-		children = new Vector< Operand >();
+		this.children = children;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		SumExpression ret = new SumExpression();
+		Operand[] cc = new Operand[ children.length ];
+		
+		int i = 0;
 		for( Operand operand : children ) {
-			ret.children.add(
-					new Operand(
-							operand.type(),
-							operand.expression().cloneExpression( reason )
-						)
-					);
+			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
-		return ret;
+		return new SumExpression( cc );
 	}
 	
 	public Value evaluate()
 	{
-		if ( children.size() == 1 )
-			return children.firstElement().expression().evaluate();
-		
-		Value val = Value.create();
-
-		for( Operand operand : children ) {
-			if ( operand.type() == Constants.OperandType.ADD )
-				val.add( operand.expression().evaluate() );
-			else
-				val.subtract( operand.expression().evaluate() );
+		Value val = Value.create( children[0].expression().evaluate() );
+		for( int i = 1; i < children.length; i++ ) {
+			if ( children[i].type() == Constants.OperandType.ADD ) {
+				val.add( children[i].expression().evaluate() );
+			} else {
+				val.subtract( children[i].expression().evaluate() );
+			}
 		}
 		
 		return val;
-	}
-	
-	public void add( Expression expression )
-	{
-		Operand op = new Operand( Constants.OperandType.ADD, expression );
-		children.add( op );
-	}
-	
-	public void subtract( Expression expression )
-	{
-		Operand op = new Operand( Constants.OperandType.SUBTRACT, expression );
-		children.add( op );
 	}
 }

@@ -22,65 +22,41 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
 import jolie.Constants;
 import jolie.process.TransformationReason;
 
 public class ProductExpression implements Expression
 {
-	final private Vector< Operand > children;
+	final private Operand[] children;
 	
-	public ProductExpression()
+	public ProductExpression( Operand[] children )
 	{
-		children = new Vector< Operand >();
+		this.children = children;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		ProductExpression ret = new ProductExpression();
+		Operand[] cc = new Operand[ children.length ];
+		
+		int i = 0;
 		for( Operand operand : children ) {
-			ret.children.add(
-					new Operand(
-							operand.type(),
-							operand.expression().cloneExpression( reason )
-						)
-					);
+			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
 		}
-		return ret;
+		return new ProductExpression( cc );
 	}
 	
 	public Value evaluate()
 	{
-		if ( children.size() == 1 )
-			return children.firstElement().expression().evaluate();
-
-		Value val = Value.create();
-		
-		if ( children.size() > 0 )
-			val.assignValue( children.firstElement().expression().evaluate() );
-
-		Operand o;
-		for ( int i = 1; i < children.size(); i++ ) {
-			o = children.elementAt( i );
-			if ( o.type() == Constants.OperandType.MULTIPLY )
-				val.multiply( o.expression().evaluate() );
-			else
-				val.divide( o.expression().evaluate() );
+		Value val = Value.create( children[0].expression().evaluate() );
+		for( int i = 1; i < children.length; i++ ) {
+			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
+				val.multiply( children[i].expression().evaluate() );
+			} else {
+				val.divide( children[i].expression().evaluate() );
+			}
 		}
 		
 		return val;
-	}
-	
-	public void multiply( Expression expression )
-	{
-		Operand op = new Operand( Constants.OperandType.MULTIPLY, expression );
-		children.add( op );
-	}
-	
-	public void divide( Expression expression )
-	{
-		Operand op = new Operand( Constants.OperandType.DIVIDE, expression );
-		children.add( op );
 	}
 }

@@ -49,7 +49,7 @@ public class PostIncrementProcess implements Process, Expression
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		Value val = path.getValue();
+		final Value val = path.getValue();
 		val.setValue( val.intValue() + 1 );
 	}
 	

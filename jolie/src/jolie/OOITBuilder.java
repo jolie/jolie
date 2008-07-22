@@ -126,6 +126,7 @@ import jolie.runtime.Condition;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
+import jolie.runtime.Expression.Operand;
 import jolie.runtime.ExpressionCondition;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InstallFixedVariablePath;
@@ -748,28 +749,26 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ProductExpressionNode n )
 	{
-		ProductExpression expr = new ProductExpression();
+		Operand[] operands = new Operand[ n.operands().size() ];
+		int i = 0;
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
 			pair.value().accept( this );
-			if( pair.key() == OperandType.MULTIPLY )
-				expr.multiply( currExpression );
-			else
-				expr.divide( currExpression );
+			operands[i++] = new Operand( pair.key(), currExpression );
 		}
-		currExpression = expr;
+
+		currExpression = new ProductExpression( operands );
 	}
 	
 	public void visit( SumExpressionNode n )
 	{
-		SumExpression expr = new SumExpression();
+		Operand[] operands = new Operand[ n.operands().size() ];
+		int i = 0;
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
 			pair.value().accept( this );
-			if( pair.key() == OperandType.ADD )
-				expr.add( currExpression );
-			else
-				expr.subtract( currExpression );
+			operands[i++] = new Operand( pair.key(), currExpression );
 		}
-		currExpression = expr;
+
+		currExpression = new SumExpression( operands );
 	}
 
 	public void visit( VariableExpressionNode n )

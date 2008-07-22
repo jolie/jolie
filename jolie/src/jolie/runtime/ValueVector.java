@@ -23,18 +23,11 @@ package jolie.runtime;
 
 import java.util.Iterator;
 import java.util.Vector;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
 	final private VariablePath linkPath;
 
-	public Value remove( int i )
-	{
-		return getLinkedValueVector().remove( i );
-	}
-	
 	@Override
 	public ValueVectorLink clone()
 	{
@@ -56,34 +49,9 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return linkPath.getValueVector();
 	}
 	
-	public Value get( int i )
+	protected Vector< Value > values()
 	{
-		return getLinkedValueVector().get( i );
-	}
-	
-	public void deepCopy( ValueVector vec )
-	{
-		getLinkedValueVector().deepCopy( vec );
-	}
-	
-	public Iterator< Value > iterator()
-	{
-		return getLinkedValueVector().iterator();
-	}
-	
-	public int size()
-	{
-		return getLinkedValueVector().size();
-	}
-	
-	public void add( Value value )
-	{
-		getLinkedValueVector().add( value );
-	}
-	
-	public void set( Value value, int i )
-	{
-		getLinkedValueVector().set( value, i );
+		return getLinkedValueVector().values();
 	}
 }
 
@@ -91,60 +59,19 @@ class ValueVectorImpl extends ValueVector
 {
 	final private Vector< Value > values;
 	
+	protected Vector< Value > values()
+	{
+		return values;
+	}
+	
 	public boolean isLink()
 	{
 		return false;
 	}
 	
-	public Value remove( int i )
-	{
-		return values.remove( i );
-	}
-	
 	public ValueVectorImpl()
 	{
 		values = new Vector< Value >();
-	}
-	
-	public Iterator< Value > iterator()
-	{
-		return values.iterator();
-	}
-	
-	public int size()
-	{
-		return values.size();
-	}
-	
-	public Value get( int i )
-	{
-		if ( i >= values.size() ) {
-			for( int k = values.size(); k <= i; k++ )
-				values.add( Value.create() );
-		}
-		return values.elementAt( i );
-	}
-	
-	public void set( Value value, int i )
-	{
-		if ( i >= values.size() ) {
-			for( int k = values.size(); k < i; k++ )
-				values.add( Value.create() );
-			values.add( value );
-		} else {
-			values.set( i, value );
-		}
-	}
-	
-	public void deepCopy( ValueVector vec )
-	{
-		for( int i = 0; i < vec.size(); i++ )
-			get( i ).deepCopy( vec.get( i ) );
-	}
-	
-	public void add( Value value )
-	{
-		values.add( value );
 	}
 }
 
@@ -155,7 +82,10 @@ abstract public class ValueVector implements Iterable< Value >
 		return new ValueVectorImpl();
 	}
 	
-	abstract public Value remove( int i );
+	public Value remove( int i )
+	{
+		return values().remove( i );
+	}
 	
 	public static ValueVector createLink( VariablePath path )
 	{
@@ -187,10 +117,52 @@ abstract public class ValueVector implements Iterable< Value >
 		return ( size() < 1 );
 	}
 	
-	abstract public void add( Value value );
+	public Iterator< Value > iterator()
+	{
+		return values().iterator();
+	}
+	
+	public Value get( int i )
+	{
+		final Vector< Value > values = values();
+
+		if ( i >= values.size() ) {
+			for( int k = values.size(); k <= i; k++ )
+				values.add( Value.create() );
+		}
+		return values.elementAt( i );
+	}
+	
+	public int size()
+	{
+		return values().size();
+	}
+	
+	public void add( Value value )
+	{
+		values().add( value );
+	}
+	
+	public void set( Value value, int i )
+	{
+		final Vector< Value > values = values();
+
+		if ( i >= values.size() ) {
+			for( int k = values.size(); k < i; k++ )
+				values.add( Value.create() );
+			values.add( value );
+		} else {
+			values.set( i, value );
+		}
+	}
+	
+	// TODO: improve performance
+	public void deepCopy( ValueVector vec )
+	{
+		for( int i = 0; i < vec.size(); i++ )
+			get( i ).deepCopy( vec.get( i ) );
+	}
+	
+	abstract protected Vector< Value > values();
 	abstract public boolean isLink();
-	abstract public int size();
-	abstract public Value get( int i );
-	abstract public void set( Value value, int i );
-	abstract public void deepCopy( ValueVector vec );
 }

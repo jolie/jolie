@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommCore;
 import jolie.net.CommProtocol;
-import jolie.net.OutputPort;
 import jolie.runtime.VariablePath;
 
 /**

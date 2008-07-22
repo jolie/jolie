@@ -55,9 +55,8 @@ public class CompareCondition implements Condition
 	public boolean evaluate()
 	{
 		boolean retval = false;
-		Value leftVal, rightVal;
-		leftVal = leftExpression.evaluate();
-		rightVal = rightExpression.evaluate();
+		final Value leftVal = leftExpression.evaluate();
+		final Value rightVal = rightExpression.evaluate();
 		
 		if ( opType == Scanner.TokenType.EQUAL ) {
 			retval = leftVal.equals( rightVal );

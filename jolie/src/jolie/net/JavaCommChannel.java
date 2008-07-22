@@ -22,16 +22,16 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
-import jolie.runtime.FaultException;
+import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 
 public class JavaCommChannel extends CommChannel
 {
-	final private Object javaService;
+	final private JavaService javaService;
 	private CommMessage lastMessage = null;
+	
+	final private Object[] args = new Object[1];
 	
 	public JavaCommChannel( JavaService javaService )
 	{
@@ -44,45 +44,11 @@ public class JavaCommChannel extends CommChannel
 		lastMessage = null;
 		if ( javaService != null ) {
 			try {
-				Class<?>[] params = new Class[] { CommMessage.class };
-				Method method = javaService.getClass().getMethod(
-						message.operationName(),
-						params
-						);
-				Object[] args = new Object[] { message };
-				if ( CommMessage.class.isAssignableFrom( method.getReturnType() ) ) {
-					// It's a Request-Response
-					try {
-						lastMessage = (CommMessage)method.invoke( javaService, args );
-					} catch( InvocationTargetException ite ) {
-						Throwable t = ite.getCause();
-						if ( t instanceof FaultException ) {
-							// The operation threw a fault
-							FaultException f = (FaultException) t;
-							//TODO support resourcePath
-							lastMessage = new CommMessage(
-										message.operationName(),
-										"/",
-										f
-										);
-						} else {
-							// The operation raised an exception
-							throw new IOException( t );
-						}
-					}
-				} else {
-					// TODO Verify that this method is void
-					// It's a One-Way
-					try {
-						method.invoke( javaService, args );
-					} catch( InvocationTargetException ite ) {
-						throw new IOException( ite.getCause() );
-					}
-				}
-			} catch( NoSuchMethodException noe ) {
-				throw new IOException( noe );
-			} catch( IllegalAccessException iae ) {
-				throw new IOException( iae );
+				lastMessage = javaService.callOperation( message );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( InvalidIdException e ) {
+				throw new IOException( e );
 			}
 		}
 	}

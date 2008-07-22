@@ -38,8 +38,9 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	public SessionThread clone()
 	{
 		SessionThread ret = new SessionThread( process, parent, notifyProc, state.clone() );
-		for( Scope s : scopeStack )
+		for( Scope s : scopeStack ) {
 			ret.scopeStack.push( s.clone() );
+		}
 		return ret;
 	}
 	
@@ -56,8 +57,9 @@ public class SessionThread extends ExecutionThread implements Cloneable
 		assert( parent != null );
 		
 		state = parent.state().clone();
-		for( Scope s : parent.scopeStack )
+		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
+		}
 	}
 	
 	public jolie.State state()
