@@ -22,6 +22,7 @@
 
 package jolie.lang.parse;
 
+import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -364,31 +365,146 @@ public class OLParseTreeOptimizer
 		public void visit( ThrowStatement n ) { currNode = n; }
 		public void visit( OneWayOperationStatement n ) { currNode = n; }
 		
-		// @TODO - optimize the output expressions
-		public void visit( NotificationOperationStatement n ) { currNode = n; }
-		public void visit( SolicitResponseOperationStatement n ) { currNode = n; }
+		public void visit( NotificationOperationStatement n )
+		{
+			OLSyntaxNode outputExpression = null;
+			if ( n.outputExpression() != null ) {
+				n.outputExpression().accept( this );
+				outputExpression = currNode;
+			}
+			currNode = new NotificationOperationStatement(
+							n.context(),
+							n.id(),
+							n.outputPortId(),
+							outputExpression
+						);
+		}
+		
+		public void visit( SolicitResponseOperationStatement n )
+		{
+			OLSyntaxNode outputExpression = null;
+			if ( n.outputExpression() != null ) {
+				n.outputExpression().accept( this );
+				outputExpression = currNode;
+			}
+			currNode = new SolicitResponseOperationStatement(
+							n.context(),
+							n.id(),
+							n.outputPortId(),
+							outputExpression,
+							n.inputVarPath(),
+							n.handlersFunction()
+						);
+		}
+
 		
 		public void visit( LinkInStatement n ) { currNode = n; }
 		public void visit( LinkOutStatement n ) { currNode = n; }
-		public void visit( AssignStatement n ) { currNode = n; }
+		
+		public void visit( AssignStatement n )
+		{
+			n.expression().accept( this );
+			currNode = new AssignStatement( n.context(), n.variablePath(), currNode );
+		}
+		
 		public void visit( DeepCopyStatement n ) { currNode = n; }
 		public void visit( PointerStatement n ) { currNode = n; }
 		public void visit( DefinitionCallStatement n ) { currNode = n; }
-		public void visit( OrConditionNode n ) { currNode = n; }
-		public void visit( AndConditionNode n ) { currNode = n; }
-		public void visit( NotConditionNode n ) { currNode = n; }
-		public void visit( CompareConditionNode n ) { currNode = n; }
-		public void visit( ExpressionConditionNode n ) { currNode = n; }
+		
+		public void visit( OrConditionNode n )
+		{
+			if ( n.children().size() > 1 ) {
+				OrConditionNode ret = new OrConditionNode( n.context() );
+				for( OLSyntaxNode child : n.children() ) {
+					child.accept( this );
+					ret.addChild( currNode );
+				}
+				currNode = ret;
+			} else {
+				n.children().get( 0 ).accept( this );
+			}
+		}
+		
+		public void visit( AndConditionNode n )
+		{
+			if ( n.children().size() > 1 ) {
+				AndConditionNode ret = new AndConditionNode( n.context() );
+				for( OLSyntaxNode child : n.children() ) {
+					child.accept( this );
+					ret.addChild( currNode );
+				}
+				currNode = ret;
+			} else {
+				n.children().get( 0 ).accept( this );
+			}
+		}
+
+		public void visit( NotConditionNode n )
+		{
+			n.condition().accept( this );
+			currNode = new NotConditionNode( n.context(), currNode );
+		}
+
+		public void visit( CompareConditionNode n )
+		{
+			n.leftExpression().accept( this );
+			OLSyntaxNode leftExpression = currNode;
+			n.rightExpression().accept( this );
+			currNode = new CompareConditionNode( n.context(), leftExpression, currNode, n.opType() );
+		}
+
+		public void visit( ExpressionConditionNode n )
+		{
+			n.expression().accept( this );
+			currNode = new ExpressionConditionNode( n.context(), currNode );
+		}
+
 		public void visit( ConstantIntegerExpression n ) { currNode = n; }
 		public void visit( ConstantRealExpression n ) { currNode = n; }
 		public void visit( ConstantStringExpression n ) { currNode = n; }
-		public void visit( ProductExpressionNode n ) { currNode = n; }
-		public void visit( SumExpressionNode n ) { currNode = n; }
+
+		public void visit( ProductExpressionNode n )
+		{
+			if ( n.operands().size() > 1 ) {
+				ProductExpressionNode ret = new ProductExpressionNode( n.context() );
+				for( Pair< Constants.OperandType, OLSyntaxNode > pair : n.operands() ) {
+					pair.value().accept( this );
+					if ( pair.key() == Constants.OperandType.MULTIPLY ) {
+						ret.multiply( currNode );
+					} else {
+						ret.divide( currNode );
+					}
+				}
+				currNode = ret;
+			} else {
+				n.operands().iterator().next().value().accept( this );
+			}
+		}
+		
+		public void visit( SumExpressionNode n )
+		{
+			if ( n.operands().size() > 1 ) {
+				SumExpressionNode ret = new SumExpressionNode( n.context() );
+				for( Pair< Constants.OperandType, OLSyntaxNode > pair : n.operands() ) {
+					pair.value().accept( this );
+					if ( pair.key() == Constants.OperandType.ADD ) {
+						ret.add( currNode );
+					} else {
+						ret.subtract( currNode );
+					}
+				}
+				currNode = ret;
+			} else {
+				n.operands().iterator().next().value().accept( this );
+			}
+		}
+		
 		public void visit( VariableExpressionNode n ) { currNode = n; }
 		public void visit( InstallFixedVariableExpressionNode n ) { currNode = n; }
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
+		
 		public void visit( ValueVectorSizeExpressionNode n ) { currNode = n; }
 		public void visit( PreIncrementStatement n ) { currNode = n; }
 		public void visit( PostIncrementStatement n ) { currNode = n; }

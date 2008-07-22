@@ -124,6 +124,11 @@ public final class Constants
 		SINGLE, SEQUENTIAL, CONCURRENT
 	}
 	
+	public enum OperationType {
+		ONE_WAY,
+		REQUEST_RESPONSE
+	}
+	
 	public enum OperandType {
 		ADD, SUBTRACT,
 		MULTIPLY, DIVIDE
