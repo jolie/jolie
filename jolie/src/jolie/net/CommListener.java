@@ -29,7 +29,8 @@ import jolie.Interpreter;
 import jolie.JolieThread;
 import jolie.runtime.InputOperation;
 
-/** Base class for a communication input listener.
+/**
+ * Base class for a communication input listener.
  * @author Fabrizio Montesi
  */
 abstract public class CommListener extends JolieThread
@@ -63,6 +64,11 @@ abstract public class CommListener extends JolieThread
 		return redirectionMap;
 	}
 	
+	/**
+	 * Returns true if this CommListener can handle the given InputOperation, false otherwise.
+	 * @param operation the InputOperation to check in this CommListener
+	 * @return true if this CommListener can handle the given InputOperation, false otherwise
+	 */
 	public boolean canHandleInputOperation( InputOperation operation )
 	{
 		for( InputPort port : inputPorts ) {

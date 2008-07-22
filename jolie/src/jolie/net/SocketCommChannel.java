@@ -30,6 +30,10 @@ import java.nio.channels.SocketChannel;
 
 import jolie.Interpreter;
 
+/**
+ * A CommChannel using a socket to implement communications.
+ * @author Fabrizio Montesi
+ */
 public class SocketCommChannel extends StreamingCommChannel
 {
 	final private SocketChannel socketChannel;
@@ -38,9 +42,10 @@ public class SocketCommChannel extends StreamingCommChannel
 	
 	/** Constructor.
 	 * 
-	 * @param istream the channel input stream.
-	 * @param ostream the channel output stream.
-	 * @param protocol the protocol to use to send and receive messages.
+	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
+	 * @param protocol the CommProtocol to use to send and receive messages
+	 * @see CommProtocol
+	 * @see SocketChannel
 	 */
 	public SocketCommChannel( SocketChannel socketChannel, CommProtocol protocol )
 		throws IOException
@@ -53,6 +58,10 @@ public class SocketCommChannel extends StreamingCommChannel
 		toBeClosed = false; // Socket connections are kept open by default
 	}
 	
+	/**
+	 * Returns the SocketChannel underlying this SocketCommChannel
+	 * @return the SocketChannel underlying this SocketCommChannel
+	 */
 	public SocketChannel socketChannel()
 	{
 		return socketChannel;
@@ -63,14 +72,23 @@ public class SocketCommChannel extends StreamingCommChannel
 		return istream;
 	}
 	
-	/** Receives a message from the channel. */
+	/**
+	 * Receives a message from the channel.
+	 * @return the received CommMessage
+	 * @see CommMessage
+	 */
 	public synchronized CommMessage recv()
 		throws IOException
 	{
 		return protocol.recv( istream );
 	}
 	
-	/** Sends a message through the channel. */
+	/**
+	 * Sends a message through the channel.
+	 * @param message the CommMessage to send
+	 * @see CommMessage
+	 * @throws IOException if an error sending the message occurs
+	 */
 	public synchronized void send( CommMessage message )
 		throws IOException
 	{
@@ -84,7 +102,6 @@ public class SocketCommChannel extends StreamingCommChannel
 		Interpreter.getInstance().commCore().registerForSelection( this );
 	}
 
-	/** Closes the communication channel */
 	protected void closeImpl()
 		throws IOException
 	{

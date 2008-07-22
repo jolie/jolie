@@ -24,6 +24,10 @@ package jolie;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 
+/**
+ * An ExecutionThread with a dedicated State.
+ * @author Fabrizio Montesi
+ */
 public class SessionThread extends ExecutionThread implements Cloneable
 {
 	final private jolie.State state;
@@ -44,12 +48,26 @@ public class SessionThread extends ExecutionThread implements Cloneable
 		return ret;
 	}
 	
+	/**
+	 * Constructs a SessionThread with a fresh State.
+	 * @param interpreter the Interpreter this thread must refer to
+	 * @param process the Process this thread has to execute
+	 */
 	public SessionThread( Interpreter interpreter, Process process )
 	{
 		super( interpreter, process );
 		state = new jolie.State();
 	}
 	
+	/**
+	 * Constructs a SessionThread cloning another ExecutionThread, copying the 
+	 * State and Scope stack of the parent.
+	 * 
+	 * @param process the Process this thread has to execute
+	 * @param parent the ExecutionThread to copy
+	 * @param notifyProc the CorrelatedProcess to notify when this session expires
+	 * @see CorrelatedProcess
+	 */
 	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{
 		super( process, parent, notifyProc );
@@ -62,6 +80,11 @@ public class SessionThread extends ExecutionThread implements Cloneable
 		}
 	}
 	
+	/**
+	 * Returns the State of this thread.
+	 * @return the State of this thread
+	 * @see State
+	 */
 	public jolie.State state()
 	{
 		return state;

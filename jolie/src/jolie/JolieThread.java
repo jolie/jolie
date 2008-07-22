@@ -21,7 +21,11 @@
 
 package jolie;
 
-
+/**
+ * A thread that can refer to its generating Interpreter.
+ * @see Interpreter
+ * @author Fabrizio Montesi
+ */
 public class JolieThread extends Thread
 {
 	final private Interpreter interpreter;
@@ -43,6 +47,9 @@ public class JolieThread extends Thread
 		this.interpreter = interpreter;
 	}
 	
+	/**
+	 * Returns the interpreter that this thread refers to.
+	 */
 	public Interpreter interpreter()
 	{
 		return interpreter;

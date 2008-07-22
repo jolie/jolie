@@ -62,6 +62,8 @@ import jolie.runtime.VariablePath;
 
 /**
  * The Jolie interpreter engine.
+ * Multiple Interpreter instances can be run in the same JavaVM;
+ * this is the case, e.g., for service embedding.
  * @author Fabrizio Montesi
  */
 public class Interpreter
@@ -95,11 +97,19 @@ public class Interpreter
 	private String[] includePaths = new String[ 0 ];
 	private String[] args = new String[ 0 ];
 	
+	/**
+	 * Returns the arguments passed to this Interpreter.
+	 * @return the arguments passed to this Interpreter
+	 */
 	public String[] args()
 	{
 		return args;
 	}
 	
+	/**
+	 * Returns the include paths this Interpreter is considering.
+	 * @return the include paths this Interpreter is considering
+	 */
 	public String[] includePaths()
 	{
 		return includePaths;
@@ -112,6 +122,10 @@ public class Interpreter
 	
 	private JolieClassLoader classLoader;
 	
+	/**
+	 * Returns the output ports of this Interpreter.
+	 * @return the output ports of this Interpreter
+	 */
 	public Collection< OutputPort > outputPorts()
 	{
 		return outputPorts.values();
@@ -126,6 +140,13 @@ public class Interpreter
 		return listener.createPipeCommChannel();
 	}
 	
+	/**
+	 * Returns the InputOperation identified by key.
+	 * @param key the name of the InputOperation to return
+	 * @return the InputOperation identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested InputOperation
+	 * @see InputOperation
+	 */
 	public InputOperation getInputOperation( String key )
 		throws InvalidIdException
 	{
@@ -134,7 +155,14 @@ public class Interpreter
 			throw new InvalidIdException( key );
 		return ret;
 	}
-		
+	
+	/**
+	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key must identify a OneWayOperation.
+	 * @param key the name of the OneWayOperation to return
+	 * @return the OneWayOperation identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested OneWayOperation
+	 * @see OneWayOperation
+	 */
 	public OneWayOperation getOneWayOperation( String key )
 		throws InvalidIdException
 	{
@@ -144,6 +172,13 @@ public class Interpreter
 		return (OneWayOperation)ret;
 	}
 	
+	/**
+	 * As {@link #getInputOperation(String) getInputOperation}, with the additional constraint that key must identify a RequestResponseOperation.
+	 * @param key the name of the RequestResponseOperation to return
+	 * @return the RequestResponseOperation identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested RequestResponseOperation
+	 * @see RequestResponseOperation
+	 */
 	public RequestResponseOperation getRequestResponseOperation( String key )
 		throws InvalidIdException
 	{
@@ -153,6 +188,12 @@ public class Interpreter
 		return (RequestResponseOperation)ret;
 	}
 	
+	/**
+	 * Returns the OutputPort identified by key.
+	 * @param key the name of the OutputPort to return
+	 * @return the OutputPort identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested OutputPort
+	 */
 	public OutputPort getOutputPort( String key )
 		throws InvalidIdException
 	{
@@ -162,6 +203,12 @@ public class Interpreter
 		return (OutputPort)ret;
 	}
 	
+	/**
+	 * Returns the InputPort identified by key.
+	 * @param key the name of the InputPort to return
+	 * @return the InputPort identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested InputPort
+	 */
 	public InputPort getInputPort( String key )
 		throws InvalidIdException
 	{
@@ -171,6 +218,12 @@ public class Interpreter
 		return (InputPort)ret;
 	}
 	
+	/**
+	 * Returns the Definition identified by key.
+	 * @param key the name of the Definition to return
+	 * @return the Definition identified by key
+	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested Definition
+	 */
 	public DefinitionProcess getDefinition( String key )
 		throws InvalidIdException
 	{
@@ -179,7 +232,7 @@ public class Interpreter
 			throw new InvalidIdException( key );
 		return ret;
 	}
-	
+
 	public void register( String key, InputPort value )
 	{
 		inputPorts.put( key, value );
@@ -226,11 +279,21 @@ public class Interpreter
 		System.out.println( "Thrown unhandled fault: " + f.faultName() ); 
 	}
 	
+	/**
+	 * Returns the execution mode of this Interpreter.
+	 * @return the execution mode of this Interpreter
+	 * @see Constants.ExecutionMode
+	 */
 	public Constants.ExecutionMode executionMode()
 	{
 		return executionMode;
 	}
 	
+	/**
+	 * Sets the execution mode of this Interpreter.
+	 * @param mode the execution mode to set
+	 * @see Constants.ExecutionMode
+	 */
 	public void setExecutionMode( Constants.ExecutionMode mode )
 	{
 		executionMode = mode;
@@ -242,6 +305,10 @@ public class Interpreter
 		correlationSet.addAll( set );
 	}
 	
+	/**
+	 * Returns the correlation set of this Interpreter.
+	 * @return the correlation set of this Interpreter
+	 */
 	public Set< List< VariablePath > > correlationSet()
 	{
 		return correlationSet;
@@ -252,11 +319,19 @@ public class Interpreter
 		return logger;
 	}
 	
+	/**
+	 * Returns the Interpreter the current thread is referring to.
+	 * @return the Interpreter the current thread is referring to
+	 */
 	public static Interpreter getInstance()
 	{
 		return ((JolieThread)Thread.currentThread()).interpreter();
 	}
 	
+	/**
+	 * Returns the JolieClassLoader this Interpreter is using.
+	 * @return the JolieClassLoader this Interpreter is using
+	 */
 	public JolieClassLoader getClassLoader()
 	{
 		return classLoader;
@@ -265,9 +340,9 @@ public class Interpreter
 	/** Constructor.
 	 * 
 	 * @param args The command line arguments.
-	 * @throws CommandLineException If the command line is not valid or asks for simple information. (like --help and --version)
-	 * @throws FileNotFoundException If one of the passed input files is not found.
-	 * @throws IOException If a Scanner constructor signals an error.
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( String[] args )
 		throws CommandLineException, FileNotFoundException, IOException
@@ -407,6 +482,10 @@ public class Interpreter
 		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
 	}
 	
+	/**
+	 * Returns the {@code global} value of this Interpreter.
+	 * @return the {@code global} value of this Interpreter
+	 */
 	public Value globalValue()
 	{
 		return globalValue;
@@ -414,6 +493,10 @@ public class Interpreter
 	
 	private SessionThread mainExec;
 	
+	/**
+	 * Returns the SessionThread of the Interpreter that started the program execution.
+	 * @return the SessionThread of the Interpreter that started the program execution
+	 */
 	public SessionThread mainThread()
 	{
 		return mainExec;
@@ -422,8 +505,8 @@ public class Interpreter
 	/**
 	 * Runs the interpreter behaviour specified by command line.
 	 * The default behaviour is to execute the input code.
-	 * @throws IOException If a Parser propagates a Scanner exception.
-	 * @throws ParserException If a Parser finds a syntax error.
+	 * @throws IOException if a Parser propagates a Scanner exception
+	 * @throws InterpreterException if the interpretation tree could not be built
 	 */
 	public void run( boolean blocking )
 		throws InterpreterException, IOException
@@ -489,7 +572,10 @@ public class Interpreter
 		}
 	}
 	
-	
+	/**
+	 * Returns the CommCore of this Interpreter.
+	 * @return the CommCore of this Interpreter
+	 */
 	public CommCore commCore()
 	{
 		return commCore;
@@ -513,9 +599,9 @@ public class Interpreter
 		}
 	}
 	
-	@Override
+	/*@Override
 	protected void finalize()
 	{
 		// Clean up here if we're a sub-interpreter
-	}
+	}*/
 }

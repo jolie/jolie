@@ -26,6 +26,12 @@ import java.util.HashMap;
 import jolie.runtime.InternalLink;
 import jolie.runtime.Value;
 
+/**
+ * A variable and links state.
+ * Variables are stored in a tree-like structure, of which the root Value element is stored.
+ * @see Value
+ * @author Fabrizio Montesi
+ */
 public class State implements Cloneable
 {
 	final private Value root;
@@ -37,6 +43,11 @@ public class State implements Cloneable
 		this.root = root;
 	}
 	
+	/**
+	 * Returns the InternalLink identified by id in this State scope.
+	 * @param id the identifier of the requested InternalLink
+	 * @return the InternalLink identified by id
+	 */
 	public InternalLink getLink( String id )
 	{
 		InternalLink l = linksMap.get( id );
@@ -47,6 +58,9 @@ public class State implements Cloneable
 		return l;
 	}
 	
+	/**
+	 * Constructs a new State, using a fresh memory state.
+	 */
 	public State()
 	{
 		this.root = Value.create();
@@ -58,6 +72,11 @@ public class State implements Cloneable
 		return new State( Value.createClone( root ) );
 	}
 	
+	/**
+	 * Returns the root Value of this State.
+	 * @return the root Value of this State
+	 * @see Value
+	 */
 	public Value root()
 	{
 		return root;

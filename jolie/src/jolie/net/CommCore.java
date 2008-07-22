@@ -51,8 +51,10 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.VariablePath;
 
-/** Handles networking communications.
- * The CommCore class represent the communication core of JOLIE.
+/** 
+ * Handles the communications mechanisms for an Interpreter instance.
+ * 
+ * Each CommCore is related to an Interpreter, and each Interpreter owns one and only CommCore instance.
  */
 public class CommCore
 {
@@ -64,12 +66,22 @@ public class CommCore
 
 	final private int connectionsLimit;
 	final private Interpreter interpreter;
-	
+
+	/**
+	 * Returns the Interpreter instance this CommCore refers to.
+	 * @return the Interpreter instance this CommCore refers to
+	 */
 	public Interpreter interpreter()
 	{
 		return interpreter;
 	}
 
+	/**
+	 * Constructor.
+	 * @param interpreter the Interpreter to refer to for this CommCore operations
+	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in parallel.
+	 * @throws java.io.IOException
+	 */
 	public CommCore( Interpreter interpreter, int connectionsLimit )
 		throws IOException
 	{
@@ -91,11 +103,19 @@ public class CommCore
 		channelFactories.put( "socket", channelFactory );
 	}
 	
+	/**
+	 * Returns the Logger used by this CommCore.
+	 * @return the Logger used by this CommCore
+	 */
 	public Logger logger()
 	{
 		return logger;
 	}
 	
+	/**
+	 * Returns the connectionsLimit of this CommCore.
+	 * @return the connectionsLimit of this CommCore
+	 */
 	public int connectionsLimit()
 	{
 		return connectionsLimit;
@@ -165,10 +185,6 @@ public class CommCore
 		listenerFactories.put( id, factory );
 	}
 	
-	/** Adds an input service.
-	 * @param uri
-	 * @param protocol
-	 */
 	public void addService(
 				String serviceName,
 				URI uri,
@@ -290,7 +306,11 @@ public class CommCore
 		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
 	
-	/** Initializes the communication core. */
+	/**
+	 * Initializes the communication core, starting its communication listeners.
+	 * 
+	 * @see CommListener
+	 */
 	public void init()
 		throws IOException
 	{		

@@ -28,8 +28,8 @@ import java.nio.channels.Channel;
 
 
 
-/** A communication channel permits to send and receive messages.
- * 
+/**
+ * A communication abstraction to send and receive messages.
  * @author Fabrizio Montesi
  * @see CommProtocol
  * @see CommMessage

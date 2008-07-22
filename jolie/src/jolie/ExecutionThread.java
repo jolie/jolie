@@ -35,6 +35,12 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
+/**
+ * Represents a JolieThread that is able to resolve a VariablePath, referring to a state.
+ * @see JolieThread
+ * @see VariablePath
+ * @author Fabrizio Montesi
+ */
 abstract public class ExecutionThread extends JolieThread
 {
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
@@ -100,6 +106,9 @@ abstract public class ExecutionThread extends JolieThread
 	
 	final protected CorrelatedProcess notifyProc;
 	
+	/**
+	 * Sets if this thread can be interrupted by a fault signal or not.
+	 */
 	public void setCanBeInterrupted( boolean b )
 	{
 		canBeInterrupted = b;

@@ -30,9 +30,9 @@ import java.io.IOException;
  */
 public class Jolie
 {
-	/** Entry point of program execution.
-	 * 
-	 * @param args The command line arguments.
+	/** 
+	 * Entry point of program execution.
+	 * @param args the command line arguments
 	 * TODO Standardize the exit codes.
 	 */
 	public static void main( String[] args )

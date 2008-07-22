@@ -146,12 +146,23 @@ import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
+/**
+ * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
+ * @author Fabrizio Montesi
+ * @see OLVisitor
+ */
 public class OOITBuilder implements OLVisitor
 {
 	private Program program;
 	private boolean valid = true;
 	final private Interpreter interpreter;
 
+	/**
+	 * Constructor.
+	 * @param interpreter the Interpreter requesting the interpretation tree building
+	 * @param program the Program to generate the interpretation tree from
+	 * @see Program
+	 */
 	public OOITBuilder( Interpreter interpreter, Program program )
 	{
 		this.interpreter = interpreter;
@@ -171,6 +182,14 @@ public class OOITBuilder implements OLVisitor
 		error( context, e.getMessage() );
 	}
 	
+	/**
+	 * Launches the build process.
+	 * 
+	 * The Program passed to the constructor gets visited and the Interpreter 
+	 * passed to the constructor is set with the necessary references
+	 * to the interpretation tree.
+	 * @return true if the build process is successfull, false otherwise
+	 */
 	public boolean build()
 	{
 		visit( program );

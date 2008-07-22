@@ -62,10 +62,6 @@ public class VariablePath implements Expression, Cloneable
 		return new VariablePath( list, global );
 	}
 
-	/**
-	 * @param otherVarPath
-	 * @return
-	 */
 	public VariablePath containedSubPath( VariablePath otherVarPath )
 	{
 		// If one is global and the other is not, it's not a subpath.

@@ -24,16 +24,20 @@ package jolie.runtime;
 import java.util.Vector;
 
 import jolie.ExecutionThread;
-import jolie.StatelessThread;
 import jolie.process.Process;
 
 public class ParallelExecution
 {
-	class ParallelThread extends StatelessThread
+	class ParallelThread extends ExecutionThread
 	{
 		public ParallelThread( Process process )
 		{
-			super( ExecutionThread.currentThread(), process );
+			super( process, ExecutionThread.currentThread(), null );
+		}
+		
+		public jolie.State state()
+		{
+			return parent.state();
 		}
 
 		@Override
@@ -66,8 +70,9 @@ public class ParallelExecution
 			for( ParallelThread t : threads )
 				t.start();
 
+			ExecutionThread ethread;
 			while ( fault == null && !threads.isEmpty() ) {
-				ExecutionThread ethread = ExecutionThread.currentThread();
+				ethread = ExecutionThread.currentThread();
 				try {
 					ethread.setCanBeInterrupted( true );
 					wait();

@@ -22,14 +22,12 @@
 
 package jolie.net;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
+ * 
  * @author Fabrizio Montesi
  *
  */

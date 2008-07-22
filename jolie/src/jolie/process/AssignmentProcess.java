@@ -27,7 +27,9 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 
-/** Assigns an expression value to a Variable.
+/** Assigns an expression value to a VariablePath.
+ * @see Expression
+ * @see VariablePath
  * @author Fabrizio Montesi
  */
 public class AssignmentProcess implements Process, Expression
@@ -37,9 +39,9 @@ public class AssignmentProcess implements Process, Expression
 
 	/** Constructor.
 	 * 
-	 * @param var the variable which will receive the value.
-	 * @param expression the expression of which the evaluation will be stored in the variable.
-	 * @throws InvalidIdException if varId does not identify a variable.
+	 * @param varPath the variable which will receive the value
+	 * @param expression the expression of which the evaluation will be stored in the variable
+	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public AssignmentProcess( VariablePath varPath, Expression expression )
 	{

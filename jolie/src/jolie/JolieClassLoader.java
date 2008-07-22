@@ -36,6 +36,10 @@ import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 
+/**
+ * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
+ * @author Fabrizio Montesi
+ */
 public class JolieClassLoader extends URLClassLoader
 {
 	final private Interpreter interpreter;
@@ -177,6 +181,12 @@ public class JolieClassLoader extends URLClassLoader
 		checkForProtocolExtension( attrs );
 	}
 	
+	/**
+	 * Adds a Jar file to the pool of resource to look into for extensions.
+	 * @param jarName the Jar filename
+	 * @throws java.net.MalformedURLException
+	 * @throws java.io.IOException if the Jar file could not be found or if jarName does not refer to a Jar file
+	 */
 	public void addJarResource( String jarName )
 		throws MalformedURLException, IOException
 	{

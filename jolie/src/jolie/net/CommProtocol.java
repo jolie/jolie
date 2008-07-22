@@ -29,6 +29,10 @@ import java.io.OutputStream;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
+/**
+ * A CommProtocol implements a protocol for sending and receiving data under the form of CommMessage objects.
+ * @author Fabrizio Montesi
+ */
 abstract public class CommProtocol implements Cloneable
 {
 	final protected VariablePath configurationPath;

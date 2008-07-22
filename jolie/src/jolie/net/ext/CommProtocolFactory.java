@@ -28,22 +28,27 @@ import jolie.net.CommProtocol;
 import jolie.runtime.VariablePath;
 
 /**
- * 
+ * A factory for CommProtocol instances.
  * @author Fabrizio Montesi
  */
 abstract public class CommProtocolFactory
 {
 	protected CommCore commCore = null;
+	
+	/**
+	 * Sets the CommCore this factory should refer to for creating CommProtocol instances.
+	 * @param commCore the CommCore to refer to for creating CommProtocol instances.
+	 */
 	public void setCommCore( CommCore commCore )
 	{
 		this.commCore = commCore;
 	}
 	
 	/**
-	 * Used to create a protocol for a service element.
-	 * @param configurationPath
-	 * @param location
-	 * @return
+	 * Creates a CommProtocol instance
+	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
+	 * @param location the location the returned CommProtocol must refer to
+	 * @return a CommProtocol instance
 	 */
 	abstract public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException;

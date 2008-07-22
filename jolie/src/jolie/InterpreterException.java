@@ -21,6 +21,10 @@
 
 package jolie;
 
+/**
+ * Thrown by Interpreter if the interpretation tree could not be built
+ * @author Fabrizio Montesi
+ */
 public class InterpreterException extends Exception
 {
 	final private static long serialVersionUID = Constants.serialVersionUID();
