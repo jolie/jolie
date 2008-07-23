@@ -16,7 +16,7 @@ define checkFileExtension
 		type = "image/" + ext;
 		file.format = "binary";
 		c = request.("@UserAgent");
-		c.regex = ".*WebKit.*";
+		c.regex = "(.*WebKit.*)|(.*MSIE.*)";
 		match@StringUtils( c )( ret );
 		if ( ret == 1 ) {
 			format = "html"
