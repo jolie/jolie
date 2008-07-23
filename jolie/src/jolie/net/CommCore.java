@@ -31,9 +31,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -331,11 +331,13 @@ public class CommCore
 	}
 	
 	private class PollingThread extends Thread {
-		final private Set< CommChannel > channels = Collections.synchronizedSet( new HashSet< CommChannel >() );
+		final private Set< CommChannel > channels = new HashSet< CommChannel >();
 		
 		@Override
 		public void run()
 		{
+			Iterator< CommChannel > it;
+			CommChannel channel;
 			while( true ) {
 				synchronized( this ) {
 					if ( channels.isEmpty() ) {
@@ -344,9 +346,11 @@ public class CommCore
 							this.wait();
 						} catch( InterruptedException e ) {}
 					}
-					for( CommChannel channel : channels ) {
+					it = channels.iterator();
+					while( it.hasNext() ) {
+						channel = it.next();
 						if ( ((PollableCommChannel)channel).isReady() ) {
-							channels.remove( channel );
+							it.remove();
 							scheduleReceive( channel, channel.parentListener() );
 						}
 					}
