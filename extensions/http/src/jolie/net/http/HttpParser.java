@@ -141,7 +141,7 @@ public class HttpParser
 		} else if ( token.isKeyword( POST ) ) {
 			message = new HttpMessage( HttpMessage.Type.POST );
 		} else
-			throw new IOException( "Unknown HTTP request type: " + token.content() );
+			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
 		
 		message.setRequestPath( scanner.readWord().substring( 1 ) );
 		
