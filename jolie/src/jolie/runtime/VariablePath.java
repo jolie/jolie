@@ -21,20 +21,17 @@
 
 package jolie.runtime;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.State;
 import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
 public class VariablePath implements Expression, Cloneable
-{
-	private Map< ExecutionThread, Object > cache = new HashMap< ExecutionThread, Object >();	
-	
+{	
 	final private Pair< Expression, Expression >[] path; // Expression may be null
 	final private boolean global;
 	
@@ -122,16 +119,9 @@ public class VariablePath implements Expression, Cloneable
 		
 		return ExecutionThread.currentThread().state().root();
 	}
-
-	private void eraseCache( ExecutionThread ethread )
-	{
-		cache.remove( ethread );
-	}
 	
 	public void undef()
 	{
-		eraseCache( ExecutionThread.currentThread() );
-		
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
@@ -166,40 +156,11 @@ public class VariablePath implements Expression, Cloneable
 	
 	public Value getValue()
 	{
-		return getValue( null );
+		return getValue( getRootValue() );
 	}
-	
-	private void setCache( ExecutionThread ethread, Value value )
-	{
-	//	cache.put( ethread, value );
-	}
-	
-	private void setCache( ExecutionThread ethread, ValueVector vec )
-	{
-	//	cache.put( ethread, vec );
-	}
-	
-	private void setNullCache( ExecutionThread ethread )
-	{
-	//	cache.put( ethread, null );
-	}
-	
+
 	public Value getValue( Value rootValue )
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		Object o;
-		if ( (o=cache.get( ethread )) != null ) {
-			if ( o instanceof Value ) {
-				return (Value)o;
-			} else if ( o instanceof ValueVector ) {
-				return ((ValueVector)o).get( 0 );
-			}
-		}
-		
-		if ( rootValue == null ) {
-			rootValue = getRootValue();
-		}
-
 		Value currValue = rootValue;
 		String keyStr;
 		for( Pair< Expression, Expression > pair : path ) {
@@ -211,27 +172,12 @@ public class VariablePath implements Expression, Cloneable
 				currValue =
 					currValue.getChildren( keyStr ).get( pair.value().evaluate().intValue() );
 		}
-		
-		setCache( ethread, currValue );
+
 		return currValue;
 	}
 	
 	public Value getValueOrNull()
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		Object o;
-		if ( cache.containsKey( ethread ) ) {
-			if ( (o=cache.get( ethread )) == null ) {
-				return null;
-			} else {
-				if ( o instanceof Value ) {
-					return (Value)o;
-				} else if ( o instanceof ValueVector ) {
-					return ((ValueVector)o).get( 0 );
-				}
-			}
-		}
-		
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
@@ -241,55 +187,38 @@ public class VariablePath implements Expression, Cloneable
 			pair = path[i];
 			currVector = currValue.children().get( pair.key().evaluate().strValue() );
 			if ( currVector == null ) {
-				setNullCache( ethread );
 				return null;
 			}
 			if ( pair.value() == null ) {
 				if ( (i+1) < path.length ) {
 					if ( currVector.isEmpty() ) {
-						setNullCache( ethread );
 						return null;
 					}
 					currValue = currVector.get( 0 );
 				} else { // We're finished
 					if ( currVector.isEmpty() ) {
-						setNullCache( ethread );
 						return null;
 					} else {
-						setCache( ethread, currVector );
 						return currVector.get( 0 );
 					}
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( currVector.size() <= index ) {
-					setNullCache( ethread );
 					return null;
 				}
 				currValue = currVector.get( index );
 				if ( (i+1) >= path.length ) {
-					setCache( ethread, currValue );
 					return currValue;
 				}
 			}
 		}
 
-		setNullCache( ethread );
 		return null;
 	}
 	
 	public ValueVector getValueVector( Value rootValue )
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		Object o;
-		if ( (o=cache.get( ethread )) != null && o instanceof ValueVector ) {
-			return (ValueVector)o;
-		}
-		
-		if ( rootValue == null ) {
-			rootValue = getRootValue();
-		}
-		
 		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
 		Value currValue = rootValue;
@@ -305,14 +234,12 @@ public class VariablePath implements Expression, Cloneable
 				}
 			}
 		}
-		
-		setCache( ethread, currVector );
 		return currVector;
 	}
 	
 	public ValueVector getValueVector()
 	{
-		return getValueVector( null );
+		return getValueVector( getRootValue() );
 	}
 	
 	public void makePointer( VariablePath rightPath )
@@ -345,13 +272,7 @@ public class VariablePath implements Expression, Cloneable
 	}
 	
 	private Object getValueOrValueVector()
-	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		Object o;
-		if ( (o=cache.get( ethread )) != null ) {
-			return o;
-		}
-		
+	{	
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
 		Value currValue = getRootValue();
@@ -364,7 +285,6 @@ public class VariablePath implements Expression, Cloneable
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( 0 );
 				} else { // We're finished
-					setCache( ethread, currVector );
 					return currVector;
 				}
 			} else {
@@ -373,13 +293,11 @@ public class VariablePath implements Expression, Cloneable
 					currValue = currVector.get( index );
 				} else {
 					Value ret = currVector.get( index );
-					setCache( ethread, ret );
 					return ret;
 				}
 			}
 		}
 
-		setCache( ethread, currValue );
 		return currValue;
 	}
 	

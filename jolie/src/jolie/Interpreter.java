@@ -472,7 +472,7 @@ public class Interpreter
 		return helpBuilder.toString();
 	}
 	
-	private String getOptionString( String option, String description )
+	private static String getOptionString( String option, String description )
 	{
 		return( '\t' + option + "\t\t" + description + '\n' );
 	}
