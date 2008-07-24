@@ -35,6 +35,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -222,6 +223,14 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		try {
+			String charset = "", charsetParam;
+			charsetParam = message.value().getFirstChild( jolie.Constants.Predefined.CHARSET.token().content() ).strValue();
+			if ( charsetParam.isEmpty() ) {
+				charsetParam = getParameterVector( "charset" ).first().strValue();
+			}
+			if ( !charsetParam.isEmpty() ) {
+				charset = "; charset=" + charsetParam.toLowerCase();
+			}
 			String contentString = "";
 			String contentType = "text/plain";
 			String queryString = "";
@@ -258,7 +267,11 @@ public class HttpProtocol extends CommProtocol
 				}
 				contentType = "application/octet-stream";
 			} else if ( format.equals( "html" ) ) {
-				contentString = message.value().strValue();
+				if ( !charsetParam.isEmpty() ) {
+					binaryContent = new ByteArray( message.value().strValue().getBytes( charsetParam ) );
+				} else {
+					contentString = message.value().strValue();
+				}
 				contentType = "text/html";
 			} else if ( format.equals( "rest" ) ) {
 				StringBuilder querySB = new StringBuilder();
@@ -358,11 +371,6 @@ public class HttpProtocol extends CommProtocol
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 				channel.setToBeClosed( true );
 				messageString += "Connection: close" + CRLF;
-			}
-			
-			String charset = getParameterVector( "charset" ).first().strValue();
-			if ( !charset.isEmpty() ) {
-				charset = "; charset=" + charset;
 			}
 						
 			String t = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
