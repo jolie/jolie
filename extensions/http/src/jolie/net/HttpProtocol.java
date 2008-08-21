@@ -283,8 +283,11 @@ public class HttpProtocol extends CommProtocol
 					for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 						key = entry.getKey();
 						vec = entry.getValue();
-						for( Value v : vec )
-							querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
+						if ( !key.startsWith( "@" ) ) {
+							for( Value v : vec ) {
+								querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
+							}
+						}
 					}
 					queryString = querySB.substring( 0, querySB.length() - 1 );
 				}
@@ -366,6 +369,17 @@ public class HttpProtocol extends CommProtocol
 				messageString += "Host: " + uri.getHost() + CRLF;
 				
 				messageString += getCookieString( message, uri.getHost() );
+				
+				if ( message.value().hasChildren( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
+					Value v = message.value().getFirstChild( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
+					//String realm = v.getFirstChild( "realm" ).strValue();
+					String userpass =
+						v.getFirstChild( "userid" ).strValue() + ":" +
+						v.getFirstChild( "password" ).strValue();
+					sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+					userpass = encoder.encode( userpass.getBytes() );
+					messageString += "Authorization: Basic " + userpass + CRLF;
+				}
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
@@ -534,6 +548,7 @@ public class HttpProtocol extends CommProtocol
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Receiving:\n" );
+			debugSB.append( "HTTP Code: " + message.httpCode() + "\n" );
 			debugSB.append( "--> Header properties\n" );
 			for( Entry< String, String > entry : message.properties() ) {
 				debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
@@ -555,10 +570,11 @@ public class HttpProtocol extends CommProtocol
 		String opId = null;
 		
 		if ( message.size() > 0 ) {
+			String format = getParameterVector( "format" ).first().strValue();
 			String type = message.getProperty( "content-type" ).split( ";" )[0];
 			if ( "application/x-www-form-urlencoded".equals( type ) ) {
 				parseForm( message, messageValue );
-			} else if ( "text/xml".equals( type ) ) {
+			} else if ( "text/xml".equals( type ) || "rest".equals( format ) ) {
 				parseXML( message, messageValue );
 			} else if ( "text/x-gwt-rpc".equals( type ) ) {
 				opId = parseGWTRPC( message, messageValue );
