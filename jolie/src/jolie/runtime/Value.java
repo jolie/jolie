@@ -254,6 +254,11 @@ abstract public class Value implements Expression
 	abstract public Object valueObject();
 	abstract protected void setValueObject( Object object );
 
+	public boolean hasChildren( String childId )
+	{
+		return ( children().get( childId ) != null );
+	}
+	
 	public ValueVector getChildren( String childId )
 	{
 		final Map< String, ValueVector > myChildren = children();

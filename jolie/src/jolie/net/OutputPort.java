@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Vector;
 
+import jolie.Constants;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
@@ -41,7 +42,6 @@ import jolie.Interpreter;
 public class OutputPort extends AbstractIdentifiableObject
 {
 	final private Interpreter interpreter;
-	final private Collection< String > operations;
 	final private String protocolId;
 	final private Process configurationProcess;
 	final private VariablePath locationVariablePath, protocolConfigurationVariablePath;
@@ -49,7 +49,6 @@ public class OutputPort extends AbstractIdentifiableObject
 	public OutputPort(
 			Interpreter interpreter,
 			String id,
-			Collection< String > operations,
 			String protocolId,
 			Process protocolConfigurationProcess,
 			URI locationURI
@@ -57,14 +56,13 @@ public class OutputPort extends AbstractIdentifiableObject
 	{
 		super( id );
 		this.interpreter = interpreter;
-		this.operations = operations;
 		this.protocolId = protocolId;
 		
 		// Create the location VariablePath
 		Vector< Pair< Expression, Expression > > path =
 					new Vector< Pair< Expression, Expression > >();
 		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( "location" ), null ) );
+		path.add( new Pair< Expression, Expression >( Value.create( Constants.LOCATION_NODE_NAME ), null ) );
 		this.locationVariablePath = new VariablePath( path, false );
 		
 		// Create the configuration Process
@@ -77,7 +75,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		
 		path = new Vector< Pair< Expression, Expression > >();
 		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( "protocol" ), null ) );
+		path.add( new Pair< Expression, Expression >( Value.create( Constants.PROTOCOL_NODE_NAME ), null ) );
 		this.protocolConfigurationVariablePath = new VariablePath( path, false );
 	}
 	

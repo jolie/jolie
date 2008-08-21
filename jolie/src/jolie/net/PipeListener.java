@@ -131,12 +131,12 @@ public class PipeListener extends CommListener
 	public PipeListener(
 			Interpreter interpreter,
 			CommProtocol protocol,
-			Collection< InputPort > inputPorts,
+			Collection< String > operationNames,
 			Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, inputPorts, redirectionMap );
+		super( interpreter, protocol, operationNames, redirectionMap );
 	}
 	
 	public CommChannel createPipeCommChannel()

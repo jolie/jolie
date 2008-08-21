@@ -38,19 +38,19 @@ abstract public class CommListener extends JolieThread
 	private static int index = 0;
 
 	final private CommProtocol protocol;
-	final private Collection< InputPort > inputPorts;
+	final private Collection< String > operationNames;
 	final private Map< String, OutputPort > redirectionMap;
 	
 	public CommListener(
 				Interpreter interpreter,
 				CommProtocol protocol,
-				Collection< InputPort > inputPorts,
+				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 	{
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocol = protocol;
-		this.inputPorts = inputPorts;
+		this.operationNames = operationNames;
 		this.redirectionMap = redirectionMap;
 	}
 	
@@ -71,10 +71,11 @@ abstract public class CommListener extends JolieThread
 	 */
 	public boolean canHandleInputOperation( InputOperation operation )
 	{
-		for( InputPort port : inputPorts ) {
-			if ( port.operations().contains( operation ) )
-				return true;
-		}
-		return false;
+		return ( operationNames.contains( operation.id() ) );
+	}
+	
+	public boolean canHandleInputOperation( String operationName )
+	{
+		return ( operationNames.contains( operationName ) );
 	}
 }

@@ -33,12 +33,12 @@ public class SocketListenerFactory extends CommListenerFactory
 	public CommListener createListener(
 					Interpreter interpreter,
 					CommProtocol protocol,
-					Collection< InputPort > inputPorts,
+					Collection< String > operationNames,
 					Map< String, OutputPort > redirectionMap,
 					URI location
 				)
 		throws IOException
 	{
-		return new SocketListener( interpreter, protocol, location.getPort(), inputPorts, redirectionMap );
+		return new SocketListener( interpreter, protocol, location.getPort(), operationNames, redirectionMap );
 	}
 }

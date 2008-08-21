@@ -29,7 +29,6 @@ import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommListener;
 import jolie.net.CommProtocol;
-import jolie.net.InputPort;
 import jolie.net.OutputPort;
 
 /**
@@ -47,7 +46,7 @@ abstract public class CommListenerFactory
 	abstract public CommListener createListener(
 									Interpreter interpreter,
 									CommProtocol protocol,
-									Collection< InputPort > inputPorts,
+									Collection< String > operationNames,
 									Map< String, OutputPort > redirectionMap,
 									URI location
 								)

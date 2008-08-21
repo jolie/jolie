@@ -40,12 +40,12 @@ public class SocketListener extends CommListener
 				Interpreter interpreter,
 				CommProtocol protocol,
 				int port,
-				Collection< InputPort > inputPorts,
+				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, inputPorts, redirectionMap );
+		super( interpreter, protocol, operationNames, redirectionMap );
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();

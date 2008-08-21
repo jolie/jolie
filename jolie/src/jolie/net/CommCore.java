@@ -186,10 +186,10 @@ public class CommCore
 		listenerFactories.put( id, factory );
 	}
 	
-	public void addService(
+	public void addInputPort(
 				String serviceName,
 				URI uri,
-				Collection< InputPort > inputPorts,
+				Collection< String > operationNames,
 				CommProtocol protocol,
 				Process protocolConfigurationProcess,
 				Map< String, OutputPort > redirectionMap
@@ -206,7 +206,7 @@ public class CommCore
 			throw new UnsupportedCommMediumException( medium );
 		}
 
-		listener = factory.createListener( interpreter, protocol, inputPorts, redirectionMap, uri );
+		listener = factory.createListener( interpreter, protocol, operationNames, redirectionMap, uri );
 		listenersMap.put( serviceName, listener );
 	}
 	

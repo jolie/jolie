@@ -21,13 +21,18 @@
 
 package jolie;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.util.Enumeration;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
@@ -174,8 +179,7 @@ public class JolieClassLoader extends URLClassLoader
 	private void checkJarJolieExtensions( JarURLConnection jarConnection )
 		throws IOException
 	{
-		Manifest manifest = jarConnection.getManifest();
-		Attributes attrs = manifest.getMainAttributes();
+		Attributes attrs = jarConnection.getManifest().getMainAttributes();
 		checkForChannelExtension( attrs );
 		checkForListenerExtension( attrs );
 		checkForProtocolExtension( attrs );
@@ -196,7 +200,7 @@ public class JolieClassLoader extends URLClassLoader
 		}
 		addURL( new URL( "jar:" + url + "!/" ) );
 		URLConnection urlConn = url.openConnection();
-		if ( urlConn instanceof JarURLConnection ) {
+		if ( urlConn instanceof JarURLConnection ) {				
 			checkJarJolieExtensions( (JarURLConnection)urlConn );
 		} else {
 			throw new IOException( "Jar file not found: " + jarName );

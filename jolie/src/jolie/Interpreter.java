@@ -46,7 +46,6 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
-import jolie.net.InputPort;
 import jolie.net.OutputPort;
 import jolie.net.PipeListener;
 import jolie.process.DefinitionProcess;
@@ -83,7 +82,6 @@ public class Interpreter
 	
 	final private Map< String, DefinitionProcess > definitions = 
 				new HashMap< String, DefinitionProcess >();
-	final private Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
 	final private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
 	final private Map< String, InputOperation > inputOperations = 
 				new HashMap< String, InputOperation>();
@@ -202,22 +200,7 @@ public class Interpreter
 			throw new InvalidIdException( key );
 		return (OutputPort)ret;
 	}
-	
-	/**
-	 * Returns the InputPort identified by key.
-	 * @param key the name of the InputPort to return
-	 * @return the InputPort identified by key
-	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested InputPort
-	 */
-	public InputPort getInputPort( String key )
-		throws InvalidIdException
-	{
-		InputPort ret;
-		if ( (ret=inputPorts.get( key )) == null )
-			throw new InvalidIdException( key );
-		return (InputPort)ret;
-	}
-	
+
 	/**
 	 * Returns the Definition identified by key.
 	 * @param key the name of the Definition to return
@@ -233,11 +216,6 @@ public class Interpreter
 		return ret;
 	}
 
-	public void register( String key, InputPort value )
-	{
-		inputPorts.put( key, value );
-	}
-	
 	public void register( String key, OutputPort value )
 	{
 		outputPorts.put( key, value );
