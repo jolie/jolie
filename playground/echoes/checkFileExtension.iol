@@ -19,7 +19,8 @@ define checkFileExtension
 		c.regex = "(.*WebKit.*)|(.*MSIE.*)";
 		match@StringUtils( c )( ret );
 		if ( ret == 1 ) {
-			format = "html"
+			format = "html";
+			charset = "ISO-8859-1"
 		} else {
 			format = "binary"
 		}

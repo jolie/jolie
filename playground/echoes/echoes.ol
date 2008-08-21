@@ -5,8 +5,8 @@ include "string_utils.iol"
 include "config.iol"
 
 constants {
-	Location_EventClientService = "socket://192.168.1.20:10111"
-	//Location_EventClientService = "socket://localhost:10111"
+	//Location_EventClientService = "socket://192.168.1.20:10111"
+	Location_EventClientService = "socket://localhost:10111"
 }
 
 cset {
@@ -15,12 +15,12 @@ cset {
 
 execution { concurrent }
 
-inputPort __HttpPort {
+interface __HttpInterface {
 RequestResponse:
 	default
 }
 
-inputPort EventClientPort {
+interface EventClientInterface {
 OneWay:
 	receiveEvent
 }
@@ -28,7 +28,7 @@ OneWay:
 /**
  * Put your custom RR operations here.
  */
-inputPort JAmaroidPort {
+interface EchoesInterface {
 RequestResponse:
 	play, pause,
 	previous, next,
@@ -40,15 +40,15 @@ RequestResponse:
 
 outputPort Amarok {
 Protocol: sodep
-Notification:
+OneWay:
 	play, pause, previous,
 	next, playByIndex, setVolume
-SolicitResponse:
+RequestResponse:
 	getLyrics, getPlaylist,
 	getNowPlaying, getVolume
 }
 
-inputPort ClientHandlingPort {
+interface ClientHandlingInterface {
 OneWay:
 	fireClientUpdate, cancelWaitForEvent
 }
@@ -56,33 +56,33 @@ OneWay:
 outputPort Myself {
 Location: Location_EventClientService
 Protocol: sodep
-Notification:
+OneWay:
 	fireClientUpdate, cancelWaitForEvent
 }
 
 outputPort EventManager {
 Protocol: sodep
-Notification:
+OneWay:
 	register, unregister, registerForAll
 }
 
-service EventClientService {
+inputPort EventClientService {
 Protocol: sodep
 Location: Location_EventClientService
-Ports: EventClientPort, ClientHandlingPort
+Interfaces: EventClientInterface, ClientHandlingInterface
 }
 
 /**
  * You can add more custom input ports by adding them here.
  */
-service HttpService {
+inputPort HttpService {
 Protocol: http {
 	.format = "html"; .default = "default";
 	.debug = DebugHttp; .debug.showContent = DebugHttpContent;
 	.keepAlive = 0
 }
 Location: Location_HttpService
-Ports: __HttpPort, JAmaroidPort
+Interfaces: __HttpInterface, EchoesInterface
 }
 
 include "checkFileExtension.iol"
@@ -133,6 +133,9 @@ main
 			};
 			if ( is_defined( format ) ) {
 				response.("@Format") = format
+			};
+			if ( is_defined( charset ) ) {
+				response.("@Charset") = charset
 			}
 		}
 	} ] { nullProcess }
