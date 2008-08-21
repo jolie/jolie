@@ -1,5 +1,5 @@
 outputPort StringUtils {
-SolicitResponse:
+RequestResponse:
 	replaceAll, split, trim, contains
 }
 

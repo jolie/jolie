@@ -1,7 +1,7 @@
 outputPort Time {
-Notification:
+OneWay:
 	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
-SolicitResponse:
+RequestResponse:
 	getCurrentDateTime, sleep
 }
 

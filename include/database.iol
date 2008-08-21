@@ -1,5 +1,5 @@
 outputPort Database {
-SolicitResponse:
+RequestResponse:
 	connect, query, update
 }
 

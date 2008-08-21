@@ -1,5 +1,5 @@
 outputPort Exec {
-SolicitResponse:
+RequestResponse:
 	exec
 }
 

@@ -1,5 +1,5 @@
 outputPort File {
-SolicitResponse:
+RequestResponse:
 	readFile
 }
 

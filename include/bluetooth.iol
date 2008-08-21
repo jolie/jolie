@@ -1,7 +1,7 @@
 outputPort Bluetooth {
-Notification:
+OneWay:
 	setDiscoverable
-SolicitResponse:
+RequestResponse:
 	inquire, discoveryServices
 }
 

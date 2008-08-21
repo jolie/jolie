@@ -1,6 +1,7 @@
 execution { sequential }
 
 inputPort EventPort {
+Location: "local"
 OneWay:
 	/**
 	 * Registers a location for receiving a certain event when it occurs.
@@ -38,7 +39,7 @@ OneWay:
 
 outputPort Client {
 Protocol: sodep
-Notification:
+OneWay:
 	receiveEvent
 }
 

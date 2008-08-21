@@ -1,11 +1,12 @@
 inputPort ConsoleInputPort {
+Location: "local"
 OneWay:
 	in
 }
 
 outputPort Console {
-Notification:
-	print, println
+OneWay:
+	print, println, registerForInput
 }
 
 embedded {
