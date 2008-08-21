@@ -32,7 +32,7 @@ constants {
 
 execution { sequential }
 
-inputPort AmarokInput {
+interface AmarokInterface {
 OneWay:
 	play, pause, previous,
 	next, playByIndex, setVolume
@@ -42,7 +42,7 @@ RequestResponse:
 }
 
 outputPort EventManager {
-Notification:
+OneWay:
 	register,
 	unregister,
 	registerForAll,
@@ -50,7 +50,7 @@ Notification:
 }
 
 outputPort Poller {
-Notification:
+OneWay:
 	setEventManagerLocation,
 	start, setAmarokServiceLocation
 }
@@ -61,13 +61,12 @@ Jolie:
 	"amarokPoller.ol" in Poller
 }
 
-service AmarokService {
+inputPort AmarokService {
 Location: Location_AmarokService
 Protocol: sodep
-Ports: AmarokInput
-Redirects {
+Interfaces: AmarokInterface
+Redirects:
 	EventManager => EventManager
-}
 }
 
 init
@@ -81,20 +80,20 @@ init
 
 main
 {
-	[ play( request ) ] {
+	[ play() ] {
 // EVENT HERE!
 		exec@Exec( DCOPPrefix + "player play" )()
 	}
 	
-	[ pause( request ) ] {
+	[ pause() ] {
 		exec@Exec( DCOPPrefix + "player pause" )()
 	}
 
-	[ previous( request ) ] {
+	[ previous() ] {
 		exec@Exec( DCOPPrefix + "player prev" )()
 	}
 
-	[ next( request ) ] {
+	[ next() ] {
 		exec@Exec( DCOPPrefix + "player next" )()
 	}
 

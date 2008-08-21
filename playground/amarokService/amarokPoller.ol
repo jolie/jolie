@@ -29,18 +29,19 @@ constants {
 }
 
 outputPort EventManager {
-Notification:
+OneWay:
 	fireEvent
 }
 
 outputPort Amarok {
 Protocol: sodep
-SolicitResponse:
+RequestResponse:
 	getPlaylist,
 	getNowPlaying, getVolume
 }
 
 inputPort PollerPort {
+Location: "local"
 OneWay:
 	setEventManagerLocation,
 	start,
