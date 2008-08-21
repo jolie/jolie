@@ -27,10 +27,8 @@ import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.bluetooth.DiscoveryAgent;
 import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.L2CAPConnectionNotifier;
-import javax.bluetooth.LocalDevice;
 import javax.microedition.io.Connector;
 import jolie.Interpreter;
 
@@ -41,12 +39,12 @@ public class BTL2CapListener extends CommListener
 				Interpreter interpreter,
 				URI location,
 				CommProtocol protocol,
-				Collection< InputPort > inputPorts,
+				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, inputPorts, redirectionMap );
+		super( interpreter, protocol, operationNames, redirectionMap );
 		connectionNotifier =
 				(L2CAPConnectionNotifier)Connector.open( location.toString() );
 	}

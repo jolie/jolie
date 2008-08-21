@@ -36,12 +36,12 @@ public class BTL2CapListenerFactory extends CommListenerFactory
 	public CommListener createListener(
 							Interpreter interpreter,
 							CommProtocol protocol,
-							Collection< InputPort > inputPorts,
+							Collection< String > operationNames,
 							Map< String, OutputPort > redirectionMap,
 							URI location
 						)
 		throws IOException
 	{
-		return new BTL2CapListener( interpreter, location, protocol, inputPorts, redirectionMap );
+		return new BTL2CapListener( interpreter, location, protocol, operationNames, redirectionMap );
 	}
 }
