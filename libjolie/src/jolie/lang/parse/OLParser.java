@@ -550,7 +550,7 @@ public class OLParser extends AbstractParser
 			} else if ( token.is( Scanner.TokenType.OP_RR ) ) {
 				parseRequestResponseOperations( p );
 			} else if ( token.isKeyword( "Interfaces" ) ) {
-				eat( Scanner.TokenType.ID, "expected Interfaces" );
+				getToken();
 				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
 				boolean r = true;
 				while( r ) {
@@ -560,6 +560,7 @@ public class OLParser extends AbstractParser
 						throwException( "Invalid interface name: " + token.content() );
 					}
 					i.copyTo( p );
+					getToken();
 					
 					if ( token.is( Scanner.TokenType.COMMA ) ) {
 						getToken();
