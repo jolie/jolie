@@ -18,72 +18,74 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie;
 
 import java.nio.charset.Charset;
 import jolie.lang.parse.Scanner;
 
-
 public final class Constants
 {
-	static public class Manifest {
+	static public class Manifest
+	{
 		final public static String ChannelExtension = "X-JOLIE-ChannelExtension";
 		final public static String ListenerExtension = "X-JOLIE-ListenerExtension";
 		final public static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
 	}
-	
-	static public enum Predefined {
+
+	static public enum Predefined
+	{
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
+		CHARSET( "@Charset", "@Charset" ),
 		CONTENT_TYPE( "@ContentType", "@ContentType" ),
 		CONTENT_TRANSFER_ENCODING( "@ContentTransferEncoding", "@ContentTransferEncoding" ),
 		COOKIES( "@Cookies", "@Cookies" ),
 		FORMAT( "@Format", "@Format" ),
+		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
 		PI( "PI", java.lang.Math.PI ),
 		REDIRECT( "@Redirect", "@Redirect" ),
 		USER_AGENT( "@UserAgent", "@UserAgent" );
-
 		private final String id;
 		private final Scanner.Token token;
-		
+
 		public static Predefined get( String id )
 		{
-			for( Predefined p : Predefined.values() ) {
-				if ( p.id.equals( id ) )
+			for ( Predefined p : Predefined.values() ) {
+				if ( p.id.equals( id ) ) {
 					return p;
+				}
 			}
 			return null;
 		}
-		
+
 		Predefined( String id, String content )
 		{
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.STRING, content );
 		}
-		
+
 		Predefined( String id, Integer content )
 		{
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.INT, content.toString() );
 		}
-		
+
 		Predefined( String id, Double content )
 		{
 			this.id = id;
 			this.token = new Scanner.Token( Scanner.TokenType.REAL, content.toString() );
 		}
-		
+
 		public String id()
 		{
 			return id;
 		}
-		
+
 		public Scanner.Token token()
 		{
 			return token;
 		}
 	}
-	
+
 	public static enum ValueType
 	{
 		UNDEFINED,
@@ -91,24 +93,28 @@ public final class Constants
 		INT,
 		DOUBLE
 	}
-	
+	public static final String INPUT_PORTS_NODE_NAME = "inputPorts";
+	public static final String PROTOCOL_NODE_NAME = "protocol";
+	public static final String LOCATION_NODE_NAME = "location";
+	public static final String LOCAL_LOCATION_KEYWORD = "local";
 	public static final String VERSION = "JOLIE 1.0_alpha2";
 	public static final String COPYRIGHT = "(C) 2006-2007-2008 the JOLIE team";
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static String fileSeparator = System.getProperty( "file.separator" );
 	public static String pathSeparator = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
-	
 	public static final Charset defaultCharset;
 	
+
 	static {
 		defaultCharset = Charset.forName( "UTF-8" );
 	}
-	
-	public enum EmbeddedServiceType {
+
+	public enum EmbeddedServiceType
+	{
 		JAVA, JOLIE, UNSUPPORTED
 	}
-	
+
 	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
 	{
 		if ( "jolie".equalsIgnoreCase( str ) ) {
@@ -116,23 +122,29 @@ public final class Constants
 		} else if ( "java".equalsIgnoreCase( str ) ) {
 			return EmbeddedServiceType.JAVA;
 		}
-		
+
 		return EmbeddedServiceType.UNSUPPORTED;
 	}
-	
-	public enum ExecutionMode {
+
+	public enum ExecutionMode
+	{
 		SINGLE, SEQUENTIAL, CONCURRENT
 	}
-	
-	public enum OperationType {
+
+	public enum OperationType
+	{
 		ONE_WAY,
 		REQUEST_RESPONSE
 	}
-	
-	public enum OperandType {
+
+	public enum OperandType
+	{
 		ADD, SUBTRACT,
 		MULTIPLY, DIVIDE
 	}
-		
-	public static long serialVersionUID() { return 1L; }
+
+	public static long serialVersionUID()
+	{
+		return 1L;
+	}
 }

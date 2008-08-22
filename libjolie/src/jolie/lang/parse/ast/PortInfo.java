@@ -21,13 +21,13 @@
 
 package jolie.lang.parse.ast;
 
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import jolie.lang.parse.ParsingContext;
 
-abstract public class PortInfo extends OLSyntaxNode
+abstract public class PortInfo extends OLSyntaxNode implements OperationCollector
 {
 	final private String id;
 	final private Map< String, OperationDeclaration > operationsMap =
@@ -39,6 +39,11 @@ abstract public class PortInfo extends OLSyntaxNode
 		this.id = id;
 	}
 	
+	public String id()
+	{
+		return id;
+	}
+	
 	public Collection< OperationDeclaration > operations()
 	{
 		return operationsMap.values();
@@ -47,11 +52,6 @@ abstract public class PortInfo extends OLSyntaxNode
 	public Map< String, OperationDeclaration > operationsMap()
 	{
 		return operationsMap;
-	}
-	
-	public String id()
-	{
-		return id;
 	}
 	
 	public void addOperation( OperationDeclaration decl )

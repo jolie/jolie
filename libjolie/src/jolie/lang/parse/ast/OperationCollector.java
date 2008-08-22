@@ -21,73 +21,11 @@
 
 package jolie.lang.parse.ast;
 
-import java.net.URI;
-import java.util.Collection;
 import java.util.Map;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
 
-public class ServiceInfo extends OLSyntaxNode
+public interface OperationCollector
 {
-	final private String id;
-	final private URI location;
-	final private Collection< String > inputPorts;
-	final private String protocolId;
-	final private OLSyntaxNode protocolConfiguration;
-	final private Map< String, String > redirectionMap;
-	
-	public ServiceInfo(
-			ParsingContext context,
-			String id,
-			URI location,
-			Collection< String > inputPorts,
-			String protocolId,
-			OLSyntaxNode protocolConfiguration,
-			Map< String, String > redirectionMap
-			)
-	{
-		super( context );
-		this.id = id;
-		this.location = location;
-		this.inputPorts = inputPorts;
-		this.protocolId = protocolId;
-		this.protocolConfiguration = protocolConfiguration;
-		this.redirectionMap = redirectionMap;
-	}
-	
-	public Map< String, String > redirectionMap()
-	{
-		return redirectionMap;
-	}
-	
-	public String id()
-	{
-		return id;
-	}
-	
-	public OLSyntaxNode protocolConfiguration()
-	{
-		return protocolConfiguration;
-	}
-	
-	public String protocolId()
-	{
-		return protocolId;
-	}
-	
-	public Collection< String > inputPorts()
-	{
-		return inputPorts;
-	}
-	
-	public URI location()
-	{
-		return location;
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
-	}
+	public Map< String, OperationDeclaration > operationsMap();
+	public void addOperation( OperationDeclaration decl );
 }

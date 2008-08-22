@@ -18,19 +18,58 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.lang.parse.ast;
+
+import java.net.URI;
+import java.util.Map;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
 public class InputPortInfo extends PortInfo
-{	
-	public InputPortInfo( ParsingContext context, String id )
+{
+	final private String id;
+	final private URI location;
+	final private String protocolId;
+	final private OLSyntaxNode protocolConfiguration;
+	final private Map< String, String > redirectionMap;
+
+	public InputPortInfo(
+		ParsingContext context,
+		String id,
+		URI location,
+		String protocolId,
+		OLSyntaxNode protocolConfiguration,
+		Map< String, String > redirectionMap )
 	{
 		super( context, id );
+		this.id = id;
+		this.location = location;
+		this.protocolId = protocolId;
+		this.protocolConfiguration = protocolConfiguration;
+		this.redirectionMap = redirectionMap;
 	}
-	
+
+	public Map<String, String> redirectionMap()
+	{
+		return redirectionMap;
+	}
+
+	public OLSyntaxNode protocolConfiguration()
+	{
+		return protocolConfiguration;
+	}
+
+	public String protocolId()
+	{
+		return protocolId;
+	}
+
+	public URI location()
+	{
+		return location;
+	}
+
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

@@ -65,8 +65,6 @@ public class Scanner
 		COLON,				///< :
 		OP_OW,				///< OneWay
 		OP_RR,				///< RequestResponse
-		OP_N,				///< Notification
-		OP_SR,				///< SolicitResponse
 		DEFINE, 			///< define
 		MAJOR_OR_EQUAL,		///< >=
 		MINOR_OR_EQUAL,		///< <=
@@ -303,7 +301,7 @@ public class Scanner
 				 */
 
 				case 1:	// First character
-					if ( Character.isLetter( ch ) )
+					if ( Character.isLetter( ch ) || ch == '_' )
 						state = 2;
 					else if ( Character.isDigit( ch ) )
 						state = 3;
@@ -371,10 +369,6 @@ public class Scanner
 							retval = new Token( TokenType.OP_OW );
 						else if ( "RequestResponse".equals( str ) )
 							retval = new Token( TokenType.OP_RR );
-						else if ( "Notification".equals( str ) )
-							retval = new Token( TokenType.OP_N );
-						else if ( "SolicitResponse".equals( str ) )
-							retval = new Token( TokenType.OP_SR );
 						else if ( "linkIn".equals( str ) )
 							retval = new Token( TokenType.LINKIN );
 						else if ( "linkOut".equals( str ) )

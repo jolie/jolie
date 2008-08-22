@@ -40,7 +40,6 @@ import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
@@ -48,7 +47,6 @@ import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
-import jolie.lang.parse.ast.NotificationOperationDeclaration;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -69,8 +67,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.ServiceInfo;
-import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
@@ -127,11 +124,6 @@ public class OLParseTreeOptimizer
 			program.addChild( p );
 		}
 		
-		public void visit( InputPortInfo p )
-		{
-			program.addChild( p );
-		}
-		
 		public void visit( OutputPortInfo p )
 		{
 			if ( p.protocolConfiguration() != null ) {
@@ -141,35 +133,30 @@ public class OLParseTreeOptimizer
 			program.addChild( p	);
 		}
 
-		public void visit( ServiceInfo p )
+		public void visit( InputPortInfo p )
 		{
 			if ( p.protocolConfiguration() != null ) {
 				p.protocolConfiguration().accept( this );
-				program.addChild(
-						new ServiceInfo(
+				InputPortInfo iport =
+						new InputPortInfo(
 								p.context(),
 								p.id(),
 								p.location(),
-								p.inputPorts(),
 								p.protocolId(),
 								currNode,
 								p.redirectionMap()
-						)
-					);
-			} else
+						);
+				iport.operationsMap().putAll( p.operationsMap() );
+				program.addChild( iport );
+			} else {
 				program.addChild( p );
+			}
 		}
 	
 		public void visit( OneWayOperationDeclaration decl )
 		{}
-		
-		public void visit( NotificationOperationDeclaration decl )
-		{}
-		
+
 		public void visit( RequestResponseOperationDeclaration decl )
-		{}
-		
-		public void visit( SolicitResponseOperationDeclaration decl )
 		{}
 		
 		public void visit( EmbeddedServiceNode n )

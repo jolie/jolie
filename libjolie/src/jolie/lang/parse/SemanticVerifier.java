@@ -53,7 +53,6 @@ import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
-import jolie.lang.parse.ast.NotificationOperationDeclaration;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -75,8 +74,7 @@ import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.ServiceInfo;
-import jolie.lang.parse.ast.SolicitResponseOperationDeclaration;
+import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
@@ -144,7 +142,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( InputPortInfo n )
 	{
 		if ( inputPorts.get( n.id() ) != null )
-			error( n, "input port type " + n.id() + " has been already defined" );
+			error( n, "input port " + n.id() + " has been already defined" );
 		inputPorts.put( n.id(), n );
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
@@ -153,19 +151,11 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( OutputPortInfo n )
 	{
 		if ( outputPorts.get( n.id() ) != null )
-			error( n, "output port type " + n.id() + " has been already defined" );
+			error( n, "output port " + n.id() + " has been already defined" );
 		outputPorts.put( n.id(), n );
 		
 		for( OperationDeclaration op : n.operations() )
 			op.accept( this );
-	}
-
-	public void visit( ServiceInfo n )
-	{
-		for( String p : n.inputPorts() ) {
-			if ( inputPorts.get( p ) == null )
-				error( n, "Service at URI " + n.location().toString() + " specifies an undefined port (" + p + ")" );
-		}
 	}
 	
 	private boolean isDefined( String id )
@@ -180,25 +170,21 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( OneWayOperationDeclaration n )
 	{
-		if ( isDefined( n.id() ) )
+/*		if ( isDefined( n.id() ) )
 			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
 			operations.put( n.id(), n );
+ **/
 	}
 		
 	public void visit( RequestResponseOperationDeclaration n )
 	{
-		if ( isDefined( n.id() ) )
+/*		if ( isDefined( n.id() ) )
 			error( n, "Operation " + n.id() + " uses an already defined identifier" );
 		else
 			operations.put( n.id(), n );
+ */
 	}
-		
-	public void visit( NotificationOperationDeclaration n )
-	{}
-		
-	public void visit( SolicitResponseOperationDeclaration n )
-	{}
 		
 	public void visit( DefinitionNode n )
 	{
@@ -242,8 +228,8 @@ public class SemanticVerifier implements OLVisitor
 			OperationDeclaration decl = p.operationsMap().get( n.id() );
 			if ( decl == null )
 				error( n, "Operation " + n.id() + " has not been declared in output port type " + p.id() );
-			else if ( !( decl instanceof NotificationOperationDeclaration ) )
-				error( n, "Operation " + n.id() + " is not a valid notification operation in output port type " + p.id() );
+			else if ( !( decl instanceof OneWayOperationDeclaration ) )
+				error( n, "Operation " + n.id() + " is not a valid one-way operation in output port " + p.id() );
 		} 
 	}
 	
@@ -255,9 +241,9 @@ public class SemanticVerifier implements OLVisitor
 		else {
 			OperationDeclaration decl = p.operationsMap().get( n.id() );
 			if ( decl == null )
-				error( n, "Operation " + n.id() + " has not been declared in output port type " + p.id() );
-			else if ( !( decl instanceof SolicitResponseOperationDeclaration ) )
-				error( n, "Operation " + n.id() + " is not a valid solicit response operation in output port type " + p.id() );
+				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
+			else if ( !( decl instanceof RequestResponseOperationDeclaration ) )
+				error( n, "Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
 		} 
 	}
 	
