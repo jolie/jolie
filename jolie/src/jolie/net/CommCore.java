@@ -134,7 +134,7 @@ public class CommCore
 		return protocolConfigurations;
 	}
 	
-	public CommListener getListenerByServiceName( String serviceName )
+	public CommListener getListenerByInputPortName( String serviceName )
 	{
 		return listenersMap.get( serviceName );
 	}
