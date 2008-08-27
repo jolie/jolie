@@ -21,6 +21,7 @@
 
 package jolie.net.http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -200,6 +201,21 @@ public class HttpParser
 		while( (r+=stream.read( buffer, offset+r, length-r )) < length ); 
 	}
 	
+	private static final int BLOCK_SIZE = 1024;
+	
+	public static byte[] readAll( InputStream stream )
+		throws IOException
+	{
+		int r = 0;
+		ByteArrayOutputStream c = new ByteArrayOutputStream();
+		byte[] tmp = new byte[ BLOCK_SIZE ];
+		while( (r=stream.read( tmp, 0, BLOCK_SIZE )) != -1 ) {
+			c.write( tmp, 0, r );
+			tmp = new byte[ BLOCK_SIZE ];
+		}
+		return c.toByteArray();
+	}
+	
 	private void readContent( HttpMessage message )
 		throws IOException
 	{
@@ -266,10 +282,7 @@ public class HttpParser
 				!message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" )
 				)
 			) {
-				contentLength = scanner.inputStream().available();
-				buffer = new byte[ contentLength ];
-				InputStream stream = scanner.inputStream();
-				blockingRead( stream, buffer, 0, contentLength );
+				buffer = readAll( scanner.inputStream() );
 			}
 		}
 		
