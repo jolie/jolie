@@ -327,10 +327,10 @@ public class Interpreter
 	{
 		String olFilepath = null;
 		int connectionsLimit = -1;
-		Vector< String > includeVec = new Vector< String > ();
+		LinkedList< String > includeList = new LinkedList< String > ();
 		String pwd = new File( "" ).getCanonicalPath();
-		includeVec.add( pwd );
-		includeVec.add( "include" );
+		includeList.add( pwd );
+		includeList.add( "include" );
 		Vector< String > libVec = new Vector< String > ();
 		libVec.add( pwd );
 		libVec.add( "ext" );
@@ -342,7 +342,7 @@ public class Interpreter
 				i++;
 				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
 				for( String s : tmp ) {
-					includeVec.add( s );
+					includeList.add( s );
 				}
 			} else if ( "-l".equals( args[ i ] ) ) {
 				i++;
@@ -393,21 +393,19 @@ public class Interpreter
 		}
 		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
 		
-		includePaths = includeVec.toArray( includePaths );
-		
 		if ( olFilepath == null )
 			throw new CommandLineException( "Input file not specified." );
 		
 		this.args = args;
 		
 		InputStream olStream = null;
-		try {
-			olStream = new FileInputStream( olFilepath );
-		} catch( FileNotFoundException e ) {
-			File f;
-			for( int i = 0; i < includePaths.length && olStream == null; i++ ) {
+		File f = new File( olFilepath );
+		if ( f.exists() ) {
+			olStream = new FileInputStream( f );
+		} else {
+			for( int i = 0; i < includeList.size() && olStream == null; i++ ) {
 				f = new File(
-							includePaths[ i ] +
+							includeList.get( i ) +
 							jolie.Constants.fileSeparator +
 							olFilepath
 						);
@@ -415,10 +413,15 @@ public class Interpreter
 					olStream = new FileInputStream( f );
 				}
 			}
-			if ( olStream == null ) {
-				throw new FileNotFoundException( olFilepath );
-			}
 		}
+		if ( olStream == null ) {
+			throw new FileNotFoundException( olFilepath );
+		}
+		if ( f.getParent() != null ) {
+			includeList.addFirst( f.getParent() );
+		}
+		
+		includePaths = includeList.toArray( includePaths );
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
 	}
 	

@@ -309,18 +309,22 @@ abstract public class Value implements Expression
 		
 	public boolean equals( Value val )
 	{
+		boolean r = false;
 		if ( val.isDefined() ) {
 			if ( isString() ) {
-				return strValue().equals( val.strValue() );
+				r = strValue().equals( val.strValue() );
 			} else if ( isInt() ) {
-				return intValue() == val.intValue();
+				r = intValue() == val.intValue();
 			} else if ( isDouble() ) {
-				return doubleValue() == val.doubleValue();
+				r = doubleValue() == val.doubleValue();
 			} else if ( valueObject() != null ) {
-				return valueObject().equals( val.valueObject() );
+				r = valueObject().equals( val.valueObject() );
 			}
+		} else {
+			// undefined == undefined
+			r = !isDefined();
 		}
-		return( !isDefined() );
+		return r;
 	}
 	
 	public final boolean isInt()

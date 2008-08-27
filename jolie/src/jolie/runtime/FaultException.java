@@ -45,7 +45,7 @@ public class FaultException extends Exception
 	public FaultException( Throwable t )
 	{
 		super();
-		this.faultName = t.getClass().getName();
+		this.faultName = t.getClass().getSimpleName();
 		this.value = Value.create( t.getMessage() );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
