@@ -684,13 +684,15 @@ public class OLParser extends AbstractParser
 
 		}
 	}
+	
+	private SequenceStatement initSequence = null;
 
 	private void parseCode()
 		throws IOException, ParserException
 	{
 		boolean mainDefined = false;
 		boolean keepRun = true;
-		boolean initDefined = false;
+
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) ) {
 				program.addChild( parseDefinition() );
@@ -702,13 +704,12 @@ public class OLParser extends AbstractParser
 				program.addChild( parseMain() );
 				mainDefined = true;
 			} else if ( token.is( Scanner.TokenType.INIT ) ) {
-				if ( initDefined ) {
-					throwException( "you can specify only one init definition" );
+				if ( initSequence == null ) {
+					initSequence = new SequenceStatement( getContext() );
+					program.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
 				}
 
-				program.addChild( parseInit() );
-				initDefined =
-					true;
+				initSequence.addChild( parseInit() );
 			} else {
 				keepRun = false;
 			}
@@ -728,13 +729,13 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 
-	private DefinitionNode parseInit()
+	private OLSyntaxNode parseInit()
 		throws IOException, ParserException
 	{
 		getToken();
 		eat(
 			Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
-		DefinitionNode retVal = new DefinitionNode( getContext(), "init", parseProcess() );
+		OLSyntaxNode retVal = parseProcess();
 		eat(
 			Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
