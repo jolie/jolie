@@ -591,8 +591,9 @@ public class HttpProtocol extends CommProtocol
 				message.type() == HttpMessage.Type.POST ||
 				message.type() == HttpMessage.Type.GET ) {
 			if ( opId == null ) {
-				opId = message.requestPath();
+				opId = message.requestPath().split( "\\?" )[0];
 			}
+			
 			InputOperation op = null;
 			try {
 				op = Interpreter.getInstance().getInputOperation( opId );
