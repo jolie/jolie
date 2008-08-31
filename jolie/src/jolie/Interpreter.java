@@ -192,13 +192,22 @@ public class Interpreter
 	 * @return the OutputPort identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested OutputPort
 	 */
-	public OutputPort getOutputPort( String key )
+	public synchronized OutputPort getOutputPort( String key )
 		throws InvalidIdException
 	{
 		OutputPort ret;
 		if ( (ret=outputPorts.get( key )) == null )
 			throw new InvalidIdException( key );
 		return (OutputPort)ret;
+	}
+	
+	/**
+	 * Removes a registered OutputPort.
+	 * @param key the name of the OutputPort to remove
+	 */
+	public synchronized void removeOutputPort( String key )
+	{
+		outputPorts.remove( key );
 	}
 
 	/**
