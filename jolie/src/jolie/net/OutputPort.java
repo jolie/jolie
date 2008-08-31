@@ -24,8 +24,6 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Vector;
 
 import jolie.Constants;
 import jolie.process.AssignmentProcess;
@@ -33,19 +31,43 @@ import jolie.process.NullProcess;
 import jolie.process.Process;
 import jolie.process.SequentialProcess;
 import jolie.runtime.AbstractIdentifiableObject;
-import jolie.runtime.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.util.Pair;
 import jolie.Interpreter;
+import jolie.runtime.VariablePathBuilder;
 
 public class OutputPort extends AbstractIdentifiableObject
 {
 	final private Interpreter interpreter;
-	final private String protocolId;
 	final private Process configurationProcess;
-	final private VariablePath locationVariablePath, protocolConfigurationVariablePath;
+	final private VariablePath
+				locationVariablePath,
+				protocolVariablePath;
 
+	/* To be called at runtime, after main is run.
+	 * Requires the caller to set the variables by itself.
+	 */
+	public OutputPort( Interpreter interpreter, String id )
+	{
+		super( id );
+		this.interpreter = interpreter;
+
+		this.protocolVariablePath =
+					new VariablePathBuilder( false )
+					.add( id(), 0 )
+					.add( Constants.PROTOCOL_NODE_NAME, 0 )
+					.toVariablePath();
+		
+		this.locationVariablePath =
+					new VariablePathBuilder( false )
+					.add( id(), 0 )
+					.add( Constants.LOCATION_NODE_NAME, 0 )
+					.toVariablePath();
+
+		this.configurationProcess = null;
+	}
+	
+	// To be called by OOITBuilder
 	public OutputPort(
 			Interpreter interpreter,
 			String id,
@@ -56,27 +78,29 @@ public class OutputPort extends AbstractIdentifiableObject
 	{
 		super( id );
 		this.interpreter = interpreter;
-		this.protocolId = protocolId;
+
+		this.protocolVariablePath =
+					new VariablePathBuilder( false )
+					.add( id(), 0 )
+					.add( Constants.PROTOCOL_NODE_NAME, 0 )
+					.toVariablePath();
 		
-		// Create the location VariablePath
-		Vector< Pair< Expression, Expression > > path =
-					new Vector< Pair< Expression, Expression > >();
-		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( Constants.LOCATION_NODE_NAME ), null ) );
-		this.locationVariablePath = new VariablePath( path, false );
+		this.locationVariablePath =
+					new VariablePathBuilder( false )
+					.add( id(), 0 )
+					.add( Constants.LOCATION_NODE_NAME, 0 )
+					.toVariablePath();
 		
 		// Create the configuration Process
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
 			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
 		SequentialProcess s = new SequentialProcess();
 		s.addChild( a );
+		if ( protocolId != null ) {
+			s.addChild( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
+		}
 		s.addChild( protocolConfigurationProcess );
 		this.configurationProcess = s;
-		
-		path = new Vector< Pair< Expression, Expression > >();
-		path.add( new Pair< Expression, Expression >( Value.create( id ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( Constants.PROTOCOL_NODE_NAME ), null ) );
-		this.protocolConfigurationVariablePath = new VariablePath( path, false );
 	}
 	
 	private CommProtocol protocol = null;
@@ -86,12 +110,13 @@ public class OutputPort extends AbstractIdentifiableObject
 	{
 		CommProtocol retVal = protocol;
 		if ( retVal == null ) {
-			if ( protocolId == null ) {
+			String protocolId = protocolVariablePath.getValue().strValue();
+			if ( protocolId.isEmpty() ) {
 				throw new IOException( "Unspecified protocol for output port " + id() );
 			}
 			retVal = interpreter.commCore().createCommProtocol(
 				protocolId,
-				protocolConfigurationVariablePath,
+				protocolVariablePath,
 				new URI( locationVariablePath.getValue().strValue() )
 			);
 		} else {

@@ -23,21 +23,23 @@ package jolie.net;
 
 import java.io.IOException;
 
+import jolie.Interpreter;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 
-public class JavaCommChannel extends CommChannel
+/**
+ * TODO: this shouldn't be polled.
+ */
+public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private JavaService javaService;
 	private CommMessage lastMessage = null;
-	
-	final private Object[] args = new Object[1];
-	
+
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
 	}
-	
+
 	public void send( CommMessage message )
 		throws IOException
 	{
@@ -62,11 +64,18 @@ public class JavaCommChannel extends CommChannel
 		lastMessage = null;
 		return ret;
 	}
+	
+	@Override
+	protected void disposeForInputImpl()
+		throws IOException
+	{
+		Interpreter.getInstance().commCore().registerForPolling( this );
+	}
 
 	protected void closeImpl()
 	{}
 	
-	public boolean hasData()
+	public boolean isReady()
 	{
 		return( lastMessage != null );
 	}

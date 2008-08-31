@@ -21,9 +21,13 @@
 
 package jolie.net;
 
+import java.io.IOException;
 import jolie.Interpreter;
 
-public class LocalCommChannel extends ListCommChannel
+/**
+ * TODO: this shouldn't be polled.
+ */
+public class LocalCommChannel extends ListCommChannel implements PollableCommChannel
 {
 	final private Interpreter interpreter;
 	
@@ -39,5 +43,17 @@ public class LocalCommChannel extends ListCommChannel
 		interpreter.commCore().scheduleReceive(
 					new ListCommChannel( olist, ilist ), null
 				);
+	}
+	
+	public boolean isReady()
+	{
+		return( !ilist.isEmpty() );
+	}
+	
+	@Override
+	protected void disposeForInputImpl()
+		throws IOException
+	{
+		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 }
