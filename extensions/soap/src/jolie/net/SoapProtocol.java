@@ -58,7 +58,6 @@ import jolie.Constants;
 import jolie.Interpreter;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -122,7 +121,7 @@ public class SoapProtocol extends CommProtocol
 	{
 		SoapProtocol ret =
 				new SoapProtocol(
-					configurationPath,
+					configurationPath(),
 					uri,
 					interpreter,
 					messageFactory
