@@ -188,7 +188,7 @@ public class SodepProtocol extends CommProtocol
 	
 	public SodepProtocol clone()
 	{
-		return new SodepProtocol( configurationPath );
+		return new SodepProtocol( configurationPath() );
 	}
 
 	public void send( OutputStream ostream, CommMessage message )
