@@ -120,7 +120,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		HttpProtocol ret =
 				new HttpProtocol(
-					configurationPath,
+					configurationPath(),
 					uri,
 					docBuilderFactory,
 					docBuilder,
