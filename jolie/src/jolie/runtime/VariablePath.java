@@ -26,7 +26,6 @@ import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
-import jolie.State;
 import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
@@ -34,6 +33,7 @@ public class VariablePath implements Expression, Cloneable
 {	
 	final private Pair< Expression, Expression >[] path; // Expression may be null
 	final private boolean global;
+	final private Value root;
 	
 	public boolean isGlobal()
 	{
@@ -109,11 +109,21 @@ public class VariablePath implements Expression, Cloneable
 			this.path[i] = path.get( i );
 		}
 		this.global = global;
+		this.root = null;
 	}
 	
-	final private Value getRootValue()
+	public VariablePath( Value root )
 	{
-		if ( global ) {
+		this.path = new Pair[0];
+		this.root = root;
+		this.global = false;
+	}
+	
+	private Value getRootValue()
+	{
+		if ( root != null ) {
+			return root;
+		} else if ( global ) {
 			return Interpreter.getInstance().globalValue();
 		}
 		

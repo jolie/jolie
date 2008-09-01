@@ -347,6 +347,11 @@ public class Interpreter
 		for( int i = 0; i < args.length; i++ ) {
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
 				throw new CommandLineException( getHelpString() );
+			} else if ( "-C".equals( args[ i ] ) ) {
+				for( i++; i < args.length; i++ ) {
+					
+				}
+				i = args.length;
 			} else if ( "-i".equals( args[ i ] ) ) {
 				i++;
 				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
