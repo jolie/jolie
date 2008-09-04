@@ -26,16 +26,17 @@ package jolie.net;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -59,6 +60,7 @@ import jolie.Interpreter;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.JolieGWTConverter;
+import jolie.net.http.MultiPartFormDataParser;
 import jolie.runtime.ByteArray;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -85,7 +87,7 @@ public class HttpProtocol extends CommProtocol
 	final private URI uri;
 	private boolean received = false;
 	
-	final private static String CRLF = new String( new char[] { 13, 10 } );
+	final public static String CRLF = new String( new char[] { 13, 10 } );
 	
 	public HttpProtocol( VariablePath configurationPath, URI uri )
 		throws ParserConfigurationException, TransformerConfigurationException
@@ -487,6 +489,13 @@ public class HttpProtocol extends CommProtocol
 		}		
 	}
 	
+	private static void parseMultiPartFormData( HttpMessage message, Value value )
+		throws IOException
+	{
+		MultiPartFormDataParser parser = new MultiPartFormDataParser( message, value );
+		parser.parse();
+	}
+	
 	private static String parseGWTRPC( HttpMessage message, Value value )
 		throws IOException
 	{
@@ -522,6 +531,21 @@ public class HttpProtocol extends CommProtocol
 			v.getNewChild( "name" ).setValue( entry.getKey() );
 			v.getNewChild( "value" ).setValue( entry.getValue() );
 			cookieVec.add( v );
+		}
+	}
+	
+	private static void parseQueryString( HttpMessage message, Value value )
+	{
+		if ( message.requestPath() != null ) {
+			try {
+				Value qsValue = value.getFirstChild( Constants.Predefined.QUERY_STRING.token().content() );
+				String qs = message.requestPath().split( "\\?" )[1];
+				String[] params = qs.split( "&" );
+				for( String param : params ) {
+					String[] kv = param.split( "=" );
+					qsValue.getNewChild( kv[0] ).setValue( kv[1] );
+				}
+			} catch( ArrayIndexOutOfBoundsException e ) {}
 		}
 	}
 	
@@ -579,6 +603,8 @@ public class HttpProtocol extends CommProtocol
 			} else if ( "text/x-gwt-rpc".equals( type ) ) {
 				opId = parseGWTRPC( message, messageValue );
 				requestFormat = "text/x-gwt-rpc";
+			} else if ( "multipart/form-data".equals( type ) ) {
+				parseMultiPartFormData( message, messageValue );
 			} else {
 				messageValue.setValue( new String( message.content() ) );
 			}
@@ -593,7 +619,9 @@ public class HttpProtocol extends CommProtocol
 			if ( opId == null ) {
 				opId = message.requestPath().split( "\\?" )[0];
 			}
-			
+
+			parseQueryString( message, messageValue );
+
 			InputOperation op = null;
 			try {
 				op = Interpreter.getInstance().getInputOperation( opId );
