@@ -43,6 +43,7 @@ public final class Constants
 		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
 		PI( "PI", java.lang.Math.PI ),
 		REDIRECT( "@Redirect", "@Redirect" ),
+		QUERY_STRING( "@QueryString", "@QueryString" ),
 		USER_AGENT( "@UserAgent", "@UserAgent" );
 		private final String id;
 		private final Scanner.Token token;
