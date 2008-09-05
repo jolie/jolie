@@ -26,12 +26,10 @@ package jolie.net;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -404,11 +402,13 @@ public class HttpProtocol extends CommProtocol
 					( ( binaryContent == null ) ? contentString.length() : binaryContent.size() ) +
 					CRLF;
 			
+			//messageString += "Content-Encoding: none" + CRLF;
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 				String debugStr = messageString;
 				if ( getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0 ) {
-					debugStr = messageString + CRLF + contentString + CRLF;
+					debugStr = messageString + CRLF +
+						( ( binaryContent == null ) ? contentString : binaryContent.toString() ) + CRLF;
 				}
 				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + debugStr ); 
 			}
@@ -418,7 +418,9 @@ public class HttpProtocol extends CommProtocol
 			inputId = message.operationName();
 			
 			Writer writer = new OutputStreamWriter( ostream );
-			writer.write( messageString );
+			if ( !contentType.startsWith( "image/" ) ) {
+				writer.write( messageString );
+			}
 			if ( binaryContent == null ) {
 				writer.write( contentString );
 			} else {
