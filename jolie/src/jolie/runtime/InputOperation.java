@@ -34,6 +34,7 @@ import jolie.process.InputOperationProcess;
 import jolie.process.InputProcessExecution;
 import jolie.process.NDChoiceProcess;
 import jolie.util.Pair;
+import jolie.process.Process;
 
 /**
  * @author Fabrizio Montesi
@@ -85,11 +86,16 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		VariablePath path = null;
+		Process parent;
 		for( Pair< CommChannel, CommMessage > pair : mesgList ) {
-			if ( process instanceof InputOperationProcess )
-				path = ((InputOperationProcess) process).inputVarPath();
-			else if ( process instanceof NDChoiceProcess.Execution )
+			if ( process instanceof InputProcessExecution ) {
+				parent = ((InputProcessExecution)process).parent();
+				if ( parent instanceof InputOperationProcess ) {
+					path = ((InputOperationProcess)parent).inputVarPath();
+				}
+			} else if ( process instanceof NDChoiceProcess.Execution ) {
 				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().operationName() );
+			}
 			
 			if ( ethread.checkCorrelation( path, pair.value() )
 					&& process.recvMessage( pair.key(), pair.value() ) ) {
