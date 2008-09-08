@@ -40,6 +40,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -219,6 +221,19 @@ public class HttpProtocol extends CommProtocol
 	
 	private String requestFormat = null;
 	
+	private static String parseAlias( String alias, Value value )
+	{
+		StringBuilder result = new StringBuilder( alias );
+		Matcher m = Pattern.compile( "%\\{[^\\}]*\\}" ).matcher( alias );
+		while( m.find() ) {
+			result.replace(
+				m.start(), m.end(),
+				value.getFirstChild( alias.substring( m.start()+2, m.end()-1 ) ).strValue()
+			);
+		}
+		return result.toString();
+	}
+	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
@@ -273,24 +288,6 @@ public class HttpProtocol extends CommProtocol
 					contentString = message.value().strValue();
 				}
 				contentType = "text/html";
-			} else if ( format.equals( "rest" ) ) {
-				StringBuilder querySB = new StringBuilder();
-				querySB.append( message.value().strValue() );
-				if ( message.value().children().size() > 0 ) {
-					querySB.append( '?' );
-					ValueVector vec;
-					String key;
-					for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
-						key = entry.getKey();
-						vec = entry.getValue();
-						if ( !key.startsWith( "@" ) ) {
-							for( Value v : vec ) {
-								querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
-							}
-						}
-					}
-					queryString = querySB.substring( 0, querySB.length() - 1 );
-				}
 			} else if ( format.equals( "multipart/form-data" ) ) {
 				contentType = "multipart/form-data; boundary=" + BOUNDARY;
 				for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
@@ -352,12 +349,33 @@ public class HttpProtocol extends CommProtocol
 					path += "/";
 				String opName = message.operationName();
 				ValueVector vec;
+				String alias = "";
 				if (
 					(vec=getParameterVector( "aliases" ).first().children().get( opName )) == null
 					) {
 					path += opName;
 				} else {
-					path += vec.first().strValue();
+					alias = vec.first().strValue();
+					path += parseAlias( alias , message.value() );
+				}
+				
+				if ( format.equals( "rest" ) ) {
+					StringBuilder querySB = new StringBuilder();
+					querySB.append( message.value().strValue() );
+					if ( message.value().children().size() > 0 ) {
+						querySB.append( '?' );
+						String key;
+						for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
+							key = entry.getKey();
+							vec = entry.getValue();
+							if ( !key.startsWith( "@" ) && !alias.contains( "%{" + key + "}" ) ) {
+								for( Value v : vec ) {
+									querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
+								}
+							}
+						}
+						queryString = querySB.substring( 0, querySB.length() - 1 );
+					}
 				}
 				
 				String method = "GET";
