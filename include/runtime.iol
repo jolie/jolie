@@ -2,8 +2,8 @@ outputPort Runtime {
 RequestResponse:
 	getLocalLocation,
 	loadEmbeddedService,
-	getRedirection, setRedirection,
-	setOutputPort
+	getRedirection, setRedirection, removeRedirection,
+	setOutputPort, removeOutputPort
 }
 
 embedded {
