@@ -21,9 +21,15 @@
 
 package joliex.mail;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Authenticator;
 import java.util.Properties;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -88,7 +94,32 @@ public class SMTPService extends JavaService
 			}
 
 			msg.setSubject( request.getFirstChild( "subject" ).strValue() );
-			msg.setContent( request.getFirstChild( "content" ).strValue(), "text/plain" );
+			//msg.setContent( request.getFirstChild( "content" ).strValue(), "text/plain" );
+			//msg.setText( arg0 )
+			final String content = request.getFirstChild( "content" ).strValue();
+			DataHandler dh = new DataHandler( new DataSource() {
+				public InputStream getInputStream() throws IOException
+				{
+					return new ByteArrayInputStream( content.getBytes() );
+				}
+
+				public OutputStream getOutputStream() throws IOException
+				{
+					throw new IOException( "Operation not supported" );
+				}
+
+				public String getContentType()
+				{
+					return "text/plain";
+				}
+
+				public String getName()
+				{
+					return "mail_content";
+				}
+			} );
+			msg.setDataHandler( dh );
+			msg.setText( content );
 			Transport.send( msg );
 		} catch( MessagingException e ) {
 			throw new FaultException( "SMTPFault", e );
