@@ -94,8 +94,6 @@ public class SMTPService extends JavaService
 			}
 
 			msg.setSubject( request.getFirstChild( "subject" ).strValue() );
-			//msg.setContent( request.getFirstChild( "content" ).strValue(), "text/plain" );
-			//msg.setText( arg0 )
 			final String content = request.getFirstChild( "content" ).strValue();
 			DataHandler dh = new DataHandler( new DataSource() {
 				public InputStream getInputStream() throws IOException
@@ -119,7 +117,6 @@ public class SMTPService extends JavaService
 				}
 			} );
 			msg.setDataHandler( dh );
-			//msg.setText( content );
 			Transport.send( msg );
 		} catch( MessagingException e ) {
 			throw new FaultException( "SMTPFault", e );
