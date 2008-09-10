@@ -119,7 +119,7 @@ public class SMTPService extends JavaService
 				}
 			} );
 			msg.setDataHandler( dh );
-			msg.setText( content );
+			//msg.setText( content );
 			Transport.send( msg );
 		} catch( MessagingException e ) {
 			throw new FaultException( "SMTPFault", e );
