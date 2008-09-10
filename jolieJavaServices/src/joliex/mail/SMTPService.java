@@ -1,0 +1,99 @@
+/***************************************************************************
+ *   Copyright (C) by Fabrizio Montesi                                     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
+package joliex.mail;
+
+import javax.mail.PasswordAuthentication;
+import javax.mail.Authenticator;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import jolie.net.CommMessage;
+import jolie.runtime.AndJarDeps;
+import jolie.runtime.FaultException;
+import jolie.runtime.JavaService;
+import jolie.runtime.Value;
+
+@AndJarDeps({"mailapi.jar","smtp.jar"})
+public class SMTPService extends JavaService
+{
+	private class SimpleAuthenticator extends Authenticator
+	{
+		final private String username, password;
+		
+		public SimpleAuthenticator( String username, String password )
+		{
+			this.username = username;
+			this.password = password;
+		}
+
+		@Override
+		public PasswordAuthentication getPasswordAuthentication()
+		{
+			return new PasswordAuthentication( username, password );
+		}
+	}
+	
+	
+	public CommMessage sendMail( CommMessage requestMessage )
+		throws FaultException
+	{
+		Value request = requestMessage.value();
+		Authenticator authenticator = null;
+		Properties props = new Properties();
+		props.put( "mail.smtp.host", request.getFirstChild( "host" ).strValue() );
+		if ( request.getFirstChild( "authenticate" ).intValue() == 1 ) {
+			props.put( "mail.smtp.auth", "true" );
+			authenticator = new SimpleAuthenticator(
+				request.getFirstChild( "username" ).strValue(),
+				request.getFirstChild( "password" ).strValue()
+			);
+		}
+		Session session = Session.getDefaultInstance( props, authenticator );
+		Message msg = new MimeMessage( session );
+		
+		try {
+			msg.setFrom( new InternetAddress( request.getFirstChild( "from" ).strValue() ) );
+		
+			for( Value v : request.getChildren( "to" ) ) {
+				msg.addRecipient( Message.RecipientType.TO, new InternetAddress( v.strValue() ) );
+			}
+			for( Value v : request.getChildren( "cc" ) ) {
+				msg.addRecipient( Message.RecipientType.CC, new InternetAddress( v.strValue() ) );
+			}
+			for( Value v : request.getChildren( "bcc" ) ) {
+				msg.addRecipient( Message.RecipientType.BCC, new InternetAddress( v.strValue() ) );
+			}
+
+			msg.setSubject( request.getFirstChild( "subject" ).strValue() );
+			msg.setContent( request.getFirstChild( "content" ).strValue(), "text/plain" );
+			Transport.send( msg );
+		} catch( MessagingException e ) {
+			throw new FaultException( "SMTPFault", e );
+		}
+		
+		return CommMessage.createEmptyMessage();
+	}
+}

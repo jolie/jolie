@@ -22,7 +22,6 @@
 package joliex.lang;
 
 
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
