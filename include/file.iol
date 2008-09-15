@@ -1,6 +1,6 @@
 outputPort File {
 RequestResponse:
-	readFile
+	readFile, list
 }
 
 embedded {
