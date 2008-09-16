@@ -28,9 +28,9 @@ public class ParserException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	
-	private String sourceName;
-	private int line;
-	private String mesg;
+	final private String sourceName;
+	final private int line;
+	final private String mesg;
 	
 	public ParserException( String sourceName, int line, String mesg )
 	{

@@ -94,7 +94,7 @@ public class OLParseTreeOptimizer
 	 */
 	private class OptimizerVisitor implements OLVisitor
 	{
-		private Program program;
+		final private Program program;
 		private OLSyntaxNode currNode;
 		
 		public OptimizerVisitor()

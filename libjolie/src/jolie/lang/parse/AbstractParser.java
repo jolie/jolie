@@ -35,7 +35,7 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
-	private Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
+	final private Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
 	
 	/** Constructor
 	 * 

@@ -117,8 +117,8 @@ public class Scanner
 	 */
 	static public class Token
 	{
-		private TokenType type;
-		private String content;
+		final private TokenType type;
+		final private String content;
 		
 		public Token( TokenType type )
 		{
@@ -169,12 +169,12 @@ public class Scanner
 	}
 	
 
-	private InputStream stream;				// input stream
+	final private InputStream stream;				// input stream
 	protected char ch;						// current character
 	protected int currByte;
 	protected int state;					// current state
 	private int line;						// current line
-	private String sourceName;				// source name
+	final private String sourceName;				// source name
 	
 	public Scanner( InputStream stream, String sourceName )
 		throws IOException

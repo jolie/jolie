@@ -128,7 +128,7 @@ public class OLParser extends AbstractParser
 	private final Map<String, Scanner.Token> constantsMap =
 		new HashMap<String, Scanner.Token>();
 	private boolean insideInstallFunction = false;
-	private String[] includePaths;
+	final private String[] includePaths;
 	private final Map<String, Interface> interfaces =
 		new HashMap<String, Interface>();
 
