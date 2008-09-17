@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -74,6 +75,31 @@ public class SodepProtocol extends CommProtocol
 		}
 	}
 	
+	private ByteArray readByteArray( DataInput in )
+		throws IOException
+	{
+		int size = in.readInt();
+		ByteArray ret = null;
+		if ( size > 0 ) {
+			byte[] bytes = new byte[ size ];
+			in.readFully( bytes, 0, size );
+			ret = new ByteArray( bytes );
+		} else {
+			ret = new ByteArray( new byte[0] );
+		}
+		return ret;
+	}
+
+	private void writeByteArray( DataOutput out, ByteArray byteArray )
+		throws IOException
+	{
+		int size = byteArray.size();
+		out.writeInt( size );
+		if ( size > 0 ) {
+			out.write( byteArray.getBytes() );
+		}
+	}
+	
 	private void writeFault( DataOutput out, FaultException fault )
 		throws IOException
 	{
@@ -96,6 +122,9 @@ public class SodepProtocol extends CommProtocol
 		} else if ( valueObject instanceof Double ) {
 			out.writeByte( 3 );
 			out.writeDouble( ((Double)valueObject).doubleValue() );
+		} else if ( valueObject instanceof ByteArray ) {
+			out.writeByte( 4 );
+			writeByteArray( out, (ByteArray)valueObject );
 		} else {
 			out.writeByte( 0 );
 		}
@@ -137,6 +166,8 @@ public class SodepProtocol extends CommProtocol
 			valueObject = new Integer( in.readInt() );
 		} else if ( b == 3 ) { // Double
 			valueObject = new Double( in.readInt() );
+		} else if ( b == 4 ) { // ByteArray
+			valueObject = readByteArray( in );
 		}
 
 		value.setValue( valueObject );
