@@ -5,5 +5,5 @@ RequestResponse:
 
 embedded {
 Java:
-	"joliex.security.MessageDigest" in MessageDigest
+	"joliex.security.MessageDigestService" in MessageDigest
 }
