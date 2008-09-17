@@ -126,4 +126,25 @@ public class FileService extends JavaService
 		}
 		return CommMessage.createEmptyMessage();
 	}
+	
+	public CommMessage delete( CommMessage request )
+		throws FaultException
+	{
+		String filename = request.value().strValue();
+		if ( new File( filename ).delete() == false ) {
+			throw new FaultException( "IOException" );
+		}
+		return CommMessage.createEmptyMessage();
+	}
+	
+	public CommMessage rename( CommMessage request )
+		throws FaultException
+	{
+		String filename = request.value().getFirstChild( "filename" ).strValue();
+		String toFilename = request.value().getFirstChild( "to" ).strValue();
+		if ( new File( filename ).renameTo( new File( toFilename ) ) == false ) {
+			throw new FaultException( "IOException" );
+		}
+		return CommMessage.createEmptyMessage();
+	}
 }
