@@ -22,10 +22,12 @@
 package joliex.util;
 
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 public class StringUtils extends JavaService
 {
@@ -63,12 +65,22 @@ public class StringUtils extends JavaService
 
 		return new CommMessage( "split", "/", value );
 	}
-	
+
 	public CommMessage match( CommMessage message )
 	{
-		String str = message.value().strValue();
-		String regex = message.value().getFirstChild( "regex" ).strValue();
-		int ret = ( Pattern.matches( regex, str ) ) ? 1 : 0;
-		return new CommMessage( "match", "/", Value.create( ret ) );
+		Pattern p = Pattern.compile( message.value().getFirstChild( "regex" ).strValue() );
+		Matcher m = p.matcher( message.value().strValue() );
+		Value response = Value.create();
+		if ( m.matches() ) {
+			response.setValue( 1 );
+			ValueVector groups = response.getChildren( "groups" );
+			groups.add( Value.create( m.group( 0 ) ) );
+			for( int i = 0; i < m.groupCount(); i++ ) {
+				groups.add( Value.create( m.group( i+1 ) ) );
+			}
+		} else {
+			response.setValue( 0 );
+		}
+		return new CommMessage( "match", "/", response );
 	}
 }
