@@ -29,13 +29,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
+import java.util.regex.Pattern;
 import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 public class FileService extends JavaService
 {
@@ -78,7 +81,7 @@ public class FileService extends JavaService
 	public CommMessage readFile( CommMessage message )
 		throws FaultException
 	{
-		Value filenameValue = message.value().getChildren( "filename" ).first();
+		Value filenameValue = message.value().getFirstChild( "filename" );
 		if ( !filenameValue.isString() ) {
 			throw new FaultException( "FileNotFound" );
 		}
@@ -145,5 +148,31 @@ public class FileService extends JavaService
 			throw new FaultException( "IOException" );
 		}
 		return CommMessage.createEmptyMessage();
+	}
+	
+	public CommMessage list( CommMessage request )
+	{
+		File dir = new File( request.value().getFirstChild( "directory" ).strValue() );
+		String[] files = dir.list( new ListFilter( request.value().getFirstChild( "regex" ).strValue() ) );
+		Value response = Value.create();
+		ValueVector results = response.getChildren( "result" );
+		for( String file : files ) {
+			results.add( Value.create( file ) );
+		}
+		return new CommMessage( "list", "/", response );
+	}
+	
+	private static class ListFilter implements FilenameFilter
+	{
+		final private Pattern pattern;
+		public ListFilter( String regex )
+		{
+			this.pattern = Pattern.compile( regex );
+		}
+
+		public boolean accept( File file, String name )
+		{
+			return pattern.matcher( name ).matches();
+		}
 	}
 }
