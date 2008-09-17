@@ -26,7 +26,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import jolie.net.CommMessage;
@@ -76,7 +78,6 @@ public class FileService extends JavaService
 	public CommMessage readFile( CommMessage message )
 		throws FaultException
 	{
-		
 		Value filenameValue = message.value().getChildren( "filename" ).first();
 		if ( !filenameValue.isString() ) {
 			throw new FaultException( "FileNotFound" );
@@ -99,5 +100,30 @@ public class FileService extends JavaService
 			throw new FaultException( e );
 		}
 		return new CommMessage( message.operationName(), "/", retValue );
+	}
+	
+	public CommMessage writeFile( CommMessage request )
+		throws FaultException
+	{
+		Value filenameValue = request.value().getFirstChild( "filename" );
+		if ( !filenameValue.isString() ) {
+			throw new FaultException( "FileNotFound" );
+		}
+		Value content = request.value().getFirstChild( "content" );
+		try {
+			if ( content.isByteArray() ) {
+				FileOutputStream os = new FileOutputStream( filenameValue.strValue() );
+				os.write( ((ByteArray)content.valueObject()).getBytes() );
+				os.flush();
+			} else {
+				FileWriter writer = new FileWriter( filenameValue.strValue() );
+				writer.write( content.strValue() );
+				System.out.println( content.strValue());
+				writer.flush();
+			}
+		} catch( IOException e ) {
+			throw new FaultException( e );
+		}
+		return CommMessage.createEmptyMessage();
 	}
 }
