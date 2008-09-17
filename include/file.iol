@@ -1,6 +1,8 @@
 outputPort File {
 RequestResponse:
-	readFile, list
+	readFile throws FileNotFound IOException,
+	writeFile throws FileNotFound IOException,
+	list
 }
 
 embedded {
