@@ -118,7 +118,6 @@ public class FileService extends JavaService
 			} else {
 				FileWriter writer = new FileWriter( filenameValue.strValue() );
 				writer.write( content.strValue() );
-				System.out.println( content.strValue());
 				writer.flush();
 			}
 		} catch( IOException e ) {
