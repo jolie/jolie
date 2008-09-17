@@ -26,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 
 import jolie.Interpreter;
@@ -34,7 +35,7 @@ import jolie.Interpreter;
  * A CommChannel using a socket to implement communications.
  * @author Fabrizio Montesi
  */
-public class SocketCommChannel extends StreamingCommChannel
+public class SocketCommChannel extends SelectableStreamingCommChannel
 {
 	final private SocketChannel socketChannel;
 	final private InputStream istream;
@@ -62,12 +63,12 @@ public class SocketCommChannel extends StreamingCommChannel
 	 * Returns the SocketChannel underlying this SocketCommChannel
 	 * @return the SocketChannel underlying this SocketCommChannel
 	 */
-	public SocketChannel socketChannel()
+	public SelectableChannel selectableChannel()
 	{
 		return socketChannel;
 	}
 	
-	protected InputStream inputStream()
+	public InputStream inputStream()
 	{
 		return istream;
 	}
@@ -93,13 +94,6 @@ public class SocketCommChannel extends StreamingCommChannel
 		throws IOException
 	{
 		protocol.send( ostream, message );
-	}
-	
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForSelection( this );
 	}
 
 	protected void closeImpl()

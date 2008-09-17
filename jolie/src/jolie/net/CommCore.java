@@ -27,9 +27,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -406,14 +406,14 @@ public class CommCore
 		@Override
 		public void run()
 		{
-			SocketCommChannel channel;
+			SelectableStreamingCommChannel channel;
 			InputStream stream;
 			while( true ) {
 				try {
 					selector.select();
 					synchronized( this ) {
 						for( SelectionKey key : selector.selectedKeys() ) {
-							channel = (SocketCommChannel)key.attachment();
+							channel = (SelectableStreamingCommChannel)key.attachment();
 							key.cancel();
 							key.channel().configureBlocking( true );
 							stream = channel.inputStream();
@@ -432,21 +432,22 @@ public class CommCore
 			}
 		}
 		
-		public void register( SocketCommChannel channel )
+		public void register( SelectableStreamingCommChannel channel )
 		{
+			SelectableChannel c;
 			try {
 				synchronized( this ) {
 					selector.wakeup();
-					SocketChannel socketChannel = channel.socketChannel();
-					socketChannel.configureBlocking( false );
-					socketChannel.register( selector, SelectionKey.OP_READ, channel );
+					c = channel.selectableChannel();
+					c.configureBlocking( false );
+					c.register( selector, SelectionKey.OP_READ, channel );
 				}
 			} catch( ClosedChannelException cce ) {}
 			catch( IOException ioe ) {}
 		}
 	}
 	
-	public void registerForSelection( SocketCommChannel channel )
+	public void registerForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
 		selectorThread().register( channel );

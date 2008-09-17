@@ -19,58 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.net;
 
-import java.util.Collection;
-import java.util.Map;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.SelectableChannel;
 import jolie.Interpreter;
-import jolie.JolieThread;
-import jolie.runtime.InputOperation;
 
-/**
- * Base class for a communication input listener.
- * @author Fabrizio Montesi
- */
-abstract public class CommListener extends JolieThread
+abstract public class SelectableStreamingCommChannel extends StreamingCommChannel
 {
-	private static int index = 0;
+	public SelectableStreamingCommChannel( CommProtocol protocol )
+	{
+		super( protocol );
+	}
 
-	final private CommProtocol protocol;
-	final private Collection< String > operationNames;
-	final private Map< String, OutputPort > redirectionMap;
+	abstract public InputStream inputStream();
+	abstract public SelectableChannel selectableChannel();
 	
-	public CommListener(
-				Interpreter interpreter,
-				CommProtocol protocol,
-				Collection< String > operationNames,
-				Map< String, OutputPort > redirectionMap
-			)
+	@Override
+	protected void disposeForInputImpl()
+		throws IOException
 	{
-		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
-		this.protocol = protocol;
-		this.operationNames = operationNames;
-		this.redirectionMap = redirectionMap;
-	}
-	
-	public CommProtocol createProtocol()
-	{
-		return protocol.clone();
-	}
-	
-	public Map< String, OutputPort > redirectionMap()
-	{
-		return redirectionMap;
-	}
-	
-	/**
-	 * Returns true if this CommListener can handle the given InputOperation, false otherwise.
-	 * @param operation the InputOperation to check in this CommListener
-	 * @return true if this CommListener can handle the given InputOperation, false otherwise
-	 */
-	public boolean canHandleInputOperation( InputOperation operation )
-	{
-		return ( operationNames.contains( operation.id() ) );
+		Interpreter.getInstance().commCore().registerForSelection( this );
 	}
 }

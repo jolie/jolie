@@ -26,7 +26,7 @@ package jolie;
  * @see Interpreter
  * @author Fabrizio Montesi
  */
-public class JolieThread extends Thread
+abstract public class JolieThread extends Thread
 {
 	final private Interpreter interpreter;
 	
