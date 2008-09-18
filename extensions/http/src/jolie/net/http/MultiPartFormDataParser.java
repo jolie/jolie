@@ -24,6 +24,10 @@ package jolie.net.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jolie.net.HttpProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
@@ -60,7 +64,7 @@ public class MultiPartFormDataParser
 		
 	}
 	
-	private void parsePart( String part )
+	private void parsePart( String part, int offset )
 		throws IOException
 	{
 		// Split header from content
@@ -93,9 +97,11 @@ public class MultiPartFormDataParser
 			throw new IOException( "Invalid multipart form data element: missing name" );
 		}
 		
+		offset += hc[0].length() + 4;
+		
 		Value child = value.getNewChild( name );
 		if ( hc.length > 1 ) {
-			child.setValue( new ByteArray( hc[1].getBytes() ) );
+			child.setValue( new ByteArray( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
 		}/* else {
 			value.getNewChild( name ).setValue( new ByteArray( new byte[0] ) );
 		}*/
@@ -104,12 +110,14 @@ public class MultiPartFormDataParser
 	public void parse()
 		throws IOException
 	{
-		String[] parts = new String( message.content() ).split( boundary + "--" );
-		parts = parts[0].split( boundary + HttpProtocol.CRLF );
+		String[] parts = (HttpProtocol.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
+		parts = (parts[0] + boundary + HttpProtocol.CRLF).split( HttpProtocol.CRLF + boundary + HttpProtocol.CRLF );
 
 		// The first one is always empty, so we start from 1
+		int offset = boundary.length() + 2;
 		for( int i = 1; i < parts.length; i++ ) {
-			parsePart( parts[i] );
+			parsePart( parts[i], offset );
+			offset += parts[i].length() + boundary.length() + 4;
 		}
 	}
 }
