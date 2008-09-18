@@ -118,10 +118,12 @@ public class FileService extends JavaService
 				FileOutputStream os = new FileOutputStream( filenameValue.strValue() );
 				os.write( ((ByteArray)content.valueObject()).getBytes() );
 				os.flush();
+				os.close();
 			} else {
 				FileWriter writer = new FileWriter( filenameValue.strValue() );
 				writer.write( content.strValue() );
 				writer.flush();
+				writer.close();
 			}
 		} catch( IOException e ) {
 			throw new FaultException( e );
