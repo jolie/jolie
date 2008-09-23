@@ -4,7 +4,9 @@ RequestResponse:
 	writeFile throws FileNotFound IOException,
 	delete throws IOException,
 	rename throws IOException,
-	list
+	list,
+	getServiceDirectory,
+	getFileSeparator
 }
 
 embedded {
