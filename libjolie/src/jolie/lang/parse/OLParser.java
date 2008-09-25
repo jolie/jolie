@@ -128,7 +128,7 @@ public class OLParser extends AbstractParser
 	private final Map<String, Scanner.Token> constantsMap =
 		new HashMap<String, Scanner.Token>();
 	private boolean insideInstallFunction = false;
-	final private String[] includePaths;
+	private String[] includePaths;
 	private final Map<String, Interface> interfaces =
 		new HashMap<String, Interface>();
 
@@ -326,13 +326,14 @@ public class OLParser extends AbstractParser
 	private void parseInclude()
 		throws IOException, ParserException
 	{
+		String[] origIncludePaths;
 		while ( token.is( Scanner.TokenType.INCLUDE ) ) {
 			getToken();
 			Scanner oldScanner = scanner();
 			assertToken( Scanner.TokenType.STRING, "expected filename to include" );
 			String includeStr = token.content();
 			InputStream stream = null;
-			File f;
+			File f = null;
 			for ( int i = 0; i < includePaths.length && stream == null; i++ ) {
 				f = new File(
 					includePaths[i] +
@@ -346,8 +347,14 @@ public class OLParser extends AbstractParser
 			if ( stream == null ) {
 				throwException( "File not found: " + includeStr );
 			}
+			origIncludePaths = includePaths;
 			setScanner( new Scanner( stream, includeStr ) );
+			
+			includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
+			includePaths[ origIncludePaths.length ] = f.getPath();
 			parse();
+			
+			includePaths = origIncludePaths;
 			setScanner( oldScanner );
 			getToken();
 		}
