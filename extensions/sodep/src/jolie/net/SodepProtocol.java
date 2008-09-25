@@ -132,10 +132,13 @@ public class SodepProtocol extends CommProtocol
 		Map< String, ValueVector > children = value.children();
 		out.writeInt( children.size() );
 		for( Entry< String, ValueVector > entry : children.entrySet() ) {
-			writeString( out, entry.getKey() );
-			out.writeInt( entry.getValue().size() );
-			for( Value v : entry.getValue() )
-				writeValue( out, v );
+			if ( !entry.getKey().startsWith( "@" ) ) {
+				writeString( out, entry.getKey() );
+				out.writeInt( entry.getValue().size() );
+				for( Value v : entry.getValue() ) {
+					writeValue( out, v );
+				}
+			}
 		}
 	}
 	
