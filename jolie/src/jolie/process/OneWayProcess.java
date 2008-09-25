@@ -24,6 +24,7 @@ package jolie.process;
 import java.io.IOException;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
@@ -70,8 +71,13 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
-			if ( parent.correlatedProcess != null )
+			if ( parent.correlatedProcess != null ) {
+				if ( Interpreter.getInstance().exiting() ) {
+					// Do not trigger session spawning if we're exiting
+					return false;
+				}
 				parent.correlatedProcess.inputReceived();
+			}
 
 			this.message = message;
 			this.notify();

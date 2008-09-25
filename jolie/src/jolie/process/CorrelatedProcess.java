@@ -31,18 +31,23 @@ import jolie.runtime.VariablePathBuilder;
 
 public class CorrelatedProcess implements Process
 {
+	final private Interpreter interpreter;
 	final private Process process;
 	private boolean waiting = false;
 	private SessionThread spawnModel;
+	private int activeSessions = 0;
 	
-	public CorrelatedProcess( Process process )
+	public CorrelatedProcess( Interpreter interpreter, Process process )
 	{
+		this.interpreter = interpreter;
 		this.process = process;
+		interpreter.registerSessionSpawner( this );
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new CorrelatedProcess( process.clone( reason ) );
+		interpreter.unregisterSessionSpawner( this );
+		return new CorrelatedProcess( interpreter, process.clone( reason ) );
 	}
 	
 	private void startSession()
@@ -55,7 +60,6 @@ public class CorrelatedProcess implements Process
 		throws FaultException
 	{
 		spawnModel = new SessionThread( process, ExecutionThread.currentThread(), this );
-		Interpreter interpreter = Interpreter.getInstance();
 		if ( interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
 			while( !interpreter.exiting() ) {
 				startSession();
@@ -67,13 +71,29 @@ public class CorrelatedProcess implements Process
 					}
 				}
 			}
-		} else
+			synchronized( this ) {
+				while( activeSessions > 0 ) {
+					try {
+						wait();
+					} catch( InterruptedException ie ) {}
+				}
+			}
+		} else {
 			process.run();
+		}
+	}
+	
+	public synchronized void interpreterExit()
+	{
+		if ( waiting ) {
+			notify();
+		}
 	}
 	
 	public synchronized void inputReceived()
 	{
-		if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.CONCURRENT ) {
+		activeSessions++;
+		if ( interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
 			waiting = false;
 			notify();
 		}
@@ -81,8 +101,11 @@ public class CorrelatedProcess implements Process
 	
 	public synchronized void sessionTerminated()
 	{
-		if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
+		activeSessions--;
+		if ( interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
 			waiting = false;
+			notify();
+		} else if ( interpreter.exiting() ) {
 			notify();
 		}
 	}

@@ -117,8 +117,7 @@ abstract public class JavaService
 		return ret;
 	}
 	
-	
-	public void setInterpreter( Interpreter interpreter )
+	protected void setInterpreter( Interpreter interpreter )
 	{
 		this.interpreter = interpreter;
 	}

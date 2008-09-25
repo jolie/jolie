@@ -27,6 +27,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
@@ -116,8 +117,13 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			if ( choice != null )
 				return false;
 
-			if ( parent.correlatedProcess != null )
+			if ( parent.correlatedProcess != null ) {
+				if ( Interpreter.getInstance().exiting() ) {
+					// Do not trigger session spawning if we're exiting
+					return false;
+				}
 				parent.correlatedProcess.inputReceived();
+			}
 
 			choice = inputMap.remove( message.operationName() );
 			assert( choice != null );

@@ -29,7 +29,6 @@ import java.io.OutputStream;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 
-import jolie.Interpreter;
 
 /**
  * A CommChannel using a socket to implement communications.

@@ -48,6 +48,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.OutputPort;
 import jolie.net.PipeListener;
+import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
@@ -92,6 +93,11 @@ public class Interpreter
 	final private static Map< String, PipeListener > pipes =
 				new HashMap< String, PipeListener >();
 	
+	final private Set< CorrelatedProcess > sessionSpawners = 
+				new HashSet< CorrelatedProcess >();
+	
+	private Integer activeSessions = new Integer( 0 );
+	
 	private String[] includePaths = new String[ 0 ];
 	private String[] args = new String[ 0 ];
 	
@@ -116,6 +122,30 @@ public class Interpreter
 	public static void registerPipeListener( String key, PipeListener value )
 	{
 		pipes.put( key, value );
+	}
+	
+	public void addActiveSession()
+	{
+		synchronized( activeSessions ) {
+			activeSessions++;
+		}
+	}
+	
+	public void removeActiveSession()
+	{
+		synchronized( activeSessions ) {
+			activeSessions--;
+		}
+	}
+	
+	public void registerSessionSpawner( CorrelatedProcess p )
+	{
+		sessionSpawners.add( p );
+	}
+	
+	public void unregisterSessionSpawner( CorrelatedProcess p )
+	{
+		sessionSpawners.remove( p );
 	}
 	
 	private JolieClassLoader classLoader;
@@ -253,6 +283,9 @@ public class Interpreter
 	public void exit()
 	{
 		exiting = true;
+		for( CorrelatedProcess p : sessionSpawners ) {
+			p.interpreterExit();
+		}
 	}
 	
 	public boolean exiting()
@@ -323,6 +356,8 @@ public class Interpreter
 	{
 		return classLoader;
 	}
+	
+	final private File programFile;
 	
 	/** Constructor.
 	 * 
@@ -435,8 +470,15 @@ public class Interpreter
 			includeList.addFirst( f.getParent() );
 		}
 		
+		programFile = new File( olFilepath );
+		
 		includePaths = includeList.toArray( includePaths );
 		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
+	}
+	
+	public File programFile()
+	{
+		return programFile;
 	}
 	
 	public Object getLock( String id )

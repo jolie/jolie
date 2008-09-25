@@ -44,11 +44,11 @@ public class MainDefinitionProcess extends DefinitionProcess
 		try {
 			Interpreter interpreter = Interpreter.getInstance();
 			
-			for( OutputPort outputPort : Interpreter.getInstance().outputPorts() ) {
+			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				try {
 					outputPort.configurationProcess().run();
 				} catch( FaultException fe ) {
-					// If this happens, it's a bug in the SemanticVerifier
+					// If this happens, it's been caused by a bug in the SemanticVerifier
 					assert( false );
 				}
 			}

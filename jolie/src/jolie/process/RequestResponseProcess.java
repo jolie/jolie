@@ -78,8 +78,13 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
-			if ( parent.correlatedProcess != null )
+			if ( parent.correlatedProcess != null ) {
+				if ( Interpreter.getInstance().exiting() ) {
+					// Do not trigger session spawning if we're exiting
+					return false;
+				}
 				parent.correlatedProcess.inputReceived();
+			}
 			
 			this.channel = channel;
 			this.message = message;

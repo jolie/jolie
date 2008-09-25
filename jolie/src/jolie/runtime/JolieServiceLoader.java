@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import java.io.File;
 import java.io.IOException;
 
 import java.util.Vector;
@@ -48,6 +49,9 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		for( i = 0; i < args.length; i++ ) {
 			if ( !args[ i ].endsWith( ".ol" ) ) {
 				newArgs.add( args[ i ] );
+			} else {
+				newArgs.add( "-i" );
+				newArgs.add( new File( servicePath ).getParent() );
 			}
 		}
 		for( int k = 0; k < ss.length; k++, i++ ) {
