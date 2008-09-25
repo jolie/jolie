@@ -105,6 +105,24 @@ public class FileService extends JavaService
 		return new CommMessage( message.operationName(), "/", retValue );
 	}
 	
+	public CommMessage getServiceDirectory( CommMessage request )
+	{
+		return new CommMessage(
+				"getServiceDirectory",
+				"/",
+				Value.create( interpreter().programFile().getParent() )
+			);
+	}
+	
+	public CommMessage getFileSeparator( CommMessage request )
+	{
+		return new CommMessage(
+				"getPathSeparator",
+				"/",
+				Value.create( jolie.Constants.fileSeparator )
+			);
+	}
+	
 	public CommMessage writeFile( CommMessage request )
 		throws FaultException
 	{
