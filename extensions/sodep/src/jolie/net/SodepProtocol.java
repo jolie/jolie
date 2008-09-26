@@ -168,7 +168,7 @@ public class SodepProtocol extends CommProtocol
 		} else if ( b == 2 ) { // Integer
 			valueObject = new Integer( in.readInt() );
 		} else if ( b == 3 ) { // Double
-			valueObject = new Double( in.readInt() );
+			valueObject = new Double( in.readDouble() );
 		} else if ( b == 4 ) { // ByteArray
 			valueObject = readByteArray( in );
 		}
