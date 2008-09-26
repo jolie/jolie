@@ -273,13 +273,14 @@ public class CommCore
 				} else {
 					InputOperation operation =
 						interpreter.getInputOperation( message.operationName() );
-					if ( listener != null && !listener.canHandleInputOperation( operation ) )
+					if ( listener != null && !listener.canHandleInputOperation( operation ) ) {
 						Interpreter.getInstance().logger().warning(
 								"Discarded a message for operation " + operation +
 								", not specified in an input port at the receiving service."
 							);
-					else
+					} else {
 						operation.recvMessage( channel, message );
+					}
 				}
 			} catch( InvalidIdException iie ) {
 				iie.printStackTrace();
