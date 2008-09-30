@@ -351,9 +351,8 @@ public class OLParser extends AbstractParser
 			setScanner( new Scanner( stream, includeStr ) );
 			
 			includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
-			includePaths[ origIncludePaths.length ] = f.getPath();
+			includePaths[ origIncludePaths.length ] = f.getParent();
 			parse();
-			
 			includePaths = origIncludePaths;
 			setScanner( oldScanner );
 			getToken();

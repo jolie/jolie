@@ -30,7 +30,7 @@ public class LocationParser
 		String ret = "/";
 		String[] ss = uri.getPath().split( "!/" );
 		if ( ss.length > 1 ) {
-			ret = ss[ ss.length - 1 ];
+			ret = "/" + ss[ ss.length - 1 ];
 		}
 		return ret;
 	}
