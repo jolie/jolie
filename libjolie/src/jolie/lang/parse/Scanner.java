@@ -40,7 +40,7 @@ public class Scanner
 		RSQUARE,			///< ]
 		LCURLY,				///< {
 		RCURLY,				///< }
-		DOLLAR,				///< $
+		//DOLLAR,				///< $
 		STRING,				///< "[[:graph:]]*"
 		CHOICE,				///< ++
 		MINUS,				///< The minus sign -
@@ -89,6 +89,7 @@ public class Scanner
 		RUN,					///< run
 		UNDEF,					///< undef
 		HASH,					///< #
+		PERCENT_SIGN,			///< %
 		FOR,					///< for
 		FOREACH,				///< foreach
 		WITH,					///< with
@@ -356,8 +357,10 @@ public class Scanner
 							retval = new Token( TokenType.HASH );
 						else if ( ch == '^' )
 							retval = new Token( TokenType.CARET );
-						else if ( ch == '$' )
-							retval = new Token( TokenType.DOLLAR );
+						else if ( ch == '%' )
+							retval = new Token( TokenType.PERCENT_SIGN );
+						/*else if ( ch == '$' )
+							retval = new Token( TokenType.DOLLAR );*/
 						
 						readChar();
 					}
