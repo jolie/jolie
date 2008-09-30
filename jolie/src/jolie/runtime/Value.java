@@ -423,47 +423,70 @@ abstract public class Value implements Expression
 	public final void add( Value val )
 	{
 		if ( isDefined() ) {
-			if ( val.isString() )
+			if ( val.isString() ) {
 				setValue( strValue() + val.strValue() );
-			else if ( isInt() )
+			} else if ( isInt() ) {
 				setValue( intValue() + val.intValue() );
-			else if ( isDouble() )
+			} else if ( isDouble() ) {
 				setValue( doubleValue() + val.doubleValue() );
-			else
+			} else {
 				setValue( strValue() + val.strValue() );
-		} else
+			}
+		} else {
 			assignValue( val );
+		}
 	}
 	
 	public final void subtract( Value val )
 	{
-		if ( !isDefined() )
-			assignValue( val );
-		else if ( isInt() )
+		if ( !isDefined() ) {
+			if ( val.isDouble() ) {
+				setValue( 0.0 - val.doubleValue() );
+			} else if ( val.isInt() ) {
+				setValue( 0 - val.intValue() );
+			} else {
+				assignValue( val );
+			}
+		} else if ( isInt() ) {
 			setValue( intValue() - val.intValue() );
-		else if ( isDouble() )
+		} else if ( isDouble() ) {
 			setValue( doubleValue() - val.doubleValue() );
+		}
 	}
 	
 	public final void multiply( Value val )
 	{
 		if ( isDefined() ) {
-			if ( isInt() )
+			if ( isInt() ) {
 				setValue( intValue() * val.intValue() );
-			else if ( isDouble() )
+			} else if ( isDouble() ) {
 				setValue( doubleValue() * val.doubleValue() );
-		} else
+			}
+		} else {
 			assignValue( val );
+		}
 	}
 	
 	public final void divide( Value val )
 	{
-		if ( !isDefined() )
-			assignValue( val );
-		else if ( isInt() )
+		if ( !isDefined() ) {
+			setValue( 0 );
+		} else if ( isInt() ) {
 			setValue( intValue() / val.intValue() );
-		else if ( isDouble() )
+		} else if ( isDouble() ) {
 			setValue( doubleValue() / val.doubleValue() );
+		}
+	}
+	
+	public final void modulo( Value val )
+	{
+		if ( !isDefined() ) {
+			assignValue( val );
+		} else if ( isInt() ) {
+			setValue( intValue() % val.intValue() );
+		} else if ( isDouble() ) {
+			setValue( doubleValue() % val.doubleValue() );
+		}
 	}
 	
 	public final void assignValue( Value val )

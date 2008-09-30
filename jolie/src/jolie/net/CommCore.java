@@ -245,10 +245,10 @@ public class CommCore
 					// We should check for redirection
 					OutputPort port = listener.redirectionMap().get( ss[1] );
 					if ( port == null ) {
-						Interpreter.getInstance().logger().warning(
-								"Discarded a message for resource " + ss[1] +
-								", not specified in the appropriate redirection table."
-							);
+						String error = "Discarded a message for resource " + ss[1] +
+								", not specified in the appropriate redirection table.";
+						Interpreter.getInstance().logger().warning( error );
+						throw new IOException( error );
 					}
 					CommChannel oChannel = port.getCommChannel();
 					String rPath = new String();

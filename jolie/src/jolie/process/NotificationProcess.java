@@ -30,6 +30,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.OutputPort;
 import jolie.runtime.Expression;
+import jolie.util.LocationParser;
 
 public class NotificationProcess implements Process
 {
@@ -66,8 +67,8 @@ public class NotificationProcess implements Process
 			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operationId, uri.getPath() ) :
-						new CommMessage( operationId, uri.getPath(), outputExpression.evaluate() );
+						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
+						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
 
 			CommChannel channel = outputPort.getCommChannel();
 			channel.send( message );

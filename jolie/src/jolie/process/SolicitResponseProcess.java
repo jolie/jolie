@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import java.nio.channels.ClosedChannelException;
 import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -34,6 +33,7 @@ import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.util.LocationParser;
 
 public class SolicitResponseProcess implements Process
 {
@@ -81,8 +81,8 @@ public class SolicitResponseProcess implements Process
 			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operationId, uri.getPath() ) :
-						new CommMessage( operationId, uri.getPath(), outputExpression.evaluate() );
+						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
+						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
 			
 			channel.send( message );
 			message = channel.recv();
