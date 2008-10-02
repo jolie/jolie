@@ -33,6 +33,11 @@ Protocol: sodep
 Interfaces: MetaServiceConsultation, MetaServiceAdministration
 }
 
+outputPort ConfirmingService {
+RequestResponse:
+	confirmRedirection throws InvalidToken
+}
+
 init
 {
 	services -> global.services;
@@ -85,7 +90,15 @@ main
 			redirection.outputPortName = redirection.resourceName;
 			setRedirection@Runtime( redirection )();
 			response = redirection.resourceName;
-			services.(redirection.resourceName).metadata << request.metadata
+			services.(redirection.resourceName).metadata << request.metadata;
+
+			if ( is_defined( request.token ) ) {
+				// Optional token for security check
+				ConfirmingService.location = request.location;
+				ConfirmingService.protocol << request.protocol;
+				install( InvalidToken => throw( RuntimeException ) );
+				confirmRedirection@ConfirmingService( request.token )()
+			}
 		}
 	} ] { nullProcess }
 
