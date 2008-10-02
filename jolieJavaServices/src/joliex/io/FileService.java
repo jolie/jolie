@@ -107,10 +107,15 @@ public class FileService extends JavaService
 	
 	public CommMessage getServiceDirectory( CommMessage request )
 	{
+		String dir = interpreter().programFile().getParent();
+		if ( dir == null || dir.isEmpty() ) {
+			dir = ".";
+		}
+		
 		return new CommMessage(
 				"getServiceDirectory",
 				"/",
-				Value.create( interpreter().programFile().getParent() )
+				Value.create( dir )
 			);
 	}
 	
