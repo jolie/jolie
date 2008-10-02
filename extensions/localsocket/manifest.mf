@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: jolie.net.LocalSocketCommChannelFactory
+X-JOLIE-ListenerExtension: jolie.net.LocalSocketListenerFactory
