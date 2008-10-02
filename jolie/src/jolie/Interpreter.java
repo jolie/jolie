@@ -36,6 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -442,8 +448,9 @@ public class Interpreter
 		}
 		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
 		
-		if ( olFilepath == null )
+		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
+		}
 		
 		this.args = args;
 		
@@ -539,25 +546,90 @@ public class Interpreter
 		return mainExec;
 	}
 	
-	/**
-	 * Runs the interpreter behaviour specified by command line.
-	 * The default behaviour is to execute the input code.
-	 * @throws IOException if a Parser propagates a Scanner exception
-	 * @throws InterpreterException if the interpretation tree could not be built
-	 */
-	public void run( boolean blocking )
+	public static class InterpreterStartFuture implements Future< Exception >
+	{
+		final private Lock lock;
+		final private Condition initCompleted;
+		private Exception result;
+		private boolean isDone = false;
+		
+		public InterpreterStartFuture()
+		{
+			lock = new ReentrantLock();
+			initCompleted = lock.newCondition();
+		}
+		
+		public boolean cancel( boolean mayInterruptIfRunning )
+		{
+			return false;
+		}
+		
+		public Exception get( long timeout, TimeUnit unit )
+			throws InterruptedException, TimeoutException
+		{
+			lock.lock();
+			if ( !isDone ) {
+				if ( !initCompleted.await( timeout, unit ) ) {
+					throw new TimeoutException();
+				}
+			}
+			lock.unlock();
+			return result;
+		}
+		
+		public Exception get()
+			throws InterruptedException
+		{
+			lock.lock();
+			if ( !isDone ) {
+				initCompleted.await();
+			}
+			lock.unlock();
+			return result;
+		}
+		
+		public boolean isCancelled()
+		{
+			return false;
+		}
+		
+		public boolean isDone()
+		{
+			return isDone;
+		}
+		
+		private void setResult( Exception e )
+		{
+			lock.lock();
+			result = e;
+			isDone = true;
+			initCompleted.signalAll();
+			lock.unlock();
+		}
+	}
+	
+	public Future< Exception > start()
+	{
+		InterpreterStartFuture f = new InterpreterStartFuture();
+		(new StarterThread( f )).start();
+		return f;
+	}
+	
+	private void init()
 		throws InterpreterException, IOException
 	{
 		/**
 		 * Order is important. CommCore needs the OOIT to be initialized.
 		 */
-		DefinitionProcess main = null;
 		if ( buildOOIT() == false ) {
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		}
-
 		commCore.init();
-		
+	}
+	
+	private void runMain()
+	{
+		DefinitionProcess main = null;
 		try {
 			main = getDefinition( "main" );
 		} catch ( InvalidIdException e ) {
@@ -570,42 +642,53 @@ public class Interpreter
 		// Initialize program arguments in the args variabile.
 		ValueVector jArgs = ValueVector.create();
 		
-		for( String s : arguments )
+		for( String s : arguments ) {
 			jArgs.add( Value.create( s ) );
-		
+		}
 		mainExec.state().root().getChildren( "args" ).deepCopy( jArgs );
 		
 		mainExec.start();
-		
-		if ( blocking ) {
-			try {
-				mainExec.join();
-			} catch( InterruptedException e ) {}
-			
-			commCore.shutdown();
-		} else {
-			(new JoiningThread( this, mainExec )).start();
+		try {
+			mainExec.join();
+		} catch( InterruptedException e ) {
+			e.printStackTrace();
 		}
 	}
 	
-	private class JoiningThread extends Thread
+	/**
+	 * Runs the interpreter behaviour specified by command line.
+	 * The default behaviour is to execute the input code.
+	 * @throws IOException if a Parser propagates a Scanner exception
+	 * @throws InterpreterException if the interpretation tree could not be built
+	 */
+	public void run()
+		throws InterpreterException, IOException
 	{
-		private Interpreter interpreter;
-		private Thread thread;
-		public JoiningThread( Interpreter interpreter, Thread thread )
+		init();
+		runMain();
+		commCore.shutdown();
+	}
+	
+	private class StarterThread extends Thread
+	{
+		final private InterpreterStartFuture future;
+		public StarterThread( InterpreterStartFuture future )
 		{
-			this.interpreter = interpreter;
-			this.thread = thread;
+			this.future = future;
+			setContextClassLoader( classLoader );
 		}
 		
 		@Override
 		public void run()
 		{
 			try {
-				thread.join();
-			} catch( InterruptedException e ) {}
-			
-			interpreter.commCore.shutdown();
+				init();
+				future.setResult( null );
+			} catch( Exception e ) {
+				future.setResult( e );
+			}
+			runMain();			
+			commCore.shutdown();
 		}
 	}
 	

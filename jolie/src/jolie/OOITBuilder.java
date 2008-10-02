@@ -195,6 +195,7 @@ public class OOITBuilder implements OLVisitor
 	private void error( ParsingContext context, Exception e )
 	{
 		valid = false;
+		e.printStackTrace();
 		error( context, e.getMessage() );
 	}
 	

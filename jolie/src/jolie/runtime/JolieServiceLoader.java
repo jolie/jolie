@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.Vector;
+import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.net.LocalCommChannel;
@@ -50,8 +51,9 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 			if ( !args[ i ].endsWith( ".ol" ) ) {
 				newArgs.add( args[ i ] );
 			} else {
+				String parent = new File( servicePath ).getParent();
 				newArgs.add( "-i" );
-				newArgs.add( new File( servicePath ).getParent() );
+				newArgs.add( ( parent == null ) ? "." : parent );
 			}
 		}
 		for( int k = 0; k < ss.length; k++, i++ ) {
@@ -63,9 +65,14 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
+		Future< Exception > f = interpreter.start();
 		try {
-			interpreter.run( false );
-			setChannel( new LocalCommChannel( interpreter ) );
+			Exception e = f.get();
+			if ( e == null ) {
+				setChannel( new LocalCommChannel( interpreter ) );
+			} else {
+				throw new EmbeddedServiceLoadingException( e );
+			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

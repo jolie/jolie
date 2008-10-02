@@ -41,7 +41,7 @@ public class Jolie
 		try {
 			Interpreter interpreter = new Interpreter( args );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
-			interpreter.run( true );
+			interpreter.run();
 		} catch( CommandLineException cle ) {
 			System.out.println( cle.getMessage() );
 		} catch( FileNotFoundException fe ) {
