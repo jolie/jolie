@@ -97,7 +97,10 @@ main
 				ConfirmingService.location = request.location;
 				ConfirmingService.protocol << request.protocol;
 				install( InvalidToken => throw( RuntimeException ) );
-				confirmRedirection@ConfirmingService( request.token )()
+				confirmRedirection@ConfirmingService( request.token )( confirmation );
+				if ( confirmation != 1 ) {
+					throw( RuntimeException )
+				}
 			}
 		}
 	} ] { nullProcess }
