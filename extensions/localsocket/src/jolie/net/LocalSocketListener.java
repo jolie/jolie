@@ -24,6 +24,7 @@ package jolie.net;
 import cx.ath.matthew.unix.UnixServerSocket;
 import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
@@ -34,6 +35,7 @@ import jolie.Interpreter;
 public class LocalSocketListener extends CommListener
 {
 	final private UnixServerSocket serverSocket;
+	final private UnixSocketAddress socketAddress;
 	public LocalSocketListener(
 				Interpreter interpreter,
 				String path,
@@ -46,9 +48,16 @@ public class LocalSocketListener extends CommListener
 	{
 		super( interpreter, protocol, operationNames, redirectionMap );
 		
-		serverSocket = new UnixServerSocket( new UnixSocketAddress( path, abs ) );
+		socketAddress = new UnixSocketAddress( path, abs );
+		serverSocket = new UnixServerSocket( socketAddress );
 	}
 	
+	@Override
+	public void shutdown()
+	{
+		new File( socketAddress.getPath() ).delete();
+	}
+
 	@Override
 	public void run()
 	{

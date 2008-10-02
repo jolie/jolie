@@ -23,10 +23,40 @@ package jolie.net;
 
 import cx.ath.matthew.unix.UnixSocket;
 import java.io.IOException;
+import java.io.InputStream;
+import jolie.Interpreter;
 
-public class LocalSocketCommChannel extends StreamingCommChannel
+public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
 {
+	private static class PreCachedInputStream extends InputStream
+	{
+		private int cachePosition = 0;
+		private int[] cache;
+		final private InputStream istream;
+		private PreCachedInputStream( int[] cache, InputStream istream )
+		{
+			this.cache = cache;
+			this.istream = istream;
+		}
+		
+		public int read()
+			throws IOException
+		{
+			int ret = -1;
+			if ( cache == null ) {
+				ret = istream.read();
+			} else if ( cachePosition < cache.length ) {
+				ret = cache[ cachePosition ];
+				if ( ++cachePosition >= cache.length ) {
+					cache = null; // Free memory
+				}
+			}
+			return ret;
+		}
+	}
+	
 	final private UnixSocket socket;
+	private InputStream istream;
 	
 	public LocalSocketCommChannel( UnixSocket socket, CommProtocol protocol )
 		throws IOException
@@ -34,6 +64,7 @@ public class LocalSocketCommChannel extends StreamingCommChannel
 		super( protocol );
 		
 		this.socket = socket;
+		this.istream = socket.getInputStream();
 		
 		toBeClosed = false; // LocalSocket connections are kept open by default
 	}
@@ -47,12 +78,40 @@ public class LocalSocketCommChannel extends StreamingCommChannel
 	public synchronized CommMessage recv()
 		throws IOException
 	{
-		return protocol.recv( socket.getInputStream() );
+		CommMessage ret = null;
+		ret = protocol.recv( istream );
+		if ( istream instanceof PreCachedInputStream ) {
+			istream = socket.getInputStream();
+		}
+		return ret;
 	}
 	
 	protected void closeImpl()
 		throws IOException
 	{
 		socket.close();
+	}
+	
+	public synchronized boolean isReady()
+	{
+		boolean ret = false;
+		try {
+			int[] cache = new int[1];
+			InputStream is = socket.getInputStream();
+			if ( (cache[0]=is.read()) != -1 ) {
+				istream = new PreCachedInputStream( cache, is );
+				ret = true;
+			}
+		} catch( IOException e ) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	@Override
+	public void disposeForInputImpl()
+		throws IOException
+	{
+		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 }
