@@ -55,7 +55,9 @@ public class LocalSocketListener extends CommListener
 	@Override
 	public void shutdown()
 	{
-		new File( socketAddress.getPath() ).delete();
+		if ( !socketAddress.isAbstract() ) {
+			new File( socketAddress.getPath() ).delete();
+		}
 	}
 
 	@Override
