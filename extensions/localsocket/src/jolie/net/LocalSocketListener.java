@@ -79,15 +79,11 @@ public class LocalSocketListener extends CommListener
 		} catch( ClosedByInterruptException ce ) {
 			try {
 				serverSocket.close();
-			} catch( IOException ioe ) {
-				ioe.printStackTrace();
+			} catch( IOException e ) {
+				e.printStackTrace();
 			}
 		} catch( IOException e ) {
 			e.printStackTrace();
-		} finally {
-			try {
-				serverSocket.close();
-			} catch( IOException e ) {}
 		}
 	}
 }
