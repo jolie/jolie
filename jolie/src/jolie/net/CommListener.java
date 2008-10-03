@@ -73,4 +73,8 @@ abstract public class CommListener extends JolieThread
 	{
 		return ( operationNames.contains( operation.id() ) );
 	}
+	
+	public void shutdown()
+	{		
+	}
 }

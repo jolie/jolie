@@ -457,6 +457,9 @@ public class CommCore
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
 	public void shutdown()
 	{
+		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+			entry.getValue().shutdown();
+		}
 		threadGroup.interrupt();
 	}
 }
