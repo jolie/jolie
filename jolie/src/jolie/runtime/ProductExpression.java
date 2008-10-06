@@ -52,8 +52,10 @@ public class ProductExpression implements Expression
 		for( int i = 1; i < children.length; i++ ) {
 			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
 				val.multiply( children[i].expression().evaluate() );
-			} else {
+			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
 				val.divide( children[i].expression().evaluate() );
+			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
+				val.modulo( children[i].expression().evaluate() );
 			}
 		}
 		
