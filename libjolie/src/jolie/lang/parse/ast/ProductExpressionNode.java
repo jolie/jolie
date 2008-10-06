@@ -51,6 +51,11 @@ public class ProductExpressionNode extends OLSyntaxNode
 		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.DIVIDE, expression ) );
 	}
 	
+	public void modulo( OLSyntaxNode expression )
+	{
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MODULUS, expression ) );
+	}
+	
 	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
 	{
 		return operands;

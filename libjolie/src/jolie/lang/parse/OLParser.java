@@ -1833,6 +1833,9 @@ public class OLParser extends AbstractParser
 			} else if ( token.is( Scanner.TokenType.DIVIDE ) ) {
 				getToken();
 				product.divide( parseFactor() );
+			} else if ( token.is( Scanner.TokenType.PERCENT_SIGN ) ) {
+				getToken();
+				product.modulo( parseFactor() );
 			} else {
 				keepRun = false;
 			}

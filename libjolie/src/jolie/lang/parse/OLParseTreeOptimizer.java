@@ -458,8 +458,10 @@ public class OLParseTreeOptimizer
 					pair.value().accept( this );
 					if ( pair.key() == Constants.OperandType.MULTIPLY ) {
 						ret.multiply( currNode );
-					} else {
+					} else if ( pair.key() == Constants.OperandType.DIVIDE ) {
 						ret.divide( currNode );
+					} else if ( pair.key() == Constants.OperandType.MODULUS ) {
+						ret.modulo( currNode );
 					}
 				}
 				currNode = ret;

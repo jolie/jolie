@@ -141,7 +141,8 @@ public final class Constants
 	public enum OperandType
 	{
 		ADD, SUBTRACT,
-		MULTIPLY, DIVIDE
+		MULTIPLY, DIVIDE,
+		MODULUS
 	}
 
 	public static long serialVersionUID()
