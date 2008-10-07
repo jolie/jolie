@@ -34,6 +34,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -130,14 +131,20 @@ public class SodepProtocol extends CommProtocol
 		}
 
 		Map< String, ValueVector > children = value.children();
-		out.writeInt( children.size() );
+		Vector< Entry< String, ValueVector > > entries =
+					new Vector< Entry< String, ValueVector > >();
 		for( Entry< String, ValueVector > entry : children.entrySet() ) {
 			if ( !entry.getKey().startsWith( "@" ) ) {
-				writeString( out, entry.getKey() );
-				out.writeInt( entry.getValue().size() );
-				for( Value v : entry.getValue() ) {
-					writeValue( out, v );
-				}
+				entries.add( entry );
+			}
+		}
+
+		out.writeInt( entries.size() );
+		for( Entry< String, ValueVector > entry : entries ) {
+			writeString( out, entry.getKey() );
+			out.writeInt( entry.getValue().size() );
+			for( Value v : entry.getValue() ) {
+				writeValue( out, v );
 			}
 		}
 	}
