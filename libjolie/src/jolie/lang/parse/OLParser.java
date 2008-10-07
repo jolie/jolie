@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -131,11 +132,14 @@ public class OLParser extends AbstractParser
 	private String[] includePaths;
 	private final Map<String, Interface> interfaces =
 		new HashMap<String, Interface>();
+	
+	private final ClassLoader classLoader;
 
-	public OLParser( Scanner scanner, String[] includePaths )
+	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
 		this.includePaths = includePaths;
+		this.classLoader = classLoader;
 	}
 
 	public Program parse()
@@ -345,7 +349,12 @@ public class OLParser extends AbstractParser
 			}
 
 			if ( stream == null ) {
-				throwException( "File not found: " + includeStr );
+				URL includeURL = classLoader.getResource( includeStr );
+				if ( includeURL == null ) {
+					throwException( "File not found: " + includeStr );
+				} else {
+					stream = includeURL.openStream();
+				}
 			}
 			origIncludePaths = includePaths;
 			setScanner( new Scanner( stream, includeStr ) );

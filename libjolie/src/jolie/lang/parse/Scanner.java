@@ -25,6 +25,12 @@ package jolie.lang.parse;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Scanner implementation of the JOLIE language.
+ * 
+ * @author Fabrizio Montesi
+ *
+ */
 public class Scanner
 {
 	public enum TokenType {
