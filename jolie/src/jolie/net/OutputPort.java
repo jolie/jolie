@@ -158,5 +158,4 @@ public class OutputPort extends AbstractIdentifiableObject
 	{
 		return configurationProcess;
 	}
-	
 }

@@ -42,17 +42,32 @@ import jolie.runtime.CanUseJars;
 public class JolieClassLoader extends URLClassLoader
 {
 	final private Interpreter interpreter;
-	public JolieClassLoader( URL[] urls, Interpreter interpreter )
+	
+	private void init( URL[] urls )
 		throws IOException
 	{
-		super( urls );
-		this.interpreter = interpreter;
 		for( URL url : urls ) {
 			if ( "jar".equals( url.getProtocol() ) ) {
 				checkJarJolieExtensions( (JarURLConnection)url.openConnection() );
 			}
 		}
 	}
+	
+	public JolieClassLoader( URL[] urls, Interpreter interpreter, ClassLoader parent )
+		throws IOException
+	{
+		super( urls, parent );
+		this.interpreter = interpreter;
+		init( urls );
+	}
+	
+	/*public JolieClassLoader( URL[] urls, Interpreter interpreter )
+		throws IOException
+	{
+		super( urls );
+		this.interpreter = interpreter;
+		init( urls );
+	}*/
 	
 	@Override
 	public Class<?> loadClass( String className )

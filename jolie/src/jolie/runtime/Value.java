@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi                                        *
+ *   Copyright (C) 2006 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -35,12 +34,9 @@ import jolie.process.TransformationReason;
  * 2007 - Claudio Guidi: added support for double values
  * 2008 - Fabrizio Montesi: new system for internal value storing
  */
-
-
 class ValueLink extends Value implements Cloneable
 {
 	final private VariablePath linkPath;
-	
 	private Value getLinkedValue()
 	{
 		return linkPath.getValue();

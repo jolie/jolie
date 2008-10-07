@@ -102,6 +102,8 @@ public class Interpreter
 	final private Set< CorrelatedProcess > sessionSpawners = 
 				new HashSet< CorrelatedProcess >();
 	
+	final private ClassLoader parentClassLoader;
+	
 	private Integer activeSessions = new Integer( 0 );
 	
 	private String[] includePaths = new String[ 0 ];
@@ -446,14 +448,15 @@ public class Interpreter
 				}
 			}
 		}
-		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this );
+		
+		parentClassLoader = this.getClass().getClassLoader();
+		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this, parentClassLoader );
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
 		}
 		
 		this.args = args;
-		
 		InputStream olStream = null;
 		File f = new File( olFilepath );
 		if ( f.exists() ) {
@@ -469,6 +472,12 @@ public class Interpreter
 					olStream = new FileInputStream( f );
 				}
 			}
+			if ( olStream == null ) {
+				URL olURL = parentClassLoader.getResource( olFilepath );
+				if ( olURL != null ) {
+					olStream = olURL.openStream();
+				}
+			}
 		}
 		if ( olStream == null ) {
 			throw new FileNotFoundException( olFilepath );
@@ -480,7 +489,12 @@ public class Interpreter
 		programFile = new File( olFilepath );
 		
 		includePaths = includeList.toArray( includePaths );
-		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths );
+		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths, parentClassLoader );
+	}
+	
+	public ClassLoader parentClassLoader()
+	{
+		return parentClassLoader;
 	}
 	
 	public File programFile()
