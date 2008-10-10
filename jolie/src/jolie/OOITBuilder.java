@@ -269,9 +269,8 @@ public class OOITBuilder implements OLVisitor
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
 		}
-		
 	}
-	
+
 	public void visit( InputPortInfo n )
 	{
 		for( OperationDeclaration op : n.operations() ) {
@@ -321,12 +320,12 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 	}
-	
+
 	private Process currProcess;
 	private Expression currExpression;
 	private Condition currCondition;
 	private boolean canSpawnSession = false;
-		
+
 	public void visit( Program p )
 	{
 		for( OLSyntaxNode node : p.children() )
@@ -355,7 +354,7 @@ public class OOITBuilder implements OLVisitor
 						);
 		}
 	}
-	
+
 	// TODO use this in every session spawner creation
 	private CorrelatedProcess makeSessionSpawner( CorrelatedInputProcess process )
 	{
@@ -395,7 +394,7 @@ public class OOITBuilder implements OLVisitor
 
 		interpreter.register( n.id(), def );
 	}
-		
+
 	public void visit( ParallelStatement n )
 	{
 		ParallelProcess proc = new ParallelProcess();
@@ -446,7 +445,7 @@ public class OOITBuilder implements OLVisitor
 		}
 		currProcess = proc;
 	}
-	
+
 	public void visit( NDChoiceStatement n )
 	{
 		boolean origSpawnSession = canSpawnSession;
