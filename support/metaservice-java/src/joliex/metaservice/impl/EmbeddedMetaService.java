@@ -23,6 +23,8 @@ package joliex.metaservice.impl;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
@@ -64,16 +66,31 @@ public class EmbeddedMetaService extends MetaService
 	 * @param jolieHome the path pointing to the local JOLIE installation directory.
 	 */
 	public EmbeddedMetaService( String jolieHome )
-		throws IOException
+		throws IOException, ExecutionException
 	{
 		try {
 			Interpreter interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, defaultFilepath ) );
+			startInterpreter( interpreter );
 			commChannel = new LocalCommChannel( interpreter );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
 		} catch( FileNotFoundException e ) {
 			throw new IOException( e );
+		}
+	}
+	
+	private void startInterpreter( Interpreter interpreter )
+		throws ExecutionException
+	{
+		Future< Exception > f = interpreter.start();
+		try {
+			Exception e = f.get();
+			if ( e != null ) {
+				throw new ExecutionException( e );
+			}
+		} catch( InterruptedException e ) {
+			throw new ExecutionException( e );
 		}
 	}
 	
@@ -84,11 +101,12 @@ public class EmbeddedMetaService extends MetaService
 	 * @param metaserviceFilepath the path pointing to the metaservice source file to load.
 	 */
 	public EmbeddedMetaService( String jolieHome, String metaserviceFilepath )
-		throws IOException
+		throws IOException, ExecutionException
 	{
 		try {
 			Interpreter interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ) );
+			startInterpreter( interpreter );
 			commChannel = new LocalCommChannel( interpreter );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
