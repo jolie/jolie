@@ -72,7 +72,7 @@ RequestResponse:
 	 */
 	unloadEmbeddedService,
 	/**
-	 * Adds a redirection the MetaService service.
+	 * Adds a redirection.
 	 * @request:void {
 	 * 	.resourcePrefix:string
 	 * 		the first part of the resource name
