@@ -120,7 +120,7 @@ abstract public class MetaService
 		}
 		return response.value().strValue();
 	}
-	
+
 	/**
 	 * Unloads an embedded JOLIE service.
 	 * @param resourceName the resource name identifying the embedded service to remove.
