@@ -70,13 +70,14 @@ abstract public class MetaService
 	public MetaServiceChannel addRedirection( String resourcePrefix, String location, Value protocol, Value metadata )
 		throws IOException, FaultException
 	{
+		final MetaServiceChannel channel = getChannel();
 		Value request = Value.create();
 		request.getFirstChild( "resourcePrefix" ).setValue( resourcePrefix );
 		request.getFirstChild( "location" ).setValue( location );
 		request.getFirstChild( "protocol" ).deepCopy( protocol );
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
-		getChannel().send( ADD_REDIRECTION, request );
-		Value ret = getChannel().recv();
+		channel.send( ADD_REDIRECTION, request );
+		Value ret = channel.recv();
 		return new MetaServiceChannel( this, ret.strValue(), false );
 	}
 	
@@ -87,9 +88,10 @@ abstract public class MetaService
 	public void removeRedirection( String resourceName )
 		throws IOException
 	{
-		getChannel().send( REMOVE_REDIRECTION, Value.create( resourceName ) );
+		final MetaServiceChannel channel = getChannel();
+		channel.send( REMOVE_REDIRECTION, Value.create( resourceName ) );
 		try {
-			getChannel().recv(); // This is a synchronous request.
+			channel.recv(); // This is a synchronous request.
 		} catch( FaultException f ) { // This should never happen.
 			throw new IOException( f );
 		}
@@ -111,12 +113,13 @@ abstract public class MetaService
 	public MetaServiceChannel loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata)
 		throws IOException, FaultException
 	{
+		final MetaServiceChannel channel = getChannel();
 		Value request = Value.create();
 		request.getFirstChild( "resourcePrefix" ).setValue( resourcePrefix );
 		request.getFirstChild( "filepath" ).setValue( filepath );
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
-		getChannel().send( LOAD_EMBEDDED_JOLIE_SERVICE, request );
-		Value ret = getChannel().recv();
+		channel.send( LOAD_EMBEDDED_JOLIE_SERVICE, request );
+		Value ret = channel.recv();
 		return new MetaServiceChannel( this, ret.strValue(), false );
 	}
 
@@ -127,9 +130,10 @@ abstract public class MetaService
 	public void unloadEmbeddedJolieService( String resourceName )
 		throws IOException
 	{
-		getChannel().send( UNLOAD_EMBEDDED_JOLIE_SERVICE, Value.create( resourceName ) );
+		final MetaServiceChannel channel = getChannel();
+		channel.send( UNLOAD_EMBEDDED_JOLIE_SERVICE, Value.create( resourceName ) );
 		try {
-			getChannel().recv(); // This is a synchronous request.
+			channel.recv(); // This is a synchronous request.
 		} catch( FaultException f ) { // This should never happen.
 			throw new IOException( f );
 		}
