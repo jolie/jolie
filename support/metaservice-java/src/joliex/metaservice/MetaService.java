@@ -22,7 +22,7 @@
 package joliex.metaservice;
 
 import java.io.IOException;
-import jolie.net.CommMessage;
+import jolie.net.CommChannel;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
@@ -37,10 +37,11 @@ abstract public class MetaService
 	final private static String REMOVE_REDIRECTION = "removeRedirection";
 	final private static String LOAD_EMBEDDED_JOLIE_SERVICE = "loadEmbeddedJolieService";
 	final private static String UNLOAD_EMBEDDED_JOLIE_SERVICE = "unloadEmbeddedService";
-		
-	abstract protected void sendMessage( String operationName, Value value )
+	
+	abstract public MetaServiceChannel getChannel()
 		throws IOException;
-	abstract protected CommMessage recvMessage()
+
+	abstract protected CommChannel createCommChannel()
 		throws IOException;
 	
 	/**
@@ -50,7 +51,7 @@ abstract public class MetaService
 	public void shutdown()
 		throws IOException
 	{
-		sendMessage( SHUTDOWN, Value.create() );
+		getChannel().send( SHUTDOWN, Value.create() );
 	}
 	
 	/**
@@ -66,7 +67,7 @@ abstract public class MetaService
 	 * @throws java.io.IOException in case of communication error.
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
-	public String addRedirection( String resourcePrefix, String location, Value protocol, Value metadata )
+	public MetaServiceChannel addRedirection( String resourcePrefix, String location, Value protocol, Value metadata )
 		throws IOException, FaultException
 	{
 		Value request = Value.create();
@@ -74,12 +75,9 @@ abstract public class MetaService
 		request.getFirstChild( "location" ).setValue( location );
 		request.getFirstChild( "protocol" ).deepCopy( protocol );
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
-		sendMessage( ADD_REDIRECTION, request );
-		CommMessage response = recvMessage();
-		if ( response.isFault() ) {
-			throw response.fault();
-		}
-		return response.value().strValue();
+		getChannel().send( ADD_REDIRECTION, request );
+		Value ret = getChannel().recv();
+		return new MetaServiceChannel( this, ret.strValue(), false );
 	}
 	
 	/**
@@ -89,8 +87,12 @@ abstract public class MetaService
 	public void removeRedirection( String resourceName )
 		throws IOException
 	{
-		sendMessage( REMOVE_REDIRECTION, Value.create( resourceName ) );
-		recvMessage(); // This is a synchronous request.
+		getChannel().send( REMOVE_REDIRECTION, Value.create( resourceName ) );
+		try {
+			getChannel().recv(); // This is a synchronous request.
+		} catch( FaultException f ) { // This should never happen.
+			throw new IOException( f );
+		}
 	}
 	
 	/**
@@ -106,19 +108,16 @@ abstract public class MetaService
 	 * @throws java.io.IOException in case of communication error.
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
-	public String loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata)
+	public MetaServiceChannel loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata)
 		throws IOException, FaultException
 	{
 		Value request = Value.create();
 		request.getFirstChild( "resourcePrefix" ).setValue( resourcePrefix );
 		request.getFirstChild( "filepath" ).setValue( filepath );
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
-		sendMessage( LOAD_EMBEDDED_JOLIE_SERVICE, request );
-		CommMessage response = recvMessage();
-		if ( response.isFault() ) {
-			throw response.fault();
-		}
-		return response.value().strValue();
+		getChannel().send( LOAD_EMBEDDED_JOLIE_SERVICE, request );
+		Value ret = getChannel().recv();
+		return new MetaServiceChannel( this, ret.strValue(), false );
 	}
 
 	/**
@@ -128,7 +127,11 @@ abstract public class MetaService
 	public void unloadEmbeddedJolieService( String resourceName )
 		throws IOException
 	{
-		sendMessage( UNLOAD_EMBEDDED_JOLIE_SERVICE, Value.create( resourceName ) );
-		recvMessage(); // This is a synchronous request.
+		getChannel().send( UNLOAD_EMBEDDED_JOLIE_SERVICE, Value.create( resourceName ) );
+		try {
+			getChannel().recv(); // This is a synchronous request.
+		} catch( FaultException f ) { // This should never happen.
+			throw new IOException( f );
+		}
 	}
 }

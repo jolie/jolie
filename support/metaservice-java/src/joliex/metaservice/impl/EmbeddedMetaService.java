@@ -28,10 +28,9 @@ import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
-import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
-import jolie.runtime.Value;
 import joliex.metaservice.MetaService;
+import joliex.metaservice.MetaServiceChannel;
 
 /**
  * This class executes a MetaService service in the local Java Virtual Machine.
@@ -39,8 +38,9 @@ import joliex.metaservice.MetaService;
  */
 public class EmbeddedMetaService extends MetaService
 {	
-	final private CommChannel commChannel;
-	
+	final private Interpreter interpreter;
+	final private MetaServiceChannel channel;
+
 	final private static String defaultFilepath = "metaservice.ol";
 	
 	private static String[] buildInterpreterArguments( String jh, String metaServiceFilepath )
@@ -69,10 +69,10 @@ public class EmbeddedMetaService extends MetaService
 		throws IOException, ExecutionException
 	{
 		try {
-			Interpreter interpreter =
+			interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, defaultFilepath ) );
-			startInterpreter( interpreter );
-			commChannel = new LocalCommChannel( interpreter );
+			startInterpreter();
+			channel = new MetaServiceChannel( this, "/", true );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
 		} catch( FileNotFoundException e ) {
@@ -80,7 +80,7 @@ public class EmbeddedMetaService extends MetaService
 		}
 	}
 	
-	private void startInterpreter( Interpreter interpreter )
+	private void startInterpreter()
 		throws ExecutionException
 	{
 		Future< Exception > f = interpreter.start();
@@ -104,10 +104,10 @@ public class EmbeddedMetaService extends MetaService
 		throws IOException, ExecutionException
 	{
 		try {
-			Interpreter interpreter =
+			interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ) );
-			startInterpreter( interpreter );
-			commChannel = new LocalCommChannel( interpreter );
+			startInterpreter();
+			channel = new MetaServiceChannel( this, "/", true );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
 		} catch( FileNotFoundException e ) {
@@ -115,15 +115,13 @@ public class EmbeddedMetaService extends MetaService
 		}
 	}
 	
-	protected void sendMessage( String operationName, Value value )
-		throws IOException
+	protected CommChannel createCommChannel()
 	{
-		commChannel.send( new CommMessage( operationName, "/", value ) );
+		return new LocalCommChannel( interpreter );
 	}
 	
-	protected CommMessage recvMessage()
-		throws IOException
+	public MetaServiceChannel getChannel()
 	{
-		return commChannel.recv();
+		return channel;
 	}
 }
