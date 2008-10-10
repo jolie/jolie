@@ -110,7 +110,7 @@ abstract public class MetaService
 	 * @throws java.io.IOException in case of communication error.
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
-	public MetaServiceChannel loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata)
+	public MetaServiceChannel loadEmbeddedJolieService( String resourcePrefix, String filepath, Value metadata )
 		throws IOException, FaultException
 	{
 		final MetaServiceChannel channel = getChannel();
