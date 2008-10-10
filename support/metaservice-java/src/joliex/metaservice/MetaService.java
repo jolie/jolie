@@ -63,7 +63,7 @@ abstract public class MetaService
 	 * @param location the location (in JOLIE format) the redirection has to point to.
 	 * @param protocol the protocol (in JOLIE format) the redirection has to use.
 	 * @param metadata additional descriptive metadata to be added to the redirection.
-	 * @return the resourceName the redirection has been placed under.
+	 * @return a MetaServiceChannel pointing to the added redirection.
 	 * @throws java.io.IOException in case of communication error.
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
@@ -106,7 +106,7 @@ abstract public class MetaService
 	 * will be published in /MediaPlayer or in /MediaPlayer-s, where s is a string.
 	 * @param filepath the source file path of the jolie service to embed.
 	 * @param metadata additional descriptive metadata to be added to the embedded service.
-	 * @return the resourceName the redirection has been placed under.
+	 * @return a MetaServiceChannel pointing to the embedded service
 	 * @throws java.io.IOException in case of communication error.
 	 * @throws jolie.runtime.FaultException in case of a fault sent by the MetaService service.
 	 */
