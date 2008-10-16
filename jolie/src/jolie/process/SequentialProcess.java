@@ -47,8 +47,6 @@ public class SequentialProcess implements Process
 	{
 		for( Process proc : children ) {
 			proc.run();
-			/*if ( ExecutionThread.currentThread().isKilled() )
-				return;*/
 		}
 	}
 	
