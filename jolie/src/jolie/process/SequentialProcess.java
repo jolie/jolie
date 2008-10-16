@@ -23,7 +23,6 @@ package jolie.process;
 
 import java.util.Vector;
 
-import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
