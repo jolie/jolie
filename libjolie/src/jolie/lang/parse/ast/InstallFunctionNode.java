@@ -21,21 +21,19 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.List;
-
 import jolie.util.Pair;
 
 
 public class InstallFunctionNode
 {
-	final private List< Pair< String, OLSyntaxNode > > pairs;
+	final private Pair< String, OLSyntaxNode >[] pairs;
 
-	public InstallFunctionNode( List< Pair< String, OLSyntaxNode > > pairs )
+	public InstallFunctionNode( Pair< String, OLSyntaxNode >[] pairs )
 	{
 		this.pairs = pairs;
 	}
 	
-	public List< Pair< String, OLSyntaxNode > > pairs()
+	public Pair< String, OLSyntaxNode >[] pairs()
 	{
 		return pairs;
 	}

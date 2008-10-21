@@ -22,6 +22,9 @@
 
 package jolie.lang.parse;
 
+import java.lang.String;
+import java.lang.String;
+import java.lang.reflect.Array;
 import java.util.Vector;
 import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -50,7 +53,6 @@ import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OrConditionNode;
@@ -73,6 +75,8 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -81,6 +85,7 @@ import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.util.Pair;
 import jolie.util.Pair;
 
 
@@ -338,10 +343,12 @@ public class OLParseTreeOptimizer
 		
 		public void visit( InstallStatement n )
 		{
-			Vector pairs = new Vector< Pair< String, OLSyntaxNode > > ();
+			Pair< String, OLSyntaxNode >[] pairs =
+				(Pair< String, OLSyntaxNode >[]) Array.newInstance( Pair.class, n.handlersFunction().pairs().length );
+			int i = 0;
 			for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
 				pair.value().accept( this );
-				pairs.add( new Pair< String, OLSyntaxNode >( pair.key(), currNode ) );
+				pairs[ i++ ] = new Pair< String, OLSyntaxNode >( pair.key(), currNode );
 			}
 			currNode = new InstallStatement( n.context(), new InstallFunctionNode( pairs ) );
 		}

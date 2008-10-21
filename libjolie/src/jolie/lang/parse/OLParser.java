@@ -1152,34 +1152,40 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		boolean backup = insideInstallFunction;
-		insideInstallFunction =
-			true;
-		Vector<Pair<String, OLSyntaxNode>> vec =
-			new Vector<Pair<String, OLSyntaxNode>>();
+		insideInstallFunction = true;
+		Vector< Pair< String, OLSyntaxNode > > vec =
+			new Vector< Pair< String, OLSyntaxNode > >();
 
-		String id;
-// TODO: this is buggy, as it allows lists ending with a comma
-		while ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.THIS ) ) {
-			if ( token.is( Scanner.TokenType.ID ) ) {
-				id = token.content();
-			} else {
-				id = null;
-			}
-
-			getToken();
-			eat(
-				Scanner.TokenType.ARROW, "expected =>" );
-			vec.add( new Pair<String, OLSyntaxNode>( id, parseProcess() ) );
-			if ( token.isNot( Scanner.TokenType.COMMA ) ) {
-				break;
-			} else {
+		boolean keepRun = true;
+		Vector< String > names = new Vector< String >();
+		OLSyntaxNode handler;
+		while( keepRun ) {
+			do {
+				if ( token.is( Scanner.TokenType.THIS ) ) {
+					names.add( null );
+				} else if ( token.is( Scanner.TokenType.ID ) ) {
+					names.add( token.content() );
+				} else {
+					throwException( "expected fault identifier or this" );
+				}
 				getToken();
+			} while( token.isNot( Scanner.TokenType.ARROW ) );
+			getToken(); // eat the arrow
+			handler = parseProcess();
+			for( String name : names ) {
+				vec.add( new Pair< String, OLSyntaxNode >( name, handler ) );
 			}
-
+			names.clear();
+			
+			if ( token.is( Scanner.TokenType.COMMA ) ) {
+				getToken();
+			} else {
+				keepRun = false;
+			}
 		}
 
 		insideInstallFunction = backup;
-		return new InstallFunctionNode( vec );
+		return new InstallFunctionNode( vec.toArray( new Pair[]{} ) );
 	}
 
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( VariablePathNode path )
