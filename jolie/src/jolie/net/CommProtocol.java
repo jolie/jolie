@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
@@ -56,6 +57,23 @@ abstract public class CommProtocol implements Cloneable
 	protected ValueVector getParameterVector( String id )
 	{
 		return configurationPath.getValue().getChildren( id );
+	}
+	
+	/**
+	 * Shortcut for getParameterVector( id ).first()
+	 */
+	protected Value getParameterFirstValue( String id )
+	{
+		return getParameterVector( id ).first();
+	}
+	
+	/**
+	 * Shortcut for checking if a parameter intValue() equals 1
+	 * @param id the parameter identifier
+	 */
+	protected boolean checkBooleanParameter( String id )
+	{
+		return getParameterFirstValue( id ).intValue() == 1;
 	}
 	
 	abstract public CommMessage recv( InputStream istream )

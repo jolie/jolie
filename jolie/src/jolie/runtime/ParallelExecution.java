@@ -79,15 +79,17 @@ public class ParallelExecution
 					ethread.setCanBeInterrupted( false );
 				} catch( InterruptedException e ) {
 					if ( ethread.isKilled() ) {
-						for( ParallelThread t : threads )
+						for( ParallelThread t : threads ) {
 							t.kill( ethread.killerFault() );
+						}
 					}
 				}
 			}
 
 			if ( fault != null ) {
-				for( ParallelThread t : threads )
+				for( ParallelThread t : threads ) {
 					t.kill( fault );
+				}
 				while ( !threads.isEmpty() ) {
 					try {
 						wait();
@@ -103,8 +105,9 @@ public class ParallelExecution
 		synchronized( this ) {
 			threads.remove( thread );
 			
-			if ( threads.isEmpty() )
+			if ( threads.isEmpty() ) {
 				notify();
+			}
 		}
 	}
 	
@@ -116,8 +119,9 @@ public class ParallelExecution
 			if ( fault == null ) {
 				fault = f;
 				notify();
-			} else if ( threads.isEmpty() )
+			} else if ( threads.isEmpty() ) {
 				notify();
+			}
 		}
 	}
 }

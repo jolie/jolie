@@ -61,14 +61,6 @@ public class JolieClassLoader extends URLClassLoader
 		init( urls );
 	}
 	
-	/*public JolieClassLoader( URL[] urls, Interpreter interpreter )
-		throws IOException
-	{
-		super( urls );
-		this.interpreter = interpreter;
-		init( urls );
-	}*/
-	
 	@Override
 	public Class<?> loadClass( String className )
 		throws ClassNotFoundException

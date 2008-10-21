@@ -45,7 +45,7 @@ public class Jolie
 		} catch( CommandLineException cle ) {
 			System.out.println( cle.getMessage() );
 		} catch( FileNotFoundException fe ) {
-			System.out.println( fe.getMessage() );
+			fe.printStackTrace();
 			exitCode = 1;
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();

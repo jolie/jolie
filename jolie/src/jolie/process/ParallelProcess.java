@@ -49,7 +49,8 @@ public class ParallelProcess implements Process
 	 */
 	public void addChild( Process process )
 	{
-		if ( process != null )
+		if ( process != null ) {
 			children.add( process );
+		}
 	}
 }

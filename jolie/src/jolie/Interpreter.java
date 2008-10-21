@@ -132,20 +132,29 @@ public class Interpreter
 		pipes.put( key, value );
 	}
 	
+	/**
+	 * Adds an active session token to this Interpreter.
+	 * The interpreter will not shutdown until each active session token is removed.
+	 * @see #removeActiveSession
+	 */
 	public void addActiveSession()
 	{
 		synchronized( activeSessions ) {
 			activeSessions++;
 		}
 	}
-	
+
+	/**
+	 * Removes an active session token.
+	 * The interpreter will not shutdown until each active session token is removed.
+	 */
 	public void removeActiveSession()
 	{
 		synchronized( activeSessions ) {
 			activeSessions--;
 		}
 	}
-	
+
 	public void registerSessionSpawner( CorrelatedProcess p )
 	{
 		sessionSpawners.add( p );
