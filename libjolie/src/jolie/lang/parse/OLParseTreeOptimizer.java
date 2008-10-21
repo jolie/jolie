@@ -22,6 +22,7 @@
 
 package jolie.lang.parse;
 
+import java.util.Vector;
 import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
@@ -71,6 +72,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -334,12 +336,14 @@ public class OLParseTreeOptimizer
 			currNode = new Scope( n.context(), n.id(), currNode );
 		}
 		
-		/**
-		 * @todo Optimize the associated processes
-		 */
 		public void visit( InstallStatement n )
 		{
-			currNode = n;
+			Vector pairs = new Vector< Pair< String, OLSyntaxNode > > ();
+			for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
+				pair.value().accept( this );
+				pairs.add( new Pair< String, OLSyntaxNode >( pair.key(), currNode ) );
+			}
+			currNode = new InstallStatement( n.context(), new InstallFunctionNode( pairs ) );
 		}
 		
 		public void visit( SynchronizedStatement n )
@@ -487,7 +491,7 @@ public class OLParseTreeOptimizer
 				n.operands().iterator().next().value().accept( this );
 			}
 		}
-		
+
 		public void visit( VariableExpressionNode n ) { currNode = n; }
 		public void visit( InstallFixedVariableExpressionNode n ) { currNode = n; }
 		public void visit( NullProcessStatement n ) { currNode = n; }
