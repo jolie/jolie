@@ -143,7 +143,7 @@ public class RuntimeService extends JavaService
 		CommListener listener =
 			interpreter.commCore().getListenerByInputPortName( inputPortName );
 		if ( listener == null ) {
-			throw new FaultException( "RuntimeException" );
+			throw new FaultException( "RuntimeException", Value.create( "Invalid input port: " + inputPortName ) );
 		}
 		
 		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
