@@ -64,9 +64,10 @@ public class IfProcess implements Process
 	public Process clone( TransformationReason reason )
 	{
 		IfProcess p = new IfProcess();
-		for( CPPair pair : pairs )
+		for( CPPair pair : pairs ) {
 			p.addPair( pair.condition.cloneCondition( reason ), pair.process.clone( reason ) );
-		p.elseProcess = elseProcess.clone( reason );
+		}
+		p.elseProcess = (elseProcess == null) ? null : elseProcess.clone( reason );
 		return p;
 	}
 	

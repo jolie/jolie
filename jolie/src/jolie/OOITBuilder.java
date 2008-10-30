@@ -277,7 +277,24 @@ public class OOITBuilder implements OLVisitor
 			op.accept( this );
 		}
 		
+		Map< String, OutputPort > redirectionMap =
+			new HashMap< String, OutputPort > ();
+		OutputPort oPort = null;
+		for( Entry< String, String > entry : n.redirectionMap().entrySet() ) {
+			try {
+				oPort = interpreter.getOutputPort( entry.getValue() );
+			} catch( InvalidIdException e ) {
+				error( n.context(), "Unknown output port (" + entry.getValue() + ") in redirection for input port " + n.id() );
+			}
+			redirectionMap.put( entry.getKey(), oPort );
+		}
+		
 		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+			try {
+				interpreter.commCore().addLocalInputPort( n.id(), n.operationsMap().keySet(), redirectionMap );
+			} catch( IOException e ) {
+				error( n.context(), e );
+			}
 			return;
 		}
 		
@@ -298,22 +315,12 @@ public class OOITBuilder implements OLVisitor
 		}
 		
 		currProcess = null;
-		if ( n.protocolConfiguration() != null )
+		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
+		}
 		
 		if ( protocol != null ) {
 			try {
-				Map< String, OutputPort > redirectionMap =
-							new HashMap< String, OutputPort > ();
-				OutputPort oPort = null;
-				for( Entry< String, String > entry : n.redirectionMap().entrySet() ) {
-					try {
-						oPort = interpreter.getOutputPort( entry.getValue() );
-					} catch( InvalidIdException e ) {
-						error( n.context(), "Unknown output port (" + entry.getValue() + ") in redirection for input port " + n.id() );
-					}
-					redirectionMap.put( entry.getKey(), oPort );
-				}
 				interpreter.commCore().addInputPort( n.id(), n.location(), n.operationsMap().keySet(), protocol, currProcess, redirectionMap );
 			} catch( IOException ioe ) {
 				error( n.context(), ioe );

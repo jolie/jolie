@@ -52,6 +52,7 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.CommListener;
 import jolie.net.OutputPort;
 import jolie.net.PipeListener;
 import jolie.process.CorrelatedProcess;

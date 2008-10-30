@@ -145,7 +145,7 @@ public class OutputPort extends AbstractIdentifiableObject
 				channel.refreshProtocol();
 			}
 		}
-		
+
 		return channel;
 	}
 	

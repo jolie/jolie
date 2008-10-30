@@ -83,7 +83,6 @@ public class SolicitResponseProcess implements Process
 				( outputExpression == null ) ?
 						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
 						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
-			
 			channel.send( message );
 			message = channel.recv();
 			

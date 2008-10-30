@@ -19,75 +19,48 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.net;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import jolie.Interpreter;
-import jolie.JolieThread;
-import jolie.runtime.InputOperation;
 
 /**
- * Base class for a communication input listener.
+ * 
  * @author Fabrizio Montesi
- * @TODO: should become an interface
  */
-abstract public class CommListener extends JolieThread
+public class LocalListener extends CommListener
 {
-	private static int index = 0;
-
-	final private CommProtocol protocol;
-	final protected Collection< String > operationNames;
-	final protected Map< String, OutputPort > redirectionMap;
-	
-	public CommListener(
-				Interpreter interpreter,
-				CommProtocol protocol,
-				Collection< String > operationNames,
-				Map< String, OutputPort > redirectionMap
-			)
+	public LocalListener( Interpreter interpreter )
 	{
-		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
-		this.protocol = protocol;
-		this.operationNames = operationNames;
-		this.redirectionMap = redirectionMap;
+		super( interpreter, new HashSet< String >(), new HashMap< String, OutputPort >() );
 	}
 	
-	protected CommListener(
-				Interpreter interpreter,
-				Collection< String > operationNames,
-				Map< String, OutputPort > redirectionMap
-			)
+	public void addOperationNames( Collection< String > operationNames )
 	{
-		super( interpreter );
-		this.protocol = null;
-		this.operationNames = operationNames;
-		this.redirectionMap = redirectionMap;
+		this.operationNames.addAll( operationNames );
 	}
 	
+	public void addRedirections( Map< String, OutputPort > redirectionMap )
+	{
+		this.redirectionMap.putAll( redirectionMap );
+	}
+	
+	@Override
+	public void run()
+	{}
+	
+	@Override
 	public CommProtocol createProtocol()
 	{
-		return protocol.clone();
+		return null;
 	}
 	
-	public Map< String, OutputPort > redirectionMap()
-	{
-		return redirectionMap;
-	}
-	
-	/**
-	 * Returns true if this CommListener can handle the given InputOperation, false otherwise.
-	 * @param operation the InputOperation to check in this CommListener
-	 * @return true if this CommListener can handle the given InputOperation, false otherwise
-	 */
-	public boolean canHandleInputOperation( InputOperation operation )
-	{
-		return ( operationNames.contains( operation.id() ) );
-	}
-	
-	public void shutdown()
-	{		
-	}
+	@Override
+	final public void start()
+	{}
+
 }

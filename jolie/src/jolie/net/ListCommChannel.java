@@ -50,7 +50,7 @@ public class ListCommChannel extends CommChannel
 		return olist;
 	}
 	
-	public void send( CommMessage message )
+	public synchronized void send( CommMessage message )
 	{
 		synchronized( olist ) {
 			olist.add( message );
@@ -58,14 +58,14 @@ public class ListCommChannel extends CommChannel
 		}
 	}
 	
-	public CommMessage recv()
+	public synchronized CommMessage recv()
 	{
 		CommMessage ret = null;
 		synchronized( ilist ) {
 			try {
 				while( ilist.isEmpty() )
 					ilist.wait();
-			} catch( InterruptedException ie ) {}
+			} catch( InterruptedException e ) {}
 			ret = ilist.remove( 0 );
 		}
 		return ret;

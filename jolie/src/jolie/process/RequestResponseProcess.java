@@ -66,7 +66,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 					}
 				}
 				parent.runBehaviour( channel, message );
-			} catch( InterruptedException ie ) {
+			} catch( InterruptedException e ) {
 				parent.operation.cancelWaiting( this );
 			}
 		}
@@ -76,6 +76,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			return parent.inputVarPath;
 		}
 		
+		// TODO: is synchronized really needed here?
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
 			if ( parent.correlatedProcess != null ) {

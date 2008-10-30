@@ -87,6 +87,7 @@ public class CommCore
 		throws IOException
 	{
 		this.interpreter = interpreter;
+		this.localListener = new LocalListener( interpreter );
 		this.connectionsLimit = connectionsLimit;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
 		if ( connectionsLimit > 0 ) {
@@ -186,13 +187,33 @@ public class CommCore
 		listenerFactories.put( id, factory );
 	}
 	
+	final private LocalListener localListener;
+	
+	public LocalListener localListener()
+	{
+		return localListener;
+	}
+	
+	public void addLocalInputPort(
+				String inputPortName,
+				Collection< String > operationNames,
+				Map< String, OutputPort > redirectionMap
+			)
+		throws IOException
+	{
+		localListener.addOperationNames( operationNames );
+		localListener.addRedirections( redirectionMap );
+		listenersMap.put( inputPortName, localListener );
+	}
+	
 	public void addInputPort(
-				String serviceName,
+				String inputPortName,
 				URI uri,
 				Collection< String > operationNames,
 				CommProtocol protocol,
 				Process protocolConfigurationProcess,
 				Map< String, OutputPort > redirectionMap
+			
 			)
 		throws IOException
 	{
@@ -207,7 +228,7 @@ public class CommCore
 		}
 
 		listener = factory.createListener( interpreter, protocol, operationNames, redirectionMap, uri );
-		listenersMap.put( serviceName, listener );
+		listenersMap.put( inputPortName, listener );
 	}
 	
 	final private ExecutorService executorService;
