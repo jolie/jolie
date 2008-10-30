@@ -1,7 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Mauro Silvagni                                       *
- *   Copyright (C) by Claudio Guidi                                        *
+ *   Copyright (C) 2006 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -92,6 +90,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
+import jolie.net.http.HttpUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -180,8 +179,9 @@ public class SoapProtocol extends CommProtocol
 	private void initNamespacePrefixes( SOAPElement element )
 		throws SOAPException
 	{
-		for( Entry< String, String > entry : namespacePrefixMap.entrySet() )
+		for( Entry< String, String > entry : namespacePrefixMap.entrySet() ) {
 			element.addNamespaceDeclaration( entry.getValue(), entry.getKey() );
+		}
 	}
 	
 	private static void valueToSOAPElement(
@@ -273,17 +273,6 @@ public class SoapProtocol extends CommProtocol
 	private String getPrefix( XSElementDecl decl )
 	{
 		return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
-	}
-	
-	private void valueToTypedSOAP(
-			Value value,
-			XSElementDecl xsDecl,
-			SOAPElement element,
-			SOAPEnvelope envelope
-			)
-		throws SOAPException
-	{
-		valueToTypedSOAP( value, xsDecl, element, envelope, true );
 	}
 	
 	private void valueToTypedSOAP(
@@ -466,7 +455,6 @@ public class SoapProtocol extends CommProtocol
 
 			String messageString = new String();
 			String soapAction = null;
-			InputOperation operation = null;
 			
 			if ( received ) {
 				// We're responding to a request
@@ -556,22 +544,8 @@ public class SoapProtocol extends CommProtocol
 	{
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		
-		HttpMessage.Version version = message.version();
-		if ( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
-			// The default is to keep the connection open, unless Connection: close is specified
-			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
-				channel.setToBeClosed( true );
-			else
-				channel.setToBeClosed( false );
-		} else if ( version.equals( HttpMessage.Version.HTTP_1_0 ) ) {
-			// The default is to close the connection, unless Connection: Keep-Alive is specified
-			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) )
-				channel.setToBeClosed( false );
-			else
-				channel.setToBeClosed( true );
-		}
-		
+		HttpUtils.recv_checkForChannelClosing( message, channel );
+
 		CommMessage retVal = null;
 		String messageId = message.getPropertyOrEmptyString( "soapaction" );
 		FaultException fault = null;
@@ -641,25 +615,24 @@ public class SoapProtocol extends CommProtocol
 				}
 			}
 			
-			if ( message.type() == HttpMessage.Type.RESPONSE ) { 
+			if ( message.isResponse() ) { 
 				if ( fault != null && message.httpCode() == 500 )
 					fault = new FaultException( "InternalServerError", "" );
 				//TODO support resourcePath
 				retVal = new CommMessage( inputId, "/", value, fault );
 			} else if (
-					message.type() == HttpMessage.Type.POST ||
-					message.type() == HttpMessage.Type.GET
+					!message.isError()
 					) {
 				if ( messageId.isEmpty() )
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				//TODO support resourcePath
 				retVal = new CommMessage( messageId, "/", value, fault );
 			}
-		} catch( SOAPException se ) {
-			throw new IOException( se );
-		} catch( ParserConfigurationException pce ) {
-			throw new IOException( pce );
-		} catch( SAXException saxe ) {
+		} catch( SOAPException e ) {
+			throw new IOException( e );
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( SAXException e ) {
 			//TODO support resourcePath
 			retVal = new CommMessage( messageId, "/", value, new FaultException( "InvalidType" ) );
 		}
