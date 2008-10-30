@@ -52,7 +52,7 @@ public class EmbeddedMetaService extends MetaService
 		
 		return new String[] {
 			// Libraries
-			"-l", jh + fs + "lib" + ps + jh + "javaServices/*" + ps + jh + "extensions/*",
+			"-l", jh + fs + "lib" + ps + jh + fs + "javaServices/*" + ps + jh + fs + "extensions/*",
 			// Includes
 			"-i", jh + fs + "include",
 			// MetaService source file
