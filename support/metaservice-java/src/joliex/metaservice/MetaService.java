@@ -28,6 +28,7 @@ import jolie.runtime.Value;
 
 /**
  * The MetaService class is a bridge to a MetaService JOLIE service.
+ * @TODO: support nested paths
  * @author Fabrizio Montesi
  */
 abstract public class MetaService

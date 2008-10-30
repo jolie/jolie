@@ -42,7 +42,7 @@ public class MetaServiceChannel
 		throws IOException
 	{
 		this.metaService = metaService;
-		this.resourceName = resourceName;
+		this.resourceName = "/" + resourceName;
 		this.persistent = persistent;
 		if ( persistent ) {
 			channel = metaService.createCommChannel();
