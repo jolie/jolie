@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Mauro Silvagni                                       *
+ *   Copyright (C) 2008 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -31,8 +30,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -59,8 +56,10 @@ import jolie.Constants;
 import jolie.Interpreter;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
+import jolie.net.http.HttpUtils;
 import jolie.net.http.JolieGWTConverter;
 import jolie.net.http.MultiPartFormDataParser;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -68,6 +67,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
+import jolie.xml.XmlUtils;
 import joliex.gwt.client.JolieService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -76,9 +76,18 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-
+/**
+ * HTTP protocol implementation
+ * @author Fabrizio Montesi
+ */
+@AndJarDeps({"jolie-xml.jar"})
 public class HttpProtocol extends CommProtocol
 {
+	private static class Parameters {
+		private static String DEBUG = "debug";
+	}
+	
+	
 	private String inputId = null;
 	final private TransformerFactory transformerFactory;
 	final private Transformer transformer;
@@ -145,12 +154,6 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 	
-	private static Value getAttribute( Value value, String attrName )
-	{
-		return value.getChildren( Constants.Predefined.ATTRIBUTES.token().content() ).first()
-					.getChildren( attrName ).first();
-	}
-	
 	private void valueToDocument(
 			Value value,
 			Node node,
@@ -183,45 +186,49 @@ public class HttpProtocol extends CommProtocol
 	
 	private final static String BOUNDARY = "----Jol13H77p$$Bound4r1$$";
 	
-	private static String getCookieString( CommMessage message, String hostname )
+	private static void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
 		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
-		String cookieString = "";
+		StringBuilder cookieSB = new StringBuilder();
 		String domain;
 		// TODO check for cookie expiration
 		for( Value v : cookieVec ) {
 			domain = v.getChildren( "domain" ).first().strValue();
 			if ( domain.isEmpty() ||
 					(!domain.isEmpty() && hostname.endsWith( domain )) ) {
-				cookieString +=
+				cookieSB.append(
 							v.getChildren( "name" ).first().strValue() + "=" +
-							v.getChildren( "value" ).first().strValue() + "; ";
+							v.getChildren( "value" ).first().strValue() + "; "
+				);
 			}
 		}
-		return ( cookieString.isEmpty() ? "" : "Cookie: " + cookieString + CRLF );
+		if ( cookieSB.length() > 0 ) {
+			headerBuilder.append( "Cookie: " );
+			headerBuilder.append( cookieSB );
+			headerBuilder.append( CRLF );
+		}
 	}
 	
-	private static String getSetCookieString( CommMessage message )
+	private static void send_appendSetCookieHeader( CommMessage message, StringBuilder headerBuilder )
 	{
 		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
-		String ret = "";
 		// TODO check for cookie expiration
 		for( Value v : cookieVec ) {
-			ret += "Set-Cookie: " +
+			headerBuilder.append( "Set-Cookie: " +
 					v.getFirstChild( "name" ).strValue() + "=" +
 					v.getFirstChild( "value" ).strValue() + "; " +
 					"expires=" + v.getFirstChild( "expires" ).strValue() + "; " +
 					"path=" + v.getFirstChild( "path" ).strValue() + "; " +
 					"domain=" + v.getFirstChild( "domain" ).strValue() +
 					( (v.getFirstChild( "secure" ).intValue() > 0) ? "; secure" : "" ) +
-					CRLF;
+					CRLF
+			);
 		}
-		return ret;
 	}
 	
 	private String requestFormat = null;
 	
-	private static String parseAlias( String alias, Value value )
+	private static CharSequence parseAlias( String alias, Value value )
 	{
 		StringBuilder result = new StringBuilder( alias );
 		Matcher m = Pattern.compile( "%\\{[^\\}]*\\}" ).matcher( alias );
@@ -231,249 +238,261 @@ public class HttpProtocol extends CommProtocol
 				value.getFirstChild( alias.substring( m.start()+2, m.end()-1 ) ).strValue()
 			);
 		}
-		return result.toString();
+		return result;
+	}
+	
+	private String send_getCharset( CommMessage message )
+	{
+		String charset = "UTF-8";
+		if ( message.value().hasChildren( jolie.Constants.Predefined.CHARSET.token().content() ) ) {
+			charset = message.value().getFirstChild( jolie.Constants.Predefined.CHARSET.token().content() ).strValue();
+		} else if ( hasParameter( "charset" ) ) {
+			charset = getStringParameter( "charset" );
+		}
+		return charset;
+	}
+	
+	private String send_getFormat( CommMessage message )
+	{
+		String format = "xml";
+		if ( received && requestFormat != null ) {
+			format = requestFormat;
+			requestFormat = null;
+		} else if ( message.value().hasChildren( jolie.Constants.Predefined.FORMAT.token().content() ) ) {
+			format = message.value().getFirstChild( jolie.Constants.Predefined.FORMAT.token().content() ).strValue();
+		} else if ( hasParameter( "format" ) ) {
+			format = getStringParameter( "format" );
+		}
+		return format;
+	}
+	
+	private class EncodedContent {
+		private ByteArray content = null;
+		private String contentType = null;
+	}
+		
+	private EncodedContent send_encodeContent( CommMessage message, String charset, String format )
+		throws IOException
+	{
+		if ( charset == null ) {
+			charset = "UTF8";
+		}
+		EncodedContent ret = new EncodedContent();
+		if ( "xml".equals( format ) ) {
+			Document doc = docBuilder.newDocument();
+			Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
+			doc.appendChild( root );
+			try {
+				valueToDocument( message.value(), root, doc );
+			} catch( SOAPException e ) {
+				throw new IOException( e );
+			}
+
+			Source src = new DOMSource( doc );
+			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+			Result dest = new StreamResult( tmpStream );
+			try {
+				transformer.transform( src, dest );
+			} catch( TransformerException e ) {
+				throw new IOException( e );
+			}
+			ret.content = new ByteArray( tmpStream.toByteArray() );
+
+			ret.contentType = "text/xml";
+		} else if ( "binary".equals( format ) ) {
+			if ( message.value().isByteArray() ) {
+				ret.content = (ByteArray)message.value().valueObject();
+			}
+			ret.contentType = "application/octet-stream";
+		} else if ( "html".equals( format ) ) {
+			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+			ret.contentType = "text/html";
+		} else if ( "multipart/form-data".equals( format ) ) {
+			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
+			StringBuilder builder = new StringBuilder();
+			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
+				if ( !entry.getKey().startsWith( "@" ) ) {
+					builder.append( "--" + BOUNDARY + CRLF );
+					builder.append( "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF );
+					builder.append( entry.getValue().first().strValue() + CRLF );
+				}
+			}
+			builder.append( "--" + BOUNDARY + "--" );
+			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+		} else if ( "x-www-form-urlencoded".equals( format ) ) {
+			ret.contentType = "x-www-form-urlencoded";
+			Iterator< Entry< String, ValueVector > > it =
+				message.value().children().entrySet().iterator();
+			Entry< String, ValueVector > entry;
+			StringBuilder builder = new StringBuilder();
+			while( it.hasNext() ) {
+				entry = it.next();
+				builder.append( entry.getKey() + "=" + URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
+				if ( it.hasNext() ) {
+					builder.append( '&' );
+				}
+			}
+			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+		} else if ( "text/x-gwt-rpc".equals( format ) ) {
+			try {
+				if ( message.isFault() ) {
+					ret.content = new ByteArray(
+						RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
+					);
+				} else {
+					joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+					JolieGWTConverter.jolieToGwtValue( message.value(), v );
+					ret.content = new ByteArray(
+						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v ).getBytes( charset )
+					);
+				}
+			} catch( SerializationException e ) {
+				throw new IOException( e );
+			}
+		}
+		return ret;
+	}
+	
+	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
+	{
+		String redirect = message.value().getFirstChild( Constants.Predefined.REDIRECT.token().content() ).strValue();
+		if ( redirect.isEmpty() ) {
+			headerBuilder.append( "HTTP/1.1 200 OK" + CRLF );
+		} else {
+			headerBuilder.append( "HTTP/1.1 303 See Other" + CRLF );
+			headerBuilder.append( "Location: " + redirect + CRLF );
+		}
+		send_appendSetCookieHeader( message, headerBuilder );
+	}
+	
+	private void send_appendRequestMethod( StringBuilder headerBuilder )
+	{
+		if ( hasParameter( "method" ) ) {
+			headerBuilder.append( getStringParameter( "method" ).toUpperCase() );
+		} else {
+			headerBuilder.append( "GET" );
+		}
+	}
+	
+	private void send_appendRequestPath( CommMessage message, StringBuilder headerBuilder )
+	{
+		if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' ) {
+			headerBuilder.append( '/' );
+		}
+		headerBuilder.append( uri.getPath() );
+		if ( uri.toString().endsWith( "/" ) == false ) {
+			headerBuilder.append( '/' );
+		}
+		if (
+			hasParameter( "aliases" ) &&
+			getParameterFirstValue( "aliases" ).hasChildren( message.operationName() )
+		) {
+			headerBuilder.append(
+				parseAlias(
+					getParameterFirstValue( "aliases" ).getFirstChild( message.operationName() ).strValue(),
+					message.value()
+				)
+			);
+		} else {
+			headerBuilder.append( message.operationName() );
+		}
+	}
+	
+	private static void send_appendAuthorizationHeader( CommMessage message, StringBuilder headerBuilder )
+	{
+		if ( message.value().hasChildren( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
+			Value v = message.value().getFirstChild( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
+			//String realm = v.getFirstChild( "realm" ).strValue();
+			String userpass =
+				v.getFirstChild( "userid" ).strValue() + ":" +
+				v.getFirstChild( "password" ).strValue();
+			sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+			userpass = encoder.encode( userpass.getBytes() );
+			headerBuilder.append( "Authorization: Basic " + userpass + CRLF );
+		}
+	}
+	
+	private void send_appendRequestHeaders( CommMessage message, StringBuilder headerBuilder )
+	{
+		send_appendRequestMethod( headerBuilder );
+		headerBuilder.append( ' ' );
+		send_appendRequestPath( message, headerBuilder );
+		headerBuilder.append( " HTTP/1.1" + CRLF );
+		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
+		send_appendCookies( message, uri.getHost(), headerBuilder );
+		send_appendAuthorizationHeader( message, headerBuilder );
+	}
+	
+	private void send_appendGenericHeaders(
+		CommMessage message,
+		EncodedContent encodedContent,
+		String charset,
+		StringBuilder headerBuilder
+	)
+	{
+		String param;
+		if ( checkBooleanParameter( "keepAlive" ) ) {
+			channel.setToBeClosed( true );
+			headerBuilder.append( "Connection: close" + CRLF );
+		}
+		param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
+		if ( !param.isEmpty() ) {
+			encodedContent.contentType = param;
+		}
+		headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+		if ( charset != null ) {
+			headerBuilder.append( "; charset=" + charset.toLowerCase() );
+		}
+		headerBuilder.append( CRLF );
+		
+		param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
+		if ( !param.isEmpty() ) {
+			headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
+		}
+		
+		headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );	
+	}
+	
+	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent )
+	{
+		if ( checkBooleanParameter( "debug" ) ) {
+			StringBuilder debugSB = new StringBuilder();
+			debugSB.append( "[HTTP debug] Sending:\n" );
+			debugSB.append( header );
+			if ( getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0 ) {
+				debugSB.append( encodedContent.content.toString() );
+			}
+			Interpreter.getInstance().logger().info( debugSB.toString() );
+		}
 	}
 	
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		try {
-			String charset = "", charsetParam;
-			charsetParam = message.value().getFirstChild( jolie.Constants.Predefined.CHARSET.token().content() ).strValue();
-			if ( charsetParam.isEmpty() ) {
-				charsetParam = getParameterVector( "charset" ).first().strValue();
-			}
-			if ( !charsetParam.isEmpty() ) {
-				charset = "; charset=" + charsetParam.toLowerCase();
-			}
-			String contentString = "";
-			String contentType = "text/plain";
-			String queryString = "";
-			ByteArray binaryContent = null;
-			
-			String format = null;
-			if ( received && requestFormat != null ) {
-				format = requestFormat;
-				requestFormat = null;
-			} else {
-				format = message.value().getFirstChild( jolie.Constants.Predefined.FORMAT.token().content() ).strValue();
-				if ( format.isEmpty() ) {
-					format = getParameterVector( "format" ).first().strValue();
-				}
-			}
-
-			if ( format.isEmpty() || format.equals( "xml" ) ) {
-				Document doc = docBuilder.newDocument();
-				Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
-				doc.appendChild( root );
-				valueToDocument( message.value(), root, doc );
-
-				Source src = new DOMSource( doc );
-				ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-				Result dest = new StreamResult( tmpStream );
-				transformer.transform( src, dest );
-
-				contentString = new String( tmpStream.toByteArray() );
-
-				contentType = "text/xml";
-			} else if ( format.equals( "binary" ) ) {
-				if ( message.value().isByteArray() ) {
-					binaryContent = (ByteArray)message.value().valueObject();
-				}
-				contentType = "application/octet-stream";
-			} else if ( format.equals( "html" ) ) {
-				if ( !charsetParam.isEmpty() ) {
-					binaryContent = new ByteArray( message.value().strValue().getBytes( charsetParam ) );
-				} else {
-					contentString = message.value().strValue();
-				}
-				contentType = "text/html";
-			} else if ( format.equals( "multipart/form-data" ) ) {
-				contentType = "multipart/form-data; boundary=" + BOUNDARY;
-				for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
-					if ( !entry.getKey().startsWith( "@" ) ) {
-						contentString += "--" + BOUNDARY + CRLF;
-						contentString += "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF;
-						contentString += entry.getValue().first().strValue() + CRLF;
-					}
-				}
-				contentString += "--" + BOUNDARY + "--";
-			} else if ( format.equals( "x-www-form-urlencoded" ) ) {
-				contentType = "x-www-form-urlencoded";
-				Iterator< Entry< String, ValueVector > > it =
-					message.value().children().entrySet().iterator();
-				Entry< String, ValueVector > entry;
-				while( it.hasNext() ) {
-					entry = it.next();
-					contentString += entry.getKey() + "=" + URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" );
-					if ( it.hasNext() ) {
-						contentString += "&";
-					}
-				}
-			} else if ( format.equals( "text/x-gwt-rpc" ) ) {
-				try {
-					if ( message.isFault() ) {
-						contentString +=
-							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) );
-					} else {
-						joliex.gwt.client.Value v = new joliex.gwt.client.Value();
-						JolieGWTConverter.jolieToGwtValue( message.value(), v );
-						contentString +=
-							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v );
-					}
-				} catch( SerializationException e ) {
-					e.printStackTrace();
-				}
-			}
-			
-			String messageString = new String();
-			
-			if ( received ) {
-				// We're responding to a request
-				String redirect = message.value().getFirstChild( Constants.Predefined.REDIRECT.token().content() ).strValue();
-				if ( redirect.isEmpty() ) {
-					messageString += "HTTP/1.1 200 OK" + CRLF;
-				} else {
-					messageString += "HTTP/1.1 303 See Other" + CRLF;
-					messageString += "Location: " + redirect + CRLF;
-				}
-				messageString += getSetCookieString( message );
-				received = false;
-			} else {
-				// We're sending a notification or a solicit
-				String path = new String();
-				if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' )
-					path += "/";
-				path += uri.getPath();
-				if ( path.endsWith( "/" ) == false )
-					path += "/";
-				String opName = message.operationName();
-				ValueVector vec;
-				String alias = "";
-				if (
-					(vec=getParameterVector( "aliases" ).first().children().get( opName )) == null
-					) {
-					path += opName;
-				} else {
-					alias = vec.first().strValue();
-					path += parseAlias( alias , message.value() );
-				}
-				
-				if ( format.equals( "rest" ) ) {
-					StringBuilder querySB = new StringBuilder();
-					querySB.append( message.value().strValue() );
-					if ( message.value().children().size() > 0 ) {
-						querySB.append( '?' );
-						String key;
-						for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
-							key = entry.getKey();
-							vec = entry.getValue();
-							if ( !key.startsWith( "@" ) && !alias.contains( "%{" + key + "}" ) ) {
-								for( Value v : vec ) {
-									querySB.append( key + "=" + URLEncoder.encode( v.strValue(),"UTF-8" ) + "&" );
-								}
-							}
-						}
-						queryString = querySB.substring( 0, querySB.length() - 1 );
-					}
-				}
-				
-				String method = "GET";
-				if ( getParameterVector( "method" ).first().strValue().length() > 0 ) {
-					method = getParameterVector( "method" ).first().strValue().toUpperCase();
-				}
-				
-				messageString += method + " " + path + queryString + " HTTP/1.1" + CRLF;
-				messageString += "Host: " + uri.getHost() + CRLF;
-				
-				messageString += getCookieString( message, uri.getHost() );
-				
-				if ( message.value().hasChildren( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
-					Value v = message.value().getFirstChild( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
-					//String realm = v.getFirstChild( "realm" ).strValue();
-					String userpass =
-						v.getFirstChild( "userid" ).strValue() + ":" +
-						v.getFirstChild( "password" ).strValue();
-					sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-					userpass = encoder.encode( userpass.getBytes() );
-					messageString += "Authorization: Basic " + userpass + CRLF;
-				}
-			}
-			
-			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				channel.setToBeClosed( true );
-				messageString += "Connection: close" + CRLF;
-			}
-						
-			String t = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
-			if ( !t.isEmpty() ) {
-				contentType = t;
-			}
-			messageString += "Content-Type: " + contentType + charset + CRLF;
-
-			String encoding = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
-			if ( !encoding.isEmpty() ) {
-				messageString += "Content-Transfer-Encoding: " + encoding + CRLF;
-			}
-			
-			messageString += "Content-Length: " +
-					( ( binaryContent == null ) ? contentString.length() : binaryContent.size() ) +
-					CRLF;
-			
-			//messageString += "Content-Encoding: none" + CRLF;
-			
-			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				String debugStr = messageString;
-				if ( getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0 ) {
-					debugStr = messageString + CRLF +
-						( ( binaryContent == null ) ? contentString : binaryContent.toString() ) + CRLF;
-				}
-				Interpreter.getInstance().logger().info( "[HTTP debug] Sending:\n" + debugStr ); 
-			}
-			
-			messageString += CRLF;
-			
-			inputId = message.operationName();
-			
-			Writer writer = new OutputStreamWriter( ostream );
-			if ( !contentType.startsWith( "image/" ) ) {
-				writer.write( messageString );
-			}
-			if ( binaryContent == null ) {
-				writer.write( contentString );
-			} else {
-				ostream.write( binaryContent.getBytes() );
-			}
-			writer.write( CRLF );
-			writer.flush();
-		} catch( SOAPException se ) {
-			throw new IOException( se );
-		} catch( TransformerException te ) {
-			throw new IOException( te );
+		String charset = send_getCharset( message );
+		String format = send_getFormat( message );
+		EncodedContent encodedContent = send_encodeContent( message, charset, format );
+		StringBuilder headerBuilder = new StringBuilder();
+		if ( received ) {
+			// We're responding to a request
+			send_appendResponseHeaders( message, headerBuilder );
+			received = false;
+		} else {
+			// We're sending a notification or a solicit
+			send_appendRequestHeaders( message, headerBuilder );
 		}
+		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
+		headerBuilder.append( CRLF );
+		
+		send_logDebugInfo( headerBuilder, encodedContent );
+		inputId = message.operationName();
+		
+		ostream.write( headerBuilder.toString().getBytes( charset ) );
+		ostream.write( encodedContent.content.getBytes() );
+		ostream.write( CRLF.getBytes( charset ) );
+		ostream.flush();
 	}
-	
-	private static void elementsToSubValues( Value value, NodeList list )
-	{
-		Node node;
-		Value childValue;
-		for( int i = 0; i < list.getLength(); i++ ) {
-			node = list.item( i );
-			switch( node.getNodeType() ) {
-			case Node.ATTRIBUTE_NODE:
-				getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
-				break;
-			case Node.ELEMENT_NODE:
-				childValue = value.getNewChild( node.getLocalName() );
-				elementsToSubValues( childValue, node.getChildNodes() ); 
-				break;
-			case Node.TEXT_NODE:
-				value.setValue( node.getNodeValue() );
-				break;
-			}
-		}
-	}
-	
+
 	private void parseXML( HttpMessage message, Value value )
 		throws IOException
 	{
@@ -481,14 +500,8 @@ public class HttpProtocol extends CommProtocol
 			if ( message.size() > 0 ) {
 				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
-				//InputSource src = new InputSource( new StringReader(new String( message.content() ).trim()) );
-
 				Document doc = builder.parse( src );
-
-				elementsToSubValues(
-							value,
-							doc.getFirstChild().getChildNodes()
-						);
+				XmlUtils.documentToValue( doc, value );
 			}
 		} catch( ParserConfigurationException pce ) {
 			throw new IOException( pce );
@@ -526,7 +539,7 @@ public class HttpProtocol extends CommProtocol
 		return operationName;
 	}
 	
-	private static void checkForSetCookie( HttpMessage message, Value value )
+	private static void recv_checkForSetCookie( HttpMessage message, Value value )
 	{
 		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
 		Value currValue;
@@ -542,7 +555,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private static void checkForCookies( HttpMessage message, Value value )
+	private static void recv_checkForCookies( HttpMessage message, Value value )
 	{
 		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
 		Value v;
@@ -554,7 +567,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private static void parseQueryString( HttpMessage message, Value value )
+	private static void recv_parseQueryString( HttpMessage message, Value value )
 	{
 		if ( message.requestPath() != null ) {
 			try {
@@ -569,108 +582,109 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
+	// Print debug information about a received message
+	private static void recv_logDebugInfo( HttpMessage message )
+	{
+		StringBuilder debugSB = new StringBuilder();
+		debugSB.append( "[HTTP debug] Receiving:\n" );
+		debugSB.append( "HTTP Code: " + message.httpCode() + "\n" );
+		debugSB.append( "--> Header properties\n" );
+		for( Entry< String, String > entry : message.properties() ) {
+			debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
+		}
+		for( HttpMessage.Cookie cookie : message.setCookies() ) {
+			debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
+		}
+		for( Entry< String, String > entry : message.cookies().entrySet() ) {
+			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
+		}
+		debugSB.append( "--> Message content\n" );
+		if ( message.content() != null )
+			debugSB.append( new String( message.content() ) );
+		Interpreter.getInstance().logger().info( debugSB.toString() );
+	}
+	
+	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage )
+		throws IOException
+	{
+		String format = getParameterVector( "format" ).first().strValue();
+		String type = message.getProperty( "content-type" ).split( ";" )[0];
+		if ( "application/x-www-form-urlencoded".equals( type ) ) {
+			parseForm( message, decodedMessage.value );
+		} else if ( "text/xml".equals( type ) || "rest".equals( format ) ) {
+			parseXML( message, decodedMessage.value );
+		} else if ( "text/x-gwt-rpc".equals( type ) ) {
+			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
+			requestFormat = "text/x-gwt-rpc";
+		} else if ( "multipart/form-data".equals( type ) ) {
+			parseMultiPartFormData( message, decodedMessage.value );
+		} else {
+			decodedMessage.value.setValue( new String( message.content() ) );
+		}
+	}
+	
+	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
+	{
+		if ( decodedMessage.operationName == null ) {
+			decodedMessage.operationName = message.requestPath().split( "\\?" )[0];
+		}
+
+		InputOperation op = null;
+		try {
+			op = Interpreter.getInstance().getInputOperation( decodedMessage.operationName );
+		} catch( InvalidIdException e ) {}
+		if ( op == null || !channel.parentListener().canHandleInputOperation( op ) ) {
+			String defaultOpId = getParameterVector( "default" ).first().strValue();
+			if ( defaultOpId.length() > 0 ) {
+				Value body = decodedMessage.value;
+				decodedMessage.value = Value.create();
+				decodedMessage.value.getChildren( "data" ).add( body );
+				decodedMessage.value.getChildren( "operation" ).first().setValue( decodedMessage.operationName );
+				decodedMessage.operationName = defaultOpId;
+			}
+		}
+	}
+	
+	private static void recv_checkForMessageProperties( HttpMessage message, Value messageValue )
+	{
+		recv_checkForCookies( message, messageValue );
+		String property;
+		if ( (property=message.getProperty( "user-agent" )) != null ) {
+			messageValue.getNewChild( Constants.Predefined.USER_AGENT.token().content() ).setValue( property );
+		}
+	}
+
+	private class DecodedMessage {
+		private String operationName = null;
+		private Value value = Value.create();
+	}
+	
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
-		HttpMessage.Version version = message.version();
-		if ( version == null || version.equals( HttpMessage.Version.HTTP_1_1 ) ) {
-			// The default is to keep the connection open, unless Connection: close is specified
-			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ) )
-				channel.setToBeClosed( true );
-			else
-				channel.setToBeClosed( false );
-		} else if ( version.equals( HttpMessage.Version.HTTP_1_0 ) ) {
-			// The default is to close the connection, unless Connection: Keep-Alive is specified
-			if ( message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "keep-alive" ) )
-				channel.setToBeClosed( false );
-			else
-				channel.setToBeClosed( true );
-		}
-
-		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			StringBuilder debugSB = new StringBuilder();
-			debugSB.append( "[HTTP debug] Receiving:\n" );
-			debugSB.append( "HTTP Code: " + message.httpCode() + "\n" );
-			debugSB.append( "--> Header properties\n" );
-			for( Entry< String, String > entry : message.properties() ) {
-				debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
-			}
-			for( HttpMessage.Cookie cookie : message.setCookies() ) {
-				debugSB.append( "\tset-cookie: " + cookie.toString() + '\n' );
-			}
-			for( Entry< String, String > entry : message.cookies().entrySet() ) {
-				debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
-			}
-			debugSB.append( "--> Message content\n" );
-			if ( message.content() != null )
-				debugSB.append( new String( message.content() ) );
-			Interpreter.getInstance().logger().info( debugSB.toString() );
-		}
-		
 		CommMessage retVal = null;
-		Value messageValue = Value.create();
-		String opId = null;
-		
+		DecodedMessage decodedMessage = new DecodedMessage();
+		HttpMessage message = new HttpParser( istream ).parse();
+		HttpUtils.recv_checkForChannelClosing( message, channel );
+		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+			recv_logDebugInfo( message );
+		}
 		if ( message.size() > 0 ) {
-			String format = getParameterVector( "format" ).first().strValue();
-			String type = message.getProperty( "content-type" ).split( ";" )[0];
-			if ( "application/x-www-form-urlencoded".equals( type ) ) {
-				parseForm( message, messageValue );
-			} else if ( "text/xml".equals( type ) || "rest".equals( format ) ) {
-				parseXML( message, messageValue );
-			} else if ( "text/x-gwt-rpc".equals( type ) ) {
-				opId = parseGWTRPC( message, messageValue );
-				requestFormat = "text/x-gwt-rpc";
-			} else if ( "multipart/form-data".equals( type ) ) {
-				parseMultiPartFormData( message, messageValue );
-			} else {
-				messageValue.setValue( new String( message.content() ) );
-			}
+			recv_parseMessage( message, decodedMessage );
 		}
 		
-		if ( message.type() == HttpMessage.Type.RESPONSE ) {
-			checkForSetCookie( message, messageValue );
-			retVal = new CommMessage( inputId, "/", messageValue );
-		} else if (
-				message.type() == HttpMessage.Type.POST ||
-				message.type() == HttpMessage.Type.GET ) {
-			if ( opId == null ) {
-				opId = message.requestPath().split( "\\?" )[0];
-			}
-
-			parseQueryString( message, messageValue );
-
-			InputOperation op = null;
-			try {
-				op = Interpreter.getInstance().getInputOperation( opId );
-			} catch( InvalidIdException iie ) {}
-			
-			if ( op == null || !channel.parentListener().canHandleInputOperation( op ) ) {
-				String defaultOpId = getParameterVector( "default" ).first().strValue();
-				if ( defaultOpId.length() > 0 ) {
-					Value body = messageValue;
-					messageValue = Value.create();
-					messageValue.getChildren( "data" ).add( body );
-					messageValue.getChildren( "operation" ).first().setValue( opId );
-					opId = defaultOpId;
-				}
-			}
-			
-			String userAgent;
-			if ( (userAgent=message.getProperty( "user-agent" )) != null ) {
-				messageValue.getNewChild( Constants.Predefined.USER_AGENT.token().content() ).setValue( userAgent );
-			}
-			
-			checkForCookies( message, messageValue );
-			
+		if ( message.isResponse() ) {
+			recv_checkForSetCookie( message, decodedMessage.value );
+			retVal = new CommMessage( inputId, "/", decodedMessage.value );
+		} else if ( !message.isError() ) {
+			recv_parseQueryString( message, decodedMessage.value );
+			recv_checkReceivingOperation( message, decodedMessage );
+			recv_checkForMessageProperties( message, decodedMessage.value );
 			//TODO support resourcePath
-			retVal = new CommMessage( opId, "/", messageValue );
+			retVal = new CommMessage( decodedMessage.operationName, "/", decodedMessage.value  );
 		}
-		
+
 		received = true;
-		
 		return retVal;
 	}
 }

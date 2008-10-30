@@ -203,9 +203,19 @@ public class HttpMessage
 		return requestPath;
 	}
 	
-	public Type type()
+	/*public Type type()
 	{
 		return type;
+	}*/
+	
+	public boolean isResponse()
+	{
+		return type == Type.RESPONSE;
+	}
+	
+	public boolean isError()
+	{
+		return type == Type.ERROR;
 	}
 	
 	public int httpCode()
