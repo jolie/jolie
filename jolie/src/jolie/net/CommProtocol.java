@@ -49,7 +49,7 @@ abstract public class CommProtocol implements Cloneable
 		this.configurationPath = configurationPath;
 	}
 	
-	public void setChannel( CommChannel channel )
+	protected void setChannel( CommChannel channel )
 	{
 		this.channel = channel;
 	}
@@ -57,6 +57,11 @@ abstract public class CommProtocol implements Cloneable
 	protected ValueVector getParameterVector( String id )
 	{
 		return configurationPath.getValue().getChildren( id );
+	}
+	
+	protected boolean hasParameter( String id )
+	{
+		return configurationPath.getValue().hasChildren( id );
 	}
 	
 	/**
@@ -73,7 +78,16 @@ abstract public class CommProtocol implements Cloneable
 	 */
 	protected boolean checkBooleanParameter( String id )
 	{
-		return getParameterFirstValue( id ).intValue() == 1;
+		return hasParameter( id ) && getParameterFirstValue( id ).intValue() == 1;
+	}
+	
+	/**
+	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
+	 * @param id the parameter identifier
+	 */
+	protected String getStringParameter( String id )
+	{
+		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : "" );
 	}
 	
 	abstract public CommMessage recv( InputStream istream )

@@ -25,9 +25,6 @@ package jolie.net;
 import java.io.IOException;
 import java.nio.channels.Channel;
 
-
-
-
 /**
  * A communication abstraction to send and receive messages.
  * @author Fabrizio Montesi
@@ -96,10 +93,11 @@ abstract public class CommChannel implements Channel
 	final public void disposeForInput()
 		throws IOException
 	{
-		if ( toBeClosed )
+		if ( toBeClosed ) {
 			closeImpl();
-		else
+		} else {
 			disposeForInputImpl();
+		}
 	}
 	
 	protected void disposeForInputImpl()
