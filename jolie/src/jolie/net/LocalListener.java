@@ -62,5 +62,4 @@ public class LocalListener extends CommListener
 	@Override
 	final public void start()
 	{}
-
 }
