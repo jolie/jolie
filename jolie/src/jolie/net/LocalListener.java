@@ -42,6 +42,10 @@ public class LocalListener extends CommListener
 	public void addOperationNames( Collection< String > operationNames )
 	{
 		this.operationNames.addAll( operationNames );
+		for( String o : this.operationNames ) {
+			System.out.println( "DEBUG" );
+			System.out.println( "Operation " + o );
+		}
 	}
 	
 	public void addRedirections( Map< String, OutputPort > redirectionMap )
