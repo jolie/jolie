@@ -44,7 +44,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		toBeClosed = false; // Bluetooth connections are kept open by default.
 	}
 	
-	public void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
@@ -62,7 +62,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		}
 	}
 	
-	public CommMessage recv()
+	protected CommMessage recvImpl()
 		throws IOException
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
