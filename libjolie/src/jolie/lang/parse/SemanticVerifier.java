@@ -143,8 +143,9 @@ public class SemanticVerifier implements OLVisitor
 		if ( inputPorts.get( n.id() ) != null )
 			error( n, "input port " + n.id() + " has been already defined" );
 		inputPorts.put( n.id(), n );
-		for( OperationDeclaration op : n.operations() )
+		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
+		}
 	}
 	
 	public void visit( OutputPortInfo n )
@@ -152,9 +153,10 @@ public class SemanticVerifier implements OLVisitor
 		if ( outputPorts.get( n.id() ) != null )
 			error( n, "output port " + n.id() + " has been already defined" );
 		outputPorts.put( n.id(), n );
-		
-		for( OperationDeclaration op : n.operations() )
+
+		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
+		}
 	}
 	
 	private boolean isDefined( String id )
@@ -194,7 +196,6 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( "main".equals( n.id() ) )
 			mainDefined = true;
-		
 		n.body().accept( this );
 	}
 		
@@ -221,9 +222,9 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( NotificationOperationStatement n )
 	{
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
-		if ( p == null )
+		if ( p == null ) {
 			error( n, n.outputPortId() + " is not a valid output port" );
-		else {
+		} else {
 			OperationDeclaration decl = p.operationsMap().get( n.id() );
 			if ( decl == null )
 				error( n, "Operation " + n.id() + " has not been declared in output port type " + p.id() );
@@ -250,16 +251,25 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( ThrowStatement n ) {}
 	public void visit( CompensateStatement n ) {}
 	public void visit( InstallStatement n ) {}
-	public void visit( Scope n ) {}
+	public void visit( Scope n )
+	{
+		n.body().accept( this );
+	}
 	
 	/*
 	 * TODO Must check operation names in opNames and links in linkNames and locks in lockNames
 	 */
 	public void visit( OneWayOperationStatement n ) {}
-	public void visit( RequestResponseOperationStatement n ) {}
+	public void visit( RequestResponseOperationStatement n )
+	{
+		n.process().accept( this );
+	}
 	public void visit( LinkInStatement n ) {}
 	public void visit( LinkOutStatement n ) {}
-	public void visit( SynchronizedStatement n ) {}
+	public void visit( SynchronizedStatement n )
+	{
+		n.body().accept( this );
+	}
 		
 	/**
 	 * TODO Must assign to a variable in varNames
