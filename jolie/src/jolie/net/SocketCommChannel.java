@@ -77,7 +77,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @return the received CommMessage
 	 * @see CommMessage
 	 */
-	public synchronized CommMessage recv()
+	protected CommMessage recvImpl()
 		throws IOException
 	{
 		return protocol.recv( istream );
@@ -89,7 +89,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see CommMessage
 	 * @throws IOException if an error sending the message occurs
 	 */
-	public synchronized void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		protocol.send( ostream, message );

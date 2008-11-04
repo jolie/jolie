@@ -36,8 +36,7 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 		this.interpreter = interpreter;
 	}
 	
-	@Override
-	public synchronized void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 	{
 		olist.add( message );
 		interpreter.commCore().scheduleReceive(

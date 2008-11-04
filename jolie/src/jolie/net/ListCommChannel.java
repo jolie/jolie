@@ -50,7 +50,7 @@ public class ListCommChannel extends CommChannel
 		return olist;
 	}
 	
-	public synchronized void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 	{
 		synchronized( olist ) {
 			olist.add( message );
@@ -58,7 +58,7 @@ public class ListCommChannel extends CommChannel
 		}
 	}
 	
-	public synchronized CommMessage recv()
+	protected CommMessage recvImpl()
 	{
 		CommMessage ret = null;
 		synchronized( ilist ) {

@@ -35,6 +35,11 @@ public class CommMessage
 {
 	private static final long serialVersionUID = 1L;
 	
+	private static long idCounter = 1;
+	
+	public static final long GENERIC_ID = 0L;
+	
+	final private long id;
 	final private String operationName;
 	final private String resourcePath;
 	final private Value value;
@@ -50,8 +55,36 @@ public class CommMessage
 		return resourcePath;
 	}
 	
-	public CommMessage( String operationName, String resourcePath, Value value )
+	public boolean hasGenericId()
 	{
+		return id == GENERIC_ID;
+	}
+	
+	public long id()
+	{
+		return id;
+	}
+	
+	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
+	{
+		return new CommMessage( idCounter++, operationName, resourcePath, value );
+	}
+	
+	public static CommMessage createResponse( CommMessage request, Value value )
+	{
+		//TODO support resourcePath
+		return new CommMessage( request.id, request.operationName, "/", value );
+	}
+	
+	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
+	{
+		//TODO support resourcePath
+		return new CommMessage( request.id, request.operationName, "/", fault );
+	}
+	
+	private CommMessage( long id, String operationName, String resourcePath, Value value )
+	{
+		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		// TODO This is a performance hit! Make this only when strictly necessary.
@@ -60,12 +93,43 @@ public class CommMessage
 		this.fault = null;
 	}
 	
-	public CommMessage( String operationName, String resourcePath, FaultException f )
+	private CommMessage( long id, String operationName, String resourcePath, FaultException fault )
+	{
+		this.id = id;
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
+		this.value = Value.create();
+		this.fault = fault;
+	}
+	
+	public CommMessage( String operationName, String resourcePath, Value value )
+	{
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
+		// TODO This is a performance hit! Make this only when strictly necessary.
+		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
+		this.value = Value.createDeepCopy( value );
+		this.fault = null;
+		this.id = 0L;
+	}
+	
+	/*public CommMessage( String operationName, String resourcePath, FaultException f )
 	{
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		this.value = Value.create();
 		this.fault = f;
+		this.id = 0L;
+	}*/
+	
+	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException f )
+	{
+		this.id = id;
+		this.operationName = operationName;
+		this.resourcePath = resourcePath;
+		// TODO see above performance hit.
+		this.value = Value.createDeepCopy( value );
+		fault = f;
 	}
 	
 	public CommMessage( String operationName, String resourcePath, Value value, FaultException f )
@@ -75,14 +139,16 @@ public class CommMessage
 		// TODO see above performance hit.
 		this.value = Value.createDeepCopy( value );
 		fault = f;
+		this.id = 0L;
 	}
 	
-	public CommMessage( String inputId, String resourcePath )
+	public CommMessage( String operationName, String resourcePath )
 	{
-		this.operationName = inputId;
+		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		this.value = Value.create();
 		this.fault = null;
+		this.id = 0L;
 	}
 	
 	public Value value()

@@ -147,7 +147,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		return operation;
 	}
 	
-	private CommMessage createFaultMessage( FaultException f )
+	private CommMessage createFaultMessage( CommMessage request, FaultException f )
 	{
 		if ( !operation.faultNames().contains( f.faultName() ) ) {
 			Interpreter.getInstance().logger().severe(
@@ -163,8 +163,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			} else
 				Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
 		}
-		//TODO support resourcePath
-		return new CommMessage( operation.id(), "/", f );
+		return CommMessage.createFaultResponse( request, f );
 	}
 	
 	public void runBehaviour( CommChannel channel, CommMessage message )
@@ -183,16 +182,16 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			process.run();
 			ExecutionThread ethread = ExecutionThread.currentThread();
 			if ( ethread.isKilled() ) {
-				response = createFaultMessage( ethread.killerFault() );
+				response = createFaultMessage( message, ethread.killerFault() );
 			} else {
-				//TODO support resourcePath
 				response =
-				( outputExpression == null ) ?
-						new CommMessage( operation.id(), "/" ) :
-						new CommMessage( operation.id(), "/", outputExpression.evaluate() );
+					CommMessage.createResponse(
+						message,
+						( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
+					);
 			}
 		} catch( FaultException f ) {
-			response = createFaultMessage( f );
+			response = createFaultMessage( message, f );
 			fault = f;
 		}
 

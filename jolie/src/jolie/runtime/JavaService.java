@@ -103,11 +103,10 @@ abstract public class JavaService
 				ret = (CommMessage)pair.value().invoke( this, args );
 			} catch( InvocationTargetException e ) {
 				if ( e.getCause() instanceof FaultException ) {
-					ret = new CommMessage(
-							message.operationName(),
-							"/",
-							(FaultException)e.getCause()
-							);
+					ret = CommMessage.createFaultResponse(
+								message,
+								(FaultException)e.getCause()
+						);
 				} else {
 					// This should never happen, as we filtered this out in the constructor.
 					e.printStackTrace();

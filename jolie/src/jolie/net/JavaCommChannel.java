@@ -23,6 +23,8 @@ package jolie.net;
 
 import java.io.IOException;
 
+import java.util.List;
+import java.util.Vector;
 import jolie.Interpreter;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
@@ -34,19 +36,34 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private JavaService javaService;
 	private CommMessage lastMessage = null;
+	final private List< CommMessage > messages = new Vector< CommMessage >();
 
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
 	}
 
-	public void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		lastMessage = null;
 		if ( javaService != null ) {
 			try {
-				lastMessage = javaService.callOperation( message );
+				CommMessage response = javaService.callOperation( message );
+				if ( response == null ) {
+					response = CommMessage.createEmptyMessage();
+				}
+				response = new CommMessage(
+								message.id(),
+								message.operationName(),
+								message.resourcePath(),
+								response.value(),
+								response.fault()
+							);
+				synchronized( messages ) {
+					messages.add( response );
+					messages.notify();
+				}
 			} catch( IllegalAccessException e ) {
 				throw new IOException( e );
 			} catch( InvalidIdException e ) {
@@ -55,13 +72,21 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		}
 	}
 
-	public CommMessage recv()
+	protected CommMessage recvImpl()
 		throws IOException
 	{
-		if ( lastMessage == null )
-			return CommMessage.createEmptyMessage();
-		CommMessage ret = lastMessage;
-		lastMessage = null;
+		CommMessage ret = null;
+		synchronized( messages ) {
+			while( messages.isEmpty() ) {
+				try {
+					messages.wait();
+				} catch( InterruptedException e ) {}
+			}
+			ret = messages.remove( 0 );
+		}
+		if ( ret == null ) {
+			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
+		}
 		return ret;
 	}
 	

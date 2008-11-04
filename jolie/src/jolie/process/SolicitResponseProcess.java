@@ -80,11 +80,13 @@ public class SolicitResponseProcess implements Process
 			channel = outputPort.getCommChannel();
 			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
 			CommMessage message =
-				( outputExpression == null ) ?
-						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
-						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
+				CommMessage.createRequest(
+					operationId,
+					LocationParser.getResourcePath( uri ),
+					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
+				);
 			channel.send( message );
-			message = channel.recv();
+			message = channel.recvResponseFor( message );
 			
 			if ( inputVarPath != null )	 {
 				Value v = inputVarPath.getValue();

@@ -24,6 +24,11 @@ package jolie.net;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Vector;
 
 /**
  * A communication abstraction to send and receive messages.
@@ -33,6 +38,18 @@ import java.nio.channels.Channel;
  */
 abstract public class CommChannel implements Channel
 {
+	final private Map< Long, CommMessage > pendingResponses =
+			new HashMap< Long, CommMessage >();
+	final private Map< Long, ResponseContainer > waiters =
+			new HashMap< Long, ResponseContainer >();
+	final private List< CommMessage > pendingGenericResponses =
+			new Vector< CommMessage >();
+
+	private class ResponseContainer
+	{
+		private CommMessage response = null;
+	}
+	
 	protected boolean toBeClosed = true;
 	private CommListener listener = null;
 	private boolean isOpen = true;
@@ -73,11 +90,128 @@ abstract public class CommChannel implements Channel
 	}
 	
 	/** Receives a message from the channel. */
-	abstract public CommMessage recv()
-		throws IOException;
+	final synchronized public CommMessage recv()
+		throws IOException
+	{
+		return recvImpl();
+	}
+	
+	final public CommMessage recvResponseFor( CommMessage message )
+		throws IOException
+	{
+		CommMessage response;
+		ResponseContainer monitor = null;
+		synchronized( this ) {
+			response = pendingResponses.remove( message.id() );
+			if ( response == null ) {
+				if ( pendingGenericResponses.isEmpty() ) {
+					assert( waiters.containsKey( message.id() ) == false );
+					monitor = new ResponseContainer();
+					waiters.put( message.id(), monitor );
+				} else {
+					response = pendingGenericResponses.remove( 0 );
+				}
+			}
+		}
+		if ( response == null ) {
+			synchronized( monitor ) {
+				if ( responseReceiver == null ) {
+					responseReceiver = new ResponseReceiver( this );
+					responseReceiver.start();
+				}
+				try {
+					monitor.wait();
+				} catch( InterruptedException e ) {}
+				response = monitor.response;
+			}
+		}
+		return response;
+	}
+	
+	private ResponseReceiver responseReceiver = null;
+	
+	private class ResponseReceiver extends Thread
+	{
+		private final CommChannel parent;
+		
+		private ResponseReceiver( CommChannel parent )
+		{
+			this.parent = parent;
+		}
+		
+		private void handleGenericMessage( CommMessage response )
+		{
+			ResponseContainer monitor;
+			if ( waiters.isEmpty() ) {
+				pendingGenericResponses.add( response );
+			} else {
+				Entry< Long, ResponseContainer > entry =
+					waiters.entrySet().iterator().next();
+				monitor = entry.getValue();
+				monitor.response = new CommMessage(
+					entry.getKey(),
+					response.operationName(),
+					response.resourcePath(),
+					response.value(),
+					response.fault()
+				);
+				waiters.remove( entry.getKey() );
+				synchronized( monitor ) {
+					monitor.notify();
+				}
+			}
+		}
+		
+		private void handleMessage( CommMessage response )
+		{
+			ResponseContainer monitor;
+			if ( (monitor=waiters.remove( response.id() )) == null ) {
+				pendingResponses.put( response.id(), response );
+			} else {
+				monitor.response = response;
+				synchronized( monitor ) {
+					monitor.notify();
+				}
+			}
+		}
+		
+		@Override
+		public void run()
+		{
+			CommMessage response;
+			boolean keepRun = true;
+			while( keepRun ) {
+				synchronized( parent ) {
+					try {
+						response = recvImpl();
+						if ( response.hasGenericId() ) {
+							handleGenericMessage( response );
+						} else {
+							handleMessage( response );
+						}
+					} catch( IOException e ) {
+						e.printStackTrace();
+					}
+					if ( waiters.isEmpty() ) {
+						keepRun = false;
+						responseReceiver = null;
+					}
+				}
+			}
+		}
+	}
 	
 	/** Sends a message through the channel. */
-	abstract public void send( CommMessage message )
+	final synchronized public void send( CommMessage message )
+		throws IOException
+	{
+		sendImpl( message );
+	}
+	
+	abstract protected CommMessage recvImpl()
+		throws IOException;
+	
+	abstract protected void sendImpl( CommMessage message )
 		throws IOException;
 	
 	/** Closes the communication channel */

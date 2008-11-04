@@ -63,7 +63,7 @@ public class PipeListener extends CommListener
 			this.protocol = this.protocol.clone();
 		}
 
-		public CommMessage recv()
+		protected CommMessage recvImpl()
 			throws IOException
 		{
 			InputStream stream;
@@ -81,7 +81,7 @@ public class PipeListener extends CommListener
 			return ret;
 		}
 
-		public void send( CommMessage message )
+		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
 			synchronized( ostream ) {
@@ -100,7 +100,7 @@ public class PipeListener extends CommListener
 			this.listener = listener;
 		}
 		@Override
-		public void send( CommMessage message )
+		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
 			super.send( message );
