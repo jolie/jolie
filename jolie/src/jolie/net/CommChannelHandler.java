@@ -30,6 +30,11 @@ public class CommChannelHandler extends JolieThread
 {
 	private ExecutionThread executionThread;
 	
+	protected CommChannelHandler( Interpreter interpreter )
+	{
+		super( interpreter );
+	}
+	
 	public CommChannelHandler( Interpreter interpreter, Runnable r )
 	{
 		super( interpreter, r );

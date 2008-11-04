@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import jolie.ExecutionThread;
 
 /**
  * A communication abstraction to send and receive messages.
@@ -116,7 +117,7 @@ abstract public class CommChannel implements Channel
 		if ( response == null ) {
 			synchronized( monitor ) {
 				if ( responseReceiver == null ) {
-					responseReceiver = new ResponseReceiver( this );
+					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
 					responseReceiver.start();
 				}
 				try {
@@ -130,12 +131,14 @@ abstract public class CommChannel implements Channel
 	
 	private ResponseReceiver responseReceiver = null;
 	
-	private class ResponseReceiver extends Thread
+	private class ResponseReceiver extends CommChannelHandler
 	{
 		private final CommChannel parent;
 		
-		private ResponseReceiver( CommChannel parent )
+		private ResponseReceiver( CommChannel parent, ExecutionThread ethread )
 		{
+			super( jolie.Interpreter.getInstance() );
+			setExecutionThread( ethread ); // TODO: this could be buggy!
 			this.parent = parent;
 		}
 		
