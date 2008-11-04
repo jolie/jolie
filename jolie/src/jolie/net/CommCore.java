@@ -296,7 +296,7 @@ public class CommCore
 						interpreter.getInputOperation( message.operationName() );
 					if ( listener != null && !listener.canHandleInputOperation( operation ) ) {
 						Interpreter.getInstance().logger().warning(
-								"Discarded a message for operation " + operation +
+								"Discarded a message for operation " + operation.id() +
 								", not specified in an input port at the receiving service."
 							);
 					} else {
