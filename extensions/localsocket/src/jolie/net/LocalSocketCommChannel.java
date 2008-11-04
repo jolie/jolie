@@ -69,13 +69,13 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		toBeClosed = false; // LocalSocket connections are kept open by default
 	}
 
-	public synchronized void send( CommMessage message )
+	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		protocol.send( socket.getOutputStream(), message );
 	}
 	
-	public synchronized CommMessage recv()
+	protected CommMessage recvImpl()
 		throws IOException
 	{
 		CommMessage ret = null;
