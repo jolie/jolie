@@ -101,6 +101,9 @@ abstract public class JavaService
 		} else {
 			try {
 				ret = (CommMessage)pair.value().invoke( this, args );
+				if ( ret == null ) {
+					ret = CommMessage.createEmptyMessage();
+				}
 			} catch( InvocationTargetException e ) {
 				if ( e.getCause() instanceof FaultException ) {
 					ret = CommMessage.createFaultResponse(
