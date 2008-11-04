@@ -78,16 +78,16 @@ public class FileService extends JavaService
 		value.setValue( buffer.toString() );
 	}
 	
-	public CommMessage readFile( CommMessage message )
+	public CommMessage readFile( CommMessage request )
 		throws FaultException
 	{
-		Value filenameValue = message.value().getFirstChild( "filename" );
+		Value filenameValue = request.value().getFirstChild( "filename" );
 		if ( !filenameValue.isString() ) {
 			throw new FaultException( "FileNotFound" );
 		}
 
 		Value retValue = Value.create();
-		String format = message.value().getFirstChild( "format" ).strValue();
+		String format = request.value().getFirstChild( "format" ).strValue();
 
 		try {
 			if ( "base64".equals( format ) ) {
@@ -102,7 +102,7 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return new CommMessage( message.operationName(), "/", retValue );
+		return CommMessage.createResponse( request, retValue );
 	}
 	
 	public CommMessage getServiceDirectory( CommMessage request )
@@ -112,20 +112,12 @@ public class FileService extends JavaService
 			dir = ".";
 		}
 		
-		return new CommMessage(
-				"getServiceDirectory",
-				"/",
-				Value.create( dir )
-			);
+		return CommMessage.createResponse( request,	Value.create( dir ) );
 	}
 	
 	public CommMessage getFileSeparator( CommMessage request )
 	{
-		return new CommMessage(
-				"getPathSeparator",
-				"/",
-				Value.create( jolie.Constants.fileSeparator )
-			);
+		return CommMessage.createResponse( request,	Value.create( jolie.Constants.fileSeparator ) );
 	}
 	
 	public CommMessage writeFile( CommMessage request )

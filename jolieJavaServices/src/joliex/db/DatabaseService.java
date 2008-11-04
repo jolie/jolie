@@ -93,26 +93,26 @@ public class DatabaseService extends JavaService
 		return null;
 	}
 	
-	public CommMessage update( CommMessage message )
+	public CommMessage update( CommMessage request )
 		throws FaultException
 	{
 		Value resultValue = Value.create();
-		String query = message.value().strValue();
+		String query = request.value().strValue();
 		try {
 			Statement stm = connection.createStatement();
 			resultValue.setValue( stm.executeUpdate( query ) );
 		} catch( SQLException e ) {
 			throw new FaultException( e );
 		}
-		return new CommMessage( "update", "/", resultValue );
+		return CommMessage.createResponse( request, resultValue );
 	}
 	
-	public CommMessage query( CommMessage message )
+	public CommMessage query( CommMessage request )
 		throws FaultException
 	{
 		Value resultValue = Value.create();
 		Value rowValue, fieldValue;
-		String query = message.value().strValue();
+		String query = request.value().strValue();
 		try {
 			Statement stm = connection.createStatement();
 			ResultSet result = stm.executeQuery( query );
@@ -149,6 +149,6 @@ public class DatabaseService extends JavaService
 			throw new FaultException( "SQLException", e );
 		}
 		
-		return new CommMessage( "query", "/", resultValue );
+		return CommMessage.createResponse( request, resultValue );
 	}
 }
