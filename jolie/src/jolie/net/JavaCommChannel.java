@@ -45,7 +45,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 
 	protected void sendImpl( CommMessage message )
 		throws IOException
-	{System.out.println("send " + message.id() + " " + message.operationName());
+	{
 		lastMessage = null;
 		if ( javaService != null ) {
 			try {
@@ -81,7 +81,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 					messages.wait();
 				} catch( InterruptedException e ) {}
 			}
-			ret = messages.remove( 0 );System.out.println("recv " + ret.id() + " " + ret.operationName());
+			ret = messages.remove( 0 );
 		}
 		if ( ret == null ) {
 			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
