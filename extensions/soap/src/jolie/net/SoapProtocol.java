@@ -55,7 +55,6 @@ import javax.xml.soap.SOAPMessage;
 import jolie.Constants;
 import jolie.Interpreter;
 import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
