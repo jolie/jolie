@@ -27,9 +27,14 @@ abstract public class JolieCallback implements AsyncCallback< Value >
 {
 	final public void onFailure( Throwable t )
 	{
-		onFailure( (FaultException)t );
+		if ( t instanceof FaultException ) {
+			onFault( (FaultException)t );
+		} else {
+			onFailure( t );
+		}
 	}
 	
+	abstract protected void onFault( FaultException fault );
 	abstract protected void onFailure( FaultException fault );
 	abstract public void onSuccess( Value response );
 }
