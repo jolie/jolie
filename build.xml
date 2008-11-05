@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<target name="init">
+		<property name="config.dir" value="buildconfig"/>
+		<property file="${config.dir}/build.properties"/>
+		<property file="${config.dir}/config.properties"/>
+	</target>
+	<target name="install" depends="init,dist">
+		<copy todir="${install.dir}">
+			<fileset dir="dist"/>
+		</copy>
+	</target>
+	<target name="jar" depends="init">
+		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
+	</target>
+	<target name="clean" depends="init">
+		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
+	</target>
+	<target name="dist" depends="init">
+		<delete dir="dist"/>
+		<copy todir="dist" flatten="true">
+			<resources>
+				<file file="${project.jolie}/dist/jolie.jar"/>
+			</resources>
+		</copy>
+		<copy todir="dist/include">
+			<fileset dir="include"/>
+		</copy>
+		<copy todir="dist/lib" flatten="true">
+			<resources>
+				<file file="${project.libjolie}/dist/libjolie.jar"/>
+				<file file="${project.xsom}/dist/xsom.jar"/>
+				<file file="${project.jolie-xml}/dist/jolie-xml.jar"/>
+				<file file="${project.jolie-gwt}/dist/jolie-gwt.jar"/>
+				<file file="${project.metaservice-java}/dist/metaservice-java.jar"/>
+			</resources>
+		</copy>
+		<copy todir="dist/extensions" flatten="true">
+			<resources>
+				<file file="${project.http}/dist/http.jar"/>
+				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
+				<file file="${project.soap}/dist/soap.jar"/>
+				<file file="${project.sodep}/dist/sodep.jar"/>
+				<file file="${project.localsocket}/dist/localsocket.jar"/>
+			</resources>
+		</copy>
+		<copy todir="dist/javaServices" flatten="true">
+			<resources>
+				<file file="${project.jolieJavaServices}/dist/jolieJavaServices.jar"/>
+			</resources>
+		</copy>
+		
+		<copy todir="dist/lib" flatten="true">
+			<resources>
+				<file file="${project.jolieJavaServices}/dist/jolieJavaServices.jar"/>
+			</resources>
+		</copy>
+		
+		<copy file="${libs.bluetooth}" tofile="dist/lib/bluetooth.jar"/>
+		<copy file="${libs.gwt-servlet}" tofile="dist/lib/gwt-servlet.jar"/>
+		<copy file="${libs.javamail.smtp}" tofile="dist/lib/smtp.jar"/>
+		<copy file="${libs.javamail.mailapi}" tofile="dist/lib/mailapi.jar"/>
+		<copy file="${libs.libmatthew.unix}" tofile="dist/lib/unix.jar"/>
+		<copy file="${libs.relaxngDatatype}" tofile="dist/lib/relaxngDatatype.jar"/>
+	</target>
+</project>
