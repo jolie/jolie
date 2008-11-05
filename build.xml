@@ -47,7 +47,7 @@ java -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$J
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
 	</target>
-	<target name="dist" depends="init">
+	<target name="dist" depends="init,jar">
 		<delete dir="dist"/>
 		<copy todir="dist" flatten="true">
 			<resources>
