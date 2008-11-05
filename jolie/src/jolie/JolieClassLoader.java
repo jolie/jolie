@@ -28,6 +28,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -180,7 +181,15 @@ public class JolieClassLoader extends URLClassLoader
 	private void checkJarJolieExtensions( JarURLConnection jarConnection )
 		throws IOException
 	{
-		Attributes attrs = jarConnection.getManifest().getMainAttributes();
+		Manifest manifest = jarConnection.getManifest();
+		if ( manifest == null ) {
+			throw new IOException(
+				"JOLIE extension jar " +
+				jarConnection.getJarFileURL().toString() +
+				" does not contain a Manifest file"
+			);
+		}
+		Attributes attrs = manifest.getMainAttributes();
 		checkForChannelExtension( attrs );
 		checkForListenerExtension( attrs );
 		checkForProtocolExtension( attrs );
