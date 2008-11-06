@@ -249,7 +249,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private String send_getCharset( CommMessage message )
 	{
-		String charset = "UTF-8";
+		String charset = null;
 		if ( message.value().hasChildren( jolie.Constants.Predefined.CHARSET.token().content() ) ) {
 			charset = message.value().getFirstChild( jolie.Constants.Predefined.CHARSET.token().content() ).strValue();
 		} else if ( hasParameter( "charset" ) ) {
@@ -497,6 +497,9 @@ public class HttpProtocol extends CommProtocol
 		send_logDebugInfo( headerBuilder, encodedContent );
 		inputId = message.operationName();
 		
+		if ( charset == null ) {
+			charset = "UTF8";
+		}
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
@@ -600,6 +603,7 @@ public class HttpProtocol extends CommProtocol
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Receiving:\n" );
 		debugSB.append( "HTTP Code: " + message.httpCode() + "\n" );
+		debugSB.append( "Resource: " + message.requestPath() + "\n" );
 		debugSB.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
 			debugSB.append( '\t' + entry.getKey() + ": " + entry.getValue() + '\n' );
