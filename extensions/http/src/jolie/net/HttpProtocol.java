@@ -229,13 +229,20 @@ public class HttpProtocol extends CommProtocol
 	
 	private static CharSequence parseAlias( String alias, Value value )
 	{
+		int offset = 0;
+		String currStrValue;
+		String currKey;
 		StringBuilder result = new StringBuilder( alias );
 		Matcher m = Pattern.compile( "%\\{[^\\}]*\\}" ).matcher( alias );
+
 		while( m.find() ) {
+			currKey = alias.substring( m.start()+2, m.end()-1 );
+			currStrValue = value.getFirstChild( currKey ).strValue();
 			result.replace(
-				m.start(), m.end(),
-				value.getFirstChild( alias.substring( m.start()+2, m.end()-1 ) ).strValue()
+				m.start() + offset, m.end() + offset,
+				currStrValue
 			);
+			offset = currStrValue.length() - 3 - currKey.length();
 		}
 		return result;
 	}
@@ -434,22 +441,24 @@ public class HttpProtocol extends CommProtocol
 			channel.setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
-		param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
-		if ( !param.isEmpty() ) {
-			encodedContent.contentType = param;
-		}
-		headerBuilder.append( "Content-Type: " + encodedContent.contentType );
-		if ( charset != null ) {
-			headerBuilder.append( "; charset=" + charset.toLowerCase() );
-		}
-		headerBuilder.append( CRLF );
-		
-		param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
-		if ( !param.isEmpty() ) {
-			headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
-		}
 		
 		if ( encodedContent.content != null ) {
+			param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
+			if ( !param.isEmpty() ) {
+				encodedContent.contentType = param;
+			}
+
+			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+			if ( charset != null ) {
+				headerBuilder.append( "; charset=" + charset.toLowerCase() );
+			}
+			headerBuilder.append( CRLF );
+
+			param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
+			if ( !param.isEmpty() ) {
+				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
+			}
+
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );	
 		}
 	}
