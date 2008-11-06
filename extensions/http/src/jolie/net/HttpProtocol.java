@@ -491,8 +491,8 @@ public class HttpProtocol extends CommProtocol
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
+			ostream.write( CRLF.getBytes( charset ) );
 		}
-		ostream.write( CRLF.getBytes( charset ) );
 		ostream.flush();
 	}
 
