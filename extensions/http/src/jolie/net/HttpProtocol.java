@@ -449,7 +449,9 @@ public class HttpProtocol extends CommProtocol
 			headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 		}
 		
-		headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );	
+		if ( encodedContent.content != null ) {
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );	
+		}
 	}
 	
 	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent )
@@ -487,7 +489,9 @@ public class HttpProtocol extends CommProtocol
 		inputId = message.operationName();
 		
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
-		ostream.write( encodedContent.content.getBytes() );
+		if ( encodedContent.content != null ) {
+			ostream.write( encodedContent.content.getBytes() );
+		}
 		ostream.write( CRLF.getBytes( charset ) );
 		ostream.flush();
 	}
