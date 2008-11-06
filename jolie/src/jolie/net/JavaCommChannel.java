@@ -35,7 +35,6 @@ import jolie.runtime.JavaService;
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private JavaService javaService;
-	private CommMessage lastMessage = null;
 	final private List< CommMessage > messages = new Vector< CommMessage >();
 
 	public JavaCommChannel( JavaService javaService )
@@ -46,7 +45,6 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		lastMessage = null;
 		if ( javaService != null ) {
 			try {
 				CommMessage response = javaService.callOperation( message );
@@ -101,6 +99,6 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	
 	public boolean isReady()
 	{
-		return( lastMessage != null );
+		return( !messages.isEmpty() );
 	}
 }
