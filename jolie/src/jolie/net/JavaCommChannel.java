@@ -60,7 +60,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 							);
 					synchronized( messages ) {
 						messages.add( response );
-						messages.notify();
+						messages.notifyAll();
 					}
 				}
 			} catch( IllegalAccessException e ) {

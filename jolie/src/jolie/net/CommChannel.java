@@ -45,6 +45,9 @@ abstract public class CommChannel implements Channel
 			new HashMap< Long, ResponseContainer >();
 	final private List< CommMessage > pendingGenericResponses =
 			new Vector< CommMessage >();
+	
+	final private Object recvMutex = new Object();
+	final private Object sendMutex = new Object();
 
 	private class ResponseContainer
 	{
@@ -91,10 +94,14 @@ abstract public class CommChannel implements Channel
 	}
 	
 	/** Receives a message from the channel. */
-	final synchronized public CommMessage recv()
+	final public CommMessage recv()
 		throws IOException
 	{
-		return recvImpl();
+		CommMessage ret;
+		synchronized( recvMutex ) {
+			ret = recvImpl();
+		}
+		return ret;
 	}
 	
 	final public CommMessage recvResponseFor( CommMessage message )
@@ -120,9 +127,11 @@ abstract public class CommChannel implements Channel
 					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
 					responseReceiver.start();
 				}
-				try {
-					monitor.wait();
-				} catch( InterruptedException e ) {}
+				if ( monitor.response == null ) {
+					try {
+						monitor.wait();
+					} catch( InterruptedException e ) {}
+				}
 				response = monitor.response;
 			}
 		}
@@ -151,15 +160,15 @@ abstract public class CommChannel implements Channel
 				Entry< Long, ResponseContainer > entry =
 					waiters.entrySet().iterator().next();
 				monitor = entry.getValue();
-				monitor.response = new CommMessage(
-					entry.getKey(),
-					response.operationName(),
-					response.resourcePath(),
-					response.value(),
-					response.fault()
-				);
 				waiters.remove( entry.getKey() );
 				synchronized( monitor ) {
+					monitor.response = new CommMessage(
+						entry.getKey(),
+						response.operationName(),
+						response.resourcePath(),
+						response.value(),
+						response.fault()
+					);
 					monitor.notify();
 				}
 			}
@@ -171,8 +180,8 @@ abstract public class CommChannel implements Channel
 			if ( (monitor=waiters.remove( response.id() )) == null ) {
 				pendingResponses.put( response.id(), response );
 			} else {
-				monitor.response = response;
 				synchronized( monitor ) {
+					monitor.response = response;
 					monitor.notify();
 				}
 			}
@@ -186,7 +195,7 @@ abstract public class CommChannel implements Channel
 			while( keepRun ) {
 				synchronized( parent ) {
 					try {
-						response = recvImpl();
+						response = recv();
 						if ( response.hasGenericId() ) {
 							handleGenericMessage( response );
 						} else {
@@ -205,10 +214,12 @@ abstract public class CommChannel implements Channel
 	}
 	
 	/** Sends a message through the channel. */
-	final synchronized public void send( CommMessage message )
+	final public void send( CommMessage message )
 		throws IOException
 	{
-		sendImpl( message );
+		synchronized( sendMutex ) {
+			sendImpl( message );
+		}
 	}
 	
 	abstract protected CommMessage recvImpl()

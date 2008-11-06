@@ -176,7 +176,6 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		}
 		
 		FaultException fault = null;
-		
 		CommMessage response = null;
 		try {
 			process.run();
