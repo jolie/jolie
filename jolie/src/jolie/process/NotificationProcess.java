@@ -54,7 +54,7 @@ public class NotificationProcess implements Process
 		return new NotificationProcess(
 					operationId,
 					outputPort,
-					outputExpression.cloneExpression( reason )
+					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason )
 				);
 	}
 	
