@@ -152,6 +152,7 @@ public class SodepProtocol extends CommProtocol
 	private void writeMessage( DataOutput out, CommMessage message )
 		throws IOException
 	{
+		out.writeLong( message.id() );
 		writeString( out, message.resourcePath() );
 		writeString( out, message.operationName() );
 		FaultException fault = message.fault();
@@ -211,6 +212,7 @@ public class SodepProtocol extends CommProtocol
 	private CommMessage readMessage( DataInput in )
 		throws IOException
 	{
+		Long id = in.readLong();
 		String resourcePath = readString( in );
 		String operationName = readString( in );
 		FaultException fault = null;
@@ -218,7 +220,7 @@ public class SodepProtocol extends CommProtocol
 			fault = readFault( in );
 		}
 		Value value = readValue( in );
-		return new CommMessage( operationName, resourcePath, value, fault );
+		return new CommMessage( id, operationName, resourcePath, value, fault );
 	}
 	
 	public SodepProtocol( VariablePath configurationPath )
