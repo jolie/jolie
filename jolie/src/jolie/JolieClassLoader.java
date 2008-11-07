@@ -182,17 +182,12 @@ public class JolieClassLoader extends URLClassLoader
 		throws IOException
 	{
 		Manifest manifest = jarConnection.getManifest();
-		if ( manifest == null ) {
-			throw new IOException(
-				"JOLIE extension jar " +
-				jarConnection.getJarFileURL().toString() +
-				" does not contain a Manifest file"
-			);
+		if ( manifest != null ) {
+			Attributes attrs = manifest.getMainAttributes();
+			checkForChannelExtension( attrs );
+			checkForListenerExtension( attrs );
+			checkForProtocolExtension( attrs );
 		}
-		Attributes attrs = manifest.getMainAttributes();
-		checkForChannelExtension( attrs );
-		checkForListenerExtension( attrs );
-		checkForProtocolExtension( attrs );
 	}
 	
 	/**
