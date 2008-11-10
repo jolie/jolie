@@ -130,7 +130,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	private CommChannel channel = null;
 	private URI channelURI = null;
 
-	public CommChannel getCommChannel()
+	private synchronized CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
 		Value loc = locationVariablePath.getValue();
@@ -138,15 +138,28 @@ public class OutputPort extends AbstractIdentifiableObject
 			channel = loc.channelValue();
 		} else {
 			URI uri = new URI( loc.strValue() );
-			if ( !uri.equals( channelURI ) || !channel.canBeReused() ) {
+			if ( forceNew || !uri.equals( channelURI ) || !channel.canBeReusedForSending() ) {
 				channel = interpreter.commCore().createCommChannel( uri, this );
 				channelURI = uri;
 			} else {
+				// TODO: this is buggy in concurrent communications
 				channel.refreshProtocol();
 			}
 		}
 
 		return channel;
+	}
+	
+	public CommChannel getNewCommChannel()
+		throws URISyntaxException, IOException
+	{
+		return getCommChannel( false );
+	}
+	
+	public CommChannel getCommChannel()
+		throws URISyntaxException, IOException
+	{
+		return getCommChannel( false );
 	}
 	
 	public VariablePath locationVariablePath()
