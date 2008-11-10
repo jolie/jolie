@@ -60,8 +60,9 @@ public class NotificationProcess implements Process
 	
 	public void run()
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 
 		try {
 			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );

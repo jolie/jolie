@@ -46,8 +46,8 @@ abstract public class CommChannel implements Channel
 	final private List< CommMessage > pendingGenericResponses =
 			new Vector< CommMessage >();
 	
-	final private Object recvMutex = new Object();
-	final private Object sendMutex = new Object();
+	final protected Object recvMutex = new Object();
+	final protected Object sendMutex = new Object();
 
 	private class ResponseContainer
 	{
@@ -88,9 +88,19 @@ abstract public class CommChannel implements Channel
 		return isOpen;
 	}
 	
-	final public boolean canBeReused()
+	final public boolean canBeReusedForSending()
 	{
-		return isOpen && !toBeClosed;
+		return isOpen && !toBeClosed && canBeUsedForSending();
+	}
+	
+	final public boolean canBeUsedForSending()
+	{
+		return canBeUsedForSendingImpl();
+	}
+	
+	protected boolean canBeUsedForSendingImpl()
+	{
+		return true;
 	}
 	
 	/** Receives a message from the channel. */
@@ -218,6 +228,11 @@ abstract public class CommChannel implements Channel
 		throws IOException
 	{
 		synchronized( sendMutex ) {
+			while( !canBeUsedForSending() ) {
+				try {
+					sendMutex.wait();
+				} catch( InterruptedException e ) {}
+			}
 			sendImpl( message );
 		}
 	}

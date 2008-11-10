@@ -51,6 +51,8 @@ public class WhileProcess implements Process
 			return;
 		while( condition.evaluate() ) {
 			process.run();
+			if ( ExecutionThread.currentThread().isKilled() )
+				return;
 		}
 	}
 }

@@ -262,8 +262,15 @@ public class CommCore
 			try {
 				String[] ss = message.resourcePath().split( "/" );
 				if ( listener != null && ss.length > 1 ) {
-					CommChannelHandler.currentThread().setExecutionThread( interpreter.mainThread() );
-					// We should check for redirection
+					// Redirection
+					String rPath = new String();
+					if ( ss.length <= 2 ) {
+						rPath = "/";
+					} else {
+						for( int i = 2; i < ss.length; i++ ) {
+							rPath += "/" + ss[ i ];
+						}
+					}
 					OutputPort port = listener.redirectionMap().get( ss[1] );
 					if ( port == null ) {
 						String error = "Discarded a message for resource " + ss[1] +
@@ -271,17 +278,10 @@ public class CommCore
 						Interpreter.getInstance().logger().warning( error );
 						throw new IOException( error );
 					}
-					CommChannel oChannel = port.getCommChannel();
-					String rPath = new String();
-					if ( ss.length <= 2 )
-						rPath = "/";
-					else {
-						for( int i = 2; i < ss.length; i++ ) {
-							rPath += "/" + ss[ i ];
-						}
-					}
+					CommChannel oChannel = port.getNewCommChannel();
 					CommMessage rMessage =
 								new CommMessage(
+										message.id(),
 										message.operationName(),
 										rPath,
 										message.value(),
@@ -313,11 +313,13 @@ public class CommCore
 		public void run()
 		{
 			try {
+				CommChannelHandler.currentThread().setExecutionThread( interpreter.mainThread() );
 				CommMessage message = channel.recv();
-				if ( channel.redirectionChannel() == null )
+				if ( channel.redirectionChannel() == null ) {
 					handleMessage( message );
-				else
+				} else {
 					redirectMessage( message );
+				}
 			} catch( IOException e ) {
 				e.printStackTrace();
 			}
@@ -438,6 +440,7 @@ public class CommCore
 							channel = (SelectableStreamingCommChannel)key.attachment();
 							key.cancel();
 							key.channel().configureBlocking( true );
+							channel.setCanBeUsedForSending( true );
 							stream = channel.inputStream();
 							stream.mark( 1 );
 							// It could just be a closing read. If not, receive it.

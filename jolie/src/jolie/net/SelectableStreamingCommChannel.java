@@ -36,10 +36,30 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 	abstract public InputStream inputStream();
 	abstract public SelectableChannel selectableChannel();
 	
+	private boolean canBeUsedForSending = true;
+	
+	@Override
+	protected boolean canBeUsedForSendingImpl()
+	{
+		return canBeUsedForSending;
+	}
+	
+	public void setCanBeUsedForSending( boolean canBeUsedForSending )
+	{
+		this.canBeUsedForSending = canBeUsedForSending;
+		synchronized( sendMutex ) {
+			sendMutex.notifyAll();
+		}
+	}
+	
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
 	{
-		Interpreter.getInstance().commCore().registerForSelection( this );
+		synchronized( sendMutex ) {
+			// We do not want sendings during this.
+			canBeUsedForSending = false;
+			Interpreter.getInstance().commCore().registerForSelection( this );
+		}
 	}
 }

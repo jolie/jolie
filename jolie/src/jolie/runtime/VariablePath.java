@@ -126,7 +126,7 @@ public class VariablePath implements Expression, Cloneable
 		} else if ( global ) {
 			return Interpreter.getInstance().globalValue();
 		}
-		
+
 		return ExecutionThread.currentThread().state().root();
 	}
 	
