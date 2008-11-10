@@ -22,16 +22,11 @@
 package jolie;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +47,6 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
-import jolie.net.CommListener;
 import jolie.net.OutputPort;
 import jolie.net.PipeListener;
 import jolie.process.CorrelatedProcess;
@@ -76,14 +70,16 @@ import jolie.runtime.VariablePath;
 public class Interpreter
 {
 	final private CommCore commCore;
+	
+	// TODO remove this and put it into a private method temporary variable
 	private OLParser olParser;
-	//private boolean verbose = false;
+	
 	private boolean exiting = false;
 	final private Set< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	final private Value globalValue = Value.create();
-	final private LinkedList< String > arguments = new LinkedList< String >();
+	final private String[] arguments;
 	final private Vector< EmbeddedServiceLoader > embeddedServiceLoaders =
 			new Vector< EmbeddedServiceLoader >();
 	final private Logger logger = Logger.getLogger( "JOLIE" );
@@ -107,8 +103,10 @@ public class Interpreter
 	
 	private Integer activeSessions = new Integer( 0 );
 	
-	private String[] includePaths = new String[ 0 ];
-	private String[] args = new String[ 0 ];
+	final private String[] includePaths;
+	final private String[] args;
+	
+	final private File programFile;
 	
 	/**
 	 * Returns the arguments passed to this Interpreter.
@@ -181,8 +179,9 @@ public class Interpreter
 		throws InvalidIdException, IOException
 	{
 		PipeListener listener = pipes.get( pipeId );
-		if ( listener == null )
+		if ( listener == null ) {
 			throw new InvalidIdException( pipeId );
+		}
 		return listener.createPipeCommChannel();
 	}
 	
@@ -375,8 +374,6 @@ public class Interpreter
 		return classLoader;
 	}
 	
-	final private File programFile;
-	
 	/** Constructor.
 	 * 
 	 * @param args The command line arguments.
@@ -387,129 +384,25 @@ public class Interpreter
 	public Interpreter( String[] args )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-		String olFilepath = null;
-		int connectionsLimit = -1;
-		LinkedList< String > includeList = new LinkedList< String > ();
-		String pwd = new File( "" ).getCanonicalPath();
-		includeList.add( pwd );
-		includeList.add( "include" );
-		Vector< String > libVec = new Vector< String > ();
-		libVec.add( pwd );
-		libVec.add( "ext" );
-		libVec.add( "lib" );
-		for( int i = 0; i < args.length; i++ ) {
-			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
-				throw new CommandLineException( getHelpString() );
-			} else if ( "-C".equals( args[ i ] ) ) {
-				for( i++; i < args.length; i++ ) {
-					
-				}
-				i = args.length;
-			} else if ( "-i".equals( args[ i ] ) ) {
-				i++;
-				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
-				for( String s : tmp ) {
-					includeList.add( s );
-				}
-			} else if ( "-l".equals( args[ i ] ) ) {
-				i++;
-				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
-				for( String s : tmp ) {
-					libVec.add( s );
-				}
-			} else if ( "--connlimit".equals( args[ i ] ) ) {
-				i++;
-				connectionsLimit = Integer.parseInt( args[ i ] );
-			} else if ( "--version".equals( args[ i ] ) ) {
-				throw new CommandLineException( getVersionString() );
-			} else if ( args[ i ].endsWith( ".ol" ) ) {
-				if ( olFilepath == null ) {
-					olFilepath = args[ i ];
-				} else {
-					throw new CommandLineException( "You can specify only an input file." );
-				}
-			} else {
-				for( int j = i; j < args.length; j++ ) {
-					arguments.add( args[ j ] );
-				}
-			}/* else
-				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
-		}
-		
-		commCore = new CommCore( this, connectionsLimit );
-		
-		Vector< URL > urls = new Vector< URL >();
-		for( String path : libVec ) {
-			if ( path.endsWith( ".jar" ) ) {
-				urls.add( new URL( "jar:file:" + path + "!/" ) );
-			} else if ( new File( path ).isDirectory() ) {
-				urls.add( new URL( "file:" + path + "/" ) );
-			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
-				File dir = new File( path.substring( 0, path.length() - 2 ) );
-				String jars[] = dir.list( new FilenameFilter() {
-					public boolean accept( File dir, String filename ) {
-						return filename.endsWith( ".jar" );
-					}
-				});
-				if ( jars != null ) {
-					for( String jarPath : jars ) {
-						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + Constants.fileSeparator + jarPath + "!/" ) );
-					}
-				}
-			}
-		}
-		
-		parentClassLoader = this.getClass().getClassLoader();
-		classLoader = new JolieClassLoader( urls.toArray( new URL[] {} ), this, parentClassLoader );
-		
-		if ( olFilepath == null ) {
-			throw new CommandLineException( "Input file not specified." );
-		}
-		
+		CommandLineParser cmdParser = new CommandLineParser( args );
 		this.args = args;
-		InputStream olStream = null;
-		File f = new File( olFilepath );
-		if ( f.exists() ) {
-			olStream = new FileInputStream( f );
-		} else {
-			for( int i = 0; i < includeList.size() && olStream == null; i++ ) {
-				f = new File(
-							includeList.get( i ) +
-							jolie.Constants.fileSeparator +
-							olFilepath
-						);
-				if ( f.exists() ) {
-					olStream = new FileInputStream( f );
-				}
-			}
-			if ( olStream == null ) {
-				URL olURL = parentClassLoader.getResource( olFilepath );
-				if ( olURL != null ) {
-					olStream = olURL.openStream();
-				}
-			}
-		}
-		if ( olStream == null ) {
-			throw new FileNotFoundException( olFilepath );
-		}
-		if ( f.getParent() != null ) {
-			includeList.addFirst( f.getParent() );
-		}
-		
-		programFile = new File( olFilepath );
-		
-		includePaths = includeList.toArray( includePaths );
-		olParser = new OLParser( new Scanner( olStream, olFilepath ), includePaths, parentClassLoader );
-	}
-	
-	public ClassLoader parentClassLoader()
-	{
-		return parentClassLoader;
+		programFile = new File( cmdParser.programFilepath() );
+		arguments = cmdParser.arguments();
+		commCore = new CommCore( this, cmdParser.connectionsLimit() );
+		parentClassLoader = this.getClass().getClassLoader();
+		classLoader = new JolieClassLoader( cmdParser.libURLs(), this, parentClassLoader );
+		includePaths = cmdParser.includePaths();
+		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 	}
 	
 	public File programFile()
 	{
 		return programFile;
+	}
+	
+	public ClassLoader parentClassLoader()
+	{
+		return parentClassLoader;
 	}
 	
 	public Object getLock( String id )
@@ -522,34 +415,6 @@ public class Interpreter
 		return l;
 	}
 
-	private String getHelpString()
-	{
-		StringBuilder helpBuilder = new StringBuilder();
-		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [options] [program arguments]\n\n" );
-		helpBuilder.append( "Available options:\n" );
-		helpBuilder.append(
-				getOptionString( "-h, --help", "Display this help information" ) );
-		//TODO include doc for -l and -i
-		helpBuilder.append(
-				getOptionString( "--connlimit [number]", "Set max connections limit" ) );
-		helpBuilder.append(
-				getOptionString( "--verbose", "Activate verbose mode" ) );
-		helpBuilder.append(
-				getOptionString( "--version", "Display this program version information" ) );
-		return helpBuilder.toString();
-	}
-	
-	private static String getOptionString( String option, String description )
-	{
-		return( '\t' + option + "\t\t" + description + '\n' );
-	}
-	
-	private String getVersionString()
-	{
-		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
-	}
-	
 	/**
 	 * Returns the {@code global} value of this Interpreter.
 	 * @return the {@code global} value of this Interpreter
