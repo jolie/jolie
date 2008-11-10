@@ -87,6 +87,10 @@ import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
+/**
+ * 
+ * @author Fabrizio Montesi
+ */
 public class SemanticVerifier implements OLVisitor
 {
 	private Program program;
@@ -113,16 +117,18 @@ public class SemanticVerifier implements OLVisitor
 		if ( node != null ) {
 			ParsingContext context = node.context();
 			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
-		} else
+		} else {
 			logger.severe( message );
+		}
 	}
 	
 	public boolean validate()
 	{
 		visit( program );
 
-		if ( mainDefined == false )
+		if ( mainDefined == false ) {
 			error( null, "Main procedure not defined" );
+		}
 		
 		if ( !valid  ) {
 			logger.severe( "Aborting: input file semantically invalid." );
