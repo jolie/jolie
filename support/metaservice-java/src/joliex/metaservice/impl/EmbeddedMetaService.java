@@ -72,7 +72,7 @@ public class EmbeddedMetaService extends MetaService
 			interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, defaultFilepath ) );
 			startInterpreter();
-			channel = new MetaServiceChannel( this, "/", true );
+			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
 		} catch( FileNotFoundException e ) {
@@ -107,7 +107,7 @@ public class EmbeddedMetaService extends MetaService
 			interpreter =
 				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ) );
 			startInterpreter();
-			channel = new MetaServiceChannel( this, "/", true );
+			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException e ) {
 			throw new IOException( e );
 		} catch( FileNotFoundException e ) {
