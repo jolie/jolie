@@ -64,7 +64,7 @@ public class XmlUtils
 				getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
 				break;
 			case Node.ELEMENT_NODE:
-				childValue = value.getNewChild( node.getLocalName() );
+				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
 				elementsToSubValues( childValue, node.getChildNodes() ); 
 				break;
 			case Node.TEXT_NODE:
