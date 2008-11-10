@@ -213,6 +213,7 @@ abstract public class CommChannel implements Channel
 						}
 					} catch( IOException e ) {
 						e.printStackTrace();
+						keepRun = false;
 					}
 					if ( waiters.isEmpty() ) {
 						keepRun = false;

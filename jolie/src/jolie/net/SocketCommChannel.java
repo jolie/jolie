@@ -72,6 +72,12 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		return istream;
 	}
 	
+	@Override
+	protected boolean canBeUsedForSendingImpl()
+	{
+		return super.canBeUsedForSendingImpl() && socketChannel.isOpen();
+	}
+	
 	/**
 	 * Receives a message from the channel.
 	 * @return the received CommMessage

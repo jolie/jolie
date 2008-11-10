@@ -128,7 +128,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	}
 	
 	private CommChannel channel = null;
-	private URI channelURI = null;
+	//private URI channelURI = null;
 
 	private synchronized CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
@@ -138,13 +138,15 @@ public class OutputPort extends AbstractIdentifiableObject
 			channel = loc.channelValue();
 		} else {
 			URI uri = new URI( loc.strValue() );
-			if ( forceNew || !uri.equals( channelURI ) || !channel.canBeReusedForSending() ) {
+			//if ( forceNew || !uri.equals( channelURI ) || !channel.canBeReusedForSending() ) {
+			//if ( true ) {
 				channel = interpreter.commCore().createCommChannel( uri, this );
-				channelURI = uri;
-			} else {
+				//channelURI = uri;
+			//}
+			/* else {
 				// TODO: this is buggy in concurrent communications
 				channel.refreshProtocol();
-			}
+			}*/
 		}
 
 		return channel;

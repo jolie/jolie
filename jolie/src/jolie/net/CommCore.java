@@ -48,6 +48,7 @@ import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.process.Process;
+import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.VariablePath;
@@ -288,9 +289,13 @@ public class CommCore
 										message.fault()
 								);
 					oChannel.setRedirectionChannel( channel );
-					oChannel.send( rMessage );
-					oChannel.setToBeClosed( false );
-					oChannel.disposeForInput();
+					try {
+						oChannel.send( rMessage );
+						oChannel.setToBeClosed( false );
+						oChannel.disposeForInput();
+					} catch( IOException e ) {
+						channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+					}
 				} else {
 					InputOperation operation =
 						interpreter.getInputOperation( message.operationName() );
