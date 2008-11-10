@@ -31,21 +31,33 @@ import jolie.runtime.Value;
  * A simple channel for exchanging messages with a service powered by MetaService.
  * @author Fabrizio Montesi
  */
-public class MetaServiceChannel
+public class MetaServiceChannel implements Cloneable
 {
 	final private MetaService metaService;
 	final private String resourceName;
-	private CommChannel channel;
-	final private boolean persistent;
+	final private CommChannel channel;
+	//final private boolean persistent;
 	
-	public MetaServiceChannel( MetaService metaService, String resourceName, boolean persistent )
+	public MetaServiceChannel( MetaService metaService, String resourceName )
 		throws IOException
 	{
 		this.metaService = metaService;
-		this.resourceName = "/" + resourceName;
-		this.persistent = persistent;
+		this.resourceName = resourceName;
+		this.channel = metaService.createCommChannel();
+		/*this.persistent = persistent;
 		if ( persistent ) {
 			channel = metaService.createCommChannel();
+		}*/
+	}
+	
+	@Override
+	public MetaServiceChannel clone()
+		throws CloneNotSupportedException
+	{
+		try {
+			return new MetaServiceChannel( metaService, resourceName );
+		} catch( IOException e ) {
+			throw new CloneNotSupportedException();
 		}
 	}
 	
@@ -57,9 +69,9 @@ public class MetaServiceChannel
 	public void send( String operationName, Value value )
 		throws IOException
 	{
-		if ( !persistent ) {
+		/*if ( !persistent ) {
 			channel = metaService.createCommChannel();
-		}
+		}*/
 		channel.send(
 			new CommMessage( operationName, resourceName, value )
 		);

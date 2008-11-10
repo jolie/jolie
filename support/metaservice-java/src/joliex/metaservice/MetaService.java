@@ -79,7 +79,7 @@ abstract public class MetaService
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
 		channel.send( ADD_REDIRECTION, request );
 		Value ret = channel.recv();
-		return new MetaServiceChannel( this, ret.strValue(), false );
+		return new MetaServiceChannel( this, '/' + ret.strValue() );
 	}
 	
 	/**
@@ -121,7 +121,7 @@ abstract public class MetaService
 		request.getFirstChild( "metadata" ).deepCopy( metadata );
 		channel.send( LOAD_EMBEDDED_JOLIE_SERVICE, request );
 		Value ret = channel.recv();
-		return new MetaServiceChannel( this, ret.strValue(), false );
+		return new MetaServiceChannel( this, '/' + ret.strValue() );
 	}
 
 	/**
