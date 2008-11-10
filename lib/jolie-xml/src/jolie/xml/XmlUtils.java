@@ -43,7 +43,7 @@ public class XmlUtils
 	{
 		elementsToSubValues(
 			value,
-			document.getFirstChild().getChildNodes()
+			document.getDocumentElement().getChildNodes()
 		);
 	}
 	
