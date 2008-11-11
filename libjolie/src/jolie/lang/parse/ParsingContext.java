@@ -22,7 +22,9 @@
 
 package jolie.lang.parse;
 
-public class ParsingContext
+import java.io.Serializable;
+
+public class ParsingContext implements Serializable
 {
 	private int line = 0;
 	private String sourceName = "";

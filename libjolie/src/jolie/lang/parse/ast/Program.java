@@ -21,6 +21,7 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.List;
 import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
