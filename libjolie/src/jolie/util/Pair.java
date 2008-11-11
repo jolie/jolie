@@ -21,7 +21,9 @@
 
 package jolie.util;
 
-public class Pair< K, V >
+import java.io.Serializable;
+
+public class Pair< K, V > implements Serializable
 {
 	final private K key;
 	final private V value;

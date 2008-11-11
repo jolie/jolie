@@ -21,13 +21,14 @@
 
 package jolie.lang.parse.ast;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 import jolie.util.Pair;
 
 
-public class VariablePathNode
+public class VariablePathNode implements Serializable
 {
 	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
 	final private boolean global;
