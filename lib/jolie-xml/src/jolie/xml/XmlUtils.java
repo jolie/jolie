@@ -24,6 +24,7 @@ package jolie.xml;
 import jolie.Constants;
 import jolie.runtime.Value;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -41,6 +42,7 @@ public class XmlUtils
 	 */
 	static public void documentToValue( Document document, Value value )
 	{
+		setAttributes( value, document.getDocumentElement() );
 		elementsToSubValues(
 			value,
 			document.getDocumentElement().getChildNodes()
@@ -51,6 +53,18 @@ public class XmlUtils
 	{
 		return value.getFirstChild( Constants.Predefined.ATTRIBUTES.token().content() )
 					.getFirstChild( attrName );
+	}
+	
+	private static void setAttributes( Value value, Node node )
+	{
+		NamedNodeMap map = node.getAttributes();
+		if ( map != null ) {
+			Node attr;
+			for( int i = 0; i < map.getLength(); i++ ) {
+				attr = map.item( i );
+				getAttribute( value, ( attr.getLocalName() == null ) ? attr.getNodeName() : attr.getLocalName() ).setValue( attr.getNodeValue() );
+			}
+		}
 	}
 	
 	private static void elementsToSubValues( Value value, NodeList list )
@@ -65,7 +79,8 @@ public class XmlUtils
 				break;
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
-				elementsToSubValues( childValue, node.getChildNodes() ); 
+				setAttributes( childValue, node );
+				elementsToSubValues( childValue, node.getChildNodes() );
 				break;
 			case Node.TEXT_NODE:
 				value.setValue( node.getNodeValue() );
