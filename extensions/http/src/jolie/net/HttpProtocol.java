@@ -85,8 +85,7 @@ public class HttpProtocol extends CommProtocol
 	private static class Parameters {
 		private static String DEBUG = "debug";
 	}
-	
-	
+
 	private String inputId = null;
 	final private TransformerFactory transformerFactory;
 	final private Transformer transformer;
