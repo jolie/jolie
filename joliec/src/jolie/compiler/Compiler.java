@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -62,8 +63,12 @@ public class Compiler
 		Program program = parser.parse();
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 		program = optimizer.optimize();
+		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
+		ostream.flush();
+		ostream.close();
+		//gzipstream.close();
 	}
 	
 	public void compile()
