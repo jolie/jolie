@@ -457,8 +457,9 @@ public class HttpProtocol extends CommProtocol
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 			}
-
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );	
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
+		} else {
+			headerBuilder.append( "Content-Length: 0" + CRLF );
 		}
 	}
 	
@@ -622,7 +623,10 @@ public class HttpProtocol extends CommProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
-		String format = getParameterVector( "format" ).first().strValue();
+		String format = "xml";
+		if ( hasParameter( "format" ) ) {
+			format = getStringParameter( "format" );
+		}
 		String type = message.getProperty( "content-type" ).split( ";" )[0];
 		if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value );
