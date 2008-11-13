@@ -108,4 +108,9 @@ public class IfProcess implements Process
 	{
 		elseProcess = process;
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

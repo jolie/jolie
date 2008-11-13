@@ -45,4 +45,9 @@ public class LinkOutProcess implements Process
 			return;
 		InternalLink.getById( link ).recvMessage( null, null );
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

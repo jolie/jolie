@@ -99,4 +99,9 @@ public class ScopeProcess implements Process
 	{
 		(new Execution( this )).run();
 	}
+	
+	public boolean isKillable()
+	{
+		return process.isKillable();
+	}
 }

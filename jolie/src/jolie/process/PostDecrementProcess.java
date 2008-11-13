@@ -60,4 +60,9 @@ public class PostDecrementProcess implements Process, Expression
 		val.setValue( val.intValue() - 1 );
 		return orig;
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

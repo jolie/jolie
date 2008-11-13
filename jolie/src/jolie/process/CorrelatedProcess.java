@@ -141,4 +141,9 @@ public class CorrelatedProcess implements Process
 			signalFault( fault );
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

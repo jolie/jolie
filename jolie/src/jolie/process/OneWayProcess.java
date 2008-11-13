@@ -83,6 +83,11 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			this.notify();
 			return true;
 		}
+		
+		public boolean isKillable()
+		{
+				return true;
+		}
 	}
 	
 	final protected InputOperation operation;
@@ -139,5 +144,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			if ( channel != null )
 				channel.disposeForInput();
 		} catch( IOException ioe ) {}
+	}
+	
+	public boolean isKillable()
+	{
+		return true;
 	}
 }

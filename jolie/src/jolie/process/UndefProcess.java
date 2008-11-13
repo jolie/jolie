@@ -45,4 +45,9 @@ public class UndefProcess implements Process
 		
 		varPath.undef();
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

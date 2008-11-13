@@ -60,4 +60,10 @@ public class CurrentHandlerProcess implements Process
 		// We should never execute this process node.
 		assert( false );
 	}
+	
+	public boolean isKillable()
+	{
+		// TODO: check this
+		return true;
+	}
 }

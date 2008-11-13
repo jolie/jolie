@@ -71,6 +71,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			}
 		}
 		
+		public boolean isKillable()
+		{
+			return true;
+		}
+		
 		public VariablePath inputVarPath()
 		{
 			return parent.inputVarPath;
@@ -112,6 +117,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputExpression = outputExpression;
+	}
+	
+	public boolean isKillable()
+	{
+		return true;
 	}
 	
 	public Process clone( TransformationReason reason )

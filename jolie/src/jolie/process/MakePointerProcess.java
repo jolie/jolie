@@ -49,4 +49,9 @@ public class MakePointerProcess implements Process
 
 		leftPath.makePointer( rightPath );
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

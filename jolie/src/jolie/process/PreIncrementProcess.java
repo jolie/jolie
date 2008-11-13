@@ -59,4 +59,9 @@ public class PreIncrementProcess implements Process, Expression
 		val.setValue( val.intValue() + 1 );
 		return val;
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

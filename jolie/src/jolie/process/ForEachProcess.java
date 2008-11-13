@@ -60,4 +60,9 @@ public class ForEachProcess implements Process
 			process.run();
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

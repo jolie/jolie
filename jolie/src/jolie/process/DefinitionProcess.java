@@ -45,4 +45,12 @@ public class DefinitionProcess implements Process
 			process.run();
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		if ( process != null ) {
+			return process.isKillable();
+		}
+		return true;
+	}
 }

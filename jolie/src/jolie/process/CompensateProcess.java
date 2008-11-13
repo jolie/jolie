@@ -49,4 +49,9 @@ public class CompensateProcess implements Process
 		if ( c != null )
 			c.run();
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

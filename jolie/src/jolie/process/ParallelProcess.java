@@ -53,4 +53,15 @@ public class ParallelProcess implements Process
 			children.add( process );
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		for( Process child : children ) {
+			if ( child.isKillable() == false ) {
+				return false;
+			}
+		}
+		
+		return false;
+	}
 }
