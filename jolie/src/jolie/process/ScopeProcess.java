@@ -59,8 +59,10 @@ public class ScopeProcess implements Process
 					shouldMerge = false;
 					p = ethread.getCompensation( id );
 					if ( p != null ) {
+						FaultException f = ethread.killerFault();
 						ethread.clearKill();
 						this.runScope( p );
+						ethread.kill( f );
 					}
 				}
 			} catch( FaultException f ) {
