@@ -80,4 +80,9 @@ public class NotificationProcess implements Process
 			ue.printStackTrace();
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

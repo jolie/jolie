@@ -29,4 +29,6 @@ public interface Process
 		throws FaultException;
 	
 	public Process clone( TransformationReason reason );
+	
+	public boolean isKillable();
 }

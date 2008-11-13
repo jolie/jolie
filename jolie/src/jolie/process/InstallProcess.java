@@ -57,4 +57,9 @@ public class InstallProcess implements Process
 				ExecutionThread.currentThread().installFaultHandler( pair.key(), handler );
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return false;
+	}
 }

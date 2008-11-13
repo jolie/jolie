@@ -79,4 +79,9 @@ public class AssignmentProcess implements Process, Expression
 		val.assignValue( expression.evaluate() );
 		return val;
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

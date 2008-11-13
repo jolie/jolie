@@ -113,4 +113,9 @@ public class SolicitResponseProcess implements Process
 			}
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

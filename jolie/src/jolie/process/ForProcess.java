@@ -62,4 +62,9 @@ public class ForProcess implements Process
 			post.run();
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

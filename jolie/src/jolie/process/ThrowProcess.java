@@ -55,4 +55,9 @@ public class ThrowProcess implements Process
 			throw new FaultException( faultName, expression.evaluate() );
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

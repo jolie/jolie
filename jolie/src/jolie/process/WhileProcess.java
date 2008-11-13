@@ -55,4 +55,9 @@ public class WhileProcess implements Process
 				return;
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

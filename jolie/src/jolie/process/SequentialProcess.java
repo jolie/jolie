@@ -23,6 +23,7 @@ package jolie.process;
 
 import java.util.Vector;
 
+import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
@@ -45,7 +46,11 @@ public class SequentialProcess implements Process
 	public void run()
 		throws FaultException
 	{
+		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Process proc : children ) {
+			if ( ethread.isKilled() && proc.isKillable() ){
+				return;
+			}
 			proc.run();
 		}
 	}
@@ -54,5 +59,10 @@ public class SequentialProcess implements Process
 	{
 		if ( process != null )
 			children.add( process );
+	}
+	
+	public boolean isKillable()
+	{
+		return children.get( 0 ).isKillable();
 	}
 }

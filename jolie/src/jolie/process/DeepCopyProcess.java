@@ -49,4 +49,9 @@ public class DeepCopyProcess implements Process
 
 		leftPath.deepCopy( rightPath );
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

@@ -80,4 +80,9 @@ public class RunProcess implements Process
 		} else
 			throw new FaultException( "fInvalidCode" );
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

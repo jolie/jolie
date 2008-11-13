@@ -69,6 +69,11 @@ public class LinkInProcess implements InputProcess
 			this.notify();
 			return true;
 		}
+		
+		public boolean isKillable()
+		{
+			return true;
+		}
 	}
 	
 	final private String linkId;
@@ -97,5 +102,10 @@ public class LinkInProcess implements InputProcess
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		(new Execution( this )).run();
+	}
+	
+	public boolean isKillable()
+	{
+		return true;
 	}
 }

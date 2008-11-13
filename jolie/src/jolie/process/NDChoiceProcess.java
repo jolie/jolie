@@ -143,6 +143,11 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 
 			return null;
 		}
+		
+		public boolean isKillable()
+		{
+			return true;
+		}
 	}
 
 	protected Collection< Pair< InputProcess, Process > > branches;
@@ -177,5 +182,10 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			return;
 		
 		(new Execution( this )).run();
-	}	
+	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

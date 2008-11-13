@@ -42,4 +42,9 @@ public class NullProcess implements Process
 	
 	public void run()
 	{}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

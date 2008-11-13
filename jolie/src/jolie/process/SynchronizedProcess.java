@@ -47,4 +47,9 @@ public class SynchronizedProcess implements Process
 			process.run();
 		}
 	}
+	
+	public boolean isKillable()
+	{
+		return process.isKillable();
+	}
 }

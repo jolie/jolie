@@ -23,7 +23,7 @@ package jolie.process;
 import jolie.runtime.FaultException;
 
 
-/** Makes a Definition object (a sub-routine) executing its content. 
+/** Executes a sub-routine.
  * 
  * @see DefinitionProcess
  * @author Fabrizio Montesi
@@ -51,5 +51,10 @@ public class CallProcess implements Process
 		throws FaultException
 	{
 		definition.run();
+	}
+	
+	public boolean isKillable()
+	{
+		return definition.isKillable();
 	}
 }

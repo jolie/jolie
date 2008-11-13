@@ -46,4 +46,9 @@ public class ExitProcess implements Process
 	{
 		Interpreter.getInstance().exit();
 	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
 }
