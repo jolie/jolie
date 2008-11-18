@@ -88,7 +88,6 @@ public class FileService extends JavaService
 
 		Value retValue = Value.create();
 		String format = request.value().getFirstChild( "format" ).strValue();
-
 		try {
 			if ( "base64".equals( format ) ) {
 				readBase64IntoValue( new File( filenameValue.strValue() ), retValue );
