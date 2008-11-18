@@ -469,7 +469,10 @@ public class HttpProtocol extends CommProtocol
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Sending:\n" );
 			debugSB.append( header );
-			if ( getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0 ) {
+			if (
+				getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0
+				&& encodedContent.content != null
+				) {
 				debugSB.append( encodedContent.content.toString() );
 			}
 			Interpreter.getInstance().logger().info( debugSB.toString() );
