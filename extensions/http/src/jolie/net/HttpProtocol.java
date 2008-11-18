@@ -307,8 +307,8 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
 				ret.content = (ByteArray)message.value().valueObject();
+				ret.contentType = "application/octet-stream";
 			}
-			ret.contentType = "application/octet-stream";
 		} else if ( "html".equals( format ) ) {
 			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
 			ret.contentType = "text/html";
