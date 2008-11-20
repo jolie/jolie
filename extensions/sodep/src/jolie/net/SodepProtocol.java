@@ -236,18 +236,18 @@ public class SodepProtocol extends CommProtocol
 	public void send( OutputStream ostream, CommMessage message )
 		throws IOException
 	{
-		if ( getParameterVector( "keepAlive" ).first().intValue() == 0 ) {
+		if ( checkBooleanParameter( "keepAlive" ) ) {
 			channel.setToBeClosed( true );
 		} else {
 			channel.setToBeClosed( false );
 		}
 
-		String charset = getParameterVector( "charset" ).first().strValue();
+		String charset = getStringParameter( "charset" );
 		if ( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
 		GZIPOutputStream gzip = null;
-		String compression = getParameterVector( "compression" ).first().strValue();
+		String compression = getStringParameter( "compression" );
 		if ( "gzip".equals( compression ) ) {
 			gzip = new GZIPOutputStream( ostream );
 			ostream = gzip;
@@ -263,17 +263,17 @@ public class SodepProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream )
 		throws IOException
 	{
-		if ( getParameterVector( "keepAlive" ).first().intValue() == 0 ) {
+		if ( checkBooleanParameter( "keepAlive" ) ) {
 			channel.setToBeClosed( true );
 		} else {
 			channel.setToBeClosed( false );
 		}
 
-		String charset = getParameterVector( "charset" ).first().strValue();
+		String charset = getStringParameter( "charset" );
 		if ( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
-		String compression = getParameterVector( "compression" ).first().strValue();
+		String compression = getStringParameter( "compression" );
 		if ( "gzip".equals( compression ) ) {
 			istream = new GZIPInputStream( istream );
 		}
