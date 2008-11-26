@@ -65,10 +65,11 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 		InputProcessExecution pe = null;
 		for( Entry< InputProcessExecution, ExecutionThread > entry : procsMap.entrySet() ) {
 			pe = entry.getKey();
-			if ( pe instanceof NDChoiceProcess.Execution )
+			if ( pe instanceof NDChoiceProcess.Execution ) {
 				path = ((NDChoiceProcess.Execution)pe).inputVarPath( message.operationName() );
-			else if ( pe.parent() instanceof InputOperationProcess )
+			} else if ( pe.parent() instanceof InputOperationProcess ) {
 				path = ((InputOperationProcess)pe.parent()).inputVarPath();
+			}
 			
 			CommChannelHandler.currentThread().setExecutionThread( entry.getValue() );
 			if ( entry.getValue().checkCorrelation( path, message )
