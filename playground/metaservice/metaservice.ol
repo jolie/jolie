@@ -163,7 +163,7 @@ main
 	} ] { nullProcess }
 
 	[ unloadEmbeddedService( request )( response ) {
-		removeRedirection@Runtime( request );
+		removeRedirection@Runtime( request )();
 		removeOutputPort@Runtime( request )();
 		undef( services.(request) )
 	} ] { nullProcess }
