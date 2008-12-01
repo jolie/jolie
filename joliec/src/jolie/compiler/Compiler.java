@@ -21,14 +21,13 @@
 
 package jolie.compiler;
 
-import jolie.*;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
+import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
