@@ -21,19 +21,35 @@
 
 package jolie.net;
 
+import java.net.URI;
+import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
+
 abstract public class StreamingCommChannel extends CommChannel
 {
-	protected CommProtocol protocol;
-	public StreamingCommChannel( CommProtocol protocol )
+	final private URI location;
+	final private CommProtocol protocol;
+	public StreamingCommChannel( URI location, CommProtocol protocol )
 	{
+		this.location = location;
 		this.protocol = protocol;
 		protocol.setChannel( this );
 	}
+
+	protected CommProtocol protocol()
+	{
+		return protocol;
+	}
 	
 	@Override
-	final public void refreshProtocol()
+	protected boolean isThreadSafe()
 	{
-		this.protocol = this.protocol.clone();
-		this.protocol.setChannel( this );
+		return protocol.isThreadSafe();
+	}
+
+	@Override
+	final protected void releaseImpl()
+	{
+		Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
 	}
 }

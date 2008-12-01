@@ -24,9 +24,11 @@ package jolie.net;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import javax.bluetooth.L2CAPConnection;
 import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
 
 public class BTL2CapCommChannel extends StreamingCommChannel implements PollableCommChannel
 {
@@ -34,21 +36,21 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 	final private int sendMTU;
 	final private int recvMTU;
 	
-	public BTL2CapCommChannel( L2CAPConnection connection, CommProtocol protocol )
+	public BTL2CapCommChannel( L2CAPConnection connection, URI location, CommProtocol protocol )
 		throws IOException
 	{
-		super( protocol );
+		super( location, protocol );
 		this.connection = connection;
 		sendMTU = connection.getTransmitMTU();
 		recvMTU = connection.getReceiveMTU();
-		toBeClosed = false; // Bluetooth connections are kept open by default.
+		setToBeClosed( false ); // Bluetooth connections are kept open by default.
 	}
 	
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		protocol.send( ostream, message );
+		protocol().send( ostream, message, null ); // TODO Fix this null pointer.
 		byte[] result = ostream.toByteArray();
 		if ( result.length >= sendMTU ) {
 			int times = (result.length / sendMTU) + 1;
@@ -74,7 +76,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 			ostream.write( chunk );
 		}
 		ByteArrayInputStream istream = new ByteArrayInputStream( ostream.toByteArray() );
-		return protocol.recv( istream );
+		return protocol().recv( istream, null ); // TODO fix this null pointer
 	}
 	
 	protected void closeImpl()

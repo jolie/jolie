@@ -47,6 +47,7 @@ import jolie.Interpreter;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -68,6 +69,59 @@ public class CommCore
 
 	final private int connectionsLimit;
 	final private Interpreter interpreter;
+
+	final private Map< URI, Map< String, CommChannel > > persistentChannels =
+			new HashMap< URI, Map< String, CommChannel > >();
+
+	public CommChannel getPersistentChannel( URI location, String protocol )
+	{
+		CommChannel ret = null;
+		synchronized( persistentChannels ) {
+			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
+			if ( protocolChannels != null ) {
+				ret = protocolChannels.get( protocol );
+				if ( ret != null ) {
+					if ( ret.isOpen() ) {
+						/*
+						 * We are going to return this channel, but first
+						 * check if it supports concurrent use.
+						 * If not, then others should not access this until
+						 * the caller is finished using it.
+						 */
+						if ( ret.isThreadSafe() == false ) {
+							protocolChannels.remove( protocol );
+							if ( protocolChannels.isEmpty() ) {
+								persistentChannels.remove( location );
+							}
+						}
+					} else {
+						// If the channel is closed, remove it and return null
+						protocolChannels.remove( protocol );
+						if ( protocolChannels.isEmpty() ) {
+							persistentChannels.remove( location );
+						}
+						return null;
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	public void putPersistentChannel( URI location, String protocol, CommChannel channel )
+	{
+		synchronized( persistentChannels ) {
+			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
+			if ( protocolChannels == null ) {
+				protocolChannels = new HashMap< String, CommChannel >();
+				persistentChannels.put( location, protocolChannels );
+			}
+			if ( protocolChannels.containsKey( protocol ) == false ) {
+				protocolChannels.put( protocol, channel );
+				// TODO implement channel garbage collection
+			}
+		}
+	}
 
 	/**
 	 * Returns the Interpreter instance this CommCore refers to.
@@ -168,6 +222,11 @@ public class CommCore
 	{
 		protocolFactories.put( id, factory );
 	}
+
+	public CommProtocolFactory getCommProtocolFactory( String id )
+	{
+		return protocolFactories.get( id );
+	}
 	
 	public CommProtocol createCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
 		throws IOException
@@ -210,16 +269,17 @@ public class CommCore
 	public void addInputPort(
 				String inputPortName,
 				URI uri,
-				Collection< String > operationNames,
-				CommProtocol protocol,
+				CommProtocolFactory protocolFactory,
+				VariablePath protocolConfigurationPath,
 				Process protocolConfigurationProcess,
+				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
-			
 			)
 		throws IOException
 	{
-		if ( protocolConfigurationProcess != null )
+		if ( protocolConfigurationProcess != null ) {
 			protocolConfigurations.add( protocolConfigurationProcess );
+		}
 
 		CommListener listener = null;
 		String medium = uri.getScheme();
@@ -228,7 +288,14 @@ public class CommCore
 			throw new UnsupportedCommMediumException( medium );
 		}
 
-		listener = factory.createListener( interpreter, protocol, operationNames, redirectionMap, uri );
+		listener = factory.createListener(
+			interpreter,
+			uri,
+			protocolFactory,
+			protocolConfigurationPath,
+			operationNames,
+			redirectionMap
+		);
 		listenersMap.put( inputPortName, listener );
 	}
 	
@@ -255,6 +322,7 @@ public class CommCore
 			throws IOException
 		{
 			channel.redirectionChannel().send( message );
+			channel.disposeForInput();
 		}
 		
 		private void handleMessage( CommMessage message )
@@ -318,7 +386,7 @@ public class CommCore
 		public void run()
 		{
 			try {
-				CommChannelHandler.currentThread().setExecutionThread( interpreter.mainThread() );
+				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
 				CommMessage message = channel.recv();
 				if ( channel.redirectionChannel() == null ) {
 					handleMessage( message );
@@ -417,15 +485,17 @@ public class CommCore
 	private SelectorThread selectorThread()
 		throws IOException
 	{
-		if ( selectorThread == null ) {
-			selectorThread = new SelectorThread();
-			selectorThread.start();
+		synchronized( this ) {
+			if ( selectorThread == null ) {
+				selectorThread = new SelectorThread();
+				selectorThread.start();
+			}
 		}
 		return selectorThread;
 	}
 	
 	private class SelectorThread extends Thread {
-		private Selector selector;
+		final private Selector selector;
 		public SelectorThread()
 			throws IOException
 		{
@@ -442,10 +512,9 @@ public class CommCore
 					selector.select();
 					synchronized( this ) {
 						for( SelectionKey key : selector.selectedKeys() ) {
-							channel = (SelectableStreamingCommChannel)key.attachment();
 							key.cancel();
+							channel = (SelectableStreamingCommChannel)key.attachment();
 							key.channel().configureBlocking( true );
-							channel.setCanBeUsedForSending( true );
 							stream = channel.inputStream();
 							stream.mark( 1 );
 							// It could just be a closing read. If not, receive it.
@@ -455,26 +524,51 @@ public class CommCore
 							}
 						}
 					}
-				} catch( IOException ioe ) {
+				} catch( IOException e ) {
 					// TODO Handle this properly
-					//ioe.printStackTrace();
+					e.printStackTrace();
 				}
 			}
 		}
 		
 		public void register( SelectableStreamingCommChannel channel )
 		{
-			SelectableChannel c;
 			try {
-				synchronized( this ) {
-					selector.wakeup();
-					c = channel.selectableChannel();
-					c.configureBlocking( false );
-					c.register( selector, SelectionKey.OP_READ, channel );
+				if ( channel.inputStream().available() > 0 ) {
+					scheduleReceive( channel, channel.parentListener() );
+					return;
 				}
-			} catch( ClosedChannelException cce ) {}
-			catch( IOException ioe ) {}
+				SelectableChannel c = channel.selectableChannel();
+				synchronized( this ) {
+					if ( c.isRegistered() == false ) {
+						c.configureBlocking( false );
+						selector.wakeup();
+						channel.setSelectionKey( c.register( selector, SelectionKey.OP_READ, channel ) );
+					}
+				}
+			} catch( ClosedChannelException e ) {
+				e.printStackTrace();
+			} catch( IOException e ) {
+				e.printStackTrace();
+			}
 		}
+
+		public void unregister( SelectableStreamingCommChannel channel )
+			throws IOException
+		{
+			synchronized( this ) {
+				if ( channel.selectionKey() != null ) {
+					channel.selectionKey().cancel();
+					channel.selectableChannel().configureBlocking( true );
+				}
+			}
+		}
+	}
+
+	public void unregisterForSelection( SelectableStreamingCommChannel channel )
+		throws IOException
+	{
+		selectorThread().unregister( channel );
 	}
 	
 	public void registerForSelection( SelectableStreamingCommChannel channel )

@@ -73,7 +73,7 @@ public class NotificationProcess implements Process
 
 			CommChannel channel = outputPort.getCommChannel();
 			channel.send( message );
-			channel.close();
+			channel.release();
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {

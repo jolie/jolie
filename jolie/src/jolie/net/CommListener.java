@@ -22,37 +22,48 @@
 
 package jolie.net;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.JolieThread;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.InputOperation;
+import jolie.runtime.VariablePath;
 
 /**
  * Base class for a communication input listener.
  * @author Fabrizio Montesi
- * @TODO: should become an interface
  */
 abstract public class CommListener extends JolieThread
 {
 	private static int index = 0;
 
-	final private CommProtocol protocol;
+	final private CommProtocolFactory protocolFactory;
 	final protected Collection< String > operationNames;
 	final protected Map< String, OutputPort > redirectionMap;
+
+	final private VariablePath protocolConfigurationPath;
+	final private URI location;
 	
 	public CommListener(
 				Interpreter interpreter,
-				CommProtocol protocol,
+				URI location,
+				CommProtocolFactory protocolFactory,
+				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 	{
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
-		this.protocol = protocol;
+		this.protocolFactory = protocolFactory;
 		this.operationNames = operationNames;
 		this.redirectionMap = redirectionMap;
+		this.protocolConfigurationPath = protocolConfigurationPath;
+		this.location = location;
 	}
 	
 	protected CommListener(
@@ -62,19 +73,27 @@ abstract public class CommListener extends JolieThread
 			)
 	{
 		super( interpreter );
-		this.protocol = null;
+		this.protocolFactory = null;
 		this.operationNames = operationNames;
 		this.redirectionMap = redirectionMap;
+		this.protocolConfigurationPath = null;
+		this.location = null;
 	}
 	
 	public CommProtocol createProtocol()
+		throws IOException
 	{
-		return protocol.clone();
+		return protocolFactory.createProtocol( protocolConfigurationPath, location );
 	}
 	
 	public Map< String, OutputPort > redirectionMap()
 	{
 		return redirectionMap;
+	}
+
+	protected URI location()
+	{
+		return location;
 	}
 	
 	/**
@@ -87,7 +106,5 @@ abstract public class CommListener extends JolieThread
 		return ( operationNames.contains( operation.id() ) );
 	}
 	
-	public void shutdown()
-	{		
-	}
+	abstract public void shutdown();
 }

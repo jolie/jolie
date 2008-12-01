@@ -23,32 +23,41 @@ package jolie.net;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
 
 abstract public class SelectableStreamingCommChannel extends StreamingCommChannel
 {
-	public SelectableStreamingCommChannel( CommProtocol protocol )
+	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
 	{
-		super( protocol );
+		super( location, protocol );
 	}
 
 	abstract public InputStream inputStream();
 	abstract public SelectableChannel selectableChannel();
-	
-	private boolean canBeUsedForSending = true;
-	
-	@Override
-	protected boolean canBeUsedForSendingImpl()
+
+	private SelectionKey selectionKey = null;
+
+	public SelectionKey selectionKey()
 	{
-		return canBeUsedForSending;
+		return selectionKey;
 	}
-	
-	public void setCanBeUsedForSending( boolean canBeUsedForSending )
+
+	public void setSelectionKey( SelectionKey selectionKey )
 	{
-		this.canBeUsedForSending = canBeUsedForSending;
+		this.selectionKey = selectionKey;
+	}
+
+	@Override
+	public void send( CommMessage message )
+		throws IOException
+	{
 		synchronized( sendMutex ) {
-			sendMutex.notifyAll();
+			Interpreter.getInstance().commCore().unregisterForSelection( this );
+			sendImpl( message );
 		}
 	}
 	
@@ -58,7 +67,6 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 	{
 		synchronized( sendMutex ) {
 			// We do not want sendings during this.
-			canBeUsedForSending = false;
 			Interpreter.getInstance().commCore().registerForSelection( this );
 		}
 	}

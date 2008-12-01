@@ -26,6 +26,7 @@ import java.net.URI;
 import javax.xml.soap.SOAPException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ext.Identifier;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
@@ -33,11 +34,16 @@ import jolie.runtime.VariablePath;
 @AndJarDeps({"relaxngDatatype.jar","xsom.jar"})
 public class SoapProtocolFactory extends CommProtocolFactory
 {
+	public SoapProtocolFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		try {
-			return new SoapProtocol( configurationPath, location, commCore.interpreter() );
+			return new SoapProtocol( configurationPath, location, commCore().interpreter() );
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		}

@@ -79,7 +79,7 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 				return;
 			}
 		}
-		
+
 		mesgList.add( new Pair< CommChannel, CommMessage >( channel, message ) );
 	}
 

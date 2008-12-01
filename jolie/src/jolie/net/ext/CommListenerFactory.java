@@ -28,8 +28,8 @@ import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommListener;
-import jolie.net.CommProtocol;
 import jolie.net.OutputPort;
+import jolie.runtime.VariablePath;
 
 /**
  * 
@@ -45,10 +45,11 @@ abstract public class CommListenerFactory
 	
 	abstract public CommListener createListener(
 									Interpreter interpreter,
-									CommProtocol protocol,
+									URI location,
+									CommProtocolFactory protocolFactory,
+									VariablePath protocolConfigurationPath,
 									Collection< String > operationNames,
-									Map< String, OutputPort > redirectionMap,
-									URI location
+									Map< String, OutputPort > redirectionMap
 								)
 		throws IOException;
 }

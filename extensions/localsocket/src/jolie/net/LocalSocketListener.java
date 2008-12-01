@@ -26,11 +26,14 @@ import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
 import java.util.Map;
 
 import jolie.Interpreter;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.VariablePath;
 
 public class LocalSocketListener extends CommListener
 {
@@ -38,17 +41,17 @@ public class LocalSocketListener extends CommListener
 	final private UnixSocketAddress socketAddress;
 	public LocalSocketListener(
 				Interpreter interpreter,
-				String path,
-				boolean abs,
-				CommProtocol protocol,
+				URI location,
+				CommProtocolFactory protocolFactory,
+				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, operationNames, redirectionMap );
-		
-		socketAddress = new UnixSocketAddress( path, abs );
+		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+
+		socketAddress = new UnixSocketAddress( location.getPath(), location.getScheme().equals( "abs" ) );
 		serverSocket = new UnixServerSocket( socketAddress );
 	}
 	
@@ -69,6 +72,7 @@ public class LocalSocketListener extends CommListener
 			while ( (socket = serverSocket.accept()) != null ) {
 				channel = new LocalSocketCommChannel(
 								socket,
+								location(),
 								createProtocol()
 							);
 				channel.setParentListener( this );

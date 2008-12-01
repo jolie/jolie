@@ -38,14 +38,20 @@ import java.util.Vector;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
-public class SodepProtocol extends CommProtocol
+public class SodepProtocol extends ConcurrentCommProtocol
 {
+	public String name()
+	{
+		return "sodep";
+	}
+
 	private Charset stringCharset = Charset.forName( "UTF8" );
 	
 	private String readString( DataInput in )
@@ -227,19 +233,14 @@ public class SodepProtocol extends CommProtocol
 	{
 		super( configurationPath );
 	}
-	
-	public SodepProtocol clone()
-	{
-		return new SodepProtocol( configurationPath() );
-	}
 
-	public void send( OutputStream ostream, CommMessage message )
+	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		if ( checkBooleanParameter( "keepAlive" ) ) {
-			channel.setToBeClosed( true );
+			channel().setToBeClosed( true );
 		} else {
-			channel.setToBeClosed( false );
+			channel().setToBeClosed( false );
 		}
 
 		String charset = getStringParameter( "charset" );
@@ -255,18 +256,17 @@ public class SodepProtocol extends CommProtocol
 		
 		DataOutputStream oos = new DataOutputStream( ostream );
 		writeMessage( oos, message );
-		oos.flush();
 		if ( gzip != null )
 			gzip.finish();
 	}
 
-	public CommMessage recv( InputStream istream )
+	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		if ( checkBooleanParameter( "keepAlive" ) ) {
-			channel.setToBeClosed( true );
+			channel().setToBeClosed( true );
 		} else {
-			channel.setToBeClosed( false );
+			channel().setToBeClosed( false );
 		}
 
 		String charset = getStringParameter( "charset" );

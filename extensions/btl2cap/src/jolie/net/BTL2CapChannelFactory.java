@@ -102,7 +102,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		try {
 			String connectionURL = getConnectionURL( uri );
 			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
-			return new BTL2CapCommChannel( conn, port.getProtocol() );
+			return new BTL2CapCommChannel( conn, uri, port.getProtocol() );
 		} catch( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
 		} catch( URISyntaxException e ) {

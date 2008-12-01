@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2008 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,21 +23,21 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.nio.channels.Channel;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import jolie.ExecutionThread;
+import jolie.net.protocols.CommProtocol;
 
 /**
- * A communication abstraction to send and receive messages.
+ * CommChannel allows for the sending and receiving of CommMessage instances.
  * @author Fabrizio Montesi
  * @see CommProtocol
  * @see CommMessage
  */
-abstract public class CommChannel implements Channel
+abstract public class CommChannel
 {
 	final private Map< Long, CommMessage > pendingResponses =
 			new HashMap< Long, CommMessage >();
@@ -54,7 +54,7 @@ abstract public class CommChannel implements Channel
 		private CommMessage response = null;
 	}
 	
-	protected boolean toBeClosed = true;
+	private boolean toBeClosed = true;
 	private CommListener listener = null;
 	private boolean isOpen = true;
 	
@@ -70,9 +70,6 @@ abstract public class CommChannel implements Channel
 		return redirectionChannel;
 	}
 	
-	public void refreshProtocol()
-	{}
-	
 	public void setParentListener( CommListener listener )
 	{
 		this.listener = listener;
@@ -85,22 +82,17 @@ abstract public class CommChannel implements Channel
 	
 	final public boolean isOpen()
 	{
-		return isOpen;
+		return isOpen && isOpenImpl();
 	}
-	
-	final public boolean canBeReusedForSending()
-	{
-		return isOpen && !toBeClosed && canBeUsedForSending();
-	}
-	
-	final public boolean canBeUsedForSending()
-	{
-		return canBeUsedForSendingImpl();
-	}
-	
-	protected boolean canBeUsedForSendingImpl()
+
+	protected boolean isOpenImpl()
 	{
 		return true;
+	}
+
+	protected boolean isThreadSafe()
+	{
+		return false;
 	}
 	
 	/** Receives a message from the channel. */
@@ -132,15 +124,19 @@ abstract public class CommChannel implements Channel
 			}
 		}
 		if ( response == null ) {
-			synchronized( monitor ) {
+			synchronized( this ) {
 				if ( responseReceiver == null ) {
 					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
 					responseReceiver.start();
 				}
+			}
+			synchronized( monitor ) {
 				if ( monitor.response == null ) {
 					try {
 						monitor.wait();
-					} catch( InterruptedException e ) {}
+					} catch( InterruptedException e ) {
+						e.printStackTrace();
+					}
 				}
 				response = monitor.response;
 			}
@@ -157,7 +153,13 @@ abstract public class CommChannel implements Channel
 		private ResponseReceiver( CommChannel parent, ExecutionThread ethread )
 		{
 			super( jolie.Interpreter.getInstance() );
-			setExecutionThread( ethread ); // TODO: this could be buggy!
+
+			/*
+			 * Warning: the following line implies that this
+			 * whole thing is safe iff the CommChannel is used only for outputs,
+			 * otherwise we are messing with correlation set checking.
+			 */
+			setExecutionThread( ethread );
 			this.parent = parent;
 		}
 		
@@ -225,15 +227,10 @@ abstract public class CommChannel implements Channel
 	}
 	
 	/** Sends a message through the channel. */
-	final public void send( CommMessage message )
+	public void send( CommMessage message )
 		throws IOException
 	{
 		synchronized( sendMutex ) {
-			while( !canBeUsedForSending() ) {
-				try {
-					sendMutex.wait();
-				} catch( InterruptedException e ) {}
-			}
 			sendImpl( message );
 		}
 	}
@@ -244,16 +241,28 @@ abstract public class CommChannel implements Channel
 	abstract protected void sendImpl( CommMessage message )
 		throws IOException;
 	
-	/** Closes the communication channel */
-	final public void close()
+	/**
+	 * Releases this CommChannel, making it available
+	 * to other processes for sending data.
+	 */
+	final public void release()
 		throws IOException
 	{
 		if ( toBeClosed ) {
-			closeImpl();
 			isOpen = false;
+			closeImpl();
+		} else {
+			releaseImpl();
 		}
 	}
-	
+
+	protected void releaseImpl()
+		throws IOException
+	{
+		isOpen = false;
+		closeImpl();
+	}
+
 	final public void disposeForInput()
 		throws IOException
 	{

@@ -24,6 +24,7 @@ package jolie.net;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.URI;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -31,6 +32,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import jolie.Interpreter;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.VariablePath;
 
 public class SocketListener extends CommListener
 {
@@ -38,18 +41,35 @@ public class SocketListener extends CommListener
 
 	public SocketListener(
 				Interpreter interpreter,
-				CommProtocol protocol,
-				int port,
+				URI location,
+				CommProtocolFactory protocolFactory,
+				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, operationNames, redirectionMap );
+		super(
+			interpreter,
+			location,
+			protocolFactory,
+			protocolConfigurationPath,
+			operationNames,
+			redirectionMap
+		);
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();
-		socket.bind( new InetSocketAddress( port ) );
+		socket.bind( new InetSocketAddress( location.getPort() ) );
+	}
+
+	public void shutdown()
+	{
+		if ( serverChannel.isOpen() ) {
+			try {
+				serverChannel.close();
+			} catch( IOException e ) {}
+		}
 	}
 	
 	@Override
@@ -61,12 +81,12 @@ public class SocketListener extends CommListener
 			while ( (socketChannel = serverChannel.accept()) != null ) {
 				channel = new SocketCommChannel(
 							socketChannel,
+							location(),
 							createProtocol() );
 				channel.setParentListener( this );
 				interpreter().commCore().scheduleReceive( channel, this );
 				channel = null; // Dispose for garbage collection
 			}
-			serverChannel.close();
 		} catch( ClosedByInterruptException ce ) {
 			try {
 				serverChannel.close();

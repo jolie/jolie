@@ -91,7 +91,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				}
 				parent.correlatedProcess.inputReceived();
 			}
-			
+
 			this.channel = channel;
 			this.message = message;
 			this.notify();
