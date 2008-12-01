@@ -26,22 +26,25 @@ import java.util.Collection;
 import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
+import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
+import jolie.runtime.VariablePath;
 
 @Identifier("btl2cap")
 @AndJarDeps({"bluetooth.jar"})
 public class BTL2CapListenerFactory extends CommListenerFactory
 {
 	public CommListener createListener(
-							Interpreter interpreter,
-							CommProtocol protocol,
-							Collection< String > operationNames,
-							Map< String, OutputPort > redirectionMap,
-							URI location
-						)
+					Interpreter interpreter,
+					URI location,
+					CommProtocolFactory protocolFactory,
+					VariablePath protocolConfigurationPath,
+					Collection< String > operationNames,
+					Map< String, OutputPort > redirectionMap
+				)
 		throws IOException
 	{
-		return new BTL2CapListener( interpreter, location, protocol, operationNames, redirectionMap );
+		return new BTL2CapListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
 	}
 }

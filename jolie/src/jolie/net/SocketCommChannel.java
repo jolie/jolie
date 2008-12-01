@@ -23,11 +23,14 @@
 package jolie.net;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import jolie.net.protocols.CommProtocol;
 
 
 /**
@@ -47,15 +50,16 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see CommProtocol
 	 * @see SocketChannel
 	 */
-	public SocketCommChannel( SocketChannel socketChannel, CommProtocol protocol )
+	public SocketCommChannel( SocketChannel socketChannel, URI location, CommProtocol protocol )
 		throws IOException
 	{
-		super( protocol );
+		super( location, protocol );
 		this.socketChannel = socketChannel;
 		this.istream = new BufferedInputStream( socketChannel.socket().getInputStream() );
+		//this.istream = socketChannel.socket().getInputStream();
 		this.ostream = socketChannel.socket().getOutputStream();
 
-		toBeClosed = false; // Socket connections are kept open by default
+		setToBeClosed( false ); // Socket connections are kept open by default
 	}
 	
 	/**
@@ -72,12 +76,6 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		return istream;
 	}
 	
-	@Override
-	protected boolean canBeUsedForSendingImpl()
-	{
-		return super.canBeUsedForSendingImpl() && socketChannel.isOpen();
-	}
-	
 	/**
 	 * Receives a message from the channel.
 	 * @return the received CommMessage
@@ -86,7 +84,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		return protocol.recv( istream );
+		return protocol().recv( istream, ostream );
 	}
 	
 	/**
@@ -98,12 +96,19 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		protocol.send( ostream, message );
+		protocol().send( ostream, message, istream );
+		ostream.flush();
 	}
 
 	protected void closeImpl()
 		throws IOException
 	{
 		socketChannel.close();
+	}
+
+	@Override
+	protected boolean isOpenImpl()
+	{
+		return socketChannel.isOpen();
 	}
 }

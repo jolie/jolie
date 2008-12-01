@@ -20,12 +20,14 @@
  ***************************************************************************/
 
 
-package jolie.net;
+package jolie.net.protocols;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import jolie.net.CommChannel;
+import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -34,24 +36,31 @@ import jolie.runtime.VariablePath;
  * A CommProtocol implements a protocol for sending and receiving data under the form of CommMessage objects.
  * @author Fabrizio Montesi
  */
-abstract public class CommProtocol implements Cloneable
+abstract public class CommProtocol
 {
 	final private VariablePath configurationPath;
-	protected CommChannel channel = null;
+	private CommChannel channel = null;
 
 	protected VariablePath configurationPath()
 	{
 		return configurationPath;
 	}
+
+	abstract public String name();
 	
-	protected CommProtocol( VariablePath configurationPath )
+	public CommProtocol( VariablePath configurationPath )
 	{
 		this.configurationPath = configurationPath;
 	}
 	
-	protected void setChannel( CommChannel channel )
+	public void setChannel( CommChannel channel )
 	{
 		this.channel = channel;
+	}
+
+	protected CommChannel channel()
+	{
+		return this.channel;
 	}
 	
 	protected ValueVector getParameterVector( String id )
@@ -90,12 +99,11 @@ abstract public class CommProtocol implements Cloneable
 		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : "" );
 	}
 	
-	abstract public CommMessage recv( InputStream istream )
+	abstract public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException;
 
-	abstract public void send( OutputStream ostream, CommMessage message )
+	abstract public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException;
 
-	@Override
-	abstract public CommProtocol clone();
+	abstract public boolean isThreadSafe();
 }

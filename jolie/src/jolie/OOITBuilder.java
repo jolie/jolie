@@ -23,6 +23,7 @@ package jolie;
 
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -95,8 +96,8 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.net.CommProtocol;
 import jolie.net.OutputPort;
+import jolie.net.ext.CommProtocolFactory;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
@@ -160,6 +161,7 @@ import jolie.runtime.SumExpression;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
 import jolie.util.Pair;
 
 /**
@@ -299,29 +301,31 @@ public class OOITBuilder implements OLVisitor
 		}
 		
 		String pId = n.protocolId();
-		CommProtocol protocol = null;
-		
-		Vector< Pair< Expression, Expression > > path =
-					new Vector< Pair< Expression, Expression > >();
-		path.add( new Pair< Expression, Expression >( Value.create( Constants.INPUT_PORTS_NODE_NAME ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( n.id() ), null ) );
-		path.add( new Pair< Expression, Expression >( Value.create( Constants.PROTOCOL_NODE_NAME ), null ) );
-		VariablePath configurationPath = new VariablePath( path, true );
-		
-		try {
-			protocol = interpreter.commCore().createCommProtocol( pId, configurationPath, n.location() );
-		} catch( IOException e ) {
-			error( n.context(), e );
-		}
-		
+		CommProtocolFactory protocolFactory = null;
+
+		VariablePath protocolConfigurationPath =
+			new VariablePathBuilder( true )
+			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+			.add( n.id(), 0 )
+			.add( Constants.PROTOCOL_NODE_NAME, 0 )
+			.toVariablePath();
+		protocolFactory = interpreter.commCore().getCommProtocolFactory( pId );
 		currProcess = null;
 		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
 		}
 		
-		if ( protocol != null ) {
+		if ( protocolFactory != null ) {
 			try {
-				interpreter.commCore().addInputPort( n.id(), n.location(), n.operationsMap().keySet(), protocol, currProcess, redirectionMap );
+				interpreter.commCore().addInputPort(
+					n.id(),
+					n.location(),
+					protocolFactory,
+					protocolConfigurationPath,
+					currProcess,
+					n.operationsMap().keySet(),
+					redirectionMap
+				);
 			} catch( IOException ioe ) {
 				error( n.context(), ioe );
 			}

@@ -27,18 +27,21 @@ import java.util.Collection;
 import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.VariablePath;
 
 public class SocketListenerFactory extends CommListenerFactory
 {
 	public CommListener createListener(
 					Interpreter interpreter,
-					CommProtocol protocol,
+					URI location,
+					CommProtocolFactory protocolFactory,
+					VariablePath protocolConfigurationPath,
 					Collection< String > operationNames,
-					Map< String, OutputPort > redirectionMap,
-					URI location
+					Map< String, OutputPort > redirectionMap
 				)
 		throws IOException
 	{
-		return new SocketListener( interpreter, protocol, location.getPort(), operationNames, redirectionMap );
+		return new SocketListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
 	}
 }

@@ -36,7 +36,7 @@ public class SocketCommChannelFactory extends CommChannelFactory
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
 		SocketCommChannel ret = null;
 		try {
-			ret = new SocketCommChannel( channel, port.getProtocol() );
+			ret = new SocketCommChannel( channel, location, port.getProtocol() );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}

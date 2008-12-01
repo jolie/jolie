@@ -33,13 +33,13 @@ import jolie.runtime.AndJarDeps;
 @AndJarDeps({"unix.jar"})
 public class LocalSocketCommChannelFactory extends CommChannelFactory
 {
-	public CommChannel createChannel( URI uri, OutputPort port )
+	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{
-		UnixSocket socket = new UnixSocket( new UnixSocketAddress( uri.getPath(), uri.getScheme().equals( "abs" ) ) );
+		UnixSocket socket = new UnixSocket( new UnixSocketAddress( location.getPath(), location.getScheme().equals( "abs" ) ) );
 		CommChannel ret = null;
 		try {
-			ret = new LocalSocketCommChannel( socket, port.getProtocol() );
+			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}

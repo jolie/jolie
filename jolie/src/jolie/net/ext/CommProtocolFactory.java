@@ -24,7 +24,7 @@ package jolie.net.ext;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommCore;
-import jolie.net.CommProtocol;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
 /**
@@ -33,15 +33,20 @@ import jolie.runtime.VariablePath;
  */
 abstract public class CommProtocolFactory
 {
-	protected CommCore commCore = null;
+	final private CommCore commCore;
 	
 	/**
-	 * Sets the CommCore this factory should refer to for creating CommProtocol instances.
+	 * Constructor
 	 * @param commCore the CommCore to refer to for creating CommProtocol instances.
 	 */
-	public void setCommCore( CommCore commCore )
+	public CommProtocolFactory( CommCore commCore )
 	{
 		this.commCore = commCore;
+	}
+
+	protected CommCore commCore()
+	{
+		return commCore;
 	}
 	
 	/**

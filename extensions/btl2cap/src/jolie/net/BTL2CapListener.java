@@ -31,6 +31,8 @@ import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.L2CAPConnectionNotifier;
 import javax.microedition.io.Connector;
 import jolie.Interpreter;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.VariablePath;
 
 public class BTL2CapListener extends CommListener
 {
@@ -38,13 +40,21 @@ public class BTL2CapListener extends CommListener
 	public BTL2CapListener(
 				Interpreter interpreter,
 				URI location,
-				CommProtocol protocol,
+				CommProtocolFactory protocolFactory,
+				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, protocol, operationNames, redirectionMap );
+		super(
+			interpreter,
+			location,
+			protocolFactory,
+			protocolConfigurationPath,
+			operationNames,
+			redirectionMap
+		);
 		connectionNotifier =
 				(L2CAPConnectionNotifier)Connector.open( location.toString() );
 	}
@@ -58,12 +68,12 @@ public class BTL2CapListener extends CommListener
 			while ( (clientConnection = connectionNotifier.acceptAndOpen()) != null ) {
 				channel = new BTL2CapCommChannel(
 							clientConnection,
+							location(),
 							createProtocol() );
 				channel.setParentListener( this );
 				interpreter().commCore().scheduleReceive( channel, this );
 				channel = null; // Dispose for garbage collection
 			}
-			connectionNotifier.close();
 		} catch( ClosedByInterruptException ce ) {
 			try {
 				connectionNotifier.close();
@@ -73,5 +83,13 @@ public class BTL2CapListener extends CommListener
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void shutdown()
+	{
+		try {
+			connectionNotifier.close();
+		} catch( IOException e ) {}
 	}
 }

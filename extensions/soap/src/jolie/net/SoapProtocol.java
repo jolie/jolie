@@ -90,6 +90,7 @@ import javax.xml.validation.SchemaFactory;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.protocols.SequentialCommProtocol;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -103,7 +104,7 @@ import org.xml.sax.InputSource;
  * 2008 - Claudio Guidi: initial support for WS-Addressing.
  * 
  */
-public class SoapProtocol extends CommProtocol
+public class SoapProtocol extends SequentialCommProtocol
 {
 	private String inputId = null;
 	final private Interpreter interpreter;
@@ -115,33 +116,11 @@ public class SoapProtocol extends CommProtocol
 	
 	final private static String CRLF = new String( new char[] { 13, 10 } );
 
-	public SoapProtocol clone()
+	public String name()
 	{
-		SoapProtocol ret =
-				new SoapProtocol(
-					configurationPath(),
-					uri,
-					interpreter,
-					messageFactory
-				);
-		ret.inputId = inputId;
-		ret.schemaSet = schemaSet;
-		return ret;
+		return "soap";
 	}
-	
-	private SoapProtocol(
-			VariablePath configurationPath,
-			URI uri,
-			Interpreter interpreter,
-			MessageFactory messageFactory
-		)
-	{
-		super( configurationPath );
-		this.uri = uri;
-		this.interpreter = interpreter;
-		this.messageFactory = messageFactory;
-	}
-	
+
 	public SoapProtocol( VariablePath configurationPath, URI uri, Interpreter interpreter )
 		throws SOAPException
 	{
@@ -363,7 +342,7 @@ public class SoapProtocol extends CommProtocol
 		}
 	}
 	
-	public void send( OutputStream ostream, CommMessage message )
+	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{		
 		try {
@@ -471,7 +450,7 @@ public class SoapProtocol extends CommProtocol
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
-				channel.setToBeClosed( true );
+				channel().setToBeClosed( true );
 				messageString += "Connection: close" + CRLF;
 			}
 			
@@ -538,12 +517,12 @@ public class SoapProtocol extends CommProtocol
 		}
 	}
 	
-	public CommMessage recv( InputStream istream )
+	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
-		HttpUtils.recv_checkForChannelClosing( message, channel );
+		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;
 		String messageId = message.getPropertyOrEmptyString( "soapaction" );

@@ -59,6 +59,7 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.JolieGWTConverter;
 import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.InputOperation;
@@ -80,7 +81,7 @@ import org.xml.sax.SAXException;
  * @author Fabrizio Montesi
  */
 @AndJarDeps({"jolie-xml.jar"})
-public class HttpProtocol extends CommProtocol
+public class HttpProtocol extends SequentialCommProtocol
 {
 	private static class Parameters {
 		private static String DEBUG = "debug";
@@ -95,7 +96,12 @@ public class HttpProtocol extends CommProtocol
 	private boolean received = false;
 	
 	final public static String CRLF = new String( new char[] { 13, 10 } );
-	
+
+	public String name()
+	{
+		return "http";
+	}
+
 	public HttpProtocol( VariablePath configurationPath, URI uri )
 		throws ParserConfigurationException, TransformerConfigurationException
 	{
@@ -108,37 +114,6 @@ public class HttpProtocol extends CommProtocol
 		transformer = transformerFactory.newTransformer();
 	}
 		
-	private HttpProtocol(
-			VariablePath configurationPath,
-			URI uri,
-			DocumentBuilderFactory docBuilderFactory,
-			DocumentBuilder docBuilder,
-			TransformerFactory transformerFactory,
-			Transformer transformer
-		)
-	{
-		super( configurationPath );
-		this.uri = uri;
-		this.docBuilderFactory = docBuilderFactory;
-		this.docBuilder = docBuilder;
-		this.transformerFactory = transformerFactory;
-		this.transformer = transformer;
-	}
-	
-	public HttpProtocol clone()
-	{
-		HttpProtocol ret =
-				new HttpProtocol(
-					configurationPath(),
-					uri,
-					docBuilderFactory,
-					docBuilder,
-					transformerFactory,
-					transformer
-				);
-		return ret;
-	}
-	
 	private static Map< String, ValueVector > getAttributesOrNull( Value value )
 	{
 		Map< String, ValueVector > ret = null;
@@ -437,7 +412,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		String param;
 		if ( checkBooleanParameter( "keepAlive" ) ) {
-			channel.setToBeClosed( true );
+			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
 		
@@ -479,7 +454,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	public void send( OutputStream ostream, CommMessage message )
+	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		String charset = send_getCharset( message );
@@ -655,7 +630,7 @@ public class HttpProtocol extends CommProtocol
 		try {
 			op = Interpreter.getInstance().getInputOperation( decodedMessage.operationName );
 		} catch( InvalidIdException e ) {}
-		if ( op == null || !channel.parentListener().canHandleInputOperation( op ) ) {
+		if ( op == null || !channel().parentListener().canHandleInputOperation( op ) ) {
 			String defaultOpId = getParameterVector( "default" ).first().strValue();
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;
@@ -681,13 +656,13 @@ public class HttpProtocol extends CommProtocol
 		private Value value = Value.create();
 	}
 	
-	public CommMessage recv( InputStream istream )
+	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
-		HttpUtils.recv_checkForChannelClosing( message, channel );
+		HttpUtils.recv_checkForChannelClosing( message, channel() );
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message );
 		}

@@ -22,6 +22,7 @@
 package jolie;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,6 +30,7 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -164,15 +166,20 @@ public class JolieClassLoader extends URLClassLoader
 					if ( pId == null ) {
 						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
 					}
-					CommProtocolFactory factory = fClass.newInstance();
-					factory.setCommCore( interpreter.commCore() );
-					interpreter.commCore().setCommProtocolFactory( pId.value(), factory );
+					interpreter.commCore().setCommProtocolFactory(
+						pId.value(),
+						fClass.getConstructor( CommCore.class ).newInstance( interpreter.commCore() )
+					);
 				}
 			} catch( ClassNotFoundException e ) {
 				throw new IOException( e );
 			} catch( InstantiationException e ) {
 				throw new IOException( e );
 			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
 		}

@@ -72,8 +72,9 @@ public class SolicitResponseProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		
 		CommChannel channel = null;
 		try {
@@ -86,7 +87,7 @@ public class SolicitResponseProcess implements Process
 					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
 				);
 			channel.send( message );
-			message = channel.recvResponseFor( message );
+			message = channel.recvResponseFor( message );System.out.println("Ricevuto " + message.id());
 			
 			if ( inputVarPath != null )	 {
 				Value v = inputVarPath.getValue();
@@ -106,7 +107,7 @@ public class SolicitResponseProcess implements Process
 		} finally {
 			if ( channel != null ) {
 				try {
-					channel.close();
+					channel.release();
 				} catch( IOException ioe ) {
 					ioe.printStackTrace();
 				}

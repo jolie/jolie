@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
 
 /**
  * 
@@ -48,6 +49,10 @@ public class LocalListener extends CommListener
 	{
 		this.redirectionMap.putAll( redirectionMap );
 	}
+
+	@Override
+	public void shutdown()
+	{}
 	
 	@Override
 	public void run()

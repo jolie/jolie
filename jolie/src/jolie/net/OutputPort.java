@@ -34,6 +34,7 @@ import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePathBuilder;
 
 public class OutputPort extends AbstractIdentifiableObject
@@ -103,61 +104,65 @@ public class OutputPort extends AbstractIdentifiableObject
 		this.configurationProcess = s;
 	}
 	
-	private CommProtocol protocol = null;
-	
 	public CommProtocol getProtocol()
 		throws IOException, URISyntaxException
 	{
-		CommProtocol retVal = protocol;
-		if ( retVal == null ) {
-			String protocolId = protocolVariablePath.getValue().strValue();
-			if ( protocolId.isEmpty() ) {
-				throw new IOException( "Unspecified protocol for output port " + id() );
-			}
-			retVal = interpreter.commCore().createCommProtocol(
-				protocolId,
-				protocolVariablePath,
-				new URI( locationVariablePath.getValue().strValue() )
-			);
-		} else {
-			retVal = retVal.clone();
+		String protocolId = protocolVariablePath.getValue().strValue();
+		if ( protocolId.isEmpty() ) {
+			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
-		
-		
-		return retVal;
+		return interpreter.commCore().createCommProtocol(
+			protocolId,
+			protocolVariablePath,
+			new URI( locationVariablePath.getValue().strValue() )
+		);
 	}
-	
-	private CommChannel channel = null;
-	//private URI channelURI = null;
 
 	private synchronized CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
+		CommChannel ret = null;
 		Value loc = locationVariablePath.getValue();
 		if ( loc.isChannel() ) {
-			channel = loc.channelValue();
+			// It's a local channel
+			ret = loc.channelValue();
 		} else {
 			URI uri = new URI( loc.strValue() );
-			//if ( forceNew || !uri.equals( channelURI ) || !channel.canBeReusedForSending() ) {
-			//if ( true ) {
-				channel = interpreter.commCore().createCommChannel( uri, this );
-				//channelURI = uri;
-			//}
-			/* else {
-				// TODO: this is buggy in concurrent communications
-				channel.refreshProtocol();
-			}*/
+			if ( forceNew ) {
+				// A fresh channel was requested
+				ret = interpreter.commCore().createCommChannel( uri, this );
+			} else {
+				// Try reusing an existing channel first
+				String protocol = protocolVariablePath.getValue().strValue();
+				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
+				if ( ret == null ) {
+					ret = interpreter.commCore().createCommChannel( uri, this );
+				}
+			}
 		}
 
-		return channel;
+		return ret;
 	}
-	
+
+	/**
+	 * Returns a new and unused CommChannel for this OutputPort
+	 * @return a CommChannel for this OutputPort
+	 * @throws java.net.URISyntaxException
+	 * @throws java.io.IOException
+	 */
 	public CommChannel getNewCommChannel()
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( false );
+		return getCommChannel( true );
 	}
-	
+
+	/**
+	 * Returns a CommChannel for this OutputPort, possibly reusing an
+	 * open persistent channel.
+	 * @return a CommChannel for this OutputPort
+	 * @throws java.net.URISyntaxException
+	 * @throws java.io.IOException
+	 */
 	public CommChannel getCommChannel()
 		throws URISyntaxException, IOException
 	{

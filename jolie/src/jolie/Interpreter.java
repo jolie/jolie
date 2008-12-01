@@ -45,10 +45,8 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.OutputPort;
-import jolie.net.PipeListener;
 import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.EmbeddedServiceLoader;
@@ -93,9 +91,6 @@ public class Interpreter
 	final private HashMap< String, Object > locksMap =
 				new HashMap< String, Object >();
 	
-	final private static Map< String, PipeListener > pipes =
-				new HashMap< String, PipeListener >();
-	
 	final private Set< CorrelatedProcess > sessionSpawners = 
 				new HashSet< CorrelatedProcess >();
 	
@@ -124,11 +119,6 @@ public class Interpreter
 	public String[] includePaths()
 	{
 		return includePaths;
-	}
-
-	public static void registerPipeListener( String key, PipeListener value )
-	{
-		pipes.put( key, value );
 	}
 	
 	/**
@@ -174,17 +164,7 @@ public class Interpreter
 	{
 		return outputPorts.values();
 	}
-	
-	public static CommChannel getNewPipeChannel( String pipeId )
-		throws InvalidIdException, IOException
-	{
-		PipeListener listener = pipes.get( pipeId );
-		if ( listener == null ) {
-			throw new InvalidIdException( pipeId );
-		}
-		return listener.createPipeCommChannel();
-	}
-	
+		
 	/**
 	 * Returns the InputOperation identified by key.
 	 * @param key the name of the InputOperation to return

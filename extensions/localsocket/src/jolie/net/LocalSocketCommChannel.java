@@ -24,7 +24,9 @@ package jolie.net;
 import cx.ath.matthew.unix.UnixSocket;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import jolie.Interpreter;
+import jolie.net.protocols.CommProtocol;
 
 public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
 {
@@ -58,28 +60,28 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 	final private UnixSocket socket;
 	private InputStream istream;
 	
-	public LocalSocketCommChannel( UnixSocket socket, CommProtocol protocol )
+	public LocalSocketCommChannel( UnixSocket socket, URI location, CommProtocol protocol )
 		throws IOException
 	{
-		super( protocol );
+		super( location, protocol );
 		
 		this.socket = socket;
 		this.istream = socket.getInputStream();
 		
-		toBeClosed = false; // LocalSocket connections are kept open by default
+		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		protocol.send( socket.getOutputStream(), message );
+		protocol().send( socket.getOutputStream(), message, socket.getInputStream() );
 	}
 	
 	protected CommMessage recvImpl()
 		throws IOException
 	{
 		CommMessage ret = null;
-		ret = protocol.recv( istream );
+		ret = protocol().recv( istream, socket.getOutputStream() );
 		if ( istream instanceof PreCachedInputStream ) {
 			istream = socket.getInputStream();
 		}
