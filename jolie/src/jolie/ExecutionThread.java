@@ -74,8 +74,18 @@ abstract public class ExecutionThread extends JolieThread
 		public Process getFaultHandler( String name, boolean erase )
 		{
 			Process p = faultMap.get( name );
-			if ( p != null && erase )
-				faultMap.remove( name );
+			if ( erase ) { // Not called by cH (TODO: this is obscure!)
+				if ( p == null ) {
+					// Give the default handler
+					name = Constants.Keywords.DEFAULT_HANDLER_NAME;
+					p = faultMap.get( name );
+				}
+				if ( p != null ) {
+					// Could still be null if there was not a default handler
+					faultMap.remove( name );
+				}
+			}
+				
 			return p;
 		}
 		
