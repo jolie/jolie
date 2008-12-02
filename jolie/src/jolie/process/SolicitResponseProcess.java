@@ -87,7 +87,7 @@ public class SolicitResponseProcess implements Process
 					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
 				);
 			channel.send( message );
-			message = channel.recvResponseFor( message );System.out.println("Ricevuto " + message.id());
+			message = channel.recvResponseFor( message );
 			
 			if ( inputVarPath != null )	 {
 				Value v = inputVarPath.getValue();
