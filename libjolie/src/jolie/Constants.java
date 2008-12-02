@@ -95,6 +95,12 @@ public final class Constants
 		INT,
 		DOUBLE
 	}
+
+	public static interface Keywords
+	{
+		public static final String DEFAULT_HANDLER_NAME = "default";
+	}
+
 	public static final String INPUT_PORTS_NODE_NAME = "inputPorts";
 	public static final String PROTOCOL_NODE_NAME = "protocol";
 	public static final String LOCATION_NODE_NAME = "location";
