@@ -118,7 +118,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		);
 	}
 
-	private synchronized CommChannel getCommChannel( boolean forceNew )
+	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
 		CommChannel ret = null;
