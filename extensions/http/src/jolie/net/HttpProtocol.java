@@ -134,8 +134,9 @@ public class HttpProtocol extends SequentialCommProtocol
 			)
 		throws SOAPException
 	{
-		Element currentElement;
+		node.appendChild( doc.createTextNode( value.strValue() ) );
 
+		Element currentElement;
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( !entry.getKey().startsWith( "@" ) ) {
 				for( Value val : entry.getValue() ) {
@@ -150,7 +151,6 @@ public class HttpProtocol extends SequentialCommProtocol
 								);
 						}
 					}
-					currentElement.appendChild( doc.createTextNode( val.strValue() ) );
 					valueToDocument( val, currentElement, doc );
 				}
 			}
