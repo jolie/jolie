@@ -21,7 +21,6 @@
 
 package joliex.util;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,7 +80,7 @@ public class ZipUtils extends JavaService
 	public CommMessage zip( CommMessage request )
 		throws FaultException
 	{
-		ByteOutputStream bbstream = new ByteOutputStream();
+		ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
 		try {
 			ZipOutputStream zipStream = new ZipOutputStream( bbstream );
 			ZipEntry zipEntry;
@@ -97,6 +96,6 @@ public class ZipUtils extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, Value.create( new ByteArray( bbstream.getBytes() ) ) );
+		return CommMessage.createResponse( request, Value.create( new ByteArray( bbstream.toByteArray() ) ) );
 	}
 }
