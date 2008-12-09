@@ -21,6 +21,9 @@
 
 package jolie.runtime;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -207,6 +210,11 @@ abstract public class Value implements Expression
 	{
 		return new ValueImpl( d );
 	}
+
+	public static Value create( ByteArray b )
+	{
+		return new ValueImpl( b );
+	}
 	
 	public static Value create( Value value )
 	{
@@ -374,6 +382,38 @@ abstract public class Value implements Expression
 			return (String)o;
 		}
 		return o.toString();
+	}
+
+	public ByteArray byteArrayValue()
+	{
+		ByteArray r = null;
+		Object o = valueObject();
+		if ( o == null ) {
+			r = new ByteArray( new byte[0] );
+		} else if ( o instanceof ByteArray ) {
+			r = (ByteArray)o;
+		} else if ( o instanceof Integer ) {
+			// TODO: This is slow
+			ByteArrayOutputStream bbstream = new ByteArrayOutputStream( 4 );
+			try {
+				new DataOutputStream( bbstream ).writeInt( (Integer)o );
+				r = new ByteArray( bbstream.toByteArray() );
+			} catch( IOException e ) {
+				r = new ByteArray( new byte[0] );
+			}
+		} else if ( o instanceof String ) {
+			r = new ByteArray( ((String)o).getBytes() );
+		} else if ( o instanceof Double ) {
+			// TODO: This is slow
+			ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
+			try {
+				new DataOutputStream( bbstream ).writeDouble( (Integer)o );
+				r = new ByteArray( bbstream.toByteArray() );
+			} catch( IOException e ) {
+				r = new ByteArray( new byte[0] );
+			}
+		}
+		return r;
 	}
 	
 	public int intValue()
