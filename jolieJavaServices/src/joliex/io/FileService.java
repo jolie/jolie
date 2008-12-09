@@ -171,9 +171,11 @@ public class FileService extends JavaService
 		File dir = new File( request.value().getFirstChild( "directory" ).strValue() );
 		String[] files = dir.list( new ListFilter( request.value().getFirstChild( "regex" ).strValue() ) );
 		Value response = Value.create();
-		ValueVector results = response.getChildren( "result" );
-		for( String file : files ) {
-			results.add( Value.create( file ) );
+		if ( files != null ) {
+			ValueVector results = response.getChildren( "result" );
+			for( String file : files ) {
+				results.add( Value.create( file ) );
+			}
 		}
 		return new CommMessage( "list", "/", response );
 	}
