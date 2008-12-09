@@ -21,16 +21,20 @@
 
 package joliex.util;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 /**
  *
@@ -72,5 +76,27 @@ public class ZipUtils extends JavaService
 			throw new FaultException( e );
 		}
 		return CommMessage.createResponse( request, response );
+	}
+
+	public CommMessage zip( CommMessage request )
+		throws FaultException
+	{
+		ByteOutputStream bbstream = new ByteOutputStream();
+		try {
+			ZipOutputStream zipStream = new ZipOutputStream( bbstream );
+			ZipEntry zipEntry;
+			byte[] bb;
+			for( Entry< String, ValueVector > entry : request.value().children().entrySet() ) {
+				zipEntry = new ZipEntry( entry.getKey() );
+				zipStream.putNextEntry( zipEntry );
+				bb = entry.getValue().first().byteArrayValue().getBytes();
+				zipStream.write( bb, 0, bb.length );
+				zipStream.closeEntry();
+			}
+			zipStream.close();
+		} catch( IOException e ) {
+			throw new FaultException( e );
+		}
+		return CommMessage.createResponse( request, Value.create( new ByteArray( bbstream.getBytes() ) ) );
 	}
 }
