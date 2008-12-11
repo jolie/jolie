@@ -359,7 +359,11 @@ public class OLParseTreeOptimizer
 
 		public void visit( ThrowStatement n )
 		{
-			n.expression().accept( this );
+			if ( n.expression() == null ) {
+				currNode = null;
+			} else {
+				n.expression().accept( this );
+			}
 			currNode = new ThrowStatement( n.context(), n.id(), currNode );
 		}
 
