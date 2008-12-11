@@ -1,6 +1,7 @@
 outputPort ZipUtils {
 RequestResponse:
-	readEntry throws IOException
+	readEntry throws IOException,
+	zip throws IOException
 }
 
 embedded {
