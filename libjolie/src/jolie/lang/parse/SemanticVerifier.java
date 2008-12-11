@@ -1,6 +1,5 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi										   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -88,7 +87,8 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
 /**
- * 
+ * Checks the well-formedness and validity of a JOLIE program.
+ * @see Program
  * @author Fabrizio Montesi
  */
 public class SemanticVerifier implements OLVisitor

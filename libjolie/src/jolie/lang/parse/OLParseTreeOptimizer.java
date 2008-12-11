@@ -23,9 +23,7 @@
 package jolie.lang.parse;
 
 import java.lang.String;
-import java.lang.String;
 import java.lang.reflect.Array;
-import java.util.Vector;
 import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
@@ -76,7 +74,6 @@ import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -85,7 +82,6 @@ import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.util.Pair;
 import jolie.util.Pair;
 
 
@@ -360,7 +356,13 @@ public class OLParseTreeOptimizer
 		}
 				
 		public void visit( CompensateStatement n ) { currNode = n; }
-		public void visit( ThrowStatement n ) { currNode = n; }
+
+		public void visit( ThrowStatement n )
+		{
+			n.expression().accept( this );
+			currNode = new ThrowStatement( n.context(), n.id(), currNode );
+		}
+
 		public void visit( OneWayOperationStatement n ) { currNode = n; }
 		
 		public void visit( NotificationOperationStatement n )
