@@ -37,11 +37,11 @@ public class ThrowStatement extends OLSyntaxNode
 		this.expression = null;
 	}
 	
-	public ThrowStatement( ParsingContext context, String id, OLSyntaxNode path )
+	public ThrowStatement( ParsingContext context, String id, OLSyntaxNode expression )
 	{
 		super( context );
 		this.id = id;
-		this.expression = path;
+		this.expression = expression;
 	}
 	
 	public OLSyntaxNode expression()
