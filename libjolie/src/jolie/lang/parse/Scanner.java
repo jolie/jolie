@@ -1,6 +1,5 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi      							   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -481,6 +480,8 @@ public class Scanner
 							str += '\n';
 						else if ( ch == 't' )
 							str += '\t';
+						else if ( ch == 'r' )
+							str += '\r';
 						else if ( ch == '"' )
 							str += '"';
 						else
