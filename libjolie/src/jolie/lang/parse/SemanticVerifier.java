@@ -83,6 +83,7 @@ import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
@@ -143,6 +144,9 @@ public class SemanticVerifier implements OLVisitor
 		for( OLSyntaxNode node : n.children() )
 			node.accept( this );
 	}
+
+	public void visit( VariablePathNode n )
+	{}
 	
 	public void visit( InputPortInfo n )
 	{

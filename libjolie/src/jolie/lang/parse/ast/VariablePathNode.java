@@ -25,16 +25,19 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
 import jolie.util.Pair;
 
 
-public class VariablePathNode implements Serializable
+public class VariablePathNode extends OLSyntaxNode implements Serializable
 {
 	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
 	final private boolean global;
 
-	public VariablePathNode( boolean global )
+	public VariablePathNode( ParsingContext context, boolean global )
 	{
+		super( context );
 		path = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
 		this.global = global;
 	}
@@ -52,5 +55,10 @@ public class VariablePathNode implements Serializable
 	public List< Pair< OLSyntaxNode, OLSyntaxNode > > path()
 	{
 		return path;
+	}
+
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

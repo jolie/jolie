@@ -1,6 +1,5 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -76,6 +75,7 @@ import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 
 public interface OLVisitor
@@ -135,4 +135,5 @@ public interface OLVisitor
 	public void visit( CurrentHandlerStatement n );
 	public void visit( EmbeddedServiceNode n );
 	public void visit( InstallFixedVariableExpressionNode n );
+	public void visit( VariablePathNode n );
 }
