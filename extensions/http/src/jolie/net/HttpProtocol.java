@@ -216,7 +216,7 @@ public class HttpProtocol extends SequentialCommProtocol
 				m.start() + offset, m.end() + offset,
 				currStrValue
 			);
-			offset = currStrValue.length() - 3 - currKey.length();
+			offset += currStrValue.length() - 3 - currKey.length();
 		}
 		return result;
 	}
@@ -673,15 +673,16 @@ public class HttpProtocol extends SequentialCommProtocol
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( inputId, "/", decodedMessage.value );
+			received = false;
 		} else if ( !message.isError() ) {
 			recv_parseQueryString( message, decodedMessage.value );
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage.value );
 			//TODO support resourcePath
 			retVal = new CommMessage( decodedMessage.operationName, "/", decodedMessage.value  );
+			received = true;
 		}
 
-		received = true;
 		return retVal;
 	}
 }
