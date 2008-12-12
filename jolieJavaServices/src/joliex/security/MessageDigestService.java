@@ -44,7 +44,11 @@ public class MessageDigestService extends JavaService
 		} catch( NoSuchAlgorithmException e ) {
 			throw new FaultException( "UnsupportedOperation", e );
 		}
-		String result = new BigInteger( 1, md.digest() ).toString();
+		int radix;
+		if ( (radix=request.value().getFirstChild( "radix" ).intValue()) < 2 ) {
+			radix = 16;
+		}
+		String result = new BigInteger( 1, md.digest() ).toString( radix );
 		return new CommMessage( "md5", "/", Value.create( result ) );
 	}
 }
