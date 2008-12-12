@@ -19,6 +19,11 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+/*
+This code is a mess, but it works as an example and I'm too lazy to beautify it right now.
+All the ad-hoc code should be put into an adapter and then used through embedding.
+*/
+
 include "console.iol"
 include "message_digest.iol"
 include "exec.iol"
