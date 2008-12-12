@@ -1,6 +1,8 @@
 interface DatabaseInterface {
 RequestResponse:
-	connect, query, update
+	connect throws ConnectionError InvalidDriver,
+	query throws SQLException ConnectionError,
+	update throws SQLException ConnectionError
 }
 
 outputPort Database {
