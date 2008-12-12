@@ -83,4 +83,23 @@ public class StringUtils extends JavaService
 		}
 		return new CommMessage( "match", "/", response );
 	}
+
+	public CommMessage leftPad( CommMessage request )
+	{
+		String orig = request.value().strValue();
+		int length = request.value().getFirstChild( "length" ).intValue();
+		if ( orig.length() >= length ) {
+			return CommMessage.createResponse( request, Value.create( orig ) );
+		}
+
+		char padChar = request.value().getFirstChild( "char" ).strValue().charAt( 0 );
+
+		StringBuilder builder = new StringBuilder();
+		int padLength = orig.length() - length;
+		for( int i = 0; i < padLength; i++ ) {
+			builder.append( padChar );
+		}
+		builder.append( orig );
+		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+	}
 }
