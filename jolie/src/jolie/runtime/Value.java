@@ -150,8 +150,9 @@ class ValueImpl extends Value
 	
 	public Map< String, ValueVector > children()
 	{
-		if ( children == null )
+		if ( children == null ) {
 			children = new HashMap< String, ValueVector > ();
+		}
 		return children;
 	}
 	
