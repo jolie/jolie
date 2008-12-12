@@ -368,8 +368,9 @@ abstract public class Value implements Expression
 	
 	public CommChannel channelValue()
 	{
-		if( !isChannel() )
+		if( isChannel() == false ) {
 			return null;
+		}
 		return (CommChannel)valueObject();
 	}
 
