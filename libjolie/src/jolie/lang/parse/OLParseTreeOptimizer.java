@@ -1,6 +1,5 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi										   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +21,6 @@
 
 package jolie.lang.parse;
 
-import java.lang.String;
 import java.lang.reflect.Array;
 import jolie.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -81,6 +79,7 @@ import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.util.Pair;
 
@@ -290,28 +289,59 @@ public class OLParseTreeOptimizer
 		
 		public void visit( WhileStatement n )
 		{
-			n.condition().accept( this );
-			OLSyntaxNode condition = currNode;
-			n.body().accept( this );
-			currNode = new WhileStatement( n.context(), condition, currNode );
+			currNode = new WhileStatement(
+				n.context(),
+				optimizeNode( n.condition() ),
+				optimizeNode( n.body() )
+			);
 		}
 		
 		public void visit( ForStatement n )
 		{
-			n.init().accept( this );
-			OLSyntaxNode init = currNode;
-			n.condition().accept( this );
-			OLSyntaxNode condition = currNode;
-			n.post().accept( this );
-			OLSyntaxNode post = currNode;
-			n.body().accept( this );
-			currNode = new ForStatement( n.context(), init, condition, post, currNode );
+			currNode = new ForStatement(
+				n.context(),
+				optimizeNode( n.init() ),
+				optimizeNode( n.condition() ),
+				optimizeNode( n.post() ),
+				optimizeNode( n.body() )
+			);
 		}
 		
 		public void visit( ForEachStatement n )
 		{
-			n.body().accept( this );
-			currNode = new ForEachStatement( n.context(), n.keyPath(), n.targetPath(), currNode );
+			currNode = new ForEachStatement(
+				n.context(),
+				optimizePath( n.keyPath() ),
+				optimizePath( n.targetPath() ),
+				optimizeNode( n.body() )
+			);
+		}
+
+		public void visit( VariablePathNode n )
+		{
+			VariablePathNode varPath = new VariablePathNode( n.context(), n.isGlobal() );
+			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
+				varPath.append( new Pair< OLSyntaxNode, OLSyntaxNode >( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
+			}
+			currNode = varPath;
+		}
+
+		private VariablePathNode optimizePath( VariablePathNode n )
+		{
+			if ( n == null ) {
+				return null;
+			}
+			n.accept( this );
+			return (VariablePathNode)currNode;
+		}
+
+		private OLSyntaxNode optimizeNode( OLSyntaxNode n )
+		{
+			if ( n == null ) {
+				return null;
+			}
+			n.accept( this );
+			return currNode;
 		}
 		
 		public void visit( RequestResponseOperationStatement n )
@@ -321,14 +351,13 @@ public class OLParseTreeOptimizer
 				n.outputExpression().accept( this );
 				outputExpression = currNode;
 			}
-			n.process().accept( this );
 			currNode =
 				new RequestResponseOperationStatement(
 						n.context(),
 						n.id(),
-						n.inputVarPath(),
+						optimizePath( n.inputVarPath() ),
 						outputExpression,
-						currNode );
+						optimizeNode( n.process() ) );
 		}
 		
 		public void visit( Scope n )
@@ -339,14 +368,23 @@ public class OLParseTreeOptimizer
 		
 		public void visit( InstallStatement n )
 		{
+			currNode = new InstallStatement( n.context(), optimizeInstallFunctionNode( n.handlersFunction() ) );
+		}
+
+		private InstallFunctionNode optimizeInstallFunctionNode( InstallFunctionNode n )
+		{
+			if ( n == null ) {
+				return null;
+			}
+
 			Pair< String, OLSyntaxNode >[] pairs =
-				(Pair< String, OLSyntaxNode >[]) Array.newInstance( Pair.class, n.handlersFunction().pairs().length );
+				(Pair< String, OLSyntaxNode >[]) Array.newInstance( Pair.class, n.pairs().length );
 			int i = 0;
-			for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
+			for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 				pair.value().accept( this );
 				pairs[ i++ ] = new Pair< String, OLSyntaxNode >( pair.key(), currNode );
 			}
-			currNode = new InstallStatement( n.context(), new InstallFunctionNode( pairs ) );
+			return new InstallFunctionNode( pairs );
 		}
 		
 		public void visit( SynchronizedStatement n )
@@ -367,7 +405,14 @@ public class OLParseTreeOptimizer
 			currNode = new ThrowStatement( n.context(), n.id(), currNode );
 		}
 
-		public void visit( OneWayOperationStatement n ) { currNode = n; }
+		public void visit( OneWayOperationStatement n )
+		{
+			currNode = new OneWayOperationStatement(
+				n.context(),
+				n.id(),
+				optimizePath( n.inputVarPath() )
+			);
+		}
 		
 		public void visit( NotificationOperationStatement n )
 		{
@@ -396,8 +441,8 @@ public class OLParseTreeOptimizer
 							n.id(),
 							n.outputPortId(),
 							outputExpression,
-							n.inputVarPath(),
-							n.handlersFunction()
+							optimizePath( n.inputVarPath() ),
+							optimizeInstallFunctionNode( n.handlersFunction() )
 						);
 		}
 
@@ -407,12 +452,31 @@ public class OLParseTreeOptimizer
 		
 		public void visit( AssignStatement n )
 		{
-			n.expression().accept( this );
-			currNode = new AssignStatement( n.context(), n.variablePath(), currNode );
+			currNode = new AssignStatement(
+				n.context(),
+				optimizePath( n.variablePath() ),
+				optimizeNode( n.expression() )
+			);
 		}
 		
-		public void visit( DeepCopyStatement n ) { currNode = n; }
-		public void visit( PointerStatement n ) { currNode = n; }
+		public void visit( DeepCopyStatement n )
+		{
+			currNode = new DeepCopyStatement(
+				n.context(),
+				optimizePath( n.leftPath() ),
+				optimizePath( n.rightPath() )
+			);
+		}
+
+		public void visit( PointerStatement n )
+		{
+			currNode = new PointerStatement(
+				n.context(),
+				optimizePath( n.leftPath() ),
+				optimizePath( n.rightPath() )
+			);
+		}
+
 		public void visit( DefinitionCallStatement n ) { currNode = n; }
 		
 		public void visit( OrConditionNode n )
@@ -459,8 +523,10 @@ public class OLParseTreeOptimizer
 
 		public void visit( ExpressionConditionNode n )
 		{
-			n.expression().accept( this );
-			currNode = new ExpressionConditionNode( n.context(), currNode );
+			currNode = new ExpressionConditionNode(
+				n.context(),
+				optimizeNode( n.expression() )
+			);
 		}
 
 		public void visit( ConstantIntegerExpression n ) { currNode = n; }
@@ -505,20 +571,91 @@ public class OLParseTreeOptimizer
 			}
 		}
 
-		public void visit( VariableExpressionNode n ) { currNode = n; }
-		public void visit( InstallFixedVariableExpressionNode n ) { currNode = n; }
+		public void visit( VariableExpressionNode n )
+		{
+			currNode = new VariableExpressionNode(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+		
+		public void visit( InstallFixedVariableExpressionNode n )
+		{
+			currNode = new InstallFixedVariableExpressionNode(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
 		
-		public void visit( ValueVectorSizeExpressionNode n ) { currNode = n; }
-		public void visit( PreIncrementStatement n ) { currNode = n; }
-		public void visit( PostIncrementStatement n ) { currNode = n; }
-		public void visit( PreDecrementStatement n ) { currNode = n; }
-		public void visit( PostDecrementStatement n ) { currNode = n; }
-		public void visit( UndefStatement n ) { currNode = n; }
-		public void visit( IsTypeExpressionNode n ) { currNode = n; }
-		public void visit( TypeCastExpressionNode n ) { currNode = n; }
+		public void visit( ValueVectorSizeExpressionNode n )
+		{
+			currNode = new ValueVectorSizeExpressionNode(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( PreIncrementStatement n )
+		{
+			currNode = new PreIncrementStatement(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( PostIncrementStatement n )
+		{
+			currNode = new PostIncrementStatement(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( PreDecrementStatement n )
+		{
+			currNode = new PreDecrementStatement(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( PostDecrementStatement n )
+		{
+			currNode = new PostDecrementStatement(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( UndefStatement n )
+		{
+			currNode = new UndefStatement(
+				n.context(),
+				optimizePath( n.variablePath() )
+			);
+		}
+
+		public void visit( IsTypeExpressionNode n )
+		{
+			currNode = new IsTypeExpressionNode(
+					n.context(),
+					n.type(),
+					optimizePath( n.variablePath() )
+				);
+		}
+
+		public void visit( TypeCastExpressionNode n )
+		{
+			currNode = new TypeCastExpressionNode(
+					n.context(),
+					n.type(),
+					optimizeNode( n.expression() )
+				);
+		}
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
 	}
 	

@@ -1237,9 +1237,9 @@ public class OLParser extends AbstractParser
 		VariablePathNode path = null;
 
 		if ( varId.equals( Constants.GLOBAL ) ) {
-			path = new VariablePathNode( true );
+			path = new VariablePathNode( getContext(), true );
 		} else {
-			path = new VariablePathNode( false );
+			path = new VariablePathNode( getContext(), false );
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
 				expr =
