@@ -49,16 +49,31 @@ import jolie.runtime.Value;
 public class DatabaseService extends JavaService
 {
 	private Connection connection = null;
+	private String connectionString = null;
+	private String username = null;
+	private String password = null;
+	private boolean mustCheckConnection = false;
 	
 	public CommMessage connect( CommMessage message )
 		throws FaultException
 	{
+		if ( connection != null ) {
+			try {
+				connectionString = null;
+				username = null;
+				password = null;
+				connection.close();
+			} catch( SQLException e ) {}
+		}
+
+		mustCheckConnection = message.value().getFirstChild( "checkConnection" ).intValue() > 0;
+
 		String driver = message.value().getChildren( "driver" ).first().strValue();
 		String host = message.value().getChildren( "host" ).first().strValue();
 		String port = message.value().getChildren( "port" ).first().strValue();
 		String databaseName = message.value().getChildren( "database" ).first().strValue();
-		String username = message.value().getChildren( "username" ).first().strValue();
-		String password = message.value().getChildren( "password" ).first().strValue();
+		username = message.value().getChildren( "username" ).first().strValue();
+		password = message.value().getChildren( "password" ).first().strValue();
 		String separator = "/";
 		try {
 			if ( "postgresql".equals( driver ) ) {
@@ -77,8 +92,9 @@ public class DatabaseService extends JavaService
 				throw new FaultException( "InvalidDriver", "Uknown driver: " + driver );
 			}
 
+			connectionString = "jdbc:"+ driver + "://" + host + ( port.equals( "" ) ? "" : ":" + port ) + separator + databaseName;
 			connection = DriverManager.getConnection(
-						"jdbc:"+ driver + "://" + host + ( port.equals( "" ) ? "" : ":" + port ) + separator + databaseName,
+						connectionString,
 						username,
 						password
 					);
@@ -92,10 +108,33 @@ public class DatabaseService extends JavaService
 		}
 		return null;
 	}
+
+	private void checkConnection()
+		throws FaultException
+	{
+		if ( mustCheckConnection ) {
+			if ( connection == null ) {
+				throw new FaultException( "ConnectionError" );
+			}
+
+			try {
+				if ( !connection.isValid( 0 ) ) {
+					connection = DriverManager.getConnection(
+							connectionString,
+							username,
+							password
+						);
+				}
+			} catch( SQLException e ) {
+				throw new FaultException( e );
+			}
+		}
+	}
 	
 	public CommMessage update( CommMessage request )
 		throws FaultException
 	{
+		checkConnection();
 		Value resultValue = Value.create();
 		String query = request.value().strValue();
 		try {
@@ -110,6 +149,7 @@ public class DatabaseService extends JavaService
 	public CommMessage query( CommMessage request )
 		throws FaultException
 	{
+		checkConnection();
 		Value resultValue = Value.create();
 		Value rowValue, fieldValue;
 		String query = request.value().strValue();
