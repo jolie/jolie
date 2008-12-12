@@ -23,7 +23,6 @@ package jolie;
 
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -220,6 +219,9 @@ public class OOITBuilder implements OLVisitor
 	{
 		interpreter.setExecutionMode( n.mode() );
 	}
+
+	public void visit( VariablePathNode n )
+	{}
 	
 	public void visit( CorrelationSetInfo n )
 	{
