@@ -40,6 +40,22 @@ public class StringUtils extends JavaService
 				Value.create( message.value().strValue().replaceAll( regex, replacement ) )
 						);
 	}
+
+	public CommMessage join( CommMessage request )
+	{
+		ValueVector vec = request.value().getChildren( "piece" );
+		int size = vec.size() - 1;
+		StringBuilder builder = new StringBuilder();
+		if ( size >= 0 ) {
+			String delimiter = request.value().getFirstChild( "delimiter" ).strValue();
+			int i;
+			for( i = 0; i < size; i++ ) {
+				builder.append( vec.get( i ).strValue() ).append( delimiter );
+			}
+			builder.append( vec.get( i ) );
+		}
+		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+	}
 	
 	public CommMessage trim( CommMessage message )
 	{
