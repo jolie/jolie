@@ -20,8 +20,9 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.runtime.embedding;
 
+import jolie.runtime.*;
 import jolie.Constants;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
@@ -41,6 +42,8 @@ public abstract class EmbeddedServiceLoader
 				ret = new JavaServiceLoader( servicePath );
 			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
 				ret = new JolieServiceLoader( interpreter, servicePath );
+			} else if ( type == Constants.EmbeddedServiceType.JAVASCRIPT ) {
+				ret = new JavaScriptServiceLoader( servicePath );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );

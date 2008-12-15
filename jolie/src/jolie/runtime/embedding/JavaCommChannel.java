@@ -19,15 +19,16 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.runtime.embedding;
 
+import jolie.runtime.JavaService;
+import jolie.net.*;
 import java.io.IOException;
 
 import java.util.List;
 import java.util.Vector;
 import jolie.Interpreter;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.JavaService;
 
 /**
  * TODO: this shouldn't be polled.

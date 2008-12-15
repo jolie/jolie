@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.runtime.embedding;
 
 import jolie.Constants;
 
