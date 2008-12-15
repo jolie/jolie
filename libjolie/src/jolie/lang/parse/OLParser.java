@@ -179,37 +179,21 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			boolean keepRun = true;
+			Constants.EmbeddedServiceType type;
 			while ( keepRun ) {
+				type = null;
 				if ( token.isKeyword( "Java" ) ) {
-					getToken();
-					eat( Scanner.TokenType.COLON, "expected : after Java" );
-					checkConstant();
-					while ( token.is( Scanner.TokenType.STRING ) ) {
-						servicePath = token.content();
-						getToken();
-						if ( token.isKeyword( "in" ) ) {
-							eatKeyword( "in", "expected in" );
-							assertToken( Scanner.TokenType.ID, "expected output port name" );
-							portId = token.content();
-							getToken();
-						} else {
-							portId = null;
-						}
-						program.addChild(
-							new EmbeddedServiceNode(
-							getContext(),
-							Constants.EmbeddedServiceType.JAVA,
-							servicePath,
-							portId ) );
-						if ( token.is( Scanner.TokenType.COMMA ) ) {
-							getToken();
-						} else {
-							break;
-						}
-					}
+					type = Constants.EmbeddedServiceType.JAVA;
 				} else if ( token.isKeyword( "Jolie" ) ) {
+					type = Constants.EmbeddedServiceType.JOLIE;
+				} else if ( token.isKeyword( "JavaScript" ) ) {
+					type = Constants.EmbeddedServiceType.JAVASCRIPT;
+				}
+				if ( type == null ) {
+					keepRun = false;
+				} else {
 					getToken();
-					eat( Scanner.TokenType.COLON, "expected : after Jolie" );
+					eat( Scanner.TokenType.COLON, "expected : after embedded service type" );
 					checkConstant();
 					while ( token.is( Scanner.TokenType.STRING ) ) {
 						servicePath = token.content();
@@ -225,7 +209,7 @@ public class OLParser extends AbstractParser
 						program.addChild(
 							new EmbeddedServiceNode(
 							getContext(),
-							Constants.EmbeddedServiceType.JOLIE,
+							type,
 							servicePath,
 							portId ) );
 						if ( token.is( Scanner.TokenType.COMMA ) ) {
@@ -234,8 +218,6 @@ public class OLParser extends AbstractParser
 							break;
 						}
 					}
-				} else {
-					keepRun = false;
 				}
 			}
 			eat( Scanner.TokenType.RCURLY, "expected }" );
