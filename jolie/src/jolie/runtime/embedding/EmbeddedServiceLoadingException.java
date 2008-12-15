@@ -19,41 +19,21 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.runtime.embedding;
 
-package jolie.runtime;
+import jolie.Constants;
 
-import jolie.Interpreter;
-import jolie.JolieClassLoader;
-import jolie.net.JavaCommChannel;
-
-
-public class JavaServiceLoader extends EmbeddedServiceLoader
+public class EmbeddedServiceLoadingException extends Exception
 {
-	private String servicePath;
+	private static final long serialVersionUID = Constants.serialVersionUID();
 	
-	public JavaServiceLoader( String servicePath )
+	public EmbeddedServiceLoadingException( String message )
 	{
-		this.servicePath = servicePath;
+		super( message );
 	}
-
-	public void load()
-		throws EmbeddedServiceLoadingException
+	
+	public EmbeddedServiceLoadingException( Exception e )
 	{
-		Class<?> c;
-		try {
-			JolieClassLoader cl = Interpreter.getInstance().getClassLoader();
-			c = cl.loadClass( servicePath );
-			Object obj = c.newInstance();
-			if ( !(obj instanceof JavaService) )
-				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
-			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
-			setChannel(	new JavaCommChannel( (JavaService)obj )	);
-		} catch( InstantiationException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( IllegalAccessException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( ClassNotFoundException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		}
+		super( e );
 	}
 }

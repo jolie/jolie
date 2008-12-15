@@ -19,21 +19,44 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.runtime.embedding;
 
-import jolie.Constants;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
-public class EmbeddedServiceLoadingException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	public EmbeddedServiceLoadingException( String message )
+	final private Invocable invocable;
+
+	public JavaScriptServiceLoader( String jsPath )
+		throws EmbeddedServiceLoaderCreationException
 	{
-		super( message );
+		ScriptEngineManager manager = new ScriptEngineManager();
+		ScriptEngine engine = manager.getEngineByName( "JavaScript" );
+		if ( engine == null ) {
+			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
+		}
+
+		try {
+			engine.eval( new FileReader( jsPath ) );
+		} catch( FileNotFoundException e ) {
+			throw new EmbeddedServiceLoaderCreationException( e );
+		} catch( ScriptException e ) {
+			throw new EmbeddedServiceLoaderCreationException( e );
+		}
+		this.invocable = (Invocable)engine;
 	}
-	
-	public EmbeddedServiceLoadingException( Exception e )
+
+	public void load()
 	{
-		super( e );
+		setChannel( new JavaScriptCommChannel( invocable ) );
 	}
 }

@@ -19,52 +19,41 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
+package jolie.runtime.embedding;
+
+import jolie.runtime.JavaService;
 import jolie.Interpreter;
-import jolie.net.OutputPort;
-import jolie.runtime.embedding.EmbeddedServiceLoader;
-import jolie.runtime.embedding.EmbeddedServiceLoadingException;
-import jolie.runtime.FaultException;
-import jolie.runtime.InvalidIdException;
+import jolie.JolieClassLoader;
 
 
-
-public class MainDefinitionProcess extends DefinitionProcess
+public class JavaServiceLoader extends EmbeddedServiceLoader
 {
-	public MainDefinitionProcess( Process process )
-	{
-		super( process );
-	}
+	private String servicePath;
 	
-	@Override
-	public void run()
-		throws FaultException
+	public JavaServiceLoader( String servicePath )
 	{
-		try {
-			Interpreter interpreter = Interpreter.getInstance();
-			
-			for( OutputPort outputPort : interpreter.outputPorts() ) {
-				try {
-					outputPort.configurationProcess().run();
-				} catch( FaultException fe ) {
-					// If this happens, it's been caused by a bug in the SemanticVerifier
-					assert( false );
-				}
-			}
-			
-			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
-				loader.load();
-			}
-			
-			for( Process p : interpreter.commCore().protocolConfigurations() ) {
-				p.run();
-			}
+		this.servicePath = servicePath;
+	}
 
-			super.run();
-		} catch( EmbeddedServiceLoadingException e ) {
-			//Interpreter.getInstance().logger().severe( e.getMessage() );
-			e.printStackTrace();
+	public void load()
+		throws EmbeddedServiceLoadingException
+	{
+		Class<?> c;
+		try {
+			JolieClassLoader cl = Interpreter.getInstance().getClassLoader();
+			c = cl.loadClass( servicePath );
+			Object obj = c.newInstance();
+			if ( !(obj instanceof JavaService) )
+				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
+			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
+			setChannel(	new JavaCommChannel( (JavaService)obj )	);
+		} catch( InstantiationException e ) {
+			throw new EmbeddedServiceLoadingException( e );
+		} catch( IllegalAccessException e ) {
+			throw new EmbeddedServiceLoadingException( e );
+		} catch( ClassNotFoundException e ) {
+			throw new EmbeddedServiceLoadingException( e );
 		}
 	}
 }

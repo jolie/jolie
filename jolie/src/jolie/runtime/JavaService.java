@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import jolie.runtime.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -49,6 +50,9 @@ abstract public class JavaService
 		Class<?> returnType;
 		Method[] methods = this.getClass().getMethods();
 		for( Method method : methods ) {
+			if ( "setInterpreter".equals( method.getName() ) ) {
+				continue;
+			}
 			params = method.getParameterTypes();
 			if (
 				params.length == 1 &&
@@ -119,7 +123,7 @@ abstract public class JavaService
 		return ret;
 	}
 	
-	protected void setInterpreter( Interpreter interpreter )
+	final public void setInterpreter( Interpreter interpreter )
 	{
 		this.interpreter = interpreter;
 	}

@@ -49,7 +49,7 @@ import jolie.net.CommCore;
 import jolie.net.OutputPort;
 import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
-import jolie.runtime.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;

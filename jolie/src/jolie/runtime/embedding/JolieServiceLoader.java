@@ -20,8 +20,10 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.runtime.embedding;
 
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import java.io.File;
 import java.io.IOException;
 
