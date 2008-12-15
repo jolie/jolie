@@ -1,6 +1,6 @@
 outputPort StringUtils {
 RequestResponse:
-	replaceAll, split, trim, contains, match, leftPad
+	replaceAll, split, trim, contains, match, leftPad, join
 }
 
 embedded {
