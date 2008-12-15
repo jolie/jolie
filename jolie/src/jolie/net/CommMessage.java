@@ -118,7 +118,7 @@ public class CommMessage
 		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
 		this.value = Value.createDeepCopy( value );
 		this.fault = null;
-		this.id = 0L;
+		this.id = GENERIC_ID;
 	}
 	
 	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException f )
@@ -138,7 +138,7 @@ public class CommMessage
 		// TODO see above performance hit.
 		this.value = Value.createDeepCopy( value );
 		fault = f;
-		this.id = 0L;
+		this.id = GENERIC_ID;
 	}
 	
 	public CommMessage( String operationName, String resourcePath )
@@ -147,7 +147,7 @@ public class CommMessage
 		this.resourcePath = resourcePath;
 		this.value = Value.create();
 		this.fault = null;
-		this.id = 0L;
+		this.id = GENERIC_ID;
 	}
 	
 	public Value value()
