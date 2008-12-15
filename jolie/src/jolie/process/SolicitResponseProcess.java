@@ -90,9 +90,10 @@ public class SolicitResponseProcess implements Process
 			message = channel.recvResponseFor( message );
 			
 			if ( inputVarPath != null )	 {
-				Value v = inputVarPath.getValue();
+				/*Value v = inputVarPath.getValue();
 				v.erase();
-				v.deepCopy( message.value() );
+				v.deepCopy( message.value() );*/
+				inputVarPath.getValue().refCopy( message.value() );
 			}
 			
 			if ( message.isFault() ) {

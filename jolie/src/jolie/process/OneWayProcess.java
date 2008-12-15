@@ -135,9 +135,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	public void runBehaviour( CommChannel channel, CommMessage message )
 	{
 		if ( varPath != null ) {
-			Value val = varPath.getValue();
+			/*Value val = varPath.getValue();
 			val.erase();
-			val.deepCopy( message.value() );
+			val.deepCopy( message.value() );*/
+			varPath.getValue().refCopy( message.value() );
 		}
 
 		try {
