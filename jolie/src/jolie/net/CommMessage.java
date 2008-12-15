@@ -35,7 +35,8 @@ public class CommMessage
 {
 	private static final long serialVersionUID = 1L;
 	
-	private static long idCounter = 1;
+	private static long idCounter = 1L;
+	final private static Object idCounterMutex = new Object();
 	
 	public static final long GENERIC_ID = 0L;
 	
@@ -64,10 +65,17 @@ public class CommMessage
 	{
 		return id;
 	}
+
+	private static long getNewMessageId()
+	{
+		synchronized( idCounterMutex ) {
+			return idCounter++;
+		}
+	}
 	
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
 	{
-		return new CommMessage( idCounter++, operationName, resourcePath, value );
+		return new CommMessage( getNewMessageId(), operationName, resourcePath, value );
 	}
 	
 	public static CommMessage createResponse( CommMessage request, Value value )
@@ -112,15 +120,6 @@ public class CommMessage
 		this.fault = null;
 		this.id = 0L;
 	}
-	
-	/*public CommMessage( String operationName, String resourcePath, FaultException f )
-	{
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		this.value = Value.create();
-		this.fault = f;
-		this.id = 0L;
-	}*/
 	
 	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException f )
 	{

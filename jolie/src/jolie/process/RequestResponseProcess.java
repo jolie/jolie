@@ -180,9 +180,10 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		throws FaultException
 	{
 		if ( inputVarPath != null ) {
-			Value val = inputVarPath.getValue();
+			/*Value val = inputVarPath.getValue();
 			val.erase();
-			val.deepCopy( message.value() );
+			val.deepCopy( message.value() );*/
+			inputVarPath.getValue().refCopy( message.value() );
 		}
 		
 		FaultException fault = null;

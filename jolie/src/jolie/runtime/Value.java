@@ -44,6 +44,11 @@ class ValueLink extends Value implements Cloneable
 	{
 		return linkPath.getValue();
 	}
+
+	protected void setChildren( Map< String, ValueVector > children )
+	{
+		getLinkedValue().setChildren( children );
+	}
 	
 	public void setValueObject( Object object )
 	{
@@ -98,6 +103,11 @@ class ValueImpl extends Value
 	public void setValueObject( Object object )
 	{
 		valueObject = object;
+	}
+
+	protected void setChildren( Map< String, ValueVector > children )
+	{
+		this.children = children;
 	}
 	
 	public void erase()
@@ -244,7 +254,7 @@ abstract public class Value implements Expression
 	}
 	
 	/**
-	 * Makes this value an identical copy of the parameter, considering also its sub-tree.
+	 * Makes this value an identical copy (by value) of the parameter, considering also its sub-tree.
 	 * In case of a sub-link, its pointed Value tree is copied.
 	 * @param value The value to be copied. 
 	 */
@@ -252,7 +262,14 @@ abstract public class Value implements Expression
 	{
 		_deepCopy( value, false );
 	}
-	
+
+	public synchronized void refCopy( Value value )
+	{
+		setValueObject( value.valueObject() );
+		setChildren( value.children() );
+	}
+
+	abstract protected void setChildren( Map< String, ValueVector > children );
 	abstract public void erase();
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
 	abstract public Map< String, ValueVector > children();
