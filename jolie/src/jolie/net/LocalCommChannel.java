@@ -36,6 +36,7 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 		this.interpreter = interpreter;
 	}
 	
+	@Override
 	protected void sendImpl( CommMessage message )
 	{
 		olist.add( message );

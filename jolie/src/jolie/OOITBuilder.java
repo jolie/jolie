@@ -680,21 +680,24 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( IfStatement n )
 	{
-		IfProcess ifProc = new IfProcess();
+		IfProcess.CPPair[] pairs = new IfProcess.CPPair[ n.children().size() ];
+		Process elseProcess = null;
+
 		Condition condition;
+		int i = 0;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
 			condition = currCondition;
 			pair.value().accept( this );
-			ifProc.addPair( condition, currProcess );
+			pairs[ i++ ] = new IfProcess.CPPair( condition, currProcess );
 		}
 		
 		if ( n.elseProcess() != null ) {
 			n.elseProcess().accept( this );
-			ifProc.setElseProcess( currProcess );
+			elseProcess = currProcess;
 		}
 		
-		currProcess = ifProc;
+		currProcess = new IfProcess( pairs, elseProcess );
 	}
 	
 	public void visit( CurrentHandlerStatement n )

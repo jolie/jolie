@@ -30,7 +30,7 @@ import jolie.runtime.FaultException;
 
 public class IfProcess implements Process
 {
-	private class CPPair
+	public static class CPPair
 	{
 		final private Condition condition;
 		final private Process process;
@@ -52,23 +52,28 @@ public class IfProcess implements Process
 		}
 	}
 	
-	final private Vector< CPPair > pairs;
-	private Process elseProcess;
+	final private CPPair[] pairs;
+	final private Process elseProcess;
 	
-	public IfProcess()
+	public IfProcess( CPPair[] pairs, Process elseProcess )
 	{
-		pairs = new Vector< CPPair >();
-		elseProcess = null;
+		this.pairs = pairs;
+		this.elseProcess = elseProcess;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		IfProcess p = new IfProcess();
-		for( CPPair pair : pairs ) {
-			p.addPair( pair.condition.cloneCondition( reason ), pair.process.clone( reason ) );
+		CPPair[] pairsCopy = new CPPair[ pairs.length ];
+		for( int i = 0; i < pairs.length; i++ ) {
+			pairsCopy[ i ] = new CPPair(
+					pairs[ i ].condition.cloneCondition( reason ),
+					pairs[ i ].process.clone( reason )
+				);
 		}
-		p.elseProcess = (elseProcess == null) ? null : elseProcess.clone( reason );
-		return p;
+		return new IfProcess(
+			pairsCopy,
+			(elseProcess == null) ? null : elseProcess.clone( reason )
+		);
 	}
 	
 	public void run()
@@ -79,11 +84,10 @@ public class IfProcess implements Process
 
 		boolean stop = false;
 		int i = 0;
-		int size = pairs.size();
 		CPPair pair;
 		
-		while( !stop && i < size ) {
-			pair = pairs.elementAt( i );
+		while( !stop && i < pairs.length ) {
+			pair = pairs[ i ];
 			if ( pair.condition().evaluate() ) {
 				stop = true;
 				pair.process().run();
@@ -94,19 +98,6 @@ public class IfProcess implements Process
 		// No valid condition found, run the else process
 		if ( !stop && elseProcess != null )
 			elseProcess.run();
-	}
-	
-	/*
-	 * @todo -- eliminate these methods by embedding them in the constructor
-	 */
-	public void addPair( Condition condition, Process process )
-	{
-		pairs.add( new CPPair( condition, process ) );
-	}
-	
-	public void setElseProcess( Process process )
-	{
-		elseProcess = process;
 	}
 	
 	public boolean isKillable()

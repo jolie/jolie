@@ -403,6 +403,11 @@ public class CommCore
 	{
 		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
+
+	protected void startCommChannelHandler( Runnable r )
+	{
+		executorService.execute( r );
+	}
 	
 	/**
 	 * Initializes the communication core, starting its communication listeners.

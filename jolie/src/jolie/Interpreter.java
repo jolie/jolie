@@ -96,8 +96,6 @@ public class Interpreter
 	
 	final private ClassLoader parentClassLoader;
 	
-	private Integer activeSessions = new Integer( 0 );
-	
 	final private String[] includePaths;
 	final private String[] args;
 	
@@ -119,29 +117,6 @@ public class Interpreter
 	public String[] includePaths()
 	{
 		return includePaths;
-	}
-	
-	/**
-	 * Adds an active session token to this Interpreter.
-	 * The interpreter will not shutdown until each active session token is removed.
-	 * @see #removeActiveSession
-	 */
-	public void addActiveSession()
-	{
-		synchronized( activeSessions ) {
-			activeSessions++;
-		}
-	}
-
-	/**
-	 * Removes an active session token.
-	 * The interpreter will not shutdown until each active session token is removed.
-	 */
-	public void removeActiveSession()
-	{
-		synchronized( activeSessions ) {
-			activeSessions--;
-		}
 	}
 
 	public void registerSessionSpawner( CorrelatedProcess p )

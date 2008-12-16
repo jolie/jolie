@@ -25,9 +25,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 
@@ -45,9 +45,9 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue();
 	}
 
-	protected void setChildren( Map< String, ValueVector > children )
+	protected void _refCopy( Value value )
 	{
-		getLinkedValue().setChildren( children );
+		getLinkedValue()._refCopy( value );
 	}
 	
 	public void setValueObject( Object object )
@@ -105,9 +105,10 @@ class ValueImpl extends Value
 		valueObject = object;
 	}
 
-	protected void setChildren( Map< String, ValueVector > children )
+	protected void _refCopy( Value value )
 	{
-		this.children = children;
+		setValueObject( value.valueObject() );
+		this.children = value.children();
 	}
 	
 	public void erase()
@@ -116,7 +117,7 @@ class ValueImpl extends Value
 		children = null;
 	}
 	
-	public ValueImpl() {}
+	protected ValueImpl() {}
 	
 	public boolean isLink()
 	{
@@ -125,23 +126,30 @@ class ValueImpl extends Value
 	
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
+		/**
+		 * TODO: check if a << b | b << a can generate deadlocks
+		 */
 		assignValue( value );
 
+		int i;
+		ValueImpl newValue;
 		Map< String, ValueVector > myChildren = children();
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( copyLinks && entry.getValue().isLink() ) {
 				myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 			} else {
+				List< Value > otherVector = entry.getValue().values();
 				ValueVector vec = getChildren( entry.getKey(), myChildren );
-				ValueVector otherVector = entry.getValue();
-				Value v;
-				for( int i = 0; i < otherVector.size(); i++ ) {
-					v = otherVector.get( i );
+				i = 0;
+				for( Value v : otherVector ) {
 					if ( copyLinks && v.isLink() ) {
 						vec.set( ((ValueLink)v).clone(), i );
 					} else {
-						vec.get( i )._deepCopy( v, copyLinks );
+						newValue = new ValueImpl();
+						newValue._deepCopy( v, copyLinks );
+						vec.set( newValue, i );
 					}
+					i++;
 				}
 			}
 		}
@@ -149,19 +157,22 @@ class ValueImpl extends Value
 	
 	private static ValueVector getChildren( String childId, Map< String, ValueVector > children )
 	{
-		ValueVector v = children.get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			children.put( childId, v );
+		ValueVector vec = children.get( childId );
+		if ( vec == null ) {
+			vec = ValueVector.create();
+			children.put( childId, vec );
 		}
-		
-		return v;
+
+		return vec;
 	}
+
+	private static int INITIAL_CAPACITY = 8;
+	private static float LOAD_FACTOR = 0.75f;
 	
-	public Map< String, ValueVector > children()
+	public synchronized Map< String, ValueVector > children()
 	{
 		if ( children == null ) {
-			children = new HashMap< String, ValueVector > ();
+			children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
 		}
 		return children;
 	}
@@ -265,11 +276,10 @@ abstract public class Value implements Expression
 
 	public synchronized void refCopy( Value value )
 	{
-		setValueObject( value.valueObject() );
-		setChildren( value.children() );
+		_refCopy( value );
 	}
 
-	abstract protected void setChildren( Map< String, ValueVector > children );
+	abstract protected void _refCopy( Value value );
 	abstract public void erase();
 	abstract protected void _deepCopy( Value value, boolean copyLinks );
 	abstract public Map< String, ValueVector > children();
@@ -281,7 +291,7 @@ abstract public class Value implements Expression
 		return ( children().get( childId ) != null );
 	}
 	
-	public ValueVector getChildren( String childId )
+	public synchronized ValueVector getChildren( String childId )
 	{
 		final Map< String, ValueVector > myChildren = children();
 		ValueVector v = myChildren.get( childId );
@@ -293,7 +303,7 @@ abstract public class Value implements Expression
 		return v;
 	}
 	
-	public Value getNewChild( String childId )
+	public synchronized Value getNewChild( String childId )
 	{
 		final ValueVector vec = getChildren( childId );
 		Value retVal = new ValueImpl();
@@ -302,7 +312,7 @@ abstract public class Value implements Expression
 		return retVal;
 	}
 	
-	public Value getFirstChild( String childId )
+	public synchronized Value getFirstChild( String childId )
 	{
 		return getChildren( childId ).get( 0 );
 	}
@@ -312,24 +322,24 @@ abstract public class Value implements Expression
 		return this;
 	}
 	
-	public void setValue( Object object )
+	public synchronized void setValue( Object object )
 	{
 		setValueObject( object );
 	}
-	public void setValue( String object )
+	public synchronized void setValue( String object )
 	{
 		setValueObject( object );
 	}
-	public void setValue( Integer object )
+	public synchronized void setValue( Integer object )
 	{
 		setValueObject( object );
 	}
-	public void setValue( Double object )
+	public synchronized void setValue( Double object )
 	{
 		setValueObject( object );
 	}
 		
-	public boolean equals( Value val )
+	public synchronized boolean equals( Value val )
 	{
 		boolean r = false;
 		if ( val.isDefined() ) {
@@ -349,42 +359,42 @@ abstract public class Value implements Expression
 		return r;
 	}
 	
-	public final boolean isInt()
+	public synchronized final boolean isInt()
 	{
 		return ( valueObject() instanceof Integer );
 	}
 	
-	public final boolean isByteArray()
+	public synchronized final boolean isByteArray()
 	{
 		return ( valueObject() instanceof ByteArray );
 	}
 	
-	public final boolean isDouble()
+	public synchronized final boolean isDouble()
 	{
 		return ( valueObject() instanceof Double );
 	}
 	
-	public final boolean isString()
+	public synchronized final boolean isString()
 	{
 		return ( valueObject() instanceof String );
 	}
 	
-	public final boolean isChannel()
+	public synchronized final boolean isChannel()
 	{
 		return ( valueObject() instanceof CommChannel );
 	}
 	
-	public final boolean isDefined()
+	public synchronized final boolean isDefined()
 	{
 		return ( valueObject() != null );
 	}
 	
-	public void setValue( CommChannel value )
+	public synchronized void setValue( CommChannel value )
 	{
 		setValueObject( value );
 	}
 	
-	public CommChannel channelValue()
+	public synchronized CommChannel channelValue()
 	{
 		if( isChannel() == false ) {
 			return null;
@@ -392,7 +402,7 @@ abstract public class Value implements Expression
 		return (CommChannel)valueObject();
 	}
 
-	public String strValue()
+	public synchronized String strValue()
 	{
 		Object o = valueObject();
 		if ( valueObject() == null ) {
@@ -403,7 +413,7 @@ abstract public class Value implements Expression
 		return o.toString();
 	}
 
-	public ByteArray byteArrayValue()
+	public synchronized ByteArray byteArrayValue()
 	{
 		ByteArray r = null;
 		Object o = valueObject();
@@ -435,7 +445,7 @@ abstract public class Value implements Expression
 		return r;
 	}
 	
-	public int intValue()
+	public synchronized int intValue()
 	{
 		int r = 0;
 		Object o = valueObject();
@@ -455,7 +465,7 @@ abstract public class Value implements Expression
 		return r;
 	}
 	
-	public double doubleValue()
+	public synchronized double doubleValue()
 	{
 		double r = 0;
 		Object o = valueObject();
@@ -475,7 +485,7 @@ abstract public class Value implements Expression
 		return r;
 	}
 	
-	public final void add( Value val )
+	public synchronized final void add( Value val )
 	{
 		if ( isDefined() ) {
 			if ( val.isString() ) {
@@ -492,7 +502,7 @@ abstract public class Value implements Expression
 		}
 	}
 	
-	public final void subtract( Value val )
+	public synchronized final void subtract( Value val )
 	{
 		if ( !isDefined() ) {
 			if ( val.isDouble() ) {
@@ -509,7 +519,7 @@ abstract public class Value implements Expression
 		}
 	}
 	
-	public final void multiply( Value val )
+	public synchronized final void multiply( Value val )
 	{
 		if ( isDefined() ) {
 			if ( isInt() ) {
@@ -522,7 +532,7 @@ abstract public class Value implements Expression
 		}
 	}
 	
-	public final void divide( Value val )
+	public synchronized final void divide( Value val )
 	{
 		if ( !isDefined() ) {
 			setValue( 0 );
@@ -533,7 +543,7 @@ abstract public class Value implements Expression
 		}
 	}
 	
-	public final void modulo( Value val )
+	public synchronized final void modulo( Value val )
 	{
 		if ( !isDefined() ) {
 			assignValue( val );
@@ -544,7 +554,7 @@ abstract public class Value implements Expression
 		}
 	}
 	
-	public final void assignValue( Value val )
+	public synchronized final void assignValue( Value val )
 	{
 		setValue( val.valueObject() );
 	}
