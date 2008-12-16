@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
 /**
@@ -127,7 +128,7 @@ abstract public class CommChannel
 			synchronized( this ) {
 				if ( responseReceiver == null ) {
 					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-					responseReceiver.start();
+					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
 				}
 			}
 			synchronized( monitor ) {
@@ -146,33 +147,27 @@ abstract public class CommChannel
 	
 	private ResponseReceiver responseReceiver = null;
 	
-	private class ResponseReceiver extends CommChannelHandler
+	private static class ResponseReceiver implements Runnable
 	{
-		private final CommChannel parent;
+		final private CommChannel parent;
+		final private ExecutionThread ethread;
 		
 		private ResponseReceiver( CommChannel parent, ExecutionThread ethread )
 		{
-			super( jolie.Interpreter.getInstance() );
-
-			/*
-			 * Warning: the following line implies that this
-			 * whole thing is safe iff the CommChannel is used only for outputs,
-			 * otherwise we are messing with correlation set checking.
-			 */
-			setExecutionThread( ethread );
+			this.ethread = ethread;
 			this.parent = parent;
 		}
 		
 		private void handleGenericMessage( CommMessage response )
 		{
 			ResponseContainer monitor;
-			if ( waiters.isEmpty() ) {
-				pendingGenericResponses.add( response );
+			if ( parent.waiters.isEmpty() ) {
+				parent.pendingGenericResponses.add( response );
 			} else {
 				Entry< Long, ResponseContainer > entry =
-					waiters.entrySet().iterator().next();
+					parent.waiters.entrySet().iterator().next();
 				monitor = entry.getValue();
-				waiters.remove( entry.getKey() );
+				parent.waiters.remove( entry.getKey() );
 				synchronized( monitor ) {
 					monitor.response = new CommMessage(
 						entry.getKey(),
@@ -189,8 +184,8 @@ abstract public class CommChannel
 		private void handleMessage( CommMessage response )
 		{
 			ResponseContainer monitor;
-			if ( (monitor=waiters.remove( response.id() )) == null ) {
-				pendingResponses.put( response.id(), response );
+			if ( (monitor=parent.waiters.remove( response.id() )) == null ) {
+				parent.pendingResponses.put( response.id(), response );
 			} else {
 				synchronized( monitor ) {
 					monitor.response = response;
@@ -199,15 +194,21 @@ abstract public class CommChannel
 			}
 		}
 		
-		@Override
 		public void run()
 		{
+			/*
+			 * Warning: the following line implies that this
+			 * whole thing is safe iff the CommChannel is used only for outputs,
+			 * otherwise we are messing with correlation set checking.
+			 */
+			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
+
 			CommMessage response;
 			boolean keepRun = true;
 			while( keepRun ) {
 				synchronized( parent ) {
 					try {
-						response = recv();
+						response = parent.recv();
 						if ( response.hasGenericId() ) {
 							handleGenericMessage( response );
 						} else {
@@ -217,9 +218,9 @@ abstract public class CommChannel
 						e.printStackTrace();
 						keepRun = false;
 					}
-					if ( waiters.isEmpty() ) {
+					if ( parent.waiters.isEmpty() ) {
 						keepRun = false;
-						responseReceiver = null;
+						parent.responseReceiver = null;
 					}
 				}
 			}

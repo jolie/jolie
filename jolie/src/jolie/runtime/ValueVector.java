@@ -22,7 +22,8 @@
 package jolie.runtime;
 
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
@@ -49,7 +50,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return linkPath.getValueVector();
 	}
 	
-	protected Vector< Value > values()
+	protected List< Value > values()
 	{
 		return getLinkedValueVector().values();
 	}
@@ -57,9 +58,9 @@ class ValueVectorLink extends ValueVector implements Cloneable
 
 class ValueVectorImpl extends ValueVector
 {
-	final private Vector< Value > values;
+	final private List< Value > values;
 	
-	protected Vector< Value > values()
+	protected List< Value > values()
 	{
 		return values;
 	}
@@ -71,18 +72,18 @@ class ValueVectorImpl extends ValueVector
 	
 	public ValueVectorImpl()
 	{
-		values = new Vector< Value >();
+		values = new LinkedList< Value >();
 	}
 }
 
 abstract public class ValueVector implements Iterable< Value >
-{	
+{
 	public static ValueVector create()
 	{
 		return new ValueVectorImpl();
 	}
 	
-	public Value remove( int i )
+	public synchronized Value remove( int i )
 	{
 		return values().remove( i );
 	}
@@ -107,14 +108,14 @@ abstract public class ValueVector implements Iterable< Value >
 		return retVec;
 	}
 	
-	public Value first()
+	public synchronized Value first()
 	{
 		return get( 0 );
 	}
 	
-	public boolean isEmpty()
+	public synchronized boolean isEmpty()
 	{
-		return ( size() < 1 );
+		return values().isEmpty();
 	}
 	
 	public Iterator< Value > iterator()
@@ -122,34 +123,36 @@ abstract public class ValueVector implements Iterable< Value >
 		return values().iterator();
 	}
 	
-	public Value get( int i )
+	public synchronized Value get( int i )
 	{
-		final Vector< Value > values = values();
+		final List< Value > values = values();
 
 		if ( i >= values.size() ) {
-			for( int k = values.size(); k <= i; k++ )
+			for( int k = values.size(); k <= i; k++ ) {
 				values.add( Value.create() );
+			}
 		}
-		return values.elementAt( i );
+		return values.get( i );
 	}
 	
-	public int size()
+	public synchronized int size()
 	{
 		return values().size();
 	}
 	
-	public void add( Value value )
+	public synchronized void add( Value value )
 	{
 		values().add( value );
 	}
 	
-	public void set( Value value, int i )
+	public synchronized void set( Value value, int i )
 	{
-		final Vector< Value > values = values();
+		final List< Value > values = values();
 
 		if ( i >= values.size() ) {
-			for( int k = values.size(); k < i; k++ )
+			for( int k = values.size(); k < i; k++ ) {
 				values.add( Value.create() );
+			}
 			values.add( value );
 		} else {
 			values.set( i, value );
@@ -157,12 +160,12 @@ abstract public class ValueVector implements Iterable< Value >
 	}
 	
 	// TODO: improve performance
-	public void deepCopy( ValueVector vec )
+	public synchronized void deepCopy( ValueVector vec )
 	{
 		for( int i = 0; i < vec.size(); i++ )
 			get( i ).deepCopy( vec.get( i ) );
 	}
-	
-	abstract protected Vector< Value > values();
+
+	abstract protected List< Value > values();
 	abstract public boolean isLink();
 }

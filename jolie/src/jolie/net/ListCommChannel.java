@@ -21,8 +21,8 @@
 
 package jolie.net;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 public class ListCommChannel extends CommChannel
 {
@@ -36,8 +36,8 @@ public class ListCommChannel extends CommChannel
 	
 	public ListCommChannel()
 	{
-		this.ilist = new Vector< CommMessage >();
-		this.olist = new Vector< CommMessage >();
+		this.ilist = new LinkedList< CommMessage >();
+		this.olist = new LinkedList< CommMessage >();
 	}
 	
 	public List< CommMessage > inputList()
