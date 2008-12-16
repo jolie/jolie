@@ -46,9 +46,7 @@ import javax.xml.soap.SOAPException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -88,7 +86,6 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 
 	private String inputId = null;
-	final private TransformerFactory transformerFactory;
 	final private Transformer transformer;
 	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
@@ -102,16 +99,18 @@ public class HttpProtocol extends SequentialCommProtocol
 		return "http";
 	}
 
-	public HttpProtocol( VariablePath configurationPath, URI uri )
-		throws ParserConfigurationException, TransformerConfigurationException
-	{
+	public HttpProtocol(
+		VariablePath configurationPath,
+		URI uri,
+		Transformer transformer,
+		DocumentBuilderFactory docBuilderFactory,
+		DocumentBuilder docBuilder
+	) {
 		super( configurationPath );
 		this.uri = uri;
-		docBuilderFactory = DocumentBuilderFactory.newInstance();
-		docBuilderFactory.setNamespaceAware( true );
-		docBuilder = docBuilderFactory.newDocumentBuilder();
-		transformerFactory = TransformerFactory.newInstance();
-		transformer = transformerFactory.newTransformer();
+		this.transformer = transformer;
+		this.docBuilderFactory = docBuilderFactory;
+		this.docBuilder = docBuilder;
 	}
 		
 	private static Map< String, ValueVector > getAttributesOrNull( Value value )
