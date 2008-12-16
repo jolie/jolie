@@ -23,8 +23,12 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ext.Identifier;
 import jolie.net.protocols.CommProtocol;
@@ -35,20 +39,29 @@ import jolie.runtime.VariablePath;
 @CanUseJars({"gwt-servlet.jar","jolie-gwt.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {
+	final private Transformer transformer;
+	final private DocumentBuilderFactory docBuilderFactory;
+	final private DocumentBuilder docBuilder;
+
 	public HttpProtocolFactory( CommCore commCore )
+		throws ParserConfigurationException, TransformerConfigurationException
 	{
 		super( commCore );
+		docBuilderFactory = DocumentBuilderFactory.newInstance();
+		docBuilderFactory.setNamespaceAware( true );
+		docBuilder = docBuilderFactory.newDocumentBuilder();
+		transformer = TransformerFactory.newInstance().newTransformer();
 	}
 
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		try {
-			return new HttpProtocol( configurationPath, location );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( TransformerConfigurationException e ) {
-			throw new IOException( e );
-		}
+		return new HttpProtocol(
+			configurationPath,
+			location,
+			transformer,
+			docBuilderFactory,
+			docBuilder
+		);
 	}
 }
