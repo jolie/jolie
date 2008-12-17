@@ -43,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
+import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
@@ -308,6 +309,8 @@ public class CommCore
 		}
 	}
 
+	private static Pattern pathSplitPattern = Pattern.compile( "/" );
+
 	private class CommChannelHandlerRunnable implements Runnable {
 		final private CommChannel channel;
 		final private CommListener listener;
@@ -324,13 +327,13 @@ public class CommCore
 			channel.redirectionChannel().send( message );
 			channel.disposeForInput();
 		}
-		
+
 		private void handleMessage( CommMessage message )
 			throws IOException
 		{
 			try {
-				String[] ss = message.resourcePath().split( "/" );
-				if ( listener != null && ss.length > 1 ) {
+				String[] ss = pathSplitPattern.split( message.resourcePath() );
+				if ( ss.length > 1 && listener != null ) {
 					// Redirection
 					String rPath = new String();
 					if ( ss.length <= 2 ) {
@@ -367,13 +370,14 @@ public class CommCore
 				} else {
 					InputOperation operation =
 						interpreter.getInputOperation( message.operationName() );
-					if ( listener != null && !listener.canHandleInputOperation( operation ) ) {
+					if ( listener == null || listener.canHandleInputOperation( operation ) ) {
+
+						operation.recvMessage( channel, message );
+					} else {
 						Interpreter.getInstance().logger().warning(
 								"Discarded a message for operation " + operation.id() +
 								", not specified in an input port at the receiving service."
 							);
-					} else {
-						operation.recvMessage( channel, message );
 					}
 				}
 			} catch( InvalidIdException iie ) {
@@ -570,13 +574,15 @@ public class CommCore
 		}
 	}
 
-	public void unregisterForSelection( SelectableStreamingCommChannel channel )
+	public synchronized void unregisterForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		selectorThread().unregister( channel );
+		if ( selectorThread != null ) {
+			selectorThread.unregister( channel );
+		}
 	}
 	
-	public void registerForSelection( SelectableStreamingCommChannel channel )
+	public synchronized void registerForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
 		selectorThread().register( channel );
