@@ -23,6 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class ForEachProcess implements Process
@@ -54,10 +55,12 @@ public class ForEachProcess implements Process
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
-		
-		for( String id : targetPath.getValue().children().keySet() ) {
-			keyPath.getValue().setValue( id );
-			process.run();
+		Value v = targetPath.getValue();
+		if ( v.hasChildren() ) {
+			for( String id : targetPath.getValue().children().keySet() ) {
+				keyPath.getValue().setValue( id );
+				process.run();
+			}
 		}
 	}
 	
