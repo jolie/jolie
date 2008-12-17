@@ -36,9 +36,10 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 /**
- * Represents a JolieThread that is able to resolve a VariablePath, referring to a state.
+ * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
  * @see JolieThread
  * @see VariablePath
+ * @see jolie.State
  * @author Fabrizio Montesi
  */
 abstract public class ExecutionThread extends JolieThread
@@ -357,7 +358,12 @@ abstract public class ExecutionThread extends JolieThread
 
 		return null;
 	}
-	
+
+	/**
+	 * Returns the State this ExecutionThread refers to.
+	 * @return the State this ExecutionThread refers to
+	 * @see jolie.State
+	 */
 	abstract public jolie.State state();
 	
 	/**
