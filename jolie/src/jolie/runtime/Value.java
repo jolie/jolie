@@ -45,6 +45,16 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue();
 	}
 
+	public boolean hasChildren()
+	{
+		return getLinkedValue().hasChildren();
+	}
+
+	public boolean hasChildren( String childId )
+	{
+		return getLinkedValue().hasChildren( childId );
+	}
+
 	protected void _refCopy( Value value )
 	{
 		getLinkedValue()._refCopy( value );
@@ -123,6 +133,19 @@ class ValueImpl extends Value
 	{
 		return false;
 	}
+
+	public boolean hasChildren()
+	{
+		if ( children == null ) {
+			return false;
+		}
+		return !children.isEmpty();
+	}
+
+	public boolean hasChildren( String childId )
+	{
+		return ( children != null && children.containsKey( childId ) );
+	}
 	
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
@@ -131,25 +154,27 @@ class ValueImpl extends Value
 		 */
 		assignValue( value );
 
-		int i;
-		ValueImpl newValue;
-		Map< String, ValueVector > myChildren = children();
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			if ( copyLinks && entry.getValue().isLink() ) {
-				myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
-			} else {
-				List< Value > otherVector = entry.getValue().values();
-				ValueVector vec = getChildren( entry.getKey(), myChildren );
-				i = 0;
-				for( Value v : otherVector ) {
-					if ( copyLinks && v.isLink() ) {
-						vec.set( ((ValueLink)v).clone(), i );
-					} else {
-						newValue = new ValueImpl();
-						newValue._deepCopy( v, copyLinks );
-						vec.set( newValue, i );
+		if ( value.hasChildren() ) {
+			int i;
+			ValueImpl newValue;
+			Map< String, ValueVector > myChildren = children();
+			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+				if ( copyLinks && entry.getValue().isLink() ) {
+					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+				} else {
+					List< Value > otherVector = entry.getValue().values();
+					ValueVector vec = getChildren( entry.getKey(), myChildren );
+					i = 0;
+					for( Value v : otherVector ) {
+						if ( copyLinks && v.isLink() ) {
+							vec.set( ((ValueLink)v).clone(), i );
+						} else {
+							newValue = new ValueImpl();
+							newValue._deepCopy( v, copyLinks );
+							vec.set( newValue, i );
+						}
+						i++;
 					}
-					i++;
 				}
 			}
 		}
@@ -285,11 +310,8 @@ abstract public class Value implements Expression
 	abstract public Map< String, ValueVector > children();
 	abstract public Object valueObject();
 	abstract protected void setValueObject( Object object );
-
-	public boolean hasChildren( String childId )
-	{
-		return ( children().get( childId ) != null );
-	}
+	abstract public boolean hasChildren();
+	abstract public boolean hasChildren( String childId );
 	
 	public synchronized ValueVector getChildren( String childId )
 	{
