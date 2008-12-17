@@ -79,7 +79,7 @@ public class SolicitResponseProcess implements Process
 		CommChannel channel = null;
 		try {
 			channel = outputPort.getCommChannel();
-			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
+			URI uri = outputPort.getLocation();
 			CommMessage message =
 				CommMessage.createRequest(
 					operationId,
