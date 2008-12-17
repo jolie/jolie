@@ -57,7 +57,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		this.socketChannel = socketChannel;
 		this.istream = new BufferedInputStream( socketChannel.socket().getInputStream() );
 		//this.istream = socketChannel.socket().getInputStream();
-		this.ostream = socketChannel.socket().getOutputStream();
+		this.ostream = new BufferedOutputStream( socketChannel.socket().getOutputStream(), 1024 );
 
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
