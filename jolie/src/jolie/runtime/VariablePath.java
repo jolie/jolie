@@ -29,6 +29,11 @@ import jolie.Interpreter;
 import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
+/**
+ * Represents a variable path, e.g. a.b[3], offering mechanisms
+ * for referring to the object pointed by it.
+ * @author Fabrizio Montesi
+ */
 public class VariablePath implements Expression, Cloneable
 {	
 	final private Pair< Expression, Expression >[] path; // Right Expression may be null
@@ -237,10 +242,10 @@ public class VariablePath implements Expression, Cloneable
 			pair = path[i];
 			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
 			if ( (i+1) < path.length ) {
-				if ( pair.value() != null ) {
-					currValue = currVector.get( pair.value().evaluate().intValue() );
-				} else {
+				if ( pair.value() == null ) {
 					currValue = currVector.get( 0 );
+				} else {
+					currValue = currVector.get( pair.value().evaluate().intValue() );
 				}
 			}
 		}
