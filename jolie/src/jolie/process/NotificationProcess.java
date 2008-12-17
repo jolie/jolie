@@ -65,7 +65,7 @@ public class NotificationProcess implements Process
 		}
 
 		try {
-			URI uri = new URI( outputPort.locationVariablePath().getValue().strValue() );
+			URI uri = outputPort.getLocation();
 			CommMessage message =
 				( outputExpression == null ) ?
 						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
