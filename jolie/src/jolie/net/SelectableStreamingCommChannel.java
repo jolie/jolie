@@ -56,7 +56,9 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 		throws IOException
 	{
 		synchronized( sendMutex ) {
-			Interpreter.getInstance().commCore().unregisterForSelection( this );
+			if ( selectionKey != null ) {
+				Interpreter.getInstance().commCore().unregisterForSelection( this );
+			}
 			sendImpl( message );
 		}
 	}
@@ -65,8 +67,7 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 	protected void disposeForInputImpl()
 		throws IOException
 	{
-		synchronized( sendMutex ) {
-			// We do not want sendings during this.
+		synchronized( sendMutex ) { // We do not want sendings during this.
 			Interpreter.getInstance().commCore().registerForSelection( this );
 		}
 	}
