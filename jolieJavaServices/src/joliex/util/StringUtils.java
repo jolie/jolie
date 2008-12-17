@@ -52,7 +52,7 @@ public class StringUtils extends JavaService
 			for( i = 0; i < size; i++ ) {
 				builder.append( vec.get( i ).strValue() ).append( delimiter );
 			}
-			builder.append( vec.get( i ) );
+			builder.append( vec.get( i ).strValue() );
 		}
 		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
 	}
