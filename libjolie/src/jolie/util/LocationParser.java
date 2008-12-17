@@ -22,15 +22,20 @@
 package jolie.util;
 
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LocationParser
 {
+	final private static Pattern pattern = Pattern.compile( "!/" );
+
 	public static String getResourcePath( URI uri )
 	{
 		String ret = "/";
-		String[] ss = uri.getPath().split( "!/" );
-		if ( ss.length > 1 ) {
-			ret = "/" + ss[ ss.length - 1 ];
+		String path = uri.getPath();
+		Matcher m = pattern.matcher( path );
+		if ( m.find() ) {
+			ret = ret.substring( m.end() + 1, path.length() );
 		}
 		return ret;
 	}
