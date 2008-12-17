@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.util.WeakHashMap;
 import jolie.Constants;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
@@ -127,7 +128,7 @@ public class OutputPort extends AbstractIdentifiableObject
 			// It's a local channel
 			ret = loc.channelValue();
 		} else {
-			URI uri = new URI( loc.strValue() );
+			URI uri = getLocation();
 			if ( forceNew ) {
 				// A fresh channel was requested
 				ret = interpreter.commCore().createCommChannel( uri, this );
@@ -141,6 +142,28 @@ public class OutputPort extends AbstractIdentifiableObject
 			}
 		}
 
+		return ret;
+	}
+
+	private static class LazyLocalUriHolder {
+		static final URI uri = URI.create( "local" );
+	}
+
+	private static final WeakHashMap< String, URI > uriCache = new WeakHashMap< String, URI > ();
+
+	public URI getLocation()
+		throws URISyntaxException
+	{
+		Value loc = locationVariablePath.getValue();
+		if ( loc.isChannel() ) {
+			return LazyLocalUriHolder.uri;
+		}
+		String s = loc.strValue();
+		URI ret;
+		if ( (ret=uriCache.get( s )) == null ) {
+			ret = new URI( s );
+			uriCache.put( s, ret );
+		}
 		return ret;
 	}
 
@@ -168,12 +191,12 @@ public class OutputPort extends AbstractIdentifiableObject
 	{
 		return getCommChannel( false );
 	}
-	
+
 	public VariablePath locationVariablePath()
 	{
 		return locationVariablePath;
-	}	
-	
+	}
+
 	public Process configurationProcess()
 	{
 		return configurationProcess;
