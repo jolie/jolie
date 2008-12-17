@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- *
+ * A parser for JOLIE's command line arguments,
+ * providing methods for accessing them.
  * @author Fabrizio Montesi
  */
 public class CommandLineParser
@@ -44,32 +45,57 @@ public class CommandLineParser
 	final private InputStream programStream;
 	final private String programFilepath;
 	final private String[] arguments;
-	
+
+	/**
+	 * Returns the arguments passed to the JOLIE program.
+	 * @return the arguments passed to the JOLIE program
+	 */
 	public String[] arguments()
 	{
 		return arguments;
 	}
-	
+
+	/**
+	 * Returns the file path of the JOLIE program to execute.
+	 * @return the file path of the JOLIE program to execute
+	 */
 	public String programFilepath()
 	{
 		return programFilepath;
 	}
-	
+
+	/**
+	 * Returns an InputStream for the program code to execute.
+	 * @return an InputStream for the program code to execute
+	 */
 	public InputStream programStream()
 	{
 		return programStream;
 	}
-	
+
+	/**
+	 * Returns the library URLs passed by command line with the -l option.
+	 * @return the library URLs passed by command line
+	 */
 	public URL[] libURLs()
 	{
 		return libURLs;
 	}
-	
+
+	/**
+	 * Returns the include paths passed by command line with the -i option.
+	 * @return the include paths passed by command line
+	 */
 	public String[] includePaths()
 	{
 		return includePaths;
 	}
-	
+
+	/**
+	 * Returns the connection limit parameter
+	 * passed by command line with the -c option.
+	 * @return the connection limit parameter passed by command line
+	 */
 	public int connectionsLimit()
 	{
 		return connectionsLimit;
