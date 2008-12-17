@@ -569,20 +569,19 @@ public class CommCore
 				if ( channel.selectionKey() != null ) {
 					channel.selectionKey().cancel();
 					channel.selectableChannel().configureBlocking( true );
+					channel.setSelectionKey( null );
 				}
 			}
 		}
 	}
 
-	public synchronized void unregisterForSelection( SelectableStreamingCommChannel channel )
+	public void unregisterForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		if ( selectorThread != null ) {
-			selectorThread.unregister( channel );
-		}
+		selectorThread().unregister( channel );
 	}
 	
-	public synchronized void registerForSelection( SelectableStreamingCommChannel channel )
+	public void registerForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
 		selectorThread().register( channel );
