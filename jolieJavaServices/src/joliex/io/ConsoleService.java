@@ -70,11 +70,12 @@ public class ConsoleService extends JavaService
 	
 	public ConsoleService()
 	{}
-	
-	public void registerForInput( CommMessage message )
+
+	public CommMessage registerForInput( CommMessage message )
 	{
 		consoleInputThread = new ConsoleInputThread();
 		consoleInputThread.start();
+		return CommMessage.createEmptyMessage();
 	}
 	
 	@Override
@@ -82,14 +83,16 @@ public class ConsoleService extends JavaService
 	{
 		consoleInputThread.kill();
 	}
-	
-	public void print( CommMessage message )
+
+	public CommMessage print( CommMessage message )
 	{
 		System.out.print( message.value().strValue() );
+		return CommMessage.createEmptyMessage();
 	}
-	
-	public void println( CommMessage message )
+
+	public CommMessage println( CommMessage message )
 	{
 		System.out.println( message.value().strValue() );
+		return CommMessage.createEmptyMessage();
 	}
 }
