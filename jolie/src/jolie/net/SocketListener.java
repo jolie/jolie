@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -93,6 +94,8 @@ public class SocketListener extends CommListener
 			} catch( IOException ioe ) {
 				ioe.printStackTrace();
 			}
+		} catch( AsynchronousCloseException e ) {
+			// Closed by CommCore shutdown
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
