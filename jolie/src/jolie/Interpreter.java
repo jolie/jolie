@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -511,6 +513,17 @@ public class Interpreter
 		init();
 		runMain();
 		commCore.shutdown();
+	}
+
+	final private ExecutorService executorService = Executors.newCachedThreadPool();
+
+	/**
+	 * Runs an asynchronous task in this Interpreter internal thread pool.
+	 * @param r the Runnable object to execute
+	 */
+	public void execute( Runnable r )
+	{
+		executorService.execute( r );
 	}
 	
 	private class StarterThread extends Thread

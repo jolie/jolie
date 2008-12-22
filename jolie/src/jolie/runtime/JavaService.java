@@ -22,7 +22,6 @@
 
 package jolie.runtime;
 
-import jolie.runtime.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -85,23 +84,57 @@ abstract public class JavaService
 			}
 		}
 	}
+
+	/*public static class JavaServiceInvocationRunnable implements Runnable
+	{
+		final private JavaService javaService;
+		final private Object[] args;
+		final private Method method;
+
+		public JavaServiceInvocationRunnable( JavaService javaService, Method method, Object[] args )
+		{
+			this.javaService = javaService;
+			this.method = method;
+			this.args = args;
+		}
+
+		public void run()
+		{
+			try {
+				method.invoke( javaService, args );
+			} catch( InvocationTargetException e ) {
+				// This should never happen, as we filtered this out in the constructor.
+				e.printStackTrace();
+			} catch( IllegalAccessException e ) {
+				e.printStackTrace();
+			}
+		}
+	}*/
 	
 	public CommMessage callOperation( CommMessage message )
 		throws InvalidIdException, IllegalAccessException
 	{
-		Pair< Constants.OperationType, Method > pair = operations.get( message.operationName() );
+		final Pair< Constants.OperationType, Method > pair = operations.get( message.operationName() );
 		if ( pair == null ) {
 			throw new InvalidIdException( message.operationName() );
 		}
 		CommMessage ret = null;
 		args[0] = message;
 		if ( pair.key() == Constants.OperationType.ONE_WAY ) {
-			try {
-				pair.value().invoke( this, args );
-			} catch( InvocationTargetException e ) {
-				// This should never happen, as we filtered this out in the constructor.
-				e.printStackTrace();
-			}
+			final JavaService javaService = this;
+			interpreter.execute( new Runnable() {
+				public void run()
+				{
+					try {
+						pair.value().invoke( javaService, args );
+					} catch( InvocationTargetException e ) {
+						// This should never happen, as we filtered this out in the constructor.
+						e.printStackTrace();
+					} catch( IllegalAccessException e ) {
+						e.printStackTrace();
+					}
+				}
+			} );
 		} else {
 			try {
 				ret = (CommMessage)pair.value().invoke( this, args );
