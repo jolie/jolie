@@ -5,9 +5,12 @@ OneWay:
 }
 
 outputPort Console {
-OneWay:
-	print, println, registerForInput
+RequestResponse:
+	print, println, registerForInput, in
 }
+
+println@Console("Ciao");
+a = 2;
 
 embedded {
 Java:
