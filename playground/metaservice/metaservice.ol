@@ -47,8 +47,8 @@ init
 	// TODO: implement a proper Logger service interface.
 	if ( config.debug ) {
 		install(
-			EmbeddingFault => println@Console( "Embedding fault thrown" ),
-			RedirectionNotFound => println@Console( "RedirectionNotFound fault thrown" )
+			EmbeddingFault => println@Console( "Embedding fault thrown" )(),
+			RedirectionNotFound => println@Console( "RedirectionNotFound fault thrown" )()
 		)
 	} else {
 		install(
