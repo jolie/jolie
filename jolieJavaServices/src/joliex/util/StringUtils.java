@@ -82,6 +82,26 @@ public class StringUtils extends JavaService
 		return new CommMessage( "split", "/", value );
 	}
 
+	public CommMessage splitByLength( CommMessage request )
+	{
+		String str = request.value().strValue();
+		int length = request.value().getFirstChild( "length" ).intValue();
+		Value responseValue = Value.create();
+		ValueVector result = responseValue.getChildren( "result" );
+		int stringLength = str.length();
+		boolean keepRun = true;
+		int offset = 0;
+		while( keepRun ) {
+			if ( offset + length >= stringLength ) {
+				keepRun = false;
+				length = stringLength - offset;
+			}
+			result.add( Value.create( str.substring( offset, offset += length ) ) );
+		}
+
+		return CommMessage.createResponse( request, responseValue );
+	}
+
 	public CommMessage match( CommMessage message )
 	{
 		Pattern p = Pattern.compile( message.value().getFirstChild( "regex" ).strValue() );
