@@ -21,12 +21,17 @@
 
 package jolie.xml;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import jolie.Constants;
 import jolie.runtime.Value;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import jolie.runtime.ValueVector;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -34,6 +39,63 @@ import org.w3c.dom.NodeList;
  */
 public class XmlUtils
 {
+	/**
+	 * Transforms a jolie.Value object to an XML Document instance.
+	 * @see Document
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document
+	 * @param document the XML document receiving the transformation
+	 */
+	static public void valueToDocument( Value value, String rootNodeName, Document document )
+	{
+		Element root = document.createElement( rootNodeName );
+		document.appendChild( root );
+		_valueToDocument( value, root, document );
+	}
+
+	static private void _valueToDocument(
+			Value value,
+			Node node,
+			Document doc
+	) {
+		node.appendChild( doc.createTextNode( value.strValue() ) );
+
+		Element currentElement;
+		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+			if ( !entry.getKey().startsWith( "@" ) ) {
+				for( Value val : entry.getValue() ) {
+					currentElement = doc.createElement( entry.getKey() );
+					node.appendChild( currentElement );
+					Map< String, ValueVector > attrs = getAttributesOrNull( val );
+					if ( attrs != null ) {
+						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
+							currentElement.setAttribute(
+								attrEntry.getKey(),
+								attrEntry.getValue().first().strValue()
+								);
+						}
+					}
+					_valueToDocument( val, currentElement, doc );
+				}
+			}
+		}
+	}
+
+	public static Map< String, ValueVector > getAttributesOrNull( Value value )
+	{
+		Map< String, ValueVector > ret = null;
+		ValueVector vec = value.children().get( Constants.Predefined.ATTRIBUTES.token().content() );
+		if ( vec != null && vec.size() > 0 ) {
+			ret = vec.first().children();
+		}
+
+		if ( ret == null ) {
+			ret = new HashMap< String, ValueVector >();
+		}
+
+		return ret;
+	}
+
 	/**
 	 * Transforms an XML Document to a Value representation
 	 * @see Document
