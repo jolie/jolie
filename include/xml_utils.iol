@@ -1,7 +1,8 @@
 outputPort XmlUtils {
 RequestResponse:
 	xmlToValue throws IOException,
-	transform throws TransformerException
+	transform throws TransformerException,
+	valueToXml
 }
 
 embedded {
