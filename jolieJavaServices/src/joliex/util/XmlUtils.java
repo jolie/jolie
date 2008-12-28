@@ -24,9 +24,15 @@ package joliex.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -37,12 +43,19 @@ import org.xml.sax.SAXException;
 
 public class XmlUtils extends JavaService
 {
+	final private DocumentBuilderFactory documentBuilder;
+
+	public XmlUtils()
+	{
+		this.documentBuilder = DocumentBuilderFactory.newInstance();
+	}
+
 	public CommMessage xmlToValue( CommMessage request )
 		throws FaultException
 	{
 		try {
 			Value result = Value.create();
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilder builder = documentBuilder.newDocumentBuilder();
 			InputSource src = new InputSource( new StringReader( request.value().strValue() ) );
 			Document doc = builder.parse( src );
 			jolie.xml.XmlUtils.documentToValue( doc, result );
@@ -54,6 +67,23 @@ public class XmlUtils extends JavaService
 			e.printStackTrace();
 			throw new FaultException( e );
 		} catch( IOException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		}
+	}
+
+	public CommMessage transform( CommMessage request )
+		throws FaultException
+	{
+		try {
+			StreamSource source = new StreamSource( new StringReader( request.value().getFirstChild( "source" ).strValue() ) );
+			TransformerFactory tFactory = TransformerFactory.newInstance();
+			Transformer t = tFactory.newTransformer( new StreamSource( new StringReader( request.value().getFirstChild( "xslt" ).strValue() ) ) );
+			StringWriter writer = new StringWriter();
+			StreamResult result = new StreamResult( writer );
+			t.transform( source, result );
+			return CommMessage.createResponse( request, Value.create( writer.toString() ) );
+		} catch( TransformerException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
 		}
