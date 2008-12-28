@@ -29,8 +29,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import jolie.net.CommMessage;
@@ -43,11 +45,40 @@ import org.xml.sax.SAXException;
 
 public class XmlUtils extends JavaService
 {
-	final private DocumentBuilderFactory documentBuilder;
+	final private DocumentBuilderFactory documentBuilderFactory;
 
 	public XmlUtils()
 	{
-		this.documentBuilder = DocumentBuilderFactory.newInstance();
+		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	}
+
+	public CommMessage valueToXml( CommMessage request )
+		throws FaultException
+	{
+		try {
+			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+			String root = request.value().getFirstChild( "root" ).strValue();
+			jolie.xml.XmlUtils.valueToDocument(
+				request.value().getFirstChild( root ),
+				root,
+				doc
+			);
+			TransformerFactory tFactory = TransformerFactory.newInstance();
+			Transformer t = tFactory.newTransformer();
+			StringWriter writer = new StringWriter();
+			StreamResult result = new StreamResult( writer );
+			t.transform( new DOMSource( doc ), result );
+			return CommMessage.createResponse( request, Value.create( writer.toString() ) );
+		} catch( ParserConfigurationException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( TransformerConfigurationException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( TransformerException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		}
 	}
 
 	public CommMessage xmlToValue( CommMessage request )
@@ -55,7 +86,7 @@ public class XmlUtils extends JavaService
 	{
 		try {
 			Value result = Value.create();
-			DocumentBuilder builder = documentBuilder.newDocumentBuilder();
+			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src = new InputSource( new StringReader( request.value().strValue() ) );
 			Document doc = builder.parse( src );
 			jolie.xml.XmlUtils.documentToValue( doc, result );
