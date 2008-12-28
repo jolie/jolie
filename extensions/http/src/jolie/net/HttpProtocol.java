@@ -113,19 +113,6 @@ public class HttpProtocol extends SequentialCommProtocol
 		this.docBuilder = docBuilder;
 	}
 		
-	private static Map< String, ValueVector > getAttributesOrNull( Value value )
-	{
-		Map< String, ValueVector > ret = null;
-		ValueVector vec = value.children().get( Constants.Predefined.ATTRIBUTES.token().content() );
-		if ( vec != null && vec.size() > 0 )
-			ret = vec.first().children();
-		
-		if ( ret == null )
-			ret = new HashMap< String, ValueVector >();
-		
-		return ret;
-	}
-	
 	private void valueToDocument(
 			Value value,
 			Node node,
@@ -141,7 +128,7 @@ public class HttpProtocol extends SequentialCommProtocol
 				for( Value val : entry.getValue() ) {
 					currentElement = doc.createElement( entry.getKey() );
 					node.appendChild( currentElement );
-					Map< String, ValueVector > attrs = getAttributesOrNull( val );
+					Map< String, ValueVector > attrs = jolie.xml.XmlUtils.getAttributesOrNull( val );
 					if ( attrs != null ) {
 						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
 							currentElement.setAttribute(
