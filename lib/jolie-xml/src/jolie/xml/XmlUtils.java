@@ -55,26 +55,26 @@ public class XmlUtils
 
 	static private void _valueToDocument(
 			Value value,
-			Node node,
+			Element element,
 			Document doc
 	) {
-		node.appendChild( doc.createTextNode( value.strValue() ) );
+		element.appendChild( doc.createTextNode( value.strValue() ) );
+		Map< String, ValueVector > attrs = getAttributesOrNull( value );
+		if ( attrs != null ) {
+			for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
+				element.setAttribute(
+					attrEntry.getKey(),
+					attrEntry.getValue().first().strValue()
+				);
+			}
+		}
 
 		Element currentElement;
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 			if ( !entry.getKey().startsWith( "@" ) ) {
 				for( Value val : entry.getValue() ) {
 					currentElement = doc.createElement( entry.getKey() );
-					node.appendChild( currentElement );
-					Map< String, ValueVector > attrs = getAttributesOrNull( val );
-					if ( attrs != null ) {
-						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
-							currentElement.setAttribute(
-								attrEntry.getKey(),
-								attrEntry.getValue().first().strValue()
-								);
-						}
-					}
+					element.appendChild( currentElement );
 					_valueToDocument( val, currentElement, doc );
 				}
 			}
