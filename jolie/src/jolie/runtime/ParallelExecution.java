@@ -32,7 +32,7 @@ public class ParallelExecution
 	{
 		public ParallelThread( Process process )
 		{
-			super( process, ExecutionThread.currentThread(), null );
+			super( process, ExecutionThread.currentThread() );
 		}
 		
 		public jolie.State state()
@@ -54,21 +54,22 @@ public class ParallelExecution
 	
 	final private Vector< ParallelThread > threads = new Vector< ParallelThread >();
 	private FaultException fault = null;
-	//private ExecutionThread ethread;
+	private boolean isKilled = false;
 
 	public ParallelExecution( Vector< Process > procs )
 	{
-		for( Process proc : procs )
+		for( Process proc : procs ) {
 			threads.add( new ParallelThread( proc ) );
-		//ethread = ExecutionThread.currentThread();
+		}
 	}
 	
 	public void run()
 		throws FaultException
 	{
 		synchronized( this ) {
-			for( ParallelThread t : threads )
+			for( ParallelThread t : threads ) {
 				t.start();
+			}
 
 			ExecutionThread ethread;
 			while ( fault == null && !threads.isEmpty() ) {
@@ -78,9 +79,15 @@ public class ParallelExecution
 					wait();
 					ethread.setCanBeInterrupted( false );
 				} catch( InterruptedException e ) {
-					if ( ethread.isKilled() ) {
-						for( ParallelThread t : threads ) {
-							t.kill( ethread.killerFault() );
+					synchronized( this ) {
+						if ( ethread.isKilled() && !threads.isEmpty() ) {
+							isKilled = true;
+							for( ParallelThread t : threads ) {
+								t.kill( ethread.killerFault() );
+							}
+							try {
+								wait();
+							} catch( InterruptedException ie ) {}
 						}
 					}
 				}
@@ -116,11 +123,17 @@ public class ParallelExecution
 	{
 		synchronized( this ) {
 			threads.remove( thread );
-			if ( fault == null ) {
-				fault = f;
-				notify();
-			} else if ( threads.isEmpty() ) {
-				notify();
+			if ( isKilled ) {
+				if ( threads.isEmpty() ) {
+					notify();
+				}
+			} else {
+				if ( fault == null ) {
+					fault = f;
+					notify();
+				} else if ( threads.isEmpty() ) {
+					notify();
+				}
 			}
 		}
 	}
