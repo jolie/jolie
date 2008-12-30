@@ -70,15 +70,16 @@ public class IfProcess implements Process
 		}
 		return new IfProcess(
 			pairsCopy,
-			(elseProcess == null) ? null : elseProcess.clone( reason )
+			( elseProcess == null ) ? null : elseProcess.clone( reason )
 		);
 	}
 	
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 
 		boolean stop = false;
 		int i = 0;
