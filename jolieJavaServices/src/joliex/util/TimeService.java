@@ -151,7 +151,7 @@ public class TimeService extends JavaService
 		} catch ( InterruptedException e ) {
 		}
 
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( message, Value.create() );
 	}
 	
 	public CommMessage currentTimeMillis( CommMessage message )
