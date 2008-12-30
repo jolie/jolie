@@ -68,6 +68,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -129,6 +130,7 @@ public interface OLVisitor
 	public void visit( PostDecrementStatement n );
 	public void visit( ForStatement n );
 	public void visit( ForEachStatement n );
+	public void visit( SpawnStatement n );
 	public void visit( IsTypeExpressionNode n );
 	public void visit( TypeCastExpressionNode n );
 	public void visit( SynchronizedStatement n );
