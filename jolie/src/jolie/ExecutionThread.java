@@ -28,7 +28,6 @@ import java.util.Stack;
 
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
-import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
@@ -115,8 +114,6 @@ abstract public class ExecutionThread extends JolieThread
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	
-	final protected CorrelatedProcess notifyProc;
-	
 	/**
 	 * Sets if this thread can be interrupted by a fault signal or not.
 	 */
@@ -129,14 +126,12 @@ abstract public class ExecutionThread extends JolieThread
 	 * Constructor
 	 * @param process the Process to be executed by this thread
 	 * @param parent the parent of this thread
-	 * @param notifyProc the CorrelatedProcess to be notified when this thread execution terminates
 	 */
-	public ExecutionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
+	public ExecutionThread( Process process, ExecutionThread parent )
 	{
 		super( parent.interpreter() );
 		this.process = process;
 		this.parent = parent;
-		this.notifyProc = notifyProc;
 	}
 	
 	/**
@@ -149,7 +144,6 @@ abstract public class ExecutionThread extends JolieThread
 		super( interpreter );
 		this.process = process;
 		this.parent = null;
-		this.notifyProc = null;
 	}
 
 	/**
@@ -191,21 +185,7 @@ abstract public class ExecutionThread extends JolieThread
 	}
 	
 	@Override
-	public void run()
-	{
-		try {
-			process.run();
-			if ( notifyProc != null ) {
-				notifyProc.sessionTerminated();
-			}
-		} catch( FaultException f ) {
-			if ( notifyProc != null ) {
-				notifyProc.signalFault( f );
-			} else {
-				Interpreter.getInstance().logUnhandledFault( f );
-			}
-		}
-	}
+	abstract public void run();
 	
 	/**
 	 * Returns the compensator of the current executing scope.
