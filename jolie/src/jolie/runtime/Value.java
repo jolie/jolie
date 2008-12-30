@@ -24,6 +24,8 @@ package jolie.runtime;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,12 @@ class ValueLink extends Value implements Cloneable
 	private Value getLinkedValue()
 	{
 		return linkPath.getValue();
+	}
+
+	private void writeObject( ObjectOutputStream out )
+		throws IOException
+	{
+		out.writeObject( getLinkedValue() );
 	}
 
 	public boolean hasChildren()
@@ -222,7 +230,7 @@ class ValueImpl extends Value
  * @author Fabrizio Montesi
  *
  */
-abstract public class Value implements Expression
+abstract public class Value implements Expression, Serializable
 {
 	abstract public boolean isLink();
 	
