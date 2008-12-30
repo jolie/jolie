@@ -169,7 +169,7 @@ public class RuntimeService extends JavaService
 			EmbeddedServiceLoader loader =
 				EmbeddedServiceLoader.create( interpreter(), type, filePath, channel );
 			loader.load();
-			ret = new CommMessage( "loadEmbeddedService", "/", channel );
+			ret = CommMessage.createResponse( message, channel );
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
