@@ -23,6 +23,7 @@ package jolie;
 
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
+import jolie.runtime.FaultException;
 
 /**
  * An ExecutionThread with a dedicated State.
@@ -31,11 +32,13 @@ import jolie.process.Process;
 public class SessionThread extends ExecutionThread implements Cloneable
 {
 	final private jolie.State state;
+	final private CorrelatedProcess notifyProc;
 	
 	private SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc, jolie.State state )
 	{
-		super( process, parent, notifyProc );
+		super( process, parent );
 		this.state = state;
+		this.notifyProc = notifyProc;
 	}
 	
 	@Override
@@ -57,6 +60,7 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	{
 		super( interpreter, process );
 		state = new jolie.State();
+		notifyProc = null;
 	}
 	
 	/**
@@ -70,10 +74,12 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	 */
 	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
 	{
-		super( process, parent, notifyProc );
+		super( process, parent );
 
 		assert( parent != null );
-		
+
+		this.notifyProc = notifyProc;
+
 		state = parent.state().clone();
 		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
@@ -88,5 +94,21 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	public jolie.State state()
 	{
 		return state;
+	}
+
+	public void run()
+	{
+		try {
+			process().run();
+			if ( notifyProc != null ) {
+				notifyProc.sessionTerminated();
+			}
+		} catch( FaultException f ) {
+			if ( notifyProc != null ) {
+				notifyProc.signalFault( f );
+			} else {
+				Interpreter.getInstance().logUnhandledFault( f );
+			}
+		}
 	}
 }
