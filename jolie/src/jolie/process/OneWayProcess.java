@@ -30,7 +30,6 @@ import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
-import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
@@ -63,7 +62,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 						ethread.setCanBeInterrupted( false );
 					}
 				}
-				parent.runBehaviour( null, message );
+				parent.runBehaviour( channel, message );
 			} catch( InterruptedException ie ) {
 				parent.operation.cancelWaiting( this );
 			}
@@ -79,6 +78,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 				parent.correlatedProcess.inputReceived();
 			}
 
+			this.channel = channel;
 			this.message = message;
 			this.notify();
 			return true;
@@ -142,9 +142,10 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		}
 
 		try {
-			if ( channel != null )
+			if ( channel != null ) {
 				channel.disposeForInput();
-		} catch( IOException ioe ) {}
+			}
+		} catch( IOException ioe ) { ioe.printStackTrace(); }
 	}
 	
 	public boolean isKillable()
