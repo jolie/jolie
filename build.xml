@@ -27,6 +27,7 @@ java -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$J
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
@@ -41,6 +42,7 @@ java -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$J
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
@@ -70,6 +72,7 @@ java -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$J
 			<resources>
 				<file file="${project.http}/dist/http.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
+				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
 				<file file="${project.sodep}/dist/sodep.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
