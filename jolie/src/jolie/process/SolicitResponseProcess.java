@@ -39,9 +39,9 @@ public class SolicitResponseProcess implements Process
 {
 	final private String operationId;
 	final private OutputPort outputPort;
-	final private VariablePath inputVarPath;
-	final private Expression outputExpression;
-	final private Process installProcess;
+	final private VariablePath inputVarPath; // may be null
+	final private Expression outputExpression; // may be null
+	final private Process installProcess; // may be null
 
 	public SolicitResponseProcess(
 			String operationId,
@@ -63,9 +63,9 @@ public class SolicitResponseProcess implements Process
 		return new SolicitResponseProcess(
 					operationId,
 					outputPort,
-					outputExpression.cloneExpression( reason ),
+					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					installProcess.clone( reason )
+					( installProcess == null ) ? null : installProcess.clone( reason )
 				);
 	}
 	
