@@ -52,7 +52,7 @@ public class RuntimeService extends JavaService
 	public CommMessage getLocalLocation( CommMessage message )
 	{
 		Value v = Value.create();
-		v.setValue( new LocalCommChannel( interpreter ) );
+		v.setValue( new LocalCommChannel( interpreter, interpreter.commCore().localListener() ) );
 		return CommMessage.createResponse( message, v );
 	}
 	
