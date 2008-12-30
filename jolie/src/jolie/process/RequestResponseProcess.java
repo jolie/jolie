@@ -102,8 +102,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 	
 	final protected RequestResponseOperation operation;
-	final protected VariablePath inputVarPath;
-	final protected Expression outputExpression;
+	final protected VariablePath inputVarPath; // may be null
+	final protected Expression outputExpression; // may be null
 	final protected Process process;
 	protected CorrelatedProcess correlatedProcess = null;
 	
@@ -128,8 +128,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	{
 		return new RequestResponseProcess(
 					operation,
-					(VariablePath)inputVarPath.cloneExpression( reason ),
-					(VariablePath)outputExpression.cloneExpression( reason ),
+					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
+					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
 					process.clone( reason )
 				);
 	}
