@@ -106,7 +106,7 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw new FaultException( "ConnectionError", e );
 		}
-		return null;
+		return CommMessage.createResponse( message, Value.create() );
 	}
 
 	private void checkConnection()
