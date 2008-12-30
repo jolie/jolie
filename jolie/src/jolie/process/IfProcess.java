@@ -81,22 +81,23 @@ public class IfProcess implements Process
 			return;
 		}
 
-		boolean stop = false;
+		boolean keepRun = true;
 		int i = 0;
 		CPPair pair;
 		
-		while( !stop && i < pairs.length ) {
+		while( keepRun && i < pairs.length ) {
 			pair = pairs[ i ];
 			if ( pair.condition().evaluate() ) {
-				stop = true;
+				keepRun = false;
 				pair.process().run();
 			}
 			i++;
 		}
 
 		// No valid condition found, run the else process
-		if ( !stop && elseProcess != null )
+		if ( keepRun && elseProcess != null ) {
 			elseProcess.run();
+		}
 	}
 	
 	public boolean isKillable()
