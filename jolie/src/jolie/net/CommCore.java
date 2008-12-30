@@ -542,6 +542,7 @@ public class CommCore
 							}
 						} catch( IOException e ) {
 							channel.selectionKey().cancel();
+							channel.setSelectionKey( null );
 						}
 					}
 				}
