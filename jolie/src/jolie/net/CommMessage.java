@@ -23,6 +23,7 @@
 package jolie.net;
 
 
+import java.io.Serializable;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
@@ -31,7 +32,7 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  *
  */
-public class CommMessage
+public class CommMessage implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
