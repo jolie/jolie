@@ -22,8 +22,6 @@
 
 package jolie.runtime.embedding;
 
-import jolie.runtime.embedding.EmbeddedServiceLoader;
-import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import java.io.File;
 import java.io.IOException;
 
@@ -71,7 +69,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
-				setChannel( new LocalCommChannel( interpreter ) );
+				setChannel( new LocalCommChannel( interpreter, interpreter.commCore().localListener() ) );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
