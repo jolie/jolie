@@ -371,7 +371,6 @@ public class CommCore
 					InputOperation operation =
 						interpreter.getInputOperation( message.operationName() );
 					if ( listener == null || listener.canHandleInputOperation( operation ) ) {
-
 						operation.recvMessage( channel, message );
 					} else {
 						Interpreter.getInstance().logger().warning(
@@ -455,9 +454,13 @@ public class CommCore
 					it = channels.iterator();
 					while( it.hasNext() ) {
 						channel = it.next();
-						if ( ((PollableCommChannel)channel).isReady() ) {
-							it.remove();
-							scheduleReceive( channel, channel.parentListener() );
+						try {
+							if ( ((PollableCommChannel)channel).isReady() ) {
+								it.remove();
+								scheduleReceive( channel, channel.parentListener() );
+							}
+						} catch( IOException e ) {
+							e.printStackTrace();
 						}
 					}
 				}
