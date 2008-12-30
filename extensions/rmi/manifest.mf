@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: joliex.rmi.RMICommChannelFactory
+X-JOLIE-ListenerExtension: joliex.rmi.RMIListenerFactory
