@@ -30,10 +30,12 @@ import jolie.Interpreter;
 public class LocalCommChannel extends ListCommChannel implements PollableCommChannel
 {
 	final private Interpreter interpreter;
+	final private CommListener listener;
 	
-	public LocalCommChannel( Interpreter interpreter )
+	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
 		this.interpreter = interpreter;
+		this.listener = listener;
 	}
 	
 	@Override
@@ -41,7 +43,7 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 	{
 		olist.add( message );
 		interpreter.commCore().scheduleReceive(
-					new ListCommChannel( olist, ilist ), interpreter.commCore().localListener()
+					new ListCommChannel( olist, ilist ), listener
 				);
 	}
 	
