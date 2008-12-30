@@ -46,9 +46,14 @@ abstract public class EchoesCallback extends JolieCallback
 		dialog.show();
 	}
 	
-	public void onFailure( FaultException fault )
+	public void onFault( FaultException fault )
 	{
 		displayFault( fault.faultName() + ": " + fault.value().strValue() );
+	}
+
+	public void onError( Throwable t )
+	{
+		displayFault( t.getMessage() );
 	}
 	
 	abstract public void onSuccess( Value response );
