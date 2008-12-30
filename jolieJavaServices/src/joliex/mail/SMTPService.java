@@ -122,6 +122,6 @@ public class SMTPService extends JavaService
 			throw new FaultException( "SMTPFault", e );
 		}
 		
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( requestMessage, Value.create() );
 	}
 }
