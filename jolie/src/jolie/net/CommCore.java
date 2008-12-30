@@ -524,27 +524,28 @@ public class CommCore
 			while( true ) {
 				try {
 					selector.select();
-				} catch( IOException e ) {
-					e.printStackTrace();
-				}
-				synchronized( this ) {
-					for( SelectionKey key : selector.selectedKeys() ) {
-						key.cancel();
-						channel = (SelectableStreamingCommChannel)key.attachment();
-						try {
-							key.channel().configureBlocking( true );
-							stream = channel.inputStream();
-							stream.mark( 1 );
-							// It could just be a closing read. If not, receive it.
-							if ( stream.read() != -1 ) {
-								stream.reset();
-								scheduleReceive( channel, channel.parentListener() );
+					synchronized( this ) {
+						for( SelectionKey key : selector.selectedKeys() ) {
+							key.cancel();
+							channel = (SelectableStreamingCommChannel)key.attachment();
+							try {
+								key.channel().configureBlocking( true );
+								stream = channel.inputStream();
+								stream.mark( 1 );
+								// It could just be a closing read. If not, receive it.
+								if ( stream.read() != -1 ) {
+									stream.reset();
+									scheduleReceive( channel, channel.parentListener() );
+								}
+							} catch( IOException e ) {
+								e.printStackTrace();
+								channel.selectionKey().cancel();
+								channel.setSelectionKey( null );
 							}
-						} catch( IOException e ) {
-							channel.selectionKey().cancel();
-							channel.setSelectionKey( null );
 						}
 					}
+				} catch( IOException e ) {
+					e.printStackTrace();
 				}
 			}
 		}
