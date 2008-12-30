@@ -117,7 +117,7 @@ main
 	// Do _not_ modify the behaviour of the default operation.
 	[ default( request )( response ) {
 		scope( s ) {
-			install( FileNotFound => println@Console( "File not found: " + file.filename ) );
+			install( FileNotFound => println@Console( "File not found: " + file.filename )() );
 
 			s = request.operation;
 			s.regex = "\\?";
@@ -171,7 +171,6 @@ main
 
 	[ waitForStateChange( request )( response ) {
 		synchronized( lock ) {
-			//undef( response );
 			if ( logicalClock > request.logicalClock ) {
 				response.state[0] << state[0];
 				response.logicalClock = logicalClock
