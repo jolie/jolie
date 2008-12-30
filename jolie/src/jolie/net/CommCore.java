@@ -524,10 +524,14 @@ public class CommCore
 			while( true ) {
 				try {
 					selector.select();
-					synchronized( this ) {
-						for( SelectionKey key : selector.selectedKeys() ) {
-							key.cancel();
-							channel = (SelectableStreamingCommChannel)key.attachment();
+				} catch( IOException e ) {
+					e.printStackTrace();
+				}
+				synchronized( this ) {
+					for( SelectionKey key : selector.selectedKeys() ) {
+						key.cancel();
+						channel = (SelectableStreamingCommChannel)key.attachment();
+						try {
 							key.channel().configureBlocking( true );
 							stream = channel.inputStream();
 							stream.mark( 1 );
@@ -536,11 +540,10 @@ public class CommCore
 								stream.reset();
 								scheduleReceive( channel, channel.parentListener() );
 							}
+						} catch( IOException e ) {
+							channel.selectionKey().cancel();
 						}
 					}
-				} catch( IOException e ) {
-					// TODO Handle this properly
-					e.printStackTrace();
 				}
 			}
 		}
