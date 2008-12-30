@@ -420,8 +420,10 @@ public class CommCore
 	public void init()
 		throws IOException
 	{		
-		for( Entry< String, CommListener > entry : listenersMap.entrySet() )
+		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 			entry.getValue().start();
+		}
+		active = true;
 	}
 	
 	private PollingThread pollingThread = null;
@@ -593,9 +595,14 @@ public class CommCore
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
 	public void shutdown()
 	{
-		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
-			entry.getValue().shutdown();
+		if ( active ) {
+			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+				entry.getValue().shutdown();
+			}
+			threadGroup.interrupt();
+			active = false;
 		}
-		threadGroup.interrupt();
 	}
+
+	private boolean active = false;
 }
