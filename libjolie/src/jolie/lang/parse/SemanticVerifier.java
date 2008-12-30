@@ -76,6 +76,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -137,6 +138,11 @@ public class SemanticVerifier implements OLVisitor
 		}
 
 		return valid;
+	}
+
+	public void visit( SpawnStatement n )
+	{
+		n.body().accept( this );
 	}
 	
 	public void visit( Program n )
@@ -257,10 +263,10 @@ public class SemanticVerifier implements OLVisitor
 		} 
 	}
 	
-		
 	public void visit( ThrowStatement n ) {}
 	public void visit( CompensateStatement n ) {}
 	public void visit( InstallStatement n ) {}
+
 	public void visit( Scope n )
 	{
 		n.body().accept( this );

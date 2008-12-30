@@ -72,6 +72,7 @@ import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -285,6 +286,17 @@ public class OLParseTreeOptimizer
 			}
 			
 			currNode = stm;
+		}
+
+		public void visit( SpawnStatement n )
+		{
+			currNode = new SpawnStatement(
+				n.context(),
+				optimizePath( n.indexVariablePath() ),
+				optimizeNode( n.upperBoundExpression() ),
+				optimizePath( n.inVariablePath() ),
+				optimizeNode( n.body() )
+			);
 		}
 		
 		public void visit( WhileStatement n )

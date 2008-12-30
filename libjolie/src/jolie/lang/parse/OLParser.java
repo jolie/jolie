@@ -88,6 +88,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.OperationCollector;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -864,7 +865,6 @@ public class OLParser extends AbstractParser
 			} else {
 				retVal = new DefinitionCallStatement( getContext(), id );
 			}
-
 		} else if ( token.is( Scanner.TokenType.WITH ) ) {
 			getToken();
 			retVal =
@@ -939,6 +939,39 @@ public class OLParser extends AbstractParser
 
 			retVal =
 				new ForStatement( getContext(), init, condition, post, body );
+		} else if ( token.is( Scanner.TokenType.SPAWN ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			assertToken(
+				Scanner.TokenType.ID, "expected variable identifier" );
+			String id = token.content();
+			getToken();
+			VariablePathNode indexVariablePath = parseVariablePath( id );
+			assertToken( Scanner.TokenType.ID, "expected over" );
+			if ( token.isKeyword( "over" ) == false ) {
+				throwException( "expected over" );
+			}
+			getToken();
+			OLSyntaxNode upperBoundExpression = parseExpression();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+
+			VariablePathNode inVariablePath = null;
+			if ( token.isKeyword( "in" ) ) {
+				getToken();
+				id = token.content();
+				getToken();
+				inVariablePath = parseVariablePath( id );
+			}
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			OLSyntaxNode process = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			retVal = new SpawnStatement(
+				getContext(),
+				indexVariablePath,
+				upperBoundExpression,
+				inVariablePath,
+				process
+			);
 		} else if ( token.is( Scanner.TokenType.FOREACH ) ) {
 			getToken();
 			eat(
