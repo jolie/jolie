@@ -82,6 +82,7 @@ public class Scanner
 		THROW,				///< throw
 		INSTALL,				///< install
 		SCOPE,					///< scope
+		SPAWN,					///< spawn
 		THIS,					///< this
 		COMPENSATE,				///< comp
 		SINGLE,					///< single
@@ -415,6 +416,8 @@ public class Scanner
 							retval = new Token( TokenType.THROW );
 						else if ( "scope".equals( str ) )
 							retval = new Token( TokenType.SCOPE );
+						else if ( "spawn".equals( str ) )
+							retval = new Token( TokenType.SPAWN );
 						else if ( "comp".equals( str ) )
 							retval = new Token( TokenType.COMPENSATE );
 						else if ( "exit".equals( str ) )
