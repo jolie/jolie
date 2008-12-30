@@ -257,6 +257,7 @@ public class Interpreter
 	public void exit()
 	{
 		exiting = true;
+		commCore.shutdown();
 		for( CorrelatedProcess p : sessionSpawners ) {
 			p.interpreterExit();
 		}
@@ -547,7 +548,7 @@ public class Interpreter
 			} catch( Exception e ) {
 				future.setResult( e );
 			}
-			runMain();			
+			runMain();
 			commCore.shutdown();
 		}
 	}
