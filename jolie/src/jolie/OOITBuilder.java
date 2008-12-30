@@ -86,6 +86,7 @@ import jolie.lang.parse.ast.RunStatement;
 import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
+import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -130,6 +131,7 @@ import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
 import jolie.process.SequentialProcess;
 import jolie.process.SolicitResponseProcess;
+import jolie.process.SpawnProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
@@ -230,7 +232,7 @@ public class OOITBuilder implements OLVisitor
 		for( List< VariablePathNode > list : n.cset() ) {
 			paths = new Vector< VariablePath > ();
 			for( VariablePathNode path : list )
-				paths.add( getGlobalVariablePath( path ) );
+				paths.add( buildVariablePath( path ) );
 			cset.add( paths );
 		}
 
@@ -502,7 +504,7 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new OneWayProcess(
 						interpreter.getOneWayOperation( n.id() ),
-						getGlobalVariablePath( n.inputVarPath() )
+						buildVariablePath( n.inputVarPath() )
 						);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
@@ -524,7 +526,7 @@ public class OOITBuilder implements OLVisitor
 			currProcess =
 				new RequestResponseProcess(
 						interpreter.getRequestResponseOperation( n.id() ),
-						getGlobalVariablePath( n.inputVarPath() ),
+						buildVariablePath( n.inputVarPath() ),
 						outputExpression,
 						currProcess
 						);
@@ -570,7 +572,7 @@ public class OOITBuilder implements OLVisitor
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression,
-						getGlobalVariablePath( n.inputVarPath() ),
+						buildVariablePath( n.inputVarPath() ),
 						installProcess
 						);
 		} catch( InvalidIdException e ) {
@@ -630,14 +632,14 @@ public class OOITBuilder implements OLVisitor
 			
 		AssignmentProcess p = 
 			new AssignmentProcess(
-				getGlobalVariablePath( n.variablePath() ),
+				buildVariablePath( n.variablePath() ),
 				currExpression
 				);
 		currProcess = p;
 		currExpression = p;
 	}
 	
-	private VariablePath getGlobalVariablePath( VariablePathNode path )
+	private VariablePath buildVariablePath( VariablePathNode path )
 	{
 		if ( path == null )
 			return null;
@@ -664,8 +666,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess =
 			new MakePointerProcess(
-				getGlobalVariablePath( n.leftPath() ),
-				getGlobalVariablePath( n.rightPath() )
+				buildVariablePath( n.leftPath() ),
+				buildVariablePath( n.rightPath() )
 				);
 	}
 	
@@ -673,8 +675,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess =
 			new DeepCopyProcess(
-				getGlobalVariablePath( n.leftPath() ),
-				getGlobalVariablePath( n.rightPath() )
+				buildVariablePath( n.leftPath() ),
+				buildVariablePath( n.rightPath() )
 				);
 	}
 	
@@ -809,14 +811,14 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( VariableExpressionNode n )
 	{
-		currExpression = getGlobalVariablePath( n.variablePath() );
+		currExpression = buildVariablePath( n.variablePath() );
 	}
 	
 	public void visit( InstallFixedVariableExpressionNode n )
 	{
 		currExpression =
 				new InstallFixedVariablePath(
-					getGlobalVariablePath( n.variablePath() )
+					buildVariablePath( n.variablePath() )
 				);
 	}
 	
@@ -832,13 +834,13 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
-		currExpression = new ValueVectorSizeExpression( getGlobalVariablePath( n.variablePath() ) );
+		currExpression = new ValueVectorSizeExpression( buildVariablePath( n.variablePath() ) );
 	}
 	
 	public void visit( PreDecrementStatement n )
 	{
 		PreDecrementProcess p =
-			new PreDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			new PreDecrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p; 
 	}
@@ -846,7 +848,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( PostDecrementStatement n )
 	{
 		PostDecrementProcess p =
-			new PostDecrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			new PostDecrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -856,16 +858,16 @@ public class OOITBuilder implements OLVisitor
 		IsTypeExpressionNode.CheckType type = n.type();
 		if ( type == IsTypeExpressionNode.CheckType.DEFINED ) {
 			currExpression =
-				new IsDefinedExpression( getGlobalVariablePath( n.variablePath() ) );
+				new IsDefinedExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.INT ) {
 			currExpression =
-				new IsIntExpression( getGlobalVariablePath( n.variablePath() ) );
+				new IsIntExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.REAL ) {
 			currExpression =
-				new IsRealExpression( getGlobalVariablePath( n.variablePath() ) );	
+				new IsRealExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.STRING ) {
 			currExpression =
-				new IsStringExpression( getGlobalVariablePath( n.variablePath() ) );
+				new IsStringExpression( buildVariablePath( n.variablePath() ) );
 		}
 	}
 	
@@ -884,7 +886,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( PreIncrementStatement n )
 	{
 		PreIncrementProcess p =
-			new PreIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			new PreIncrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p; 
 	}
@@ -892,7 +894,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( PostIncrementStatement n )
 	{
 		PostIncrementProcess p =
-			new PostIncrementProcess( getGlobalVariablePath( n.variablePath() ) );
+			new PostIncrementProcess( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -914,15 +916,43 @@ public class OOITBuilder implements OLVisitor
 		n.body().accept( this );
 		currProcess =
 			new ForEachProcess(
-				getGlobalVariablePath( n.keyPath() ),
-				getGlobalVariablePath( n.targetPath() ),
+				buildVariablePath( n.keyPath() ),
+				buildVariablePath( n.targetPath() ),
 				currProcess
 				);
+	}
+
+	private Expression buildExpression( OLSyntaxNode n )
+	{
+		if ( n == null ) {
+			return null;
+		}
+		n.accept( this );
+		return currExpression;
+	}
+
+	private Process buildProcess( OLSyntaxNode n )
+	{
+		if ( n == null ) {
+			return null;
+		}
+		n.accept( this );
+		return currProcess;
+	}
+
+	public void visit( SpawnStatement n )
+	{
+		currProcess = new SpawnProcess(
+			buildVariablePath( n.indexVariablePath() ),
+			buildExpression( n.upperBoundExpression() ),
+			buildVariablePath( n.inVariablePath() ),
+			buildProcess( n.body() )
+		);
 	}
 	
 	public void visit( UndefStatement n )
 	{
-		currProcess = new UndefProcess( getGlobalVariablePath( n.variablePath() ) );
+		currProcess = new UndefProcess( buildVariablePath( n.variablePath() ) );
 	}
 }
 
