@@ -26,7 +26,6 @@ import jolie.net.OutputPort;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
-import jolie.runtime.InvalidIdException;
 
 
 
