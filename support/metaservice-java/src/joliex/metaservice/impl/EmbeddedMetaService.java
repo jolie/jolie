@@ -117,7 +117,7 @@ public class EmbeddedMetaService extends MetaService
 	
 	protected CommChannel createCommChannel()
 	{
-		return new LocalCommChannel( interpreter );
+		return new LocalCommChannel( interpreter, interpreter.commCore().localListener() );
 	}
 	
 	public MetaServiceChannel getChannel()
