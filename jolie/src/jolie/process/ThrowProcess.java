@@ -23,7 +23,6 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.runtime.Expression;
 
 
