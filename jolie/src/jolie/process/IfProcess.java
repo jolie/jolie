@@ -21,8 +21,6 @@
 
 package jolie.process;
 
-import java.util.Vector;
-
 import jolie.ExecutionThread;
 import jolie.runtime.Condition;
 import jolie.runtime.FaultException;
