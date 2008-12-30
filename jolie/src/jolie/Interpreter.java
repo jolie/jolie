@@ -504,6 +504,9 @@ public class Interpreter
 	/**
 	 * Runs the interpreter behaviour specified by command line.
 	 * The default behaviour is to execute the input code.
+	 *
+	 * Note that you must shutdown the CommCore of this Interpreter
+	 * manually after calling this method.
 	 * @throws IOException if a Parser propagates a Scanner exception
 	 * @throws InterpreterException if the interpretation tree could not be built
 	 */
@@ -512,7 +515,7 @@ public class Interpreter
 	{
 		init();
 		runMain();
-		commCore.shutdown();
+		//commCore.shutdown();
 	}
 
 	final private ExecutorService executorService = Executors.newCachedThreadPool();

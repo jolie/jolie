@@ -39,8 +39,15 @@ public class Jolie
 	{
 		int exitCode = 0;
 		try {
-			Interpreter interpreter = new Interpreter( args );
+			final Interpreter interpreter = new Interpreter( args );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
+			Runtime.getRuntime().addShutdownHook( new Thread() {
+				@Override
+				public void run()
+				{
+					interpreter.commCore().shutdown();
+				}
+			} );
 			interpreter.run();
 		} catch( CommandLineException cle ) {
 			System.out.println( cle.getMessage() );
