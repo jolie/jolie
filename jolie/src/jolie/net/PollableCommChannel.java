@@ -21,7 +21,10 @@
 
 package jolie.net;
 
+import java.io.IOException;
+
 public interface PollableCommChannel
 {
-	public boolean isReady();
+	public boolean isReady()
+		throws IOException;
 }
