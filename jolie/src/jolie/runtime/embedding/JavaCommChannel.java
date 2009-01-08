@@ -22,12 +22,14 @@
 package jolie.runtime.embedding;
 
 import jolie.runtime.JavaService;
-import jolie.net.*;
 import java.io.IOException;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import jolie.Interpreter;
+import jolie.net.CommChannel;
+import jolie.net.CommMessage;
+import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
 
 /**
@@ -36,7 +38,7 @@ import jolie.runtime.InvalidIdException;
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private JavaService javaService;
-	final private List< CommMessage > messages = new Vector< CommMessage >();
+	final private List< CommMessage > messages = new LinkedList< CommMessage >();
 
 	public JavaCommChannel( JavaService javaService )
 	{
