@@ -121,12 +121,12 @@ public class Interpreter
 		return includePaths;
 	}
 
-	public void registerSessionSpawner( CorrelatedProcess p )
+	public synchronized void registerSessionSpawner( CorrelatedProcess p )
 	{
 		sessionSpawners.add( p );
 	}
 	
-	public void unregisterSessionSpawner( CorrelatedProcess p )
+	public synchronized void unregisterSessionSpawner( CorrelatedProcess p )
 	{
 		sessionSpawners.remove( p );
 	}
@@ -256,10 +256,19 @@ public class Interpreter
 	
 	public void exit()
 	{
-		exiting = true;
+		synchronized( this ) {
+			if ( exiting ) {
+				return;
+			} else {
+				exiting = true;
+			}
+		}
+
 		commCore.shutdown();
-		for( CorrelatedProcess p : sessionSpawners ) {
-			p.interpreterExit();
+		synchronized( this ) {
+			for( CorrelatedProcess p : sessionSpawners ) {
+				p.interpreterExit();
+			}
 		}
 	}
 	
@@ -516,7 +525,6 @@ public class Interpreter
 	{
 		init();
 		runMain();
-		//commCore.shutdown();
 	}
 
 	final private ExecutorService executorService = Executors.newCachedThreadPool();
@@ -569,8 +577,9 @@ public class Interpreter
 			Program program = olParser.parse();
 			olParser = null; // Free memory
 			program = (new OLParseTreeOptimizer( program )).optimize();
-			if ( !(new SemanticVerifier( program )).validate() )
+			if ( !(new SemanticVerifier( program )).validate() ) {
 				throw new InterpreterException( "Exiting" );
+			}
 			
 			return (new OOITBuilder( this, program )).build();
 		} catch( ParserException e ) {
@@ -579,10 +588,4 @@ public class Interpreter
 			throw new InterpreterException( e );
 		}
 	}
-	
-	/*@Override
-	protected void finalize()
-	{
-		// Clean up here if we're a sub-interpreter
-	}*/
 }
