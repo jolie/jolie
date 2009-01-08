@@ -29,6 +29,7 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.OutputPort;
+import jolie.runtime.ExitingException;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -99,8 +100,10 @@ public class SolicitResponseProcess implements Process
 			if ( message.isFault() ) {
 				throw message.fault();
 			}
-			
-			installProcess.run();
+
+			try {
+				installProcess.run();
+			} catch( ExitingException e ) { assert false; }
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {

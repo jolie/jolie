@@ -27,6 +27,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InputOperation;
@@ -49,20 +50,32 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			return new Execution( parent );
 		}
 
-		public void run()
-			throws FaultException
+		public void interpreterExit()
+		{
+			synchronized( this ) {
+				this.notify();
+			}
+		}
+
+		protected void runImpl()
+			throws FaultException, ExitingException
 		{
 			try {
 				operation.signForMessage( this );
 				synchronized( this ) {
-					if( message == null ) {
+					if ( message == null && !Interpreter.getInstance().exiting() ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();
 						ethread.setCanBeInterrupted( true );
 						this.wait();
 						ethread.setCanBeInterrupted( false );
 					}
 				}
-				parent.runBehaviour( channel, message );
+
+				if ( message == null ) { // If message == null, we are exiting
+					throw new ExitingException();
+				} else {
+					parent.runBehaviour( channel, message );
+				}
 			} catch( InterruptedException ie ) {
 				parent.operation.cancelWaiting( this );
 			}
@@ -72,6 +85,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		{
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
+					this.notify();
 					// Do not trigger session spawning if we're exiting
 					return false;
 				}
@@ -119,11 +133,12 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	}
 
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
-		
+		}
+
 		(new Execution( this )).run();
 	}
 	

@@ -30,6 +30,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.VariablePath;
@@ -63,25 +64,32 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 				this.process = process;
 			}
 		}
-		
+
 		private Map< String, InputChoice > inputMap =
 			new ConcurrentHashMap< String, InputChoice >();
 		private InputChoice choice = null;
 		private CommChannel channel;
 		private CommMessage message;
-	
+
 		public Execution( NDChoiceProcess parent )
 		{
 			super( parent );
 		}
-		
+
 		public Process clone( TransformationReason reason )
 		{
 			return new Execution( parent );
 		}
+
+		public void interpreterExit()
+		{
+			synchronized( this ) {
+				this.notify();
+			}
+		}
 	
-		public void run()
-			throws FaultException
+		protected void runImpl()
+			throws FaultException, ExitingException
 		{
 			for( Pair< InputProcess, Process > p : parent.branches ) {
 				InputHandler handler = p.key().getInputHandler();
@@ -90,15 +98,20 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			}
 
 			synchronized( this ) {
-				if( choice == null ) {
+				if( choice == null && !Interpreter.getInstance().exiting() ) {
 					try {
 						this.wait();
 					} catch( InterruptedException e ) {}
 				}
 			}
-			
-			for( InputChoice c : inputMap.values() )
+
+			if ( choice == null && Interpreter.getInstance().exiting() ) {
+				throw new ExitingException();
+			}
+
+			for( InputChoice c : inputMap.values() ) {
 				c.inputHandler.cancelWaiting( this );
+			}
 
 			assert( choice != null );
 			
@@ -114,12 +127,14 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
-			if ( choice != null )
+			if ( choice != null ) {
 				return false;
+			}
 
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
 					// Do not trigger session spawning if we're exiting
+					this.notify();
 					return false;
 				}
 				parent.correlatedProcess.inputReceived();
@@ -138,8 +153,9 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		public synchronized VariablePath inputVarPath( String inputId )
 		{
 			InputChoice c = inputMap.get( inputId );
-			if ( c != null && c.inputProcess instanceof InputOperationProcess )
+			if ( c != null && c.inputProcess instanceof InputOperationProcess ) {
 				return ((InputOperationProcess)c.inputProcess).inputVarPath();
+			}
 
 			return null;
 		}
@@ -163,8 +179,9 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 	{
 		Vector< Pair< InputProcess, Process > > b =
 			new Vector< Pair< InputProcess, Process > > ();
-		for( Pair< InputProcess, Process > pair : branches )
+		for( Pair< InputProcess, Process > pair : branches ) {
 			b.add( new Pair< InputProcess, Process >( pair.key(), pair.value().clone( reason ) ) );
+		}
 
 		return new NDChoiceProcess( b );
 	}
@@ -176,10 +193,11 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 	
 	/** Runs the non-deterministic choice behaviour. */
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		
 		(new Execution( this )).run();
 	}

@@ -28,4 +28,5 @@ public interface InputProcessExecution< T extends Process > extends Process
 {
 	public boolean recvMessage( CommChannel channel, CommMessage message );
 	public T parent();
+	public void interpreterExit();
 }

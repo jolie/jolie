@@ -23,6 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.Condition;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public class ForProcess implements Process
@@ -49,10 +50,11 @@ public class ForProcess implements Process
 	}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
 		
 		init.run();
 		while ( condition.evaluate() ) {

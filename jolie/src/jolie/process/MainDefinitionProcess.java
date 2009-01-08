@@ -23,6 +23,7 @@ package jolie.process;
 
 import jolie.Interpreter;
 import jolie.net.OutputPort;
+import jolie.runtime.ExitingException;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
@@ -49,18 +50,30 @@ public class MainDefinitionProcess extends DefinitionProcess
 				} catch( FaultException fe ) {
 					// If this happens, it's been caused by a bug in the SemanticVerifier
 					assert( false );
+				} catch( ExitingException e ) {
+					e.printStackTrace();
+					assert false;
 				}
 			}
 			
 			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
 				loader.load();
 			}
-			
+
+			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
+
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {
-				p.run();
+				try {
+					p.run();
+				} catch( ExitingException e ) {
+					e.printStackTrace();
+					assert false;
+				}
 			}
 
-			super.run();
+			try {
+				super.run();
+			} catch( ExitingException e ) {}
 		} catch( EmbeddedServiceLoadingException e ) {
 			//Interpreter.getInstance().logger().severe( e.getMessage() );
 			e.printStackTrace();

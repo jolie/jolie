@@ -25,6 +25,7 @@ import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionThread;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
@@ -33,7 +34,7 @@ public class CorrelatedProcess implements Process
 {
 	final private Interpreter interpreter;
 	final private Process process;
-	private boolean waiting = false;
+	private boolean mustWait = false;
 	private SessionThread spawnModel;
 	private int activeSessions = 0;
 	
@@ -52,7 +53,7 @@ public class CorrelatedProcess implements Process
 	
 	private void startSession()
 	{
-		waiting = true;
+		mustWait = true;
 		spawnModel.clone().start();
 	}
 	
@@ -60,11 +61,15 @@ public class CorrelatedProcess implements Process
 		throws FaultException
 	{
 		spawnModel = new SessionThread( process, ExecutionThread.currentThread(), this );
-		if ( interpreter.executionMode() != Constants.ExecutionMode.SINGLE ) {
+		if ( interpreter.executionMode() == Constants.ExecutionMode.SINGLE ) {
+			try {
+				process.run();
+			} catch( ExitingException e ) {}
+		} else {
 			while( !interpreter.exiting() ) {
 				startSession();
 				synchronized( this ) {
-					if ( waiting ) { // We are still waiting for an input
+					if ( mustWait && !interpreter.exiting() ) { // We are still waiting for an input
 						try {
 							wait();
 						} catch( InterruptedException ie ) {}
@@ -78,14 +83,12 @@ public class CorrelatedProcess implements Process
 					} catch( InterruptedException ie ) {}
 				}
 			}
-		} else {
-			process.run();
 		}
 	}
 	
 	public synchronized void interpreterExit()
 	{
-		if ( waiting ) {
+		if ( mustWait ) {
 			notify();
 		}
 	}
@@ -94,7 +97,7 @@ public class CorrelatedProcess implements Process
 	{
 		activeSessions++;
 		if ( interpreter.executionMode() == Constants.ExecutionMode.CONCURRENT ) {
-			waiting = false;
+			mustWait = false;
 			notify();
 		}
 	}
@@ -103,7 +106,7 @@ public class CorrelatedProcess implements Process
 	{
 		activeSessions--;
 		if ( interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-			waiting = false;
+			mustWait = false;
 			notify();
 		} else if ( interpreter.exiting() ) {
 			notify();
@@ -128,18 +131,21 @@ public class CorrelatedProcess implements Process
 						.toVariablePath()
 						.getValue();
 				scopeValue.getChildren( f.faultName() ).set( f.value(), 0 );
-				p.run();
+				try {
+					p.run();
+				} catch( ExitingException e ) {}
 			}
 		
 			synchronized( this ) {
 				if ( Interpreter.getInstance().executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
-					waiting = false;
+					mustWait = false;
 					notify();
 				}
 			}
 		} catch( FaultException fault ) {
 			signalFault( fault );
 		}
+		sessionTerminated();
 	}
 	
 	public boolean isKillable()

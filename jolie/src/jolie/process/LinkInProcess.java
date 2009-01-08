@@ -22,8 +22,10 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.InternalLink;
@@ -44,14 +46,17 @@ public class LinkInProcess implements InputProcess
 			return new Execution( parent );
 		}
 
-		public void run()
+		public void interpreterExit()
+		{}
+
+		protected void runImpl()
 			throws FaultException
 		{
 			InternalLink link = InternalLink.getById( linkId );
 			try {
 				link.signForMessage( this );
 				synchronized( this ) {
-					if( message == null ) {
+					if( message == null && !Interpreter.getInstance().exiting() ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();
 						ethread.setCanBeInterrupted( true );
 						this.wait();
@@ -85,7 +90,7 @@ public class LinkInProcess implements InputProcess
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new LinkInProcess( linkId  );
+		return new LinkInProcess( linkId );
 	}
 	
 	public InputHandler getInputHandler()
@@ -97,10 +102,12 @@ public class LinkInProcess implements InputProcess
 	{}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
+
 		(new Execution( this )).run();
 	}
 	
