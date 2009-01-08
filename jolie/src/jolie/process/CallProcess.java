@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 package jolie.process;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 
@@ -48,7 +49,7 @@ public class CallProcess implements Process
 	
 	/** Executes the definition. */
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
 		definition.run();
 	}
