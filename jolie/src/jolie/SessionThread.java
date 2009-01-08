@@ -23,6 +23,7 @@ package jolie;
 
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 /**
@@ -99,7 +100,9 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	public void run()
 	{
 		try {
-			process().run();
+			try {
+				process().run();
+			} catch( ExitingException e ) {}
 			if ( notifyProc != null ) {
 				notifyProc.sessionTerminated();
 			}
