@@ -29,21 +29,32 @@ package jolie;
 abstract public class JolieThread extends Thread
 {
 	final private Interpreter interpreter;
+
+	static private int counter = 0;
+	static final private Object counterMutex = new Object();
+
+	static private String createThreadName()
+	{
+		synchronized( counterMutex ) {
+			return "JolieThread-" + counter++;
+		}
+	}
 	
 	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
 	{
-		super( threadGroup, name );
+		super( threadGroup, interpreter.programFile().getName() + "-" + name );
 		this.interpreter = interpreter;
 	}
 	
 	public JolieThread( Interpreter interpreter )
 	{
+		super( interpreter.programFile().getName() + "-" + createThreadName() );
 		this.interpreter = interpreter;
 	}
 	
 	public JolieThread( Interpreter interpreter, Runnable r )
 	{
-		super( r );
+		super( r, interpreter.programFile().getName() + "-" + createThreadName() );
 		this.interpreter = interpreter;
 	}
 	
