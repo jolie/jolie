@@ -155,6 +155,15 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
+
+	/*public CommMessage unloadEmbeddedService( CommMessage message )
+		throws FaultException
+	{
+		Object obj = message.value().valueObject();
+		if ( obj instanceof LocalCommChannel ) {
+			((LocalCommChannel)obj).interpreter().exit();
+		}
+	}*/
 	
 	public CommMessage loadEmbeddedService( CommMessage message )
 		throws FaultException
