@@ -27,7 +27,6 @@ import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLConnection;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import jolie.net.CommCore;
@@ -43,15 +42,13 @@ import jolie.runtime.CanUseJars;
  * @author Fabrizio Montesi
  */
 public class JolieClassLoader extends URLClassLoader
-{
-	final private Interpreter interpreter;
-	
-	private void init( URL[] urls )
+{	
+	private void init( URL[] urls, Interpreter interpreter )
 		throws IOException
 	{
 		for( URL url : urls ) {
 			if ( "jar".equals( url.getProtocol() ) ) {
-				checkJarJolieExtensions( (JarURLConnection)url.openConnection() );
+				checkJarJolieExtensions( (JarURLConnection)url.openConnection(), interpreter );
 			}
 		}
 	}
@@ -60,8 +57,7 @@ public class JolieClassLoader extends URLClassLoader
 		throws IOException
 	{
 		super( urls, parent );
-		this.interpreter = interpreter;
-		init( urls );
+		init( urls, interpreter );
 	}
 	
 	@Override
@@ -99,7 +95,7 @@ public class JolieClassLoader extends URLClassLoader
 		return c;
 	}
 	
-	private void checkForChannelExtension( Attributes attrs )
+	private void checkForChannelExtension( Attributes attrs, Interpreter interpreter )
 		throws IOException
 	{
 		String className = attrs.getValue( Constants.Manifest.ChannelExtension );
@@ -126,7 +122,7 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 	
-	private void checkForListenerExtension( Attributes attrs )
+	private void checkForListenerExtension( Attributes attrs, Interpreter interpreter )
 		throws IOException
 	{
 		String className = attrs.getValue( Constants.Manifest.ListenerExtension );
@@ -153,7 +149,7 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 	
-	private void checkForProtocolExtension( Attributes attrs )
+	private void checkForProtocolExtension( Attributes attrs, Interpreter interpreter )
 		throws IOException
 	{
 		String className = attrs.getValue( Constants.Manifest.ProtocolExtension );
@@ -185,15 +181,15 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 	
-	private void checkJarJolieExtensions( JarURLConnection jarConnection )
+	private void checkJarJolieExtensions( JarURLConnection jarConnection, Interpreter interpreter )
 		throws IOException
 	{
 		Manifest manifest = jarConnection.getManifest();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
-			checkForChannelExtension( attrs );
-			checkForListenerExtension( attrs );
-			checkForProtocolExtension( attrs );
+			checkForChannelExtension( attrs, interpreter );
+			checkForListenerExtension( attrs, interpreter );
+			checkForProtocolExtension( attrs, interpreter );
 		}
 	}
 	
@@ -211,11 +207,11 @@ public class JolieClassLoader extends URLClassLoader
 			throw new IOException( "Resource not found: " + jarName );
 		}
 		addURL( new URL( "jar:" + url + "!/" ) );
-		URLConnection urlConn = url.openConnection();
+		/*URLConnection urlConn = url.openConnection();
 		if ( urlConn instanceof JarURLConnection ) {				
-			checkJarJolieExtensions( (JarURLConnection)urlConn );
+			checkJarJolieExtensions( (JarURLConnection)urlConn, null );
 		} else {
 			throw new IOException( "Jar file not found: " + jarName );
-		}
+		}*/
 	}
 }
