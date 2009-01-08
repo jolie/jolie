@@ -325,7 +325,9 @@ public class CommCore
 			throws IOException
 		{
 			channel.redirectionChannel().send( message );
-			channel.disposeForInput();
+			channel.redirectionChannel().disposeForInput();
+			channel.setRedirectionChannel( null );
+			channel.closeImpl();
 		}
 
 		private void handleMessage( CommMessage message )
