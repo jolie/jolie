@@ -53,7 +53,17 @@ public class DatabaseService extends JavaService
 	private String username = null;
 	private String password = null;
 	private boolean mustCheckConnection = false;
-	
+
+	@Override
+	protected void finalize()
+	{
+		if ( connection != null ) {
+			try {
+				connection.close();
+			} catch( SQLException e ) {}
+		}
+	}
+
 	public CommMessage connect( CommMessage message )
 		throws FaultException
 	{
@@ -83,7 +93,7 @@ public class DatabaseService extends JavaService
 			} else if ( "derby".equals( driver ) ) {
 				Class.forName( "org.apache.derby.jdbc.ClientDriver" );
 			} else if ( "sqlserver".equals( driver ) ) {
-				Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
+				//Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
 				separator = ";";
 				databaseName = "databaseName=" + databaseName;
 			} else if ( "as400".equals( driver ) ) {
