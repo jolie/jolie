@@ -49,6 +49,7 @@ import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
+import jolie.process.InputProcessExecution;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -441,13 +442,18 @@ public class CommCore
 	
 	private class PollingThread extends Thread {
 		final private Set< CommChannel > channels = new HashSet< CommChannel >();
-		
+
+		public PollingThread()
+		{
+			super( threadGroup, null, null );
+		}
+
 		@Override
 		public void run()
 		{
 			Iterator< CommChannel > it;
 			CommChannel channel;
-			while( true ) {
+			while( active ) {
 				synchronized( this ) {
 					if ( channels.isEmpty() ) {
 						// Do not busy-wait for no reason
@@ -515,6 +521,7 @@ public class CommCore
 		public SelectorThread()
 			throws IOException
 		{
+			super( threadGroup, null, null );
 			this.selector = Selector.open();
 		}
 		
@@ -523,7 +530,7 @@ public class CommCore
 		{
 			SelectableStreamingCommChannel channel;
 			InputStream stream;
-			while( true ) {
+			while( active ) {
 				try {
 					selector.select();
 					synchronized( this ) {
@@ -599,14 +606,35 @@ public class CommCore
 		selectorThread().register( channel );
 	}
 
+	final private Vector< InputProcessExecution<?> > waitingCorrelatedInputs = new Vector< InputProcessExecution<?> >();
+
+	public synchronized void addWaitingCorrelatedInput( InputProcessExecution<?> input )
+	{
+		if ( active ) {
+			waitingCorrelatedInputs.add( input );
+		}
+	}
+
+	public synchronized void removeWaitingCorrelatedInput( InputProcessExecution<?> input )
+	{
+		waitingCorrelatedInputs.remove( input );
+	}
+
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
-	public void shutdown()
+	public synchronized void shutdown()
 	{
 		if ( active ) {
 			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 				entry.getValue().shutdown();
 			}
+			if ( selectorThread != null ) {
+				selectorThread.selector.wakeup();
+			}
+			executorService.shutdown();
 			threadGroup.interrupt();
+			for( InputProcessExecution input : waitingCorrelatedInputs ) {
+				input.interpreterExit();
+			}
 			active = false;
 		}
 	}
