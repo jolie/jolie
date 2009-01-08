@@ -35,7 +35,7 @@ public class LocationParser
 		String path = uri.getPath();
 		Matcher m = pattern.matcher( path );
 		if ( m.find() ) {
-			ret = ret.substring( m.end() + 1, path.length() );
+			ret += path.substring( m.end(), path.length() );
 		}
 		return ret;
 	}
