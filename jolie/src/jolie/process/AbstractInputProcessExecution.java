@@ -21,6 +21,11 @@
 
 package jolie.process;
 
+import jolie.Interpreter;
+import jolie.net.CommCore;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+
 abstract public class AbstractInputProcessExecution< T extends Process >
 	implements InputProcessExecution< T >
 {
@@ -34,4 +39,22 @@ abstract public class AbstractInputProcessExecution< T extends Process >
 	{
 		return parent;
 	}
+
+	final public void run()
+		throws FaultException, ExitingException
+	{
+		if ( parent instanceof CorrelatedInputProcess ) {
+			if ( !Interpreter.getInstance().exiting() ) {
+				final CommCore commCore = Interpreter.getInstance().commCore();
+				commCore.addWaitingCorrelatedInput( this );
+				runImpl();
+				commCore.removeWaitingCorrelatedInput( this );
+			}
+		} else {
+			runImpl();
+		}
+	}
+
+	abstract protected void runImpl()
+		throws FaultException, ExitingException;
 }
