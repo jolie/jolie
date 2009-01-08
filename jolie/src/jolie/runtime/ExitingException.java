@@ -21,70 +21,7 @@
 
 package jolie.runtime;
 
-import java.io.ByteArrayOutputStream;
-
-import java.io.PrintStream;
-
-public class FaultException extends Exception
+public class ExitingException extends Exception
 {
 	private static final long serialVersionUID = jolie.Constants.serialVersionUID();
-	final private String faultName;
-	final private Value value;
-	
-	public FaultException( String faultName, Throwable t )
-	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create( t.getMessage() );
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
-	}
-	
-	public FaultException( Throwable t )
-	{
-		super();
-		this.faultName = t.getClass().getSimpleName();
-		this.value = Value.create( t.getMessage() );
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
-	}
-	
-	public FaultException( String faultName, String message )
-	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create( message );
-	}
-	
-	public FaultException( String faultName, Value value )
-	{
-		super();
-		this.faultName = faultName;
-		this.value = value;
-	}
-	
-	public FaultException( String faultName )
-	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create();
-	}
-	
-	@Override
-	public String getMessage()
-	{
-		return value.strValue();
-	}
-	
-	public Value value()
-	{
-		return value;
-	}
-	
-	public String faultName()
-	{
-		return faultName;
-	}
 }
