@@ -49,8 +49,9 @@ public abstract class EmbeddedServiceLoader
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
 		
-		if ( ret == null )
+		if ( ret == null ) {
 			throw new EmbeddedServiceLoaderCreationException( "Invalid embedded service type specified" );
+		}
 
 		return ret;
 	}
@@ -96,6 +97,4 @@ public abstract class EmbeddedServiceLoader
 	
 	abstract public void load()
 		throws EmbeddedServiceLoadingException;
-	
-	//abstract public void shutdown();
 }
