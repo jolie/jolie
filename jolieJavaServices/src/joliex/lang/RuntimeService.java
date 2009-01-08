@@ -21,9 +21,6 @@
 
 package joliex.lang;
 
-
-
-
 import jolie.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -155,15 +152,6 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
-
-	/*public CommMessage unloadEmbeddedService( CommMessage message )
-		throws FaultException
-	{
-		Object obj = message.value().valueObject();
-		if ( obj instanceof LocalCommChannel ) {
-			((LocalCommChannel)obj).interpreter().exit();
-		}
-	}*/
 	
 	public CommMessage loadEmbeddedService( CommMessage message )
 		throws FaultException
@@ -177,6 +165,10 @@ public class RuntimeService extends JavaService
 				jolie.Constants.stringToEmbeddedServiceType( typeStr );
 			EmbeddedServiceLoader loader =
 				EmbeddedServiceLoader.create( interpreter(), type, filePath, channel );
+			/* We need this so that the Interpreter will unload the embedded
+			 * service when it will exit.
+			 */
+			interpreter.addEmbeddedServiceLoader( loader );
 			loader.load();
 			ret = CommMessage.createResponse( message, channel );
 		} catch( EmbeddedServiceLoaderCreationException e ) {
