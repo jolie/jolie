@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 
@@ -40,14 +41,15 @@ public class CompensateProcess implements Process
 	}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
 		ExecutionThread t = ExecutionThread.currentThread();
 		if ( t.isKilled() )
 			return;
 		Process c = t.getCompensation( id ); 
-		if ( c != null )
+		if ( c != null ) {
 			c.run();
+		}
 	}
 	
 	public boolean isKillable()
