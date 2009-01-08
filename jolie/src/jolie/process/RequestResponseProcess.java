@@ -28,6 +28,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.ExitingException;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
@@ -51,21 +52,33 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		{
 			return new Execution( parent );
 		}
+
+		public void interpreterExit()
+		{
+			synchronized( this ) {
+				this.notify();
+			}
+		}
 		
-		public void run()
-			throws FaultException
+		protected void runImpl()
+			throws FaultException, ExitingException
 		{
 			try {
 				parent.operation.signForMessage( this );
 				synchronized( this ) {
-					if( message == null ) {
+					if ( message == null && !Interpreter.getInstance().exiting() ) {
 						ExecutionThread ethread = ExecutionThread.currentThread();
 						ethread.setCanBeInterrupted( true );
 						this.wait();
 						ethread.setCanBeInterrupted( false );
 					}
 				}
-				parent.runBehaviour( channel, message );
+
+				if ( message == null ) { // If message == null, we are exiting
+					throw new ExitingException();
+				} else {
+					parent.runBehaviour( channel, message );
+				}
 			} catch( InterruptedException e ) {
 				parent.operation.cancelWaiting( this );
 			}
@@ -86,10 +99,12 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		{
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
+					this.notify();
 					// Do not trigger session spawning if we're exiting
 					return false;
+				} else {
+					parent.correlatedProcess.inputReceived();
 				}
-				parent.correlatedProcess.inputReceived();
 			}
 
 			this.channel = channel;
@@ -140,10 +155,12 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
+		}
+
 		(new Execution( this )).run();
 	}
 	
@@ -189,7 +206,9 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		FaultException fault = null;
 		CommMessage response = null;
 		try {
-			process.run();
+			try {
+				process.run();
+			} catch( ExitingException e ) {}
 			ExecutionThread ethread = ExecutionThread.currentThread();
 			if ( ethread.isKilled() ) {
 				response = createFaultMessage( message, ethread.killerFault() );

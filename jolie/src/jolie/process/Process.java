@@ -21,12 +21,13 @@
 
 package jolie.process;
 
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public interface Process
 {	
 	public void run()
-		throws FaultException;
+		throws FaultException, ExitingException;
 	
 	public Process clone( TransformationReason reason );
 	

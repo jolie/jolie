@@ -22,6 +22,7 @@
 
 package jolie.process;
 
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public class DefinitionProcess implements Process
@@ -39,7 +40,7 @@ public class DefinitionProcess implements Process
 	}
 
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
 		if ( process != null ) {
 			process.run();

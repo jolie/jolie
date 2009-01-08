@@ -24,6 +24,7 @@ package jolie.process;
 import java.util.Vector;
 
 import jolie.ExecutionThread;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
@@ -44,7 +45,7 @@ public class SequentialProcess implements Process
 	}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
 		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Process proc : children ) {

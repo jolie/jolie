@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
@@ -42,7 +43,7 @@ public class ScopeProcess implements Process
 		}
 		
 		public void run()
-			throws FaultException
+			throws FaultException, ExitingException
 		{
 			ethread.pushScope( parent.id );
 			runScope( parent.process );
@@ -52,6 +53,7 @@ public class ScopeProcess implements Process
 		}
 		
 		private void runScope( Process p )
+			throws ExitingException
 		{
 			try {
 				p.run();
@@ -97,7 +99,7 @@ public class ScopeProcess implements Process
 	}
 	
 	public void run()
-		throws FaultException
+		throws FaultException, ExitingException
 	{
 		(new Execution( this )).run();
 	}
