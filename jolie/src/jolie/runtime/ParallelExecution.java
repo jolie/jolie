@@ -48,6 +48,8 @@ public class ParallelExecution
 				terminationNotify( this );
 			} catch( FaultException f ) {
 				signalFault( this, f );
+			} catch( ExitingException f ) {
+				terminationNotify( this );
 			}
 		}
 	}

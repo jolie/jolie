@@ -51,6 +51,7 @@ public class SpawnExecution
 			try {
 				process().run();
 			} catch( FaultException f ) {}
+			catch( ExitingException e ) {}
 			if ( parentSpawnProcess.inPath() != null ) {
 				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( index )
 					.assignValue( parentSpawnProcess.inPath().getValueVector().first() );
