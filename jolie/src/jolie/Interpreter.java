@@ -69,7 +69,7 @@ import jolie.runtime.VariablePath;
  */
 public class Interpreter
 {
-	final private CommCore commCore;
+	private CommCore commCore;
 	
 	// TODO remove this and put it into a private method temporary variable
 	private OLParser olParser;
@@ -121,14 +121,18 @@ public class Interpreter
 		return includePaths;
 	}
 
-	public synchronized void registerSessionSpawner( CorrelatedProcess p )
+	public void registerSessionSpawner( CorrelatedProcess p )
 	{
-		sessionSpawners.add( p );
+		synchronized( sessionSpawners ) {
+			sessionSpawners.add( p );
+		}
 	}
 	
-	public synchronized void unregisterSessionSpawner( CorrelatedProcess p )
+	public void unregisterSessionSpawner( CorrelatedProcess p )
 	{
-		sessionSpawners.remove( p );
+		synchronized( sessionSpawners ) {
+			sessionSpawners.remove( p );
+		}
 	}
 	
 	private JolieClassLoader classLoader;
@@ -265,7 +269,7 @@ public class Interpreter
 		}
 
 		commCore.shutdown();
-		synchronized( this ) {
+		synchronized( sessionSpawners ) {
 			for( CorrelatedProcess p : sessionSpawners ) {
 				p.interpreterExit();
 			}
@@ -558,6 +562,28 @@ public class Interpreter
 			}
 			runMain();
 			commCore.shutdown();
+			free();
+		}
+
+		private void free()
+		{
+			/* We help the Garbage Collector
+			 * looks like it needs this or the Interpreter
+			 * does not get collected.
+			 */
+			definitions.clear();
+			inputOperations.clear();
+			locksMap.clear();
+			mainExec = null;
+			synchronized( sessionSpawners ) {
+				sessionSpawners.clear();
+			}
+			outputPorts.clear();
+			correlationSet.clear();
+			globalValue.erase();
+			embeddedServiceLoaders.clear();
+			classLoader = null;
+			commCore = null;
 		}
 	}
 	
