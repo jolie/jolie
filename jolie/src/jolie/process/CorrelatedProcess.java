@@ -130,7 +130,7 @@ public class CorrelatedProcess implements Process
 						.add( ethread.currentScopeId(), 0 )
 						.toVariablePath()
 						.getValue();
-				scopeValue.getChildren( f.faultName() ).set( f.value(), 0 );
+				scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
 				try {
 					p.run();
 				} catch( ExitingException e ) {}

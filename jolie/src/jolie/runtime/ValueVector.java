@@ -145,7 +145,7 @@ abstract public class ValueVector implements Iterable< Value >
 		values().add( value );
 	}
 	
-	public synchronized void set( Value value, int i )
+	public synchronized void set( int i, Value value )
 	{
 		final List< Value > values = values();
 

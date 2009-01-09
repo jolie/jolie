@@ -175,11 +175,11 @@ class ValueImpl extends Value
 					i = 0;
 					for( Value v : otherVector ) {
 						if ( copyLinks && v.isLink() ) {
-							vec.set( ((ValueLink)v).clone(), i );
+							vec.set( i, ((ValueLink)v).clone() );
 						} else {
 							newValue = new ValueImpl();
 							newValue._deepCopy( v, copyLinks );
-							vec.set( newValue, i );
+							vec.set( i, newValue );
 						}
 						i++;
 					}
