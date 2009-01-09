@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import jolie.Constants.OperandType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -263,9 +264,19 @@ public class SemanticVerifier implements OLVisitor
 		} 
 	}
 	
-	public void visit( ThrowStatement n ) {}
+	public void visit( ThrowStatement n )
+	{
+		verify( n.expression() );
+	}
+
 	public void visit( CompensateStatement n ) {}
-	public void visit( InstallStatement n ) {}
+	
+	public void visit( InstallStatement n )
+	{
+		for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
+			pair.value().accept( this );
+		}
+	}
 
 	public void visit( Scope n )
 	{
@@ -275,11 +286,17 @@ public class SemanticVerifier implements OLVisitor
 	/*
 	 * TODO Must check operation names in opNames and links in linkNames and locks in lockNames
 	 */
-	public void visit( OneWayOperationStatement n ) {}
+	public void visit( OneWayOperationStatement n )
+	{
+		verify( n.inputVarPath() );
+	}
+
 	public void visit( RequestResponseOperationStatement n )
 	{
-		n.process().accept( this );
+		verify( n.inputVarPath() );
+		verify( n.process() );
 	}
+
 	public void visit( LinkInStatement n ) {}
 	public void visit( LinkOutStatement n ) {}
 	public void visit( SynchronizedStatement n )
@@ -290,35 +307,137 @@ public class SemanticVerifier implements OLVisitor
 	/**
 	 * TODO Must assign to a variable in varNames
 	 */
-	public void visit( AssignStatement n ) {}
+	public void visit( AssignStatement n )
+	{
+		n.variablePath().accept( this );
+		n.expression().accept( this );
+	}
+
+	private void verify( OLSyntaxNode n )
+	{
+		if ( n != null ) {
+			n.accept( this );
+		}
+	}
+
 	public void visit( PointerStatement n ) {}
 	public void visit( DeepCopyStatement n ) {}
-	public void visit( IfStatement n ) {}
+
+	public void visit( IfStatement n )
+	{
+		for( Pair< OLSyntaxNode, OLSyntaxNode > choice : n.children() ) {
+			choice.key().accept(  this );
+			choice.value().accept(  this );
+		}
+		verify( n.elseProcess() );
+	}
+
 	public void visit( DefinitionCallStatement n ) {}
-	public void visit( WhileStatement n ) {}
-	public void visit( OrConditionNode n ) {}
-	public void visit( AndConditionNode n ) {}
-	public void visit( NotConditionNode n ) {}
-	public void visit( CompareConditionNode n ) {}
-	public void visit( ExpressionConditionNode n ) {}
+
+	public void visit( WhileStatement n )
+	{
+		n.condition().accept( this );
+		n.body().accept( this );
+	}
+
+	public void visit( OrConditionNode n )
+	{
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+		}
+	}
+
+	public void visit( AndConditionNode n )
+	{
+		for( OLSyntaxNode node : n.children() ) {
+			node.accept( this );
+		}
+	}
+
+	public void visit( NotConditionNode n )
+	{
+		n.condition().accept( this );
+	}
+
+	public void visit( CompareConditionNode n )
+	{
+		n.leftExpression().accept( this );
+		n.rightExpression().accept( this );
+	}
+
+	public void visit( ExpressionConditionNode n ) 
+	{
+		n.expression().accept( this );
+	}
+
 	public void visit( ConstantIntegerExpression n ) {}
 	public void visit( ConstantRealExpression n ) {}
 	public void visit( ConstantStringExpression n ) {}
-	public void visit( ProductExpressionNode n ) {}
-	public void visit( SumExpressionNode n ) {}
-	public void visit( VariableExpressionNode n ) {}
-	public void visit( InstallFixedVariableExpressionNode n ) {}
+
+	public void visit( ProductExpressionNode n )
+	{
+		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+			pair.value().accept( this );
+		}
+	}
+
+	public void visit( SumExpressionNode n )
+	{
+		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
+			pair.value().accept( this );
+		}
+	}
+
+	public void visit( VariableExpressionNode n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( InstallFixedVariableExpressionNode n )
+	{
+		n.variablePath().accept(  this );
+	}
+
 	public void visit( NullProcessStatement n ) {}
+
 	public void visit( ExitStatement n ) {}
+
 	public void visit( ExecutionInfo n ) {}
+
 	public void visit( CorrelationSetInfo n ) {}
+
 	public void visit( RunStatement n ) {}
-	public void visit( ValueVectorSizeExpressionNode n ) {}
-	public void visit( PreIncrementStatement n ) {}
-	public void visit( PostIncrementStatement n ) {}
-	public void visit( PreDecrementStatement n ) {}
-	public void visit( PostDecrementStatement n ) {}
-	public void visit( UndefStatement n ) {}
+
+	public void visit( ValueVectorSizeExpressionNode n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( PreIncrementStatement n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( PostIncrementStatement n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( PreDecrementStatement n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( PostDecrementStatement n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( UndefStatement n )
+	{
+		n.variablePath().accept( this );
+	}
+
 	
 	public void visit( ForStatement n )
 	{
@@ -328,13 +447,29 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
-	public void visit( ForEachStatement n ) {}
-	public void visit( IsTypeExpressionNode n ) {}
-	public void visit( TypeCastExpressionNode n ) {}
-	public void visit( EmbeddedServiceNode n ) {}
+	public void visit( ForEachStatement n )
+	{
+		n.keyPath().accept( this );
+		n.targetPath().accept( this );
+		n.body().accept( this );
+	}
+
+	public void visit( IsTypeExpressionNode n )
+	{
+		n.variablePath().accept( this );
+	}
+
+	public void visit( TypeCastExpressionNode n )
+	{
+		n.expression().accept( this );
+	}
+
+	public void visit( EmbeddedServiceNode n )
+	{}
 	
 	/**
 	 * @todo Must check if it's inside an install function
 	 */
-	public void visit( CurrentHandlerStatement n ) {}
+	public void visit( CurrentHandlerStatement n )
+	{}
 }
