@@ -319,7 +319,15 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( PreDecrementStatement n ) {}
 	public void visit( PostDecrementStatement n ) {}
 	public void visit( UndefStatement n ) {}
-	public void visit( ForStatement n ) {}
+	
+	public void visit( ForStatement n )
+	{
+		n.init().accept( this );
+		n.condition().accept( this );
+		n.post().accept( this );
+		n.body().accept( this );
+	}
+
 	public void visit( ForEachStatement n ) {}
 	public void visit( IsTypeExpressionNode n ) {}
 	public void visit( TypeCastExpressionNode n ) {}
