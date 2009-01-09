@@ -521,7 +521,7 @@ public class CommCore
 		public SelectorThread()
 			throws IOException
 		{
-			super( threadGroup, null, null );
+			super( threadGroup, interpreter.programFile().getName() + "-SelectorThread" );
 			this.selector = Selector.open();
 		}
 		
