@@ -280,7 +280,7 @@ public class VariablePath implements Expression, Cloneable
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( index );
 				} else {
-					currVector.set( Value.createLink( rightPath ), index );
+					currVector.set( index, Value.createLink( rightPath ) );
 				}
 			}
 		}
