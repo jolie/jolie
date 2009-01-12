@@ -75,7 +75,7 @@ public class ScopeProcess implements Process
 							.add( ethread.currentScopeId(), 0 )
 							.toVariablePath()
 							.getValue();
-					scopeValue.getChildren( f.faultName() ).set( f.value(), 0 );
+					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
 					this.runScope( p );
 				} else {
 					fault = f;
