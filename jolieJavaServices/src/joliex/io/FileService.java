@@ -149,10 +149,21 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		String filename = request.value().strValue();
-		if ( new File( filename ).delete() == false ) {
-			throw new FaultException( "IOException" );
+		boolean isRegex = request.value().getFirstChild( "isRegex" ).intValue() > 0;
+		if ( isRegex ) {
+			File dir = new File( filename ).getAbsoluteFile().getParentFile();
+			String[] files = dir.list( new ListFilter( filename ) );
+			if ( files != null ) {
+				for( String file : files ) {
+					new File( file ).delete();
+				}
+			}
+		} else {
+			if ( new File( filename ).delete() == false ) {
+				throw new FaultException( "IOException" );
+			}
 		}
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( request, Value.create() );
 	}
 	
 	public CommMessage rename( CommMessage request )
