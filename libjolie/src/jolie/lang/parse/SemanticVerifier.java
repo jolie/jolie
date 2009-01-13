@@ -113,6 +113,15 @@ public class SemanticVerifier implements OLVisitor
 	{
 		this.program = program;
 	}
+
+	private void warning( OLSyntaxNode node, String message )
+	{
+		if ( node == null ) {
+			logger.warning( message );
+		} else {
+			logger.warning( node.context().sourceName() + ":" + node.context().line() + ": " + message );
+		}
+	}
 	
 	private void error( OLSyntaxNode node, String message )
 	{
@@ -406,7 +415,10 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( CorrelationSetInfo n ) {}
 
-	public void visit( RunStatement n ) {}
+	public void visit( RunStatement n )
+	{
+		warning( n, "Run statement is not a stable feature yet." );
+	}
 
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
