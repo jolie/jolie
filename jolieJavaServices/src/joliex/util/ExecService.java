@@ -34,14 +34,14 @@ import jolie.runtime.ValueVector;
 
 public class ExecService extends JavaService
 {
-	public CommMessage exec( CommMessage message )
+	public CommMessage exec( CommMessage request )
 		throws FaultException
 	{
 		Vector< String > command = new Vector< String >();
-		String[] str = message.value().strValue().split( " " );
+		String[] str = request.value().strValue().split( " " );
 		for( int i = 0; i < str.length; i++ )
 			command.add( str[i] );
-		for( Value v : message.value().getChildren( "args" ) )
+		for( Value v : request.value().getChildren( "args" ) )
 			command.add( v.strValue() );
 		//String input = null;
 		ProcessBuilder builder = new ProcessBuilder( command );
@@ -49,7 +49,7 @@ public class ExecService extends JavaService
 		try {
 			Value response = Value.create();
 			Process p = builder.start();
-			ValueVector waitFor = message.value().children().get( "waitFor" );
+			ValueVector waitFor = request.value().children().get( "waitFor" );
 			if ( waitFor == null || waitFor.first().intValue() > 0 ) {
 				int exitCode = p.waitFor();
 				response.getNewChild( "exitCode" ).setValue( exitCode );
@@ -61,7 +61,7 @@ public class ExecService extends JavaService
 					response.setValue( new String( buffer ) );
 				}
 			}
-			return new CommMessage( null, "/", response ); 
+			return CommMessage.createResponse( request, response );
 		} catch( Exception e ) {
 			throw new FaultException( e );
 		}
