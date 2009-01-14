@@ -116,7 +116,7 @@ public class FileService extends JavaService
 	
 	public CommMessage getFileSeparator( CommMessage request )
 	{
-		return CommMessage.createResponse( request,	Value.create( jolie.Constants.fileSeparator ) );
+		return CommMessage.createResponse( request,	Value.create( jolie.lang.Constants.fileSeparator ) );
 	}
 	
 	public CommMessage writeFile( CommMessage request )
