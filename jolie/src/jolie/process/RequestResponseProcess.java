@@ -98,13 +98,20 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		
 		// TODO: is synchronized really needed here?
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
+			throws TypeCheckingException
 		{
 			if ( operation.requestType() != null ) {
 				try {
 					operation.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
 					Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
-					return false;
+					try {
+						channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+						channel.disposeForInput();
+					} catch( IOException ioe ) {
+						ioe.printStackTrace();
+					}
+					throw e;
 				}
 			}
 
