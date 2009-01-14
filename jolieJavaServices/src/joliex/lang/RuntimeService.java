@@ -21,10 +21,10 @@
 
 package joliex.lang;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
-import jolie.Constants.EmbeddedServiceType;
+import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
 import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
@@ -162,7 +162,7 @@ public class RuntimeService extends JavaService
 			String filePath = message.value().getFirstChild( "filepath" ).strValue();
 			String typeStr = message.value().getFirstChild( "type" ).strValue();
 			EmbeddedServiceType type =
-				jolie.Constants.stringToEmbeddedServiceType( typeStr );
+				jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
 			EmbeddedServiceLoader loader =
 				EmbeddedServiceLoader.create( interpreter(), type, filePath, channel );
 			/* We need this so that the Interpreter will unload the embedded
