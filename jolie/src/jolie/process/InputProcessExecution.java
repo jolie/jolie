@@ -23,10 +23,12 @@ package jolie.process;
 
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.runtime.typing.TypeCheckingException;
 
 public interface InputProcessExecution< T extends Process > extends Process
 {
-	public boolean recvMessage( CommChannel channel, CommMessage message );
+	public boolean recvMessage( CommChannel channel, CommMessage message )
+		throws TypeCheckingException;
 	public T parent();
 	public void interpreterExit();
 }
