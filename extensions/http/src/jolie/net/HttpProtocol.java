@@ -50,7 +50,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
@@ -210,8 +210,8 @@ public class HttpProtocol extends SequentialCommProtocol
 	private String send_getCharset( CommMessage message )
 	{
 		String charset = null;
-		if ( message.value().hasChildren( jolie.Constants.Predefined.CHARSET.token().content() ) ) {
-			charset = message.value().getFirstChild( jolie.Constants.Predefined.CHARSET.token().content() ).strValue();
+		if ( message.value().hasChildren( jolie.lang.Constants.Predefined.CHARSET.token().content() ) ) {
+			charset = message.value().getFirstChild( jolie.lang.Constants.Predefined.CHARSET.token().content() ).strValue();
 		} else if ( hasParameter( "charset" ) ) {
 			charset = getStringParameter( "charset" );
 		}
@@ -224,8 +224,8 @@ public class HttpProtocol extends SequentialCommProtocol
 		if ( received && requestFormat != null ) {
 			format = requestFormat;
 			requestFormat = null;
-		} else if ( message.value().hasChildren( jolie.Constants.Predefined.FORMAT.token().content() ) ) {
-			format = message.value().getFirstChild( jolie.Constants.Predefined.FORMAT.token().content() ).strValue();
+		} else if ( message.value().hasChildren( jolie.lang.Constants.Predefined.FORMAT.token().content() ) ) {
+			format = message.value().getFirstChild( jolie.lang.Constants.Predefined.FORMAT.token().content() ).strValue();
 		} else if ( hasParameter( "format" ) ) {
 			format = getStringParameter( "format" );
 		}
@@ -366,8 +366,8 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private static void send_appendAuthorizationHeader( CommMessage message, StringBuilder headerBuilder )
 	{
-		if ( message.value().hasChildren( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
-			Value v = message.value().getFirstChild( jolie.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
+		if ( message.value().hasChildren( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() ) ) {
+			Value v = message.value().getFirstChild( jolie.lang.Constants.Predefined.HTTP_BASIC_AUTHENTICATION.token().content() );
 			//String realm = v.getFirstChild( "realm" ).strValue();
 			String userpass =
 				v.getFirstChild( "userid" ).strValue() + ":" +
@@ -403,7 +403,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 		
 		if ( encodedContent.content != null ) {
-			param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
+			param = message.value().getFirstChild( jolie.lang.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
 			if ( !param.isEmpty() ) {
 				encodedContent.contentType = param;
 			}
@@ -414,7 +414,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			}
 			headerBuilder.append( CRLF );
 
-			param = message.value().getFirstChild( jolie.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
+			param = message.value().getFirstChild( jolie.lang.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 			}
