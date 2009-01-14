@@ -21,6 +21,8 @@
 
 package jolie;
 
+import jolie.lang.Constants;
+
 /**
  * Thrown by Interpreter if the interpretation tree could not be built.
  * @author Fabrizio Montesi

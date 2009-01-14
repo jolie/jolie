@@ -21,6 +21,7 @@
 
 package jolie;
 
+import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

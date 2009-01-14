@@ -23,7 +23,7 @@
 package jolie.runtime;
 
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.process.TransformationReason;
 
 public class ProductExpression implements Expression

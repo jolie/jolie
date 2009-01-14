@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.OutputPort;
@@ -34,6 +35,9 @@ import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
 import jolie.util.LocationParser;
 
 public class SolicitResponseProcess implements Process
@@ -43,20 +47,22 @@ public class SolicitResponseProcess implements Process
 	final private VariablePath inputVarPath; // may be null
 	final private Expression outputExpression; // may be null
 	final private Process installProcess; // may be null
+	final private RequestResponseTypeDescription types;
 
 	public SolicitResponseProcess(
 			String operationId,
 			OutputPort outputPort,
 			Expression outputExpression,
 			VariablePath inputVarPath,
-			Process installProcess
-			)
-	{
+			Process installProcess,
+			RequestResponseTypeDescription types
+	) {
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
 		this.inputVarPath = inputVarPath;
 		this.installProcess = installProcess;
+		this.types = types;
 	}
 	
 	public Process clone( TransformationReason reason )
@@ -66,7 +72,8 @@ public class SolicitResponseProcess implements Process
 					outputPort,
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
 					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					( installProcess == null ) ? null : installProcess.clone( reason )
+					( installProcess == null ) ? null : installProcess.clone( reason ),
+					types
 				);
 	}
 	
@@ -87,18 +94,34 @@ public class SolicitResponseProcess implements Process
 					LocationParser.getResourcePath( uri ),
 					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
 				);
+
+			if ( types.requestType() != null ) {
+				types.requestType().check( message.value() );
+			}
+
 			channel.send( message );
 			message = channel.recvResponseFor( message );
 			
 			if ( inputVarPath != null )	 {
-				/*Value v = inputVarPath.getValue();
-				v.erase();
-				v.deepCopy( message.value() );*/
 				inputVarPath.getValue().refCopy( message.value() );
 			}
 			
 			if ( message.isFault() ) {
+				Type faultType = types.getFaultType( message.fault().faultName() );
+				try {
+					faultType.check( message.fault().value() );
+				} catch( TypeCheckingException e ) {
+					throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+				}
 				throw message.fault();
+			} else {
+				if ( types.responseType() != null ) {
+					try {
+						types.responseType().check( message.value() );
+					} catch( TypeCheckingException e ) {
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+					}
+				}
 			}
 
 			try {
@@ -108,6 +131,8 @@ public class SolicitResponseProcess implements Process
 			ioe.printStackTrace();
 		} catch( URISyntaxException ue ) {
 			ue.printStackTrace();
+		} catch( TypeCheckingException e ) {
+			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
 			if ( channel != null ) {
 				try {

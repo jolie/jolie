@@ -22,21 +22,39 @@
 
 package jolie.runtime;
 
-import java.util.Collection;
+import java.util.Map;
+import jolie.runtime.typing.Type;
 
 public class RequestResponseOperation extends InputOperation
 {
-	final private Collection< String > faultNames;
+	final private Type requestType;
+	final private Type responseType;
+	final private Map< String, Type > faults;
 
-	public RequestResponseOperation( String id,
-			Collection< String > faultNames )
-	{
+	public RequestResponseOperation(
+		String id,
+		Type requestType,
+		Type responseType,
+		Map< String, Type > faults
+	) {
 		super( id );
-		this.faultNames = faultNames;
+		this.requestType = requestType;
+		this.responseType = responseType;
+		this.faults = faults;
+	}
+
+	public Type requestType()
+	{
+		return requestType;
+	}
+
+	public Type responseType()
+	{
+		return requestType;
 	}
 	
-	public Collection< String > faultNames()
+	public Map< String, Type > faults()
 	{
-		return faultNames;
+		return faults;
 	}
 }

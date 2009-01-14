@@ -26,7 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import java.util.WeakHashMap;
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
@@ -76,8 +76,7 @@ public class OutputPort extends AbstractIdentifiableObject
 			String protocolId,
 			Process protocolConfigurationProcess,
 			URI locationURI
-			)
-	{
+	) {
 		super( id );
 		this.interpreter = interpreter;
 

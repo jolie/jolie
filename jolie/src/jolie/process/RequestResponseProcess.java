@@ -22,10 +22,10 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.ExitingException;
@@ -35,6 +35,8 @@ import jolie.runtime.InputHandler;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
 
 public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
 {
@@ -97,6 +99,15 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		// TODO: is synchronized really needed here?
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
+			if ( operation.requestType() != null ) {
+				try {
+					operation.requestType().check( message.value() );
+				} catch( TypeCheckingException e ) {
+					Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
+					return false;
+				}
+			}
+
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
 					this.notify();
@@ -175,12 +186,17 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	}
 	
 	private CommMessage createFaultMessage( CommMessage request, FaultException f )
+		throws TypeCheckingException
 	{
-		if ( !operation.faultNames().contains( f.faultName() ) ) {
+		if ( operation.faults().containsKey( f.faultName() ) ) {
+			Type faultType = operation.faults().get( f.faultName() );
+			faultType.check( f.value() );
+		} else {
 			Interpreter.getInstance().logger().severe(
 				"Request-Response process for " + operation.id() +
-				" threw an undeclared fault for that operation" );
-			Iterator< String > it = operation.faultNames().iterator();
+				" threw an undeclared fault for that operation, throwing TypeMismatch" );
+			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
+			/*Iterator< String > it = operation.faultNames().iterator();
 			if ( it.hasNext() ) {
 				String newFault = it.next();
 				Interpreter.getInstance().logger().warning(
@@ -188,7 +204,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 					" to " + newFault );
 				f = new FaultException( newFault );
 			} else
-				Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );
+				Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );*/
 		}
 		return CommMessage.createFaultResponse( request, f );
 	}
@@ -197,12 +213,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		throws FaultException
 	{
 		if ( inputVarPath != null ) {
-			/*Value val = inputVarPath.getValue();
-			val.erase();
-			val.deepCopy( message.value() );*/
 			inputVarPath.getValue().refCopy( message.value() );
 		}
-		
+
+		FaultException typeMismatch = null;
+
 		FaultException fault = null;
 		CommMessage response = null;
 		try {
@@ -211,16 +226,31 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			} catch( ExitingException e ) {}
 			ExecutionThread ethread = ExecutionThread.currentThread();
 			if ( ethread.isKilled() ) {
-				response = createFaultMessage( message, ethread.killerFault() );
+				try {
+					response = createFaultMessage( message, ethread.killerFault() );
+				} catch( TypeCheckingException e ) {
+					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+				}
 			} else {
 				response =
 					CommMessage.createResponse(
 						message,
 						( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
 					);
+				if ( operation.responseType() != null ) {
+					try {
+						operation.responseType().check( response.value() );
+					} catch( TypeCheckingException e ) {
+						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
+					}
+				}
 			}
 		} catch( FaultException f ) {
-			response = createFaultMessage( message, f );
+			try {
+				response = createFaultMessage( message, f );
+			} catch( TypeCheckingException e ) {
+				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+			}
 			fault = f;
 		}
 
@@ -230,8 +260,14 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		} catch( IOException ioe ) {
 			ioe.printStackTrace();
 		}
-		
-		if ( fault != null )
+
+		if ( fault != null ) {
+			if ( typeMismatch != null ) {
+				Interpreter.getInstance().logger().warning( typeMismatch.value().strValue() );
+			}
 			throw fault;
+		} else if ( typeMismatch != null ) {
+			throw typeMismatch;
+		}
 	}
 }

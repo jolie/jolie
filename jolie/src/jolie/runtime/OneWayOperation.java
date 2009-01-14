@@ -22,11 +22,21 @@
 
 package jolie.runtime;
 
+import jolie.runtime.typing.Type;
+
 
 public class OneWayOperation extends InputOperation
 {
-	public OneWayOperation( String id )
+	final private Type requestType;
+
+	public OneWayOperation( String id, Type requestType )
 	{
 		super( id );
+		this.requestType = requestType;
+	}
+
+	public Type requestType()
+	{
+		return requestType;
 	}
 }
