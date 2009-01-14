@@ -47,8 +47,8 @@ public class EmbeddedMetaService extends MetaService
 	{
 		// jh stays for jolie_home, i.e. the JOLIE installation directory
 		
-		final String fs = jolie.Constants.fileSeparator;
-		final String ps = jolie.Constants.pathSeparator;
+		final String fs = jolie.lang.Constants.fileSeparator;
+		final String ps = jolie.lang.Constants.pathSeparator;
 		
 		return new String[] {
 			// Libraries
