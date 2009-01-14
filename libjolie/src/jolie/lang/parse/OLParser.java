@@ -226,7 +226,15 @@ public class OLParser extends AbstractParser
 
 	private NativeType readNativeType()
 	{
-		return NativeType.fromString( token.content() );
+		if ( token.is( Scanner.TokenType.CAST_INT ) ) {
+			return NativeType.INT;
+		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
+			return NativeType.DOUBLE;
+		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
+			return NativeType.STRING;
+		} else {
+			return NativeType.fromString( token.content() );
+		}
 	}
 
 	private NativeType parseNativeType()
@@ -326,7 +334,7 @@ public class OLParser extends AbstractParser
 
 			// Maximum
 			if ( token.is( Scanner.TokenType.INT ) ) {
-				max = new Integer( token.content() ).intValue(); //TODO. corretto ?
+				max = Integer.parseInt( token.content() );
 				if ( max < 1 ) {
 					throwException( "Maximum number of occurences of a sub-type must be positive" );
 				}

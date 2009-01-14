@@ -255,7 +255,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInputPort ) { // Input operation
 			if ( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
-				if ( n.requestType().equals( other.requestType() ) == false ) {
+				if ( n.requestType() != null && n.requestType().equals( other.requestType() ) == false ) {
 					error( n, "input operations sharing the same name cannot declare different types (One-Way operation " + n.id() + ")" );
 				}
 			} else {
@@ -266,10 +266,10 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( RequestResponseOperationDeclaration n )
 	{
-		if ( definedTypes.get( n.requestType().id() ) == null ) {
+		if ( n.requestType() != null && definedTypes.get( n.requestType().id() ) == null ) {
 			error( n, "unknown type: " + n.requestType().id() );
 		}
-		if ( definedTypes.get( n.responseType().id() ) == null ) {
+		if ( n.responseType() != null && definedTypes.get( n.responseType().id() ) == null ) {
 			error( n, "unknown type: " + n.requestType().id() );
 		}
 		for( Entry< String, TypeDeclaration > fault : n.faults().entrySet() ) {
