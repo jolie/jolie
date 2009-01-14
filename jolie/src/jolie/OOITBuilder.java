@@ -376,8 +376,10 @@ public class OOITBuilder implements OLVisitor
 			currType = new Type( n.nativeType(), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
-			for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
-				subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+			if ( n.subTypes() != null ) {
+				for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+				}
 			}
 			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
 		}
@@ -391,7 +393,17 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( TypeDeclarationLink n )
 	{
-		n.linkedType().accept( this );
+		if ( n.untypedSubTypes() ) {
+			currType = new Type( n.nativeType(), n.cardinality(), true, null );
+		} else {
+			Map< String, Type > subTypes = new HashMap< String, Type >();
+			if ( n.subTypes() != null ) {
+				for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+				}
+			}
+			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
+		}
 	}
 
 	public void visit( Program p )
@@ -410,7 +422,9 @@ public class OOITBuilder implements OLVisitor
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
 			}
 		} else {
-			notificationTypes.get( currentOutputPort ).put( decl.requestType().id(), buildType( decl.requestType() ) );
+			if ( decl.requestType() != null ) {
+				notificationTypes.get( currentOutputPort ).put( decl.requestType().id(), buildType( decl.requestType() ) );
+			}
 		}
 	}
 
@@ -429,8 +443,8 @@ public class OOITBuilder implements OLVisitor
 					decl.id(),
 					new RequestResponseOperation(
 						decl.id(),
-						types.get( decl.requestType().id() ),
-						types.get( decl.responseType().id() ),
+						( decl.requestType() == null ) ? null : types.get( decl.requestType().id() ),
+						( decl.responseType() == null ) ? null : types.get( decl.responseType().id() ),
 						faults
 					)
 				);
