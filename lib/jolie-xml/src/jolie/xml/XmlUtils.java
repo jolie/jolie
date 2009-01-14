@@ -24,7 +24,7 @@ package jolie.xml;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
