@@ -55,39 +55,50 @@ public class Type
 	public void check( Value value )
 		throws TypeCheckingException
 	{
+		check( value, new StringBuilder( "Message" ) );
+	}
+
+	private void check( Value value, StringBuilder pathBuilder )
+		throws TypeCheckingException
+	{
 		if ( checkNativeType( value, nativeType ) == false ) {
-			throw new TypeCheckingException( "Invalid native type" );
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + value.valueObject().getClass().getName() );
 		}
 
 		if ( undefinedSubTypes == false ) {
-			if ( subTypes.size() == value.children().size() ) {
-				for( Entry< String, Type > entry : subTypes.entrySet() ) {
-					checkSubType( entry.getKey(), entry.getValue(), value );
+			for( Entry< String, Type > entry : subTypes.entrySet() ) {
+				checkSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
+			}
+			// TODO make this more performant
+			for( String childName : value.children().keySet() ) {
+				if ( subTypes.containsKey( childName ) == false ) {
+					throw new TypeCheckingException( "Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
-			} else {
-				throw new TypeCheckingException( "Invalid number of child nodes" );
 			}
 		}
 	}
 
-	private void checkSubType( String typeName, Type type, Value value )
+	private void checkSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
+		pathBuilder.append( '.' );
+		pathBuilder.append( typeName );
+
 		if ( value.hasChildren( typeName ) == false && type.cardinality.min() > 0 ) {
-			throw new TypeCheckingException( "Undefined required child node: " + typeName );
+			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
 		}
 
 		ValueVector vector = value.getChildren( typeName );
 		int size = vector.size();
 		if ( type.cardinality.min() > size || type.cardinality.max() < size ) {
 			throw new TypeCheckingException(
-				"Child node " + typeName + " has a wrong number of occurencies. Permitted range is [" +
+				"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 				type.cardinality.min() + "," + type.cardinality.max() + "], found " + size
 			);
 		}
 
 		for( Value v : vector ) {
-			type.check( v );
+			type.check( v, pathBuilder );
 		}
 	}
 
