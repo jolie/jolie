@@ -877,11 +877,11 @@ public class OLParser extends AbstractParser
 					}
 				}
 
-				if ( definedTypes.containsKey( requestTypeName ) == false ) {
+				if ( requestTypeName != null && definedTypes.containsKey( requestTypeName ) == false ) {
 					throwException( "invalid type: " + requestTypeName );
 				}
 
-				if ( definedTypes.containsKey( responseTypeName ) == false ) {
+				if ( responseTypeName != null && definedTypes.containsKey( responseTypeName ) == false ) {
 					throwException( "invalid type: " + requestTypeName );
 				}
 
