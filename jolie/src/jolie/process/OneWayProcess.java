@@ -30,8 +30,9 @@ import jolie.net.CommMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
-import jolie.runtime.InputOperation;
+import jolie.runtime.OneWayOperation;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.TypeCheckingException;
 
 public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
 {
@@ -83,6 +84,15 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
+			if ( operation.requestType() != null ) {
+				try {
+					operation.requestType().check( message.value() );
+				} catch( TypeCheckingException e ) {
+					Interpreter.getInstance().logger().warning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
+					return false;
+				}
+			}
+
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
 					this.notify();
@@ -104,12 +114,12 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		}
 	}
 	
-	final protected InputOperation operation;
+	final protected OneWayOperation operation;
 	final protected VariablePath varPath;
 	protected CorrelatedProcess correlatedProcess = null;
 
 	public OneWayProcess(
-			InputOperation operation,
+			OneWayOperation operation,
 			VariablePath varPath
 			)
 	{

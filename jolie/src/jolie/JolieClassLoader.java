@@ -21,6 +21,7 @@
 
 package jolie;
 
+import jolie.lang.Constants;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;

@@ -21,6 +21,7 @@
 
 package jolie;
 
+import jolie.lang.Constants;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

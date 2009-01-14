@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,17 +19,39 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.runtime.typing;
 
-import java.io.IOException;
-import jolie.lang.Constants;
+import java.util.Map;
 
-public class UnsupportedCommMediumException extends IOException
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class RequestResponseTypeDescription
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	public UnsupportedCommMediumException( String medium )
+	private Type requestType;
+	private Type responseType;
+	private Map<String, Type> faultTypes;
+
+	public RequestResponseTypeDescription( Type requestType, Type responseType, Map<String, Type> faultTypes )
 	{
-		super( "Unsupported communication medium: " + medium );
+		this.requestType = requestType;
+		this.responseType = responseType;
+		this.faultTypes = faultTypes;
+	}
+
+	public Type requestType()
+	{
+		return requestType;
+	}
+
+	public Type responseType()
+	{
+		return responseType;
+	}
+
+	public Type getFaultType( String faultName )
+	{
+		return faultTypes.get( faultName );
 	}
 }

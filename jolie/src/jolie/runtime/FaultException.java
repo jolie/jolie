@@ -27,7 +27,7 @@ import java.io.PrintStream;
 
 public class FaultException extends Exception
 {
-	private static final long serialVersionUID = jolie.Constants.serialVersionUID();
+	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 	final private String faultName;
 	final private Value value;
 	

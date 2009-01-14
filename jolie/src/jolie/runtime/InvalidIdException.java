@@ -22,7 +22,7 @@
 
 package jolie.runtime;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 
 public class InvalidIdException extends Exception
 {

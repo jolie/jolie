@@ -21,7 +21,7 @@
 
 package jolie.runtime.embedding;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 
 public class EmbeddedServiceLoadingException extends Exception
 {

@@ -21,6 +21,7 @@
 
 package jolie;
 
+import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -158,13 +159,13 @@ public class CommandLineParser
 				i = args.length;
 			} else if ( "-i".equals( args[ i ] ) ) {
 				i++;
-				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
+				String[] tmp = args[ i ].split( jolie.lang.Constants.pathSeparator );
 				for( String s : tmp ) {
 					includeList.add( s );
 				}
 			} else if ( "-l".equals( args[ i ] ) ) {
 				i++;
-				String[] tmp = args[ i ].split( jolie.Constants.pathSeparator );
+				String[] tmp = args[ i ].split( jolie.lang.Constants.pathSeparator );
 				for( String s : tmp ) {
 					libList.add( s );
 				}
@@ -239,7 +240,7 @@ public class CommandLineParser
 			for( int i = 0; i < includePaths.size() && olStream == null; i++ ) {
 				f = new File(
 							includePaths.get( i ) +
-							jolie.Constants.fileSeparator +
+							jolie.lang.Constants.fileSeparator +
 							olFilepath
 						);
 				if ( f.exists() ) {

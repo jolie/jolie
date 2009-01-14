@@ -33,7 +33,9 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import jolie.Constants.OperandType;
+import jolie.lang.Constants;
+import jolie.lang.Constants.OperandType;
+import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -96,6 +98,9 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.types.TypeDeclaration;
+import jolie.lang.parse.ast.types.TypeDeclarationLink;
+import jolie.lang.parse.ast.types.TypeInlineDeclaration;
 import jolie.net.OutputPort;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.process.AssignmentProcess;
@@ -163,6 +168,8 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
 import jolie.util.Pair;
 
 /**
@@ -175,6 +182,8 @@ public class OOITBuilder implements OLVisitor
 	private Program program;
 	private boolean valid = true;
 	final private Interpreter interpreter;
+
+	private String currentOutputPort = null;
 
 	/**
 	 * Constructor.
@@ -255,6 +264,14 @@ public class OOITBuilder implements OLVisitor
 						n.location()
 					)
 				);
+
+		currentOutputPort = n.id();
+		notificationTypes.put( currentOutputPort, new HashMap< String, Type >() );
+		solicitResponseTypes.put( currentOutputPort, new HashMap< String, RequestResponseTypeDescription >() );
+		for( OperationDeclaration decl : n.operations() ) {
+			decl.accept( this );
+		}
+		currentOutputPort = null;
 	}
 	
 	public void visit( EmbeddedServiceNode n )
@@ -340,6 +357,42 @@ public class OOITBuilder implements OLVisitor
 	private Expression currExpression;
 	private Condition currCondition;
 	private boolean canSpawnSession = false;
+	private Type currType;
+	boolean insideType = false;
+	
+	private Map< String, Type > types = new HashMap< String, Type >();
+
+	final private Map< String, Map< String, Type > > notificationTypes =
+		new HashMap< String, Map< String, Type > >(); // Maps output ports to their OW operation types
+	final private Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
+		new HashMap< String, Map< String, RequestResponseTypeDescription > >(); // Maps output ports to their RR operation types
+
+	public void visit( TypeInlineDeclaration n )
+	{
+		boolean backupInsideType = insideType;
+		insideType = true;
+
+		if ( n.untypedSubTypes() ) {
+			currType = new Type( n.nativeType(), n.cardinality(), true, null );
+		} else {
+			Map< String, Type > subTypes = new HashMap< String, Type >();
+			for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+				subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+			}
+			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
+		}
+
+		insideType = backupInsideType;
+
+		if ( insideType == false ) {
+			types.put( n.id(), currType );
+		}
+	}
+
+	public void visit( TypeDeclarationLink n )
+	{
+		n.linkedType().accept( this );
+	}
 
 	public void visit( Program p )
 	{
@@ -349,24 +402,49 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OneWayOperationDeclaration decl )
 	{
-		// Register if not already present
-		try {
-			interpreter.getOneWayOperation( decl.id() );
-		} catch( InvalidIdException e ) {
-			interpreter.register( decl.id(), new OneWayOperation( decl.id() ) );
+		if ( currentOutputPort == null ) {
+			// Register if not already present
+			try {
+				interpreter.getOneWayOperation( decl.id() );
+			} catch( InvalidIdException e ) {
+				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
+			}
+		} else {
+			notificationTypes.get( currentOutputPort ).put( decl.requestType().id(), buildType( decl.requestType() ) );
 		}
 	}
 
 	public void visit( RequestResponseOperationDeclaration decl )
 	{
-		// Register if not already present
-		try {
-			interpreter.getRequestResponseOperation( decl.id() );
-		} catch( InvalidIdException e ) {
-			interpreter.register(
-				decl.id(),
-				new RequestResponseOperation( decl.id(), decl.faultNames() ) 
-						);
+		if ( currentOutputPort == null ) {
+			// Register if not already present
+			try {
+				interpreter.getRequestResponseOperation( decl.id() );
+			} catch( InvalidIdException e ) {
+				Map< String, Type > faults = new HashMap< String, Type >();
+				for( Entry< String, TypeDeclaration > entry : decl.faults().entrySet() ) {
+					faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
+				}
+				interpreter.register(
+					decl.id(),
+					new RequestResponseOperation(
+						decl.id(),
+						types.get( decl.requestType().id() ),
+						types.get( decl.responseType().id() ),
+						faults
+					)
+				);
+			}
+		} else {
+			Type requestType, responseType;
+			Map< String, Type > faultTypes = new HashMap< String, Type >();
+			requestType = buildType( decl.requestType() );
+			responseType = buildType( decl.requestType() );
+			for( Entry< String, TypeDeclaration > entry : decl.faults().entrySet() ) {
+				faultTypes.put( entry.getKey(), types.get( entry.getValue().id() ) );
+			}
+			RequestResponseTypeDescription desc = new RequestResponseTypeDescription( requestType, responseType, faultTypes );
+			solicitResponseTypes.get( currentOutputPort ).put( decl.id(), desc );
 		}
 	}
 
@@ -549,8 +627,9 @@ public class OOITBuilder implements OLVisitor
 				new NotificationProcess(
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
-						outputExpression
-						);
+						outputExpression,
+						notificationTypes.get( n.outputPortId() ).get( n.id() )
+					);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
@@ -573,8 +652,9 @@ public class OOITBuilder implements OLVisitor
 						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression,
 						buildVariablePath( n.inputVarPath() ),
-						installProcess
-						);
+						installProcess,
+						solicitResponseTypes.get( n.outputPortId() ).get( n.id() )
+					);
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
@@ -874,11 +954,11 @@ public class OOITBuilder implements OLVisitor
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
-		if ( n.type() == Constants.ValueType.INT ) {
+		if ( n.type() == NativeType.INT ) {
 			currExpression = new CastIntExpression( currExpression );
-		} else if ( n.type() == Constants.ValueType.DOUBLE ) {
+		} else if ( n.type() == NativeType.DOUBLE ) {
 			currExpression = new CastRealExpression( currExpression );
-		} else if ( n.type() == Constants.ValueType.STRING ) {
+		} else if ( n.type() == NativeType.STRING ) {
 			currExpression = new CastStringExpression( currExpression );
 		}
 	}
@@ -938,6 +1018,15 @@ public class OOITBuilder implements OLVisitor
 		}
 		n.accept( this );
 		return currProcess;
+	}
+
+	private Type buildType( OLSyntaxNode n )
+	{
+		if ( n == null ) {
+			return null;
+		}
+		n.accept( this );
+		return currType;
 	}
 
 	public void visit( SpawnStatement n )

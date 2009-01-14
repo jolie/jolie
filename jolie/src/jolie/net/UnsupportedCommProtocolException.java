@@ -22,7 +22,7 @@
 package jolie.net;
 
 import java.io.IOException;
-import jolie.Constants;
+import jolie.lang.Constants;
 
 public class UnsupportedCommProtocolException extends IOException
 {

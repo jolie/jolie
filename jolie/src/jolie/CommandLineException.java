@@ -21,6 +21,8 @@
 
 package jolie;
 
+import jolie.lang.Constants;
+
 /** Interpreter command line exception.
  * 
  * Thrown when the Interpreter constructor finds a command line option which

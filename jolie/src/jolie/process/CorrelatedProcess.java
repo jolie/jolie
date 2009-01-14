@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionThread;

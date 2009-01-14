@@ -23,7 +23,7 @@
 package jolie.runtime.embedding;
 
 import jolie.runtime.*;
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 
