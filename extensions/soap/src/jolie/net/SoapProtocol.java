@@ -52,7 +52,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPHeaderElement;
 import javax.xml.soap.SOAPMessage;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
