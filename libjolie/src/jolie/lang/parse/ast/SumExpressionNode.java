@@ -24,7 +24,7 @@ package jolie.lang.parse.ast;
 import java.util.Collection;
 import java.util.Vector;
 
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 import jolie.util.Pair;

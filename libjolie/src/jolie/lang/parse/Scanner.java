@@ -90,6 +90,7 @@ public class Scanner
 		INCLUDE,				///< include
 		CONSTANTS,				///< constants
 		POINTS_TO,				///< ->
+		QUESTION_MARK,			///< ?
 		ARROW,					///< =>
 		DEEP_COPY_LEFT,			///< <<
 		RUN,					///< run
@@ -365,6 +366,8 @@ public class Scanner
 							retval = new Token( TokenType.CARET );
 						else if ( ch == '%' )
 							retval = new Token( TokenType.PERCENT_SIGN );
+						else if ( ch == '?' )
+							retval = new Token( TokenType.QUESTION_MARK );
 						/*else if ( ch == '$' )
 							retval = new Token( TokenType.DOLLAR );*/
 						

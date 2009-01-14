@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008 by Elvis Ciotti                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,35 +20,88 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.ast.types;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.util.Range;
 
-
-public class TypeCastExpressionNode extends OLSyntaxNode
+/**
+ * @author Fabrizio Montesi
+ */
+public class TypeInlineDeclaration extends TypeDeclaration
 {
-	final private OLSyntaxNode expression;
-	final private NativeType type;
+	final private NativeType nativeType;
+	private Map< String, TypeDeclaration > subTypes = null;
+	private boolean untypedSubTypes = false;
 
-	public TypeCastExpressionNode( ParsingContext context, NativeType type, OLSyntaxNode expression )
+	public TypeInlineDeclaration( ParsingContext context, String id, NativeType nativeType, Range cardinality )
 	{
-		super( context );
-		this.type = type;
-		this.expression = expression;
+		super( context, id, cardinality );
+		this.nativeType = nativeType;
 	}
-	
-	public NativeType type()
+
+	public NativeType nativeType()
 	{
-		return type;
+		return nativeType;
 	}
-	
-	public OLSyntaxNode expression()
+
+	public void setUntypedSubTypes( boolean b )
 	{
-		return expression;
+		untypedSubTypes = b;
 	}
-	
+
+	public boolean hasSubType( String id )
+	{
+		if ( subTypes == null ) {
+			return false;
+		} else {
+			return subTypes.containsKey( id );
+		}
+	}
+
+	public Set< Map.Entry< String, TypeDeclaration > > subTypes()
+	{
+		if ( subTypes == null ) {
+			return null;
+		}
+
+		return subTypes.entrySet();
+	}
+
+	public TypeDeclaration getSubType( String id )
+	{
+		if ( subTypes != null ) {
+			return subTypes.get( id );
+		}
+		return null;
+	}
+
+	public boolean hasSubTypes()
+	{
+		if ( subTypes != null && subTypes.isEmpty() == false ) {
+			return true;
+		}
+		return false;
+	}
+
+	public void putSubType( TypeDeclaration type )
+	{
+		if ( subTypes == null ) {
+			subTypes = new HashMap< String, TypeDeclaration >();
+		}
+		subTypes.put( type.id(), type );
+	}
+
+	public boolean untypedSubTypes()
+	{
+		return untypedSubTypes;
+	}
+
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

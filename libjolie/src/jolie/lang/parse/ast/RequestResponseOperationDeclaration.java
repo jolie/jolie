@@ -21,29 +21,45 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Collection;
 
+import java.util.Map;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.ast.types.TypeDeclaration;
 
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration
 {
-	final private Collection< String > faultNames;
+	final private Map< String, TypeDeclaration > faults;
+	final private TypeDeclaration requestType, responseType;
 
 	public RequestResponseOperationDeclaration(
 			ParsingContext context,
 			String id,
-			Collection< String > faultNames
+			TypeDeclaration requestType,
+			TypeDeclaration responseType,
+			Map< String, TypeDeclaration > faults
 		)
 	{
 		super( context, id );
-		this.faultNames = faultNames;
+		this.requestType = requestType;
+		this.responseType = responseType;
+		this.faults = faults;
+	}
+
+	public TypeDeclaration requestType()
+	{
+		return requestType;
+	}
+
+	public TypeDeclaration responseType()
+	{
+		return responseType;
 	}
 	
-	public Collection< String > faultNames()
+	public Map< String, TypeDeclaration > faults()
 	{
-		return faultNames;
+		return faults;
 	}
 	
 	public void accept( OLVisitor visitor )

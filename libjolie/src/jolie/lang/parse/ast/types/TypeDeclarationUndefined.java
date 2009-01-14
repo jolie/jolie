@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,31 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
-package jolie.lang.parse;
+package jolie.lang.parse.ast.types;
 
 import jolie.lang.Constants;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ParsingContext;
 
-public class ParserException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class TypeDeclarationUndefined extends TypeInlineDeclaration
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	final private String sourceName;
-	final private int line;
-	final private String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
-	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
+	static private class LazyHolder {
+		private static TypeDeclarationUndefined instance = new TypeDeclarationUndefined();
 	}
-	
-	public String getMessage()
+
+	private TypeDeclarationUndefined()
 	{
-		String ret = new String();
-		ret += this.sourceName;
-		ret += ":" + line + ": error: " + mesg;
-		return ret;
+		super( new ParsingContext(), "undefined", NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+		super.setUntypedSubTypes( true );
+	}
+
+	public static TypeDeclarationUndefined getInstance()
+	{
+		return LazyHolder.instance;
 	}
 }

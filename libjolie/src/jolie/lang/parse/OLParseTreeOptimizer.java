@@ -22,7 +22,7 @@
 package jolie.lang.parse;
 
 import java.lang.reflect.Array;
-import jolie.Constants;
+import jolie.lang.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -82,6 +82,8 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.types.TypeDeclarationLink;
+import jolie.lang.parse.ast.types.TypeInlineDeclaration;
 import jolie.util.Pair;
 
 
@@ -602,6 +604,16 @@ public class OLParseTreeOptimizer
 		public void visit( NullProcessStatement n ) { currNode = n; }
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
+
+		public void visit( TypeInlineDeclaration n )
+		{
+			program.addChild( n );
+		}
+
+		public void visit( TypeDeclarationLink n )
+		{
+			currNode = n;
+		}
 		
 		public void visit( ValueVectorSizeExpressionNode n )
 		{

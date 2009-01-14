@@ -36,7 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import jolie.Constants;
+import jolie.lang.Constants;
+import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -98,7 +99,12 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.types.TypeDeclaration;
+import jolie.lang.parse.ast.types.TypeDeclarationLink;
+import jolie.lang.parse.ast.types.TypeDeclarationUndefined;
+import jolie.lang.parse.ast.types.TypeInlineDeclaration;
 import jolie.util.Pair;
+import jolie.util.Range;
 
 /** Parser for a .ol file. 
  * @author Fabrizio Montesi
@@ -126,6 +132,7 @@ public class OLParser extends AbstractParser
 			oc.operationsMap().putAll( operationsMap );
 		}
 	}
+
 	private final Program program = new Program( new ParsingContext() );
 	private final Map<String, Scanner.Token> constantsMap =
 		new HashMap<String, Scanner.Token>();
@@ -133,6 +140,8 @@ public class OLParser extends AbstractParser
 	private String[] includePaths;
 	private final Map<String, Interface> interfaces =
 		new HashMap<String, Interface>();
+
+	private final Map< String, TypeDeclaration > definedTypes = createTypeDeclarationMap();
 	
 	private final ClassLoader classLoader;
 
@@ -141,6 +150,19 @@ public class OLParser extends AbstractParser
 		super( scanner );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
+	}
+
+	static public Map< String, TypeDeclaration > createTypeDeclarationMap()
+	{
+		Map< String, TypeDeclaration > definedTypes = new HashMap< String, TypeDeclaration >();
+
+		// Fill in defineTypes with all the supported native types (string, int, double, ...)
+		for( NativeType type : NativeType.values() ) {
+			definedTypes.put( type.id(), new TypeInlineDeclaration( new ParsingContext(), type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+		}
+		definedTypes.put( NativeType.UNDEFINED.id(), TypeDeclarationUndefined.getInstance() );
+		
+		return definedTypes;
 	}
 
 	public Program parse()
@@ -157,6 +179,8 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseCorrelationSet();
 			parseInclude();
+			parseTypes();
+			parseInclude();
 			parseInterfaces();
 			parseInclude();
 			parsePorts();
@@ -164,13 +188,163 @@ public class OLParser extends AbstractParser
 			parseEmbedded();
 			parseInclude();
 			parseCode();
-		} while ( t != token );
+		} while( t != token );
 
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
 		}
 		return program;
 	}
+
+	private void parseTypes()
+		throws IOException, ParserException
+	{
+		String typeName;
+		TypeInlineDeclaration currentType;
+
+		while( token.isKeyword( "type" ) ) {
+			getToken();
+
+			typeName = token.content();
+			eat( Scanner.TokenType.ID, "expected type name" );
+
+			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+
+			NativeType nativeType = parseNativeType();
+			currentType = new TypeInlineDeclaration( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
+				parseSubTypes( currentType );
+			}
+
+			// Keep track of the root types to support them in successive type declarations
+			definedTypes.put( typeName, currentType );
+
+			program.addChild( currentType );
+		}
+	}
+
+	private NativeType readNativeType()
+	{
+		return NativeType.fromString( token.content() );
+	}
+
+	private NativeType parseNativeType()
+		throws IOException, ParserException
+	{
+		NativeType nativeType = readNativeType();
+
+		if ( nativeType == null ) {
+			throwException( "expected native type, found \"" + token.content() + "\""  );
+		}
+
+		getToken();
+
+		return nativeType;
+	}
+
+	private void parseSubTypes( TypeInlineDeclaration type )
+		throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+		
+		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+			type.setUntypedSubTypes( true );
+			getToken();
+		} else {
+			TypeDeclaration currentSubType;
+			while( !token.is( Scanner.TokenType.RCURLY ) ) {
+				currentSubType = parseSubType();
+				if ( type.hasSubType( currentSubType.id() ) ) {
+					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
+				}
+				type.putSubType( currentSubType );
+			}
+		}
+
+		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
+	}
+
+	private TypeDeclaration parseSubType()
+		throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
+
+		// SubType id
+		String id = token.content();
+		eat( Scanner.TokenType.ID, "expected type name" );
+
+		Range cardinality = parseCardinality();
+		eat( Scanner.TokenType.COLON, "expected COLON" );
+
+		NativeType nativeType = readNativeType();
+
+		if ( nativeType == null ) { // It's a user-defined type
+			TypeDeclarationLink linkedSubType;
+			linkedSubType = new TypeDeclarationLink( getContext(), id, cardinality, definedTypes.get( token.content() ) );
+			getToken();
+			return linkedSubType;
+		} else {
+			getToken();
+			TypeInlineDeclaration inlineSubType = new TypeInlineDeclaration( getContext(), id, nativeType, cardinality );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
+				parseSubTypes( inlineSubType );
+			}
+			return inlineSubType;
+		}
+	}
+
+	private Range parseCardinality()
+		throws IOException, ParserException
+	{
+		int min = -1;
+		int max = -1;
+
+		if ( token.is( Scanner.TokenType.COLON ) ) { // Default (no cardinality specified)
+			min = 1;
+			max = 1;
+		} else if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+			min = 0;
+			max = 1;
+			getToken();
+		} else if ( token.is( Scanner.TokenType.ASTERISK ) ) {
+			min = 0;
+			max = Integer.MAX_VALUE;
+			getToken();
+		} else if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+			getToken(); // eat [
+
+			// Minimum
+			assertToken( Scanner.TokenType.INT, "expected int value" );
+			min = Integer.parseInt( token.content() );
+			if ( min < 0 ) {
+				throwException( "Minimum number of occurences of a sub-type must be positive or zero" );
+			}
+
+			getToken();
+			eat( Scanner.TokenType.COMMA, "expected comma separator" );
+
+			// Maximum
+			if ( token.is( Scanner.TokenType.INT ) ) {
+				max = new Integer( token.content() ).intValue(); //TODO. corretto ?
+				if ( max < 1 ) {
+					throwException( "Maximum number of occurences of a sub-type must be positive" );
+				}
+			} else if ( token.is( Scanner.TokenType.ASTERISK ) ) {
+				max = Integer.MAX_VALUE;
+			} else {
+				throwException( "Maximum number of sub-type occurences not valid: " + token.content() );
+			}
+
+			getToken();
+			eat( Scanner.TokenType.RSQUARE, "expected ]" );
+		} else {
+			throwException( "Sub-type cardinality syntax error" );
+		}
+
+		return new Range( min, max );
+	}
+
 
 	private void parseEmbedded()
 		throws IOException, ParserException
@@ -324,7 +498,7 @@ public class OLParser extends AbstractParser
 			for ( int i = 0; i < includePaths.length && stream == null; i++ ) {
 				f = new File(
 					includePaths[i] +
-					jolie.Constants.fileSeparator +
+					Constants.fileSeparator +
 					includeStr );
 				if ( f.exists() ) {
 					stream = new FileInputStream( f );
@@ -626,19 +800,31 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
-
-		while ( keepRun ) {
+		String opId;
+		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
-				oc.addOperation( new OneWayOperationDeclaration( getContext(), token.content() ) );
+				opId = token.content();
+				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
 				getToken();
+
+				if ( token.is( Scanner.TokenType.LPAREN ) ) { // Type declaration
+					getToken(); //eat (
+					if ( definedTypes.containsKey( token.content() ) == false ) {
+						throwException( "invalid type: " + token.content() );
+					}
+					opDecl.setRequestType( definedTypes.get( token.content() ) );
+					getToken(); // eat the type name
+					eat( Scanner.TokenType.RPAREN, "expected )" );
+				}
+
+				oc.addOperation( opDecl );
 
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
 				} else {
 					keepRun = false;
 				}
-
 			} else {
 				keepRun = false;
 			}
@@ -651,26 +837,64 @@ public class OLParser extends AbstractParser
 	{
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
-
 		boolean keepRun = true;
 		String opId;
 
-		while ( keepRun ) {
+		while( keepRun ) {
 			checkConstant();
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
+				String requestTypeName = null;
+				String responseTypeName = null;
 
-				Vector<String> faultNames = new Vector<String>();
+				if ( token.is( Scanner.TokenType.LPAREN ) ) {
+					getToken(); //eat (
+					requestTypeName = token.content();
+					getToken();
+					eat( Scanner.TokenType.RPAREN, "expected )" );
+					eat( Scanner.TokenType.LPAREN, "expected (" );
+					responseTypeName = token.content();
+					getToken();
+					eat( Scanner.TokenType.RPAREN, "expected )" );
+				}
+
+				Map< String, TypeDeclaration > faultTypesMap = new HashMap< String, TypeDeclaration >();
+
 				if ( token.is( Scanner.TokenType.THROWS ) ) {
 					getToken();
-					while ( token.is( Scanner.TokenType.ID ) ) {
-						faultNames.add( token.content() );
+					while( token.is( Scanner.TokenType.ID ) ) {
+						String faultName = token.content();
+						String faultTypeName = NativeType.UNDEFINED.id();
 						getToken();
-
+						if ( token.is( Scanner.TokenType.LPAREN ) ) {
+							getToken(); //eat (
+							faultTypeName = token.content();
+							getToken();
+							eat( Scanner.TokenType.RPAREN, "rparen not found" );
+						}
+						faultTypesMap.put( faultName, definedTypes.get( faultTypeName ) );
 					}
 				}
-				oc.addOperation( new RequestResponseOperationDeclaration( getContext(), opId, faultNames ) );
+
+				if ( definedTypes.containsKey( requestTypeName ) == false ) {
+					throwException( "invalid type: " + requestTypeName );
+				}
+
+				if ( definedTypes.containsKey( responseTypeName ) == false ) {
+					throwException( "invalid type: " + requestTypeName );
+				}
+
+				RequestResponseOperationDeclaration opRR =
+					new RequestResponseOperationDeclaration(
+						getContext(),
+						opId,
+						definedTypes.get( requestTypeName ),
+						definedTypes.get( responseTypeName ),
+						faultTypesMap
+					);
+
+				oc.addOperation( opRR );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
 				} else {
@@ -1820,7 +2044,7 @@ public class OLParser extends AbstractParser
 				Scanner.TokenType.LPAREN, "expected (" );
 			retVal =
 				new TypeCastExpressionNode(
-				getContext(), Constants.ValueType.INT, parseExpression() );
+				getContext(), NativeType.INT, parseExpression() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
@@ -1829,7 +2053,7 @@ public class OLParser extends AbstractParser
 				Scanner.TokenType.LPAREN, "expected (" );
 			retVal =
 				new TypeCastExpressionNode(
-				getContext(), Constants.ValueType.DOUBLE, parseExpression() );
+				getContext(), NativeType.DOUBLE, parseExpression() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
@@ -1838,7 +2062,7 @@ public class OLParser extends AbstractParser
 				Scanner.TokenType.LPAREN, "expected (" );
 			retVal =
 				new TypeCastExpressionNode(
-				getContext(), Constants.ValueType.STRING, parseExpression() );
+				getContext(), NativeType.STRING, parseExpression() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 		}
