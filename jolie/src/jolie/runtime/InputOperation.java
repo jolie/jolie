@@ -35,6 +35,7 @@ import jolie.process.InputProcessExecution;
 import jolie.process.NDChoiceProcess;
 import jolie.util.Pair;
 import jolie.process.Process;
+import jolie.runtime.typing.TypeCheckingException;
 
 /**
  * @author Fabrizio Montesi
@@ -72,11 +73,15 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 			}
 			
 			CommChannelHandler.currentThread().setExecutionThread( entry.getValue() );
-			if ( entry.getValue().checkCorrelation( path, message )
-					&& entry.getKey().recvMessage( channel, message )
-					) {
-				procsMap.remove( entry.getKey() );
-				return;
+			if ( entry.getValue().checkCorrelation( path, message ) ) {
+				try {
+					if ( entry.getKey().recvMessage( channel, message ) ) {
+						procsMap.remove( entry.getKey() );
+						return;
+					}
+				} catch( TypeCheckingException e ) {
+					return;
+				}
 			}
 		}
 
@@ -98,10 +103,15 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().operationName() );
 			}
 			
-			if ( ethread.checkCorrelation( path, pair.value() )
-					&& process.recvMessage( pair.key(), pair.value() ) ) {
-				mesgList.remove( pair );
-				return;
+			if ( ethread.checkCorrelation( path, pair.value() ) ) {
+				try {
+					if ( process.recvMessage( pair.key(), pair.value() ) ) {
+						mesgList.remove( pair );
+						return;
+					}
+				} catch( TypeCheckingException e ) {
+					mesgList.remove( pair );
+				}
 			}
 		}
 		
