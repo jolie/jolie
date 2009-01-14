@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008 by Elvis Ciotti                                    *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,31 +20,38 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.util;
 
-package jolie.lang.parse;
-
-import jolie.lang.Constants;
-
-public class ParserException extends Exception
+public class Range
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	final private String sourceName;
-	final private int line;
-	final private String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
+	final private int min;
+	final private int max;
+
+	public Range( int min, int max )
 	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
+		if ( min < 0 || max < 0 ) {
+			throw new IllegalArgumentException();
+		}
+
+		this.min = min;
+		this.max = max;
 	}
-	
-	public String getMessage()
+
+	public int min()
 	{
-		String ret = new String();
-		ret += this.sourceName;
-		ret += ":" + line + ": error: " + mesg;
-		return ret;
+		return min;
+	}
+
+	public int max()
+	{
+		return max;
+	}
+
+	public boolean equals( Range range )
+	{
+		if ( min == range.min && max == range.max ) {
+			return true;
+		}
+		return false;
 	}
 }

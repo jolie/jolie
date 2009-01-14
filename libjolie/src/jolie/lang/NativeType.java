@@ -19,31 +19,40 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang;
 
-package jolie.lang.parse;
-
-import jolie.lang.Constants;
-
-public class ParserException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public enum NativeType
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
+	UNDEFINED( "undefined" ),
+	STRING( "string" ),
+	INT( "int" ),
+	DOUBLE( "double" ),
+	VOID( "void" ),
+	ANY( "any" );
+
+	final private String id;
 	
-	final private String sourceName;
-	final private int line;
-	final private String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
+	NativeType( String id )
 	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
+		this.id = id;
 	}
-	
-	public String getMessage()
+
+	public String id()
 	{
-		String ret = new String();
-		ret += this.sourceName;
-		ret += ":" + line + ": error: " + mesg;
-		return ret;
+		return id;
+	}
+
+	static public NativeType fromString( String id )
+	{
+		for( NativeType type : NativeType.values() ) {
+			if ( type.id().equals( id ) ) {
+				return type;
+			}
+		}
+		return null;
 	}
 }

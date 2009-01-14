@@ -78,6 +78,8 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.types.TypeDeclarationLink;
+import jolie.lang.parse.ast.types.TypeInlineDeclaration;
 
 public interface OLVisitor
 {
@@ -138,4 +140,6 @@ public interface OLVisitor
 	public void visit( EmbeddedServiceNode n );
 	public void visit( InstallFixedVariableExpressionNode n );
 	public void visit( VariablePathNode n );
+	public void visit( TypeInlineDeclaration n );
+	public void visit( TypeDeclarationLink n );
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,31 +19,71 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.types;
 
-package jolie.lang.parse;
+import java.util.Map;
+import java.util.Set;
+import jolie.lang.NativeType;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ParsingContext;
+import jolie.util.Range;
 
-import jolie.lang.Constants;
-
-public class ParserException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class TypeDeclarationLink extends TypeDeclaration
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	final private String sourceName;
-	final private int line;
-	final private String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
+	final private TypeDeclaration linkedType;
+
+	public TypeDeclarationLink( ParsingContext context, String id, Range cardinality, TypeDeclaration linkedType )
 	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
+		super( context, id, cardinality );
+		this.linkedType = linkedType;
 	}
-	
-	public String getMessage()
+
+	public TypeDeclaration linkedType()
 	{
-		String ret = new String();
-		ret += this.sourceName;
-		ret += ":" + line + ": error: " + mesg;
-		return ret;
+		return linkedType;
+	}
+
+	public boolean isValid()
+	{
+		return ( linkedType != null );
+	}
+
+	public boolean untypedSubTypes()
+	{
+		return linkedType.untypedSubTypes();
+	}
+
+	public boolean hasSubTypes()
+	{
+		return linkedType.hasSubTypes();
+	}
+
+	public TypeDeclaration getSubType( String id )
+	{
+		return linkedType.getSubType( id );
+	}
+
+	public NativeType nativeType()
+	{
+		return linkedType.nativeType();
+	}
+
+	public Set< Map.Entry< String, TypeDeclaration > > subTypes()
+	{
+		return linkedType.subTypes();
+	}
+
+	public boolean hasSubType( String id )
+	{
+		return linkedType.hasSubType( id );
+	}
+
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

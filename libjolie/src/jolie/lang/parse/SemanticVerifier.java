@@ -24,10 +24,11 @@ package jolie.lang.parse;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import jolie.Constants.OperandType;
+import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -87,6 +88,9 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.types.TypeDeclaration;
+import jolie.lang.parse.ast.types.TypeDeclarationLink;
+import jolie.lang.parse.ast.types.TypeInlineDeclaration;
 import jolie.util.Pair;
 
 /**
@@ -103,11 +107,17 @@ public class SemanticVerifier implements OLVisitor
 	private Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
 	
 	private Set< String > subroutineNames = new HashSet< String > ();
-	private HashMap< String, OperationDeclaration > operations = 
-						new HashMap< String, OperationDeclaration >();
+	private Map< String, OneWayOperationDeclaration > oneWayOperations =
+						new HashMap< String, OneWayOperationDeclaration >();
+	private Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
+						new HashMap< String, RequestResponseOperationDeclaration >();
+	private boolean insideInputPort = false;
+
 	private boolean mainDefined = false;
 	
 	private final Logger logger = Logger.getLogger( "JOLIE" );
+
+	private final Map< String, TypeDeclaration > definedTypes = OLParser.createTypeDeclarationMap();
 	
 	public SemanticVerifier( Program program )
 	{
@@ -150,6 +160,52 @@ public class SemanticVerifier implements OLVisitor
 		return valid;
 	}
 
+	private boolean rootType = true;
+
+	public void visit( TypeInlineDeclaration n )
+	{
+		checkCardinality( n );
+		boolean backupRootType = rootType;
+		if ( rootType ) {
+			// Check if the type has already been defined
+			if ( definedTypes.containsKey( n.id() ) ) {
+				error( n, "type " + n.id() + " has already been defined" );
+			}
+		}
+
+		rootType = false;
+
+		if ( n.hasSubTypes() ) {
+			for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+				entry.getValue().accept( this );
+			}
+		}
+
+		rootType = backupRootType;
+
+		if ( rootType ) {
+			definedTypes.put( n.id(), n );
+		}
+	}
+	
+	public void visit( TypeDeclarationLink n )
+	{
+		checkCardinality( n );
+		if ( n.isValid() == false ) {
+			error( n, "type " + n.id() + " points to an undefined type" );
+		}
+	}
+
+	private void checkCardinality( TypeDeclaration type )
+	{
+		if ( type.cardinality().min() < 0 ) {
+			error( type, "type " + type.id() + " specifies an invalid minimum range value (must be positive)" );
+		}
+		if ( type.cardinality().max() < 0 ) {
+			error( type, "type " + type.id() + " specifies an invalid maximum range value (must be positive)" );
+		}
+	}
+
 	public void visit( SpawnStatement n )
 	{
 		n.body().accept( this );
@@ -163,15 +219,21 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( VariablePathNode n )
 	{}
-	
+
 	public void visit( InputPortInfo n )
 	{
-		if ( inputPorts.get( n.id() ) != null )
+		if ( inputPorts.get( n.id() ) != null ) {
 			error( n, "input port " + n.id() + " has been already defined" );
+		}
 		inputPorts.put( n.id(), n );
+
+		insideInputPort = true;
+
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 		}
+
+		insideInputPort = false;
 	}
 	
 	public void visit( OutputPortInfo n )
@@ -184,38 +246,73 @@ public class SemanticVerifier implements OLVisitor
 			op.accept( this );
 		}
 	}
-	
-	private boolean isDefined( String id )
-	{
-		if (	operations.get( id ) != null ||
-				subroutineNames.contains( id )
-				)
-			return true;
-			
-		return false;
-	}
 		
 	public void visit( OneWayOperationDeclaration n )
 	{
-/*		if ( isDefined( n.id() ) )
-			error( n, "Operation " + n.id() + " uses an already defined identifier" );
-		else
-			operations.put( n.id(), n );
- **/
+		if ( definedTypes.get( n.requestType().id() ) == null ) {
+			error( n, "unknown type: " + n.requestType().id() );
+		}
+		if ( insideInputPort ) { // Input operation
+			if ( oneWayOperations.containsKey( n.id() ) ) {
+				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
+				if ( n.requestType().equals( other.requestType() ) == false ) {
+					error( n, "input operations sharing the same name cannot declare different types (One-Way operation " + n.id() + ")" );
+				}
+			} else {
+				oneWayOperations.put( n.id(), n );
+			}
+		}
 	}
 		
 	public void visit( RequestResponseOperationDeclaration n )
 	{
-/*		if ( isDefined( n.id() ) )
-			error( n, "Operation " + n.id() + " uses an already defined identifier" );
-		else
-			operations.put( n.id(), n );
- */
+		if ( definedTypes.get( n.requestType().id() ) == null ) {
+			error( n, "unknown type: " + n.requestType().id() );
+		}
+		if ( definedTypes.get( n.responseType().id() ) == null ) {
+			error( n, "unknown type: " + n.requestType().id() );
+		}
+		for( Entry< String, TypeDeclaration > fault : n.faults().entrySet() ) {
+			if ( fault.getValue() != null && !definedTypes.containsKey( fault.getValue().id() ) ) {
+				error( n, "unknown type " + fault.getValue().id() + " for fault " + fault.getKey() );
+			}
+		}
+
+		if ( insideInputPort ) { // Input operation
+			if ( requestResponseOperations.containsKey( n.id() ) ) {
+				RequestResponseOperationDeclaration other = requestResponseOperations.get( n.id() );
+				checkEqualness( n, other );
+			} else {
+				requestResponseOperations.put( n.id(), n );
+			}
+		}
 	}
-		
+	
+	private void checkEqualness( RequestResponseOperationDeclaration n, RequestResponseOperationDeclaration other )
+	{
+		if ( n.requestType().equals( other.requestType() ) == false ) {
+			error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
+		}
+		if ( n.responseType().equals( other.responseType() ) == false ) {
+			error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
+		}
+
+		if ( n.faults().size() != other.faults().size() ) {
+			error( n, "input operations sharing the same name cannot declared different fault types (Request-Response operation " + n.id() );
+		}
+
+		for( Entry< String, TypeDeclaration > fault : n.faults().entrySet() ) {
+			if ( fault.getValue() != null ) {
+				if ( !other.faults().containsKey( fault.getKey() ) || !other.faults().get( fault.getKey() ).equals( fault.getValue() ) ) {
+					error( n, "input operations sharing the same name cannot declared different fault types (Request-Response operation " + n.id() );
+				}
+			}
+		}
+	}
+
 	public void visit( DefinitionNode n )
 	{
-		if ( isDefined( n.id() ) )
+		if ( subroutineNames.contains( n.id() ) )
 			error( n, "Procedure " + n.id() + " uses an already defined identifier" );
 		else
 			subroutineNames.add( n.id() );

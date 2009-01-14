@@ -19,10 +19,11 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie;
+package jolie.lang;
 
 import java.nio.charset.Charset;
 import jolie.lang.parse.Scanner;
+import jolie.util.Range;
 
 public final class Constants
 {
@@ -88,18 +89,14 @@ public final class Constants
 		}
 	}
 
-	public static enum ValueType
-	{
-		UNDEFINED,
-		STRING,
-		INT,
-		DOUBLE
-	}
+	static public final Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
 
 	public static interface Keywords
 	{
 		public static final String DEFAULT_HANDLER_NAME = "default";
 	}
+
+	public static final String TYPE_MISMATCH_FAULT_NAME = "TypeMismatch";
 
 	public static final String INPUT_PORTS_NODE_NAME = "inputPorts";
 	public static final String PROTOCOL_NODE_NAME = "protocol";
