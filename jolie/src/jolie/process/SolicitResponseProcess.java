@@ -108,10 +108,12 @@ public class SolicitResponseProcess implements Process
 			
 			if ( message.isFault() ) {
 				Type faultType = types.getFaultType( message.fault().faultName() );
-				try {
-					faultType.check( message.fault().value() );
-				} catch( TypeCheckingException e ) {
-					throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+				if ( faultType != null ) {
+					try {
+						faultType.check( message.fault().value() );
+					} catch( TypeCheckingException e ) {
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+					}
 				}
 				throw message.fault();
 			} else {

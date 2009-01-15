@@ -197,7 +197,9 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	{
 		if ( operation.faults().containsKey( f.faultName() ) ) {
 			Type faultType = operation.faults().get( f.faultName() );
-			faultType.check( f.value() );
+			if ( faultType != null ) {
+				faultType.check( f.value() );
+			}
 		} else {
 			Interpreter.getInstance().logger().severe(
 				"Request-Response process for " + operation.id() +
