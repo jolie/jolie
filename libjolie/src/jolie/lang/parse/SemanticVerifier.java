@@ -290,10 +290,19 @@ public class SemanticVerifier implements OLVisitor
 	
 	private void checkEqualness( RequestResponseOperationDeclaration n, RequestResponseOperationDeclaration other )
 	{
-		if ( n.requestType().equals( other.requestType() ) == false ) {
+		if ( n.requestType() == null ) {
+			if ( other.requestType() != null ) {
+				error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
+			}
+		} else if ( n.requestType().equals( other.requestType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
 		}
-		if ( n.responseType().equals( other.responseType() ) == false ) {
+
+		if ( n.responseType() == null ) {
+			if ( other.responseType() != null ) {
+				error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
+			}
+		} else if ( n.responseType().equals( other.responseType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
 		}
 
