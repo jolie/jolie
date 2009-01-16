@@ -29,6 +29,7 @@ import jolie.ExecutionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.process.InputProcessExecution;
+import jolie.runtime.typing.TypeCheckingException;
 
 
 /** Internal synchronization link for parallel processes.
@@ -51,21 +52,25 @@ public class InternalLink extends AbstractIdentifiableObject implements InputHan
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
 		for( int i = 0; i < procsList.size(); i++ ) {
-			if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
-				procsList.remove( i );
-				return;
-			}
+			try {
+				if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
+					procsList.remove( i );
+					return;
+				}
+			} catch( TypeCheckingException e ) { e .printStackTrace(); }
 		}
 		signals++;
 	}
 
 	public synchronized void signForMessage( InputProcessExecution process )
 	{
-		if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
-			signals--;
-		} else {
-			procsList.add( process );
-		}
+		try {
+			if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
+				signals--;
+			} else {
+				procsList.add( process );
+			}
+		} catch( TypeCheckingException e ) { e.printStackTrace(); }
 	}
 	
 	public synchronized void cancelWaiting( InputProcessExecution process ) 
