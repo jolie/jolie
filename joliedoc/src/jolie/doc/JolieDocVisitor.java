@@ -1,5 +1,3 @@
-package jolie.doc;
-
 /***************************************************************************
  *   Copyright (C) 2008 by Fabrizio Montesi                                *
  *                                                                         *
@@ -21,7 +19,7 @@ package jolie.doc;
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
+package jolie.doc;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AndConditionNode;
