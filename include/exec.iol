@@ -1,6 +1,16 @@
+type CommandExecutionRequest:string {
+	.waitFor?:int
+	.args[0,*]:string
+}
+
+type CommandExecutionResult:any { // Can be string or void
+	.exitCode?:int
+}
+
+
 outputPort Exec {
 RequestResponse:
-	exec
+	exec(CommandExecutionRequest)(CommandExecutionResult)
 }
 
 embedded {

@@ -1,6 +1,6 @@
 outputPort Math {
 RequestResponse:
-	random
+	random(void)(double)
 }
 
 embedded {
