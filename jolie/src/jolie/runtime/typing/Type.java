@@ -62,7 +62,7 @@ public class Type
 		throws TypeCheckingException
 	{
 		if ( checkNativeType( value, nativeType ) == false ) {
-			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + value.valueObject().getClass().getName() );
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
 		}
 
 		if ( undefinedSubTypes == false ) {
