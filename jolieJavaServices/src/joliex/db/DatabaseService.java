@@ -122,11 +122,10 @@ public class DatabaseService extends JavaService
 	private void checkConnection()
 		throws FaultException
 	{
+		if ( connection == null ) {
+			throw new FaultException( "ConnectionError" );
+		}
 		if ( mustCheckConnection ) {
-			if ( connection == null ) {
-				throw new FaultException( "ConnectionError" );
-			}
-
 			try {
 				if ( !connection.isValid( 0 ) ) {
 					connection = DriverManager.getConnection(
