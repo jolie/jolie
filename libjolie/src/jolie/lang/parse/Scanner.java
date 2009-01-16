@@ -444,11 +444,11 @@ public class Scanner
 						else if ( "is_double".equals( str ) )
 							retval = new Token( TokenType.IS_REAL );
 						else if ( "int".equals( str ) )
-							retval = new Token( TokenType.CAST_INT );
+							retval = new Token( TokenType.CAST_INT, str );
 						else if ( "string".equals( str ) )
-							retval = new Token( TokenType.CAST_STRING );
+							retval = new Token( TokenType.CAST_STRING, str );
 						else if ( "double".equals( str ) )
-							retval = new Token( TokenType.CAST_REAL );
+							retval = new Token( TokenType.CAST_REAL, str );
 						else if ( "throws".equals( str ) )
 							retval = new Token( TokenType.THROWS );
 						else if ( "cH".equals( str ) )
