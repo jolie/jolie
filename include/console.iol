@@ -1,12 +1,12 @@
 inputPort ConsoleInputPort {
 Location: "local"
 OneWay:
-	in
+	in(string)
 }
 
 outputPort Console {
 RequestResponse:
-	print, println, registerForInput, in
+	print(string)(void), println(string)(void), registerForInput(void)(void)
 }
 
 embedded {
