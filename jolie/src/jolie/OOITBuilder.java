@@ -453,7 +453,7 @@ public class OOITBuilder implements OLVisitor
 			Type requestType, responseType;
 			Map< String, Type > faultTypes = new HashMap< String, Type >();
 			requestType = buildType( decl.requestType() );
-			responseType = buildType( decl.requestType() );
+			responseType = buildType( decl.responseType() );
 			for( Entry< String, TypeDeclaration > entry : decl.faults().entrySet() ) {
 				faultTypes.put( entry.getKey(), types.get( entry.getValue().id() ) );
 			}
