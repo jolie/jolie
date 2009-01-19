@@ -386,7 +386,7 @@ public class OOITBuilder implements OLVisitor
 
 		insideType = backupInsideType;
 
-		if ( insideType == false ) {
+		if ( insideType == false && insideOperationDeclaration == false ) {
 			types.put( n.id(), currType );
 		}
 	}
@@ -412,8 +412,12 @@ public class OOITBuilder implements OLVisitor
 			node.accept( this );
 	}
 
+	private boolean insideOperationDeclaration = false;
+
 	public void visit( OneWayOperationDeclaration decl )
 	{
+		boolean backup = insideOperationDeclaration;
+		insideOperationDeclaration = true;
 		if ( currentOutputPort == null ) {
 			// Register if not already present
 			try {
@@ -423,9 +427,10 @@ public class OOITBuilder implements OLVisitor
 			}
 		} else {
 			if ( decl.requestType() != null ) {
-				notificationTypes.get( currentOutputPort ).put( decl.requestType().id(), buildType( decl.requestType() ) );
+				notificationTypes.get( currentOutputPort ).put( decl.id(), buildType( decl.requestType() ) );
 			}
 		}
+		insideOperationDeclaration = backup;
 	}
 
 	public void visit( RequestResponseOperationDeclaration decl )
