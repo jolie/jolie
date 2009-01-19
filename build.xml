@@ -16,7 +16,8 @@
 
     <target name="-install-windows-launcher" if="isWindows">
         <echo message="Installing JOLIE Windows launcher script..." />
-        <echo file="${install.launcher_dir}/jolie.bat">set joliepath=${install.dir}
+        <echo file="${install.launcher_dir}/jolie.bat">@echo off
+set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 </echo>
