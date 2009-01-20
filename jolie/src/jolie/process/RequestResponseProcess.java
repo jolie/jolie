@@ -251,6 +251,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 						operation.responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
 						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
+						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 					}
 				}
 			}
