@@ -6,7 +6,7 @@ OneWay:
 
 outputPort Console {
 RequestResponse:
-	print(any)(void), println(any)(void), registerForInput(void)(void)
+	print(undefined)(void), println(undefined)(void), registerForInput(void)(void)
 }
 
 embedded {
