@@ -365,8 +365,7 @@ public class SoapProtocol extends SequentialCommProtocol
 				// Message ID
 				Name messageIdName = soapEnvelope.createName( "MessageID", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
 				SOAPHeaderElement messageIdElement = soapHeader.addHeaderElement(messageIdName);
-				// TODO: message ID generation
-				messageIdElement.setValue( "uuid:1" );
+				messageIdElement.setValue( "uuid:" + message.id() );
 				// Action element
 				Name actionName = soapEnvelope.createName( "Action", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
 				SOAPHeaderElement actionElement = soapHeader.addHeaderElement( actionName );
