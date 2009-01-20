@@ -98,6 +98,15 @@ abstract public class CommProtocol
 	{
 		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : "" );
 	}
+
+	/**
+	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
+	 * @param id the parameter identifier
+	 */
+	protected int getIntParameter( String id )
+	{
+		return ( hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0 );
+	}
 	
 	abstract public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException;
