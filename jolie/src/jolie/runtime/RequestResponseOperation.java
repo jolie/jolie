@@ -50,7 +50,7 @@ public class RequestResponseOperation extends InputOperation
 
 	public Type responseType()
 	{
-		return requestType;
+		return responseType;
 	}
 	
 	public Map< String, Type > faults()
