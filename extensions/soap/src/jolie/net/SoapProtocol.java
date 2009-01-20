@@ -358,7 +358,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
 
-			if ( getParameterVector( "wsAddressing" ).first().intValue() == 1 ) {
+			if ( checkBooleanParameter( "wsAddressing" ) ) {
 				SOAPHeader soapHeader = soapEnvelope.getHeader();
 				// WS-Addressing namespace
 				soapHeader.addNamespaceDeclaration( "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
