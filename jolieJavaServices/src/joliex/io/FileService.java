@@ -160,7 +160,7 @@ public class FileService extends JavaService
 			}
 		} else {
 			if ( new File( filename ).delete() == false ) {
-				throw new FaultException( "IOException" );
+				throw new FaultException( "IOException", Value.create( "Could not delete " + filename ) );
 			}
 		}
 		return CommMessage.createResponse( request, Value.create() );
