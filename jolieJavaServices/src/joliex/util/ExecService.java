@@ -62,12 +62,14 @@ public class ExecService extends JavaService
 					reader.read( buffer, 0, len );
 					response.setValue( new String( buffer ) );
 				}
-				len = p.getErrorStream().available();
-				if ( len > 0 ) {
-					char[] buffer = new char[ len ];
-					BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
-					reader.read( buffer, 0, len );
-					response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
+				if ( p.getErrorStream() != null ) {
+					len = p.getErrorStream().available();
+					if ( len > 0 ) {
+						char[] buffer = new char[ len ];
+						BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
+						reader.read( buffer, 0, len );
+						response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
+					}
 				}
 			}
 			return CommMessage.createResponse( request, response );
