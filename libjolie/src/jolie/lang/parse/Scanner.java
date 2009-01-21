@@ -297,6 +297,7 @@ public class Scanner
 	public Token getToken()
 		throws IOException
 	{
+		boolean keepRun = true;
 		state = 1;
 		
 		while ( currByte != -1 && isSeparator( ch ) )
@@ -309,7 +310,10 @@ public class Scanner
 		Token retval = null;
 		String str = new String();
 
-		while ( currByte != -1 && retval == null ) {
+		while ( keepRun ) {
+			if ( currByte == -1 && retval == null ) {
+				keepRun = false; // We *need* a token at this point
+			}
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
@@ -645,11 +649,14 @@ public class Scanner
 					str += ch;
 					readChar();
 				}
+			} else {
+				keepRun = false; // Ok, we are done.
 			}
 		}
 
-		if ( retval == null )
+		if ( retval == null ) {
 			retval = new Token( TokenType.ERROR );
+		}
 		
 		return retval;
 	}
