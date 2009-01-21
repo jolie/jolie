@@ -46,9 +46,8 @@ public class ExecService extends JavaService
 		for( Value v : request.value().getChildren( "args" ) ) {
 			command.add( v.strValue() );
 		}
-		//String input = null;
+
 		ProcessBuilder builder = new ProcessBuilder( command );
-		//builder.redirectErrorStream( true );
 		try {
 			Value response = Value.create();
 			Process p = builder.start();
@@ -62,6 +61,13 @@ public class ExecService extends JavaService
 					BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
 					reader.read( buffer, 0, len );
 					response.setValue( new String( buffer ) );
+				}
+				len = p.getErrorStream().available();
+				if ( len > 0 ) {
+					char[] buffer = new char[ len ];
+					BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
+					reader.read( buffer, 0, len );
+					response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 				}
 			}
 			return CommMessage.createResponse( request, response );
