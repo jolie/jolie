@@ -134,12 +134,12 @@ public class OLParser extends AbstractParser
 	}
 
 	private final Program program = new Program( new ParsingContext() );
-	private final Map<String, Scanner.Token> constantsMap =
-		new HashMap<String, Scanner.Token>();
+	private final Map< String, Scanner.Token > constantsMap =
+		new HashMap< String, Scanner.Token >();
 	private boolean insideInstallFunction = false;
 	private String[] includePaths;
-	private final Map<String, Interface> interfaces =
-		new HashMap<String, Interface>();
+	private final Map< String, Interface > interfaces =
+		new HashMap< String, Interface >();
 
 	private final Map< String, TypeDeclaration > definedTypes = createTypeDeclarationMap();
 	
@@ -475,10 +475,8 @@ public class OLParser extends AbstractParser
 				String cId = token.content();
 				getToken();
 				eat( Scanner.TokenType.ASSIGN, "expected =" );
-				if ( token.isNot( Scanner.TokenType.STRING ) &&
-					token.isNot( Scanner.TokenType.INT ) &&
-					token.isNot( Scanner.TokenType.ID ) ) {
-					throwException( "expected string, integer or identifier constant" );
+				if ( token.isValidConstant() == false ) {
+					throwException( "expected string, integer, double or identifier constant" );
 				}
 				constantsMap.put( cId, token );
 				getToken();

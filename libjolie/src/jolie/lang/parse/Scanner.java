@@ -149,7 +149,15 @@ public class Scanner
 		{
 			return type;
 		}
-		
+
+		public boolean isValidConstant()
+		{
+			return	type == TokenType.STRING ||
+					type == TokenType.INT ||
+					type == TokenType.ID ||
+					type == TokenType.REAL;
+		}
+
 		public boolean isEOF()
 		{
 			return ( type == TokenType.EOF );
