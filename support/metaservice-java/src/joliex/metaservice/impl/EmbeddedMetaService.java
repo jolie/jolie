@@ -41,7 +41,7 @@ public class EmbeddedMetaService extends MetaService
 	final private Interpreter interpreter;
 	final private MetaServiceChannel channel;
 
-	final private static String defaultFilepath = "metaservice.ol";
+	final private static String defaultFilepath = "/include/services/metaservice/metaservice.ol";
 	
 	private static String[] buildInterpreterArguments( String jh, String metaServiceFilepath )
 	{
@@ -70,7 +70,7 @@ public class EmbeddedMetaService extends MetaService
 	{
 		try {
 			interpreter =
-				new Interpreter( buildInterpreterArguments( jolieHome, defaultFilepath ) );
+				new Interpreter( buildInterpreterArguments( jolieHome, jolieHome + defaultFilepath ) );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException e ) {
