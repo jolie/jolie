@@ -543,12 +543,25 @@ public class Interpreter
 	{
 		executorService.execute( r );
 	}
-	
+
+	static private int starterThreadCounter = 0;
+	static final private Object starterThreadCounterMutex = new Object();
+
+	static private String createStarterThreadName( String programFilename )
+	{
+		String ret;
+		synchronized( starterThreadCounterMutex ) {
+			ret = programFilename + "-StarterThread-" + ++starterThreadCounter;
+		}
+		return ret;
+	}
+
 	private class StarterThread extends Thread
 	{
 		final private InterpreterStartFuture future;
 		public StarterThread( InterpreterStartFuture future )
 		{
+			super( createStarterThreadName( programFile.getName() ) );
 			this.future = future;
 			setContextClassLoader( classLoader );
 		}
