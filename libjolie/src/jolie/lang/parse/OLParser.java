@@ -483,7 +483,9 @@ public class OLParser extends AbstractParser
 				if ( token.isValidConstant() == false ) {
 					throwException( "expected string, integer, double or identifier constant" );
 				}
-				constantsMap.put( cId, token );
+				if ( constantsMap.containsKey( cId ) == false ) {
+					constantsMap.put( cId, token );
+				}
 				getToken();
 				if ( token.isNot( Scanner.TokenType.COMMA ) ) {
 					keepRun = false;
