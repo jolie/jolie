@@ -151,15 +151,15 @@ public class CommandLineParser
 			String id = token.content();
 			token = scanner.getToken();
 			if ( token.isNot( Scanner.TokenType.ASSIGN ) ) {
-				throw new IOException( "Expected = after constant identifier " + id + ", found token type " + token.type() );
+				throw new IOException( "expected = after constant identifier " + id + ", found token type " + token.type() );
 			}
 			token = scanner.getToken();
 			if ( token.isValidConstant() == false ) {
-				throw new IOException( "Expected constant value for constant identifier " + id + ", found token type " + token.type() );
+				throw new IOException( "expected constant value for constant identifier " + id + ", found token type " + token.type() );
 			}
 			constants.put( id, token );
 		} else {
-			throw new IOException( "Expected constant identifier, found token type " + token.type() );
+			throw new IOException( "expected constant identifier, found token type " + token.type() );
 		}
 	}
 
@@ -190,7 +190,7 @@ public class CommandLineParser
 				try {
 					parseCommandLineConstant( args[ i ] );
 				} catch( IOException e ) {
-					throw new CommandLineException( "Invalid constant definition, reason:" + e.getMessage() );
+					throw new CommandLineException( "Invalid constant definition, reason: " + e.getMessage() );
 				}
 			} else if ( "-i".equals( args[ i ] ) ) {
 				i++;

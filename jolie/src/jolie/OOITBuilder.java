@@ -335,7 +335,7 @@ public class OOITBuilder implements OLVisitor
 		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
 		}
-		
+
 		if ( protocolFactory != null ) {
 			try {
 				interpreter.commCore().addInputPort(
@@ -350,6 +350,8 @@ public class OOITBuilder implements OLVisitor
 			} catch( IOException ioe ) {
 				error( n.context(), ioe );
 			}
+		} else {
+			error( n.context(), "Communication protocol extension for protocol " + pId + " not found." );
 		}
 	}
 
