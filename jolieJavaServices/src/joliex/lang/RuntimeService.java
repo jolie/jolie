@@ -168,7 +168,7 @@ public class RuntimeService extends JavaService
 			/* We need this so that the Interpreter will unload the embedded
 			 * service when it will exit.
 			 */
-			interpreter.addEmbeddedServiceLoader( loader );
+			//interpreter.addEmbeddedServiceLoader( loader );
 			loader.load();
 			ret = CommMessage.createResponse( message, channel );
 		} catch( EmbeddedServiceLoaderCreationException e ) {
