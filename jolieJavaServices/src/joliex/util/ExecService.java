@@ -65,7 +65,7 @@ public class ExecService extends JavaService
 				len = p.getErrorStream().available();
 				if ( len > 0 ) {
 					char[] buffer = new char[ len ];
-					BufferedReader reader = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
+					BufferedReader reader = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
 					reader.read( buffer, 0, len );
 					response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 				}
