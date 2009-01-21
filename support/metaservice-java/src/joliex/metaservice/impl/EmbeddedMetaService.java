@@ -51,6 +51,8 @@ public class EmbeddedMetaService extends MetaService
 		final String ps = jolie.lang.Constants.pathSeparator;
 		
 		return new String[] {
+			// Location
+			"-C", "MetaServiceLocation=\"local\"",
 			// Libraries
 			"-l", jh + fs + "lib" + ps + jh + fs + "javaServices/*" + ps + jh + fs + "extensions/*",
 			// Includes
