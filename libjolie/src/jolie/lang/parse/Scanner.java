@@ -223,13 +223,13 @@ public class Scanner
 	public String readLine()
 		throws IOException
 	{
-		String buffer = new String();
+		StringBuilder buffer = new StringBuilder();
 		readChar();
 		while( !isNewLineChar( ch ) ) {
-			buffer += ch;
+			buffer.append( ch );
 			readChar();
 		}
-		return buffer;
+		return buffer.toString();
 	}
 	
 	public static String addStringTerminator( String str )
@@ -255,22 +255,22 @@ public class Scanner
 	public void eatSeparators()
 		throws IOException
 	{
-		while( isSeparator( ch ) )
+		while( isSeparator( ch ) ) {
 			readChar();
+		}
 	}
 	
 	public void eatSeparatorsUntilEOF()
 		throws IOException
 	{
-		while( isSeparator( ch ) && stream.available() > 0 )
+		while( isSeparator( ch ) && stream.available() > 0 ) {
 			readChar();
+		}
 	}
 	
 	public static boolean isSeparator( int c )
 	{
-		if ( isNewLineChar( c ) || c == '\t' || c == ' ' )
-			return true;
-		return false;
+		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
 	
 	public static boolean isNewLineChar( int c )
@@ -285,8 +285,9 @@ public class Scanner
 		
 		ch = (char)currByte;
 
-		if ( ch == '\n' )
+		if ( ch == '\n' ) {
 			line++;
+		}
 	}
 	
 	public byte currentByte()
@@ -300,15 +301,17 @@ public class Scanner
 		boolean keepRun = true;
 		state = 1;
 		
-		while ( currByte != -1 && isSeparator( ch ) )
+		while ( currByte != -1 && isSeparator( ch ) ) {
 			readChar();
+		}
 		
-		if ( currByte == -1 )
+		if ( currByte == -1 ) {
 			return new Token( TokenType.EOF );
+		}
 		
 		boolean stopOneChar = false;
 		Token retval = null;
-		String str = new String();
+		StringBuilder builder = new StringBuilder();
 
 		while ( keepRun ) {
 			if ( currByte == -1 && retval == null ) {
@@ -389,6 +392,7 @@ public class Scanner
 					break;
 				case 2:	// ID
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
+						String str = builder.toString();
 						if ( "OneWay".equals( str ) )
 							retval = new Token( TokenType.OP_OW );
 						else if ( "RequestResponse".equals( str ) )
@@ -477,31 +481,31 @@ public class Scanner
 					if ( ch == 'e'|| ch == 'E' ){
 						state = 19;
 					} else if ( !Character.isDigit( ch ) && ch != '.' )
-						retval = new Token( TokenType.INT, str );
+						retval = new Token( TokenType.INT, builder.toString() );
 					else if ( ch == '.' ){
-						str += ch;
+						builder.append( ch );
 						readChar();
 						if ( !Character.isDigit( ch ) ) 
-							retval =  new Token( TokenType.ERROR, str );
+							retval =  new Token( TokenType.ERROR, builder.toString() );
 						else state = 17; // recognized a REAL
 					}
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
-						retval = new Token( TokenType.STRING, str.substring( 1 ) );
+						retval = new Token( TokenType.STRING, builder.toString().substring( 1 ) );
 						readChar();
 					} else if ( ch == '\\' ) { // Parse special characters
 						readChar();
 						if ( ch == '\\' )
-							str += '\\';
+							builder.append( '\\' );
 						else if ( ch == 'n' )
-							str += '\n';
+							builder.append( '\n' );
 						else if ( ch == 't' )
-							str += '\t';
+							builder.append( '\t' );
 						else if ( ch == 'r' )
-							str += '\r';
+							builder.append( '\r' );
 						else if ( ch == '"' )
-							str += '"';
+							builder.append( '"' );
 						else
 							throw new IOException( "malformed string: bad \\ usage" );
 						
@@ -593,7 +597,7 @@ public class Scanner
 						retval = new Token( TokenType.POINTS_TO );
 						readChar();
 					} else if ( ch == '.' ) {
-						str += ch;
+						builder.append( ch );
 						readChar();
 						if ( !Character.isDigit( ch ) )
 							retval = new Token( TokenType.ERROR, "-." );
@@ -618,7 +622,7 @@ public class Scanner
 					if ( ch == 'E' || ch == 'e' )
 						state = 18;
 					else if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.REAL, str );
+						retval = new Token( TokenType.REAL, builder.toString() );
 					break;
 				case 18: // Scientific notation, first char after 'E'
 					if ( ch == '-' || ch == '+' )
@@ -635,10 +639,10 @@ public class Scanner
 						state = 20;
 				case 20: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.REAL, str );
+						retval = new Token( TokenType.REAL, builder.toString() );
 					break;
 				default:
-					retval = new Token( TokenType.ERROR, str );
+					retval = new Token( TokenType.ERROR, builder.toString() );
 					break;
 			}
 			
@@ -646,7 +650,7 @@ public class Scanner
 				if ( stopOneChar )
 					stopOneChar = false;
 				else {
-					str += ch;
+					builder.append( ch );
 					readChar();
 				}
 			} else {
