@@ -1,8 +1,8 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as               *
+ *   it under the terms of the GNU Library General Public License as       *
  *   published by the Free Software Foundation; either version 2 of the    *
  *   License, or (at your option) any later version.                       *
  *                                                                         *
@@ -35,7 +35,7 @@ Interfaces: MetaServiceConsultation, MetaServiceAdministration
 
 outputPort ConfirmingService {
 RequestResponse:
-	confirmRedirection throws InvalidToken
+	confirmRedirection(int)(int) throws InvalidToken
 }
 
 init
@@ -86,7 +86,7 @@ main
 			setOutputPort@Runtime( port )();
 
 			// If we can't set the redirection, we must remove the output port.
-			install( RuntimeException => removeOutputPort@Runtime( port.name ); cH );
+			install( RuntimeException => removeOutputPort@Runtime( port.name )(); cH );
 			redirection.outputPortName = redirection.resourceName;
 			setRedirection@Runtime( redirection )();
 			response = redirection.resourceName;
@@ -153,7 +153,7 @@ main
 			setOutputPort@Runtime( port )();
 
 			// If we can't set the redirection, we must also remove the output port.
-			install( RuntimeException => removeOutputPort@Runtime( port.name ); cH );
+			install( RuntimeException => removeOutputPort@Runtime( port.name )(); cH );
 			redirection.outputPortName = redirection.resourceName;
 			setRedirection@Runtime( redirection )();
 
