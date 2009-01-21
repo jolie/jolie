@@ -1,8 +1,8 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as               *
+ *   it under the terms of the GNU Library General Public License as       *
  *   published by the Free Software Foundation; either version 2 of the    *
  *   License, or (at your option) any later version.                       *
  *                                                                         *
@@ -19,6 +19,17 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+type MetaData:void { ? }
+
+type ServiceRecord:void {
+	.resourceName:string
+	.metadata:MetaData
+}
+
+type ServiceList:void {
+	.service[0,*]:ServiceRecord
+}
+
 /**
  * MetaService consultation interface.
  * Allows the retrieval of information about running services.
@@ -34,7 +45,20 @@ RequestResponse:
 	 * 	}
 	 * }
 	 */
-	getServices
+	getServices(void)(ServiceList)
+}
+
+type LoadEmbeddedJolieServiceRequest:void {
+	.resourcePrefix:string
+	.filepath:string
+	.metadata:MetaData
+}
+
+type AddRedirectionRequest:void {
+	.resourcePrefix:string
+	.location:string
+	.protocol:string { ? }
+	.token?:int
 }
 
 /**
@@ -45,7 +69,7 @@ OneWay:
 	/**
 	 * Shuts down MetaService.
 	 */
-	shutdown
+	shutdown(void)
 RequestResponse:
 	/**
 	 * Starts an embedded jolie service reading its source code file,
@@ -65,12 +89,12 @@ RequestResponse:
 	 * @response:string the resource name the service has been published under
 	 * @throws EmbeddingFault if the service could not be embedded
 	 */
-	loadEmbeddedJolieService throws EmbeddingFault,
+	loadEmbeddedJolieService(LoadEmbeddedJolieServiceRequest)(string) throws EmbeddingFault,
 	/**
 	 * Stops an embedded jolie service running under the specified resource.
 	 * @request:string the resource name of the service to stop.
 	 */
-	unloadEmbeddedService,
+	unloadEmbeddedService(string)(void),
 	/**
 	 * Adds a redirection.
 	 * @request:void {
@@ -83,10 +107,10 @@ RequestResponse:
 	 * 	.protocol:? the protocol (in JOLIE format) the redirection has to use.
 	 * }
 	 */
-	addRedirection,
+	addRedirection(AddRedirectionRequest)(string),
 	/**
 	 * Removes an existing redirection.
 	 * @request:string the resource name identifying the redirection to remove.
 	 */
-	removeRedirection
+	removeRedirection(string)(void)
 }
