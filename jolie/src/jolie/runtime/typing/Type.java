@@ -84,21 +84,22 @@ public class Type
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
-		if ( value.hasChildren( typeName ) == false && type.cardinality.min() > 0 ) {
+		boolean hasChildren = value.hasChildren( typeName );
+		if ( hasChildren == false && type.cardinality.min() > 0 ) {
 			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
-		}
+		} else if ( hasChildren ) {
+			ValueVector vector = value.getChildren( typeName );
+			int size = vector.size();
+			if ( type.cardinality.min() > size || type.cardinality.max() < size ) {
+				throw new TypeCheckingException(
+					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
+					type.cardinality.min() + "," + type.cardinality.max() + "], found " + size
+				);
+			}
 
-		ValueVector vector = value.getChildren( typeName );
-		int size = vector.size();
-		if ( type.cardinality.min() > size || type.cardinality.max() < size ) {
-			throw new TypeCheckingException(
-				"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
-				type.cardinality.min() + "," + type.cardinality.max() + "], found " + size
-			);
-		}
-
-		for( Value v : vector ) {
-			type.check( v, pathBuilder );
+			for( Value v : vector ) {
+				type.check( v, pathBuilder );
+			}
 		}
 	}
 
