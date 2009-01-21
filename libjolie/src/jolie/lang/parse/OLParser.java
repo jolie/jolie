@@ -152,6 +152,11 @@ public class OLParser extends AbstractParser
 		this.classLoader = classLoader;
 	}
 
+	public void putConstants( Map< String, Scanner.Token > constantsToPut )
+	{
+		constantsMap.putAll( constantsToPut );
+	}
+
 	static public Map< String, TypeDeclaration > createTypeDeclarationMap()
 	{
 		Map< String, TypeDeclaration > definedTypes = new HashMap< String, TypeDeclaration >();
