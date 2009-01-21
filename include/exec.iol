@@ -5,6 +5,7 @@ type CommandExecutionRequest:string {
 
 type CommandExecutionResult:any { // Can be string or void
 	.exitCode?:int
+	.stderr?:string
 }
 
 
