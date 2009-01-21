@@ -39,10 +39,13 @@ public class ExecService extends JavaService
 	{
 		Vector< String > command = new Vector< String >();
 		String[] str = request.value().strValue().split( " " );
-		for( int i = 0; i < str.length; i++ )
+		for( int i = 0; i < str.length; i++ ) {
 			command.add( str[i] );
-		for( Value v : request.value().getChildren( "args" ) )
+		}
+
+		for( Value v : request.value().getChildren( "args" ) ) {
 			command.add( v.strValue() );
+		}
 		//String input = null;
 		ProcessBuilder builder = new ProcessBuilder( command );
 		//builder.redirectErrorStream( true );
