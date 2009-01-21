@@ -365,6 +365,7 @@ public class Interpreter
 		classLoader = new JolieClassLoader( cmdParser.libURLs(), this, parentClassLoader );
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
+		olParser.putConstants( cmdParser.definedConstants() );
 	}
 	
 	public File programFile()
