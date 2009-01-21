@@ -21,6 +21,7 @@
 
 package jolie;
 
+import java.io.ByteArrayInputStream;
 import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,9 +30,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import jolie.lang.parse.Scanner;
 
 /**
  * A parser for JOLIE's command line arguments,
@@ -46,6 +50,7 @@ public class CommandLineParser
 	final private InputStream programStream;
 	final private String programFilepath;
 	final private String[] arguments;
+	final private Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -111,7 +116,12 @@ public class CommandLineParser
 	{
 		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
 	}
-	
+
+	public Map< String, Scanner.Token > definedConstants()
+	{
+		return constants;
+	}
+
 	private String getHelpString()
 	{
 		StringBuilder helpBuilder = new StringBuilder();
@@ -122,14 +132,37 @@ public class CommandLineParser
 				getOptionString( "-h, --help", "Display this help information" ) );
 		//TODO include doc for -l and -i
 		helpBuilder.append(
-				getOptionString( "--connlimit [number]", "Set max connections limit" ) );
+				getOptionString( "-C ConstantIdentifier=ConstantValue", "Sets constant ConstantIdentifier to ConstantValue before starting execution" ) );
+		helpBuilder.append(
+				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
 		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		return helpBuilder.toString();
 	}
-	
+
+	private void parseCommandLineConstant( String input )
+		throws IOException
+	{
+		Scanner scanner = new Scanner( new ByteArrayInputStream( input.getBytes() ), "Command line" );
+		Scanner.Token token = scanner.getToken();
+		if ( token.is( Scanner.TokenType.ID ) ) {
+			String id = token.content();
+			token = scanner.getToken();
+			if ( token.isNot( Scanner.TokenType.ASSIGN ) ) {
+				throw new IOException( "Expected = after constant identifier " + id + ", found token type " + token.type() );
+			}
+			token = scanner.getToken();
+			if ( token.isValidConstant() == false ) {
+				throw new IOException( "Expected constant value for constant identifier " + id + ", found token type " + token.type() );
+			}
+			constants.put( id, token );
+		} else {
+			throw new IOException( "Expected constant identifier, found token type " + token.type() );
+		}
+	}
+
 	/**
 	 * Constructor
 	 * @param args the command line arguments
@@ -153,10 +186,12 @@ public class CommandLineParser
 			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
 				throw new CommandLineException( getHelpString() );
 			} else if ( "-C".equals( args[ i ] ) ) {
-				for( i++; i < args.length; i++ ) {
-					
+				i++;
+				try {
+					parseCommandLineConstant( args[ i ] );
+				} catch( IOException e ) {
+					throw new CommandLineException( "Invalid constant definition, reason:" + e.getMessage() );
 				}
-				i = args.length;
 			} else if ( "-i".equals( args[ i ] ) ) {
 				i++;
 				String[] tmp = args[ i ].split( jolie.lang.Constants.pathSeparator );
@@ -210,7 +245,7 @@ public class CommandLineParser
 					public boolean accept( File dir, String filename ) {
 						return filename.endsWith( ".jar" );
 					}
-				});
+				} );
 				if ( jars != null ) {
 					for( String jarPath : jars ) {
 						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + Constants.fileSeparator + jarPath + "!/" ) );
