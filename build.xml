@@ -32,6 +32,45 @@ JOLIE_HOME=${install.dir}
 java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 </echo>
 		<chmod file="${install.launcher_dir}/jolie" perm="a+x"/>
+
+        <echo message="Installing MetaService Unix launcher script..." />
+        <echo file="${install.launcher_dir}/metaservice">#!/bin/sh
+
+JOLIE_HOME=${install.dir}
+METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
+
+print_help()
+{
+	echo "Usage: $0 [location [protocol]]"
+	echo -e "\nExamples of valid locations are:"
+	echo -e "\tsocket://localhost:9000/ (for a tcp/ip socket)"
+	echo -e "\tlocalsocket:/tmp/metaservice_socket (for a local socket)"
+
+	echo -e "\nExamples of valid protocls are:"
+	echo -e "\tsodep (a fast and open-source binary protocol)"
+	echo -e "\tsoap (the SOAP protocol, the standard used by Web Services)"
+
+	echo -e "\nExample of valid invocation:"
+	echo -e "\t$0 socket://localhost:9000/"
+	echo -e "\t$0 socket://localhost:9100/ soap"
+
+	echo -e "\nPlease refer to http://www.jolie-lang.org/ for a complete list of supported locations and protocols."
+	echo -e "MetaService supports all of the locations and protocols provided by the JOLIE language.\n";
+}
+
+if [[ $1 = "-h" || $1 = "--help" ]]; then
+	print_help
+elif [[ $# = 0 ]]; then
+	jolie $METASERVICE
+elif [[ $# = 1 ]]; then
+	jolie -C "MetaServiceLocation=\"$1\"" $METASERVICE
+elif [[ $# = 2 ]]; then
+	jolie -C "MetaServiceLocation=\"$1\"" -C "MetaServiceProtocol=$2" $METASERVICE
+else
+	print_help
+fi
+        </echo>
+        <chmod file="${install.launcher_dir}/metaservice" perm="a+x"/>
     </target>
 
 	<target name="install" depends="init,dist,-delete-old-dir">
