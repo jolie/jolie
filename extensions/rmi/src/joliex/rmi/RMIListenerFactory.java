@@ -25,6 +25,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import jolie.Interpreter;
+import jolie.net.CommCore;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ext.Identifier;
@@ -35,6 +36,11 @@ import jolie.runtime.VariablePath;
 @Identifier("rmi")
 public class RMIListenerFactory extends CommListenerFactory
 {
+	public RMIListenerFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommListener createListener(
 							Interpreter interpreter,
 							URI location,

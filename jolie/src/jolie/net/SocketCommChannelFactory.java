@@ -30,6 +30,11 @@ import jolie.net.ext.CommChannelFactory;
 
 public class SocketCommChannelFactory extends CommChannelFactory
 {
+	public SocketCommChannelFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{

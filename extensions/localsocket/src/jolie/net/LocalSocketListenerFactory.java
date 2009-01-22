@@ -35,6 +35,11 @@ import jolie.runtime.VariablePath;
 @AndJarDeps({"unix.jar"})
 public class LocalSocketListenerFactory extends CommListenerFactory
 {
+	public LocalSocketListenerFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommListener createListener(
 							Interpreter interpreter,
 							URI location,

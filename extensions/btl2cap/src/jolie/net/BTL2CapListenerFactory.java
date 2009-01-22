@@ -35,6 +35,11 @@ import jolie.runtime.VariablePath;
 @AndJarDeps({"bluetooth.jar"})
 public class BTL2CapListenerFactory extends CommListenerFactory
 {
+	public BTL2CapListenerFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommListener createListener(
 					Interpreter interpreter,
 					URI location,

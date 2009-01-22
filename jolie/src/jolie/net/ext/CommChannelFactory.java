@@ -33,10 +33,16 @@ import jolie.net.OutputPort;
  */
 abstract public class CommChannelFactory
 {
-	protected CommCore commCore = null;
-	public void setCommCore( CommCore commCore )
+	final private CommCore commCore;
+
+	protected CommChannelFactory( CommCore commCore )
 	{
 		this.commCore = commCore;
+	}
+
+	final protected CommCore commCore()
+	{
+		return commCore;
 	}
 	
 	abstract public CommChannel createChannel( URI location, OutputPort port )

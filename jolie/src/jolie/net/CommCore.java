@@ -154,11 +154,9 @@ public class CommCore
 		}
 				
 		//TODO make socket an extension, too?
-		CommListenerFactory listenerFactory = new SocketListenerFactory();
-		listenerFactory.setCommCore( this );
+		CommListenerFactory listenerFactory = new SocketListenerFactory( this );
 		listenerFactories.put( "socket", listenerFactory );
-		CommChannelFactory channelFactory = new SocketCommChannelFactory();
-		channelFactory.setCommCore( this );
+		CommChannelFactory channelFactory = new SocketCommChannelFactory( this );
 		channelFactories.put( "socket", channelFactory );
 	}
 	

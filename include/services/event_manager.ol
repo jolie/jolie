@@ -55,7 +55,8 @@ OneWay:
 	 * 	.*: additional data that will be sent to the waiting clients.
 	 * }
 	 */
-	fireEvent
+	fireEvent,
+	shutdown
 }
 
 outputPort Client {
@@ -102,5 +103,9 @@ main
 				receiveEvent@Client( event )
 			}
 		}
+	}
+
+	[ shutdown() ] {
+		exit
 	}
 }

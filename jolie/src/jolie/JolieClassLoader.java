@@ -109,8 +109,7 @@ public class JolieClassLoader extends URLClassLoader
 					if ( pId == null ) {
 						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
 					}
-					CommChannelFactory factory = fClass.newInstance();
-					factory.setCommCore( interpreter.commCore() );
+					CommChannelFactory factory = fClass.getConstructor( CommCore.class ).newInstance( interpreter.commCore() );
 					interpreter.commCore().setCommChannelFactory( pId.value(), factory );
 				}
 			} catch( ClassNotFoundException e ) {
@@ -118,6 +117,10 @@ public class JolieClassLoader extends URLClassLoader
 			} catch( InstantiationException e ) {
 				throw new IOException( e );
 			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
 		}
@@ -136,8 +139,7 @@ public class JolieClassLoader extends URLClassLoader
 					if ( pId == null ) {
 						throw new IOException( "Class " + fClass.getName() + " does not specify a protocol identifier." );
 					}
-					CommListenerFactory factory = fClass.newInstance();
-					factory.setCommCore( interpreter.commCore() );
+					CommListenerFactory factory = fClass.getConstructor( CommCore.class ).newInstance( interpreter.commCore() );
 					interpreter.commCore().setCommListenerFactory( pId.value(), factory );
 				}
 			} catch( ClassNotFoundException e ) {
@@ -145,6 +147,10 @@ public class JolieClassLoader extends URLClassLoader
 			} catch( InstantiationException e ) {
 				throw new IOException( e );
 			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
 		}
