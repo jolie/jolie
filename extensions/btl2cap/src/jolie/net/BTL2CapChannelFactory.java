@@ -43,7 +43,12 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 	final static int cacheLimit = 1000; // Must be > 0
 	final private Map< String, Map< String, ServiceRecord > > serviceCache =
 						new HashMap< String, Map< String, ServiceRecord > > ();
-	
+
+	public BTL2CapChannelFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	private ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
 	{
 		ServiceRecord r = null;

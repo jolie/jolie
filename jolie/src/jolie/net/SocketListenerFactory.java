@@ -32,6 +32,11 @@ import jolie.runtime.VariablePath;
 
 public class SocketListenerFactory extends CommListenerFactory
 {
+	public SocketListenerFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommListener createListener(
 					Interpreter interpreter,
 					URI location,

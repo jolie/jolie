@@ -28,11 +28,17 @@ import java.rmi.registry.Registry;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.Identifier;
 import jolie.net.CommChannel;
+import jolie.net.CommCore;
 import jolie.net.OutputPort;
 
 @Identifier("rmi")
 public class RMICommChannelFactory extends CommChannelFactory
 {
+	public RMICommChannelFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{

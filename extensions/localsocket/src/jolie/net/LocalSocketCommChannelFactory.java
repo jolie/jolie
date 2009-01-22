@@ -33,6 +33,11 @@ import jolie.runtime.AndJarDeps;
 @AndJarDeps({"unix.jar"})
 public class LocalSocketCommChannelFactory extends CommChannelFactory
 {
+	public LocalSocketCommChannelFactory( CommCore commCore )
+	{
+		super( commCore );
+	}
+
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{

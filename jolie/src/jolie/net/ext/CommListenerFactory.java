@@ -37,10 +37,16 @@ import jolie.runtime.VariablePath;
  */
 abstract public class CommListenerFactory
 {
-	protected CommCore commCore = null;
-	public void setCommCore( CommCore commCore )
+	final private CommCore commCore;
+
+	protected CommListenerFactory( CommCore commCore )
 	{
 		this.commCore = commCore;
+	}
+
+	final protected CommCore commCore()
+	{
+		return commCore;
 	}
 	
 	abstract public CommListener createListener(
