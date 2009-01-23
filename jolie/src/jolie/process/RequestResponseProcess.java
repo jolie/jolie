@@ -239,6 +239,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 					response = createFaultMessage( message, ethread.killerFault() );
 				} catch( TypeCheckingException e ) {
 					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+					response = CommMessage.createFaultResponse( message, typeMismatch );
 				}
 			} else {
 				response =
@@ -260,6 +261,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				response = createFaultMessage( message, f );
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+				response = CommMessage.createFaultResponse( message, typeMismatch );
 			}
 			fault = f;
 		}
