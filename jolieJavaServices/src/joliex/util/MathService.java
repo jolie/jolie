@@ -32,4 +32,9 @@ public class MathService extends JavaService
 	{
 		return CommMessage.createResponse( request, Value.create( Math.random() ) );
 	}
+
+	public CommMessage abs( CommMessage request )
+	{
+		return CommMessage.createResponse( request, Value.create( Math.abs( request.value().intValue() ) ) );
+	}
 }
