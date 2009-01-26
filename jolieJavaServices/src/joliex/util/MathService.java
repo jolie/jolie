@@ -28,8 +28,8 @@ import jolie.runtime.Value;
 
 public class MathService extends JavaService
 {
-	public CommMessage random( CommMessage message )
+	public CommMessage random( CommMessage request )
 	{
-		return new CommMessage( "random", "/", Value.create( Math.random() ) );
+		return CommMessage.createResponse( request, Value.create( Math.random() ) );
 	}
 }
