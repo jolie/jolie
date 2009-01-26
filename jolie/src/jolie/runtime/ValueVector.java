@@ -21,6 +21,7 @@
 
 package jolie.runtime;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -56,7 +57,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	}
 }
 
-class ValueVectorImpl extends ValueVector
+class ValueVectorImpl extends ValueVector implements Serializable
 {
 	final private List< Value > values;
 	
