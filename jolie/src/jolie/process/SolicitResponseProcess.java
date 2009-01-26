@@ -129,10 +129,10 @@ public class SolicitResponseProcess implements Process
 			try {
 				installProcess.run();
 			} catch( ExitingException e ) { assert false; }
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-		} catch( URISyntaxException ue ) {
-			ue.printStackTrace();
+		} catch( IOException e ) {
+			throw new FaultException( "IOException", e );
+		} catch( URISyntaxException e ) {
+			e.printStackTrace();
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {

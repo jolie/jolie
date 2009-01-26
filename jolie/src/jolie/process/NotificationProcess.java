@@ -87,10 +87,10 @@ public class NotificationProcess implements Process
 			CommChannel channel = outputPort.getCommChannel();
 			channel.send( message );
 			channel.release();
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
-		} catch( URISyntaxException ue ) {
-			ue.printStackTrace();
+		} catch( IOException e ) {
+			throw new FaultException( "IOException", e );
+		} catch( URISyntaxException e ) {
+			e.printStackTrace();
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		}
