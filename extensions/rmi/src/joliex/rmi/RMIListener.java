@@ -57,7 +57,7 @@ public class RMIListener extends CommListener
 
 		JolieRemote jolieRemote = new JolieRemoteImpl( interpreter, this );
 		jolieRemoteStub = (JolieRemote) UnicastRemoteObject.exportObject( jolieRemote );
-		registry = LocateRegistry.getRegistry( location.getHost(), location.getPort() );
+		registry = LocateRegistry.getRegistry( "localhost", location.getPort() );
 		entryName = location.getPath();
 		try {
 			registry.bind( entryName, jolieRemoteStub );
