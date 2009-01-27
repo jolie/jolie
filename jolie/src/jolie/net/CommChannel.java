@@ -31,6 +31,8 @@ import java.util.Vector;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
 
 /**
  * CommChannel allows for the sending and receiving of CommMessage instances.
@@ -215,7 +217,10 @@ abstract public class CommChannel
 							handleMessage( response );
 						}
 					} catch( IOException e ) {
-						e.printStackTrace();
+						handleGenericMessage(
+							new CommMessage( CommMessage.GENERIC_ID, "", "/", Value.create(), new FaultException( "IOException", e ) )
+						);
+						//e.printStackTrace();
 						keepRun = false;
 					}
 					if ( parent.waiters.isEmpty() ) {
