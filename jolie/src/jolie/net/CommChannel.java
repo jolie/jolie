@@ -195,6 +195,27 @@ abstract public class CommChannel
 				}
 			}
 		}
+
+		private void throwIOExceptionFault( IOException e )
+		{
+			if ( parent.waiters.isEmpty() == false ) {
+				ResponseContainer monitor;
+				for( Entry< Long, ResponseContainer > entry : parent.waiters.entrySet() ) {
+					monitor = entry.getValue();
+					synchronized( monitor ) {
+						monitor.response = new CommMessage(
+							entry.getKey(),
+							"",
+							"/",
+							Value.create(),
+							new FaultException( "IOException", e )
+						);
+						monitor.notify();
+					}
+				}
+				parent.waiters.clear();
+			}
+		}
 		
 		public void run()
 		{
@@ -217,10 +238,7 @@ abstract public class CommChannel
 							handleMessage( response );
 						}
 					} catch( IOException e ) {
-						handleGenericMessage(
-							new CommMessage( CommMessage.GENERIC_ID, "", "/", Value.create(), new FaultException( "IOException", e ) )
-						);
-						//e.printStackTrace();
+						throwIOExceptionFault( e );
 						keepRun = false;
 					}
 					if ( parent.waiters.isEmpty() ) {
