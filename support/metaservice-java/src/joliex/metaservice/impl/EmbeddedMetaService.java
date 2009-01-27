@@ -52,7 +52,7 @@ public class EmbeddedMetaService extends MetaService
 			// Location
 			"-C", "MetaServiceLocation=\"local\"",
 			// Libraries
-			"-l", jh + fs + "lib" + ps + jh + fs + "javaServices" + fs + "*" + ps + jh + fs + "extensions" + ps + "*",
+			"-l", jh + fs + "lib" + ps + jh + fs + "javaServices" + fs + "*" + ps + jh + fs + "extensions" + fs + "*",
 			// Includes
 			"-i", jh + fs + "include",
 			// MetaService source file
