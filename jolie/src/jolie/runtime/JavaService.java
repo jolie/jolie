@@ -41,8 +41,7 @@ abstract public class JavaService
 	private Interpreter interpreter;
 	final private Map< String, Pair< Constants.OperationType, Method > > operations =
 					new HashMap< String, Pair< Constants.OperationType, Method > >();
-	final private Object[] args = new Object[1];
-	
+
 	public JavaService()
 	{
 		Class<?>[] params, exceptions;
@@ -85,32 +84,6 @@ abstract public class JavaService
 		}
 	}
 
-	/*public static class JavaServiceInvocationRunnable implements Runnable
-	{
-		final private JavaService javaService;
-		final private Object[] args;
-		final private Method method;
-
-		public JavaServiceInvocationRunnable( JavaService javaService, Method method, Object[] args )
-		{
-			this.javaService = javaService;
-			this.method = method;
-			this.args = args;
-		}
-
-		public void run()
-		{
-			try {
-				method.invoke( javaService, args );
-			} catch( InvocationTargetException e ) {
-				// This should never happen, as we filtered this out in the constructor.
-				e.printStackTrace();
-			} catch( IllegalAccessException e ) {
-				e.printStackTrace();
-			}
-		}
-	}*/
-	
 	public CommMessage callOperation( CommMessage message )
 		throws InvalidIdException, IllegalAccessException
 	{
@@ -119,6 +92,7 @@ abstract public class JavaService
 			throw new InvalidIdException( message.operationName() );
 		}
 		CommMessage ret = null;
+		final Object[] args = new Object[1];
 		args[0] = message;
 		if ( pair.key() == Constants.OperationType.ONE_WAY ) {
 			final JavaService javaService = this;
