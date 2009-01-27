@@ -36,10 +36,10 @@ public class TimeService extends JavaService
 {
 	protected class TimeThread extends Thread
 	{
-		private long waitTime;
-		private String callbackOperation;
-		private Value callbackValue;
-		private TimeService parent;
+		final private long waitTime;
+		final private String callbackOperation;
+		final private Value callbackValue;
+		final private TimeService parent;
 		public TimeThread( TimeService parent, long waitTime, String callbackOperation, Value callbackValue )
 		{
 			this.waitTime = waitTime;
@@ -61,7 +61,7 @@ public class TimeService extends JavaService
 	}
 	
 	private TimeThread thread = null;
-	private DateFormat dateFormat, dateTimeFormat;
+	final private DateFormat dateFormat, dateTimeFormat;
 	
 	public TimeService()
 	{
@@ -72,15 +72,17 @@ public class TimeService extends JavaService
 	@Override
 	protected void finalize()
 	{
-		if ( thread != null )
+		if ( thread != null ) {
 			thread.interrupt();
+		}
 	}
 	
 	private void launchTimeThread( long waitTime, String callbackOperation, Value callbackValue )
 	{
 		waitTime = ( waitTime > 0 ) ? waitTime : 0L;
-		if ( thread != null )
+		if ( thread != null ) {
 			thread.interrupt();
+		}
 		thread = new TimeThread( this, waitTime, callbackOperation, callbackValue );
 		thread.start();
 	}
@@ -91,10 +93,12 @@ public class TimeService extends JavaService
 		String callbackOperation = null;
 		ValueVector vec;
 		Value callbackValue = null;
-		if ( (vec=message.value().children().get( "operation" )) != null )
+		if ( (vec=message.value().children().get( "operation" )) != null ) {
 			callbackOperation = vec.first().strValue();
-		if ( (vec=message.value().children().get( "message" )) != null )
+		}
+		if ( (vec=message.value().children().get( "message" )) != null ) {
 			callbackValue = vec.first();
+		}
 		
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
@@ -107,15 +111,17 @@ public class TimeService extends JavaService
 				Date date = dateTimeFormat.parse( message.value().strValue() );
 				waitTime = date.getTime() - (new Date()).getTime();
 			}
-		} catch( ParseException pe ) {}
+		} catch( ParseException e ) {}
 
 		String callbackOperation = null;
 		ValueVector vec;
 		Value callbackValue = null;
-		if ( (vec=message.value().children().get( "operation" )) != null )
+		if ( (vec=message.value().children().get( "operation" )) != null ) {
 			callbackOperation = vec.first().strValue();
-		if ( (vec=message.value().children().get( "message" )) != null )
+		}
+		if ( (vec=message.value().children().get( "message" )) != null ) {
 			callbackValue = vec.first();
+		}
 		
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
@@ -146,8 +152,9 @@ public class TimeService extends JavaService
 	{
 		int millis = message.value().intValue();
 		try {
-			if ( millis > 0 )
+			if ( millis > 0 ) {
 				Thread.sleep( millis );
+			}
 		} catch ( InterruptedException e ) {
 		}
 
@@ -155,18 +162,12 @@ public class TimeService extends JavaService
 	}
 	
 	public CommMessage currentTimeMillis( CommMessage message )
-		throws FaultException
 	{
-		CommMessage ret = CommMessage.createEmptyMessage();
-		ret.value().setValue( (int)System.currentTimeMillis() );
-		return ret;
+		return CommMessage.createResponse( message, Value.create( (int)System.currentTimeMillis() ) );
 	}
 	
 	public CommMessage getCurrentDateTime( CommMessage message )
-		throws FaultException
 	{
-		CommMessage ret = CommMessage.createEmptyMessage();
-		ret.value().setValue( dateTimeFormat.format( new Date() ) );
-		return ret;
+		return CommMessage.createResponse( message, Value.create( dateTimeFormat.format( new Date() ) ) );
 	}
 }
