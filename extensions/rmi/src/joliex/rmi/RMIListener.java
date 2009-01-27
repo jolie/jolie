@@ -41,6 +41,7 @@ public class RMIListener extends CommListener
 {
 	private Registry registry;
 	final private String entryName;
+	final private JolieRemote jolieRemoteStub;
 
 	public RMIListener(
 				Interpreter interpreter,
@@ -55,18 +56,18 @@ public class RMIListener extends CommListener
 		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
 
 		JolieRemote jolieRemote = new JolieRemoteImpl( interpreter, this );
-		JolieRemote stub = (JolieRemote) UnicastRemoteObject.exportObject( jolieRemote );
+		jolieRemoteStub = (JolieRemote) UnicastRemoteObject.exportObject( jolieRemote );
 		registry = LocateRegistry.getRegistry( location.getHost(), location.getPort() );
 		entryName = location.getPath();
 		try {
-			registry.bind( entryName, stub );
+			registry.bind( entryName, jolieRemoteStub );
 		} catch( AlreadyBoundException e ) {
 			throw new IOException( e );
 		} catch( RemoteException e ) {
 			if ( e instanceof java.rmi.ConnectException ) {
 				registry = LocateRegistry.createRegistry( location.getPort() );
 				try {
-					registry.bind( entryName, stub );
+					registry.bind( entryName, jolieRemoteStub );
 				} catch( AlreadyBoundException ae ) {
 					throw new IOException( ae );
 				}

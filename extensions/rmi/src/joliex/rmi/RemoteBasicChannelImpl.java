@@ -32,10 +32,12 @@ import jolie.net.LocalCommChannel;
 public class RemoteBasicChannelImpl implements RemoteBasicChannel
 {
 	final private LocalCommChannel channel;
+	final private JolieRemoteImpl parent;
 
-	public RemoteBasicChannelImpl( LocalCommChannel channel )
+	public RemoteBasicChannelImpl( LocalCommChannel channel, JolieRemoteImpl parent )
 	{
 		this.channel = channel;
+		this.parent = parent;
 	}
 
 	public void send( CommMessage message )
@@ -47,6 +49,11 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel
 	public boolean isReady()
 	{
 		return channel.isReady();
+	}
+
+	public void close()
+	{
+		parent.disposeOf( this );
 	}
 
 	public CommMessage recv()
