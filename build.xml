@@ -50,7 +50,7 @@ print_help()
 	echo -e "\tsodep (a fast and open-source binary protocol)"
 	echo -e "\tsoap (the SOAP protocol, the standard used by Web Services)"
 
-	echo -e "\nExample of valid invocation:"
+	echo -e "\nExample of valid invocations:"
 	echo -e "\t$0 socket://localhost:9000/"
 	echo -e "\t$0 socket://localhost:9100/ soap"
 
