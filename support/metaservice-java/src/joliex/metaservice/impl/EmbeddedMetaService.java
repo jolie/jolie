@@ -40,16 +40,14 @@ public class EmbeddedMetaService extends MetaService
 {	
 	final private Interpreter interpreter;
 	final private MetaServiceChannel channel;
+	final static String fs = jolie.lang.Constants.fileSeparator;
+	final static String ps = jolie.lang.Constants.pathSeparator;
 
-	final private static String defaultFilepath = "/include/services/metaservice/metaservice.ol";
+	final private static String defaultFilepath = fs + "include" + fs + "services" + fs + "metaservice" + fs + "metaservice.ol";
 	
 	private static String[] buildInterpreterArguments( String jh, String metaServiceFilepath )
 	{
 		// jh stays for jolie_home, i.e. the JOLIE installation directory
-		
-		final String fs = jolie.lang.Constants.fileSeparator;
-		final String ps = jolie.lang.Constants.pathSeparator;
-		
 		return new String[] {
 			// Location
 			"-C", "MetaServiceLocation=\"local\"",
