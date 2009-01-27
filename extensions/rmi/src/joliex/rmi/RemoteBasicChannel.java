@@ -38,4 +38,6 @@ public interface RemoteBasicChannel extends Remote
 		throws IOException;
 	public boolean isReady()
 		throws RemoteException;
+	public void close()
+		throws RemoteException;
 }

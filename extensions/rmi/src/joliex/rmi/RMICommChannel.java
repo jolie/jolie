@@ -59,7 +59,10 @@ public class RMICommChannel extends CommChannel implements PollableCommChannel
 
 	@Override
 	protected void closeImpl()
-	{}
+		throws IOException
+	{
+		remoteChannel.close();
+	}
 
 	@Override
 	protected void disposeForInputImpl()
