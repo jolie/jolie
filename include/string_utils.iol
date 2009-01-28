@@ -1,6 +1,22 @@
-outputPort StringUtils {
+type ReplaceAllRequest:string {
+	.regex:string
+	.replacement:string
+}
+
+interface StringUtilsInterface {
 RequestResponse:
-	replaceAll, split, trim, contains, match, leftPad, join, splitByLength
+	join,
+	leftPad,
+	length(string)(int),
+	match,
+	replaceAll(ReplaceAllRequest)(string), 
+	split,
+	splitByLength,
+	trim
+}
+
+outputPort StringUtils {
+Interfaces: StringUtilsInterface
 }
 
 embedded {
