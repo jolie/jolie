@@ -31,14 +31,19 @@ import jolie.runtime.ValueVector;
 
 public class StringUtils extends JavaService
 {
+	public CommMessage length( CommMessage request )
+	{
+		return CommMessage.createResponse( request, Value.create( request.value().strValue().length() ) );
+	}
+
 	public CommMessage replaceAll( CommMessage message )
 	{
 		String regex = message.value().getChildren( "regex" ).first().strValue();
 		String replacement = message.value().getChildren( "replacement" ).first().strValue();
-		return new CommMessage(
-				"replaceAll", "/",
-				Value.create( message.value().strValue().replaceAll( regex, replacement ) )
-						);
+		return CommMessage.createResponse(
+			message,
+			Value.create( message.value().strValue().replaceAll( regex, replacement ) )
+		);
 	}
 
 	public CommMessage join( CommMessage request )
@@ -59,7 +64,7 @@ public class StringUtils extends JavaService
 	
 	public CommMessage trim( CommMessage message )
 	{
-		return new CommMessage( "trim", "/", Value.create( message.value().strValue().trim() ) );
+		return CommMessage.createResponse( message, Value.create( message.value().strValue().trim() ) );
 	}
 	
 	public CommMessage split( CommMessage message )
@@ -79,7 +84,7 @@ public class StringUtils extends JavaService
 			value.getNewChild( "result" ).add( Value.create( ss[ i ] ) );
 		}
 
-		return new CommMessage( "split", "/", value );
+		return CommMessage.createResponse( message, value );
 	}
 
 	public CommMessage splitByLength( CommMessage request )
@@ -117,7 +122,7 @@ public class StringUtils extends JavaService
 		} else {
 			response.setValue( 0 );
 		}
-		return new CommMessage( "match", "/", response );
+		return CommMessage.createResponse( message, response );
 	}
 
 	public CommMessage leftPad( CommMessage request )
