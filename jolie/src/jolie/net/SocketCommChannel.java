@@ -97,9 +97,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		protocol().send( stream, message, istream );
-		socketChannel.write( ByteBuffer.wrap( stream.toByteArray() ) );
+		protocol().send( ostream, message, istream );
 	}
 
 	protected void closeImpl()
