@@ -238,9 +238,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		throws IOException
 	{
 		if ( checkBooleanParameter( "keepAlive" ) ) {
-			channel().setToBeClosed( true );
-		} else {
 			channel().setToBeClosed( false );
+		} else {
+			channel().setToBeClosed( true );
 		}
 
 		String charset = getStringParameter( "charset" );
@@ -264,9 +264,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		throws IOException
 	{
 		if ( checkBooleanParameter( "keepAlive" ) ) {
-			channel().setToBeClosed( true );
-		} else {
 			channel().setToBeClosed( false );
+		} else {
+			channel().setToBeClosed( true );
 		}
 
 		String charset = getStringParameter( "charset" );
