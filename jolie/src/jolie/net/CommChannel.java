@@ -62,7 +62,12 @@ abstract public class CommChannel
 	private boolean isOpen = true;
 	
 	private CommChannel redirectionChannel = null;
-	
+
+    protected boolean toBeClosed()
+    {
+        return toBeClosed;
+    }
+
 	public void setRedirectionChannel( CommChannel redirectionChannel )
 	{
 		this.redirectionChannel = redirectionChannel;

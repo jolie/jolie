@@ -50,6 +50,8 @@ abstract public class StreamingCommChannel extends CommChannel
 	@Override
 	final protected void releaseImpl()
 	{
-		Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
+		if ( toBeClosed() == false ) {
+			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
+		}
 	}
 }
