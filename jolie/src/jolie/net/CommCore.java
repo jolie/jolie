@@ -346,9 +346,9 @@ public class CommCore
 					}
 					OutputPort port = listener.redirectionMap().get( ss[1] );
 					if ( port == null ) {
-						String error = "Discarded a message for resource " + ss[1] +
+						String error = '[' + interpreter.programFile().getName() + "] Discarded a message for resource " + ss[1] +
 								", not specified in the appropriate redirection table.";
-						Interpreter.getInstance().logger().warning( error );
+						interpreter.logger().warning( error );
 						throw new IOException( error );
 					}
 					CommChannel oChannel = port.getNewCommChannel();
@@ -374,7 +374,6 @@ public class CommCore
 					if ( listener == null || listener.canHandleInputOperation( operation ) ) {
 						operation.recvMessage( channel, message );
 					} else {
-						Interpreter interpreter = Interpreter.getInstance();
 						interpreter.logger().warning(
 								'[' + interpreter.programFile().getName() + "] Discarded a message for operation " + operation.id() +
 								", not specified in an input port at the receiving service."
