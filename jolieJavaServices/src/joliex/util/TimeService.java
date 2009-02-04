@@ -27,7 +27,6 @@ import java.text.ParseException;
 import java.util.Date;
 
 import jolie.net.CommMessage;
-import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
