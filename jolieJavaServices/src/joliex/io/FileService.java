@@ -142,7 +142,7 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( request, Value.create() );
 	}
 	
 	public CommMessage delete( CommMessage request )
@@ -188,7 +188,7 @@ public class FileService extends JavaService
 				results.add( Value.create( file ) );
 			}
 		}
-		return new CommMessage( "list", "/", response );
+		return CommMessage.createResponse( request, response );
 	}
 	
 	private static class ListFilter implements FilenameFilter

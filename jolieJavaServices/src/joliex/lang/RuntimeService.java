@@ -112,7 +112,7 @@ public class RuntimeService extends JavaService
 			throw new FaultException( "RuntimeException", e );
 		}
 		
-		ret = new CommMessage( "setRedirection", "/", Value.create() );
+		ret = CommMessage.createResponse( message, Value.create() );
 		return ret;
 	}
 	
@@ -128,7 +128,7 @@ public class RuntimeService extends JavaService
 		
 		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
 		listener.redirectionMap().remove( resourceName );
-		ret = new CommMessage( "removeRedirection", "/", Value.create() );
+		ret = CommMessage.createResponse( message, Value.create() );
 		return ret;
 	}
 
@@ -146,9 +146,9 @@ public class RuntimeService extends JavaService
 		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
 		OutputPort p = listener.redirectionMap().get( resourceName );
 		if ( p == null ) {
-			ret = new CommMessage( "getRedirection", "/", Value.create() );
+			ret = CommMessage.createResponse( message, Value.create() );
 		} else {
-			ret = new CommMessage( "getRedirection", "/", Value.create( p.id() ) );
+			ret = CommMessage.createResponse( message, Value.create( p.id() ) );
 		}
 		return ret;
 	}
