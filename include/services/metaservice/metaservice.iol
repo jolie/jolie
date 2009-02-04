@@ -51,13 +51,14 @@ RequestResponse:
 type LoadEmbeddedJolieServiceRequest:void {
 	.resourcePrefix:string
 	.filepath:string
-	.metadata:MetaData
+	.metadata?:MetaData
 }
 
 type AddRedirectionRequest:void {
 	.resourcePrefix:string
 	.location:string
 	.protocol:string { ? }
+	.metadata?:MetaData
 	.token?:int
 }
 
