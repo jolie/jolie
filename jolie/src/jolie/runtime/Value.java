@@ -586,7 +586,7 @@ abstract public class Value implements Expression, Serializable
 	
 	public synchronized final void assignValue( Value val )
 	{
-		setValue( val.valueObject() );
+		setValueObject( val.valueObject() );
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
