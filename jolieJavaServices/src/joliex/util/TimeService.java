@@ -24,9 +24,13 @@ package joliex.util;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
+import java.util.GregorianCalendar;
 import jolie.net.CommMessage;
+import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -168,5 +172,49 @@ public class TimeService extends JavaService
 	public CommMessage getCurrentDateTime( CommMessage message )
 	{
 		return CommMessage.createResponse( message, Value.create( dateTimeFormat.format( new Date() ) ) );
+	}
+
+	/**
+	 * @author Claudio Guidi
+	 */
+	public CommMessage getCurrentDateValues( CommMessage message )
+	{
+		Value v = Value.create();
+
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTimeInMillis( new Date().getTime() );
+		v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
+		v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
+		v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
+
+		return CommMessage.createResponse( message, v );
+	}
+
+	/**
+	 * @author Claudio Guidi
+	 */
+	public CommMessage getDateValues( CommMessage message )
+		throws FaultException
+	{
+		Value v = Value.create();
+		try {
+			String format;
+			if ( message.value().getFirstChild( "format" ).strValue().isEmpty() ) {
+				format = "dd/MM/yyyy";
+			} else {
+				format = message.value().getFirstChild( "format" ).strValue();
+			}
+			SimpleDateFormat sdf = new SimpleDateFormat( format );
+			GregorianCalendar cal = new GregorianCalendar();
+			final Date dt = sdf.parse( message.value().strValue() );
+			cal.setTimeInMillis( dt.getTime() );
+			v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
+			v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
+			v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
+		} catch( ParseException pe ) {
+			throw new FaultException( "InvalidDate", pe );
+		}
+		
+		return CommMessage.createResponse( message, v );
 	}
 }
