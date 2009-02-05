@@ -156,7 +156,6 @@ public class RuntimeService extends JavaService
 	public CommMessage loadEmbeddedService( CommMessage message )
 		throws FaultException
 	{
-		CommMessage ret = null;
 		try {
 			Value channel = Value.create();
 			String filePath = message.value().getFirstChild( "filepath" ).strValue();
@@ -165,12 +164,9 @@ public class RuntimeService extends JavaService
 				jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
 			EmbeddedServiceLoader loader =
 				EmbeddedServiceLoader.create( interpreter(), type, filePath, channel );
-			/* We need this so that the Interpreter will unload the embedded
-			 * service when it will exit.
-			 */
-			//interpreter.addEmbeddedServiceLoader( loader );
 			loader.load();
-			ret = CommMessage.createResponse( message, channel );
+
+			return CommMessage.createResponse( message, channel );
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
@@ -178,6 +174,5 @@ public class RuntimeService extends JavaService
 			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
 		}
-		return ret;
 	}
 }
