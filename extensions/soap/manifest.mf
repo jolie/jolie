@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-X-JOLIE-ProtocolExtension: jolie.net.SoapProtocolFactory
+X-JOLIE-ProtocolExtension: soap:jolie.net.SoapProtocolFactory

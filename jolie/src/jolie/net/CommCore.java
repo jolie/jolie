@@ -197,17 +197,25 @@ public class CommCore
 	
 	final private Map< String, CommChannelFactory > channelFactories = 
 						new HashMap< String, CommChannelFactory > ();
-	
-	public void setCommChannelFactory( String id, CommChannelFactory factory )
+
+	private CommChannelFactory getCommChannelFactory( String name )
+		throws IOException
 	{
-		channelFactories.put( id, factory );
+		CommChannelFactory factory = channelFactories.get( name );
+		if ( factory == null ) {
+			factory = interpreter.getClassLoader().createCommChannelFactory( name, this );
+			if ( factory != null ) {
+				channelFactories.put( name, factory );
+			}
+		}
+		return factory;
 	}
-	
+
 	public CommChannel createCommChannel( URI uri, OutputPort port )
 		throws IOException
 	{
 		String medium = uri.getScheme();
-		CommChannelFactory factory = channelFactories.get( medium );		
+		CommChannelFactory factory = getCommChannelFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
 		}
@@ -218,20 +226,23 @@ public class CommCore
 	final private Map< String, CommProtocolFactory > protocolFactories = 
 						new HashMap< String, CommProtocolFactory > ();
 	
-	public void setCommProtocolFactory( String id, CommProtocolFactory factory )
+	public CommProtocolFactory getCommProtocolFactory( String name )
+		throws IOException
 	{
-		protocolFactories.put( id, factory );
-	}
-
-	public CommProtocolFactory getCommProtocolFactory( String id )
-	{
-		return protocolFactories.get( id );
+		CommProtocolFactory factory = protocolFactories.get( name );
+		if ( factory == null ) {
+			factory = interpreter.getClassLoader().createCommProtocolFactory( name, this );
+			if ( factory != null ) {
+				protocolFactories.put( name, factory );
+			}
+		}
+		return factory;
 	}
 	
 	public CommProtocol createCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
 		throws IOException
 	{
-		CommProtocolFactory factory = protocolFactories.get( protocolId );		
+		CommProtocolFactory factory = getCommProtocolFactory( protocolId );
 		if ( factory == null ) {
 			throw new UnsupportedCommProtocolException( protocolId );
 		}
@@ -241,13 +252,21 @@ public class CommCore
 	
 	final private Map< String, CommListenerFactory > listenerFactories = 
 						new HashMap< String, CommListenerFactory > ();
-	
-	public void setCommListenerFactory( String id, CommListenerFactory factory )
-	{
-		listenerFactories.put( id, factory );
-	}
-	
+
 	final private LocalListener localListener;
+
+	private CommListenerFactory getCommListenerFactory( String name )
+		throws IOException
+	{
+		CommListenerFactory factory = listenerFactories.get( name );
+		if ( factory == null ) {
+			factory = interpreter.getClassLoader().createCommListenerFactory( name, this );
+			if ( factory != null ) {
+				listenerFactories.put( name, factory );
+			}
+		}
+		return factory;
+	}
 	
 	public LocalListener localListener()
 	{
@@ -283,7 +302,7 @@ public class CommCore
 
 		CommListener listener = null;
 		String medium = uri.getScheme();
-		CommListenerFactory factory = listenerFactories.get( medium );
+		CommListenerFactory factory = getCommListenerFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
 		}

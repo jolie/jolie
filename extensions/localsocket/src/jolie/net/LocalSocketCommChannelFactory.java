@@ -26,10 +26,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
-import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 
-@Identifier("localsocket")
 @AndJarDeps({"unix.jar"})
 public class LocalSocketCommChannelFactory extends CommChannelFactory
 {
