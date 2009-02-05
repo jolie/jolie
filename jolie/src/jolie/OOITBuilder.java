@@ -330,7 +330,11 @@ public class OOITBuilder implements OLVisitor
 			.add( n.id(), 0 )
 			.add( Constants.PROTOCOL_NODE_NAME, 0 )
 			.toVariablePath();
-		protocolFactory = interpreter.commCore().getCommProtocolFactory( pId );
+		try {
+			protocolFactory = interpreter.commCore().getCommProtocolFactory( pId );
+		} catch( IOException e ) {
+			error( n.context(), e );
+		}
 		currProcess = null;
 		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
