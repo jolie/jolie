@@ -20,6 +20,7 @@
  ***************************************************************************/
 package jolie.lang.parse;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -514,7 +516,7 @@ public class OLParser extends AbstractParser
 					Constants.fileSeparator +
 					includeStr );
 				if ( f.exists() ) {
-					stream = new FileInputStream( f );
+					stream = new BufferedInputStream( new FileInputStream( f ) );
 				}
 			}
 
