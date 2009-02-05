@@ -33,7 +33,7 @@ RequestResponse:
 	/**
 		Returns the current date splitted in three fields: day, month and year
 	*/
-	getCurrentDateValues()(DateValuesType)
+	getCurrentDateValues(void)(DateValuesType)
 }
 
 embedded {
