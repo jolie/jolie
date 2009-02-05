@@ -21,6 +21,7 @@
 
 package jolie;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import jolie.lang.Constants;
 import java.io.File;
@@ -30,11 +31,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.regex.Pattern;
 import jolie.lang.parse.Scanner;
 
@@ -174,9 +175,9 @@ public class CommandLineParser
 	public CommandLineParser( String[] args )
 		throws CommandLineException, IOException
 	{
-		List< String > argumentsList = new Vector< String >();
+		List< String > argumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
-		List< String > libList = new Vector< String >();
+		List< String > libList = new ArrayList< String >();
 		int cLimit = -1;
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
@@ -236,7 +237,7 @@ public class CommandLineParser
 		
 		connectionsLimit = cLimit;
 		
-		List< URL > urls = new Vector< URL >();
+		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
 			if ( path.endsWith( ".jar" ) ) {
 				urls.add( new URL( "jar:file:" + path + "!/" ) );
@@ -282,7 +283,7 @@ public class CommandLineParser
 							olFilepath
 						);
 				if ( f.exists() ) {
-					olStream = new FileInputStream( f );
+					olStream = new BufferedInputStream( new FileInputStream( f ) );
 				}
 			}
 			if ( olStream == null ) {
