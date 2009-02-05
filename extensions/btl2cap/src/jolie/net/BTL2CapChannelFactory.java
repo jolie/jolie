@@ -33,10 +33,8 @@ import javax.bluetooth.ServiceRecord;
 import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import jolie.net.ext.CommChannelFactory;
-import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 
-@Identifier("btl2cap")
 @AndJarDeps({"bluetooth.jar"})
 public class BTL2CapChannelFactory extends CommChannelFactory
 {

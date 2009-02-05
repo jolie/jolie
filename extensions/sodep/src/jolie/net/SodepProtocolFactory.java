@@ -24,11 +24,9 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.Identifier;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
-@Identifier("sodep")
 public class SodepProtocolFactory extends CommProtocolFactory
 {
 	public SodepProtocolFactory( CommCore commCore )

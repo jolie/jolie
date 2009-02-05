@@ -28,28 +28,37 @@ import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
+import jolie.runtime.JavaService;
 
 /**
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
  * @author Fabrizio Montesi
  */
 public class JolieClassLoader extends URLClassLoader
-{	
+{
+	final private static Pattern extensionSplitPattern = Pattern.compile( ":" );
+
+	final private Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
+	final private Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
+	final private Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
+
 	private void init( URL[] urls, Interpreter interpreter )
 		throws IOException
 	{
 		for( URL url : urls ) {
 			if ( "jar".equals( url.getProtocol() ) ) {
-				checkJarJolieExtensions( (JarURLConnection)url.openConnection(), interpreter );
+				checkJarForJolieExtensions( (JarURLConnection)url.openConnection(), interpreter );
 			}
 		}
 	}
@@ -60,12 +69,20 @@ public class JolieClassLoader extends URLClassLoader
 		super( urls, parent );
 		init( urls, interpreter );
 	}
-	
+
 	@Override
 	public Class<?> loadClass( String className )
 		throws ClassNotFoundException
 	{
 		Class<?> c = super.loadClass( className );
+		if ( JavaService.class.isAssignableFrom( c ) ) {
+			checkForJolieAnnotations( c );
+		}
+		return c;
+	}
+
+	private void checkForJolieAnnotations( Class<?> c )
+	{
 		AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
 		if ( needsJars != null ) {
 			for( String filename : needsJars.value() ) {
@@ -92,17 +109,60 @@ public class JolieClassLoader extends URLClassLoader
 				} catch( Exception e ) {}
 			}
 		}
-		
+	}
+
+	private Class<?> loadExtensionClass( String className )
+		throws ClassNotFoundException
+	{
+		Class<?> c = super.loadClass( className );
+		checkForJolieAnnotations( c );
 		return c;
 	}
-	
-	private void checkForChannelExtension( Attributes attrs, Interpreter interpreter )
+
+	public CommChannelFactory createCommChannelFactory( String name, CommCore commCore )
 		throws IOException
 	{
-		String className = attrs.getValue( Constants.Manifest.ChannelExtension );
+		CommChannelFactory factory = null;
+		String className = channelExtensionClassNames.get( name );
 		if ( className != null ) {
 			try {
-				Class<?> c = loadClass( className );
+				Class<?> c = loadExtensionClass( className );
+				if ( CommChannelFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommChannelFactory > fClass = (Class< ? extends CommChannelFactory >)c;
+					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
+				throw new IOException( e );
+			}
+		}
+
+		return factory;
+	}
+	
+	private void checkForChannelExtension( Attributes attrs )
+		throws IOException
+	{
+		String extension = attrs.getValue( Constants.Manifest.ChannelExtension );
+		if ( extension != null ) {
+			String[] pair = extensionSplitPattern.split( extension );
+			if ( pair.length == 2 ) {
+				channelExtensionClassNames.put( pair[0], pair[1] );
+			} else {
+				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+			}
+		}
+		/*String className = attrs.getValue( Constants.Manifest.ChannelExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadExtensionClass( className );
 				if ( CommChannelFactory.class.isAssignableFrom( c ) ) {
 					Class< ? extends CommChannelFactory > fClass = (Class< ? extends CommChannelFactory >)c;
 					Identifier pId = c.getAnnotation( Identifier.class );
@@ -123,16 +183,53 @@ public class JolieClassLoader extends URLClassLoader
 			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
-		}
+		}*/
 	}
-	
-	private void checkForListenerExtension( Attributes attrs, Interpreter interpreter )
+
+	public CommListenerFactory createCommListenerFactory( String name, CommCore commCore )
 		throws IOException
 	{
-		String className = attrs.getValue( Constants.Manifest.ListenerExtension );
+		CommListenerFactory factory = null;
+		String className = listenerExtensionClassNames.get( name );
 		if ( className != null ) {
 			try {
-				Class<?> c = loadClass( className );
+				Class<?> c = loadExtensionClass( className );
+				if ( CommListenerFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommListenerFactory > fClass = (Class< ? extends CommListenerFactory >)c;
+					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
+				throw new IOException( e );
+			}
+		}
+
+		return factory;
+	}
+
+		private void checkForListenerExtension( Attributes attrs )
+		throws IOException
+	{
+		String extension = attrs.getValue( Constants.Manifest.ListenerExtension );
+		if ( extension != null ) {
+			String[] pair = extensionSplitPattern.split( extension );
+			if ( pair.length == 2 ) {
+				listenerExtensionClassNames.put( pair[0], pair[1] );
+			} else {
+				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+			}
+		}
+		/*String className = attrs.getValue( Constants.Manifest.ListenerExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadExtensionClass( className );
 				if ( CommListenerFactory.class.isAssignableFrom( c ) ) {
 					Class< ? extends CommListenerFactory > fClass = (Class< ? extends CommListenerFactory >)c;
 					Identifier pId = c.getAnnotation( Identifier.class );
@@ -153,16 +250,53 @@ public class JolieClassLoader extends URLClassLoader
 			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
-		}
+		}*/
 	}
-	
-	private void checkForProtocolExtension( Attributes attrs, Interpreter interpreter )
+
+	public CommProtocolFactory createCommProtocolFactory( String name, CommCore commCore )
 		throws IOException
 	{
-		String className = attrs.getValue( Constants.Manifest.ProtocolExtension );
+		CommProtocolFactory factory = null;
+		String className = protocolExtensionClassNames.get( name );
 		if ( className != null ) {
 			try {
-				Class<?> c = loadClass( className );
+				Class<?> c = loadExtensionClass( className );
+				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends CommProtocolFactory > fClass = (Class< ? extends CommProtocolFactory >)c;
+					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
+				throw new IOException( e );
+			}
+		}
+
+		return factory;
+	}
+
+	private void checkForProtocolExtension( Attributes attrs )
+		throws IOException
+	{
+		String extension = attrs.getValue( Constants.Manifest.ProtocolExtension );
+		if ( extension != null ) {
+			String[] pair = extensionSplitPattern.split( extension );
+			if ( pair.length == 2 ) {
+				protocolExtensionClassNames.put( pair[0], pair[1] );
+			} else {
+				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+			}
+		}
+		/*String className = attrs.getValue( Constants.Manifest.ProtocolExtension );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadExtensionClass( className );
 				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
 					Class< ? extends CommProtocolFactory > fClass = (Class< ? extends CommProtocolFactory >)c;
 					Identifier pId = c.getAnnotation( Identifier.class );
@@ -185,18 +319,18 @@ public class JolieClassLoader extends URLClassLoader
 			} catch( InvocationTargetException e ) {
 				throw new IOException( e );
 			}
-		}
+		}*/
 	}
 	
-	private void checkJarJolieExtensions( JarURLConnection jarConnection, Interpreter interpreter )
+	private void checkJarForJolieExtensions( JarURLConnection jarConnection, Interpreter interpreter )
 		throws IOException
 	{
 		Manifest manifest = jarConnection.getManifest();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
-			checkForChannelExtension( attrs, interpreter );
-			checkForListenerExtension( attrs, interpreter );
-			checkForProtocolExtension( attrs, interpreter );
+			checkForChannelExtension( attrs );
+			checkForListenerExtension( attrs );
+			checkForProtocolExtension( attrs );
 		}
 	}
 	

@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Pattern;
 import jolie.lang.parse.Scanner;
 
 /**
@@ -44,6 +45,8 @@ import jolie.lang.parse.Scanner;
  */
 public class CommandLineParser
 {
+	final private static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
+
 	final private int connectionsLimit;
 	final private String[] includePaths;
 	final private URL[] libURLs;
@@ -194,13 +197,13 @@ public class CommandLineParser
 				}
 			} else if ( "-i".equals( args[ i ] ) ) {
 				i++;
-				String[] tmp = args[ i ].split( jolie.lang.Constants.pathSeparator );
+				String[] tmp = pathSeparatorPattern.split( args[ i ] );
 				for( String s : tmp ) {
 					includeList.add( s );
 				}
 			} else if ( "-l".equals( args[ i ] ) ) {
 				i++;
-				String[] tmp = args[ i ].split( jolie.lang.Constants.pathSeparator );
+				String[] tmp = pathSeparatorPattern.split( args[ i ] );
 				for( String s : tmp ) {
 					libList.add( s );
 				}

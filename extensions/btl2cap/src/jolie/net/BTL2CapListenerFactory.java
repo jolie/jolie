@@ -27,11 +27,9 @@ import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.Identifier;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@Identifier("btl2cap")
 @AndJarDeps({"bluetooth.jar"})
 public class BTL2CapListenerFactory extends CommListenerFactory
 {
