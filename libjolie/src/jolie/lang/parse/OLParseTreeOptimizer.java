@@ -82,8 +82,8 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.types.TypeDeclarationLink;
-import jolie.lang.parse.ast.types.TypeInlineDeclaration;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
 
 
@@ -605,12 +605,12 @@ public class OLParseTreeOptimizer
 		public void visit( ExitStatement n ) { currNode = n; }
 		public void visit( RunStatement n ) { currNode = n; }
 
-		public void visit( TypeInlineDeclaration n )
+		public void visit( TypeInlineDefinition n )
 		{
 			program.addChild( n );
 		}
 
-		public void visit( TypeDeclarationLink n )
+		public void visit( TypeDefinitionLink n )
 		{
 			currNode = n;
 		}

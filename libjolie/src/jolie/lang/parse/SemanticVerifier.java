@@ -88,9 +88,9 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.types.TypeDeclaration;
-import jolie.lang.parse.ast.types.TypeDeclarationLink;
-import jolie.lang.parse.ast.types.TypeInlineDeclaration;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
 
 /**
@@ -100,28 +100,35 @@ import jolie.util.Pair;
  */
 public class SemanticVerifier implements OLVisitor
 {
-	private Program program;
+	final private Program program;
 	private boolean valid = true;
 	
-	private Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
-	private Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
+	final private Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
+	final private Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
 	
-	private Set< String > subroutineNames = new HashSet< String > ();
-	private Map< String, OneWayOperationDeclaration > oneWayOperations =
+	final private Set< String > subroutineNames = new HashSet< String > ();
+	final private Map< String, OneWayOperationDeclaration > oneWayOperations =
 						new HashMap< String, OneWayOperationDeclaration >();
-	private Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
+	final private Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
 						new HashMap< String, RequestResponseOperationDeclaration >();
-	private boolean insideInputPort = false;
 
+	private boolean insideInputPort = false;
 	private boolean mainDefined = false;
 	
-	private final Logger logger = Logger.getLogger( "JOLIE" );
-
-	private final Map< String, TypeDeclaration > definedTypes = OLParser.createTypeDeclarationMap();
+	final private Logger logger = Logger.getLogger( "JOLIE" );
+	
+	final private Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
+	//private TypeDefinition rootType; // the type representing the whole session state
 	
 	public SemanticVerifier( Program program )
 	{
 		this.program = program;
+		/*rootType = new TypeInlineDefinition(
+			new ParsingContext(),
+			"#RootType",
+			NativeType.VOID,
+			jolie.lang.Constants.RANGE_ONE_TO_ONE
+		);*/
 	}
 
 	private void warning( OLSyntaxNode node, String message )
@@ -146,7 +153,7 @@ public class SemanticVerifier implements OLVisitor
 	
 	public boolean validate()
 	{
-		visit( program );
+		program.accept( this );
 
 		if ( mainDefined == false ) {
 			error( null, "Main procedure not defined" );
@@ -160,35 +167,35 @@ public class SemanticVerifier implements OLVisitor
 		return valid;
 	}
 
-	private boolean rootType = true;
+	private boolean isTopLevelType = true;
 
-	public void visit( TypeInlineDeclaration n )
+	public void visit( TypeInlineDefinition n )
 	{
 		checkCardinality( n );
-		boolean backupRootType = rootType;
-		if ( rootType ) {
+		boolean backupRootType = isTopLevelType;
+		if ( isTopLevelType ) {
 			// Check if the type has already been defined
 			if ( definedTypes.containsKey( n.id() ) ) {
 				error( n, "type " + n.id() + " has already been defined" );
 			}
 		}
 
-		rootType = false;
+		isTopLevelType = false;
 
 		if ( n.hasSubTypes() ) {
-			for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+			for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
 				entry.getValue().accept( this );
 			}
 		}
 
-		rootType = backupRootType;
+		isTopLevelType = backupRootType;
 
-		if ( rootType ) {
+		if ( isTopLevelType ) {
 			definedTypes.put( n.id(), n );
 		}
 	}
 	
-	public void visit( TypeDeclarationLink n )
+	public void visit( TypeDefinitionLink n )
 	{
 		checkCardinality( n );
 		if ( n.isValid() == false ) {
@@ -196,7 +203,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	private void checkCardinality( TypeDeclaration type )
+	private void checkCardinality( TypeDefinition type )
 	{
 		if ( type.cardinality().min() < 0 ) {
 			error( type, "type " + type.id() + " specifies an invalid minimum range value (must be positive)" );
@@ -213,8 +220,9 @@ public class SemanticVerifier implements OLVisitor
 	
 	public void visit( Program n )
 	{
-		for( OLSyntaxNode node : n.children() )
+		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
+		}
 	}
 
 	public void visit( VariablePathNode n )
@@ -272,7 +280,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( n.responseType() != null && definedTypes.get( n.responseType().id() ) == null ) {
 			error( n, "unknown type: " + n.requestType().id() );
 		}
-		for( Entry< String, TypeDeclaration > fault : n.faults().entrySet() ) {
+		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
 			if ( fault.getValue() != null && !definedTypes.containsKey( fault.getValue().id() ) ) {
 				error( n, "unknown type " + fault.getValue().id() + " for fault " + fault.getKey() );
 			}
@@ -310,7 +318,7 @@ public class SemanticVerifier implements OLVisitor
 			error( n, "input operations sharing the same name cannot declared different fault types (Request-Response operation " + n.id() );
 		}
 
-		for( Entry< String, TypeDeclaration > fault : n.faults().entrySet() ) {
+		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
 			if ( fault.getValue() != null ) {
 				if ( !other.faults().containsKey( fault.getKey() ) || !other.faults().get( fault.getKey() ).equals( fault.getValue() ) ) {
 					error( n, "input operations sharing the same name cannot declared different fault types (Request-Response operation " + n.id() );
@@ -321,26 +329,30 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( DefinitionNode n )
 	{
-		if ( subroutineNames.contains( n.id() ) )
+		if ( subroutineNames.contains( n.id() ) ) {
 			error( n, "Procedure " + n.id() + " uses an already defined identifier" );
-		else
+		} else {
 			subroutineNames.add( n.id() );
+		}
 		
-		if ( "main".equals( n.id() ) )
+		if ( "main".equals( n.id() ) ) {
 			mainDefined = true;
+		}
 		n.body().accept( this );
 	}
 		
 	public void visit( ParallelStatement stm )
 	{
-		for( OLSyntaxNode node : stm.children() )
+		for( OLSyntaxNode node : stm.children() ) {
 			node.accept( this );
+		}
 	}
 		
 	public void visit( SequenceStatement stm )
 	{
-		for( OLSyntaxNode node : stm.children() )
+		for( OLSyntaxNode node : stm.children() ) {
 			node.accept( this );
+		}
 	}
 		
 	public void visit( NDChoiceStatement stm )
@@ -398,9 +410,6 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 	
-	/*
-	 * TODO Must check operation names in opNames and links in linkNames and locks in lockNames
-	 */
 	public void visit( OneWayOperationStatement n )
 	{
 		verify( n.inputVarPath() );
@@ -419,9 +428,6 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 		
-	/**
-	 * TODO Must assign to a variable in varNames
-	 */
 	public void visit( AssignStatement n )
 	{
 		n.variablePath().accept( this );

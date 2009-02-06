@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *   Copyright (C) 2008 by Elvis Ciotti                                    *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,88 +22,82 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import jolie.lang.NativeType;
-import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.NativeType;
 import jolie.util.Range;
 
-/**
- * @author Fabrizio Montesi
- */
-public class TypeInlineDeclaration extends TypeDeclaration
+abstract public class TypeDefinition extends OLSyntaxNode
 {
-	final private NativeType nativeType;
-	private Map< String, TypeDeclaration > subTypes = null;
-	private boolean untypedSubTypes = false;
+	final private String id;
+	final private Range cardinality;
 
-	public TypeInlineDeclaration( ParsingContext context, String id, NativeType nativeType, Range cardinality )
+	public TypeDefinition( ParsingContext context, String id, Range cardinality )
 	{
-		super( context, id, cardinality );
-		this.nativeType = nativeType;
+		super( context );
+		this.id = id;
+		this.cardinality = cardinality;
 	}
 
-	public NativeType nativeType()
+	public String id()
 	{
-		return nativeType;
+		return id;
 	}
 
-	public void setUntypedSubTypes( boolean b )
+	public Range cardinality()
 	{
-		untypedSubTypes = b;
+		return cardinality;
 	}
 
-	public boolean hasSubType( String id )
+	/**
+	 * Checks if this TypeDeclaration is equivalent to otherType.
+	 * @author Fabrizio Montesi
+	 */
+	public boolean equals( TypeDefinition otherType )
 	{
-		if ( subTypes == null ) {
+		if ( otherType == null ) {
 			return false;
+		}
+
+		if ( nativeType() != otherType.nativeType() ) {
+			return false;
+		}
+
+		if ( cardinality.equals( otherType.cardinality ) == false ) {
+			return false;
+		}
+
+		if ( untypedSubTypes() ) {
+			return otherType.untypedSubTypes();
 		} else {
-			return subTypes.containsKey( id );
+			if ( otherType.untypedSubTypes() == false ) {
+				return false;
+			}
+			if ( hasSubTypes() ) {
+				if ( subTypes().size() != otherType.subTypes().size() ) {
+					return false;
+				}
+
+				for( Entry< String, TypeDefinition > entry : subTypes() ) {
+					if ( entry.getValue().equals( otherType.getSubType( entry.getKey() ) ) == false ) {
+						return false;
+					}
+				}
+			} else {
+				return otherType.hasSubTypes() == false;
+			}
 		}
+
+		return true;
 	}
 
-	public Set< Map.Entry< String, TypeDeclaration > > subTypes()
-	{
-		if ( subTypes == null ) {
-			return null;
-		}
-
-		return subTypes.entrySet();
-	}
-
-	public TypeDeclaration getSubType( String id )
-	{
-		if ( subTypes != null ) {
-			return subTypes.get( id );
-		}
-		return null;
-	}
-
-	public boolean hasSubTypes()
-	{
-		if ( subTypes != null && subTypes.isEmpty() == false ) {
-			return true;
-		}
-		return false;
-	}
-
-	public void putSubType( TypeDeclaration type )
-	{
-		if ( subTypes == null ) {
-			subTypes = new HashMap< String, TypeDeclaration >();
-		}
-		subTypes.put( type.id(), type );
-	}
-
-	public boolean untypedSubTypes()
-	{
-		return untypedSubTypes;
-	}
-
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
-	}
+	abstract public TypeDefinition getSubType( String id );
+	abstract public Set< Map.Entry< String, TypeDefinition > > subTypes();
+	abstract public boolean hasSubTypes();
+	abstract public boolean untypedSubTypes();
+	abstract public NativeType nativeType();
+	abstract public boolean hasSubType( String id );
 }

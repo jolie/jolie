@@ -29,19 +29,19 @@ import jolie.lang.parse.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class TypeDeclarationUndefined extends TypeInlineDeclaration
+public class TypeDefinitionUndefined extends TypeInlineDefinition
 {
 	static private class LazyHolder {
-		private static TypeDeclarationUndefined instance = new TypeDeclarationUndefined();
+		private static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
 	}
 
-	private TypeDeclarationUndefined()
+	private TypeDefinitionUndefined()
 	{
 		super( new ParsingContext(), "undefined", NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
 		super.setUntypedSubTypes( true );
 	}
 
-	public static TypeDeclarationUndefined getInstance()
+	public static TypeDefinitionUndefined getInstance()
 	{
 		return LazyHolder.instance;
 	}

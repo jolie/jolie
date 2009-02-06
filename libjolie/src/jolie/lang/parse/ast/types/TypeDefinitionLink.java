@@ -32,17 +32,17 @@ import jolie.util.Range;
  *
  * @author Fabrizio Montesi
  */
-public class TypeDeclarationLink extends TypeDeclaration
+public class TypeDefinitionLink extends TypeDefinition
 {
-	final private TypeDeclaration linkedType;
+	final private TypeDefinition linkedType;
 
-	public TypeDeclarationLink( ParsingContext context, String id, Range cardinality, TypeDeclaration linkedType )
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType )
 	{
 		super( context, id, cardinality );
 		this.linkedType = linkedType;
 	}
 
-	public TypeDeclaration linkedType()
+	public TypeDefinition linkedType()
 	{
 		return linkedType;
 	}
@@ -62,7 +62,7 @@ public class TypeDeclarationLink extends TypeDeclaration
 		return linkedType.hasSubTypes();
 	}
 
-	public TypeDeclaration getSubType( String id )
+	public TypeDefinition getSubType( String id )
 	{
 		return linkedType.getSubType( id );
 	}
@@ -72,7 +72,7 @@ public class TypeDeclarationLink extends TypeDeclaration
 		return linkedType.nativeType();
 	}
 
-	public Set< Map.Entry< String, TypeDeclaration > > subTypes()
+	public Set< Map.Entry< String, TypeDefinition > > subTypes()
 	{
 		return linkedType.subTypes();
 	}

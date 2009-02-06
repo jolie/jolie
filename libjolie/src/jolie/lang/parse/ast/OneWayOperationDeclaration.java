@@ -23,25 +23,25 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
-import jolie.lang.parse.ast.types.TypeDeclaration;
-import jolie.lang.parse.ast.types.TypeDeclarationUndefined;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 
 
 public class OneWayOperationDeclaration extends OperationDeclaration
 {
-	private TypeDeclaration requestType = TypeDeclarationUndefined.getInstance();
+	private TypeDefinition requestType = TypeDefinitionUndefined.getInstance();
 
 	public OneWayOperationDeclaration( ParsingContext context, String id )
 	{
 		super( context, id );
 	}
 
-	public void setRequestType( TypeDeclaration type )
+	public void setRequestType( TypeDefinition type )
 	{
 		this.requestType = type;
 	}
 
-	public TypeDeclaration requestType()
+	public TypeDefinition requestType()
 	{
 		return requestType;
 	}
