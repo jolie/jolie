@@ -55,7 +55,7 @@ public class Type
 	public void check( Value value )
 		throws TypeCheckingException
 	{
-		check( value, new StringBuilder( "Message" ) );
+		check( value, new StringBuilder( "#Message" ) );
 	}
 
 	private void check( Value value, StringBuilder pathBuilder )
