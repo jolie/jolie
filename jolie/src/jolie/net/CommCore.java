@@ -462,7 +462,7 @@ public class CommCore
 
 		public PollingThread()
 		{
-			super( threadGroup, null, null );
+			super( threadGroup, interpreter.programFile().getName() + "-PollingThread" );
 		}
 
 		@Override
