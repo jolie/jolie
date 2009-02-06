@@ -25,20 +25,20 @@ package jolie.lang.parse.ast;
 import java.util.Map;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
-import jolie.lang.parse.ast.types.TypeDeclaration;
+import jolie.lang.parse.ast.types.TypeDefinition;
 
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration
 {
-	final private Map< String, TypeDeclaration > faults;
-	final private TypeDeclaration requestType, responseType;
+	final private Map< String, TypeDefinition > faults;
+	final private TypeDefinition requestType, responseType;
 
 	public RequestResponseOperationDeclaration(
 			ParsingContext context,
 			String id,
-			TypeDeclaration requestType,
-			TypeDeclaration responseType,
-			Map< String, TypeDeclaration > faults
+			TypeDefinition requestType,
+			TypeDefinition responseType,
+			Map< String, TypeDefinition > faults
 		)
 	{
 		super( context, id );
@@ -47,17 +47,17 @@ public class RequestResponseOperationDeclaration extends OperationDeclaration
 		this.faults = faults;
 	}
 
-	public TypeDeclaration requestType()
+	public TypeDefinition requestType()
 	{
 		return requestType;
 	}
 
-	public TypeDeclaration responseType()
+	public TypeDefinition responseType()
 	{
 		return responseType;
 	}
 	
-	public Map< String, TypeDeclaration > faults()
+	public Map< String, TypeDefinition > faults()
 	{
 		return faults;
 	}

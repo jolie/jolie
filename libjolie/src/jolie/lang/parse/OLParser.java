@@ -101,10 +101,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.types.TypeDeclaration;
-import jolie.lang.parse.ast.types.TypeDeclarationLink;
-import jolie.lang.parse.ast.types.TypeDeclarationUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDeclaration;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -143,7 +143,7 @@ public class OLParser extends AbstractParser
 	private final Map< String, Interface > interfaces =
 		new HashMap< String, Interface >();
 
-	private final Map< String, TypeDeclaration > definedTypes = createTypeDeclarationMap();
+	private final Map< String, TypeDefinition > definedTypes = createTypeDeclarationMap();
 	
 	private final ClassLoader classLoader;
 
@@ -159,15 +159,15 @@ public class OLParser extends AbstractParser
 		constantsMap.putAll( constantsToPut );
 	}
 
-	static public Map< String, TypeDeclaration > createTypeDeclarationMap()
+	static public Map< String, TypeDefinition > createTypeDeclarationMap()
 	{
-		Map< String, TypeDeclaration > definedTypes = new HashMap< String, TypeDeclaration >();
+		Map< String, TypeDefinition > definedTypes = new HashMap< String, TypeDefinition >();
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
-			definedTypes.put( type.id(), new TypeInlineDeclaration( new ParsingContext(), type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+			definedTypes.put( type.id(), new TypeInlineDefinition( new ParsingContext(), type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
 		}
-		definedTypes.put( NativeType.UNDEFINED.id(), TypeDeclarationUndefined.getInstance() );
+		definedTypes.put( NativeType.UNDEFINED.id(), TypeDefinitionUndefined.getInstance() );
 		
 		return definedTypes;
 	}
@@ -207,7 +207,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		String typeName;
-		TypeInlineDeclaration currentType;
+		TypeInlineDefinition currentType;
 
 		while( token.isKeyword( "type" ) ) {
 			getToken();
@@ -218,7 +218,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
 
 			NativeType nativeType = parseNativeType();
-			currentType = new TypeInlineDeclaration( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
 
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( currentType );
@@ -258,7 +258,7 @@ public class OLParser extends AbstractParser
 		return nativeType;
 	}
 
-	private void parseSubTypes( TypeInlineDeclaration type )
+	private void parseSubTypes( TypeInlineDefinition type )
 		throws IOException, ParserException
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
@@ -267,7 +267,7 @@ public class OLParser extends AbstractParser
 			type.setUntypedSubTypes( true );
 			getToken();
 		} else {
-			TypeDeclaration currentSubType;
+			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
 				currentSubType = parseSubType();
 				if ( type.hasSubType( currentSubType.id() ) ) {
@@ -280,7 +280,7 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
 	}
 
-	private TypeDeclaration parseSubType()
+	private TypeDefinition parseSubType()
 		throws IOException, ParserException
 	{
 		eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
@@ -295,13 +295,13 @@ public class OLParser extends AbstractParser
 		NativeType nativeType = readNativeType();
 
 		if ( nativeType == null ) { // It's a user-defined type
-			TypeDeclarationLink linkedSubType;
-			linkedSubType = new TypeDeclarationLink( getContext(), id, cardinality, definedTypes.get( token.content() ) );
+			TypeDefinitionLink linkedSubType;
+			linkedSubType = new TypeDefinitionLink( getContext(), id, cardinality, definedTypes.get( token.content() ) );
 			getToken();
 			return linkedSubType;
 		} else {
 			getToken();
-			TypeInlineDeclaration inlineSubType = new TypeInlineDeclaration( getContext(), id, nativeType, cardinality );
+			TypeInlineDefinition inlineSubType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
 				parseSubTypes( inlineSubType );
 			}
@@ -874,7 +874,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-				Map< String, TypeDeclaration > faultTypesMap = new HashMap< String, TypeDeclaration >();
+				Map< String, TypeDefinition > faultTypesMap = new HashMap< String, TypeDefinition >();
 
 				if ( token.is( Scanner.TokenType.THROWS ) ) {
 					getToken();

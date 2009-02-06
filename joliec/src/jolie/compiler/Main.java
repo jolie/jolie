@@ -21,8 +21,8 @@
 
 package jolie.compiler;
 
-import jolie.*;
 import java.io.IOException;
+import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 
 /**

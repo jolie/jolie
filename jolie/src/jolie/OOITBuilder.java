@@ -98,9 +98,9 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
-import jolie.lang.parse.ast.types.TypeDeclaration;
-import jolie.lang.parse.ast.types.TypeDeclarationLink;
-import jolie.lang.parse.ast.types.TypeInlineDeclaration;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.net.OutputPort;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.process.AssignmentProcess;
@@ -373,7 +373,7 @@ public class OOITBuilder implements OLVisitor
 	final private Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
 		new HashMap< String, Map< String, RequestResponseTypeDescription > >(); // Maps output ports to their RR operation types
 
-	public void visit( TypeInlineDeclaration n )
+	public void visit( TypeInlineDefinition n )
 	{
 		boolean backupInsideType = insideType;
 		insideType = true;
@@ -383,7 +383,7 @@ public class OOITBuilder implements OLVisitor
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
 			if ( n.subTypes() != null ) {
-				for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
 					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
@@ -397,14 +397,14 @@ public class OOITBuilder implements OLVisitor
 		}
 	}
 
-	public void visit( TypeDeclarationLink n )
+	public void visit( TypeDefinitionLink n )
 	{
 		if ( n.untypedSubTypes() ) {
 			currType = new Type( n.nativeType(), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
 			if ( n.subTypes() != null ) {
-				for( Entry< String, TypeDeclaration > entry : n.subTypes() ) {
+				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
 					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
@@ -447,7 +447,7 @@ public class OOITBuilder implements OLVisitor
 				interpreter.getRequestResponseOperation( decl.id() );
 			} catch( InvalidIdException e ) {
 				Map< String, Type > faults = new HashMap< String, Type >();
-				for( Entry< String, TypeDeclaration > entry : decl.faults().entrySet() ) {
+				for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
 					faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
 				}
 				interpreter.register(
@@ -465,7 +465,7 @@ public class OOITBuilder implements OLVisitor
 			Map< String, Type > faultTypes = new HashMap< String, Type >();
 			requestType = buildType( decl.requestType() );
 			responseType = buildType( decl.responseType() );
-			for( Entry< String, TypeDeclaration > entry : decl.faults().entrySet() ) {
+			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
 				faultTypes.put( entry.getKey(), types.get( entry.getValue().id() ) );
 			}
 			RequestResponseTypeDescription desc = new RequestResponseTypeDescription( requestType, responseType, faultTypes );
