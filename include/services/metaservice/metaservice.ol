@@ -40,6 +40,8 @@ RequestResponse:
 
 init
 {
+	install( TypeMismatch => println@Console( "TypeMismatch: " + main.TypeMismatch )() );
+
 	services -> global.services;
 
 	config.debug = Debug;
