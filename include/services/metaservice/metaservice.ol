@@ -165,7 +165,9 @@ main
 	} ] { nullProcess }
 
 	[ unloadEmbeddedService( request )( response ) {
-		removeRedirection@Runtime( request )();
+		r.resourceName = request;
+		r.inputPortName = "MetaService";
+		removeRedirection@Runtime( r )();
 		removeOutputPort@Runtime( request )();
 		undef( services.(request) )
 	} ] { nullProcess }
