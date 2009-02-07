@@ -23,7 +23,7 @@ type MetaData:void { ? }
 
 type ServiceRecord:void {
 	.resourceName:string
-	.metadata:MetaData
+	.metadata?:MetaData
 }
 
 type ServiceList:void {
