@@ -89,6 +89,19 @@ abstract public class CommProtocol
 	{
 		return hasParameter( id ) && getParameterFirstValue( id ).intValue() == 1;
 	}
+
+	/**
+	 * Shortcut for checking if a parameter intValue() equals 1
+	 * @param id the parameter identifier
+	 */
+	protected boolean checkBooleanParameter( String id, boolean defaultValue )
+	{
+		if ( hasParameter( id ) ) {
+			return getParameterFirstValue( id ).intValue() == 1;
+		} else {
+			return defaultValue;
+		}
+	}
 	
 	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
