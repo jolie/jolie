@@ -345,7 +345,8 @@ public class CommCore
 			channel.redirectionChannel().send( message );
 			channel.redirectionChannel().disposeForInput();
 			channel.setRedirectionChannel( null );
-			channel.closeImpl();
+			channel.disposeForInput();
+			//channel.closeImpl();
 		}
 
 		private void handleMessage( CommMessage message )
