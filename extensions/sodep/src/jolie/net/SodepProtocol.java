@@ -237,7 +237,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		if ( checkBooleanParameter( "keepAlive" ) ) {
+		if ( checkBooleanParameter( "keepAlive", true ) ) {
 			channel().setToBeClosed( false );
 		} else {
 			channel().setToBeClosed( true );
@@ -263,7 +263,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		if ( !checkBooleanParameter( "keepAlive" ) ) {
+		if ( checkBooleanParameter( "keepAlive", true ) ) {
+			channel().setToBeClosed( false );
+		} else {
 			channel().setToBeClosed( true );
 		}
 
