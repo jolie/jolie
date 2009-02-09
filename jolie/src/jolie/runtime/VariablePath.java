@@ -190,12 +190,17 @@ public class VariablePath implements Expression, Cloneable
 
 		return currValue;
 	}
-	
+
 	public Value getValueOrNull()
+	{
+		return getValueOrNull( getRootValue() );
+	}
+	
+	public Value getValueOrNull( Value rootValue )
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue = getRootValue();
+		Value currValue = rootValue;
 		int index;
 
 		for( int i = 0; i < path.length; i++ ) {
