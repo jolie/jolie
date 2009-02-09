@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project name="Jolie" default="build">
 
     <condition property="isWindows" value="true">
         <os family="windows" />
@@ -78,7 +78,10 @@ fi
 			<fileset dir="dist"/>
 		</copy>
 		<antcall target="-install-unix-launcher" />
-        <antcall target="-install-windows-launcher" />
+	        <antcall target="-install-windows-launcher" />
+	</target>
+	<target name="build">
+		<antcall target="dist"/>
 	</target>
 	<target name="jar" depends="init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="jar"/>

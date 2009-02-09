@@ -92,7 +92,11 @@ main
 			redirection.outputPortName = redirection.resourceName;
 			setRedirection@Runtime( redirection )();
 			response = redirection.resourceName;
-			services.(redirection.resourceName).metadata << request.metadata;
+			
+			with( services.(redirection.resourceName) ) {
+				.isEmbedded = 0;
+				.metadata[0] << request.metadata[0]
+			};
 
 			if ( is_defined( request.token ) ) {
 				// Optional token for security check
@@ -108,16 +112,20 @@ main
 	} ] { nullProcess }
 
 	[ removeRedirection( request )() {
-		r.resourceName = request;
-		r.inputPortName = "MetaService";
-		removeRedirection@Runtime( r )();
-		removeOutputPort@Runtime( request )()
+		if ( is_defined( services.(request) ) && services.(request).isEmbedded == 0 ) {
+			r.resourceName = request;
+			r.inputPortName = "MetaService";
+			removeRedirection@Runtime( r )();
+			removeOutputPort@Runtime( request )();
+			undef( services.(request) )
+		}
 	} ] { nullProcess }
 
 	[ getServices()( response ) {
 		i = 0;
 		foreach( s : services ) {
-			response.service[i] << services.(s);
+			response.service[i].isEmbedded = services.(s).isEmbedded;
+			response.service[i].metadata[0] << services.(s).metadata[0];
 			response.service[i].resourceName = s;
 			i++
 		}
@@ -160,16 +168,28 @@ main
 			setRedirection@Runtime( redirection )();
 
 			response = redirection.resourceName;
-			services.(redirection.resourceName).metadata << request.metadata
+
+			with( services.(redirection.resourceName) ) {
+				.isEmbedded = 1;
+				.privates.handle = handle;
+				.metadata[0] << request.metadata[0]
+			}
 		}
 	} ] { nullProcess }
 
 	[ unloadEmbeddedService( request )( response ) {
-		r.resourceName = request;
-		r.inputPortName = "MetaService";
-		removeRedirection@Runtime( r )();
-		removeOutputPort@Runtime( request )();
-		undef( services.(request) )
+		if ( is_defined( services.(request) ) ) {
+			service -> services.(request);
+			if ( service.isEmbedded ) {
+				r.resourceName = request;
+				r.inputPortName = "MetaService";
+				removeRedirection@Runtime( r )();
+				removeOutputPort@Runtime( request )();
+				callExit@Runtime( service.privates.handle )();
+				undef( service );
+				undef( services.(request) )
+			}
+		}
 	} ] { nullProcess }
 
 	[ shutdown() ] { exit }

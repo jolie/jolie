@@ -22,6 +22,7 @@
 type MetaData:void { ? }
 
 type ServiceRecord:void {
+	.isEmbedded:int
 	.resourceName:string
 	.metadata?:MetaData
 }
