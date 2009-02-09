@@ -25,9 +25,12 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
+import jolie.runtime.typing.TypeCheckingException;
 
 public interface InputProcess extends Process
 {
+	public void checkMessageType( CommMessage message )
+		throws TypeCheckingException;
 	public void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException;
 	public InputHandler getInputHandler();
