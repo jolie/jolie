@@ -21,6 +21,7 @@
 
 package jolie.process;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Vector;
@@ -28,12 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputHandler;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.TypeCheckingException;
 import jolie.util.Pair;
 
 /** Implements a non-deterministic choice.
@@ -91,6 +94,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		protected void runImpl()
 			throws FaultException, ExitingException
 		{
+			final Interpreter interpreter = Interpreter.getInstance();
 			for( Pair< InputProcess, Process > p : parent.branches ) {
 				InputHandler handler = p.key().getInputHandler();
 				inputMap.put( handler.id(), new InputChoice( handler, p.key(), p.value() ) );
@@ -98,14 +102,14 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			}
 
 			synchronized( this ) {
-				if( choice == null && !Interpreter.getInstance().exiting() ) {
+				if( choice == null && !interpreter.exiting() ) {
 					try {
 						this.wait();
 					} catch( InterruptedException e ) {}
 				}
 			}
 
-			if ( choice == null && Interpreter.getInstance().exiting() ) {
+			if ( choice == null && interpreter.exiting() ) {
 				throw new ExitingException();
 			}
 
@@ -126,10 +130,28 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		}
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
+			throws TypeCheckingException
 		{
 			if ( choice != null ) {
 				return false;
 			}
+
+			choice = inputMap.get( message.operationName() );
+			assert( choice != null );
+
+			try {
+				choice.inputProcess.checkMessageType( message );
+			} catch( TypeCheckingException e ) {
+				Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Input operation " + message.operationName() + "): " + e.getMessage() );
+				try {
+					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.disposeForInput();
+				} catch( IOException ioe ) {
+					ioe.printStackTrace();
+				}
+				throw e;
+			}
+
 
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
@@ -140,9 +162,8 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 				parent.correlatedProcess.inputReceived();
 			}
 
-			choice = inputMap.remove( message.operationName() );
-			assert( choice != null );
-
+			inputMap.remove( message.operationName() );
+			
 			this.channel = channel;
 			this.message = message;
 

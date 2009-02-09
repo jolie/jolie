@@ -84,15 +84,13 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 		{
-			if ( operation.requestType() != null ) {
-				try {
-					operation.requestType().check( message.value() );
-				} catch( TypeCheckingException e ) {
-					Interpreter.getInstance().logger().warning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
-					return false;
-				}
+			try {
+				checkMessageType( message );
+			} catch( TypeCheckingException e ) {
+				Interpreter.getInstance().logger().warning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
+				return false;
 			}
-
+			
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
 					this.notify();
@@ -125,6 +123,14 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	{
 		this.operation = operation;
 		this.varPath = varPath;
+	}
+
+	public void checkMessageType( CommMessage message )
+		throws TypeCheckingException
+	{
+		if ( operation.requestType() != null ) {
+			operation.requestType().check( message.value() );
+		}
 	}
 	
 	public Process clone( TransformationReason reason )

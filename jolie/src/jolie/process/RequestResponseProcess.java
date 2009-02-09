@@ -100,21 +100,19 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
 			throws TypeCheckingException
 		{
-			if ( operation.requestType() != null ) {
+			try {
+				checkMessageType( message );
+			} catch( TypeCheckingException e ) {
+				Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					operation.requestType().check( message.value() );
-				} catch( TypeCheckingException e ) {
-					Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
-					try {
-						channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
-						channel.disposeForInput();
-					} catch( IOException ioe ) {
-						ioe.printStackTrace();
-					}
-					throw e;
+					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.disposeForInput();
+				} catch( IOException ioe ) {
+					ioe.printStackTrace();
 				}
+				throw e;
 			}
-
+			
 			if ( parent.correlatedProcess != null ) {
 				if ( Interpreter.getInstance().exiting() ) {
 					this.notify();
@@ -155,6 +153,14 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public boolean isKillable()
 	{
 		return true;
+	}
+
+	public void checkMessageType( CommMessage message )
+		throws TypeCheckingException
+	{
+		if ( operation.requestType() != null ) {
+			operation.requestType().check( message.value() );
+		}
 	}
 	
 	public Process clone( TransformationReason reason )

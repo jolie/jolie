@@ -98,6 +98,9 @@ public class LinkInProcess implements InputProcess
 		return InternalLink.getById( linkId  );
 	}
 
+	public void checkMessageType( CommMessage message )
+	{}
+
 	public void runBehaviour( CommChannel channel, CommMessage message )
 	{}
 	
