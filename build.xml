@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Jolie" default="build">
+	<condition property="isWindows" value="true">
+		<os family="windows" />
+	</condition>
 
-    <condition property="isWindows" value="true">
-        <os family="windows" />
-    </condition>
-
-	<target name="init">
+	<target name="-init">
 		<property name="config.dir" value="buildconfig"/>
 		<property file="${config.dir}/build.properties"/>
 		<property file="${config.dir}/config.properties"/>
@@ -14,27 +13,27 @@
 		<delete dir="${install.dir}"/>
 	</target>
 
-    <target name="-install-windows-launcher" if="isWindows">
-        <echo message="Installing JOLIE Windows launcher script..." />
-        <echo file="${install.launcher_dir}/jolie.bat">@echo off
+	<target name="-install-windows-launcher" if="isWindows">
+		<echo message="Installing JOLIE Windows launcher script..." />
+		<echo file="${install.launcher_dir}/jolie.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
-</echo>
+		</echo>
 		<chmod file="${install.launcher_dir}/jolie" perm="a+x"/>
-    </target>
+	</target>
 
-    <target name="-install-unix-launcher" unless="isWindows">
-        <echo message="Installing JOLIE Unix launcher script..." />
-        <echo file="${install.launcher_dir}/jolie">#!/bin/sh
+	<target name="-install-unix-launcher" unless="isWindows">
+		<echo message="Installing JOLIE Unix launcher script..." />
+		<echo file="${install.launcher_dir}/jolie">#!/bin/sh
 
 JOLIE_HOME=${install.dir}
 java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
-</echo>
+		</echo>
 		<chmod file="${install.launcher_dir}/jolie" perm="a+x"/>
 
-        <echo message="Installing MetaService Unix launcher script..." />
-        <echo file="${install.launcher_dir}/metaservice">#!/bin/sh
+		<echo message="Installing MetaService Unix launcher script..." />
+		<echo file="${install.launcher_dir}/metaservice">#!/bin/sh
 
 JOLIE_HOME=${install.dir}
 METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
@@ -69,21 +68,25 @@ elif [[ $# = 2 ]]; then
 else
 	print_help
 fi
-        </echo>
-        <chmod file="${install.launcher_dir}/metaservice" perm="a+x"/>
-    </target>
+		</echo>
+		<chmod file="${install.launcher_dir}/metaservice" perm="a+x"/>
+	</target>
 
-	<target name="install" depends="init,dist,-delete-old-dir">
+	<target name="install" depends="-init,-delete-old-dir">
 		<copy todir="${install.dir}">
-			<fileset dir="dist"/>
+			<fileset dir="dist" />
 		</copy>
 		<antcall target="-install-unix-launcher" />
 	        <antcall target="-install-windows-launcher" />
 	</target>
+	
+	<target name="dist-install" depends="dist,install" />
+
 	<target name="build">
 		<antcall target="dist"/>
 	</target>
-	<target name="jar" depends="init">
+
+	<target name="jar" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="jar"/>
@@ -98,7 +101,7 @@ fi
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
 	</target>
-	<target name="clean" depends="init">
+	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="clean"/>
@@ -113,7 +116,7 @@ fi
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
 	</target>
-	<target name="dist" depends="init,jar">
+	<target name="dist" depends="-init,jar">
 		<delete dir="dist"/>
 		<copy todir="dist" flatten="true">
 			<resources>
