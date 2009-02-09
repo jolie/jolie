@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -958,11 +957,9 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
-		eat(
-			Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
+		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
 		DefinitionNode retVal = new DefinitionNode( getContext(), "main", parseProcess() );
-		eat(
-			Scanner.TokenType.RCURLY, "expected } after procedure definition" );
+		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
 	}
 
