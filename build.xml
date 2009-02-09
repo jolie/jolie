@@ -160,12 +160,6 @@ java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE
 			</resources>
 		</copy>
 		
-		<copy todir="dist/lib" flatten="true">
-			<resources>
-				<file file="${project.jolieJavaServices}/dist/jolieJavaServices.jar"/>
-			</resources>
-		</copy>
-		
 		<copy todir="dist/tools" flatten="true">
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
