@@ -3,7 +3,7 @@ RequestResponse:
 	getLocalLocation,
 	loadEmbeddedService,
 	getRedirection, setRedirection, removeRedirection,
-	setOutputPort, removeOutputPort
+	setOutputPort, removeOutputPort, callExit
 }
 
 embedded {
