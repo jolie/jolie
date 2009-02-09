@@ -74,7 +74,7 @@ fi
 		<echo message="Installing Jolie2Plasma Unix launcher script..." />
 		<echo file="${install.launcher_dir}/jolie2plasma">#!/bin/sh
 JOLIE_HOME=${install.dir}
-java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/tools/jolie2plasma.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/tools/jolie2plasma.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${install.launcher_dir}/jolie2plasma" perm="a+x"/>
 	</target>
