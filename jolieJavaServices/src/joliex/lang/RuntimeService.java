@@ -175,4 +175,13 @@ public class RuntimeService extends JavaService
 			throw new FaultException( "RuntimeException", e );
 		}
 	}
+
+	public CommMessage callExit( CommMessage request )
+	{
+		Object o = request.value().valueObject();
+		if ( o instanceof LocalCommChannel ) {
+			((LocalCommChannel)o).interpreter().exit();
+		}
+		return CommMessage.createResponse( request, Value.create() );
+	}
 }
