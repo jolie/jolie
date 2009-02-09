@@ -95,7 +95,9 @@ main
 			
 			with( services.(redirection.resourceName) ) {
 				.isEmbedded = 0;
-				.metadata[0] << request.metadata[0]
+				if ( is_defined( request.metadata ) ) {
+					.metadata[0] << request.metadata[0]
+				}
 			};
 
 			if ( is_defined( request.token ) ) {
@@ -125,7 +127,9 @@ main
 		i = 0;
 		foreach( s : services ) {
 			response.service[i].isEmbedded = services.(s).isEmbedded;
-			response.service[i].metadata[0] << services.(s).metadata[0];
+			if ( is_defined( services.(s).metadata[0] ) ) {
+				response.service[i].metadata[0] << services.(s).metadata[0]
+			};
 			response.service[i].resourceName = s;
 			i++
 		}
@@ -172,7 +176,9 @@ main
 			with( services.(redirection.resourceName) ) {
 				.isEmbedded = 1;
 				.privates.handle = handle;
-				.metadata[0] << request.metadata[0]
+				if ( is_defined( request.metadata ) ) {
+					.metadata[0] << request.metadata[0]
+				}
 			}
 		}
 	} ] { nullProcess }
