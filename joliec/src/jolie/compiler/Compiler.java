@@ -60,6 +60,7 @@ public class Compiler
 	{
 		OLParser parser = new OLParser( new Scanner( programStream, programFilepath ), includePaths, classLoader );
 		Program program = parser.parse();
+		// TODO: Use the SemanticVerifier
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 		program = optimizer.optimize();
 		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );

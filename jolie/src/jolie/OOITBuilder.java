@@ -61,6 +61,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
+import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
@@ -1068,5 +1069,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		currProcess = new UndefProcess( buildVariablePath( n.variablePath() ) );
 	}
+
+	public void visit( InterfaceDefinition n ) {}
 }
 

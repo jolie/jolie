@@ -78,6 +78,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
@@ -595,5 +596,8 @@ public class SemanticVerifier implements OLVisitor
 	 * @todo Must check if it's inside an install function
 	 */
 	public void visit( CurrentHandlerStatement n )
+	{}
+
+	public void visit( InterfaceDefinition n )
 	{}
 }

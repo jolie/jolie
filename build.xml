@@ -70,6 +70,13 @@ else
 fi
 		</echo>
 		<chmod file="${install.launcher_dir}/metaservice" perm="a+x"/>
+		
+		<echo message="Installing Jolie2Plasma Unix launcher script..." />
+		<echo file="${install.launcher_dir}/jolie2plasma">#!/bin/sh
+JOLIE_HOME=${install.dir}
+java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/tools/jolie2plasma.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+		</echo>
+		<chmod file="${install.launcher_dir}/jolie2plasma" perm="a+x"/>
 	</target>
 
 	<target name="install" depends="-init,-delete-old-dir">
@@ -100,6 +107,7 @@ fi
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
@@ -115,6 +123,7 @@ fi
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
 	</target>
 	<target name="dist" depends="-init,jar">
 		<delete dir="dist"/>
@@ -154,6 +163,12 @@ fi
 		<copy todir="dist/lib" flatten="true">
 			<resources>
 				<file file="${project.jolieJavaServices}/dist/jolieJavaServices.jar"/>
+			</resources>
+		</copy>
+		
+		<copy todir="dist/tools" flatten="true">
+			<resources>
+				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
 			</resources>
 		</copy>
 		

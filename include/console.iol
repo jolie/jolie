@@ -4,9 +4,13 @@ OneWay:
 	in(string)
 }
 
-outputPort Console {
+interface ConsoleInterface {
 RequestResponse:
 	print(undefined)(void), println(undefined)(void), registerForInput(void)(void)
+}
+
+outputPort Console {
+Interfaces: ConsoleInterface
 }
 
 embedded {
