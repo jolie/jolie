@@ -71,6 +71,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
+import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -681,6 +682,7 @@ public class OLParseTreeOptimizer
 				);
 		}
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
+		public void visit( InterfaceDefinition n ) {}
 	}
 	
 	private Program originalProgram;
