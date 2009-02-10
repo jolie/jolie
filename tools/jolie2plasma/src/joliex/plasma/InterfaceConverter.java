@@ -98,19 +98,33 @@ public class InterfaceConverter
 		}
 	}
 
+	private void writeEntry( String entryName, String entryType, Writer writer )
+		throws IOException
+	{
+		writer.write( "\t\t<entry name=\"" + entryName + "\" type=\"" + entryType + "\" />\n" );
+	}
+
 	private void writeType( InterfaceDefinition iface, String operationName, TypeDefinition type, Writer writer )
 		throws IOException
 	{
+		boolean empty = true;
+
 		if ( type.nativeType() != NativeType.VOID ) {
-			unsupported( iface, operationName, "non void root message value" );
+			empty = false;
+			writer.write( ">\n" );
+			writeEntry( "/", getPlasmaParameterType( iface, operationName, "/", type ), writer );
 		}
 
 		if ( type.hasSubTypes() ) {
-			writer.write( ">\n" );
+			if ( empty ) { writer.write( ">\n" ); }
 			writeParameters( iface, operationName, type, writer );
 			writer.write( "\t</group>\n" );
 		} else {
-			writer.write( " />\n" );
+			if ( empty ) {
+				writer.write( " />\n" );
+			} else {
+				writer.write( "\t</group>\n" );
+			}
 		}
 	}
 
@@ -120,7 +134,7 @@ public class InterfaceConverter
 		String plasmaType;
 		for( Entry< String, TypeDefinition > entry : type.subTypes() ) {
 			plasmaType = getPlasmaParameterType( iface, operationName, entry.getKey(), entry.getValue() );
-			writer.write( "\t\t<entry name=\"" + entry.getKey() + "\" type=\"" + plasmaType + "\" />\n" );
+			writeEntry( entry.getKey(), plasmaType, writer );
 		}
 	}
 
@@ -147,7 +161,7 @@ public class InterfaceConverter
 		} else if ( nativeType == NativeType.STRING ) {
 			ret = "String";
 		} else if ( nativeType == NativeType.ANY ) {
-			unsupported( iface, operationName, "void native type for parameter " + parameterName );
+			unsupported( iface, operationName, "any native type for parameter " + parameterName );
 		}
 
 		return ret;
