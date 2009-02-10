@@ -487,6 +487,7 @@ public class Interpreter
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		}
 		commCore.init();
+		System.gc();
 	}
 	
 	private void runMain()
