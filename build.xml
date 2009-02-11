@@ -4,36 +4,53 @@
 		<os family="windows" />
 	</condition>
 
-	<target name="-init">
+	<condition property="isBaseDirSet" value="true">
+		<isset property="install.basedir"/>
+	</condition>
+
+	<target name="-load-property-files">
 		<property name="config.dir" value="buildconfig"/>
 		<property file="${config.dir}/build.properties"/>
 		<property file="${config.dir}/config.properties"/>
 	</target>
+
+	<target name="-init" depends="-load-property-files,-create-install-properties-with-basedir,-create-install-properties-without-basedir"/>
+
+	<target name="-create-install-properties-with-basedir" if="isBaseDirSet">
+		<property name="private.install.dir" value="${install.basedir}/${install.dir}"/>
+		<property name="private.install.launcher_dir" value="${install.basedir}/${install.launcher_dir}"/>
+	</target>
+
+	<target name="-create-install-properties-without-basedir" unless="isBaseDirSet">
+		<property name="private.install.dir" value="${install.dir}"/>
+		<property name="private.install.launcher_dir" value="${install.launcher_dir}"/>
+	</target>
+
 	<target name="-delete-old-dir" if="${install.delete_old_dir}">
-		<delete dir="${install.dir}"/>
+		<delete dir="${private.install.dir}"/>
 	</target>
 
 	<target name="-install-windows-launcher" if="isWindows">
 		<echo message="Installing JOLIE Windows launcher script..." />
-		<echo file="${install.launcher_dir}/jolie.bat">@echo off
+		<echo file="${private.install.launcher_dir}/jolie.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
-		<chmod file="${install.launcher_dir}/jolie" perm="a+x"/>
+		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
 	</target>
 
 	<target name="-install-unix-launcher" unless="isWindows">
 		<echo message="Installing JOLIE Unix launcher script..." />
-		<echo file="${install.launcher_dir}/jolie">#!/bin/sh
+		<echo file="${private.install.launcher_dir}/jolie">#!/bin/sh
 
 JOLIE_HOME=${install.dir}
 java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
-		<chmod file="${install.launcher_dir}/jolie" perm="a+x"/>
+		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
 
 		<echo message="Installing MetaService Unix launcher script..." />
-		<echo file="${install.launcher_dir}/metaservice">#!/bin/sh
+		<echo file="${private.install.launcher_dir}/metaservice">#!/bin/sh
 
 JOLIE_HOME=${install.dir}
 METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
@@ -69,18 +86,20 @@ else
 	print_help
 fi
 		</echo>
-		<chmod file="${install.launcher_dir}/metaservice" perm="a+x"/>
+		<chmod file="${private.install.launcher_dir}/metaservice" perm="a+x"/>
 		
 		<echo message="Installing Jolie2Plasma Unix launcher script..." />
-		<echo file="${install.launcher_dir}/jolie2plasma">#!/bin/sh
+		<echo file="${private.install.launcher_dir}/jolie2plasma">#!/bin/sh
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
-		<chmod file="${install.launcher_dir}/jolie2plasma" perm="a+x"/>
+		<chmod file="${private.install.launcher_dir}/jolie2plasma" perm="a+x"/>
 	</target>
 
 	<target name="install" depends="-init,-delete-old-dir">
-		<copy todir="${install.dir}">
+		<mkdir dir="${private.install.dir}"/>
+		<mkdir dir="${private.install.launcher_dir}"/>
+		<copy todir="${private.install.dir}">
 			<fileset dir="dist" />
 		</copy>
 		<antcall target="-install-unix-launcher" />
