@@ -58,7 +58,11 @@ public class JolieClassLoader extends URLClassLoader
 	{
 		for( URL url : urls ) {
 			if ( "jar".equals( url.getProtocol() ) ) {
-				checkJarForJolieExtensions( (JarURLConnection)url.openConnection(), interpreter );
+				try {
+					checkJarForJolieExtensions( (JarURLConnection)url.openConnection(), interpreter );
+				} catch( IOException e ) {
+					throw new IOException( "Loading failed for jolie extension jar " + url.toString(), e );
+				}
 			}
 		}
 	}
