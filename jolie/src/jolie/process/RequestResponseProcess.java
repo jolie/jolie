@@ -209,7 +209,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		} else {
 			Interpreter.getInstance().logger().severe(
 				"Request-Response process for " + operation.id() +
-				" threw an undeclared fault for that operation, throwing TypeMismatch" );
+				" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
 			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
 			/*Iterator< String > it = operation.faultNames().iterator();
 			if ( it.hasNext() ) {
