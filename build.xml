@@ -33,7 +33,7 @@
 	<target name="-install-windows-launcher" if="isWindows">
 		<echo message="Installing JOLIE Windows launcher script..." />
 		<echo file="${private.install.launcher_dir}/jolie.bat">@echo off
-set joliepath=${install.dir}\
+set joliepath=${private.install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
@@ -44,7 +44,7 @@ java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joli
 		<echo message="Installing JOLIE Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/jolie">#!/bin/sh
 
-JOLIE_HOME=${install.dir}
+JOLIE_HOME=${private.install.dir}
 java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
@@ -52,7 +52,7 @@ java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE
 		<echo message="Installing MetaService Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/metaservice">#!/bin/sh
 
-JOLIE_HOME=${install.dir}
+JOLIE_HOME=${private.install.dir}
 METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
 
 print_help()
@@ -90,7 +90,7 @@ fi
 		
 		<echo message="Installing Jolie2Plasma Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/jolie2plasma">#!/bin/sh
-JOLIE_HOME=${install.dir}
+JOLIE_HOME=${private.install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${private.install.launcher_dir}/jolie2plasma" perm="a+x"/>
