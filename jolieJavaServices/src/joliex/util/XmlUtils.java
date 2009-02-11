@@ -22,6 +22,7 @@
 package joliex.util;
 
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -87,7 +88,13 @@ public class XmlUtils extends JavaService
 		try {
 			Value result = Value.create();
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-			InputSource src = new InputSource( new StringReader( request.value().strValue() ) );
+			InputSource src;
+			if ( request.value().isByteArray() ) {
+				src = new InputSource( new ByteArrayInputStream( request.value().byteArrayValue().getBytes() ) );
+			} else {
+				src = new InputSource( new StringReader( request.value().strValue() ) );
+			}
+
 			Document doc = builder.parse( src );
 			jolie.xml.XmlUtils.documentToValue( doc, result );
 			return CommMessage.createResponse( request, result );
