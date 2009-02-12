@@ -192,5 +192,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<copy file="${libs.libmatthew.unix}" tofile="dist/lib/unix.jar"/>
 		<copy file="${libs.relaxngDatatype}" tofile="dist/lib/relaxngDatatype.jar"/>
 		<copy file="${libs.ini4j}" tofile="dist/lib/ini4j.jar"/>
+		<copy file="${libs.smack}" tofile="dist/lib/smack.jar"/>
+		<copy file="${libs.smackx}" tofile="dist/lib/smackx.jar"/>
 	</target>
 </project>
