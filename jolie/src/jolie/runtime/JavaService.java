@@ -140,7 +140,7 @@ abstract public class JavaService
 		return interpreter;
 	}
 	
-	public CommChannel sendMessage( CommMessage message )
+	public CommChannel _sendMessage( CommMessage message )
 	{
 		ListCommChannel c = new ListCommChannel(
 							new Vector< CommMessage >(),
