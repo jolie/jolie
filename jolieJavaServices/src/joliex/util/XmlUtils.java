@@ -37,6 +37,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import jolie.net.CommMessage;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -44,6 +45,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+@AndJarDeps({"jolie-xml.jar"})
 public class XmlUtils extends JavaService
 {
 	final private DocumentBuilderFactory documentBuilderFactory;
