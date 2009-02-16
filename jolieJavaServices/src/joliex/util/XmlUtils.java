@@ -49,10 +49,12 @@ import org.xml.sax.SAXException;
 public class XmlUtils extends JavaService
 {
 	final private DocumentBuilderFactory documentBuilderFactory;
+	final private TransformerFactory transformerFactory;
 
 	public XmlUtils()
 	{
 		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		this.transformerFactory = TransformerFactory.newInstance();
 	}
 
 	public CommMessage valueToXml( CommMessage request )
@@ -66,8 +68,7 @@ public class XmlUtils extends JavaService
 				root,
 				doc
 			);
-			TransformerFactory tFactory = TransformerFactory.newInstance();
-			Transformer t = tFactory.newTransformer();
+			Transformer t = transformerFactory.newTransformer();
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( new DOMSource( doc ), result );
@@ -117,8 +118,7 @@ public class XmlUtils extends JavaService
 	{
 		try {
 			StreamSource source = new StreamSource( new StringReader( request.value().getFirstChild( "source" ).strValue() ) );
-			TransformerFactory tFactory = TransformerFactory.newInstance();
-			Transformer t = tFactory.newTransformer( new StreamSource( new StringReader( request.value().getFirstChild( "xslt" ).strValue() ) ) );
+			Transformer t = transformerFactory.newTransformer( new StreamSource( new StringReader( request.value().getFirstChild( "xslt" ).strValue() ) ) );
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( source, result );
