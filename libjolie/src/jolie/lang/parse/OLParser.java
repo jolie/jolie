@@ -154,6 +154,20 @@ public class OLParser extends AbstractParser
 	public Program parse()
 		throws IOException, ParserException
 	{
+		_parse();
+
+		if ( initSequence != null ) {
+			program.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
+		}
+
+		program.addChild( main );
+
+		return program;
+	}
+
+	private void _parse()
+		throws IOException, ParserException
+	{
 		getToken();
 		Scanner.Token t;
 		do {
@@ -179,7 +193,6 @@ public class OLParser extends AbstractParser
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
 		}
-		return program;
 	}
 
 	private void parseTypes()
@@ -512,7 +525,7 @@ public class OLParser extends AbstractParser
 			
 			includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
 			includePaths[ origIncludePaths.length ] = f.getParent();
-			parse();
+			_parse();
 			includePaths = origIncludePaths;
 			setScanner( oldScanner );
 			getToken();
@@ -903,27 +916,25 @@ public class OLParser extends AbstractParser
 	}
 	
 	private SequenceStatement initSequence = null;
+	private DefinitionNode main = null;
 
 	private void parseCode()
 		throws IOException, ParserException
 	{
-		boolean mainDefined = false;
 		boolean keepRun = true;
 
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) ) {
 				program.addChild( parseDefinition() );
 			} else if ( token.isKeyword( "main" ) ) {
-				if ( mainDefined ) {
+				if ( main != null ) {
 					throwException( "you must specify only one main definition" );
 				}
 
-				program.addChild( parseMain() );
-				mainDefined = true;
+				main = parseMain();
 			} else if ( token.is( Scanner.TokenType.INIT ) ) {
 				if ( initSequence == null ) {
 					initSequence = new SequenceStatement( getContext() );
-					program.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
 				}
 
 				initSequence.addChild( parseInit() );
@@ -1855,33 +1866,6 @@ public class OLParser extends AbstractParser
 		}
 
 		return sum;
-	}
-
-	private Collection<String> parseIdListN( boolean enclosed )
-		throws IOException, ParserException
-	{
-		Vector<String> idList = new Vector<String>();
-		if ( enclosed ) {
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-		}
-
-		boolean keepRun = true;
-		while ( token.is( Scanner.TokenType.ID ) && keepRun ) {
-			idList.add( token.content() );
-			getToken();
-
-			if ( token.is( Scanner.TokenType.COMMA ) ) {
-				getToken();
-			} else {
-				keepRun = false;
-			}
-
-		}
-		if ( enclosed ) {
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}
-
-		return idList;
 	}
 
 	private OLSyntaxNode parseFactor()
