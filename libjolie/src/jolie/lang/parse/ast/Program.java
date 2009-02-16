@@ -30,7 +30,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class Program extends OLSyntaxNode
 {
-	final private Vector< OLSyntaxNode > children = new Vector< OLSyntaxNode > ();
+	final private List< OLSyntaxNode > children = new Vector< OLSyntaxNode > ();
 	
 	public Program( ParsingContext context )
 	{
@@ -42,7 +42,7 @@ public class Program extends OLSyntaxNode
 		children.add( node );
 	}
 	
-	public Vector< OLSyntaxNode > children()
+	public List< OLSyntaxNode > children()
 	{
 		return children;
 	}	

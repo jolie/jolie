@@ -570,10 +570,8 @@ public class Scanner
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
 					if ( ch == '*' ) {
 						state = 13;
-						readChar();
 					} else if ( ch == '/' )  {
 						state = 15;
-						readChar();
 					} else
 						retval = new Token( TokenType.DIVIDE );
 					break;
@@ -607,7 +605,7 @@ public class Scanner
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
-					if ( ch == '\n' ) {
+					if ( isNewLineChar( ch ) ) {
 						readChar();
 						retval = getToken();
 					}
