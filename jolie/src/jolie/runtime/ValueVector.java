@@ -22,8 +22,8 @@
 package jolie.runtime;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 class ValueVectorLink extends ValueVector implements Cloneable
@@ -34,6 +34,16 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	public ValueVectorLink clone()
 	{
 		return new ValueVectorLink( linkPath );
+	}
+
+	public Value get( int i )
+	{
+		return getLinkedValueVector().get( i );
+	}
+
+	public void set( int i, Value value )
+	{
+		getLinkedValueVector().set( i, value );
 	}
 
 	public ValueVectorLink( VariablePath path )
@@ -59,11 +69,35 @@ class ValueVectorLink extends ValueVector implements Cloneable
 
 class ValueVectorImpl extends ValueVector implements Serializable
 {
-	final private List< Value > values;
+	final private ArrayList< Value > values;
 	
 	protected List< Value > values()
 	{
 		return values;
+	}
+
+	public synchronized Value get( int i )
+	{
+		if ( i >= values.size() ) {
+			values.ensureCapacity( i + 1 );
+			for( int k = values.size(); k <= i; k++ ) {
+				values.add( Value.create() );
+			}
+		}
+		return values.get( i );
+	}
+
+	public synchronized void set( int i, Value value )
+	{
+		if ( i >= values.size() ) {
+			values.ensureCapacity( i + 1 );
+			for( int k = values.size(); k < i; k++ ) {
+				values.add( Value.create() );
+			}
+			values.add( value );
+		} else {
+			values.set( i, value );
+		}
 	}
 	
 	public boolean isLink()
@@ -73,7 +107,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	
 	public ValueVectorImpl()
 	{
-		values = new LinkedList< Value >();
+		values = new ArrayList< Value >();
 	}
 }
 
@@ -123,18 +157,9 @@ abstract public class ValueVector implements Iterable< Value >
 	{
 		return values().iterator();
 	}
-	
-	public synchronized Value get( int i )
-	{
-		final List< Value > values = values();
 
-		if ( i >= values.size() ) {
-			for( int k = values.size(); k <= i; k++ ) {
-				values.add( Value.create() );
-			}
-		}
-		return values.get( i );
-	}
+	abstract public Value get( int i );
+	abstract public void set( int i, Value value );
 	
 	public synchronized int size()
 	{
@@ -144,20 +169,6 @@ abstract public class ValueVector implements Iterable< Value >
 	public synchronized void add( Value value )
 	{
 		values().add( value );
-	}
-	
-	public synchronized void set( int i, Value value )
-	{
-		final List< Value > values = values();
-
-		if ( i >= values.size() ) {
-			for( int k = values.size(); k < i; k++ ) {
-				values.add( Value.create() );
-			}
-			values.add( value );
-		} else {
-			values.set( i, value );
-		}
 	}
 	
 	// TODO: improve performance
