@@ -545,8 +545,13 @@ public class OLParseTreeOptimizer
 		}
 
 		public void visit( ConstantIntegerExpression n ) { currNode = n; }
+
 		public void visit( ConstantRealExpression n ) { currNode = n; }
-		public void visit( ConstantStringExpression n ) { currNode = n; }
+
+		public void visit( ConstantStringExpression n )
+		{
+			currNode = new ConstantStringExpression( n.context(), n.value().intern() );
+		}
 
 		public void visit( ProductExpressionNode n )
 		{

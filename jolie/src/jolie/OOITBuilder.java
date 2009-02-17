@@ -157,6 +157,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
 import jolie.runtime.Expression.Operand;
 import jolie.runtime.ExpressionCondition;
+import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InstallFixedVariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.IsDefinedExpression;
@@ -794,8 +795,17 @@ public class OOITBuilder implements OLVisitor
 		}
 		
 		currExpression = backupExpr;
-		
-		return new VariablePath( list, path.isGlobal() );
+
+		Pair< Expression, Expression >[] internalPath = new Pair[ list.size() ];
+		for( int i = 0; i < internalPath.length; i++ ) {
+			internalPath[i] = list.get( i );
+		}
+
+		if ( path.isGlobal() ) {
+			return new GlobalVariablePath( internalPath );
+		} else {
+			return new VariablePath( internalPath );
+		}
 	}
 	
 	public void visit( PointerStatement n )

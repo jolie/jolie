@@ -79,7 +79,7 @@ public class Interpreter
 	final private Set< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
-	final private Value globalValue = Value.create();
+	final private Value globalValue = Value.createRootValue();
 	final private String[] arguments;
 	final private Vector< EmbeddedServiceLoader > embeddedServiceLoaders =
 			new Vector< EmbeddedServiceLoader >();

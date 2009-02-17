@@ -63,7 +63,7 @@ public class State implements Cloneable
 	 */
 	public State()
 	{
-		this.root = Value.create();
+		this.root = Value.createRootValue();
 	}
 	
 	@Override

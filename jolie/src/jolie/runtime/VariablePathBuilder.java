@@ -21,14 +21,14 @@
 
 package jolie.runtime;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import jolie.util.Pair;
 
 public class VariablePathBuilder
 {
 	final private List< Pair< Expression, Expression > > list =
-					new Vector< Pair< Expression, Expression > > ();
+					new LinkedList< Pair< Expression, Expression > > ();
 	final private boolean global;
 	
 	public VariablePathBuilder( boolean global )
@@ -49,6 +49,10 @@ public class VariablePathBuilder
 	
 	public VariablePath toVariablePath()
 	{
-		return new VariablePath( list, global );
+		if ( global ) {
+			return new GlobalVariablePath( list.toArray( new Pair[]{} ) );
+		} else {
+			return new VariablePath( list.toArray( new Pair[]{} ) );
+		}
 	}
 }

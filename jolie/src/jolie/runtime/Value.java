@@ -53,6 +53,11 @@ class ValueLink extends Value implements Cloneable
 		out.writeObject( getLinkedValue() );
 	}
 
+	final public Value evaluate()
+	{
+		return getLinkedValue();
+	}
+
 	public boolean hasChildren()
 	{
 		return getLinkedValue().hasChildren();
@@ -123,10 +128,22 @@ class ValueImpl extends Value
 		valueObject = object;
 	}
 
+	public ValueImpl clone()
+	{
+		ValueImpl ret = new ValueImpl();
+		ret._deepCopy( this, true );
+		return ret;
+	}
+
 	protected void _refCopy( Value value )
 	{
 		setValueObject( value.valueObject() );
 		this.children = value.children();
+	}
+
+	final public Value evaluate()
+	{
+		return this;
 	}
 	
 	public void erase()
@@ -226,6 +243,103 @@ class ValueImpl extends Value
 	} 
 }
 
+/** TODO: remove code duplication from ValueImpl */
+class RootValueImpl extends Value
+{
+	private static final long serialVersionUID = 1L;
+
+	final private Map< String, ValueVector > children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
+
+	public RootValueImpl clone()
+	{
+		RootValueImpl ret = new RootValueImpl();
+		ret._deepCopy( this, true );
+		return ret;
+	}
+
+	public void setValueObject( Object object )
+	{}
+
+	protected void _refCopy( Value value )
+	{}
+
+	final public Value evaluate()
+	{
+		return this;
+	}
+
+	public void erase()
+	{
+		children.clear();
+	}
+
+	public boolean isLink()
+	{
+		return false;
+	}
+
+	final public Map< String, ValueVector > children()
+	{
+		return children;
+	}
+
+	public boolean hasChildren()
+	{
+		return children.isEmpty() == false;
+	}
+
+	public boolean hasChildren( String childId )
+	{
+		return children.containsKey( childId );
+	}
+
+	protected void _deepCopy( Value value, boolean copyLinks )
+	{
+		if ( value.hasChildren() ) {
+			int i;
+			ValueImpl newValue;
+			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+				if ( copyLinks && entry.getValue().isLink() ) {
+					children.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
+				} else {
+					List< Value > otherVector = entry.getValue().values();
+					ValueVector vec = getChildren( entry.getKey(), children );
+					i = 0;
+					for( Value v : otherVector ) {
+						if ( copyLinks && v.isLink() ) {
+							vec.set( i, ((ValueLink)v).clone() );
+						} else {
+							newValue = new ValueImpl();
+							newValue._deepCopy( v, copyLinks );
+							vec.set( i, newValue );
+						}
+						i++;
+					}
+				}
+			}
+		}
+	}
+
+	private static ValueVector getChildren( String childId, Map< String, ValueVector > children )
+	{
+		ValueVector vec = children.get( childId );
+		if ( vec == null ) {
+			vec = ValueVector.create();
+			children.put( childId, vec );
+		}
+
+		return vec;
+	}
+
+	private static int INITIAL_CAPACITY = 8;
+	private static float LOAD_FACTOR = 0.75f;
+
+	public Object valueObject()
+	{
+		return null;
+	}
+}
+
 /**
  * @author Fabrizio Montesi
  *
@@ -235,62 +349,58 @@ abstract public class Value implements Expression, Serializable
 	abstract public boolean isLink();
 	
 	static final public Value UNDEFINED_VALUE = Value.create();
+
+	final public static Value createRootValue()
+	{
+		return new RootValueImpl();
+	}
 	
-	public static Value createLink( VariablePath path )
+	final public static Value createLink( VariablePath path )
 	{
 		return new ValueLink( path );
 	}
 	
-	public static Value create()
+	final public static Value create()
 	{
 		return new ValueImpl();
 	}
 	
-	public static Value create( Boolean bool )
+	final public static Value create( Boolean bool )
 	{
 		return new ValueImpl( ( bool == true ) ? 1 : 0 );
 	}
 	
-	public static Value create( String str )
+	final public static Value create( String str )
 	{
 		return new ValueImpl( str );
 	}
 	
-	public static Value create( Integer i )
+	final public static Value create( Integer i )
 	{
 		return new ValueImpl( i );
 	}
 	
-	public static Value create( Double d )
+	final public static Value create( Double d )
 	{
 		return new ValueImpl( d );
 	}
 
-	public static Value create( ByteArray b )
+	final public static Value create( ByteArray b )
 	{
 		return new ValueImpl( b );
 	}
 	
-	public static Value create( Value value )
+	final public static Value create( Value value )
 	{
 		return new ValueImpl( value );
 	}
 	
-	public static Value createClone( Value value )
+	final public static Value createClone( Value value )
 	{
-		Value retVal = null;
-		
-		if ( value.isLink() ) {
-			retVal = ((ValueLink)value).clone();
-		} else {
-			retVal = create();
-			retVal._deepCopy( value, true );
-		}
-		
-		return retVal;
+		return value.clone();
 	}
 	
-	public static Value createDeepCopy( Value value )
+	final public static Value createDeepCopy( Value value )
 	{
 		Value ret = Value.create();
 		ret.deepCopy( value );
@@ -302,12 +412,12 @@ abstract public class Value implements Expression, Serializable
 	 * In case of a sub-link, its pointed Value tree is copied.
 	 * @param value The value to be copied. 
 	 */
-	public synchronized void deepCopy( Value value )
+	final public synchronized void deepCopy( Value value )
 	{
 		_deepCopy( value, false );
 	}
 
-	public synchronized void refCopy( Value value )
+	final public synchronized void refCopy( Value value )
 	{
 		_refCopy( value );
 	}
@@ -321,7 +431,10 @@ abstract public class Value implements Expression, Serializable
 	abstract public boolean hasChildren();
 	abstract public boolean hasChildren( String childId );
 	
-	public synchronized ValueVector getChildren( String childId )
+	@Override
+	abstract public Value clone();
+	
+	final public synchronized ValueVector getChildren( String childId )
 	{
 		final Map< String, ValueVector > myChildren = children();
 		ValueVector v = myChildren.get( childId );
@@ -333,7 +446,7 @@ abstract public class Value implements Expression, Serializable
 		return v;
 	}
 	
-	public synchronized Value getNewChild( String childId )
+	final public synchronized Value getNewChild( String childId )
 	{
 		final ValueVector vec = getChildren( childId );
 		Value retVal = new ValueImpl();
@@ -342,34 +455,34 @@ abstract public class Value implements Expression, Serializable
 		return retVal;
 	}
 	
-	public synchronized Value getFirstChild( String childId )
+	final public synchronized Value getFirstChild( String childId )
 	{
 		return getChildren( childId ).get( 0 );
 	}
 	
-	public Value evaluate()
-	{
-		return this;
-	}
+	abstract public Value evaluate();
 	
-	public synchronized void setValue( Object object )
+	final public synchronized void setValue( Object object )
 	{
 		setValueObject( object );
 	}
-	public synchronized void setValue( String object )
+
+	final public synchronized void setValue( String object )
 	{
 		setValueObject( object );
 	}
-	public synchronized void setValue( Integer object )
+
+	final public synchronized void setValue( Integer object )
 	{
 		setValueObject( object );
 	}
-	public synchronized void setValue( Double object )
+
+	final public synchronized void setValue( Double object )
 	{
 		setValueObject( object );
 	}
 		
-	public synchronized boolean equals( Value val )
+	final public synchronized boolean equals( Value val )
 	{
 		boolean r = false;
 		if ( val.isDefined() ) {
@@ -419,12 +532,12 @@ abstract public class Value implements Expression, Serializable
 		return ( valueObject() != null );
 	}
 	
-	public synchronized void setValue( CommChannel value )
+	final public synchronized void setValue( CommChannel value )
 	{
 		setValueObject( value );
 	}
 	
-	public synchronized CommChannel channelValue()
+	final public synchronized CommChannel channelValue()
 	{
 		if( isChannel() == false ) {
 			return null;
@@ -432,10 +545,10 @@ abstract public class Value implements Expression, Serializable
 		return (CommChannel)valueObject();
 	}
 
-	public synchronized String strValue()
+	final public synchronized String strValue()
 	{
 		Object o = valueObject();
-		if ( valueObject() == null ) {
+		if ( o == null ) {
 			return ""; // new String();
 		} else if ( o instanceof String ) {
 			return (String)o;
@@ -443,7 +556,7 @@ abstract public class Value implements Expression, Serializable
 		return o.toString();
 	}
 
-	public synchronized ByteArray byteArrayValue()
+	final public synchronized ByteArray byteArrayValue()
 	{
 		ByteArray r = null;
 		Object o = valueObject();
@@ -475,7 +588,7 @@ abstract public class Value implements Expression, Serializable
 		return r;
 	}
 	
-	public synchronized int intValue()
+	final public synchronized int intValue()
 	{
 		int r = 0;
 		Object o = valueObject();
@@ -495,7 +608,7 @@ abstract public class Value implements Expression, Serializable
 		return r;
 	}
 	
-	public synchronized double doubleValue()
+	final public synchronized double doubleValue()
 	{
 		double r = 0;
 		Object o = valueObject();
