@@ -21,11 +21,8 @@
 
 package jolie.runtime;
 
-import java.util.List;
-import java.util.Vector;
 
 import jolie.ExecutionThread;
-import jolie.Interpreter;
 import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
@@ -37,37 +34,44 @@ import jolie.util.Pair;
 public class VariablePath implements Expression, Cloneable
 {	
 	final private Pair< Expression, Expression >[] path; // Right Expression may be null
-	final private boolean global;
-	final private Value root;
-	
+
+	final protected Pair< Expression, Expression >[] path()
+	{
+		return path;
+	}
+
 	public boolean isGlobal()
 	{
-		return global;
+		return false;
 	}
-	
+
+	protected static Pair< Expression, Expression >[] cloneExpressionHelper( Pair< Expression, Expression >[] path, TransformationReason reason )
+	{
+		Pair< Expression, Expression >[] clonedPath = new Pair[ path.length ];
+		for( int i = 0; i < path.length; i++ ) {
+			clonedPath[i] = new Pair< Expression, Expression >(
+				path[i].key().cloneExpression( reason ),
+				( path[i].value() == null ) ? null : path[i].value().cloneExpression( reason )
+			);
+		}
+		return clonedPath;
+	}
+
 	@Override
 	public VariablePath clone()
 	{
-		List< Pair< Expression, Expression > > list =
-			new Vector< Pair< Expression, Expression > >();
-		for( Pair< Expression, Expression > p : path )
-			list.add( new Pair< Expression, Expression >( p.key(), p.value() ) );
-		return new VariablePath( list, global );
+		return new VariablePath( path );
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		List< Pair< Expression, Expression > > list =
-			new Vector< Pair< Expression, Expression > >();
-		for( Pair< Expression, Expression > p : path )
-			list.add( new Pair< Expression, Expression >( p.key().cloneExpression( reason ), ( p.value() == null ) ? null : p.value().cloneExpression( reason ) ) );
-		return new VariablePath( list, global );
+		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path, reason );
+		return new VariablePath( clonedPath );
 	}
 
-	public VariablePath containedSubPath( VariablePath otherVarPath )
+	final public VariablePath containedSubPath( VariablePath otherVarPath )
 	{
-		// If one is global and the other is not, it's not a subpath.
-		if ( global != otherVarPath.global )
+		if ( getRootValue() != otherVarPath.getRootValue() )
 			return null;
 
 		// If the other path is shorter than this, it's not a subpath.
@@ -96,46 +100,31 @@ public class VariablePath implements Expression, Cloneable
 		}
 		
 		// Now i represents the beginning of the subpath, we can just copy it from there
-		List< Pair< Expression, Expression > > subPath =
-			new Vector< Pair< Expression, Expression > >();
-		for( ; i < otherVarPath.path.length; i++ )
-			subPath.add( otherVarPath.path[i] );
+		Pair< Expression, Expression >[] subPath = new Pair[ otherVarPath.path.length - i ];
+		for( int k = 0; i < otherVarPath.path.length; i++ ) {
+			subPath[k] = otherVarPath.path[i];
+			k++;
+		}
 		
-		return new VariablePath( subPath, global );
+		return _createVariablePath( subPath );
 	}
 
-	public VariablePath(
-			List< Pair< Expression, Expression > > path,
-			boolean global
-			)
+	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
 	{
-		this.path = new Pair[ path.size() ];
-		for( int i = 0; i < path.size(); i++ ) {
-			this.path[i] = path.get( i );
-		}
-		this.global = global;
-		this.root = null;
+		return new VariablePath( path );
 	}
-	
-	public VariablePath( Value root )
-	{
-		this.path = new Pair[0];
-		this.root = root;
-		this.global = false;
-	}
-	
-	private Value getRootValue()
-	{
-		if ( root != null ) {
-			return root;
-		} else if ( global ) {
-			return Interpreter.getInstance().globalValue();
-		}
 
+	public VariablePath( Pair< Expression, Expression >[] path )
+	{
+		this.path = path;
+	}
+	
+	protected Value getRootValue()
+	{
 		return ExecutionThread.currentThread().state().root();
 	}
 	
-	public void undef()
+	final public void undef()
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -169,12 +158,12 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
-	public Value getValue()
+	final public Value getValue()
 	{
 		return getValue( getRootValue() );
 	}
 
-	public Value getValue( Value rootValue )
+	final public Value getValue( Value rootValue )
 	{
 		Value currValue = rootValue;
 		String keyStr;
@@ -191,12 +180,12 @@ public class VariablePath implements Expression, Cloneable
 		return currValue;
 	}
 
-	public Value getValueOrNull()
+	final public Value getValueOrNull()
 	{
 		return getValueOrNull( getRootValue() );
 	}
 	
-	public Value getValueOrNull( Value rootValue )
+	final public Value getValueOrNull( Value rootValue )
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -237,7 +226,7 @@ public class VariablePath implements Expression, Cloneable
 		return null;
 	}
 	
-	public ValueVector getValueVector( Value rootValue )
+	final public ValueVector getValueVector( Value rootValue )
 	{
 		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
@@ -257,12 +246,12 @@ public class VariablePath implements Expression, Cloneable
 		return currVector;
 	}
 	
-	public ValueVector getValueVector()
+	final public ValueVector getValueVector()
 	{
 		return getValueVector( getRootValue() );
 	}
 	
-	public void makePointer( VariablePath rightPath )
+	final public void makePointer( VariablePath rightPath )
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -322,7 +311,7 @@ public class VariablePath implements Expression, Cloneable
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void deepCopy( VariablePath rightPath )
+	final public void deepCopy( VariablePath rightPath )
 	{
 		Object myObj = getValueOrValueVector();
 		if ( myObj instanceof Value ) {
@@ -337,7 +326,7 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
-	public Value evaluate()
+	final public Value evaluate()
 	{
 		final Value v = getValueOrNull();
 		if ( v == null )
