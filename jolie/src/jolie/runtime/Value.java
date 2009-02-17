@@ -47,6 +47,11 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue();
 	}
 
+	public ValueVector getChildren( String childId )
+	{
+		return getLinkedValue().getChildren( childId );
+	}
+
 	private void writeObject( ObjectOutputStream out )
 		throws IOException
 	{
@@ -126,6 +131,17 @@ class ValueImpl extends Value
 	public void setValueObject( Object object )
 	{
 		valueObject = object;
+	}
+
+	public synchronized ValueVector getChildren( String childId )
+	{
+		ValueVector v = children().get( childId );
+		if ( v == null ) {
+			v = ValueVector.create();
+			children.put( childId, v );
+		}
+
+		return v;
 	}
 
 	public ValueImpl clone()
@@ -262,6 +278,18 @@ class RootValueImpl extends Value
 
 	protected void _refCopy( Value value )
 	{}
+
+
+	public synchronized ValueVector getChildren( String childId )
+	{
+		ValueVector v = children.get( childId );
+		if ( v == null ) {
+			v = ValueVector.create();
+			children.put( childId, v );
+		}
+
+		return v;
+	}
 
 	final public Value evaluate()
 	{
@@ -430,21 +458,10 @@ abstract public class Value implements Expression, Serializable
 	abstract protected void setValueObject( Object object );
 	abstract public boolean hasChildren();
 	abstract public boolean hasChildren( String childId );
+	abstract public ValueVector getChildren( String childId );
 	
 	@Override
 	abstract public Value clone();
-	
-	final public synchronized ValueVector getChildren( String childId )
-	{
-		final Map< String, ValueVector > myChildren = children();
-		ValueVector v = myChildren.get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			myChildren.put( childId, v );
-		}
-
-		return v;
-	}
 	
 	final public synchronized Value getNewChild( String childId )
 	{

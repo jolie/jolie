@@ -194,7 +194,7 @@ public class VariablePath implements Expression, Cloneable
 
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[i];
-			currVector = currValue.children().get( pair.key().evaluate().strValue() );
+			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
 			if ( currVector == null ) {
 				return null;
 			}
