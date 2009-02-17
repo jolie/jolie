@@ -107,7 +107,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	
 	public ValueVectorImpl()
 	{
-		values = new ArrayList< Value >();
+		values = new ArrayList< Value >( 1 );
 	}
 }
 
