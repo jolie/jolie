@@ -32,6 +32,7 @@ public class PointerStatement extends OLSyntaxNode
 	public PointerStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath )
 	{
 		super( context );
+		VariablePathNode.levelPaths( leftPath, rightPath );
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}

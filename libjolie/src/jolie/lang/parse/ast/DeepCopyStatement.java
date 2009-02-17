@@ -23,6 +23,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.util.Pair;
 
 
 public class DeepCopyStatement extends OLSyntaxNode
@@ -32,6 +33,7 @@ public class DeepCopyStatement extends OLSyntaxNode
 	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, VariablePathNode rightPath )
 	{
 		super( context );
+		VariablePathNode.levelPaths( leftPath, rightPath );
 		this.leftPath = leftPath;
 		this.rightPath = rightPath;
 	}
