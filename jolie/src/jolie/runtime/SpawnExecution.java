@@ -54,7 +54,7 @@ public class SpawnExecution
 			catch( ExitingException e ) {}
 			if ( parentSpawnProcess.inPath() != null ) {
 				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( index )
-					.assignValue( parentSpawnProcess.inPath().getValueVector().first() );
+					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
 			}
 			terminationNotify( this );
 		}
