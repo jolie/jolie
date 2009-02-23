@@ -57,7 +57,7 @@ public class ConsoleService extends JavaService
 				String line;
 				while( keepRun ) {
 					line = stdin.readLine();
-					_sendMessage( new CommMessage( "in", "/", Value.create( line ) ) );
+					sendMessage( new CommMessage( "in", "/", Value.create( line ) ) );
 				}
 			} catch( ClosedByInterruptException ce ) {
 			} catch( Exception e ) {

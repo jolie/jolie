@@ -58,7 +58,7 @@ public class TimeService extends JavaService
 		{
 			try {
 				Thread.sleep( waitTime );
-				parent._sendMessage( new CommMessage( callbackOperation, "/", callbackValue ) );
+				parent.sendMessage( new CommMessage( callbackOperation, "/", callbackValue ) );
 			} catch( InterruptedException e ) {}
 		}
 	}
