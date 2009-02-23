@@ -26,6 +26,7 @@ import java.util.Map;
 import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
+import jolie.runtime.Identifier;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import org.jivesoftware.smack.Chat;
@@ -65,7 +66,8 @@ public class XMPPService extends JavaService
 		return chat;
 	}
 
-	public CommMessage sendMessage( CommMessage request )
+	@Identifier("sendMessage")
+	public CommMessage _sendMessage( CommMessage request )
 		throws FaultException
 	{
 		Chat chat = getChat( request.value().getFirstChild( "to" ).strValue() );
