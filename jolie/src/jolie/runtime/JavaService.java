@@ -24,18 +24,21 @@ package jolie.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
-
 import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ListCommChannel;
+import jolie.runtime.Identifier;
 import jolie.util.Pair;
 
-
+/**
+ *
+ * @author Fabrizio Montesi
+ */
 abstract public class JavaService
 {
 	private Interpreter interpreter;
@@ -46,38 +49,44 @@ abstract public class JavaService
 	{
 		Class<?>[] params, exceptions;
 		Class<?> returnType;
-		Method[] methods = this.getClass().getMethods();
+		Method[] methods = this.getClass().getDeclaredMethods();
 		for( Method method : methods ) {
-			if ( "setInterpreter".equals( method.getName() ) ) {
-				continue;
-			}
-			params = method.getParameterTypes();
-			if (
-				params.length == 1 &&
-				params[0].isAssignableFrom( CommMessage.class )
-			) {
-				returnType = method.getReturnType();
-				if ( CommMessage.class.isAssignableFrom( returnType ) ) {
-					// It's a Request-Response operation
-					exceptions = method.getExceptionTypes();
-					if ( exceptions.length == 0 ||
-						( exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0] ) )
-						)
-					{
-					
-						operations.put(
-							method.getName(),
-							new Pair< Constants.OperationType, Method >( Constants.OperationType.REQUEST_RESPONSE, method )
-						);
+			if ( Modifier.isPublic( method.getModifiers() ) ) {
+				params = method.getParameterTypes();
+				if (
+					params.length == 1 &&
+					params[0].isAssignableFrom( CommMessage.class )
+				) {
+					String methodName;
+					Identifier identifier;
+					if ( (identifier = method.getAnnotation( Identifier.class )) == null ) {
+						methodName = method.getName();
+					} else {
+						methodName = identifier.value();
 					}
-				} else if ( void.class.isAssignableFrom( returnType ) ) {
-					// It's a One-Way operation
-					exceptions = method.getExceptionTypes();
-					if ( exceptions.length == 0 ) {
-						operations.put(
-							method.getName(),
-							new Pair< Constants.OperationType, Method >( Constants.OperationType.ONE_WAY, method )
-						);
+
+					returnType = method.getReturnType();
+					if ( CommMessage.class.isAssignableFrom( returnType ) ) {
+						// It's a Request-Response operation
+						exceptions = method.getExceptionTypes();
+						if ( exceptions.length == 0 ||
+							( exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0] ) )
+							)
+						{
+							operations.put(
+								methodName,
+								new Pair< Constants.OperationType, Method >( Constants.OperationType.REQUEST_RESPONSE, method )
+							);
+						}
+					} else if ( void.class.isAssignableFrom( returnType ) ) {
+						// It's a One-Way operation
+						exceptions = method.getExceptionTypes();
+						if ( exceptions.length == 0 ) {
+							operations.put(
+								method.getName(),
+								new Pair< Constants.OperationType, Method >( Constants.OperationType.ONE_WAY, method )
+							);
+						}
 					}
 				}
 			}
@@ -140,12 +149,9 @@ abstract public class JavaService
 		return interpreter;
 	}
 	
-	public CommChannel _sendMessage( CommMessage message )
+	public CommChannel sendMessage( CommMessage message )
 	{
-		ListCommChannel c = new ListCommChannel(
-							new Vector< CommMessage >(),
-							new Vector< CommMessage >()
-							);
+		ListCommChannel c = new ListCommChannel();
 		c.inputList().add( message );
 		interpreter.commCore().scheduleReceive( c, null );
 		return new ListCommChannel( c.outputList(), c.inputList() );
