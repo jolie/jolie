@@ -146,10 +146,10 @@ public class FileService extends JavaService
 	}
 	
 	public CommMessage delete( CommMessage request )
-		throws FaultException
 	{
 		String filename = request.value().strValue();
 		boolean isRegex = request.value().getFirstChild( "isRegex" ).intValue() > 0;
+		int ret = 1;
 		if ( isRegex ) {
 			File dir = new File( filename ).getAbsoluteFile().getParentFile();
 			String[] files = dir.list( new ListFilter( filename ) );
@@ -160,10 +160,10 @@ public class FileService extends JavaService
 			}
 		} else {
 			if ( new File( filename ).delete() == false ) {
-				throw new FaultException( "IOException", Value.create( "Could not delete " + filename ) );
+				ret = 0;
 			}
 		}
-		return CommMessage.createResponse( request, Value.create() );
+		return CommMessage.createResponse( request, Value.create( ret ) );
 	}
 	
 	public CommMessage rename( CommMessage request )
