@@ -1,8 +1,12 @@
+type DeleteRequest:string {
+	.isRegex?:int
+}
+
 outputPort File {
 RequestResponse:
 	readFile throws FileNotFound IOException,
 	writeFile throws FileNotFound IOException,
-	delete throws IOException,
+	delete(DeleteRequest)(int) throws IOException,
 	rename throws IOException,
 	list,
 	getServiceDirectory,
