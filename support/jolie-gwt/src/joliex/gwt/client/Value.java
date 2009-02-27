@@ -26,6 +26,7 @@ import com.google.gwt.user.client.rpc.IsSerializable;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Value implements Serializable, IsSerializable
 {
@@ -102,6 +103,22 @@ public class Value implements Serializable, IsSerializable
 		if ( valueObject == null )
 			return 0;
 		return new Integer( valueObject );
+	}
+
+	public void deepCopy( Value otherValue )
+	{
+		valueObject = otherValue.valueObject;
+		ValueVector myVector;
+		Value myValue;
+		for( Entry< String, ValueVector > entry : otherValue.children.entrySet() ) {
+			myVector = new ValueVector();
+			for( Value v : entry.getValue() ) {
+				myValue = new Value();
+				myValue.deepCopy( v );
+				myVector.add( v );
+			}
+			children.put( entry.getKey(), myVector );
+		}
 	}
 	
 	public double doubleValue()
