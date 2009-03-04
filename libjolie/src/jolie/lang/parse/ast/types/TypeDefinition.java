@@ -73,7 +73,7 @@ abstract public class TypeDefinition extends OLSyntaxNode
 		if ( untypedSubTypes() ) {
 			return otherType.untypedSubTypes();
 		} else {
-			if ( otherType.untypedSubTypes() == false ) {
+			if ( otherType.untypedSubTypes() ) {
 				return false;
 			}
 			if ( hasSubTypes() ) {
