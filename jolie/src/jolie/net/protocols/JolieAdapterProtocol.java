@@ -81,8 +81,10 @@ public class JolieAdapterProtocol extends ConcurrentCommProtocol
 
 	public String name()
 	{
-		return "JolieProtocolAdaptor";
+		return name;
 	}
+
+	final private String name;
 
 	public JolieAdapterProtocol(
 		VariablePath configurationPath,
@@ -94,6 +96,7 @@ public class JolieAdapterProtocol extends ConcurrentCommProtocol
 		this.adaptorChannel = adaptorChannel;
 		this.adaptor = adaptor;
 		this.location = location;
+		this.name = configurationPath.evaluate().strValue();
 	}
 
 	private CommMessage send_getAdaptedMessage( CommMessage message )
