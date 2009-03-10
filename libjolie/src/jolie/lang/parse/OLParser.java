@@ -502,7 +502,25 @@ public class OLParser extends AbstractParser
 			String includeStr = token.content();
 			InputStream stream = null;
 			File f = null;
-			for ( int i = 0; i < includePaths.length && stream == null; i++ ) {
+
+			if ( includePaths.length > 1 ) {
+				f = new File(
+					includePaths[0] +
+					Constants.fileSeparator +
+					includeStr );
+				if ( f.exists() ) {
+					stream = new BufferedInputStream( new FileInputStream( f ) );
+				}
+			}
+
+			if ( stream == null ) {
+				URL includeURL = classLoader.getResource( includeStr );
+				if ( includeURL != null ) {
+					stream = includeURL.openStream();
+				}
+			}
+
+			for ( int i = 1; i < includePaths.length && stream == null; i++ ) {
 				f = new File(
 					includePaths[i] +
 					Constants.fileSeparator +
@@ -513,13 +531,9 @@ public class OLParser extends AbstractParser
 			}
 
 			if ( stream == null ) {
-				URL includeURL = classLoader.getResource( includeStr );
-				if ( includeURL == null ) {
-					throwException( "File not found: " + includeStr );
-				} else {
-					stream = includeURL.openStream();
-				}
+				throwException( "File not found: " + includeStr );
 			}
+
 			origIncludePaths = includePaths;
 			setScanner( new Scanner( stream, includeStr ) );
 			
