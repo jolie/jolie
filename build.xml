@@ -35,7 +35,7 @@
 		<echo file="${private.install.launcher_dir}/jolie.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+java -ea:jolie -ea:joliex -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
 	</target>
@@ -45,7 +45,7 @@ java -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joli
 		<echo file="${private.install.launcher_dir}/jolie">#!/bin/sh
 
 JOLIE_HOME=${install.dir}
-java -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+java -ea:jolie -ea:joliex -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -jar $JOLIE_HOME/jolie.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
 
