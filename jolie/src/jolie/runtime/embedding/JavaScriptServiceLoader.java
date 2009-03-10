@@ -21,6 +21,7 @@
 
 package jolie.runtime.embedding;
 
+import jolie.runtime.Expression;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import javax.script.Invocable;
@@ -36,9 +37,10 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 {
 	final private Invocable invocable;
 
-	public JavaScriptServiceLoader( String jsPath )
+	public JavaScriptServiceLoader( Expression channelDest, String jsPath )
 		throws EmbeddedServiceLoaderCreationException
 	{
+		super( channelDest );
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName( "JavaScript" );
 		if ( engine == null ) {

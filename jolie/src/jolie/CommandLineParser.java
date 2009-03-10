@@ -170,9 +170,10 @@ public class CommandLineParser
 	/**
 	 * Constructor
 	 * @param args the command line arguments
+	 * @param classLoader the ClassLoader to use for finding resources
 	 * @throws jolie.CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 */
-	public CommandLineParser( String[] args )
+	public CommandLineParser( String[] args, ClassLoader classLoader )
 		throws CommandLineException, IOException
 	{
 		List< String > argumentsList = new ArrayList< String >();
@@ -259,7 +260,7 @@ public class CommandLineParser
 		}
 		libURLs = urls.toArray( new URL[]{} );
 		
-		programStream = getOLStream( olFilepath, includeList );
+		programStream = getOLStream( olFilepath, includeList, classLoader );
 		if ( programStream == null ) {
 			throw new FileNotFoundException( olFilepath );
 		}
@@ -267,10 +268,9 @@ public class CommandLineParser
 		includePaths = includeList.toArray( new String[]{} );
 	}
 	
-	private InputStream getOLStream( String olFilepath, LinkedList< String > includePaths )
+	private InputStream getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
-		ClassLoader classLoader = this.getClass().getClassLoader();
 		InputStream olStream = null;
 		File f = new File( olFilepath );
 		if ( f.exists() ) {

@@ -40,7 +40,7 @@ public class SpawnExecution
 			int index
 		)
 		{
-			super( process, parentThread, null );
+			super( process, parentThread );
 			this.index = index;
 		}
 
@@ -62,12 +62,12 @@ public class SpawnExecution
 	
 	final private Vector< SpawnedThread > threads = new Vector< SpawnedThread >();
 	final private SpawnProcess parentSpawnProcess;
-	final private ExecutionThread ethread;
+	final private ExecutionThread ethread = ExecutionThread.currentThread();
 
 	public SpawnExecution( SpawnProcess parent )
 	{
 		this.parentSpawnProcess = parent;
-		this.ethread = ExecutionThread.currentThread();
+		//this.ethread = ExecutionThread.currentThread();
 	}
 	
 	public void run()

@@ -372,7 +372,7 @@ public class OOITBuilder implements OLVisitor
 	private Type currType;
 	boolean insideType = false;
 	
-	private Map< String, Type > types = new HashMap< String, Type >();
+	final private Map< String, Type > types = new HashMap< String, Type >();
 
 	final private Map< String, Map< String, Type > > notificationTypes =
 		new HashMap< String, Map< String, Type > >(); // Maps output ports to their OW operation types

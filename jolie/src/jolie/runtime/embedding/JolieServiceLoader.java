@@ -24,7 +24,7 @@ package jolie.runtime.embedding;
 
 import java.io.File;
 import java.io.IOException;
-
+import jolie.runtime.Expression;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Future;
@@ -39,9 +39,10 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	final private static Pattern servicePathSplitPattern = Pattern.compile( " " );
 	final private Interpreter interpreter;
 	
-	public JolieServiceLoader( Interpreter currInterpreter, String servicePath )
+	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException
 	{
+		super( channelDest );
 		String[] args = new String[ 0 ];
 		if ( currInterpreter != null ) {
 			args = currInterpreter.args();
@@ -62,7 +63,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		for( int k = 0; k < ss.length; k++, i++ ) {
 			newArgs.add( ss[ k ] );
 		}
-		interpreter = new Interpreter( newArgs.toArray( args ) );
+		interpreter = new Interpreter( newArgs.toArray( args ), currInterpreter.getClassLoader() );
 	}
 
 	public void load()
@@ -79,5 +80,10 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
+	}
+
+	public Interpreter interpreter()
+	{
+		return interpreter;
 	}
 }

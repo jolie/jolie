@@ -107,6 +107,12 @@ public class OutputPort extends AbstractIdentifiableObject
 	public CommProtocol getProtocol()
 		throws IOException, URISyntaxException
 	{
+		return getProtocol( new URI( locationVariablePath.getValue().strValue() ) );
+	}
+
+	public CommProtocol getProtocol( URI location )
+		throws IOException
+	{
 		String protocolId = protocolVariablePath.getValue().strValue();
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
@@ -114,7 +120,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		return interpreter.commCore().createCommProtocol(
 			protocolId,
 			protocolVariablePath,
-			new URI( locationVariablePath.getValue().strValue() )
+			location
 		);
 	}
 

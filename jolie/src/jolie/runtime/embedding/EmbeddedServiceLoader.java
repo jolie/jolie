@@ -29,21 +29,29 @@ import jolie.net.CommChannel;
 
 public abstract class EmbeddedServiceLoader
 {
+	final private Expression channelDest;
+
+	protected EmbeddedServiceLoader( Expression channelDest )
+	{
+		this.channelDest = channelDest;
+	}
+
 	private static EmbeddedServiceLoader createLoader(
 				Interpreter interpreter,
 				Constants.EmbeddedServiceType type,
-				String servicePath
+				String servicePath,
+				Expression channelDest
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
 		EmbeddedServiceLoader ret = null;
 		try {
 			if ( type == Constants.EmbeddedServiceType.JAVA ) {
-				ret = new JavaServiceLoader( servicePath );
+				ret = new JavaServiceLoader( channelDest, servicePath, interpreter );
 			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
-				ret = new JolieServiceLoader( interpreter, servicePath );
+				ret = new JolieServiceLoader( channelDest, interpreter, servicePath );
 			} else if ( type == Constants.EmbeddedServiceType.JAVASCRIPT ) {
-				ret = new JavaScriptServiceLoader( servicePath );
+				ret = new JavaScriptServiceLoader( channelDest, servicePath );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
@@ -64,9 +72,7 @@ public abstract class EmbeddedServiceLoader
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		EmbeddedServiceLoader ret = createLoader( interpreter, type, servicePath );
-		ret.channelDest = channelValue;
-		return ret;
+		return createLoader( interpreter, type, servicePath, channelValue );
 	}
 	
 	public static EmbeddedServiceLoader create(
@@ -77,12 +83,8 @@ public abstract class EmbeddedServiceLoader
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		EmbeddedServiceLoader ret = createLoader( interpreter, type, servicePath );
-		ret.channelDest = channelPath;
-		return ret;
+		return createLoader( interpreter, type, servicePath, channelPath );
 	}
-	
-	private Expression channelDest = null;
 	
 	protected void setChannel( CommChannel channel )
 	{
