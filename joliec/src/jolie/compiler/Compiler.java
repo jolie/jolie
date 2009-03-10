@@ -48,7 +48,7 @@ public class Compiler
 	public Compiler( String[] args )
 		throws CommandLineException, IOException
 	{
-		CommandLineParser cmdParser = new CommandLineParser( args );
+		CommandLineParser cmdParser = new CommandLineParser( args, this.getClass().getClassLoader() );
 		classLoader = this.getClass().getClassLoader();
 		programStream = cmdParser.programStream();
 		programFilepath = cmdParser.programFilepath();
