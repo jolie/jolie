@@ -44,7 +44,7 @@ public class Jolie2Plasma
     public static void main( String[] args )
 	{
 		try {
-			CommandLineParser cmdParser = new CommandLineParser( args );
+			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Plasma.class.getClassLoader() );
 			args = cmdParser.arguments();
 			if ( args.length < 2 ) {
 				throw new CommandLineException( "Syntax is: jolie2plasma [jolie options] <jolie filename> <output filename> [interface name list]" );
