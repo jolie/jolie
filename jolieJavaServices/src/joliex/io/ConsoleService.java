@@ -87,12 +87,12 @@ public class ConsoleService extends JavaService
 	public CommMessage print( CommMessage message )
 	{
 		System.out.print( message.value().strValue() );
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( message, Value.create() );
 	}
 
 	public CommMessage println( CommMessage message )
 	{
 		System.out.println( message.value().strValue() );
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( message, Value.create() );
 	}
 }
