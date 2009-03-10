@@ -21,6 +21,8 @@
 
 package jolie;
 
+import java.util.LinkedList;
+import java.util.List;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
 import jolie.runtime.ExitingException;
@@ -33,25 +35,29 @@ import jolie.runtime.FaultException;
 public class SessionThread extends ExecutionThread implements Cloneable
 {
 	final private jolie.State state;
-	final private CorrelatedProcess notifyProc;
+	final private List< SessionListener > listeners = new LinkedList< SessionListener >();
 	
-	private SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc, jolie.State state )
+	private SessionThread( Process process, ExecutionThread parent, jolie.State state )
 	{
 		super( process, parent );
 		this.state = state;
-		this.notifyProc = notifyProc;
 	}
 	
 	@Override
 	public SessionThread clone()
 	{
-		SessionThread ret = new SessionThread( process, parent, notifyProc, state.clone() );
+		SessionThread ret = new SessionThread( process, parent, state.clone() );
 		for( Scope s : scopeStack ) {
 			ret.scopeStack.push( s.clone() );
 		}
 		return ret;
 	}
-	
+
+	public void addSessionListener( SessionListener listener )
+	{
+		listeners.add( listener );
+	}
+
 	/**
 	 * Constructs a SessionThread with a fresh State.
 	 * @param interpreter the Interpreter this thread must refer to
@@ -61,7 +67,6 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	{
 		super( interpreter, process );
 		state = new jolie.State();
-		notifyProc = null;
 	}
 	
 	/**
@@ -73,13 +78,11 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	 * @param notifyProc the CorrelatedProcess to notify when this session expires
 	 * @see CorrelatedProcess
 	 */
-	public SessionThread( Process process, ExecutionThread parent, CorrelatedProcess notifyProc )
+	public SessionThread( Process process, ExecutionThread parent )
 	{
 		super( process, parent );
 
 		assert( parent != null );
-
-		this.notifyProc = notifyProc;
 
 		state = parent.state().clone();
 		for( Scope s : parent.scopeStack ) {
@@ -103,14 +106,16 @@ public class SessionThread extends ExecutionThread implements Cloneable
 			try {
 				process().run();
 			} catch( ExitingException e ) {}
-			if ( notifyProc != null ) {
-				notifyProc.sessionTerminated();
+			for( SessionListener listener : listeners ) {
+				listener.sessionExecuted( this );
 			}
 		} catch( FaultException f ) {
-			if ( notifyProc != null ) {
-				notifyProc.signalFault( f );
-			} else {
+			if ( listeners.isEmpty() ) {
 				Interpreter.getInstance().logUnhandledFault( f );
+			} else {
+				for( SessionListener listener : listeners ) {
+					listener.sessionError( this, f );
+				}
 			}
 		}
 	}

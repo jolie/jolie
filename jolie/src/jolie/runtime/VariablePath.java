@@ -32,7 +32,11 @@ import jolie.util.Pair;
  * @author Fabrizio Montesi
  */
 public class VariablePath implements Expression, Cloneable
-{	
+{
+	public static class EmptyPathLazyHolder {
+		public static final Pair< Expression, Expression >[] emptyPath = new Pair[0];
+	}
+
 	final private Pair< Expression, Expression >[] path; // Right Expression may be null
 
 	final protected Pair< Expression, Expression >[] path()

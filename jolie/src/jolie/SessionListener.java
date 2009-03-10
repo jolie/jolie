@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2009 (C) by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,46 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie;
 
-package jolie.runtime.embedding;
+import jolie.runtime.FaultException;
 
-import jolie.runtime.Expression;
-import jolie.runtime.JavaService;
-import jolie.Interpreter;
-import jolie.JolieClassLoader;
-
-
-public class JavaServiceLoader extends EmbeddedServiceLoader
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public interface SessionListener
 {
-	final private String servicePath;
-	final private Interpreter interpreter;
-	
-	public JavaServiceLoader( Expression channelDest, String servicePath, Interpreter interpreter )
-	{
-		super( channelDest );
-		this.interpreter = interpreter;
-		this.servicePath = servicePath;
-	}
+	/**
+	 * Received when a session successfully ends its execution.
+	 * @param session the executed session
+	 */
+	public void sessionExecuted( SessionThread session );
 
-	public void load()
-		throws EmbeddedServiceLoadingException
-	{
-		Class<?> c;
-		try {
-			JolieClassLoader cl = interpreter.getClassLoader();
-			c = cl.loadClass( servicePath );
-			Object obj = c.newInstance();
-			if ( !(obj instanceof JavaService) ) {
-				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
-			}
-			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
-			setChannel(	new JavaCommChannel( (JavaService)obj )	);
-		} catch( InstantiationException e ) {e.printStackTrace();
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( IllegalAccessException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( ClassNotFoundException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		}
-	}
+	/**
+	 * Received when a session raises a fault.
+	 * @param session the session raising a fault
+	 * @param fault the fault raised by the session
+	 */
+	public void sessionError( SessionThread session, FaultException fault );
 }

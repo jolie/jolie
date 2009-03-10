@@ -24,13 +24,14 @@ package jolie.process;
 import jolie.lang.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionListener;
 import jolie.SessionThread;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePathBuilder;
 
-public class CorrelatedProcess implements Process
+public class CorrelatedProcess implements Process, SessionListener
 {
 	final private Interpreter interpreter;
 	final private Process process;
@@ -54,13 +55,15 @@ public class CorrelatedProcess implements Process
 	private void startSession()
 	{
 		mustWait = true;
-		spawnModel.clone().start();
+		SessionThread session = spawnModel.clone();
+		session.addSessionListener( this );
+		session.start();
 	}
 	
 	public void run()
 		throws FaultException
 	{
-		spawnModel = new SessionThread( process, ExecutionThread.currentThread(), this );
+		spawnModel = new SessionThread( process, ExecutionThread.currentThread() );
 		if ( interpreter.executionMode() == Constants.ExecutionMode.SINGLE ) {
 			try {
 				process.run();
@@ -72,7 +75,7 @@ public class CorrelatedProcess implements Process
 					if ( mustWait && !interpreter.exiting() ) { // We are still waiting for an input
 						try {
 							wait();
-						} catch( InterruptedException ie ) {}
+						} catch( InterruptedException e ) {}
 					}
 				}
 			}
@@ -80,7 +83,7 @@ public class CorrelatedProcess implements Process
 				while( activeSessions > 0 ) {
 					try {
 						wait();
-					} catch( InterruptedException ie ) {}
+					} catch( InterruptedException e ) {}
 				}
 			}
 		}
@@ -102,7 +105,7 @@ public class CorrelatedProcess implements Process
 		}
 	}
 	
-	public synchronized void sessionTerminated()
+	public synchronized void sessionExecuted( SessionThread session )
 	{
 		activeSessions--;
 		if ( interpreter.executionMode() == Constants.ExecutionMode.SEQUENTIAL ) {
@@ -113,9 +116,8 @@ public class CorrelatedProcess implements Process
 		}
 	}
 	
-	public void signalFault( FaultException f )
+	public void sessionError( SessionThread ethread, FaultException f )
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
 		Process p = null;
 		while( ethread.hasScope() && (p=ethread.getFaultHandler( f.faultName(), true )) == null ) {
 			ethread.popScope();
@@ -143,9 +145,9 @@ public class CorrelatedProcess implements Process
 				}
 			}
 		} catch( FaultException fault ) {
-			signalFault( fault );
+			sessionError( ethread, fault );
 		}
-		sessionTerminated();
+		sessionExecuted( ethread );
 	}
 	
 	public boolean isKillable()

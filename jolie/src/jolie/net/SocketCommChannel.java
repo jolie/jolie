@@ -23,12 +23,10 @@
 package jolie.net;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;

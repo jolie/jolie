@@ -356,13 +356,36 @@ public class Interpreter
 	public Interpreter( String[] args )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-		CommandLineParser cmdParser = new CommandLineParser( args );
+		parentClassLoader = this.getClass().getClassLoader();
+		CommandLineParser cmdParser = new CommandLineParser( args, parentClassLoader );
 		this.args = args;
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit() );
-		parentClassLoader = this.getClass().getClassLoader();
-		classLoader = new JolieClassLoader( cmdParser.libURLs(), this, parentClassLoader );
+		classLoader = new JolieClassLoader( cmdParser.libURLs(), parentClassLoader );
+		includePaths = cmdParser.includePaths();
+		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
+		olParser.putConstants( cmdParser.definedConstants() );
+	}
+
+	/** Constructor.
+	 *
+	 * @param args The command line arguments.
+	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( String[] args, ClassLoader parentClassLoader )
+		throws CommandLineException, FileNotFoundException, IOException
+	{
+		CommandLineParser cmdParser = new CommandLineParser( args, parentClassLoader );
+		this.args = args;
+		programFile = new File( cmdParser.programFilepath() );
+		arguments = cmdParser.arguments();
+		commCore = new CommCore( this, cmdParser.connectionsLimit() );
+		this.parentClassLoader = parentClassLoader;
+		classLoader = new JolieClassLoader( cmdParser.libURLs(), this.parentClassLoader );
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 		olParser.putConstants( cmdParser.definedConstants() );
