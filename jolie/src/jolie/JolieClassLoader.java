@@ -80,7 +80,7 @@ public class JolieClassLoader extends URLClassLoader
 	}
 
 	@Override
-	public Class<?> findClass( String className )
+	protected Class<?> findClass( String className )
 		throws ClassNotFoundException
 	{
 		Class<?> c = super.findClass( className );
@@ -88,6 +88,21 @@ public class JolieClassLoader extends URLClassLoader
 			checkForJolieAnnotations( c );
 		}
 		return c;
+	}
+
+	@Override
+	public Class<?> loadClass( String className )
+		throws ClassNotFoundException
+	{
+		try {
+			Class<?> c = findLoadedClass( className );
+			if ( c == null ) {
+				c = findClass( className );
+			}
+			return c;
+		} catch( ClassNotFoundException e ) {
+			return getParent().loadClass( className );
+		}
 	}
 
 	private void checkForJolieAnnotations( Class<?> c )
@@ -127,7 +142,7 @@ public class JolieClassLoader extends URLClassLoader
 	private Class<?> loadExtensionClass( String className )
 		throws ClassNotFoundException
 	{
-		Class<?> c = super.loadClass( className );
+		Class<?> c = loadClass( className );
 		checkForJolieAnnotations( c );
 		return c;
 	}
