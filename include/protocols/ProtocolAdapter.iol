@@ -20,6 +20,6 @@ type MessageWithProtocol:void {
 
 interface ProtocolAdapterInterface {
 RequestResponse:
-	send(Message)(MessageWithProtocol) throws IOException,
+	send(MessageWithProtocol)(MessageWithProtocol) throws IOException,
 	recv(Message)(Message) throws IOException
 }
