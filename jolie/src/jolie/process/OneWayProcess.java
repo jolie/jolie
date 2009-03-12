@@ -87,7 +87,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			try {
 				checkMessageType( message );
 			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logger().warning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
+				Interpreter.getInstance().logWarning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
 				return false;
 			}
 			
@@ -176,7 +176,9 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			if ( channel != null ) {
 				channel.disposeForInput();
 			}
-		} catch( IOException ioe ) { ioe.printStackTrace(); }
+		} catch( IOException e ) {
+			Interpreter.getInstance().logSevere( e );
+		}
 	}
 	
 	public boolean isKillable()

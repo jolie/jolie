@@ -207,7 +207,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		valid = false;
 		String s = context.sourceName() + ":" + context.line() + ": " + message;
-		interpreter.logger().severe( s );
+		interpreter.logSevere( s );
 	}
 	
 	private void error( ParsingContext context, Exception e )
@@ -512,7 +512,7 @@ public class OOITBuilder implements OLVisitor
 					new Process() {
 						public void run() throws FaultException, ExitingException
 						{
-							interpreter.logger().warning( typeMismatchPath.getValue().strValue() );
+							interpreter.logWarning( typeMismatchPath.getValue().strValue() );
 						}
 
 						public Process clone( TransformationReason reason )

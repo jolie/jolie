@@ -53,7 +53,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			}
 			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
 			setChannel(	new JavaCommChannel( (JavaService)obj )	);
-		} catch( InstantiationException e ) {e.printStackTrace();
+		} catch( InstantiationException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( IllegalAccessException e ) {
 			throw new EmbeddedServiceLoadingException( e );

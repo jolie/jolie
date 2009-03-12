@@ -26,6 +26,7 @@ package jolie.runtime;
 import java.util.List;
 import java.util.Vector;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.process.InputProcessExecution;
@@ -57,7 +58,9 @@ public class InternalLink extends AbstractIdentifiableObject implements InputHan
 					procsList.remove( i );
 					return;
 				}
-			} catch( TypeCheckingException e ) { e .printStackTrace(); }
+			} catch( TypeCheckingException e ) {
+				Interpreter.getInstance().logSevere( e );
+			}
 		}
 		signals++;
 	}
@@ -70,7 +73,9 @@ public class InternalLink extends AbstractIdentifiableObject implements InputHan
 			} else {
 				procsList.add( process );
 			}
-		} catch( TypeCheckingException e ) { e.printStackTrace(); }
+		} catch( TypeCheckingException e ) {
+			Interpreter.getInstance().logSevere( e );
+		}
 	}
 	
 	public synchronized void cancelWaiting( InputProcessExecution process ) 

@@ -365,9 +365,9 @@ public class CommCore
 					}
 					OutputPort port = listener.redirectionMap().get( ss[1] );
 					if ( port == null ) {
-						String error = '[' + interpreter.programFile().getName() + "] Discarded a message for resource " + ss[1] +
+						String error = "Discarded a message for resource " + ss[1] +
 								", not specified in the appropriate redirection table.";
-						interpreter.logger().warning( error );
+						interpreter.logWarning( error );
 						throw new IOException( error );
 					}
 					CommChannel oChannel = port.getNewCommChannel();
@@ -393,16 +393,16 @@ public class CommCore
 					if ( listener == null || listener.canHandleInputOperation( operation ) ) {
 						operation.recvMessage( channel, message );
 					} else {
-						interpreter.logger().warning(
-								'[' + interpreter.programFile().getName() + "] Discarded a message for operation " + operation.id() +
+						interpreter.logWarning(
+								"Discarded a message for operation " + operation.id() +
 								", not specified in an input port at the receiving service."
 							);
 					}
 				}
-			} catch( InvalidIdException iie ) {
-				iie.printStackTrace();
+			} catch( InvalidIdException e ) {
+				interpreter.logWarning( e );
 			} catch( URISyntaxException e ) {
-				e.printStackTrace();
+				interpreter.logSevere( e );
 			}
 		}
 		
@@ -417,7 +417,7 @@ public class CommCore
 					redirectMessage( message );
 				}
 			} catch( IOException e ) {
-				e.printStackTrace();
+				interpreter.logSevere( e );
 			}
 		}
 	}
@@ -564,14 +564,14 @@ public class CommCore
 									scheduleReceive( channel, channel.parentListener() );
 								}
 							} catch( IOException e ) {
-								e.printStackTrace();
+								interpreter.logSevere( e );
 								channel.selectionKey().cancel();
 								channel.setSelectionKey( null );
 							}
 						}
 					}
 				} catch( IOException e ) {
-					e.printStackTrace();
+					interpreter.logSevere( e );
 				}
 			}
 		}
@@ -592,9 +592,9 @@ public class CommCore
 					}
 				}
 			} catch( ClosedChannelException e ) {
-				e.printStackTrace();
+				interpreter.logWarning( e );
 			} catch( IOException e ) {
-				e.printStackTrace();
+				interpreter.logSevere( e );
 			}
 		}
 

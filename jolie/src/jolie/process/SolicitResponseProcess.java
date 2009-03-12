@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -132,15 +133,15 @@ public class SolicitResponseProcess implements Process
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		} catch( URISyntaxException e ) {
-			e.printStackTrace();
+			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
 			if ( channel != null ) {
 				try {
 					channel.release();
-				} catch( IOException ioe ) {
-					ioe.printStackTrace();
+				} catch( IOException e ) {
+					Interpreter.getInstance().logWarning( e );
 				}
 			}
 		}

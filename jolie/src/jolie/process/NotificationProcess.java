@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -90,7 +91,7 @@ public class NotificationProcess implements Process
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		} catch( URISyntaxException e ) {
-			e.printStackTrace();
+			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		}

@@ -112,9 +112,9 @@ abstract public class JavaService
 						pair.value().invoke( javaService, args );
 					} catch( InvocationTargetException e ) {
 						// This should never happen, as we filtered this out in the constructor.
-						e.printStackTrace();
+						interpreter.logSevere( e );
 					} catch( IllegalAccessException e ) {
-						e.printStackTrace();
+						interpreter.logSevere( e );
 					}
 				}
 			} );
@@ -132,7 +132,7 @@ abstract public class JavaService
 						);
 				} else {
 					// This should never happen, as we filtered this out in the constructor.
-					e.printStackTrace();
+					interpreter.logSevere( e );
 				}
 			}
 		}

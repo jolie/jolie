@@ -143,7 +143,7 @@ abstract public class CommChannel
 					try {
 						monitor.wait();
 					} catch( InterruptedException e ) {
-						e.printStackTrace();
+						Interpreter.getInstance().logSevere( e );
 					}
 				}
 				response = monitor.response;
