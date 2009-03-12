@@ -184,7 +184,7 @@ public class JolieAdapterProtocol extends ConcurrentCommProtocol
 				try {
 					listener.wait();
 				} catch( InterruptedException e ) {
-					e.printStackTrace();
+					Interpreter.getInstance().logSevere( e );
 				}
 			}
 		}
@@ -203,7 +203,7 @@ public class JolieAdapterProtocol extends ConcurrentCommProtocol
 				try {
 					recvProcess.wait();
 				} catch( InterruptedException e ) {
-					e.printStackTrace();
+					Interpreter.getInstance().logSevere( e );
 				}
 			}
 		}

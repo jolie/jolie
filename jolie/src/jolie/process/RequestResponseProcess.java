@@ -103,12 +103,12 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			try {
 				checkMessageType( message );
 			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logger().warning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
+				Interpreter.getInstance().logWarning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
 				try {
 					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 					channel.disposeForInput();
 				} catch( IOException ioe ) {
-					ioe.printStackTrace();
+					Interpreter.getInstance().logSevere( ioe );
 				}
 				throw e;
 			}
@@ -207,7 +207,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				faultType.check( f.value() );
 			}
 		} else {
-			Interpreter.getInstance().logger().severe(
+			Interpreter.getInstance().logSevere(
 				"Request-Response process for " + operation.id() +
 				" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
 			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
@@ -275,13 +275,13 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		try {
 			channel.send( response );
 			channel.disposeForInput();
-		} catch( IOException ioe ) {
-			ioe.printStackTrace();
+		} catch( IOException e ) {
+			Interpreter.getInstance().logSevere( e );
 		}
 
 		if ( fault != null ) {
 			if ( typeMismatch != null ) {
-				Interpreter.getInstance().logger().warning( typeMismatch.value().strValue() );
+				Interpreter.getInstance().logWarning( typeMismatch.value().strValue() );
 			}
 			throw fault;
 		} else if ( typeMismatch != null ) {

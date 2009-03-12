@@ -21,10 +21,12 @@
 
 package jolie;
 
+import java.io.ByteArrayOutputStream;
 import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,6 +105,8 @@ public class Interpreter
 	final private String[] args;
 	
 	final private File programFile;
+
+	final private String logPrefix;
 	
 	/**
 	 * Returns the arguments passed to this Interpreter.
@@ -281,11 +285,34 @@ public class Interpreter
 	{
 		return exiting;
 	}
-	
+
 	public void logUnhandledFault( FaultException f )
 	{
-		//if ( verbose )
-		System.out.println( "Thrown unhandled fault: " + f.faultName() ); 
+		logger.info( logPrefix + "Thrown unhandled fault: " + f.faultName() );
+	}
+
+	public void logSevere( String message )
+	{
+		logger.severe( logPrefix + message );
+	}
+
+	public void logWarning( String message )
+	{
+		logger.warning( logPrefix + message );
+	}
+
+	public void logSevere( Throwable t )
+	{
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		t.printStackTrace( new PrintStream( bs ) );
+		logger.severe( logPrefix + bs.toString() );
+	}
+
+	public void logWarning( Throwable t )
+	{
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		t.printStackTrace( new PrintStream( bs ) );
+		logger.warning( logPrefix + bs.toString() );
 	}
 	
 	/**
@@ -321,11 +348,6 @@ public class Interpreter
 	public Set< List< VariablePath > > correlationSet()
 	{
 		return correlationSet;
-	}
-	
-	public Logger logger()
-	{
-		return logger;
 	}
 	
 	/**
@@ -366,6 +388,12 @@ public class Interpreter
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 		olParser.putConstants( cmdParser.definedConstants() );
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append( '[' );
+		builder.append( programFile.getName() );
+		builder.append( "] " );
+		logPrefix = builder.toString();
 	}
 
 	/** Constructor.
@@ -389,6 +417,12 @@ public class Interpreter
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 		olParser.putConstants( cmdParser.definedConstants() );
+
+		StringBuilder builder = new StringBuilder();
+		builder.append( '[' );
+		builder.append( programFile.getName() );
+		builder.append( "] " );
+		logPrefix = builder.toString();
 	}
 	
 	public File programFile()
@@ -536,7 +570,7 @@ public class Interpreter
 		try {
 			mainExec.join();
 		} catch( InterruptedException e ) {
-			e.printStackTrace();
+			logSevere( e );
 		}
 	}
 	

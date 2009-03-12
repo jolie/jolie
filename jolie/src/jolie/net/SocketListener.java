@@ -88,16 +88,16 @@ public class SocketListener extends CommListener
 				interpreter().commCore().scheduleReceive( channel, this );
 				channel = null; // Dispose for garbage collection
 			}
-		} catch( ClosedByInterruptException ce ) {
+		} catch( ClosedByInterruptException e ) {
 			try {
 				serverChannel.close();
 			} catch( IOException ioe ) {
-				ioe.printStackTrace();
+				interpreter().logWarning( ioe );
 			}
 		} catch( AsynchronousCloseException e ) {
 			// Closed by CommCore shutdown
 		} catch( IOException e ) {
-			e.printStackTrace();
+			interpreter().logWarning( e );
 		}
 	}
 }

@@ -53,11 +53,11 @@ public class JolieAdapterProtocolFactory extends CommProtocolFactory
 			);
 			loader.load();
 		} catch( EmbeddedServiceLoadingException e ) {
-			e.printStackTrace();
+			commCore.interpreter().logSevere( e );
 		} catch( IOException e ) {
-			e.printStackTrace();
+			commCore.interpreter().logSevere( e );
 		} catch( CommandLineException e ) {
-			e.printStackTrace();
+			commCore.interpreter().logSevere( e );
 		}
 		adapter = ( loader == null ) ? null : loader.interpreter();
 		adapterChannel = channelValue.channelValue();

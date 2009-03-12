@@ -28,8 +28,6 @@ import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
 
-
-
 public class MainDefinitionProcess extends DefinitionProcess
 {
 	public MainDefinitionProcess( Process process )
@@ -41,9 +39,8 @@ public class MainDefinitionProcess extends DefinitionProcess
 	public void run()
 		throws FaultException
 	{
+		Interpreter interpreter = Interpreter.getInstance();
 		try {
-			Interpreter interpreter = Interpreter.getInstance();
-			
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				try {
 					outputPort.configurationProcess().run();
@@ -51,7 +48,7 @@ public class MainDefinitionProcess extends DefinitionProcess
 					// If this happens, it's been caused by a bug in the SemanticVerifier
 					assert( false );
 				} catch( ExitingException e ) {
-					e.printStackTrace();
+					interpreter.logSevere( e );
 					assert false;
 				}
 			}
@@ -66,7 +63,7 @@ public class MainDefinitionProcess extends DefinitionProcess
 				try {
 					p.run();
 				} catch( ExitingException e ) {
-					e.printStackTrace();
+					interpreter.logSevere( e );
 					assert false;
 				}
 			}
@@ -76,7 +73,7 @@ public class MainDefinitionProcess extends DefinitionProcess
 			} catch( ExitingException e ) {}
 		} catch( EmbeddedServiceLoadingException e ) {
 			//Interpreter.getInstance().logger().severe( e.getMessage() );
-			e.printStackTrace();
+			interpreter.logSevere( e );
 		}
 	}
 }
