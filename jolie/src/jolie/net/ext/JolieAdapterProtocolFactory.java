@@ -38,7 +38,7 @@ import jolie.runtime.embedding.JolieServiceLoader;
 public class JolieAdapterProtocolFactory extends CommProtocolFactory
 {
 	final private CommChannel adapterChannel;
-	final private Interpreter adaptor;
+	final private Interpreter adapter;
 
 	public JolieAdapterProtocolFactory( CommCore commCore, String filepath, URL jarURL )
 	{
@@ -59,16 +59,16 @@ public class JolieAdapterProtocolFactory extends CommProtocolFactory
 		} catch( CommandLineException e ) {
 			e.printStackTrace();
 		}
-		adaptor = ( loader == null ) ? null : loader.interpreter();
+		adapter = ( loader == null ) ? null : loader.interpreter();
 		adapterChannel = channelValue.channelValue();
 	}
 
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		if ( adaptor == null || adapterChannel == null ) {
+		if ( adapter == null || adapterChannel == null ) {
 			throw new IOException();
 		}
-		return new JolieAdapterProtocol( configurationPath, location, adapterChannel, adaptor );
+		return new JolieAdapterProtocol( configurationPath, location, adapterChannel, adapter );
 	}
 }
