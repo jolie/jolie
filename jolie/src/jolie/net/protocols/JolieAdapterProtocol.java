@@ -42,6 +42,11 @@ import jolie.util.Pair;
 
 public class JolieAdapterProtocol extends ConcurrentCommProtocol
 {
+	/*final public boolean isThreadSafe()
+	{
+		return adaptor.executionMode() == Constants.ExecutionMode.CONCURRENT;
+	}*/
+
 	static private class InputProtocolConfigurationPathLazyHolder {
 		final private static Pair< Expression, Expression >[] inputProtocolConfigurationPath;
 		static {
@@ -111,6 +116,9 @@ public class JolieAdapterProtocol extends ConcurrentCommProtocol
 			fault.getFirstChild( "value" ).refCopy( message.fault().value() );
 			fault.setValue( message.fault().faultName() );
 		}
+		requestValue.getFirstChild( "protocol" ).deepCopy( configurationPath().getValue() );
+		requestValue.getFirstChild( "protocol" ).setValue( (Object)null );
+
 		CommMessage request = CommMessage.createRequest( "send", "/", requestValue );
 		adaptorChannel.send( request );
 		return adaptorChannel.recvResponseFor( request );
