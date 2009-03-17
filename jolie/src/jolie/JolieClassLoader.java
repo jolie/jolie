@@ -37,11 +37,9 @@ import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ext.JolieAdapterProtocolFactory;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.JavaService;
-import jolie.util.Pair;
 
 /**
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
@@ -54,9 +52,6 @@ public class JolieClassLoader extends URLClassLoader
 	final private Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
 	final private Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
 	final private Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
-
-	final private Map< String, Pair< String, URL > > protocolAdapterExtensions =
-		new HashMap< String, Pair< String, URL > >();
 
 	private void init( URL[] urls )
 		throws IOException
@@ -236,12 +231,7 @@ public class JolieClassLoader extends URLClassLoader
 	{
 		CommProtocolFactory factory = null;
 		String className = protocolExtensionClassNames.get( name );
-		if ( className == null ) {
-			Pair< String, URL > pair = protocolAdapterExtensions.get( name );
-			if ( pair != null ) { // JOLIE implementation
-				factory = new JolieAdapterProtocolFactory( commCore, pair.key(), pair.value() );
-			}
-		} else { // Java implementation
+		if ( className != null ) {
 			try {
 				Class<?> c = loadExtensionClass( className );
 				if ( CommProtocolFactory.class.isAssignableFrom( c ) ) {
@@ -262,20 +252,6 @@ public class JolieClassLoader extends URLClassLoader
 		}
 
 		return factory;
-	}
-
-	private void checkForProtocolAdapterExtension( Attributes attrs, URL jarURL )
-		throws IOException
-	{
-		String extension = attrs.getValue( Constants.Manifest.ProtocolAdapterExtension );
-		if ( extension != null ) {
-			String[] pair = extensionSplitPattern.split( extension );
-			if ( pair.length == 2 ) {
-				protocolAdapterExtensions.put( pair[0], new Pair< String, URL >( pair[1], jarURL ) );
-			} else {
-				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
-			}
-		}
 	}
 
 	private void checkForProtocolExtension( Attributes attrs )
@@ -301,7 +277,6 @@ public class JolieClassLoader extends URLClassLoader
 			checkForChannelExtension( attrs );
 			checkForListenerExtension( attrs );
 			checkForProtocolExtension( attrs );
-			checkForProtocolAdapterExtension( attrs, jarConnection.getURL() );
 		}
 	}
 	
