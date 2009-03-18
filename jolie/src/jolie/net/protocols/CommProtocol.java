@@ -38,6 +38,17 @@ import jolie.runtime.VariablePath;
  */
 abstract public class CommProtocol
 {
+	private static class LazyDummyChannelHolder {
+		private static class DummyChannel extends CommChannel {
+			public void closeImpl() {}
+			public void sendImpl( CommMessage message ) {}
+			public CommMessage recvImpl() { return CommMessage.createEmptyMessage(); }
+		}
+
+		private static DummyChannel dummyChannel = new DummyChannel();
+	}
+
+
 	final private VariablePath configurationPath;
 	private CommChannel channel = null;
 
@@ -60,6 +71,9 @@ abstract public class CommProtocol
 
 	protected CommChannel channel()
 	{
+		if ( this.channel == null ) {
+			return LazyDummyChannelHolder.dummyChannel;
+		}
 		return this.channel;
 	}
 	
