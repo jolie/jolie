@@ -291,6 +291,11 @@ public class Interpreter
 		logger.info( logPrefix + "Thrown unhandled fault: " + f.faultName() );
 	}
 
+	public void logInfo( String message )
+	{
+		logger.info( logPrefix + message );
+	}
+
 	public void logSevere( String message )
 	{
 		logger.severe( logPrefix + message );

@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,7 +57,6 @@ import jolie.net.http.HttpUtils;
 import jolie.net.http.JolieGWTConverter;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
-import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -78,7 +76,6 @@ import org.xml.sax.SAXException;
  * HTTP protocol implementation
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"jolie-xml.jar"})
 public class HttpProtocol extends SequentialCommProtocol
 {
 	private static class Parameters {
@@ -436,7 +433,7 @@ public class HttpProtocol extends SequentialCommProtocol
 				) {
 				debugSB.append( encodedContent.content.toString() );
 			}
-			Interpreter.getInstance().logger().info( debugSB.toString() );
+			Interpreter.getInstance().logInfo( debugSB.toString() );
 		}
 	}
 	
@@ -581,7 +578,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		debugSB.append( "--> Message content\n" );
 		if ( message.content() != null )
 			debugSB.append( new String( message.content() ) );
-		Interpreter.getInstance().logger().info( debugSB.toString() );
+		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 	
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage )
