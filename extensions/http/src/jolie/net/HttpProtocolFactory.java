@@ -32,9 +32,11 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.VariablePath;
 
+@AndJarDeps({"jolie-xml.jar"})
 @CanUseJars({"gwt-servlet.jar","jolie-gwt.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {

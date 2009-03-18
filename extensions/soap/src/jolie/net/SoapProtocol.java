@@ -466,7 +466,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			messageString += soapString + CRLF;
 			
 			if ( getParameterVector( "debug" ).first().intValue() > 0 )
-				interpreter.logger().info( "[SOAP debug] Sending:\n" + tmpStream.toString() );
+				interpreter.logInfo( "[SOAP debug] Sending:\n" + tmpStream.toString() );
 
 			inputId = message.operationName();
 			
@@ -550,7 +550,7 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 					soapMessage.writeTo( tmpStream );
-					interpreter.logger().info( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
+					interpreter.logInfo( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
 				}
 				
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault(); 
