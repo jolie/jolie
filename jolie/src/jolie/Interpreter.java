@@ -383,22 +383,7 @@ public class Interpreter
 	public Interpreter( String[] args )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-		parentClassLoader = this.getClass().getClassLoader();
-		CommandLineParser cmdParser = new CommandLineParser( args, parentClassLoader );
-		this.args = args;
-		programFile = new File( cmdParser.programFilepath() );
-		arguments = cmdParser.arguments();
-		commCore = new CommCore( this, cmdParser.connectionsLimit() );
-		classLoader = new JolieClassLoader( cmdParser.libURLs(), parentClassLoader );
-		includePaths = cmdParser.includePaths();
-		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
-		olParser.putConstants( cmdParser.definedConstants() );
-		
-		StringBuilder builder = new StringBuilder();
-		builder.append( '[' );
-		builder.append( programFile.getName() );
-		builder.append( "] " );
-		logPrefix = builder.toString();
+		this( args, null );
 	}
 
 	/** Constructor.
@@ -417,8 +402,11 @@ public class Interpreter
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit() );
+		if ( parentClassLoader == null ) {
+			parentClassLoader = this.getClass().getClassLoader();
+		}
 		this.parentClassLoader = parentClassLoader;
-		classLoader = new JolieClassLoader( cmdParser.libURLs(), this.parentClassLoader );
+		classLoader = new JolieClassLoader( cmdParser.libURLs(), parentClassLoader );
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 		olParser.putConstants( cmdParser.definedConstants() );
