@@ -71,6 +71,10 @@ public class ExecService extends JavaService
 						response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 					}
 				}
+
+				p.getInputStream().close();
+				p.getErrorStream().close();
+				p.getOutputStream().close();
 			}
 			return CommMessage.createResponse( request, response );
 		} catch( Exception e ) {
