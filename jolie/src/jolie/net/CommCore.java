@@ -106,7 +106,7 @@ public class CommCore
 					}
 				}
 			}
-		}
+		}System.out.println("reusing " + ret);
 		return ret;
 	}
 
@@ -562,6 +562,8 @@ public class CommCore
 								if ( stream.read() != -1 ) {
 									stream.reset();
 									scheduleReceive( channel, channel.parentListener() );
+								} else {
+									channel.closeImpl();
 								}
 							} catch( IOException e ) {
 								interpreter.logSevere( e );
