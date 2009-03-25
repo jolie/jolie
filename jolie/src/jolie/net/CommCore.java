@@ -106,7 +106,7 @@ public class CommCore
 					}
 				}
 			}
-		}System.out.println("reusing " + ret);
+		}
 		return ret;
 	}
 
