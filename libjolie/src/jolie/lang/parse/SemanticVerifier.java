@@ -175,9 +175,10 @@ public class SemanticVerifier implements OLVisitor
 		checkCardinality( n );
 		boolean backupRootType = isTopLevelType;
 		if ( isTopLevelType ) {
-			// Check if the type has already been defined
-			if ( definedTypes.containsKey( n.id() ) ) {
-				error( n, "type " + n.id() + " has already been defined" );
+			// Check if the type has already been defined with a different structure
+			TypeDefinition type = definedTypes.get( n.id() );
+			if ( type != null && type.equals( n ) == false ) {
+				error( n, "type " + n.id() + " has already been defined with a different structure" );
 			}
 		}
 
