@@ -115,7 +115,6 @@ public class HttpProtocol extends SequentialCommProtocol
 			Node node,
 			Document doc
 			)
-		throws SOAPException
 	{
 		node.appendChild( doc.createTextNode( value.strValue() ) );
 
@@ -245,12 +244,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
 			doc.appendChild( root );
-			try {
-				valueToDocument( message.value(), root, doc );
-			} catch( SOAPException e ) {
-				throw new IOException( e );
-			}
-
+			valueToDocument( message.value(), root, doc );
 			Source src = new DOMSource( doc );
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			Result dest = new StreamResult( tmpStream );
