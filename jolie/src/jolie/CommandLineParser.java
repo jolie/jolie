@@ -55,6 +55,7 @@ public class CommandLineParser
 	final private String programFilepath;
 	final private String[] arguments;
 	final private Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
+	final private boolean verbose;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -167,6 +168,11 @@ public class CommandLineParser
 		}
 	}
 
+	public boolean verbose()
+	{
+		return verbose;
+	}
+
 	/**
 	 * Constructor
 	 * @param args the command line arguments
@@ -176,6 +182,7 @@ public class CommandLineParser
 	public CommandLineParser( String[] args, ClassLoader classLoader )
 		throws CommandLineException, IOException
 	{
+		boolean bVerbose = false;
 		List< String > argumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
@@ -212,6 +219,8 @@ public class CommandLineParser
 			} else if ( "--connlimit".equals( args[ i ] ) ) {
 				i++;
 				cLimit = Integer.parseInt( args[ i ] );
+			} else if ( "--verbose".equals( args[ i ] ) ) {
+				bVerbose = true;
 			} else if ( "--version".equals( args[ i ] ) ) {
 				throw new CommandLineException( getVersionString() );
 			} else if ( args[ i ].endsWith( ".ol" ) ) {
@@ -227,6 +236,8 @@ public class CommandLineParser
 			}/* else
 				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
 		}
+
+		verbose = bVerbose;
 		
 		arguments = argumentsList.toArray( new String[]{} );
 		

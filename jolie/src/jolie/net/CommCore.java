@@ -545,6 +545,7 @@ public class CommCore
 		@Override
 		public void run()
 		{
+			int buffer;
 			SelectableStreamingCommChannel channel;
 			InputStream stream;
 			while( active ) {
@@ -559,7 +560,15 @@ public class CommCore
 								stream = channel.inputStream();
 								stream.mark( 1 );
 								// It could just be a closing read. If not, receive it.
-								if ( stream.read() != -1 ) {
+								try {
+									buffer = stream.read();
+								} catch( IOException e ) {
+									buffer = -1;
+									if ( interpreter.verbose() ) {
+										interpreter.logSevere( e );
+									}
+								}
+								if ( buffer != -1 ) {
 									stream.reset();
 									scheduleReceive( channel, channel.parentListener() );
 								} else {
