@@ -1,7 +1,7 @@
 type ConnectionInfo:void {
 	.driver:string
 	.host:string
-	.port:int
+	.port?:int
 	.database:string
 	.username:string
 	.password:string
