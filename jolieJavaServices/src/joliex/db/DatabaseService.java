@@ -44,7 +44,8 @@ import jolie.runtime.Value;
 	"derbyclient.jar",		// Java DB - Client
 	"jdbc-mysql.jar",		// MySQL
 	"jdbc-postgresql.jar",	// PostgreSQL
-	"jdbc-sqlserver.jar"	// Microsoft SQLServer
+	"jdbc-sqlserver.jar",	// Microsoft SQLServer
+	"jdbc-sqlite.jar"		// SQLite
 })
 public class DatabaseService extends JavaService
 {
@@ -92,6 +93,8 @@ public class DatabaseService extends JavaService
 				Class.forName( "com.mysql.jdbc.Driver" );
 			} else if ( "derby".equals( driver ) ) {
 				Class.forName( "org.apache.derby.jdbc.ClientDriver" );
+			} else if ( "sqlite".equals( driver ) ) {
+				Class.forName( "org.sqlite.JDBC" );
 			} else if ( "sqlserver".equals( driver ) ) {
 				//Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
 				separator = ";";
