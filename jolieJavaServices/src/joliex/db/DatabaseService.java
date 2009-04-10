@@ -38,6 +38,7 @@ import jolie.runtime.Value;
 /**
  * @author Fabrizio Montesi
  * 2008 - Marco Montesi: connection string fix for Microsoft SQL Server
+ * 2009 - Claudio Guidi: added support for SQLite
  */
 @CanUseJars({
 	"derby.jar",			// Java DB - Embedded
