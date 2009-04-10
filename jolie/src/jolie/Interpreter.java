@@ -107,6 +107,8 @@ public class Interpreter
 	final private File programFile;
 
 	final private String logPrefix;
+
+	final private boolean verbose;
 	
 	/**
 	 * Returns the arguments passed to this Interpreter.
@@ -372,6 +374,11 @@ public class Interpreter
 	{
 		return classLoader;
 	}
+
+	public boolean verbose()
+	{
+		return verbose;
+	}
 	
 	/** Constructor.
 	 * 
@@ -416,6 +423,8 @@ public class Interpreter
 		builder.append( programFile.getName() );
 		builder.append( "] " );
 		logPrefix = builder.toString();
+
+		verbose = cmdParser.verbose();
 	}
 	
 	public File programFile()
