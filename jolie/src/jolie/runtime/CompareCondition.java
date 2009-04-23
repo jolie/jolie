@@ -62,14 +62,31 @@ public class CompareCondition implements Condition
 			retval = leftVal.equals( rightVal );
 		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
 			retval = !(leftVal.equals( rightVal ));
-		} else if ( opType == Scanner.TokenType.LANGLE )
-			retval = ( leftVal.intValue() < rightVal.intValue() );
-		else if ( opType == Scanner.TokenType.RANGLE )
-			retval = ( leftVal.intValue() > rightVal.intValue() );
-		else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL )
-			retval = ( leftVal.intValue() <= rightVal.intValue() );
-		else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL )
-			retval = ( leftVal.intValue() >= rightVal.intValue() );
+		} else if ( opType == Scanner.TokenType.LANGLE ) {
+			if ( leftVal.isDouble() ) {
+				retval = ( leftVal.doubleValue() < rightVal.doubleValue() );
+			} else {
+				retval = ( leftVal.intValue() < rightVal.intValue() );
+			}
+		} else if ( opType == Scanner.TokenType.RANGLE ) {
+			if ( leftVal.isDouble() ) {
+				retval = ( leftVal.doubleValue() > rightVal.doubleValue() );
+			} else {
+				retval = ( leftVal.intValue() > rightVal.intValue() );
+			}
+		} else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL ) {
+			if ( leftVal.isDouble() ) {
+				retval = ( leftVal.doubleValue() <= rightVal.doubleValue() );
+			} else {
+				retval = ( leftVal.intValue() <= rightVal.intValue() );
+			}
+		} else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL ) {
+			if ( leftVal.isDouble() ) {
+				retval = ( leftVal.doubleValue() >= rightVal.doubleValue() );
+			} else {
+				retval = ( leftVal.intValue() >= rightVal.intValue() );
+			}
+		}
 		
 		return retval;
 	}
