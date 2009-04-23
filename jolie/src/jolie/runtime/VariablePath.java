@@ -227,7 +227,7 @@ public class VariablePath implements Expression, Cloneable
 			}
 		}
 
-		return null;
+		return currValue;
 	}
 	
 	final public ValueVector getValueVector( Value rootValue )
