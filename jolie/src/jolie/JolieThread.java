@@ -21,6 +21,8 @@
 
 package jolie;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A thread that can refer to its generating Interpreter.
  * @see Interpreter
@@ -30,14 +32,11 @@ abstract public class JolieThread extends Thread
 {
 	final private Interpreter interpreter;
 
-	static private int counter = 0;
-	static final private Object counterMutex = new Object();
+	static final private AtomicInteger counter = new AtomicInteger( 0 );
 
 	static private String createThreadName()
 	{
-		synchronized( counterMutex ) {
-			return "JolieThread-" + counter++;
-		}
+		return "JolieThread-" + counter.getAndIncrement();
 	}
 	
 	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
