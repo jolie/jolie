@@ -26,16 +26,14 @@ import java.io.IOException;
 
 import java.util.LinkedList;
 import java.util.List;
-import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
 
 /**
- * TODO: this shouldn't be polled.
+ * @author Fabrizio Montesi
  */
-public class JavaCommChannel extends CommChannel implements PollableCommChannel
+public class JavaCommChannel extends CommChannel
 {
 	final private JavaService javaService;
 	final private List< CommMessage > messages = new LinkedList< CommMessage >();
@@ -48,27 +46,25 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		if ( javaService != null ) {
-			try {
-				CommMessage response = javaService.callOperation( message );
-				if ( response != null ) {
-					response = new CommMessage(
-								message.id(),
-								message.operationName(),
-								message.resourcePath(),
-								response.value(),
-								response.fault()
-							);
-					synchronized( messages ) {
-						messages.add( response );
-						messages.notifyAll();
-					}
+		try {
+			CommMessage response = javaService.callOperation( message );
+			if ( response != null ) {
+				response = new CommMessage(
+							message.id(),
+							message.operationName(),
+							message.resourcePath(),
+							response.value(),
+							response.fault()
+						);
+				synchronized( messages ) {
+					messages.add( response );
+					messages.notifyAll();
 				}
-			} catch( IllegalAccessException e ) {
-				throw new IOException( e );
-			} catch( InvalidIdException e ) {
-				throw new IOException( e );
 			}
+		} catch( IllegalAccessException e ) {
+			throw new IOException( e );
+		} catch( InvalidIdException e ) {
+			throw new IOException( e );
 		}
 	}
 
@@ -89,19 +85,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		}
 		return ret;
 	}
-	
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
 
 	protected void closeImpl()
 	{}
-	
-	public boolean isReady()
-	{
-		return( !messages.isEmpty() );
-	}
 }
