@@ -41,11 +41,13 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.SOAPException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -99,15 +101,18 @@ public class HttpProtocol extends SequentialCommProtocol
 	public HttpProtocol(
 		VariablePath configurationPath,
 		URI uri,
-		Transformer transformer,
+		TransformerFactory transformerFactory,
 		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder
-	) {
+	)
+		throws TransformerConfigurationException
+	{
 		super( configurationPath );
 		this.uri = uri;
-		this.transformer = transformer;
+		this.transformer = transformerFactory.newTransformer();
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
+		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 	}
 		
 	private void valueToDocument(
@@ -460,7 +465,6 @@ public class HttpProtocol extends SequentialCommProtocol
 			ostream.write( encodedContent.content.getBytes() );
 			ostream.write( CRLF.getBytes( charset ) );
 		}
-		ostream.flush();
 	}
 
 	private void parseXML( HttpMessage message, Value value )
@@ -553,7 +557,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 	
 	// Print debug information about a received message
-	private static void recv_logDebugInfo( HttpMessage message )
+	private void recv_logDebugInfo( HttpMessage message )
 	{
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Receiving:\n" );
@@ -569,9 +573,13 @@ public class HttpProtocol extends SequentialCommProtocol
 		for( Entry< String, String > entry : message.cookies().entrySet() ) {
 			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
 		}
-		debugSB.append( "--> Message content\n" );
-		if ( message.content() != null )
+		if (
+			getParameterFirstValue( "debug" ).getFirstChild( "showContent" ).intValue() > 0
+			&& message.content() != null
+		) {
+			debugSB.append( "--> Message content\n" );
 			debugSB.append( new String( message.content() ) );
+		}
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 	

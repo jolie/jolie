@@ -40,7 +40,7 @@ import jolie.runtime.VariablePath;
 @CanUseJars({"gwt-servlet.jar","jolie-gwt.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {
-	final private Transformer transformer;
+	final private TransformerFactory transformerFactory;
 	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
 
@@ -51,19 +51,22 @@ public class HttpProtocolFactory extends CommProtocolFactory
 		docBuilderFactory = DocumentBuilderFactory.newInstance();
 		docBuilderFactory.setNamespaceAware( true );
 		docBuilder = docBuilderFactory.newDocumentBuilder();
-		transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+		transformerFactory = TransformerFactory.newInstance();
 	}
 
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new HttpProtocol(
-			configurationPath,
-			location,
-			transformer,
-			docBuilderFactory,
-			docBuilder
-		);
+		try {
+			return new HttpProtocol(
+				configurationPath,
+				location,
+				transformerFactory,
+				docBuilderFactory,
+				docBuilder
+			);
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		}
 	}
 }
