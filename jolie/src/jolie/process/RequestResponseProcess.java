@@ -274,7 +274,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 		try {
 			channel.send( response );
-			channel.disposeForInput();
+			channel.release();
 		} catch( IOException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
