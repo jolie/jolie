@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
+import java.util.concurrent.atomic.AtomicInteger;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
@@ -55,20 +56,26 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 	public void send( CommMessage message )
 		throws IOException
 	{
-		synchronized( sendMutex ) {
+		synchronized( channelMutex ) {
 			if ( selectionKey != null ) {
-				Interpreter.getInstance().commCore().unregisterForSelection( this );
+				final CommCore commCore = Interpreter.getInstance().commCore();
+				commCore.unregisterForSelection( this );
+				sendImpl( message );
+				commCore.registerForSelection( this );
+			} else {
+				sendImpl( message );
 			}
-			sendImpl( message );
 		}
 	}
-	
+
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
 	{
-		synchronized( sendMutex ) { // We do not want sendings during this.
-			Interpreter.getInstance().commCore().registerForSelection( this );
+		synchronized( channelMutex ) { // We do not want sendings during this.
+			if ( selectionKey == null ) {
+				Interpreter.getInstance().commCore().registerForSelection( this );
+			}
 		}
 	}
 }

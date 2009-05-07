@@ -398,6 +398,7 @@ public class CommCore
 								", not specified in an input port at the receiving service."
 							);
 					}
+					channel.disposeForInput();
 				}
 			} catch( InvalidIdException e ) {
 				interpreter.logWarning( e );
@@ -411,6 +412,7 @@ public class CommCore
 			try {
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
 				CommMessage message = channel.recv();
+				channel.setScheduled( false );
 				if ( channel.redirectionChannel() == null ) {
 					handleMessage( message );
 				} else {
@@ -424,7 +426,10 @@ public class CommCore
 	
 	public void scheduleReceive( CommChannel channel, CommListener listener )
 	{
-		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
+		if ( channel.isScheduled() == false ) {
+			channel.setScheduled( true );
+			executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
+		}
 	}
 
 	protected void startCommChannelHandler( Runnable r )
@@ -555,6 +560,7 @@ public class CommCore
 						for( SelectionKey key : selector.selectedKeys() ) {
 							key.cancel();
 							channel = (SelectableStreamingCommChannel)key.attachment();
+							channel.setSelectionKey( null );
 							try {
 								key.channel().configureBlocking( true );
 								stream = channel.inputStream();
@@ -576,7 +582,7 @@ public class CommCore
 								}
 							} catch( IOException e ) {
 								interpreter.logSevere( e );
-								channel.selectionKey().cancel();
+								//channel.selectionKey().cancel();
 								channel.setSelectionKey( null );
 							}
 						}
@@ -590,15 +596,18 @@ public class CommCore
 		public void register( SelectableStreamingCommChannel channel )
 		{
 			try {
-				if ( channel.inputStream().available() > 0 ) {
-					scheduleReceive( channel, channel.parentListener() );
-					return;
+				synchronized( channel ) {
+					if ( channel.inputStream().available() > 0 ) {
+						scheduleReceive( channel, channel.parentListener() );
+						return;
+					}
 				}
-				SelectableChannel c = channel.selectableChannel();
 				synchronized( this ) {
-					if ( c.isRegistered() == false ) {
+					if ( channel.selectionKey() == null ) {
+						SelectableChannel c = channel.selectableChannel();
 						c.configureBlocking( false );
 						selector.wakeup();
+						selector.selectNow();
 						channel.setSelectionKey( c.register( selector, SelectionKey.OP_READ, channel ) );
 					}
 				}
@@ -617,6 +626,8 @@ public class CommCore
 					channel.selectionKey().cancel();
 					channel.selectableChannel().configureBlocking( true );
 					channel.setSelectionKey( null );
+					selector.wakeup();
+					selector.selectNow();
 				}
 			}
 		}

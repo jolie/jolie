@@ -23,6 +23,7 @@
 package jolie.net;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,7 +57,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		super( location, protocol );
 		this.socketChannel = socketChannel;
 		this.istream = new BufferedInputStream( Channels.newInputStream( socketChannel ) );
-		this.ostream = Channels.newOutputStream( socketChannel );
+		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
@@ -96,6 +97,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		throws IOException
 	{
 		protocol().send( ostream, message, istream );
+		ostream.flush();
 	}
 
 	protected void closeImpl()
