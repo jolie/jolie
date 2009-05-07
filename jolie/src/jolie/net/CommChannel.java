@@ -49,8 +49,7 @@ abstract public class CommChannel
 	final private List< CommMessage > pendingGenericResponses =
 			new Vector< CommMessage >();
 	
-	final protected Object recvMutex = new Object();
-	final protected Object sendMutex = new Object();
+	final protected Object channelMutex = new Object();
 
 	private class ResponseContainer
 	{
@@ -108,10 +107,22 @@ abstract public class CommChannel
 		throws IOException
 	{
 		CommMessage ret;
-		synchronized( recvMutex ) {
+		synchronized( channelMutex ) {
 			ret = recvImpl();
 		}
 		return ret;
+	}
+	
+	private boolean scheduled = false;
+
+	final protected void setScheduled( boolean b )
+	{
+		scheduled = b;
+	}
+
+	final protected boolean isScheduled()
+	{
+		return scheduled;
 	}
 	
 	final public CommMessage recvResponseFor( CommMessage message )
@@ -126,6 +137,7 @@ abstract public class CommChannel
 					assert( waiters.containsKey( message.id() ) == false );
 					monitor = new ResponseContainer();
 					waiters.put( message.id(), monitor );
+					notify();
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}
@@ -235,6 +247,13 @@ abstract public class CommChannel
 			boolean keepRun = true;
 			while( keepRun ) {
 				synchronized( parent ) {
+					if ( parent.waiters.isEmpty() ) {
+						try {
+							parent.wait();
+						} catch( InterruptedException e ) {
+							Interpreter.getInstance().logSevere( e );
+						}
+					}
 					try {
 						response = parent.recv();
 						if ( response.hasGenericId() ) {
@@ -259,7 +278,7 @@ abstract public class CommChannel
 	public void send( CommMessage message )
 		throws IOException
 	{
-		synchronized( sendMutex ) {
+		synchronized( channelMutex ) {
 			sendImpl( message );
 		}
 	}
@@ -295,18 +314,12 @@ abstract public class CommChannel
 	final public void disposeForInput()
 		throws IOException
 	{
-		if ( toBeClosed ) {
-			closeImpl();
-		} else {
-			disposeForInputImpl();
-		}
+		disposeForInputImpl();
 	}
 	
 	protected void disposeForInputImpl()
 		throws IOException
-	{
-		closeImpl();
-	}
+	{}
 	
 	public void setToBeClosed( boolean toBeClosed )
 	{
