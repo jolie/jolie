@@ -174,7 +174,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 
 		try {
 			if ( channel != null ) {
-				channel.disposeForInput();
+				channel.release();
 			}
 		} catch( IOException e ) {
 			Interpreter.getInstance().logSevere( e );
