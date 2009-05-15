@@ -188,7 +188,8 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private String requestFormat = null;
 	
-	private static CharSequence parseAlias( String alias, Value value )
+	private static CharSequence parseAlias( String alias, Value value, String charset )
+		throws IOException
 	{
 		int offset = 0;
 		String currStrValue;
@@ -198,7 +199,7 @@ public class HttpProtocol extends SequentialCommProtocol
 
 		while( m.find() ) {
 			currKey = alias.substring( m.start()+2, m.end()-1 );
-			currStrValue = value.getFirstChild( currKey ).strValue();
+			currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
 			result.replace(
 				m.start() + offset, m.end() + offset,
 				currStrValue
@@ -210,7 +211,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private String send_getCharset( CommMessage message )
 	{
-		String charset = null;
+		String charset = "UTF8";
 		if ( message.value().hasChildren( jolie.lang.Constants.Predefined.CHARSET.token().content() ) ) {
 			charset = message.value().getFirstChild( jolie.lang.Constants.Predefined.CHARSET.token().content() ).strValue();
 		} else if ( hasParameter( "charset" ) ) {
@@ -336,15 +337,16 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private void send_appendRequestPath( CommMessage message, StringBuilder headerBuilder )
+	private void send_appendRequestPath( CommMessage message, StringBuilder headerBuilder, String charset )
+		throws IOException
 	{
 		if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' ) {
 			headerBuilder.append( '/' );
 		}
 		headerBuilder.append( uri.getPath() );
-		if ( uri.toString().endsWith( "/" ) == false ) {
+		/*if ( uri.toString().endsWith( "/" ) == false ) {
 			headerBuilder.append( '/' );
-		}
+		}*/
 		if (
 			hasParameter( "aliases" ) &&
 			getParameterFirstValue( "aliases" ).hasChildren( message.operationName() )
@@ -352,7 +354,8 @@ public class HttpProtocol extends SequentialCommProtocol
 			headerBuilder.append(
 				parseAlias(
 					getParameterFirstValue( "aliases" ).getFirstChild( message.operationName() ).strValue(),
-					message.value()
+					message.value(),
+					charset
 				)
 			);
 		} else {
@@ -374,11 +377,12 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private void send_appendRequestHeaders( CommMessage message, StringBuilder headerBuilder )
+	private void send_appendRequestHeaders( CommMessage message, StringBuilder headerBuilder, String charset )
+		throws IOException
 	{
 		send_appendRequestMethod( headerBuilder );
 		headerBuilder.append( ' ' );
-		send_appendRequestPath( message, headerBuilder );
+		send_appendRequestPath( message, headerBuilder, charset );
 		headerBuilder.append( " HTTP/1.1" + CRLF );
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
@@ -449,7 +453,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			received = false;
 		} else {
 			// We're sending a notification or a solicit
-			send_appendRequestHeaders( message, headerBuilder );
+			send_appendRequestHeaders( message, headerBuilder, charset );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
