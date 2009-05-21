@@ -114,17 +114,14 @@ public class StringUtils extends JavaService
 		Value response = Value.create();
 		if ( m.matches() ) {
 			response.setValue( 1 );
-		} else {
-			response.setValue( 0 );
-		}
-		if ( m.groupCount() > 0 ) {
 			ValueVector groups = response.getChildren( "group" );
 			groups.add( Value.create( m.group( 0 ) ) );
 			for( int i = 0; i < m.groupCount(); i++ ) {
 				groups.add( Value.create( m.group( i+1 ) ) );
 			}
+		} else {
+			response.setValue( 0 );
 		}
-
 		return CommMessage.createResponse( message, response );
 	}
 
