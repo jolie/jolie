@@ -62,7 +62,7 @@ abstract public class CommChannel
 	
 	private CommChannel redirectionChannel = null;
 
-    protected boolean toBeClosed()
+    final public boolean toBeClosed()
     {
         return toBeClosed;
     }
