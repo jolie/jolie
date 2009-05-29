@@ -47,6 +47,8 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 	protected void sendImpl( CommMessage message )
 	{
 		olist.add( message );
+		assert( interpreter != null );
+		assert( interpreter.commCore() != null );
 		interpreter.commCore().scheduleReceive(
 					new ListCommChannel( olist, ilist ), listener
 				);
