@@ -109,7 +109,7 @@ public class SolicitResponseProcess implements Process
 			channel = outputPort.getCommChannel();
 			log( "sending request " + message.id() );
 			channel.send( message );
-			log( "request " + message.id() + "sent" );
+			log( "request " + message.id() + " sent" );
 			message = channel.recvResponseFor( message );
 			log( "received response for request " + message.id() );
 			
