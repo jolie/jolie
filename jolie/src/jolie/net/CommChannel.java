@@ -103,7 +103,7 @@ abstract public class CommChannel
 	}
 	
 	/** Receives a message from the channel. */
-	final public CommMessage recv()
+	public CommMessage recv()
 		throws IOException
 	{
 		CommMessage ret;
@@ -112,19 +112,7 @@ abstract public class CommChannel
 		}
 		return ret;
 	}
-	
-	private boolean scheduled = false;
 
-	final protected void setScheduled( boolean b )
-	{
-		scheduled = b;
-	}
-
-	final protected boolean isScheduled()
-	{
-		return scheduled;
-	}
-	
 	final public CommMessage recvResponseFor( CommMessage message )
 		throws IOException
 	{

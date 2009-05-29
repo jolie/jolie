@@ -411,12 +411,13 @@ public class CommCore
 		{
 			try {
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
-				CommMessage message = channel.recv();
-				channel.setScheduled( false );
-				if ( channel.redirectionChannel() == null ) {
-					handleMessage( message );
-				} else {
-					redirectMessage( message );
+				synchronized( channel.channelMutex ) {
+					CommMessage message = channel.recv();
+					if ( channel.redirectionChannel() == null ) {
+						handleMessage( message );
+					} else {
+						redirectMessage( message );
+					}
 				}
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
@@ -426,10 +427,7 @@ public class CommCore
 	
 	public void scheduleReceive( CommChannel channel, CommListener listener )
 	{
-		if ( channel.isScheduled() == false ) {
-			channel.setScheduled( true );
-			executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
-		}
+		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
 
 	protected void startCommChannelHandler( Runnable r )
@@ -596,12 +594,11 @@ public class CommCore
 		public void register( SelectableStreamingCommChannel channel )
 		{
 			try {
-				synchronized( channel ) {
-					if ( channel.inputStream().available() > 0 ) {
-						scheduleReceive( channel, channel.parentListener() );
-						return;
-					}
+				if ( channel.inputStream().available() > 0 ) {
+					scheduleReceive( channel, channel.parentListener() );
+					return;
 				}
+
 				synchronized( this ) {
 					if ( channel.selectionKey() == null ) {
 						SelectableChannel c = channel.selectableChannel();
