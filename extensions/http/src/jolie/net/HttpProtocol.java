@@ -397,7 +397,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	)
 	{
 		String param;
-		if ( checkBooleanParameter( "keepAlive" ) ) {
+		if ( checkBooleanParameter( "keepAlive" ) || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
@@ -651,7 +651,11 @@ public class HttpProtocol extends SequentialCommProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
-		HttpUtils.recv_checkForChannelClosing( message, channel() );
+		if ( hasParameter( "keepAlive" ) ) {
+			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
+		} else {
+			HttpUtils.recv_checkForChannelClosing( message, channel() );
+		}
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message );
 		}
