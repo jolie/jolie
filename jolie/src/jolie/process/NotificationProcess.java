@@ -66,7 +66,14 @@ public class NotificationProcess implements Process
 					outputType
 				);
 	}
-	
+
+	private void log( String message )
+	{
+		if ( Interpreter.getInstance().verbose() ) {
+			Interpreter.getInstance().logInfo( "[Notification operation " + operationId + "@" + outputPort.id() + "]: " + message );
+		}
+	}
+
 	public void run()
 		throws FaultException
 	{
@@ -86,7 +93,9 @@ public class NotificationProcess implements Process
 			}
 
 			CommChannel channel = outputPort.getCommChannel();
+			log( "sending request " + message.id() );
 			channel.send( message );
+			log( "request " + message.id() + " sent" );
 			channel.release();
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );

@@ -149,6 +149,13 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		this.process = process;
 		this.outputExpression = outputExpression;
 	}
+
+	private void log( String message )
+	{
+		if ( Interpreter.getInstance().verbose() ) {
+			Interpreter.getInstance().logInfo( "[RequestResponse operation " + operation.id() + "]: " + message );
+		}
+	}
 	
 	public boolean isKillable()
 	{
@@ -227,6 +234,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
+		log( "received message " + message.id() );
+
 		if ( inputVarPath != null ) {
 			inputVarPath.getValue().refCopy( message.value() );
 		}
@@ -274,6 +283,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 
 		try {
 			channel.send( response );
+			log( "sent response for message " + message.id() );
 			channel.release();
 		} catch( IOException e ) {
 			Interpreter.getInstance().logSevere( e );

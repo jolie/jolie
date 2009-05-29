@@ -77,7 +77,14 @@ public class SolicitResponseProcess implements Process
 					types
 				);
 	}
-	
+
+	private void log( String message )
+	{
+		if ( Interpreter.getInstance().verbose() ) {
+			Interpreter.getInstance().logInfo( "[SolicitResponse operation " + operationId + "@" + outputPort.id() + "]: " + message );
+		}
+	}
+
 	public void run()
 		throws FaultException
 	{
@@ -100,8 +107,11 @@ public class SolicitResponseProcess implements Process
 			}
 
 			channel = outputPort.getCommChannel();
+			log( "sending request " + message.id() );
 			channel.send( message );
+			log( "request " + message.id() + "sent" );
 			message = channel.recvResponseFor( message );
+			log( "received response for request " + message.id() );
 			
 			if ( inputVarPath != null )	 {
 				inputVarPath.getValue().refCopy( message.value() );
