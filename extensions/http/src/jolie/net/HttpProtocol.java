@@ -397,7 +397,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	)
 	{
 		String param;
-		if ( checkBooleanParameter( "keepAlive" ) || channel().toBeClosed() ) {
+		if ( checkBooleanParameter( "keepAlive" ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
