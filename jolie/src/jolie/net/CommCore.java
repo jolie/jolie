@@ -359,6 +359,7 @@ public class CommCore
 					if ( ss.length <= 2 ) {
 						rPath = "/";
 					} else {
+						// TODO: optimize this
 						for( int i = 2; i < ss.length; i++ ) {
 							rPath += "/" + ss[ i ];
 						}
