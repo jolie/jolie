@@ -61,6 +61,7 @@ type AddRedirectionRequest:void {
 	.protocol:string { ? }
 	.metadata?:MetaData
 	.token?:int
+	.exposedProtocol?:string
 }
 
 /**
