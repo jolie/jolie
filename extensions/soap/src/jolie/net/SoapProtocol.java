@@ -347,7 +347,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	{		
 		try {
 			inputId = message.operationName();
-			
+
 			if ( received ) {
 				// We're responding to a request
 				inputId += "Response";
@@ -444,9 +444,10 @@ public class SoapProtocol extends SequentialCommProtocol
 				received = false;
 			} else {
 				// We're sending a notification or a solicit
-				String path = uri.getPath();
-				if ( path == null || path.length() == 0 )
+				String path = uri.getPath(); // TODO: fix this to consider resourcePaths
+				if ( path == null || path.length() == 0 ) {
 					path = "*";
+				}
 				messageString += "POST " + path + " HTTP/1.1" + CRLF;
 				messageString += "Host: " + uri.getHost() + CRLF;
 				soapAction =
@@ -461,12 +462,14 @@ public class SoapProtocol extends SequentialCommProtocol
 			//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
 			messageString += "Content-Type: text/xml; charset=\"utf-8\"" + CRLF;
 			messageString += "Content-Length: " + soapString.length() + CRLF;
-			if ( soapAction != null )
+			if ( soapAction != null ) {
 				messageString += soapAction;
+			}
 			messageString += soapString + CRLF;
 			
-			if ( getParameterVector( "debug" ).first().intValue() > 0 )
+			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 				interpreter.logInfo( "[SOAP debug] Sending:\n" + tmpStream.toString() );
+			}
 
 			inputId = message.operationName();
 			
@@ -596,19 +599,18 @@ public class SoapProtocol extends SequentialCommProtocol
 					fault = new FaultException( faultName, faultValue );
 				}
 			}
-			
+
+			String resourcePath = recv_getResourcePath( message );System.out.println( resourcePath );
 			if ( message.isResponse() ) { 
-				if ( fault != null && message.httpCode() == 500 )
+				if ( fault != null && message.httpCode() == 500 ) {
 					fault = new FaultException( "InternalServerError", "" );
-				//TODO support resourcePath
-				retVal = new CommMessage( inputId, "/", value, fault );
-			} else if (
-					!message.isError()
-					) {
-				if ( messageId.isEmpty() )
+				}
+				retVal = new CommMessage( inputId, resourcePath, value, fault );
+			} else if ( !message.isError() ) {
+				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
-				//TODO support resourcePath
-				retVal = new CommMessage( messageId, "/", value, fault );
+				}
+				retVal = new CommMessage( messageId, resourcePath, value, fault );
 			}
 		} catch( SOAPException e ) {
 			throw new IOException( e );
@@ -622,5 +624,14 @@ public class SoapProtocol extends SequentialCommProtocol
 		received = true;
 		
 		return retVal;
+	}
+
+	private String recv_getResourcePath( HttpMessage message )
+	{
+		String ret = "/";
+		if ( checkBooleanParameter( "interpretResource" ) ) {
+			ret = message.requestPath();
+		}
+		return ret;
 	}
 }
