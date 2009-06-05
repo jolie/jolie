@@ -53,6 +53,7 @@ type LoadEmbeddedJolieServiceRequest:void {
 	.resourcePrefix:string
 	.filepath:string
 	.metadata?:MetaData
+	.exposedProtocol?:string
 }
 
 type AddRedirectionRequest:void {

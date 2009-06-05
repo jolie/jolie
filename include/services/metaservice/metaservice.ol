@@ -35,7 +35,7 @@ Interfaces: MetaServiceConsultation, MetaServiceAdministration
 
 inputPort MetaServiceSOAP {
 Location: MetaServiceSOAPLocation
-Protocol: soap { .interpretResource = 1; .debug = 1 }
+Protocol: soap { .interpretResource = 1 }
 Interfaces: MetaServiceConsultation, MetaServiceAdministration
 }
 
@@ -150,7 +150,11 @@ main
 			install( RuntimeException => throw( EmbeddingFault ) );
 			with( redirection ) {
 				.resourceName = request.resourcePrefix;
-				.inputPortName = "MetaService"
+				if ( request.exposedProtocol == "soap" ) {
+					.inputPortName = "MetaServiceSOAP"
+				} else {
+					.inputPortName = "MetaService"
+				}
 			};
 			getRedirection@Runtime( redirection )( outputPortName );
 			if ( is_defined( outputPortName ) ) {
