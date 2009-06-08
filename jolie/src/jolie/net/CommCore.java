@@ -342,6 +342,13 @@ public class CommCore
 		private void redirectMessage( CommMessage message )
 			throws IOException
 		{
+			message = new CommMessage(
+				channel.redirectionMessageId(),
+				message.operationName(),
+				message.resourcePath(),
+				message.value(),
+				message.fault()
+			);
 			channel.redirectionChannel().send( message );
 			channel.redirectionChannel().disposeForInput();
 			channel.setRedirectionChannel( null );
@@ -381,6 +388,7 @@ public class CommCore
 										message.fault()
 								);
 					oChannel.setRedirectionChannel( channel );
+					oChannel.setRedirectionMessageId( rMessage.id() );
 					try {
 						oChannel.send( rMessage );
 						oChannel.setToBeClosed( false );
