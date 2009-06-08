@@ -59,6 +59,18 @@ abstract public class CommChannel
 	private boolean toBeClosed = true;
 	private CommListener listener = null;
 	private boolean isOpen = true;
+
+	private long redirectionMessageId = 0L;
+
+	protected long redirectionMessageId()
+	{
+		return redirectionMessageId;
+	}
+
+	protected void setRedirectionMessageId( long id )
+	{
+		redirectionMessageId = id;
+	}
 	
 	private CommChannel redirectionChannel = null;
 
