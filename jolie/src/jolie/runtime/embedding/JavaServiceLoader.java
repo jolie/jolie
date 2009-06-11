@@ -51,8 +51,9 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			if ( !(obj instanceof JavaService) ) {
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			}
-			((JavaService)obj).setInterpreter( Interpreter.getInstance() );
-			setChannel(	new JavaCommChannel( (JavaService)obj )	);
+			JavaService service = (JavaService)obj;
+			service.setInterpreter( Interpreter.getInstance() );
+			setChannel(	new JavaCommChannel( service ) );
 		} catch( InstantiationException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( IllegalAccessException e ) {
