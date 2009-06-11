@@ -32,7 +32,6 @@ import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ListCommChannel;
-import jolie.runtime.Identifier;
 import jolie.util.Pair;
 
 /**
@@ -118,11 +117,11 @@ abstract public class JavaService
 					}
 				}
 			} );
-		} else {
+		} else { // Request-Response
 			try {
 				ret = (CommMessage)pair.value().invoke( this, args );
 				if ( ret == null ) {
-					ret = CommMessage.createEmptyMessage();
+					ret = CommMessage.createResponse( message, Value.create() );
 				}
 			} catch( InvocationTargetException e ) {
 				if ( e.getCause() instanceof FaultException ) {
