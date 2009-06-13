@@ -595,7 +595,9 @@ public class HttpProtocol extends SequentialCommProtocol
 			format = getStringParameter( "format" );
 		}
 		String type = message.getProperty( "content-type" ).split( ";" )[0];
-		if ( "application/x-www-form-urlencoded".equals( type ) ) {
+		if ( "text/html".equals( type ) ) {
+			decodedMessage.value.setValue( new String( message.content() ) );
+		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value );
 		} else if ( "text/xml".equals( type ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
