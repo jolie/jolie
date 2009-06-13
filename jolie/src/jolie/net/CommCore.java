@@ -422,10 +422,12 @@ public class CommCore
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
 				synchronized( channel.channelMutex ) {
 					CommMessage message = channel.recv();
-					if ( channel.redirectionChannel() == null ) {
-						handleMessage( message );
-					} else {
-						redirectMessage( message );
+					if ( message != null ) {
+						if ( channel.redirectionChannel() == null ) {
+							handleMessage( message );
+						} else {
+							redirectMessage( message );
+						}
 					}
 				}
 			} catch( IOException e ) {
