@@ -34,6 +34,12 @@ public class HttpParser
 	private static final String HTTP = "HTTP";
 	private static final String GET = "GET";
 	private static final String POST = "POST";
+	private static final String PUT = "PUT";
+	private static final String HEAD = "HEAD";
+	private static final String DELETE = "DELETE";
+	private static final String TRACE = "TRACE";
+	private static final String CONNECT = "CONNECT";
+	private static final String OPTIONS = "OPTIONS";
 	
 	final private HttpScanner scanner;
 	private Scanner.Token token;
@@ -141,8 +147,15 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.GET );
 		} else if ( token.isKeyword( POST ) ) {
 			message = new HttpMessage( HttpMessage.Type.POST );
-		} else
+		} else if (
+			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
+			token.isKeyword( HEAD ) || token.isKeyword( PUT ) ||
+			token.isKeyword( DELETE ) || token.isKeyword( TRACE )
+		) {
+			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
+		} else {
 			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
+		}
 		
 		message.setRequestPath( scanner.readWord().substring( 1 ) );
 		

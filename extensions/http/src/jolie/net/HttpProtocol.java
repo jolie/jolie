@@ -80,6 +80,8 @@ import org.xml.sax.SAXException;
  */
 public class HttpProtocol extends SequentialCommProtocol
 {
+	private static byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
+
 	private static class Parameters {
 		private static String DEBUG = "debug";
 	}
@@ -653,6 +655,15 @@ public class HttpProtocol extends SequentialCommProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
+
+		if ( message.isSupported() == false ) {
+			ostream.write( NOT_IMPLEMENTED_HEADER );
+			ostream.write( CRLF.getBytes() );
+			ostream.write( CRLF.getBytes() );
+			ostream.flush();
+			return null;
+		}
+
 		if ( hasParameter( "keepAlive" ) ) {
 			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
 		} else {
