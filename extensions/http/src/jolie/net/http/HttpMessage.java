@@ -27,12 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import sun.font.Type1Font;
 
 
 public class HttpMessage
 {
 	public enum Type {
-		RESPONSE, POST, GET, ERROR
+		RESPONSE, POST, GET, UNSUPPORTED, ERROR
 	}
 	
 	public enum Version {
@@ -114,6 +115,11 @@ public class HttpMessage
 	private int httpCode;
 	private String requestPath;
 	private String reason;
+
+	public boolean isSupported()
+	{
+		return type != Type.UNSUPPORTED;
+	}
 
 	public void addCookie( String name, String value )
 	{
