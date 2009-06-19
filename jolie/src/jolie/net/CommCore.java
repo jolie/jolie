@@ -432,6 +432,11 @@ public class CommCore
 				}
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
+				try {
+					channel.closeImpl();
+				} catch( IOException ioe ) {
+					interpreter.logSevere( ioe );
+				}
 			}
 		}
 	}
