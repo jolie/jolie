@@ -55,13 +55,14 @@
 				<DetectChar attribute="Symbol" context="#stay" char="}" endRegion="Brace1" />
 				<Detect2Chars attribute="Comment" context="Commentar 1" char="/" char1="/"/>
 				<Detect2Chars attribute="Comment" context="Commentar 2" char="/" char1="*" beginRegion="Comment"/>
-				<DetectChar attribute="String" context="String" char="&quot;"/>
+				<DetectChar attribute="String" context="String" char="&quot;" beginRegion="String"/>
 			</context>
 			<context attribute="Region Marker" lineEndContext="#pop" name="Region Marker" />
-			<context attribute="String" lineEndContext="#pop" name="String">
-				<LineContinue attribute="String" context="#stay"/>
+			<context attribute="String" lineEndContext="#stay" name="String">
+				<!--<LineContinue attribute="String" context="#stay"/>-->
 				<HlCStringChar attribute="String Char" context="#stay"/>
-				<DetectChar attribute="String" context="#pop" char="&quot;"/>
+				<!--<DetectChar attribute="String" context="#pop" char="&quot;"/>-->
+				<DetectChar attribute="String" context="#pop" char="&quot;" endRegion="String"/>
 			</context>
 			<context attribute="Comment" lineEndContext="#pop" name="Commentar 1">
 				<IncludeRules context="##Alerts" />
