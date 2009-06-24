@@ -397,20 +397,25 @@ public class CommCore
 						channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
 					}
 				} else {
-					InputOperation operation =
-						interpreter.getInputOperation( message.operationName() );
-					if ( listener == null || listener.canHandleInputOperation( operation ) ) {
-						operation.recvMessage( channel, message );
-					} else {
-						interpreter.logWarning(
-								"Discarded a message for operation " + operation.id() +
-								", not specified in an input port at the receiving service."
-							);
+					try {
+						InputOperation operation =
+							interpreter.getInputOperation( message.operationName() );
+						if ( listener == null || listener.canHandleInputOperation( operation ) ) {
+							operation.recvMessage( channel, message );
+						} else {
+							interpreter.logWarning(
+									"Received a message for operation " + operation.id() +
+										", not specified in an input port at the receiving service. Sending IOException to the caller."
+								);
+							channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+						}
+						channel.disposeForInput();
+					} catch( InvalidIdException e ) {
+						interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
+						channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+						channel.disposeForInput();
 					}
-					channel.disposeForInput();
 				}
-			} catch( InvalidIdException e ) {
-				interpreter.logWarning( e );
 			} catch( URISyntaxException e ) {
 				interpreter.logSevere( e );
 			}
@@ -469,9 +474,11 @@ public class CommCore
 	
 	private PollingThread pollingThread()
 	{
-		if ( pollingThread == null ) {
-			pollingThread = new PollingThread();
-			pollingThread.start();
+		synchronized( this ) {
+			if ( pollingThread == null ) {
+				pollingThread = new PollingThread();
+				pollingThread.start();
+			}
 		}
 		return pollingThread;
 	}
