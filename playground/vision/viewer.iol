@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -19,15 +19,18 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
-outputPort Viewer {
-Protocol: sodep
-Notification:
+interface ViewerInterface {
+OneWay:
 	goToPage,
 	openDocument,
 	close
-SolicitResponse:
+RequestResponse:
 	currentPage,
 	currentDocument,
-	start
+	start throws CouldNotStartFault
+}
+
+outputPort Viewer {
+Protocol: sodep
+Interfaces: ViewerInterface
 }

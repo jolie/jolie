@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -24,7 +24,7 @@ include "console.iol"
 include "runtime.iol"
 
 constants {
-	Location_PresenterService = "socket://192.168.1.20:9001",
+	Location_PresenterService = "socket://localhost:9001",
 	Debug = 1
 }
 
@@ -34,30 +34,14 @@ include "presenter.iol"
 include "viewer.iol"
 
 inputPort PresenterInputPort {
-OneWay:
-	goToPage,
-	openDocument,
-	closeClientSession
-RequestResponse:
-	startClientSession
-}
-
-service PresenterBluetoothService
-{
-Location: "btl2cap://localhost:3B9FA89520078C303355AAA694238F07;name=Vision;encrypt=false;authenticate=false"
-Protocol: sodep { .charset = "ISO8859-1"; .keepAlive = 1 }
-Ports: PresenterInputPort
-}
-
-service PresenterService {
 Location: Location_PresenterService
 Protocol: sodep
-Ports: PresenterInputPort
+Interfaces: PresenterInterface
 }
 
 define initViewer
 {
-	install( CouldNotStartFault => println@Console( main.CouldNotStartFault ) );
+	install( CouldNotStartFault => println@Console( main.CouldNotStartFault )() );
 	if ( #args < 1 ) {
 		throw( CouldNotStartFault, "Syntax is: jolie presenter.ol kpdf|okular|previewer [presenter_uri]" )
 	} else {
@@ -67,9 +51,10 @@ define initViewer
 			throw( CouldNotStartFault, "Unsupported viewer: " + args[0] )
 		};
 
-		install( RuntimeException => println@Console( main.RuntimeException.stackTrace ) );
+		install( RuntimeException => println@Console( main.RuntimeException.stackTrace )() );
 		loadEmbeddedService@Runtime( embedInfo )( Viewer.location );
-		if ( is_defined( args[1] ) ) {
+		startData.presenterLocation = Location_PresenterService;
+		if ( is_defined( args[1] ) ) { // We've been given a server location => we're a client
 			start@Viewer( startData )();
 			req.location = Location_PresenterService;
 			Presenter.location = args[1];
@@ -77,8 +62,8 @@ define initViewer
 			masterSid = resp.sid;
 			openDocument@Viewer( resp );
 			goToPage@Viewer( resp )
-		} else {
-			getLocalLocation@Runtime()( startData.presenterLocation );
+		} else { // We're a server
+			//getLocalLocation@Runtime()( startData.presenterLocation );
 			start@Viewer( startData )()
 		}
 	}
@@ -111,7 +96,7 @@ main
 				if ( Debug ) {
 					println@Console(
 						"Sending openDocument(" + request.documentUrl + ") to " + Presenter.location
-					)
+					)()
 				}
 			}
 			|
@@ -130,7 +115,7 @@ main
 				Presenter.location = clients.(sid).location;
 				goToPage@Presenter( req );
 				if ( Debug ) {
-					println@Console( "Sending goToPage(" + request.pageNumber + ") to " + Presenter.location )
+					println@Console( "Sending goToPage(" + request.pageNumber + ") to " + Presenter.location )()
 				}
 			}
 			|
@@ -147,7 +132,7 @@ main
 		response.documentUrl = currentDocument
 	} ] {
 		if ( Debug ) {
-			println@Console( request.location + " is now following the presentation." )
+			println@Console( request.location + " is now following the presentation." )()
 		};
 		Presenter.location = request.location;
 		goToPage@Presenter( currentPage );
@@ -157,7 +142,7 @@ main
 	[ closeClientSession( sid ) ] {
 		undef( clients.(sid) );
 		if ( Debug ) {
-			println@Console( clients.(sid).location + " stopped following the presentation." )
+			println@Console( clients.(sid).location + " stopped following the presentation." )()
 		}
 	}
 }

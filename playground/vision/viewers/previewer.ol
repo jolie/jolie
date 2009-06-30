@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -28,14 +28,8 @@ include "string_utils.iol"
 execution { sequential }
 
 inputPort ViewerInputPort {
-OneWay:
-	goToPage,
-	openDocument,
-	close
-RequestResponse:
-	currentPage,
-	currentDocument,
-	start throws CouldNotStartFault
+Location: "local"
+Interfaces: ViewerInterface
 }
 
 include "presenter.iol"
@@ -43,7 +37,7 @@ include "poller.iol"
 
 define startPoller
 {
-	install( RuntimeException => println@Console( main.RuntimeException.stackTrace ) );
+	install( RuntimeException => println@Console( main.RuntimeException.stackTrace )() );
 	pollerData.type = "Jolie";
 	pollerData.filepath = "poller.ol";
 	loadEmbeddedService@Runtime( pollerData )( Poller.location );
