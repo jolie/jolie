@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -24,18 +24,13 @@ include "console.iol"
 include "exec.iol"
 include "runtime.iol"
 include "string_utils.iol"
+include "viewer.iol"
 
 execution { sequential }
 
 inputPort ViewerInputPort {
-OneWay:
-	goToPage,
-	openDocument,
-	close
-RequestResponse:
-	currentPage,
-	currentDocument,
-	start throws CouldNotStartFault
+Location: "local"
+Interfaces: ViewerInterface
 }
 
 include "presenter.iol"
@@ -43,7 +38,7 @@ include "poller.iol"
 
 define startPoller
 {
-	install( RuntimeException => println@Console( main.RuntimeException.stackTrace ) );
+	install( RuntimeException => println@Console( main.RuntimeException.stackTrace )() );
 	pollerData.type = "Jolie";
 	pollerData.filepath = "poller.ol";
 	loadEmbeddedService@Runtime( pollerData )( Poller.location );
@@ -65,17 +60,17 @@ define initDocumentViewer
 	if ( #ss.result > 1 ) {
 		range = " (1.." + (#ss.result) + ")"
 	};
-	println@Console( "Choose a viewer instance" + range );
+	println@Console( "Choose a viewer instance" + range )();
 	for( i = 0, i < #ss.result, i++ ) {
 		// We display numbers starting by 1
 		exec@Exec( "qdbus " + ss.result[i] + " /okular currentDocument" )( cDoc );
 		trim@StringUtils( cDoc )( cDoc );
-		println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + cDoc )
+		println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + cDoc )()
 	};
 	selected = -1;
-	registerForInput@Console();
+	registerForInput@Console()();
 	while( selected < 1 || selected > #ss.result ) {
-		print@Console( "> " );
+		print@Console( "> " )();
 		in( selected );
 		selected = int(selected)
 	};

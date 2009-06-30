@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -32,6 +32,7 @@ include "presenter.iol"
 include "viewer.iol"
 
 inputPort PollerInputPort {
+Location: "local"
 OneWay:
 	start
 }
@@ -45,7 +46,7 @@ main
 	oldCurrentPage = -1;
 	currentDocument = "";
 	while( 1 ) {
-		sleep@Time( PollingInterval );
+		sleep@Time( PollingInterval )();
 		currentPage@Viewer()( currentPage );
 		if ( currentPage != oldCurrentPage ) {
 			oldCurrentPage = currentPage;

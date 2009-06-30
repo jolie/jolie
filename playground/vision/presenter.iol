@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -19,13 +19,16 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+interface PresenterInterface {
+OneWay:
+	goToPage,
+	openDocument,
+	closeClientSession
+RequestResponse:
+	startClientSession
+}
 
 outputPort Presenter {
 Protocol: sodep
-Notification:
-	goToPage,
-	openDocument,
-	startClientSession
-SolicitResponse:
-	closeClientSession
+Interfaces: PresenterInterface
 }
