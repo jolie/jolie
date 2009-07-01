@@ -97,6 +97,7 @@ public final class Constants
 	}
 
 	public static final String TYPE_MISMATCH_FAULT_NAME = "TypeMismatch";
+	public static final String IO_EXCEPTION_FAULT_NAME = "IOException";
 
 	public static final String INPUT_PORTS_NODE_NAME = "inputPorts";
 	public static final String PROTOCOL_NODE_NAME = "protocol";
