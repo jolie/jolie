@@ -521,6 +521,14 @@ public class CommCore
 					Thread.sleep( 50 ); // msecs
 				} catch( InterruptedException e ) {}
 			}
+
+			for( CommChannel c : channels ) {
+				try {
+					c.closeImpl();
+				} catch( IOException e ) {
+					interpreter.logWarning( e );
+				}
+			}
 		}
 		
 		public void register( CommChannel channel )
@@ -610,6 +618,14 @@ public class CommCore
 					}
 				} catch( IOException e ) {
 					interpreter.logSevere( e );
+				}
+			}
+
+			for( SelectionKey key : selector.keys() ) {
+				try {
+					((SelectableStreamingCommChannel)key.attachment()).closeImpl();
+				} catch( IOException e ) {
+					interpreter.logWarning( e );
 				}
 			}
 		}
