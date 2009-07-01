@@ -141,7 +141,7 @@ public class SolicitResponseProcess implements Process
 				installProcess.run();
 			} catch( ExitingException e ) { assert false; }
 		} catch( IOException e ) {
-			throw new FaultException( "IOException", e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
