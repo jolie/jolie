@@ -75,7 +75,11 @@ public class FaultException extends Exception
 	@Override
 	public String getMessage()
 	{
-		return value.strValue();
+		StringBuilder builder = new StringBuilder();
+		builder.append( faultName );
+		builder.append( ": " );
+		builder.append( value.strValue() );
+		return builder.toString();
 	}
 	
 	public Value value()
