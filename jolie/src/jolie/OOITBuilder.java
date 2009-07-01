@@ -9,7 +9,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
+ *   GNU General Public Lictypemense for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU Library General Public     *
  *   License along with this program; if not, write to the                 *
@@ -506,6 +506,12 @@ public class OOITBuilder implements OLVisitor
 					.add( "main", 0 )
 					.add( Constants.TYPE_MISMATCH_FAULT_NAME, 0 )
 					.toVariablePath();
+				final VariablePath ioExceptionPath =
+					new VariablePathBuilder( false )
+					.add( "main", 0 )
+					.add( Constants.IO_EXCEPTION_FAULT_NAME, 0 )
+					.add( "stackTrace", 0 )
+					.toVariablePath();
 				final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
 				instList.add( new Pair< String, Process >(
 					Constants.TYPE_MISMATCH_FAULT_NAME,
@@ -513,6 +519,25 @@ public class OOITBuilder implements OLVisitor
 						public void run() throws FaultException, ExitingException
 						{
 							interpreter.logWarning( typeMismatchPath.getValue().strValue() );
+						}
+
+						public Process clone( TransformationReason reason )
+						{
+							return this;
+						}
+
+						public boolean isKillable()
+						{
+							return true;
+						}
+					}
+				) );
+				instList.add( new Pair< String, Process >(
+					Constants.IO_EXCEPTION_FAULT_NAME,
+					new Process() {
+						public void run() throws FaultException, ExitingException
+						{
+							interpreter.logWarning( ioExceptionPath.getValue().strValue() );
 						}
 
 						public Process clone( TransformationReason reason )
