@@ -28,9 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
 
@@ -40,8 +42,36 @@ import jolie.net.protocols.CommProtocol;
  */
 public class SocketCommChannel extends SelectableStreamingCommChannel
 {
+	private static class PreBufferedInputStream extends BufferedInputStream
+	{
+		public PreBufferedInputStream( InputStream stream )
+		{
+			super( stream );
+		}
+
+		public synchronized void append( byte b )
+			throws IOException
+		{
+			if ( buf == null ) {
+				throw new IOException( "Stream closed" );
+			}
+			if ( count >= buf.length ) {
+				int newSize = pos * 2;
+				if ( newSize > marklimit ) {
+					newSize = marklimit;
+				}
+				byte newBuffer[] = new byte[ newSize ];
+				System.arraycopy( buf, 0, newBuffer, 0, pos );
+				buf = newBuffer;
+				count = pos; // Is this really necessary?
+			}
+			buf[count] = b;
+			count++;
+		}
+	}
+
 	final private SocketChannel socketChannel;
-	final private InputStream istream;
+	final private PreBufferedInputStream istream;
 	final private OutputStream ostream;
 	
 	/** Constructor.
@@ -56,7 +86,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	{
 		super( location, protocol );
 		this.socketChannel = socketChannel;
-		this.istream = new BufferedInputStream( Channels.newInputStream( socketChannel ) );
+		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 
 		setToBeClosed( false ); // Socket connections are kept open by default
@@ -109,6 +139,27 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	@Override
 	protected boolean isOpenImpl()
 	{
-		return socketChannel.isOpen();
+		if ( socketChannel.isConnected() == false || socketChannel.isOpen() == false ) {
+			return false;
+		}
+
+		try {
+			synchronized( channelMutex ) {
+				boolean oldBlockingConfig = socketChannel.isBlocking();
+				socketChannel.configureBlocking( false );
+				ByteBuffer buffer = ByteBuffer.allocate( 1 );
+				int read = socketChannel.read( buffer );
+				if ( read == -1 ) {
+					return false;
+				} else if ( read > 0 ) {
+					istream.append( buffer.get( 0 ) );
+				}
+				socketChannel.configureBlocking( oldBlockingConfig );
+			}
+		} catch( IOException e ) {
+			Interpreter.getInstance().logWarning( e );
+			return false;
+		}
+		return true;
 	}
 }
