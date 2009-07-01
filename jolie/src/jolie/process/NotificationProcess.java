@@ -98,7 +98,7 @@ public class NotificationProcess implements Process
 			log( "request " + message.id() + " sent" );
 			channel.release();
 		} catch( IOException e ) {
-			throw new FaultException( "IOException", e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
