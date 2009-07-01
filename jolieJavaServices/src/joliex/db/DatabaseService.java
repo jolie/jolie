@@ -178,6 +178,18 @@ public class DatabaseService extends JavaService
 				for( i = 1; i <= cols; i++ ) {
 					fieldValue = rowValue.getChildren( metadata.getColumnLabel( i ) ).first();
 					switch( metadata.getColumnType( i ) ) {
+					case java.sql.Types.INTEGER:
+					case java.sql.Types.SMALLINT:
+					case java.sql.Types.TINYINT:
+					case java.sql.Types.NUMERIC:
+						fieldValue.setValue( result.getInt( i ) );
+						break;
+					case java.sql.Types.DOUBLE:
+						fieldValue.setValue( result.getDouble( i ) );
+						break;
+					case java.sql.Types.FLOAT:
+						fieldValue.setValue( result.getFloat( i ) );
+						break;
 					case java.sql.Types.BLOB:
 						//fieldValue.setStrValue( result.getBlob( i ).toString() );
 						break;
