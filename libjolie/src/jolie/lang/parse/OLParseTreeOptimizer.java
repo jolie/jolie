@@ -116,8 +116,9 @@ public class OLParseTreeOptimizer
 		
 		public void visit( Program p )
 		{
-			for( OLSyntaxNode node : p.children() )
+			for( OLSyntaxNode node : p.children() ) {
 				node.accept( this );
+			}
 		}
 		
 		public void visit( ExecutionInfo p )
