@@ -108,7 +108,7 @@ public class Type
 		if ( nativeType == NativeType.ANY ) {
 			return true;
 		} else if ( nativeType == NativeType.DOUBLE ) {
-			return value.isDouble();
+			return value.isDouble() || value.isInt();
 		} else if ( nativeType == NativeType.INT ) {
 			return value.isInt();
 		} else if ( nativeType == NativeType.STRING ) {
