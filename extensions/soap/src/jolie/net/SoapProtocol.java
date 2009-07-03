@@ -169,13 +169,16 @@ public class SoapProtocol extends SequentialCommProtocol
 			)
 		throws SOAPException
 	{
-		//String type = null;
+		String type = "any";
 		if ( value.isDefined() ) {
-			/*if ( value.isInt() )
+			if ( value.isInt() ) {
 				type = "int";
-			else
+			} else if ( value.isString() ) {
 				type = "string";
-			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );*/
+			} else if ( value.isDouble() ) {
+				type = "double";
+			}
+			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
 		}
 		
@@ -485,17 +488,22 @@ public class SoapProtocol extends SequentialCommProtocol
 	
 	private static void xmlNodeToValue( Value value, Node node )
 	{
+		String type = "xsd:string";
 		Node currNode;
-		
+
 		// Set attributes
 		NamedNodeMap attributes = node.getAttributes();
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+				if ( "type".equals( currNode.getNodeName() ) == false ) {
+					getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+				} else {
+					type = currNode.getNodeValue();
+				}
 			}
 		}
-		
+
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
@@ -511,17 +519,24 @@ public class SoapProtocol extends SequentialCommProtocol
 				break;
 			}
 		}
-		
-		Value attr;
+
+		if ( "xsd:int".equals( type ) ) {
+				value.setValue( value.intValue() );
+		} else if ( "xsd:double".equals( type ) ) {
+			value.setValue( value.doubleValue() );
+		}
+
+		/*Value attr;
 		if ( (attr=getAttributeOrNull( value, "type" )) != null ) {
 			String type = attr.strValue();
-			if ( "xsd:int".equals( type ) )
+			if ( "xsd:int".equals( type ) ) {
 				value.setValue( value.intValue() );
-			else if ( "xsd:double".equals( type ) )
+			} else if ( "xsd:double".equals( type ) ) {
 				value.setValue( value.doubleValue() );
-			else if ( "xsd:string".equals( type ) )
+			} else if ( "xsd:string".equals( type ) ) {
 				value.setValue( value.strValue() );
-		}
+			}
+		}*/
 	}
 	
 	public CommMessage recv( InputStream istream, OutputStream ostream )
