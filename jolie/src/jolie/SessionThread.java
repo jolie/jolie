@@ -21,12 +21,18 @@
 
 package jolie;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.Constants;
 import jolie.process.CorrelatedProcess;
 import jolie.process.Process;
+import jolie.process.TransformationReason;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
+import jolie.util.Pair;
 
 /**
  * An ExecutionThread with a dedicated State.
@@ -36,7 +42,68 @@ public class SessionThread extends ExecutionThread implements Cloneable
 {
 	final private jolie.State state;
 	final private List< SessionListener > listeners = new LinkedList< SessionListener >();
-	
+
+	final private static VariablePath typeMismatchPath;
+	final private static VariablePath ioExceptionPath;
+
+	static {
+		typeMismatchPath =
+			new VariablePathBuilder( false )
+			.add( "main", 0 )
+			.add( Constants.TYPE_MISMATCH_FAULT_NAME, 0 )
+			.toVariablePath();
+		ioExceptionPath =
+			new VariablePathBuilder( false )
+			.add( "main", 0 )
+			.add( Constants.IO_EXCEPTION_FAULT_NAME, 0 )
+			.add( "stackTrace", 0 )
+			.toVariablePath();
+	}
+
+	final static public List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter )
+	{
+		final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
+		instList.add( new Pair< String, Process >(
+			Constants.TYPE_MISMATCH_FAULT_NAME,
+			new Process() {
+				public void run() throws FaultException, ExitingException
+				{
+					interpreter.logWarning( typeMismatchPath.getValue().strValue() );
+				}
+
+				public Process clone( TransformationReason reason )
+				{
+					return this;
+				}
+
+				public boolean isKillable()
+				{
+					return true;
+				}
+			}
+		) );
+		instList.add( new Pair< String, Process >(
+			Constants.IO_EXCEPTION_FAULT_NAME,
+			new Process() {
+				public void run() throws FaultException, ExitingException
+				{
+					interpreter.logWarning( ioExceptionPath.getValue().strValue() );
+				}
+
+				public Process clone( TransformationReason reason )
+				{
+					return this;
+				}
+
+				public boolean isKillable()
+				{
+					return true;
+				}
+			}
+		) );
+		return instList;
+	}
+
 	private SessionThread( Process process, ExecutionThread parent, jolie.State state )
 	{
 		super( process, parent );

@@ -23,7 +23,6 @@ package jolie;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -141,7 +140,6 @@ import jolie.process.SolicitResponseProcess;
 import jolie.process.SpawnProcess;
 import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
-import jolie.process.TransformationReason;
 import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
 import jolie.runtime.AndCondition;
@@ -150,8 +148,6 @@ import jolie.runtime.CastRealExpression;
 import jolie.runtime.CastStringExpression;
 import jolie.runtime.CompareCondition;
 import jolie.runtime.Condition;
-import jolie.runtime.ExitingException;
-import jolie.runtime.FaultException;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.Expression;
@@ -501,57 +497,7 @@ public class OOITBuilder implements OLVisitor
 			
 			SequentialProcess mainProcessBody = new SequentialProcess();
 			try {
-				final VariablePath typeMismatchPath =
-					new VariablePathBuilder( false )
-					.add( "main", 0 )
-					.add( Constants.TYPE_MISMATCH_FAULT_NAME, 0 )
-					.toVariablePath();
-				final VariablePath ioExceptionPath =
-					new VariablePathBuilder( false )
-					.add( "main", 0 )
-					.add( Constants.IO_EXCEPTION_FAULT_NAME, 0 )
-					.add( "stackTrace", 0 )
-					.toVariablePath();
-				final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
-				instList.add( new Pair< String, Process >(
-					Constants.TYPE_MISMATCH_FAULT_NAME,
-					new Process() {
-						public void run() throws FaultException, ExitingException
-						{
-							interpreter.logWarning( typeMismatchPath.getValue().strValue() );
-						}
-
-						public Process clone( TransformationReason reason )
-						{
-							return this;
-						}
-
-						public boolean isKillable()
-						{
-							return true;
-						}
-					}
-				) );
-				instList.add( new Pair< String, Process >(
-					Constants.IO_EXCEPTION_FAULT_NAME,
-					new Process() {
-						public void run() throws FaultException, ExitingException
-						{
-							interpreter.logWarning( ioExceptionPath.getValue().strValue() );
-						}
-
-						public Process clone( TransformationReason reason )
-						{
-							return this;
-						}
-
-						public boolean isKillable()
-						{
-							return true;
-						}
-					}
-				) );
-				mainProcessBody.addChild( new InstallProcess( instList ) );
+				mainProcessBody.addChild( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
 				mainProcessBody.addChild( interpreter.getDefinition( "init" ) );
 			} catch( InvalidIdException e ) {}
 			mainProcessBody.addChild( currProcess );
@@ -1122,11 +1068,14 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( SpawnStatement n )
 	{
+		SequentialProcess seq = new SequentialProcess();
+		seq.addChild( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
+		seq.addChild( buildProcess( n.body() ) );
 		currProcess = new SpawnProcess(
 			buildVariablePath( n.indexVariablePath() ),
 			buildExpression( n.upperBoundExpression() ),
 			buildVariablePath( n.inVariablePath() ),
-			buildProcess( n.body() )
+			seq
 		);
 	}
 	
