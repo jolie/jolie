@@ -106,7 +106,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				Interpreter.getInstance().logWarning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
 				try {
 					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
-					channel.disposeForInput();
+					//channel.release();
 				} catch( IOException ioe ) {
 					Interpreter.getInstance().logSevere( ioe );
 				}
@@ -218,15 +218,6 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				"Request-Response process for " + operation.id() +
 				" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
 			f = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error" );
-			/*Iterator< String > it = operation.faultNames().iterator();
-			if ( it.hasNext() ) {
-				String newFault = it.next();
-				Interpreter.getInstance().logger().warning(
-					"Converting Request-Response fault " + f.faultName() +
-					" to " + newFault );
-				f = new FaultException( newFault );
-			} else
-				Interpreter.getInstance().logger().severe( "Could not find a fault to convert the undeclared fault to." );*/
 		}
 		return CommMessage.createFaultResponse( request, f );
 	}
@@ -284,7 +275,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		try {
 			channel.send( response );
 			log( "sent response for message " + message.id() );
-			channel.release();
+			//channel.release();
 		} catch( IOException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}

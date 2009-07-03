@@ -178,13 +178,13 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 			varPath.getValue().refCopy( message.value() );
 		}
 
-		try {
+		/*try {
 			if ( channel != null ) {
 				channel.release();
 			}
 		} catch( IOException e ) {
 			Interpreter.getInstance().logSevere( e );
-		}
+		}*/
 	}
 	
 	public boolean isKillable()

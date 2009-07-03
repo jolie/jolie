@@ -87,11 +87,9 @@ public class NotificationProcess implements Process
 				( outputExpression == null ) ?
 						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
 						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
-
 			if ( outputType != null ) {
 				outputType.check( message.value() );
 			}
-
 			CommChannel channel = outputPort.getCommChannel();
 			log( "sending request " + message.id() );
 			channel.send( message );
