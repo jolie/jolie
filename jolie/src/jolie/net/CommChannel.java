@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import java.util.concurrent.locks.ReentrantLock;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
@@ -49,7 +50,8 @@ abstract public class CommChannel
 	final private List< CommMessage > pendingGenericResponses =
 			new Vector< CommMessage >();
 	
-	final protected Object channelMutex = new Object();
+	final protected ReentrantLock lock = new ReentrantLock( true );
+	final private Object responseRecvMutex = new Object();
 
 	private class ResponseContainer
 	{
@@ -119,8 +121,17 @@ abstract public class CommChannel
 		throws IOException
 	{
 		CommMessage ret;
-		synchronized( channelMutex ) {
+		if ( lock.isHeldByCurrentThread() ) {
 			ret = recvImpl();
+		} else {
+			lock.lock();
+			try {
+				ret = recvImpl();
+			} catch( IOException e ) {
+				lock.unlock();
+				throw e;
+			}
+			lock.unlock();
 		}
 		return ret;
 	}
@@ -130,21 +141,21 @@ abstract public class CommChannel
 	{
 		CommMessage response;
 		ResponseContainer monitor = null;
-		synchronized( this ) {
+		synchronized( responseRecvMutex ) {
 			response = pendingResponses.remove( message.id() );
 			if ( response == null ) {
 				if ( pendingGenericResponses.isEmpty() ) {
 					assert( waiters.containsKey( message.id() ) == false );
 					monitor = new ResponseContainer();
 					waiters.put( message.id(), monitor );
-					notify();
+					responseRecvMutex.notify();
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}
 			}
 		}
 		if ( response == null ) {
-			synchronized( this ) {
+			synchronized( responseRecvMutex ) {
 				if ( responseReceiver == null ) {
 					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
 					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
@@ -246,10 +257,10 @@ abstract public class CommChannel
 			CommMessage response;
 			boolean keepRun = true;
 			while( keepRun ) {
-				synchronized( parent ) {
+				synchronized( parent.responseRecvMutex ) {
 					if ( parent.waiters.isEmpty() ) {
 						try {
-							parent.wait();
+							parent.responseRecvMutex.wait();
 						} catch( InterruptedException e ) {
 							Interpreter.getInstance().logSevere( e );
 						}
@@ -278,8 +289,17 @@ abstract public class CommChannel
 	public void send( CommMessage message )
 		throws IOException
 	{
-		synchronized( channelMutex ) {
+		if ( lock.isHeldByCurrentThread() ) {
 			sendImpl( message );
+		} else {
+			lock.lock();
+			try {
+				sendImpl( message );
+			} catch( IOException e ) {
+				lock.unlock();
+				throw e;
+			}
+			lock.unlock();
 		}
 	}
 	
@@ -298,7 +318,7 @@ abstract public class CommChannel
 	{
 		if ( toBeClosed ) {
 			isOpen = false;
-			closeImpl();
+			close();
 		} else {
 			releaseImpl();
 		}
@@ -324,6 +344,13 @@ abstract public class CommChannel
 	public void setToBeClosed( boolean toBeClosed )
 	{
 		this.toBeClosed = toBeClosed;
+	}
+
+	protected void close()
+		throws IOException
+	{
+
+		closeImpl();
 	}
 
 	/** Implements the communication channel closing operation. */

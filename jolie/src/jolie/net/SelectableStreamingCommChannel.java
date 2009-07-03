@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
@@ -39,42 +38,59 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 	abstract public InputStream inputStream();
 	abstract public SelectableChannel selectableChannel();
 
-	private SelectionKey selectionKey = null;
-
-	public SelectionKey selectionKey()
-	{
-		return selectionKey;
-	}
-
-	public void setSelectionKey( SelectionKey selectionKey )
-	{
-		this.selectionKey = selectionKey;
-	}
-
 	@Override
 	public void send( CommMessage message )
 		throws IOException
 	{
-		synchronized( channelMutex ) {
-			if ( selectionKey != null ) {
-				final CommCore commCore = Interpreter.getInstance().commCore();
-				commCore.unregisterForSelection( this );
-				sendImpl( message );
-				commCore.registerForSelection( this );
-			} else {
-				sendImpl( message );
+		if ( lock.isHeldByCurrentThread() ) {
+			_send( message );
+		} else {
+			lock.lock();
+			try {
+				_send( message );
+			} catch( IOException e ) {
+				lock.unlock();
+				throw e;
 			}
+			lock.unlock();
 		}
 	}
+
+	private void _send( CommMessage message )
+		throws IOException
+	{
+		final CommCore commCore = Interpreter.getInstance().commCore();
+		if ( commCore.isSelecting( this ) ) {
+			commCore.unregisterForSelection( this );
+			sendImpl( message );
+			commCore.registerForSelection( this );
+		} else {
+			sendImpl( message );
+		}
+	}
+
+	private void _disposeForInputImpl()
+		throws IOException
+	{
+		Interpreter.getInstance().commCore().registerForSelection( this );
+	}
+
 
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
 	{
-		synchronized( channelMutex ) { // We do not want sendings or receivings during this.
-			if ( selectionKey == null ) {
-				Interpreter.getInstance().commCore().registerForSelection( this );
+		if ( lock.isHeldByCurrentThread() ) {
+			_disposeForInputImpl();
+		} else {
+			lock.lock();
+			try {
+				_disposeForInputImpl();
+			} catch( IOException e ) {
+				lock.unlock();
+				throw e;
 			}
+			lock.unlock();
 		}
 	}
 }

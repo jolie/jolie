@@ -136,6 +136,22 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		socketChannel.close();
 	}
 
+	private boolean _isOpenImpl()
+		throws IOException
+	{
+		boolean oldBlockingConfig = socketChannel.isBlocking();
+		ByteBuffer buffer = ByteBuffer.allocate( 1 );
+		socketChannel.configureBlocking( false );
+		int read = socketChannel.read( buffer );
+		socketChannel.configureBlocking( oldBlockingConfig );
+		if ( read == -1 ) {
+			return false;
+		} else if ( read > 0 ) {
+			istream.append( buffer.get( 0 ) );
+		}
+		return true;
+	}
+
 	@Override
 	protected boolean isOpenImpl()
 	{
@@ -143,23 +159,23 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			return false;
 		}
 
+		boolean ret = false;
 		try {
-			synchronized( channelMutex ) {
-				boolean oldBlockingConfig = socketChannel.isBlocking();
-				socketChannel.configureBlocking( false );
-				ByteBuffer buffer = ByteBuffer.allocate( 1 );
-				int read = socketChannel.read( buffer );
-				if ( read == -1 ) {
-					return false;
-				} else if ( read > 0 ) {
-					istream.append( buffer.get( 0 ) );
+			if ( lock.isHeldByCurrentThread() ) {
+				ret = _isOpenImpl();
+			} else {
+				lock.lock();
+				try {
+					ret = _isOpenImpl();
+				} catch( IOException e ) {
+					lock.unlock();
+					throw e;
 				}
-				socketChannel.configureBlocking( oldBlockingConfig );
+				lock.unlock();
 			}
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );
-			return false;
 		}
-		return true;
+		return ret;
 	}
 }
