@@ -47,11 +47,22 @@ abstract public class StreamingCommChannel extends CommChannel
 		return protocol.isThreadSafe();
 	}
 
-	@Override
-	final protected void releaseImpl()
+	private void _releaseImpl()
 	{
 		if ( toBeClosed() == false ) {
 			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
+		}
+	}
+
+	@Override
+	final protected void releaseImpl()
+	{
+		if ( lock.isHeldByCurrentThread() ) {
+			_releaseImpl();
+		} else {
+			lock.lock();
+			_releaseImpl();
+			lock.unlock();
 		}
 	}
 }

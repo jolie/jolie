@@ -23,7 +23,6 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.ClosedChannelException;
@@ -45,6 +44,7 @@ import java.util.logging.Logger;
 
 import java.util.regex.Pattern;
 import jolie.Interpreter;
+import jolie.JolieThread;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -83,7 +83,7 @@ public class CommCore
 			if ( protocolChannels != null ) {
 				ret = protocolChannels.get( protocol );
 				if ( ret != null ) {
-					if ( ret.isOpen() ) {
+					if ( ret.lock.tryLock() && ret.isOpen() ) {
 						/*
 						 * We are going to return this channel, but first
 						 * check if it supports concurrent use.
@@ -96,8 +96,9 @@ public class CommCore
 								persistentChannels.remove( location );
 							}
 						}
+						ret.lock.unlock();
 					} else {
-						// If the channel is closed, remove it and return null
+						// If the channel is closed or busy, remove it and return null
 						protocolChannels.remove( protocol );
 						if ( protocolChannels.isEmpty() ) {
 							persistentChannels.remove( location );
@@ -425,7 +426,7 @@ public class CommCore
 		{
 			try {
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
-				synchronized( channel.channelMutex ) {
+				channel.lock.lock();
 					CommMessage message = channel.recv();
 					if ( message != null ) {
 						if ( channel.redirectionChannel() == null ) {
@@ -434,14 +435,10 @@ public class CommCore
 							redirectMessage( message );
 						}
 					}
-				}
+				channel.lock.unlock();
 			} catch( IOException e ) {
+				channel.lock.unlock();
 				interpreter.logSevere( e );
-				/*try {
-					channel.closeImpl();
-				} catch( IOException ioe ) {
-					interpreter.logSevere( ioe );
-				}*/
 			}
 		}
 	}
@@ -560,60 +557,60 @@ public class CommCore
 	{
 		synchronized( this ) {
 			if ( selectorThread == null ) {
-				selectorThread = new SelectorThread();
+				selectorThread = new SelectorThread( interpreter );
 				selectorThread.start();
 			}
 		}
 		return selectorThread;
 	}
-	
-	private class SelectorThread extends Thread {
+
+	private class SelectorThread extends JolieThread {
 		final private Selector selector;
-		public SelectorThread()
+		final private Object selectingMutex = new Object();
+		public SelectorThread( Interpreter interpreter )
 			throws IOException
 		{
-			super( threadGroup, interpreter.programFile().getName() + "-SelectorThread" );
+			super( interpreter, threadGroup, interpreter.programFile().getName() + "-SelectorThread" );
 			this.selector = Selector.open();
 		}
 		
 		@Override
 		public void run()
 		{
-			int buffer;
 			SelectableStreamingCommChannel channel;
-			InputStream stream;
 			while( active ) {
 				try {
-					selector.select();
+					synchronized( selectingMutex ) {
+						selector.select();
+					}
 					synchronized( this ) {
 						for( SelectionKey key : selector.selectedKeys() ) {
-							key.cancel();
-							channel = (SelectableStreamingCommChannel)key.attachment();
-							channel.setSelectionKey( null );
-							try {
-								key.channel().configureBlocking( true );
-								stream = channel.inputStream();
-								stream.mark( 1 );
-								// It could just be a closing read. If not, receive it.
+							if ( key.isValid() ) {
+								channel = (SelectableStreamingCommChannel)key.attachment();
 								try {
-									buffer = stream.read();
-								} catch( IOException e ) {
-									buffer = -1;
-									if ( interpreter.verbose() ) {
-										interpreter.logSevere( e );
+									if ( channel.lock.tryLock() ) {
+										try {
+											key.cancel();
+											if ( channel.isOpen() ) {
+												key.channel().configureBlocking( true );
+												scheduleReceive( channel, channel.parentListener() );
+											}
+											channel.lock.unlock();
+										} catch( IOException e ) {
+											channel.lock.unlock();
+											throw e;
+										}
 									}
+								} catch( IOException e ) {
+									if ( channel.lock.isHeldByCurrentThread() ) {
+										channel.lock.unlock();
+									}
+									interpreter.logSevere( e );
 								}
-								if ( buffer != -1 ) {
-									stream.reset();
-									scheduleReceive( channel, channel.parentListener() );
-								} else {
-									channel.closeImpl();
-								}
-							} catch( IOException e ) {
-								interpreter.logSevere( e );
-								//channel.selectionKey().cancel();
-								channel.setSelectionKey( null );
 							}
+						}
+						synchronized( selectingMutex ) {
+							selector.selectNow(); // Clean up the cancelled keys
 						}
 					}
 				} catch( IOException e ) {
@@ -639,12 +636,14 @@ public class CommCore
 				}
 
 				synchronized( this ) {
-					if ( channel.selectionKey() == null ) {
+					if ( isSelecting( channel ) == false ) {
 						SelectableChannel c = channel.selectableChannel();
 						c.configureBlocking( false );
 						selector.wakeup();
-						selector.selectNow();
-						channel.setSelectionKey( c.register( selector, SelectionKey.OP_READ, channel ) );
+						synchronized( selectingMutex ) {
+							c.register( selector, SelectionKey.OP_READ, channel );
+							selector.selectNow();
+						}
 					}
 				}
 			} catch( ClosedChannelException e ) {
@@ -658,24 +657,42 @@ public class CommCore
 			throws IOException
 		{
 			synchronized( this ) {
-				if ( channel.selectionKey() != null ) {
-					channel.selectionKey().cancel();
-					channel.selectableChannel().configureBlocking( true );
-					channel.setSelectionKey( null );
+				if ( isSelecting( channel ) ) {
 					selector.wakeup();
-					selector.selectNow();
+					synchronized( selectingMutex ) {
+						channel.selectableChannel().keyFor( selector ).cancel();
+						selector.selectNow();
+					}
+					channel.selectableChannel().configureBlocking( true );
 				}
 			}
 		}
 	}
 
-	public void unregisterForSelection( SelectableStreamingCommChannel channel )
+	protected boolean isSelecting( SelectableStreamingCommChannel channel )
+	{
+		synchronized( this ) {
+			if ( selectorThread == null ) {
+				return false;
+			}
+		}
+		final SelectorThread t = selectorThread;
+		synchronized( t ) {
+			SelectableChannel c = channel.selectableChannel();
+			if ( c == null ) {
+				return false;
+			}
+			return c.keyFor( selectorThread.selector ) != null;
+		}
+	}
+
+	protected void unregisterForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
 		selectorThread().unregister( channel );
 	}
 	
-	public void registerForSelection( SelectableStreamingCommChannel channel )
+	protected void registerForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
 		selectorThread().register( channel );
