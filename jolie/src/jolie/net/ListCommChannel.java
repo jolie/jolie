@@ -54,7 +54,7 @@ public class ListCommChannel extends CommChannel
 	{
 		synchronized( olist ) {
 			olist.add( message );
-			olist.notifyAll();
+			olist.notify();
 		}
 	}
 	
@@ -63,8 +63,9 @@ public class ListCommChannel extends CommChannel
 		CommMessage ret = null;
 		synchronized( ilist ) {
 			try {
-				while( ilist.isEmpty() )
+				while( ilist.isEmpty() ) {
 					ilist.wait();
+				}
 			} catch( InterruptedException e ) {}
 			ret = ilist.remove( 0 );
 		}
