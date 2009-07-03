@@ -34,6 +34,7 @@ import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 /**
  * @author Fabrizio Montesi
@@ -55,6 +56,8 @@ public class DatabaseService extends JavaService
 	private String username = null;
 	private String password = null;
 	private boolean mustCheckConnection = false;
+
+	final private Object transactionMutex = new Object();
 
 	@Override
 	protected void finalize()
@@ -151,8 +154,88 @@ public class DatabaseService extends JavaService
 		Value resultValue = Value.create();
 		String query = request.value().strValue();
 		try {
-			Statement stm = connection.createStatement();
-			resultValue.setValue( stm.executeUpdate( query ) );
+			synchronized( transactionMutex ) {
+				Statement stm = connection.createStatement();
+				resultValue.setValue( stm.executeUpdate( query ) );
+			}
+		} catch( SQLException e ) {
+			throw new FaultException( e );
+		}
+		return CommMessage.createResponse( request, resultValue );
+	}
+
+	private static void resultSetToValueVector( ResultSet result, ValueVector vector )
+		throws SQLException
+	{
+		Value rowValue, fieldValue;
+		ResultSetMetaData metadata = result.getMetaData();
+		int cols = metadata.getColumnCount();
+		int i;
+		int rowIndex = 0;
+		while( result.next() ) {
+			rowValue = vector.get( rowIndex );
+			for( i = 1; i <= cols; i++ ) {
+				fieldValue = rowValue.getFirstChild( metadata.getColumnLabel( i ) );
+				switch( metadata.getColumnType( i ) ) {
+				case java.sql.Types.INTEGER:
+				case java.sql.Types.SMALLINT:
+				case java.sql.Types.TINYINT:
+				case java.sql.Types.NUMERIC:
+					fieldValue.setValue( result.getInt( i ) );
+					break;
+				case java.sql.Types.BIGINT:
+					// TODO: to be changed when getting support for Long in Jolie.
+					fieldValue.setValue( result.getInt( i ) );
+					break;
+				case java.sql.Types.DOUBLE:
+					fieldValue.setValue( result.getDouble( i ) );
+					break;
+				case java.sql.Types.FLOAT:
+					fieldValue.setValue( result.getFloat( i ) );
+					break;
+				case java.sql.Types.BLOB:
+					//fieldValue.setStrValue( result.getBlob( i ).toString() );
+					break;
+				case java.sql.Types.CLOB:
+					Clob clob = result.getClob( i );
+					fieldValue.setValue( clob.getSubString( 0L, (int)clob.length() ) );
+					break;
+				case java.sql.Types.NVARCHAR:
+				case java.sql.Types.NCHAR:
+				case java.sql.Types.LONGNVARCHAR:
+					fieldValue.setValue( result.getNString( i ) );
+					break;
+				case java.sql.Types.VARCHAR:
+				default:
+					fieldValue.setValue( result.getString( i ) );
+					break;
+				}
+			}
+			rowIndex++;
+		}
+	}
+
+	public CommMessage executeTransaction( CommMessage request )
+		throws FaultException
+	{
+		checkConnection();
+		Value resultValue = Value.create();
+		ValueVector resultVector = resultValue.getChildren( "result" );
+		try {
+			synchronized( transactionMutex ) {
+				connection.setAutoCommit( false );
+				Value currResultValue;
+				for( Value statementValue : request.value().getChildren( "statement" ) ) {
+					currResultValue = Value.create();
+					Statement stm = connection.createStatement();
+					if ( stm.execute( statementValue.strValue() ) == true ) {
+						resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
+					}
+					resultVector.add( currResultValue );
+				}
+				connection.commit();
+				connection.setAutoCommit( true );
+			}
 		} catch( SQLException e ) {
 			throw new FaultException( e );
 		}
@@ -164,51 +247,11 @@ public class DatabaseService extends JavaService
 	{
 		checkConnection();
 		Value resultValue = Value.create();
-		Value rowValue, fieldValue;
-		String query = request.value().strValue();
 		try {
-			Statement stm = connection.createStatement();
-			ResultSet result = stm.executeQuery( query );
-			ResultSetMetaData metadata = result.getMetaData();
-			int cols = metadata.getColumnCount();
-			int i;
-			int rowIndex = 0;
-			while( result.next() ) {
-				rowValue = resultValue.getChildren( "row" ).get( rowIndex );
-				for( i = 1; i <= cols; i++ ) {
-					fieldValue = rowValue.getChildren( metadata.getColumnLabel( i ) ).first();
-					switch( metadata.getColumnType( i ) ) {
-					case java.sql.Types.INTEGER:
-					case java.sql.Types.SMALLINT:
-					case java.sql.Types.TINYINT:
-					case java.sql.Types.NUMERIC:
-						fieldValue.setValue( result.getInt( i ) );
-						break;
-					case java.sql.Types.DOUBLE:
-						fieldValue.setValue( result.getDouble( i ) );
-						break;
-					case java.sql.Types.FLOAT:
-						fieldValue.setValue( result.getFloat( i ) );
-						break;
-					case java.sql.Types.BLOB:
-						//fieldValue.setStrValue( result.getBlob( i ).toString() );
-						break;
-					case java.sql.Types.CLOB:
-						Clob clob = result.getClob( i );
-						fieldValue.setValue( clob.getSubString( 0L, (int)clob.length() ) );
-						break;
-					case java.sql.Types.NVARCHAR:
-					case java.sql.Types.NCHAR:
-					case java.sql.Types.LONGNVARCHAR:
-						fieldValue.setValue( result.getNString( i ) );
-						break;
-					case java.sql.Types.VARCHAR:
-					default:
-						fieldValue.setValue( result.getString( i ) );
-						break;
-					}
-				}
-				rowIndex++;
+			synchronized( transactionMutex ) {
+				Statement stm = connection.createStatement();
+				ResultSet result = stm.executeQuery( request.value().strValue() );
+				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( "SQLException", e );
