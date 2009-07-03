@@ -210,7 +210,7 @@ abstract public class CommChannel
 				}
 			}
 		}
-		
+
 		private void handleMessage( CommMessage response )
 		{
 			ResponseContainer monitor;
