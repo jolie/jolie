@@ -594,6 +594,8 @@ public class CommCore
 											if ( channel.isOpen() ) {
 												key.channel().configureBlocking( true );
 												scheduleReceive( channel, channel.parentListener() );
+											} else {
+												channel.closeImpl();
 											}
 											channel.lock.unlock();
 										} catch( IOException e ) {
