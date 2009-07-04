@@ -110,7 +110,9 @@ public class SolicitResponseProcess implements Process
 			log( "sending request " + message.id() );
 			channel.send( message );
 			log( "request " + message.id() + " sent" );
-			message = channel.recvResponseFor( message );
+			do {
+				message = channel.recvResponseFor( message );
+			} while( message == null );
 			log( "received response for request " + message.id() );
 			
 			if ( inputVarPath != null )	 {
