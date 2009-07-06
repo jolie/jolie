@@ -21,6 +21,7 @@
 
 package joliex.db;
 
+import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -180,7 +181,6 @@ public class DatabaseService extends JavaService
 				case java.sql.Types.INTEGER:
 				case java.sql.Types.SMALLINT:
 				case java.sql.Types.TINYINT:
-				case java.sql.Types.NUMERIC:
 					fieldValue.setValue( result.getInt( i ) );
 					break;
 				case java.sql.Types.BIGINT:
@@ -204,6 +204,16 @@ public class DatabaseService extends JavaService
 				case java.sql.Types.NCHAR:
 				case java.sql.Types.LONGNVARCHAR:
 					fieldValue.setValue( result.getNString( i ) );
+					break;
+				case java.sql.Types.NUMERIC:
+					BigDecimal dec = result.getBigDecimal( i );
+					if ( dec.scale() <= 0 ) {
+						// May lose information.
+						// Pay some attention to this when Long becomes supported by JOLIE.
+						fieldValue.setValue( dec.intValue() );
+					} else if ( dec.scale() > 0 ) {
+						fieldValue.setValue( dec.doubleValue() );
+					}
 					break;
 				case java.sql.Types.VARCHAR:
 				default:
