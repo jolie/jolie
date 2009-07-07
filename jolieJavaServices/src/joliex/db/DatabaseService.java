@@ -203,7 +203,11 @@ public class DatabaseService extends JavaService
 				case java.sql.Types.NVARCHAR:
 				case java.sql.Types.NCHAR:
 				case java.sql.Types.LONGNVARCHAR:
-					fieldValue.setValue( result.getNString( i ) );
+					String s = result.getNString( i );
+					if ( s == null ) {
+						s = "";
+					}
+					fieldValue.setValue( s );
 					break;
 				case java.sql.Types.NUMERIC:
 					BigDecimal dec = result.getBigDecimal( i );
@@ -221,7 +225,11 @@ public class DatabaseService extends JavaService
 					break;
 				case java.sql.Types.VARCHAR:
 				default:
-					fieldValue.setValue( result.getString( i ) );
+					String str = result.getString( i );
+					if ( str == null ) {
+						str = "";
+					}
+					fieldValue.setValue( str );
 					break;
 				}
 			}
