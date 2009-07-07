@@ -207,12 +207,16 @@ public class DatabaseService extends JavaService
 					break;
 				case java.sql.Types.NUMERIC:
 					BigDecimal dec = result.getBigDecimal( i );
-					if ( dec.scale() <= 0 ) {
-						// May lose information.
-						// Pay some attention to this when Long becomes supported by JOLIE.
-						fieldValue.setValue( dec.intValue() );
-					} else if ( dec.scale() > 0 ) {
-						fieldValue.setValue( dec.doubleValue() );
+					if ( dec == null ) {
+						fieldValue.setValue( 0 );
+					} else {
+						if ( dec.scale() <= 0 ) {
+							// May lose information.
+							// Pay some attention to this when Long becomes supported by JOLIE.
+							fieldValue.setValue( dec.intValue() );
+						} else if ( dec.scale() > 0 ) {
+							fieldValue.setValue( dec.doubleValue() );
+						}
 					}
 					break;
 				case java.sql.Types.VARCHAR:
