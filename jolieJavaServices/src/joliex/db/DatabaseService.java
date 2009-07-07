@@ -208,7 +208,7 @@ public class DatabaseService extends JavaService
 				case java.sql.Types.NUMERIC:
 					BigDecimal dec = result.getBigDecimal( i );
 					if ( dec == null ) {
-						fieldValue.setValue( result.getDouble( i ) );
+						fieldValue.setValue( 0 );
 					} else {
 						if ( dec.scale() <= 0 ) {
 							// May lose information.
