@@ -23,5 +23,6 @@ constants {
 	Debug = 0,
 	MetaServiceLocation = "socket://localhost:9000/",
 	MetaServiceProtocol = sodep,
-	MetaServiceSOAPLocation = "socket://localhost:9001"
+	//MetaServiceSOAPLocation = "socket://localhost:9001"
+	MetaServiceSOAPLocation = "local"
 }
