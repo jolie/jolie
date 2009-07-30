@@ -30,7 +30,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -199,26 +198,29 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		String typeName;
-		TypeInlineDefinition currentType;
+		TypeDefinition currentType;
 
 		while( token.isKeyword( "type" ) ) {
 			getToken();
 
 			typeName = token.content();
 			eat( Scanner.TokenType.ID, "expected type name" );
-
 			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
 
-			NativeType nativeType = parseNativeType();
-			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-
-			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
-				parseSubTypes( currentType );
+			NativeType nativeType = readNativeType();
+			if ( nativeType == null ) { // It's a user-defined type
+				currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, definedTypes.get( token.content() ) );
+				getToken();
+			} else {
+				currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+				getToken();
+				if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
+					parseSubTypes( (TypeInlineDefinition)currentType );
+				}
 			}
 
 			// Keep track of the root types to support them in successive type declarations
 			definedTypes.put( typeName, currentType );
-
 			program.addChild( currentType );
 		}
 	}
@@ -234,20 +236,6 @@ public class OLParser extends AbstractParser
 		} else {
 			return NativeType.fromString( token.content() );
 		}
-	}
-
-	private NativeType parseNativeType()
-		throws IOException, ParserException
-	{
-		NativeType nativeType = readNativeType();
-
-		if ( nativeType == null ) {
-			throwException( "expected native type, found \"" + token.content() + "\""  );
-		}
-
-		getToken();
-
-		return nativeType;
 	}
 
 	private void parseSubTypes( TypeInlineDefinition type )
@@ -893,7 +881,7 @@ public class OLParser extends AbstractParser
 							getToken(); //eat (
 							faultTypeName = token.content();
 							getToken();
-							eat( Scanner.TokenType.RPAREN, "rparen not found" );
+							eat( Scanner.TokenType.RPAREN, "expected )" );
 						}
 						faultTypesMap.put( faultName, definedTypes.get( faultTypeName ) );
 					}
