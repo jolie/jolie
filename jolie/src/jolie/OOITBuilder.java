@@ -38,6 +38,7 @@ import jolie.lang.Constants.OperandType;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -147,6 +148,7 @@ import jolie.runtime.CastIntExpression;
 import jolie.runtime.CastRealExpression;
 import jolie.runtime.CastStringExpression;
 import jolie.runtime.CompareCondition;
+import jolie.runtime.CompareOperator;
 import jolie.runtime.Condition;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
@@ -878,7 +880,23 @@ public class OOITBuilder implements OLVisitor
 		n.leftExpression().accept( this );
 		Expression left = currExpression;
 		n.rightExpression().accept( this );
-		currCondition = new CompareCondition( left, currExpression, n.opType() );
+		CompareOperator operator = null;
+		Scanner.TokenType opType = n.opType();
+		if ( opType == Scanner.TokenType.EQUAL ) {
+			operator = CompareOperator.EQUAL;
+		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
+			operator = CompareOperator.NOT_EQUAL;
+		} else if ( opType == Scanner.TokenType.LANGLE ) {
+			operator = CompareOperator.MINOR;
+		} else if ( opType == Scanner.TokenType.RANGLE ) {
+			operator = CompareOperator.MAJOR;
+		} else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL ) {
+			operator = CompareOperator.MINOR_OR_EQUAL;
+		} else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL ) {
+			operator = CompareOperator.MAJOR_OR_EQUAL;
+		}
+		assert( operator != null );
+		currCondition = new CompareCondition( left, currExpression, operator );
 	}
 	
 	public void visit( ExpressionConditionNode n )
