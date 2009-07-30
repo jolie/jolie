@@ -29,7 +29,6 @@ import javax.bluetooth.DiscoveryListener;
 import javax.bluetooth.LocalDevice;
 import javax.bluetooth.RemoteDevice;
 import javax.bluetooth.ServiceRecord;
-import javax.bluetooth.UUID;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.AndJarDeps;
@@ -48,11 +47,11 @@ public class BluetoothService extends JavaService
 		public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod )
 		{
 			Value dValue = Value.create();
-			dValue.getChildren( "address" ).first().setValue( btDevice.getBluetoothAddress() );
+			dValue.getFirstChild( "address" ).setValue( btDevice.getBluetoothAddress() );
 			try {
-				dValue.getChildren( "name" ).first().setValue( btDevice.getFriendlyName( true ) );
+				dValue.getFirstChild( "name" ).setValue( btDevice.getFriendlyName( true ) );
 			} catch( IOException e ) {}
-			value.getChildren( "devices" ).add( dValue );
+			value.getChildren( "device" ).add( dValue );
 		}
 		
 		public Value getResult()
@@ -77,20 +76,18 @@ public class BluetoothService extends JavaService
 
 		public void servicesDiscovered( int transID, ServiceRecord[] serviceRecords )
 		{
-			ValueVector vec = value.getChildren( "services" );
+			ValueVector vec = value.getChildren( "service" );
 			Value v;
 			for( ServiceRecord record : serviceRecords) {
-				System.out.println(record.toString());
 				v = Value.create();
-				v.getChildren( "location" ).first().setValue(
+				v.getFirstChild( "location" ).setValue(
 					record.getConnectionURL( ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false )
 				);
 				vec.add( v );
 			}
 		}
 
-		public void serviceSearchCompleted( int transID, int respCode ) {
-		}
+		public void serviceSearchCompleted( int transID, int respCode ) {}
 	}
 
 	public CommMessage inquire( CommMessage message )
@@ -107,20 +104,22 @@ public class BluetoothService extends JavaService
 		} catch( BluetoothStateException e ) {
 			throw new FaultException( e );
 		}
-		return new CommMessage( "inquire", "/", retValue );
+		return CommMessage.createResponse( message, retValue );
 	}
-	
-	public void setDiscoverable( CommMessage message )
+
+	public CommMessage setDiscoverable( CommMessage message )
 		throws FaultException
 	{
+		boolean b = false;
 		try {
-			LocalDevice.getLocalDevice().setDiscoverable( message.value().intValue() );
+			b = LocalDevice.getLocalDevice().setDiscoverable( message.value().intValue() );
 		} catch( BluetoothStateException e ) {
 			throw new FaultException ( e );
 		}
+		return CommMessage.createResponse( message, Value.create( b ) );
 	}
-	
-	public CommMessage discoveryServices( CommMessage message )
+
+/*	public CommMessage discoveryServices( CommMessage request )
 		throws FaultException
 	{
 		DiscoveryListenerImpl listener = new DiscoveryListenerImpl();
@@ -135,7 +134,7 @@ public class BluetoothService extends JavaService
 						);
 		} catch( BluetoothStateException e ) {
 			throw new FaultException( e );
-		}*/
-		return new CommMessage( "discoveryServices", "/", listener.getResult() );
-	}
+		}--/
+		return CommMessage.createResponse( request, listener.getResult() );
+	}*/
 }
