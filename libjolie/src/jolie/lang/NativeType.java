@@ -21,6 +21,9 @@
 
 package jolie.lang;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  *
  * @author Fabrizio Montesi
@@ -32,7 +35,16 @@ public enum NativeType
 	INT( "int" ),
 	DOUBLE( "double" ),
 	VOID( "void" ),
+	RAW( "raw" ),
 	ANY( "any" );
+
+	final private static Map< String, NativeType > idMap = new ConcurrentHashMap< String, NativeType >();
+
+	static {
+		for( NativeType type : NativeType.values() ) {
+			idMap.put( type.id(), type );
+		}
+	}
 
 	final private String id;
 	
@@ -48,11 +60,6 @@ public enum NativeType
 
 	static public NativeType fromString( String id )
 	{
-		for( NativeType type : NativeType.values() ) {
-			if ( type.id().equals( id ) ) {
-				return type;
-			}
-		}
-		return null;
+		return idMap.get( id );
 	}
 }
