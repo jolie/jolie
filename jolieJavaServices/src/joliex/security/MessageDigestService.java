@@ -49,6 +49,6 @@ public class MessageDigestService extends JavaService
 			radix = 16;
 		}
 		String result = new BigInteger( 1, md.digest() ).toString( radix );
-		return new CommMessage( "md5", "/", Value.create( result ) );
+		return CommMessage.createResponse( request, Value.create( result ) );
 	}
 }
