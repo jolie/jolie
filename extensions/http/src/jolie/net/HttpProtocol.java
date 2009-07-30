@@ -150,24 +150,26 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private static void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
-		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
-		StringBuilder cookieSB = new StringBuilder();
-		String domain;
-		// TODO check for cookie expiration
-		for( Value v : cookieVec ) {
-			domain = v.getChildren( "domain" ).first().strValue();
-			if ( domain.isEmpty() ||
-					(!domain.isEmpty() && hostname.endsWith( domain )) ) {
-				cookieSB.append(
-							v.getChildren( "name" ).first().strValue() + "=" +
-							v.getChildren( "value" ).first().strValue() + "; "
-				);
+		if ( message.value().hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
+			ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
+			StringBuilder cookieSB = new StringBuilder();
+			String domain;
+			// TODO check for cookie expiration
+			for( Value v : cookieVec ) {
+				domain = v.getChildren( "domain" ).first().strValue();
+				if ( domain.isEmpty() ||
+						(!domain.isEmpty() && hostname.endsWith( domain )) ) {
+					cookieSB.append(
+								v.getChildren( "name" ).first().strValue() + "=" +
+								v.getChildren( "value" ).first().strValue() + "; "
+					);
+				}
 			}
-		}
-		if ( cookieSB.length() > 0 ) {
-			headerBuilder.append( "Cookie: " );
-			headerBuilder.append( cookieSB );
-			headerBuilder.append( CRLF );
+			if ( cookieSB.length() > 0 ) {
+				headerBuilder.append( "Cookie: " );
+				headerBuilder.append( cookieSB );
+				headerBuilder.append( CRLF );
+			}
 		}
 	}
 	
@@ -214,9 +216,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private String send_getCharset( CommMessage message )
 	{
 		String charset = "UTF8";
-		if ( message.value().hasChildren( jolie.lang.Constants.Predefined.CHARSET.token().content() ) ) {
-			charset = message.value().getFirstChild( jolie.lang.Constants.Predefined.CHARSET.token().content() ).strValue();
-		} else if ( hasParameter( "charset" ) ) {
+		if ( hasParameter( "charset" ) ) {
 			charset = getStringParameter( "charset" );
 		}
 		return charset;
@@ -228,8 +228,6 @@ public class HttpProtocol extends SequentialCommProtocol
 		if ( received && requestFormat != null ) {
 			format = requestFormat;
 			requestFormat = null;
-		} else if ( message.value().hasChildren( jolie.lang.Constants.Predefined.FORMAT.token().content() ) ) {
-			format = message.value().getFirstChild( jolie.lang.Constants.Predefined.FORMAT.token().content() ).strValue();
 		} else if ( hasParameter( "format" ) ) {
 			format = getStringParameter( "format" );
 		}
@@ -320,7 +318,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
 	{
-		String redirect = message.value().getFirstChild( Constants.Predefined.REDIRECT.token().content() ).strValue();
+		String redirect = getStringParameter( "redirect" );
 		if ( redirect.isEmpty() ) {
 			headerBuilder.append( "HTTP/1.1 200 OK" + CRLF );
 		} else {
@@ -405,10 +403,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 		
 		if ( encodedContent.content != null ) {
-			param = message.value().getFirstChild( jolie.lang.Constants.Predefined.CONTENT_TYPE.token().content() ).strValue();
-			if ( !param.isEmpty() ) {
-				encodedContent.contentType = param;
-			}
+			encodedContent.contentType = getStringParameter( "contentType" );
 
 			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
 			if ( charset != null ) {
@@ -416,7 +411,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			}
 			headerBuilder.append( CRLF );
 
-			param = message.value().getFirstChild( jolie.lang.Constants.Predefined.CONTENT_TRANSFER_ENCODING.token().content() ).strValue();
+			param = getStringParameter( "contentTransferEncoding" );
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 			}
@@ -521,29 +516,33 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private static void recv_checkForSetCookie( HttpMessage message, Value value )
 	{
-		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
-		Value currValue;
-		for( HttpMessage.Cookie cookie : message.setCookies() ) {
-			currValue = Value.create();
-			currValue.getNewChild( "expires" ).setValue( cookie.expirationDate() );
-			currValue.getNewChild( "path" ).setValue( cookie.path() );
-			currValue.getNewChild( "name" ).setValue( cookie.name() );
-			currValue.getNewChild( "value" ).setValue( cookie.value() );
-			currValue.getNewChild( "domain" ).setValue( cookie.domain() );
-			currValue.getNewChild( "secure" ).setValue( (cookie.secure() ? 1 : 0) );
-			cookieVec.add( currValue );
+		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
+			ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
+			Value currValue;
+			for( HttpMessage.Cookie cookie : message.setCookies() ) {
+				currValue = Value.create();
+				currValue.getNewChild( "expires" ).setValue( cookie.expirationDate() );
+				currValue.getNewChild( "path" ).setValue( cookie.path() );
+				currValue.getNewChild( "name" ).setValue( cookie.name() );
+				currValue.getNewChild( "value" ).setValue( cookie.value() );
+				currValue.getNewChild( "domain" ).setValue( cookie.domain() );
+				currValue.getNewChild( "secure" ).setValue( (cookie.secure() ? 1 : 0) );
+				cookieVec.add( currValue );
+			}
 		}
 	}
 	
 	private static void recv_checkForCookies( HttpMessage message, Value value )
 	{
-		ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
-		Value v;
-		for( Entry< String, String > entry : message.cookies().entrySet() ) {
-			v = Value.create();
-			v.getNewChild( "name" ).setValue( entry.getKey() );
-			v.getNewChild( "value" ).setValue( entry.getValue() );
-			cookieVec.add( v );
+		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
+			ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
+			Value v;
+			for( Entry< String, String > entry : message.cookies().entrySet() ) {
+				v = Value.create();
+				v.getNewChild( "name" ).setValue( entry.getKey() );
+				v.getNewChild( "value" ).setValue( entry.getValue() );
+				cookieVec.add( v );
+			}
 		}
 	}
 	
@@ -551,12 +550,14 @@ public class HttpProtocol extends SequentialCommProtocol
 	{
 		if ( message.requestPath() != null ) {
 			try {
-				Value qsValue = value.getFirstChild( Constants.Predefined.QUERY_STRING.token().content() );
-				String qs = message.requestPath().split( "\\?" )[1];
-				String[] params = qs.split( "&" );
-				for( String param : params ) {
-					String[] kv = param.split( "=" );
-					qsValue.getNewChild( kv[0] ).setValue( kv[1] );
+				if ( value.hasChildren( Constants.Predefined.QUERY_STRING.token().content() ) ) {
+					Value qsValue = value.getFirstChild( Constants.Predefined.QUERY_STRING.token().content() );
+					String qs = message.requestPath().split( "\\?" )[1];
+					String[] params = qs.split( "&" );
+					for( String param : params ) {
+						String[] kv = param.split( "=" );
+						qsValue.getNewChild( kv[0] ).setValue( kv[1] );
+					}
 				}
 			} catch( ArrayIndexOutOfBoundsException e ) {}
 		}
@@ -635,12 +636,15 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private static void recv_checkForMessageProperties( HttpMessage message, Value messageValue )
+	private void recv_checkForMessageProperties( HttpMessage message, Value messageValue )
 	{
 		recv_checkForCookies( message, messageValue );
 		String property;
-		if ( (property=message.getProperty( "user-agent" )) != null ) {
-			messageValue.getNewChild( Constants.Predefined.USER_AGENT.token().content() ).setValue( property );
+		if (
+			(property=message.getProperty( "user-agent" )) != null &&
+			hasParameter( "userAgent" )
+		) {
+			getParameterFirstValue( "userAgent" ).setValue( property );
 		}
 	}
 
@@ -680,7 +684,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( inputId, "/", decodedMessage.value );
 			received = false;
-		} else if ( !message.isError() ) {
+		} else if ( message.isError() == false ) {
 			recv_parseQueryString( message, decodedMessage.value );
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage.value );
