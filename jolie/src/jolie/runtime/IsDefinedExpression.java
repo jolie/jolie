@@ -50,6 +50,6 @@ public class IsDefinedExpression implements Expression
 			}
 		}
 
-		return Value.create( ( def ) ? 1 : 0 );
+		return Value.create( def );
 	}
 }
