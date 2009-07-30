@@ -115,6 +115,8 @@ public class Type
 			return value.isString();
 		} else if ( nativeType == NativeType.VOID ) {
 			return value.valueObject() == null;
+		} else if ( nativeType == NativeType.RAW ) {
+			return value.isByteArray();
 		} else if ( nativeType == NativeType.UNDEFINED ) {
 			return true;
 		}
