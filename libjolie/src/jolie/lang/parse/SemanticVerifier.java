@@ -203,6 +203,14 @@ public class SemanticVerifier implements OLVisitor
 		if ( n.isValid() == false ) {
 			error( n, "type " + n.id() + " points to an undefined type" );
 		}
+		if ( isTopLevelType ) {
+			// Check if the type has already been defined with a different structure
+			TypeDefinition type = definedTypes.get( n.id() );
+			if ( type != null && type.equals( n ) == false ) {
+				error( n, "type " + n.id() + " has already been defined with a different structure" );
+			}
+			definedTypes.put( n.id(), n );
+		}
 	}
 
 	private void checkCardinality( TypeDefinition type )
