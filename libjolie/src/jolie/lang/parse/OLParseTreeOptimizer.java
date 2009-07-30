@@ -159,13 +159,13 @@ public class OLParseTreeOptimizer
 				program.addChild( p );
 			}
 		}
-	
+
 		public void visit( OneWayOperationDeclaration decl )
 		{}
 
 		public void visit( RequestResponseOperationDeclaration decl )
 		{}
-		
+
 		public void visit( EmbeddedServiceNode n )
 		{
 			program.addChild( n );
@@ -176,7 +176,7 @@ public class OLParseTreeOptimizer
 			procedure.body().accept( this );
 			program.addChild( new DefinitionNode( procedure.context(), procedure.id(), currNode ) );
 		}
-		
+
 		public void visit( ParallelStatement stm )
 		{
 			if ( stm.children().size() > 1 ) {
@@ -242,7 +242,7 @@ public class OLParseTreeOptimizer
 			} else
 				stm.children().get( 0 ).accept( this );
 		}
-		
+
 		public void visit( NDChoiceStatement stm )
 		{
 			//if ( stm.children().size() > 1 ) {
@@ -444,7 +444,7 @@ public class OLParseTreeOptimizer
 							outputExpression
 						);
 		}
-		
+
 		public void visit( SolicitResponseOperationStatement n )
 		{
 			OLSyntaxNode outputExpression = null;
@@ -462,10 +462,9 @@ public class OLParseTreeOptimizer
 						);
 		}
 
-		
 		public void visit( LinkInStatement n ) { currNode = n; }
 		public void visit( LinkOutStatement n ) { currNode = n; }
-		
+
 		public void visit( AssignStatement n )
 		{
 			currNode = new AssignStatement(
@@ -494,7 +493,7 @@ public class OLParseTreeOptimizer
 		}
 
 		public void visit( DefinitionCallStatement n ) { currNode = n; }
-		
+
 		public void visit( OrConditionNode n )
 		{
 			if ( n.children().size() > 1 ) {
@@ -619,7 +618,7 @@ public class OLParseTreeOptimizer
 
 		public void visit( TypeDefinitionLink n )
 		{
-			currNode = n;
+			program.addChild( n );
 		}
 		
 		public void visit( ValueVectorSizeExpressionNode n )
