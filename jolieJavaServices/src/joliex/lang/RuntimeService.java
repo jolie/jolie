@@ -54,7 +54,6 @@ public class RuntimeService extends JavaService
 	}
 	
 	public CommMessage setOutputPort( CommMessage message )
-		throws FaultException
 	{
 		String name = message.value().getFirstChild( "name" ).strValue();
 		Value locationValue = message.value().getFirstChild( "location" );
@@ -72,7 +71,7 @@ public class RuntimeService extends JavaService
 		} else {
 			l.setValue( locationValue.strValue() );
 		}
-		r.getFirstChild( name ).getFirstChild( Constants.PROTOCOL_NODE_NAME ).deepCopy( protocolValue );
+		r.getFirstChild( name ).getFirstChild( Constants.PROTOCOL_NODE_NAME ).refCopy( protocolValue );
 
 		r = ExecutionThread.currentThread().state().root();
 		l =	r.getFirstChild( name ).getFirstChild( Constants.LOCATION_NODE_NAME );
@@ -119,7 +118,6 @@ public class RuntimeService extends JavaService
 	public CommMessage removeRedirection( CommMessage message )
 		throws FaultException
 	{
-		CommMessage ret = null;
 		String serviceName = message.value().getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
 			interpreter.commCore().getListenerByInputPortName( serviceName );
@@ -128,8 +126,7 @@ public class RuntimeService extends JavaService
 		
 		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
 		listener.redirectionMap().remove( resourceName );
-		ret = CommMessage.createResponse( message, Value.create() );
-		return ret;
+		return CommMessage.createResponse( message, Value.create() );
 	}
 
 	public CommMessage getRedirection( CommMessage message )
