@@ -6,7 +6,7 @@
  *   published by the Free Software Foundation; either version 2 of the    *
  *   License, or (at your option) any later version.                       *
  *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
+ *   This program is jidistributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
@@ -43,6 +43,16 @@ public class StringUtils extends JavaService
 		return CommMessage.createResponse(
 			message,
 			Value.create( message.value().strValue().replaceAll( regex, replacement ) )
+		);
+	}
+
+	public CommMessage startsWith( CommMessage request )
+	{
+		String str = request.value().strValue();
+		String prefix = request.value().getFirstChild( "prefix" ).strValue();
+		return CommMessage.createResponse(
+			request,
+			Value.create( ( str.startsWith( prefix ) ) ? 1 : 0 )
 		);
 	}
 
