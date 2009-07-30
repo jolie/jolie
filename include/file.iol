@@ -1,16 +1,43 @@
-type DeleteRequest:string {
-	.isRegex?:int
+include "types/IOException.iol"
+
+type ReadFileRequest:void {
+	.filename:string
+	.format?:string // Can be "base64", "binary" or "text" (defaults to "text")
+}
+
+type WriteFileRequest:void {
+	.filename:string
+	.content:any
+}
+
+type DeleteRequest:string { // The filename to delete
+	.isRegex?:int // 1 if the filename is a regular expression, 0 otherwise
+}
+
+type RenameRequest:void {
+	.filename:string
+	.to:string
+}
+
+type ListRequest:void {
+	.directory:string
+	.regex:string
+}
+
+type ListResponse:void {
+	.result[0,*]:string
 }
 
 outputPort File {
 RequestResponse:
-	readFile throws FileNotFound IOException,
-	writeFile throws FileNotFound IOException,
-	delete(DeleteRequest)(int) throws IOException,
-	rename throws IOException,
-	list,
-	getServiceDirectory,
-	getFileSeparator
+	readFile(ReadFileRequest)(any) throws FileNotFound(void) IOException(IOExceptionType),
+	writeFile(WriteFileRequest)(void) throws FileNotFound(void) IOException(IOExceptionType),
+	delete(DeleteRequest)(int) throws IOException(IOExceptionType),
+	rename(RenameRequest)(void) throws IOException(IOExceptionType),
+	list(ListRequest)(ListResponse),
+	getServiceDirectory(void)(string),
+	getFileSeparator(void)(string),
+	getMimeType(string)(string) throws FileNotFound(void)
 }
 
 embedded {

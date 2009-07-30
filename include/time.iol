@@ -1,3 +1,13 @@
+/**
+WARNING: work in progress, the API is unstable.
+*/
+
+type Date:void {
+	.day:int
+	.month:int
+	.year:int
+}
+
 type DateValuesType:void {
 	.day:int
 	.month:int
