@@ -11,7 +11,7 @@ type XMLTransformationRequest:void {
 outputPort XmlUtils {
 RequestResponse:
 	xmlToValue(any)(undefined) throws IOException(IOExceptionType),
-	transform(XMLTransformationRequest)(string) throws TransformerException(JavaException),
+	transform(XMLTransformationRequest)(string) throws TransformerException(JavaExceptionType),
 	valueToXml(undefined)(string)
 }
 
