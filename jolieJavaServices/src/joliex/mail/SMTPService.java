@@ -82,7 +82,7 @@ public class SMTPService extends JavaService
 		
 		try {
 			msg.setFrom( new InternetAddress( request.getFirstChild( "from" ).strValue() ) );
-		
+
 			for( Value v : request.getChildren( "to" ) ) {
 				msg.addRecipient( Message.RecipientType.TO, new InternetAddress( v.strValue() ) );
 			}
