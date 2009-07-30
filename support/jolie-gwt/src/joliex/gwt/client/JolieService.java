@@ -41,6 +41,14 @@ public interface JolieService extends RemoteService
 			return instance;
 		}
 	}
+
+	/**
+	 * Performs a Request-Response operation call.
+	 * @param operationName the operation to invoke
+	 * @param value the request data
+	 * @return the response data
+	 * @throws joliex.gwt.client.FaultException
+	 */
 	public Value call( String operationName, Value value )
 		throws FaultException;
 }
