@@ -5,6 +5,9 @@
 	<highlighting>
 		<list name="keywords">
 			<item> type </item>
+			<item> raw </item>
+			<item> any </item>
+			<item> undefined </item>
 			<item> void </item>
 			<item> default </item>
 			<item> if </item>
