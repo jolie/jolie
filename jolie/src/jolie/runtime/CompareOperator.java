@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2009 (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,40 +19,55 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.runtime;
 
-import jolie.process.TransformationReason;
-
-
 /**
+ * A CompareOperator performs some kind of boolean comparison between two values.
  * @author Fabrizio Montesi
- * TODO Clean up code.
- *
  */
-public class CompareCondition implements Condition
+public enum CompareOperator
 {
-	final private Expression leftExpression, rightExpression;
-	final private CompareOperator compareOperator;
-	
-	public CompareCondition( Expression left, Expression right, CompareOperator compareOperator )
-	{
-		leftExpression = left;
-		rightExpression = right;
-		this.compareOperator = compareOperator;
-	}
-	
-	public Condition cloneCondition( TransformationReason reason )
-	{
-		return new CompareCondition(
-					leftExpression.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason ),
-					compareOperator
-				);
-	}
-	
-	public boolean evaluate()
-	{
-		return compareOperator.evaluate( leftExpression.evaluate(), rightExpression.evaluate() );
-	}
+	EQUAL {
+		final public boolean evaluate( Value left, Value right) {
+			return left.equals( right );
+		}
+	}, NOT_EQUAL {
+		final public boolean evaluate( Value left, Value right) {
+			return EQUAL.evaluate( left, right ) == false;
+		}
+	}, MINOR {
+		final public boolean evaluate( Value left, Value right) {
+			if ( left.isDouble() ) {
+				return ( left.doubleValue() < right.doubleValue() );
+			} else {
+				return ( left.intValue() < right.intValue() );
+			}
+		}
+	}, MAJOR {
+		final public boolean evaluate( Value left, Value right) {
+			if ( left.isDouble() ) {
+				return ( left.doubleValue() > right.doubleValue() );
+			} else {
+				return ( left.intValue() > right.intValue() );
+			}
+		}
+	}, MINOR_OR_EQUAL {
+		final public boolean evaluate( Value left, Value right) {
+			if ( left.isDouble() ) {
+				return ( left.doubleValue() <= right.doubleValue() );
+			} else {
+				return ( left.intValue() <= right.intValue() );
+			}
+		}
+	}, MAJOR_OR_EQUAL {
+		final public boolean evaluate( Value left, Value right) {
+			if ( left.isDouble() ) {
+				return ( left.doubleValue() >= right.doubleValue() );
+			} else {
+				return ( left.intValue() >= right.intValue() );
+			}
+		}
+	};
+
+	abstract public boolean evaluate( Value left, Value right );
 }
