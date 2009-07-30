@@ -291,8 +291,8 @@ public class SemanticVerifier implements OLVisitor
 			error( n, "unknown type: " + n.requestType().id() );
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
-			if ( fault.getValue() != null && !definedTypes.containsKey( fault.getValue().id() ) ) {
-				error( n, "unknown type " + fault.getValue().id() + " for fault " + fault.getKey() );
+			if ( fault.getValue() == null || !definedTypes.containsKey( fault.getValue().id() ) ) {
+				error( n, "unknown type for fault " + fault.getKey() );
 			}
 		}
 
