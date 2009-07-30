@@ -33,6 +33,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 
 import java.util.regex.Pattern;
+import javax.activation.FileTypeMap;
+import javax.activation.MimeType;
+import javax.activation.MimetypesFileTypeMap;
 import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -42,6 +45,8 @@ import jolie.runtime.ValueVector;
 
 public class FileService extends JavaService
 {
+	final private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
+
 	private static void readBase64IntoValue( File file, Value value )
 		throws IOException
 	{
@@ -82,9 +87,6 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		Value filenameValue = request.value().getFirstChild( "filename" );
-		if ( !filenameValue.isString() ) {
-			throw new FaultException( "FileNotFound" );
-		}
 
 		Value retValue = Value.create();
 		String format = request.value().getFirstChild( "format" ).strValue();
@@ -97,11 +99,23 @@ public class FileService extends JavaService
 				readTextIntoValue( new File( filenameValue.strValue() ), retValue );
 			}			
 		} catch( FileNotFoundException e ) {
-			throw new FaultException( "FileNotFound", e );
+			throw new FaultException( "FileNotFound" );
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
 		return CommMessage.createResponse( request, retValue );
+	}
+
+	public CommMessage getMimeType( CommMessage request )
+		throws FaultException
+	{
+		File file = new File( request.value().strValue() );
+		if ( file.exists() == false ) {
+			throw new FaultException( "FileNotFound" );
+		}
+		return CommMessage.createResponse(
+			request, Value.create( fileTypeMap.getContentType( file ) )
+		);
 	}
 	
 	public CommMessage getServiceDirectory( CommMessage request )
@@ -140,7 +154,7 @@ public class FileService extends JavaService
 				writer.close();
 			}
 		} catch( IOException e ) {
-			throw new FaultException( e );
+			throw new FaultException( "IOException", e );
 		}
 		return CommMessage.createResponse( request, Value.create() );
 	}
@@ -174,7 +188,7 @@ public class FileService extends JavaService
 		if ( new File( filename ).renameTo( new File( toFilename ) ) == false ) {
 			throw new FaultException( "IOException" );
 		}
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createResponse( request, Value.create() );
 	}
 	
 	public CommMessage list( CommMessage request )
