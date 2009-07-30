@@ -10,7 +10,7 @@
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
- *                                                                         *
+ *                       als                                                  *
  *   You should have received a copy of the GNU Library General Public     *
  *   License along with this program; if not, write to the                 *
  *   Free Software Foundation, Inc.,                                       *
@@ -503,7 +503,9 @@ abstract public class Value implements Expression, Serializable
 	{
 		boolean r = false;
 		if ( val.isDefined() ) {
-			if ( isString() ) {
+			if ( isByteArray() ) {
+				r = byteArrayValue().equals( val.byteArrayValue() );
+			} if ( isString() ) {
 				r = strValue().equals( val.strValue() );
 			} else if ( isInt() ) {
 				r = intValue() == val.intValue();
@@ -566,7 +568,7 @@ abstract public class Value implements Expression, Serializable
 	{
 		Object o = valueObject();
 		if ( o == null ) {
-			return ""; // new String();
+			return "";
 		} else if ( o instanceof String ) {
 			return (String)o;
 		}
