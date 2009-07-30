@@ -21,6 +21,8 @@
 
 package jolie.runtime;
 
+import java.util.Arrays;
+
 public class ByteArray
 {
 	final private byte[] buffer;
@@ -38,6 +40,11 @@ public class ByteArray
 	public byte[] getBytes()
 	{
 		return buffer;
+	}
+
+	public boolean equals( ByteArray other )
+	{
+		return Arrays.equals( buffer, other.buffer );
 	}
 	
 	@Override
