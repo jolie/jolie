@@ -15,7 +15,7 @@ type SendMailRequest:void {
 
 interface SMTPInterface {
 RequestResponse:
-	sendMail(SendMailRequest)(void) throws SMTPFault(JavaException)
+	sendMail(SendMailRequest)(void) throws SMTPFault(JavaExceptionType)
 }
 
 outputPort SMTP {
