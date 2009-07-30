@@ -37,16 +37,10 @@ public final class Constants
 	static public enum Predefined
 	{
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
-		CHARSET( "@Charset", "@Charset" ),
-		CONTENT_TYPE( "@ContentType", "@ContentType" ),
-		CONTENT_TRANSFER_ENCODING( "@ContentTransferEncoding", "@ContentTransferEncoding" ),
 		COOKIES( "@Cookies", "@Cookies" ),
-		FORMAT( "@Format", "@Format" ),
 		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
 		PI( "PI", java.lang.Math.PI ),
-		REDIRECT( "@Redirect", "@Redirect" ),
-		QUERY_STRING( "@QueryString", "@QueryString" ),
-		USER_AGENT( "@UserAgent", "@UserAgent" );
+		QUERY_STRING( "@QueryString", "@QueryString" );
 		private final String id;
 		private final Scanner.Token token;
 
