@@ -19,10 +19,23 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-outputPort ZipUtils {
+include "types/IOException.iol"
+
+type ReadEntryRequest:void {
+	.filename:string
+	.entry:string
+}
+
+type ZipRequest:void { ? }
+
+interface ZipUtilsInterface {
 RequestResponse:
-	readEntry throws IOException,
-	zip throws IOException
+	readEntry(ReadEntryRequest)(any) throws IOException(IOExceptionType),
+	zip(ZipRequest)(raw) throws IOException(IOExceptionType)
+}
+
+outputPort ZipUtils {
+Interfaces: ZipUtilsInterface
 }
 
 embedded {

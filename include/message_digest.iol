@@ -1,3 +1,5 @@
+include "JavaException.iol"
+
 type MD5Request:string {
 	.radix?:int
 }
@@ -5,7 +7,7 @@ type MD5Request:string {
 
 outputPort MessageDigest {
 RequestResponse:
-	md5(MD5Request)(string) throws UnsupportedOperation
+	md5(MD5Request)(string) throws UnsupportedOperation(JavaExceptionType)
 }
 
 embedded {
