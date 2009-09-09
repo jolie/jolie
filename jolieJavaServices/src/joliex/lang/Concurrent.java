@@ -34,7 +34,7 @@ public class Concurrent
 		Interpreter.getInstance().getLock(
 					message.value().strValue()
 				).notify();
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createEmptyResponse( message );
 	}
 	
 	public CommMessage notifyAll( CommMessage message )
@@ -43,7 +43,7 @@ public class Concurrent
 		Interpreter.getInstance().getLock(
 					message.value().strValue()
 				).notifyAll();
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createEmptyResponse( message );
 	}
 	
 	public CommMessage wait( CommMessage message )
@@ -54,6 +54,6 @@ public class Concurrent
 					message.value().strValue()
 				).wait();
 		} catch( InterruptedException ie ) {}
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createEmptyResponse( message );
 	}
 }

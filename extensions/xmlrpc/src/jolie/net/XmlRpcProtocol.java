@@ -374,7 +374,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		String xmlrpcString = CRLF + "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 			new String( tmpStream.toByteArray() );
 
-		String messageString = new String();
+		String messageString = "";
 
 		if ( received ) {
 			// We're responding to a request
@@ -445,7 +445,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 								throw new IOException( "Malformed fault data" );
 							}
 							Element faultMember = (Element)members.item( 1 );
-							Element valueElement = getFirstElement( getFirstElement( struct, "value" ), "string" );
+							//Element valueElement = getFirstElement( getFirstElement( struct, "value" ), "string" );
 							String faultName = getFirstElement( faultMember, "name" ).getTextContent();
 							String faultString = getFirstElement( getFirstElement( faultMember, "value" ), "string" ).getTextContent();
 							fault = new FaultException( faultName, Value.create( faultString ) );

@@ -32,6 +32,7 @@ import javax.bluetooth.L2CAPConnectionNotifier;
 import javax.microedition.io.Connector;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
 public class BTL2CapListener extends CommListener
@@ -43,6 +44,7 @@ public class BTL2CapListener extends CommListener
 				CommProtocolFactory protocolFactory,
 				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
@@ -53,6 +55,7 @@ public class BTL2CapListener extends CommListener
 			protocolFactory,
 			protocolConfigurationPath,
 			operationNames,
+			aggregationMap,
 			redirectionMap
 		);
 		connectionNotifier =

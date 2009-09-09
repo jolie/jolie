@@ -92,15 +92,13 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
 		VariablePath path = null;
-		Process parent;
 		for( Pair< CommChannel, CommMessage > pair : mesgList ) {
-			if ( process instanceof InputProcessExecution ) {
-				parent = ((InputProcessExecution)process).parent();
-				if ( parent instanceof InputOperationProcess ) {
-					path = ((InputOperationProcess)parent).inputVarPath();
-				}
-			} else if ( process instanceof NDChoiceProcess.Execution ) {
+			if ( process instanceof NDChoiceProcess.Execution ) {
 				path = ((NDChoiceProcess.Execution) process).inputVarPath( pair.value().operationName() );
+			} else {
+				if ( process.parent() instanceof InputOperationProcess ) {
+					path = ((InputOperationProcess)process.parent()).inputVarPath();
+				}
 			}
 			
 			if ( ethread.checkCorrelation( path, pair.value() ) ) {

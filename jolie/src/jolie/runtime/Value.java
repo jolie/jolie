@@ -24,8 +24,6 @@ package jolie.runtime;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,12 +50,13 @@ class ValueLink extends Value implements Cloneable
 		return getLinkedValue().getChildren( childId );
 	}
 
-	private void writeObject( ObjectOutputStream out )
+/*	private void writeObject( ObjectOutputStream out )
 		throws IOException
 	{
 		out.writeObject( getLinkedValue() );
 	}
-
+*/
+	
 	final public Value evaluate()
 	{
 		return getLinkedValue();
@@ -121,7 +120,7 @@ class ValueLink extends Value implements Cloneable
 	}
 }
 
-class ValueImpl extends Value
+class ValueImpl extends Value implements Cloneable
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -260,7 +259,7 @@ class ValueImpl extends Value
 }
 
 /** TODO: remove code duplication from ValueImpl */
-class RootValueImpl extends Value
+class RootValueImpl extends Value implements Cloneable
 {
 	private static final long serialVersionUID = 1L;
 
@@ -372,7 +371,7 @@ class RootValueImpl extends Value
  * @author Fabrizio Montesi
  *
  */
-abstract public class Value implements Expression, Serializable
+abstract public class Value implements Expression, Cloneable
 {
 	abstract public boolean isLink();
 	
@@ -598,7 +597,7 @@ abstract public class Value implements Expression, Serializable
 			// TODO: This is slow
 			ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
 			try {
-				new DataOutputStream( bbstream ).writeDouble( (Integer)o );
+				new DataOutputStream( bbstream ).writeDouble( (Double)o );
 				r = new ByteArray( bbstream.toByteArray() );
 			} catch( IOException e ) {
 				r = new ByteArray( new byte[0] );

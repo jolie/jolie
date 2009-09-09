@@ -24,7 +24,9 @@ package jolie;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A thread that can refer to its generating Interpreter.
+ * A thread that can refer to its generating <code>Interpreter</code>.
+ * The name of <code>JolieThread</code> is prefixed with the program file name
+ * of the generating <code>Interpreter</code>.
  * @see Interpreter
  * @author Fabrizio Montesi
  */
@@ -38,19 +40,42 @@ abstract public class JolieThread extends Thread
 	{
 		return "JolieThread-" + counter.getAndIncrement();
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param interpreter the <code>Interpreter</code> this thread will refer to
+	 * @param threadGroup the <code>ThreadGroup</code> for this thread
+	 * @param name the suffix name for this thread
+	 * @see Interpreter
+	 * @see java.lang.Thread
+	 * @see java.lang.ThreadGroup
+	 */
 	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
 	{
 		super( threadGroup, interpreter.programFile().getName() + "-" + name );
 		this.interpreter = interpreter;
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param interpreter the <code>Interpreter</code> this thread will refer to
+	 * @see Interpreter
+	 * @see java.lang.Thread
+	 * @see java.lang.ThreadGroup
+	 */
 	public JolieThread( Interpreter interpreter )
 	{
 		super( interpreter.programFile().getName() + "-" + createThreadName() );
 		this.interpreter = interpreter;
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param interpreter the <code>Interpreter</code> this thread will refer to
+	 * @see Interpreter
+	 * @see java.lang.Thread
+	 * @see java.lang.ThreadGroup
+	 */
 	public JolieThread( Interpreter interpreter, Runnable r )
 	{
 		super( r, interpreter.programFile().getName() + "-" + createThreadName() );

@@ -28,8 +28,11 @@ import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.AggregatedOperation;
 
 /**
+ * <code>LocalListener</code> is used internally by the interpreter for receiving
+ * local messages.
  * 
  * @author Fabrizio Montesi
  */
@@ -37,7 +40,7 @@ public class LocalListener extends CommListener
 {
 	public LocalListener( Interpreter interpreter )
 	{
-		super( interpreter, new HashSet< String >(), new HashMap< String, OutputPort >() );
+		super( interpreter, new HashSet< String >(), new HashMap< String, AggregatedOperation >(), new HashMap< String, OutputPort >() );
 	}
 	
 	public void addOperationNames( Collection< String > operationNames )

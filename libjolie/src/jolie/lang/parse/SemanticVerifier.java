@@ -247,8 +247,31 @@ public class SemanticVerifier implements OLVisitor
 
 		insideInputPort = true;
 
+		Set< String > opSet = new HashSet< String >();
+
 		for( OperationDeclaration op : n.operations() ) {
-			op.accept( this );
+			if ( opSet.contains( op.id() ) ) {
+				error( n, "input port " + n.id() + " declares operation " + op.id() + " multiple times" );
+			} else {
+				opSet.add( op.id() );
+				op.accept( this );
+			}
+		}
+
+		OutputPortInfo outputPort;
+		for( String portName : n.aggregationList() ) {
+			outputPort = outputPorts.get( portName );
+			if ( outputPort == null ) {
+				error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
+			} else {
+				for( OperationDeclaration op : outputPort.operations() ) {
+					if ( opSet.contains( op.id() ) ) {
+						error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
+					} else {
+						opSet.add( op.id() );
+					}
+				}
+			}
 		}
 
 		insideInputPort = false;
@@ -273,7 +296,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInputPort ) { // Input operation
 			if ( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
-				if ( n.requestType() != null && n.requestType().equals( other.requestType() ) == false ) {
+				if ( n.requestType().equals( other.requestType() ) == false ) {
 					error( n, "input operations sharing the same name cannot declare different types (One-Way operation " + n.id() + ")" );
 				}
 			} else {
@@ -284,14 +307,14 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( RequestResponseOperationDeclaration n )
 	{
-		if ( n.requestType() != null && definedTypes.get( n.requestType().id() ) == null ) {
+		if ( definedTypes.get( n.requestType().id() ) == null ) {
 			error( n, "unknown type: " + n.requestType().id() );
 		}
-		if ( n.responseType() != null && definedTypes.get( n.responseType().id() ) == null ) {
+		if ( definedTypes.get( n.responseType().id() ) == null ) {
 			error( n, "unknown type: " + n.requestType().id() );
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
-			if ( fault.getValue() == null || !definedTypes.containsKey( fault.getValue().id() ) ) {
+			if ( definedTypes.containsKey( fault.getValue().id() ) == false ) {
 				error( n, "unknown type for fault " + fault.getKey() );
 			}
 		}
@@ -308,19 +331,11 @@ public class SemanticVerifier implements OLVisitor
 	
 	private void checkEqualness( RequestResponseOperationDeclaration n, RequestResponseOperationDeclaration other )
 	{
-		if ( n.requestType() == null ) {
-			if ( other.requestType() != null ) {
-				error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
-			}
-		} else if ( n.requestType().equals( other.requestType() ) == false ) {
+		if ( n.requestType().equals( other.requestType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
 		}
 
-		if ( n.responseType() == null ) {
-			if ( other.responseType() != null ) {
-				error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
-			}
-		} else if ( n.responseType().equals( other.responseType() ) == false ) {
+		if ( n.responseType().equals( other.responseType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
 		}
 

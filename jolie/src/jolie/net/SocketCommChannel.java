@@ -167,11 +167,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 				lock.lock();
 				try {
 					ret = _isOpenImpl();
-				} catch( IOException e ) {
+				} finally {
 					lock.unlock();
-					throw e;
 				}
-				lock.unlock();
 			}
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );

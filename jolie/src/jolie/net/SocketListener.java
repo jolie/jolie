@@ -34,8 +34,13 @@ import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
+/**
+ * A communication listener using sockets as backend.
+ * @author Fabrizio Montesi
+ */
 public class SocketListener extends CommListener
 {
 	final private ServerSocketChannel serverChannel;
@@ -46,6 +51,7 @@ public class SocketListener extends CommListener
 				CommProtocolFactory protocolFactory,
 				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
@@ -56,6 +62,7 @@ public class SocketListener extends CommListener
 			protocolFactory,
 			protocolConfigurationPath,
 			operationNames,
+			aggregationMap,
 			redirectionMap
 		);
 		

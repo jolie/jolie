@@ -39,7 +39,7 @@ import jolie.runtime.ValueVector;
 @AndJarDeps({"bluetooth.jar"})
 public class BluetoothService extends JavaService
 {
-	private class DiscoveryListenerImpl implements DiscoveryListener
+	private static class DiscoveryListenerImpl implements DiscoveryListener
 	{
 		final private Value value = Value.create();
 		private boolean completed = false;

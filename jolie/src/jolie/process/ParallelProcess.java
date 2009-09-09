@@ -21,15 +21,19 @@
 
 package jolie.process;
 
-import java.util.Vector;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.ParallelExecution;
 
 public class ParallelProcess implements Process
 {
-	final private Vector< Process > children = new Vector< Process > ();
-	
+	final private Process[] children;
+
+	public ParallelProcess( Process[] children )
+	{
+		this.children = children;
+	}
+
 	public void run()
 		throws FaultException
 	{
@@ -38,20 +42,7 @@ public class ParallelProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		ParallelProcess p = new ParallelProcess();
-		for( Process child : children )
-			p.addChild( child.clone( reason ) );
-		return p;
-	}
-	
-	/**
-	 * TODO Embed this into the constructor
-	 */
-	public void addChild( Process process )
-	{
-		if ( process != null ) {
-			children.add( process );
-		}
+		return new ParallelProcess( children );
 	}
 	
 	public boolean isKillable()

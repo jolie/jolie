@@ -27,6 +27,7 @@ import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
@@ -44,10 +45,11 @@ public class BTL2CapListenerFactory extends CommListenerFactory
 					CommProtocolFactory protocolFactory,
 					VariablePath protocolConfigurationPath,
 					Collection< String > operationNames,
+					Map< String, AggregatedOperation > aggregationMap,
 					Map< String, OutputPort > redirectionMap
 				)
 		throws IOException
 	{
-		return new BTL2CapListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+		return new BTL2CapListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
 	}
 }

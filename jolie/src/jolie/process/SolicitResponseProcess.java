@@ -110,29 +110,30 @@ public class SolicitResponseProcess implements Process
 			log( "sending request " + message.id() );
 			channel.send( message );
 			log( "request " + message.id() + " sent" );
+			CommMessage response = null;
 			do {
-				message = channel.recvResponseFor( message );
-			} while( message == null );
-			log( "received response for request " + message.id() );
+				response = channel.recvResponseFor( message );
+			} while( response == null );
+			log( "received response for request " + response.id() );
 			
 			if ( inputVarPath != null )	 {
-				inputVarPath.getValue().refCopy( message.value() );
+				inputVarPath.getValue().refCopy( response.value() );
 			}
 			
-			if ( message.isFault() ) {
-				Type faultType = types.getFaultType( message.fault().faultName() );
+			if ( response.isFault() ) {
+				Type faultType = types.getFaultType( response.fault().faultName() );
 				if ( faultType != null ) {
 					try {
-						faultType.check( message.fault().value() );
+						faultType.check( response.fault().value() );
 					} catch( TypeCheckingException e ) {
-						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + message.fault().faultName() + " TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 					}
 				}
-				throw message.fault();
+				throw response.fault();
 			} else {
 				if ( types.responseType() != null ) {
 					try {
-						types.responseType().check( message.value() );
+						types.responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 					}

@@ -24,6 +24,10 @@ package jolie.net;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * An in-memory communication channel using lists.
+ * @author Fabrizio Montesi
+ */
 public class ListCommChannel extends CommChannel
 {
 	final protected List< CommMessage > ilist, olist;

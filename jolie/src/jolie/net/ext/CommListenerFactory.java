@@ -29,10 +29,11 @@ import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommListener;
 import jolie.net.OutputPort;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
 /**
- * 
+ * A factory for delegating the creation of communication listeners to extensions.
  * @author Fabrizio Montesi
  */
 abstract public class CommListenerFactory
@@ -48,13 +49,26 @@ abstract public class CommListenerFactory
 	{
 		return commCore;
 	}
-	
+
+	/**
+	 * Creates and returns a valid communication listener.
+	 * @param interpreter the interpreter to refer to
+	 * @param location the location URI of the input port related to the listener to create
+	 * @param protocolFactory the protocol factory the listener has to use
+	 * @param protocolConfigurationPath the protocol configuration variable path the listener should use to configure the created protocols
+	 * @param operationNames the operation names the listener will handle
+	 * @param aggregationMap the aggregation map for the listener
+	 * @param redirectionMap the redirection map for the listener
+	 * @return a valid communication listener
+	 * @throws java.io.IOException if the listener could not be created
+	 */
 	abstract public CommListener createListener(
 									Interpreter interpreter,
 									URI location,
 									CommProtocolFactory protocolFactory,
 									VariablePath protocolConfigurationPath,
 									Collection< String > operationNames,
+									Map< String, AggregatedOperation > aggregationMap,
 									Map< String, OutputPort > redirectionMap
 								)
 		throws IOException;

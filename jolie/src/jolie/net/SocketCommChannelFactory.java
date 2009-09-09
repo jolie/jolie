@@ -28,6 +28,10 @@ import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 import jolie.net.ext.CommChannelFactory;
 
+/**
+ * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
+ * @author Fabrizio Montesi
+ */
 public class SocketCommChannelFactory extends CommChannelFactory
 {
 	public SocketCommChannelFactory( CommCore commCore )

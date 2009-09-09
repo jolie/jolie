@@ -30,12 +30,20 @@ import jolie.lang.Constants;
 public class InterpreterException extends Exception
 {
 	final private static long serialVersionUID = Constants.serialVersionUID();
-	
+
+	/**
+	 * Constructor
+	 * @param message the message of this <code>InterpreterException</code>
+	 */
 	public InterpreterException( String message )
 	{
 		super( message );
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param e the <code>Exception</code> that caused this <code>InterpreterException</code>
+	 */
 	public InterpreterException( Exception e )
 	{
 		super( e );

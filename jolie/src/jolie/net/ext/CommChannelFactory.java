@@ -28,7 +28,7 @@ import jolie.net.CommCore;
 import jolie.net.OutputPort;
 
 /**
- * 
+ * A factory for delegating the creation of output communication channels to extensions.
  * @author Fabrizio Montesi
  */
 abstract public class CommChannelFactory
@@ -44,7 +44,14 @@ abstract public class CommChannelFactory
 	{
 		return commCore;
 	}
-	
+
+	/**
+	 * Creates and returns a communication channel.
+	 * @param location the location URI to use
+	 * @param port the output port to refer to in the creation of the channel
+	 * @return a valid communication channel
+	 * @throws java.io.IOException if the channel could not be created
+	 */
 	abstract public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException;
 }

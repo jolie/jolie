@@ -44,6 +44,10 @@ import jolie.runtime.VariablePath;
  */
 abstract public class ExecutionThread extends JolieThread
 {
+	/**
+	 * A Scope object represents a fault handling scope,
+	 * containing mappings for fault handlers and termination/compensation handlers.
+	 */
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
 		final private Map< String, Process > faultMap = new HashMap< String, Process >();
 		final private Map< String, Process > compMap = new HashMap< String, Process >();
@@ -56,56 +60,92 @@ abstract public class ExecutionThread extends JolieThread
 			ret.faultMap.putAll( faultMap );
 			return ret;
 		}
-	
+
+		/**
+		 * Constructor
+		 * @param id the name identifier of the Scope instance to be created.
+		 */
 		public Scope( String id )
 		{
 			super( id );
 		}
-		
+
+		/**
+		 * Installs a termination/compensation handler for this <code>Scope</code>.
+		 * @param process the termination/compensation handler to install.
+		 */
 		public void installCompensation( Process process )
 		{
 			compMap.put( id, process );
 		}
-		
-		public void installFaultHandler( String f, Process process )
+
+		/**
+		 * Installs a fault handler for a fault.
+		 * @param faultName the fault name to install this handler for
+		 * @param process the fault handler to install
+		 */
+		public void installFaultHandler( String faultName, Process process )
 		{
-			faultMap.put( f, process );
+			faultMap.put( faultName, process );
 		}
-		
-		public Process getFaultHandler( String name, boolean erase )
+
+		/**
+		 * Returns the installed fault handler for the specified fault name.
+		 * If no fault handler is present, the default fault handler is returned instead.
+		 * If there is no fault handler and there is no default fault handler, <code>null</code> is returned.
+		 * @param faultName the fault name of the fault handler to retrieve
+		 * @param erase <code>true</code> if after getting the fault handler it is to be uninstalled from the scope, <code>false</code> otherwise
+		 * @return the installed fault handler for the specified fault name
+		 */
+		public Process getFaultHandler( String faultName, boolean erase )
 		{
-			Process p = faultMap.get( name );
+			Process p = faultMap.get( faultName );
 			if ( erase ) { // Not called by cH (TODO: this is obscure!)
 				if ( p == null ) {
 					// Give the default handler
-					name = Constants.Keywords.DEFAULT_HANDLER_NAME;
-					p = faultMap.get( name );
+					faultName = Constants.Keywords.DEFAULT_HANDLER_NAME;
+					p = faultMap.get( faultName );
 				}
 				if ( p != null ) {
 					// Could still be null if there was not a default handler
-					faultMap.remove( name );
+					faultMap.remove( faultName );
 				}
 			}
 				
 			return p;
 		}
-		
+
+		/**
+		 * Returns the termination/compensation handler for this scope.
+		 * The handler does not get uninstalled.
+		 * @return the termination/compensation handler for this scope
+		 */
 		public Process getSelfCompensation()
 		{
 			return compMap.get( id );
 		}
-		
-		public Process getCompensation( String name )
+
+		/**
+		 * Returns the termination/compensation handler for the specified sub-scope.
+		 * The handler gets uninstalled as a result of this method.
+		 * @param scopeName the scope name of the termination/compensation handler to retrieve
+		 * @return the termination/compensation handler for the specified sub-scope
+		 */
+		public Process getCompensation( String scopeName )
 		{
-			Process p = compMap.get( name );
+			Process p = compMap.get( scopeName );
 			if ( p != null )
-				compMap.remove( name );
+				compMap.remove( scopeName );
 			return p;
 		}
-		
-		public void mergeCompensations( Scope s )
+
+		/**
+		 * Puts all the compensation handlers defined in the passed <code>Scope</code> in the handler map of this scope.
+		 * @param otherScope the scope whose compensation handlers are to be taken
+		 */
+		public void mergeCompensations( Scope otherScope )
 		{
-			compMap.putAll( s.compMap );
+			compMap.putAll( otherScope.compMap );
 		}
 	}
 

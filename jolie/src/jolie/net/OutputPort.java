@@ -38,6 +38,12 @@ import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePathBuilder;
 
+/**
+ * This class represents a JOLIE output port, offering methods for getting
+ * proper communication channels for it.
+ *
+ * @author Fabrizio Montesi
+ */
 public class OutputPort extends AbstractIdentifiableObject
 {
 	final private Interpreter interpreter;
@@ -103,13 +109,26 @@ public class OutputPort extends AbstractIdentifiableObject
 		s.addChild( protocolConfigurationProcess );
 		this.configurationProcess = s;
 	}
-	
+
+	/**
+	 * Gets the protocol to be used for communicating with this output port.
+	 * @return the protocol to be used for communicating with this output port.
+	 * @throws java.io.IOException
+	 * @throws java.net.URISyntaxException
+	 */
 	public CommProtocol getProtocol()
 		throws IOException, URISyntaxException
 	{
 		return getProtocol( new URI( locationVariablePath.getValue().strValue() ) );
 	}
 
+	/**
+	 * Gets the protocol to be used for communicating with this output port,
+	 * configuring it using the passed location URI.
+	 * @param location the location to use for configuring the returned protocol
+	 * @return the protocol to be used for communicating with this output port
+	 * @throws java.io.IOException
+	 */
 	public CommProtocol getProtocol( URI location )
 		throws IOException
 	{
@@ -156,6 +175,11 @@ public class OutputPort extends AbstractIdentifiableObject
 
 	private static final WeakHashMap< String, URI > uriCache = new WeakHashMap< String, URI > ();
 
+	/**
+	 * Returns the location URI of this output port.
+	 * @return the location URI of this output port
+	 * @throws java.net.URISyntaxException
+	 */
 	public URI getLocation()
 		throws URISyntaxException
 	{
@@ -197,11 +221,19 @@ public class OutputPort extends AbstractIdentifiableObject
 		return getCommChannel( false );
 	}
 
+	/**
+	 * Returns the location variable path of this output port.
+	 * @return the location variable path of this output port
+	 */
 	public VariablePath locationVariablePath()
 	{
 		return locationVariablePath;
 	}
 
+	/**
+	 * Returns the protocol configuration process of this output port.
+	 * @return the protocol configuration process of this output port
+	 */
 	public Process configurationProcess()
 	{
 		return configurationProcess;

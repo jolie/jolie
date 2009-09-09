@@ -24,6 +24,7 @@ package jolie.runtime.embedding;
 import jolie.runtime.Expression;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -46,12 +47,21 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 		if ( engine == null ) {
 			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
 		}
-
+	
 		try {
-			engine.eval( new FileReader( jsPath ) );
+			FileReader reader = new FileReader( jsPath );
+			try {
+				engine.eval( reader );
+			} catch( ScriptException e ) {
+				throw new EmbeddedServiceLoaderCreationException( e );
+			} finally {
+				try {
+					reader.close();
+				} catch( IOException e ) {
+					throw new EmbeddedServiceLoaderCreationException( e );
+				}
+			}
 		} catch( FileNotFoundException e ) {
-			throw new EmbeddedServiceLoaderCreationException( e );
-		} catch( ScriptException e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
 		this.invocable = (Invocable)engine;

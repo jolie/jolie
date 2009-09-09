@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -51,6 +52,7 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.InputProcessExecution;
 import jolie.process.Process;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -103,7 +105,7 @@ public class CommCore
 						if ( protocolChannels.isEmpty() ) {
 							persistentChannels.remove( location );
 						}
-						return null;
+						ret = null;
 					}
 				}
 			}
@@ -286,6 +288,20 @@ public class CommCore
 		listenersMap.put( inputPortName, localListener );
 	}
 	
+	/**
+	 * Adds an input port to this <code>CommCore</code>.
+	 * @param inputPortName the name of the input port to add
+	 * @param uri the <code>URI</code> of the input port to add
+	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for the input port
+	 * @param protocolConfigurationPath the protocol configuration variable path to use for the input port
+	 * @param protocolConfigurationProcess the protocol configuration process to execute for configuring the created protocols
+	 * @param operationNames the operation names the input port can handle
+	 * @param aggregationMap the aggregation mapping of the input port
+	 * @param redirectionMap the redirection mapping of the input port
+	 * @throws java.io.IOException in case of some underlying implementation error
+	 * @see URI
+	 * @see CommProtocolFactory
+	 */
 	public void addInputPort(
 				String inputPortName,
 				URI uri,
@@ -293,6 +309,7 @@ public class CommCore
 				VariablePath protocolConfigurationPath,
 				Process protocolConfigurationProcess,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
@@ -314,6 +331,7 @@ public class CommCore
 			protocolFactory,
 			protocolConfigurationPath,
 			operationNames,
+			aggregationMap,
 			redirectionMap
 		);
 		listenersMap.put( inputPortName, listener );
@@ -340,7 +358,7 @@ public class CommCore
 			this.listener = listener;
 		}
 		
-		private void redirectMessage( CommMessage message )
+		private void forwardResponse( CommMessage message )
 			throws IOException
 		{
 			message = new CommMessage(
@@ -356,65 +374,107 @@ public class CommCore
 			channel.closeImpl();
 		}
 
+		private void handleRedirectionInput( CommMessage message, String[] ss )
+			throws IOException, URISyntaxException
+		{
+			// Redirection
+			String rPath = "";
+			if ( ss.length <= 2 ) {
+				rPath = "/";
+			} else {
+				StringBuilder builder = new StringBuilder();
+				for( int i = 2; i < ss.length; i++ ) {
+					builder.append( '/' );
+					builder.append( ss[ i ] );
+				}
+				rPath = builder.toString();
+			}
+			OutputPort port = listener.redirectionMap().get( ss[1] );
+			if ( port == null ) {
+				String error = "Discarded a message for resource " + ss[1] +
+						", not specified in the appropriate redirection table.";
+				interpreter.logWarning( error );
+				throw new IOException( error );
+			}
+			CommChannel oChannel = port.getNewCommChannel();
+			CommMessage rMessage =
+						new CommMessage(
+								message.id(),
+								message.operationName(),
+								rPath,
+								message.value(),
+								message.fault()
+						);
+			oChannel.setRedirectionChannel( channel );
+			oChannel.setRedirectionMessageId( rMessage.id() );
+			try {
+				oChannel.send( rMessage );
+				oChannel.setToBeClosed( false );
+				oChannel.disposeForInput();
+			} catch( IOException e ) {
+				channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+			}
+		}
+
+		private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
+			throws IOException, URISyntaxException
+		{
+			// Aggregation input
+			if ( operation.isOneWay() ) {
+				CommChannel oChannel = operation.port().getCommChannel();
+				oChannel.send( message );
+				oChannel.release();
+			} else {
+				CommChannel oChannel = operation.port().getNewCommChannel();
+				oChannel.setRedirectionChannel( channel );
+				oChannel.setRedirectionMessageId( message.id() );
+				try {
+					oChannel.send( message );
+					oChannel.setToBeClosed( false );
+					oChannel.disposeForInput();
+				} catch( IOException e ) {
+					channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+				}
+			}
+		}
+
+		private void handleDirectMessage( CommMessage message )
+			throws IOException
+		{
+			try {
+				InputOperation operation =
+					interpreter.getInputOperation( message.operationName() );
+				operation.recvMessage( channel, message );
+				channel.disposeForInput();
+			} catch( InvalidIdException e ) {
+				interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
+				channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+				channel.disposeForInput();
+			}
+		}
+
 		private void handleMessage( CommMessage message )
 			throws IOException
 		{
 			try {
 				String[] ss = pathSplitPattern.split( message.resourcePath() );
-				if ( ss.length > 1 && listener != null ) {
-					// Redirection
-					String rPath = new String();
-					if ( ss.length <= 2 ) {
-						rPath = "/";
-					} else {
-						// TODO: optimize this
-						for( int i = 2; i < ss.length; i++ ) {
-							rPath += "/" + ss[ i ];
-						}
-					}
-					OutputPort port = listener.redirectionMap().get( ss[1] );
-					if ( port == null ) {
-						String error = "Discarded a message for resource " + ss[1] +
-								", not specified in the appropriate redirection table.";
-						interpreter.logWarning( error );
-						throw new IOException( error );
-					}
-					CommChannel oChannel = port.getNewCommChannel();
-					CommMessage rMessage =
-								new CommMessage(
-										message.id(),
-										message.operationName(),
-										rPath,
-										message.value(),
-										message.fault()
-								);
-					oChannel.setRedirectionChannel( channel );
-					oChannel.setRedirectionMessageId( rMessage.id() );
-					try {
-						oChannel.send( rMessage );
-						oChannel.setToBeClosed( false );
-						oChannel.disposeForInput();
-					} catch( IOException e ) {
-						channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
-					}
+				if ( ss.length > 1 ) {
+					handleRedirectionInput( message, ss );
 				} else {
-					try {
-						InputOperation operation =
-							interpreter.getInputOperation( message.operationName() );
-						if ( listener == null || listener.canHandleInputOperation( operation ) ) {
-							operation.recvMessage( channel, message );
-						} else {
+					if ( listener.canHandleInputOperationDirectly( message.operationName() ) ) {
+						handleDirectMessage( message );
+					} else {
+						AggregatedOperation operation = listener.getAggregatedOperation( message.operationName() );
+						if ( operation == null ) {
 							interpreter.logWarning(
-									"Received a message for operation " + operation.id() +
-										", not specified in an input port at the receiving service. Sending IOException to the caller."
-								);
+								"Received a message for operation " + message.operationName() +
+									", not specified in the input port at the receiving service. Sending IOException to the caller."
+							);
 							channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+							channel.disposeForInput();
+						} else {
+							handleAggregatedInput( message, operation );
 						}
-						channel.disposeForInput();
-					} catch( InvalidIdException e ) {
-						interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
-						channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
-						channel.disposeForInput();
 					}
 				}
 			} catch( URISyntaxException e ) {
@@ -427,24 +487,32 @@ public class CommCore
 			try {
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
 				channel.lock.lock();
+				try {
 					CommMessage message = channel.recv();
 					if ( message != null ) {
 						if ( channel.redirectionChannel() == null ) {
 							handleMessage( message );
 						} else {
-							redirectMessage( message );
+							forwardResponse( message );
 						}
 					}
-				channel.lock.unlock();
+				} finally {
+					channel.lock.unlock();
+				}
 			} catch( IOException e ) {
-				channel.lock.unlock();
 				interpreter.logSevere( e );
 			}
 		}
 	}
-	
+
+	/**
+	 * Schedules the receiving of a message on this <code>CommCore</code> instance.
+	 * @param channel the <code>CommChannel</code> to use for receiving the message
+	 * @param listener the <code>CommListener</code> responsible for the message receiving
+	 */
 	public void scheduleReceive( CommChannel channel, CommListener listener )
 	{
+		assert( listener != null );
 		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
 
@@ -455,7 +523,12 @@ public class CommCore
 	
 	/**
 	 * Initializes the communication core, starting its communication listeners.
-	 * 
+	 * This method is asynchronous. When it returns, every communication listener has
+	 * been issued to start, but they are not guaranteed to be ready to receive messages.
+	 * This method throws an exception if some listener can not be issued to start;
+	 * other errors will be logged by the listener through the interpreter logger.
+	 *
+	 * @throws IOException in case of some underlying <code>CommListener</code> initialization error
 	 * @see CommListener
 	 */
 	public void init()
@@ -543,7 +616,15 @@ public class CommCore
 			}
 		}
 	}
-	
+
+	/**
+	 * Registers a <code>CommChannel</code> for input polling.
+	 * The registered channel must implement the {@link PollableCommChannel <code>PollableCommChannel</code>} interface.
+	 * @param channel the channel to register for polling
+	 * @throws java.io.IOException in case the channel could not be registered for polling
+	 * @see CommChannel
+	 * @see PollableCommChannel
+	 */
 	public void registerForPolling( CommChannel channel )
 		throws IOException
 	{
@@ -700,8 +781,12 @@ public class CommCore
 		selectorThread().register( channel );
 	}
 
-	final private Vector< InputProcessExecution<?> > waitingCorrelatedInputs = new Vector< InputProcessExecution<?> >();
+	final private Collection< InputProcessExecution<?> > waitingCorrelatedInputs = new LinkedList< InputProcessExecution<?> >();
 
+	/**
+	 * Registers a waiting session spawner. This is necessary for operating graceful shutdowns.
+	 * @param input the session spawner to register
+	 */
 	public synchronized void addWaitingCorrelatedInput( InputProcessExecution<?> input )
 	{
 		if ( active ) {
@@ -709,6 +794,10 @@ public class CommCore
 		}
 	}
 
+	/**
+	 * Unregisters a waiting session spawner.
+	 * @param input the session spawner to unregister
+	 */
 	public synchronized void removeWaitingCorrelatedInput( InputProcessExecution<?> input )
 	{
 		waitingCorrelatedInputs.remove( input );

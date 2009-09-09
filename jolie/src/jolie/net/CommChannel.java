@@ -31,14 +31,22 @@ import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
-import jolie.net.protocols.CommProtocol;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
- * CommChannel allows for the sending and receiving of CommMessage instances.
+ * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
+ * This class is thread-safe.
+ *
+ * This abstract class is meant to be extended by classes implementing the
+ * communication logic for sending and receiving messages.
+ *
+ * Either the {@link #disposeForInput() disposeForInput} or the {@link #release() release} method must be called after using
+ * a channel. Their behaviour can be influenced by indicating if a channel
+ * is to be closed or not through the {@link #setToBeClosed(boolean) setToBeClosed} method, but this does not
+ * give any right to make assumptions on said behaviour: implementing classes
+ * have complete freedom on that.
  * @author Fabrizio Montesi
- * @see CommProtocol
  * @see CommMessage
  */
 abstract public class CommChannel
@@ -53,7 +61,7 @@ abstract public class CommChannel
 	final protected ReentrantLock lock = new ReentrantLock( true );
 	final private Object responseRecvMutex = new Object();
 
-	private class ResponseContainer
+	private static class ResponseContainer
 	{
 		private CommMessage response = null;
 	}
@@ -76,31 +84,61 @@ abstract public class CommChannel
 	
 	private CommChannel redirectionChannel = null;
 
+	/**
+	 * Returns <code>true</code> if this channel is to be closed when not used,
+	 * <code>false</code> otherwise.
+	 * @return <code>true</code> if this channel is to be closed when not used,
+	 *							<code>false</code> otherwise.
+	 */
     final public boolean toBeClosed()
     {
         return toBeClosed;
     }
 
+	/**
+	 * Sets a redirection channel for this channel.
+	 * When a <code>CommChannel</code> has a redirection channel set,
+	 * the next input message received by the <code>CommCore</code> on that 
+	 * channel will be redirected automatically to the redirection channel
+	 * that has been set.
+	 * @param redirectionChannel the redirection channel to set
+	 */
 	public void setRedirectionChannel( CommChannel redirectionChannel )
 	{
 		this.redirectionChannel = redirectionChannel;
 	}
-	
+
+	/**
+	 * Returns the redirection channel of this channel.
+	 * @return the redirection channel of this channel
+	 */
 	public CommChannel redirectionChannel()
 	{
 		return redirectionChannel;
 	}
-	
+
+	/**
+	 * Sets the parent <code>CommListener</code> of this channel.
+	 * @param listener the parent <code>CommListener</code> to set
+	 */
 	public void setParentListener( CommListener listener )
 	{
 		this.listener = listener;
 	}
-	
+
+	/**
+	 * Returns the parent <code>CommListener</code> of this channel.
+	 * @return the parent <code>CommListener</code> of this channel
+	 */
 	public CommListener parentListener()
 	{
 		return listener;
 	}
-	
+
+	/**
+	 * Returns <code>true</code> if this channel is open, <code>false</code> otherwise.
+	 * @return <code>true</code> if this channel is open, <code>false</code> otherwise
+	 */
 	final public boolean isOpen()
 	{
 		return isOpen && isOpenImpl();
@@ -116,7 +154,11 @@ abstract public class CommChannel
 		return false;
 	}
 	
-	/** Receives a message from the channel. */
+	/**
+	 * Receives a message from the channel. This is a blocking operation.
+	 * @return the received message
+	 * @throws IOException in case of some communication error
+	 */
 	public CommMessage recv()
 		throws IOException
 	{
@@ -127,27 +169,31 @@ abstract public class CommChannel
 			lock.lock();
 			try {
 				ret = recvImpl();
-			} catch( IOException e ) {
+			} finally {
 				lock.unlock();
-				throw e;
 			}
-			lock.unlock();
 		}
 		return ret;
 	}
 
-	final public CommMessage recvResponseFor( CommMessage message )
+	/**
+	 * Receives a response for the specified request.
+	 * @param request the request message for which we want to receive a response
+	 * @return the response for the specified request message
+	 * @throws java.io.IOException in case of some communication error
+	 */
+	final public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
 		CommMessage response;
 		ResponseContainer monitor = null;
 		synchronized( responseRecvMutex ) {
-			response = pendingResponses.remove( message.id() );
+			response = pendingResponses.remove( request.id() );
 			if ( response == null ) {
 				if ( pendingGenericResponses.isEmpty() ) {
-					assert( waiters.containsKey( message.id() ) == false );
+					assert( waiters.containsKey( request.id() ) == false );
 					monitor = new ResponseContainer();
-					waiters.put( message.id(), monitor );
+					waiters.put( request.id(), monitor );
 					responseRecvMutex.notify();
 				} else {
 					response = pendingGenericResponses.remove( 0 );
@@ -285,7 +331,11 @@ abstract public class CommChannel
 		}
 	}
 	
-	/** Sends a message through the channel. */
+	/**
+	 * Sends a message through this channel.
+	 * @param message the message to send
+	 * @throws java.io.IOException in case of some communication error
+	 */
 	public void send( CommMessage message )
 		throws IOException
 	{
@@ -295,11 +345,9 @@ abstract public class CommChannel
 			lock.lock();
 			try {
 				sendImpl( message );
-			} catch( IOException e ) {
+			} finally {
 				lock.unlock();
-				throw e;
 			}
-			lock.unlock();
 		}
 	}
 	
@@ -312,6 +360,7 @@ abstract public class CommChannel
 	/**
 	 * Releases this CommChannel, making it available
 	 * to other processes for sending data.
+	 * @throws IOException in case of an internal error
 	 */
 	final public void release()
 		throws IOException
@@ -331,6 +380,20 @@ abstract public class CommChannel
 		closeImpl();
 	}
 
+	/**
+	 * Disposes this channel for input.
+	 * This method can behave in two ways, depending on the state of the channel
+	 * and its underlying implementation:
+	 * <ul><li>
+	 * the channel is closed and its resources are released;
+	 * </li><li>
+	 * the channel is kept open and its control is given to its generating
+	 * <code>CommCore</code> instance, which will listen for input messages
+	 * on this channel.
+	 * </li></ul>
+	 * @throws java.io.IOException in case of some error generated by this channel
+	 *								implementation
+	 */
 	final public void disposeForInput()
 		throws IOException
 	{
@@ -340,7 +403,11 @@ abstract public class CommChannel
 	protected void disposeForInputImpl()
 		throws IOException
 	{}
-	
+
+	/**
+	 * Sets if this channel is to be closed after releasing or not.
+	 * @param toBeClosed <code>true</code> if this channel is to be closed after releasing, <code>false</code> otherwise
+	 */
 	public void setToBeClosed( boolean toBeClosed )
 	{
 		this.toBeClosed = toBeClosed;

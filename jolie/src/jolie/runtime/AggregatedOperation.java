@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,42 +19,61 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.ext;
+package jolie.runtime;
 
-import java.io.IOException;
-import java.net.URI;
-import jolie.net.CommCore;
-import jolie.net.protocols.CommProtocol;
-import jolie.runtime.VariablePath;
+import jolie.lang.Constants;
+import jolie.net.OutputPort;
 
 /**
- * A factory for delegating the creation of protocol instances to extensions.
+ * An AggregatedOperation instance contains information about an operation that is aggregate by an input port.
  * @author Fabrizio Montesi
  */
-abstract public class CommProtocolFactory
+public class AggregatedOperation
 {
-	final private CommCore commCore;
-	
-	/**
-	 * Constructor
-	 * @param commCore the CommCore to refer to for creating CommProtocol instances.
-	 */
-	public CommProtocolFactory( CommCore commCore )
+	final private Constants.OperationType type;
+	final private String name;
+	final private OutputPort port;
+
+	public AggregatedOperation( String name, Constants.OperationType type, OutputPort port )
 	{
-		this.commCore = commCore;
+		this.name = name;
+		this.type = type;
+		this.port = port;
 	}
 
-	protected CommCore commCore()
-	{
-		return commCore;
-	}
-	
 	/**
-	 * Creates a CommProtocol instance
-	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
-	 * @param location the location the returned CommProtocol must refer to
-	 * @return a CommProtocol instance
+	 * Returns the name of this operation.
+	 * @return the name of this operation.
 	 */
-	abstract public CommProtocol createProtocol( VariablePath configurationPath, URI location )
-		throws IOException;
+	public String name()
+	{
+		return name;
+	}
+
+	/**
+	 * Returns true if this operation is a Request-Response.
+	 * @return true if this operation is a Request-Response.
+	 */
+	public boolean isRequestResponse()
+	{
+		return type == Constants.OperationType.REQUEST_RESPONSE;
+	}
+
+	/**
+	 * Returns true if this operation is a One-Way.
+	 * @return true if this operation is a One-Way.
+	 */
+	public boolean isOneWay()
+	{
+		return type == Constants.OperationType.ONE_WAY;
+	}
+
+	/**
+	 * Returns the OutputPort of this aggregated operation.
+	 * @return the OutputPort of this aggregated operation.
+	 */
+	public OutputPort port()
+	{
+		return port;
+	}
 }

@@ -34,6 +34,7 @@ import jolie.runtime.VariablePath;
 
 /**
  * A CommProtocol implements a protocol for sending and receiving data under the form of CommMessage objects.
+ * This class should not be extended directly; see {@link ConcurrentCommProtocol ConcurrentCommProtocol} and {@link SequentialCommProtocol SequentialCommProtocol} instead.
  * @author Fabrizio Montesi
  */
 abstract public class CommProtocol
@@ -42,7 +43,7 @@ abstract public class CommProtocol
 		private static class DummyChannel extends CommChannel {
 			public void closeImpl() {}
 			public void sendImpl( CommMessage message ) {}
-			public CommMessage recvImpl() { return CommMessage.createEmptyMessage(); }
+			public CommMessage recvImpl() { return new CommMessage( "", "/" ); }
 		}
 
 		private static DummyChannel dummyChannel = new DummyChannel();

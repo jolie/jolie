@@ -25,6 +25,11 @@ import java.net.URI;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
+/**
+ * This abstract class implements a communication channel based on a <code>CommProtocol</code>.
+ * @author Fabrizio Montesi
+ * @see SelectableStreamingCommChannel
+ */
 abstract public class StreamingCommChannel extends CommChannel
 {
 	final private URI location;
@@ -61,8 +66,11 @@ abstract public class StreamingCommChannel extends CommChannel
 			_releaseImpl();
 		} else {
 			lock.lock();
-			_releaseImpl();
-			lock.unlock();
+			try {
+				_releaseImpl();
+			} finally {
+				lock.unlock();
+			}
 		}
 	}
 }

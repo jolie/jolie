@@ -21,7 +21,11 @@
 
 package jolie.process;
 
-
+/**
+ * A correlated input process is a session spawning process.
+ * @author Fabrizio Montesi
+ * @TODO: This is really poorly named. Revamp the whole Correlated* set of classes ASAP!
+ */
 public interface CorrelatedInputProcess extends Process
 {
 	public void setCorrelatedProcess( CorrelatedProcess process );

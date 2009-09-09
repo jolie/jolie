@@ -28,8 +28,14 @@ import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
+/**
+ * A factory for <code>SocketListener</code>.
+ * @see SocketListener
+ * @author Fabrizio Montesi
+ */
 public class SocketListenerFactory extends CommListenerFactory
 {
 	public SocketListenerFactory( CommCore commCore )
@@ -43,10 +49,11 @@ public class SocketListenerFactory extends CommListenerFactory
 					CommProtocolFactory protocolFactory,
 					VariablePath protocolConfigurationPath,
 					Collection< String > operationNames,
+					Map< String, AggregatedOperation > aggregationMap,
 					Map< String, OutputPort > redirectionMap
 				)
 		throws IOException
 	{
-		return new SocketListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+		return new SocketListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
 	}
 }

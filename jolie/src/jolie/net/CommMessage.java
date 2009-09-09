@@ -29,9 +29,25 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
- * 
- * @author Fabrizio Montesi
+ * A <code>CommMessage</code> represents a generic communication message.
+ * A message is composed by the following parts:
+ * <ul>
+ * <li>a numeric identifier, which can be used to relate a response to its request;</li>
+ * <li>an operation name,
+ * to identify the operation that the message is meant for
+ * (in case of a request) or the operation that generated the message
+ * (in case of a response);</li>
+ * <li>a resource path, used for redirection;</li>
+ * <li>a value, holding the message data;</li>
+ * <li>potentially, a fault.</li>
+ * </ul>
  *
+ * Message instances destined to be used in a Request-Response pattern
+ * should always be created using the static methods
+ * {@link #createRequest(java.lang.String, java.lang.String, jolie.runtime.Value) createRequest}
+ * and {@link #createResponse(jolie.net.CommMessage, jolie.runtime.Value) createResponse}.
+ *
+ * @author Fabrizio Montesi
  */
 public class CommMessage implements Serializable
 {
@@ -46,22 +62,35 @@ public class CommMessage implements Serializable
 	final private String resourcePath;
 	final private Value value;
 	final private FaultException fault;
-	
-	public static CommMessage createEmptyMessage()
-	{
-		return new CommMessage( "", "/" );
-	}
-	
+
+	/**
+	 * Returns the resource path of this message.
+	 * @return the resource path of this message
+	 */
 	public String resourcePath()
 	{
 		return resourcePath;
 	}
-	
+
+	/**
+	 * Returns <code>true</code> if this message has a generic identifier, <code>false</code> otherwise.
+	 *
+	 * A message with a generic identifier cannot be related to other messages.
+	 *
+	 * A message can have a generic identifier if it is meant to be used in a Notification.
+	 * Also, communication channels not supporting message identifiers could be generating
+	 * messages equipped with a generic identifier every time.
+	 * @return <code>true</code> if this message has a generic identifier, <code>false</code> otherwise
+	 */
 	public boolean hasGenericId()
 	{
 		return id == GENERIC_ID;
 	}
-	
+
+	/**
+	 * Returns the identifier of this message.
+	 * @return the identifier of this message
+	 */
 	public long id()
 	{
 		return id;
@@ -71,18 +100,47 @@ public class CommMessage implements Serializable
 	{
 		return idCounter.getAndIncrement();
 	}
-	
+
+	/**
+	 * Creates a request message.
+	 * @param operationName the name of the operation this request is meant for
+	 * @param resourcePath the resource path of this message
+	 * @param value the message data
+	 * @return a request message as per specified by the parameters
+	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
 	{
 		return new CommMessage( getNewMessageId(), operationName, resourcePath, value );
 	}
-	
+
+	/**
+	 * Creates an empty (i.e. without data) response for the passed request.
+	 * @param request the request message that caused this response
+	 * @return an empty response for the passed request
+	 */
+	public static CommMessage createEmptyResponse( CommMessage request )
+	{
+		return createResponse( request, Value.create() );
+	}
+
+	/**
+	 * Creates a response for the passed request.
+	 * @param request the request message that caused this response
+	 * @param value the data to equip the response with
+	 * @return a response for the passed request
+	 */
 	public static CommMessage createResponse( CommMessage request, Value value )
 	{
 		//TODO support resourcePath
 		return new CommMessage( request.id, request.operationName, "/", value );
 	}
-	
+
+	/**
+	 * Creates a response message equipped with the passed fault.
+	 * @param request the request message that caused this response
+	 * @param fault the fault to equip the response with
+	 * @return a response message equipped with the specified fault
+	 */
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
 	{
 		//TODO support resourcePath
@@ -108,7 +166,13 @@ public class CommMessage implements Serializable
 		this.value = Value.create();
 		this.fault = fault;
 	}
-	
+
+	/**
+	 * Constructor. The identifier of this message will be generic.
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 */
 	public CommMessage( String operationName, String resourcePath, Value value )
 	{
 		this.operationName = operationName;
@@ -119,17 +183,32 @@ public class CommMessage implements Serializable
 		this.fault = null;
 		this.id = GENERIC_ID;
 	}
-	
-	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException f )
+
+	/**
+	 * Constructor
+	 * @param id the identifier for this message
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 * @param fault the fault to equip the message with
+	 */
+	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault )
 	{
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		// TODO see above performance hit.
 		this.value = Value.createDeepCopy( value );
-		fault = f;
+		this.fault = fault;
 	}
-	
+
+	/**
+	 * Constructor. The identifier of this message will be generic.
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 * @param fault the fault to equip the message with
+	 */
 	public CommMessage( String operationName, String resourcePath, Value value, FaultException f )
 	{
 		this.operationName = operationName;
@@ -139,7 +218,12 @@ public class CommMessage implements Serializable
 		fault = f;
 		this.id = GENERIC_ID;
 	}
-	
+
+	/**
+	 * Constructor. The identifier of this message will be generic.
+	 * @param operationName the operation name of this message
+	 * @param resourcePath the resource path of this message
+	 */
 	public CommMessage( String operationName, String resourcePath )
 	{
 		this.operationName = operationName;
@@ -148,22 +232,40 @@ public class CommMessage implements Serializable
 		this.fault = null;
 		this.id = GENERIC_ID;
 	}
-	
+
+	/**
+	 * Returns the value representing the data contained in this message.
+	 * @return the value representing the data contained in this message
+	 */
 	public Value value()
 	{
 		return value;
 	}
-	
+
+	/**
+	 * The operation name of this message.
+	 * @return the operation name of this message
+	 */
 	public String operationName()
 	{
 		return operationName;
 	}
 
+	/**
+	 * Returns <code>true</code> if this message contains a fault, <code>false</code> otherwise.
+	 * @return <code>true</code> if this message contains a fault, <code>false</code> otherwise
+	 */
 	public boolean isFault()
 	{
 		return ( fault != null );
 	}
-	
+
+	/**
+	 * Returns the fault contained in this message.
+	 *
+	 * If this message does not contain a fault, <code>null</code> is returned.
+	 * @return the fault contained in this message
+	 */
 	public FaultException fault()
 	{
 		return fault;

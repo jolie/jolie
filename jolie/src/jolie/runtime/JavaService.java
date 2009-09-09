@@ -152,7 +152,7 @@ abstract public class JavaService
 	{
 		ListCommChannel c = new ListCommChannel();
 		c.inputList().add( message );
-		interpreter.commCore().scheduleReceive( c, null );
+		interpreter.commCore().scheduleReceive( c, interpreter().commCore().localListener() );
 		return new ListCommChannel( c.outputList(), c.inputList() );
 	}
 }

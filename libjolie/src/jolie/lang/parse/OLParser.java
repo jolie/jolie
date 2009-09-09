@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -592,6 +593,7 @@ public class OLParser extends AbstractParser
 		protocolId = null;
 		protocolConfiguration = null;
 		Map<String, String> redirectionMap = new HashMap<String, String>();
+		List< String > aggregationList = new LinkedList< String >();
 		while ( token.isNot( Scanner.TokenType.RCURLY ) ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( iface );
@@ -671,6 +673,18 @@ public class OLParser extends AbstractParser
 						break;
 					}
 				}
+			} else if ( token.isKeyword( "Aggregates" ) ) {
+				getToken();
+				eat( Scanner.TokenType.COLON, "expected :" );
+				while ( token.is( Scanner.TokenType.ID ) ) {
+					aggregationList.add( token.content() );
+					getToken();
+					if ( token.is( Scanner.TokenType.COMMA ) ) {
+						getToken();
+					} else {
+						break;
+					}
+				}
 			} else {
 				throwException( "Unrecognized token in inputPort " + inputPortName );
 			}
@@ -683,7 +697,7 @@ public class OLParser extends AbstractParser
 		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
-		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, redirectionMap );
+		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[0] ), redirectionMap );
 		iface.copyTo( iport );
 		program.addChild( iport );
 	}
@@ -855,8 +869,8 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
-				String requestTypeName = null;
-				String responseTypeName = null;
+				String requestTypeName = NativeType.UNDEFINED.id();
+				String responseTypeName = NativeType.UNDEFINED.id();
 
 				if ( token.is( Scanner.TokenType.LPAREN ) ) {
 					getToken(); //eat (

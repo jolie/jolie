@@ -36,6 +36,7 @@ import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.runtime.VariablePath;
 import jolie.net.OutputPort;
+import jolie.runtime.AggregatedOperation;
 
 public class RMIListener extends CommListener
 {
@@ -49,11 +50,12 @@ public class RMIListener extends CommListener
 				CommProtocolFactory protocolFactory,
 				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
 
 		JolieRemote jolieRemote = new JolieRemoteImpl( interpreter, this );
 		jolieRemoteStub = (JolieRemote) UnicastRemoteObject.exportObject( jolieRemote );

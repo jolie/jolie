@@ -66,7 +66,15 @@ public class JolieClassLoader extends URLClassLoader
 			}
 		}
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param urls the urls to use for the lookup of libraries
+	 * @param parent the parent class loader to use for lookup fallback
+	 * @throws java.io.IOException if the initialization fails,
+	 *							e.g. if a required dependency in some specified
+	 *							file can not be satisfied
+	 */
 	public JolieClassLoader( URL[] urls, ClassLoader parent )
 		throws IOException
 	{
@@ -142,6 +150,14 @@ public class JolieClassLoader extends URLClassLoader
 		return c;
 	}
 
+	/**
+	 * Creates and returns a <code>CommChannelFactory</code>, selecting it
+	 * from the built-in and externally loaded JOLIE extensions.
+	 * @param name the identifier of the factory to create
+	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
+	 * @return the requested factory
+	 * @throws java.io.IOException if the factory could not have been created
+	 */
 	public synchronized CommChannelFactory createCommChannelFactory( String name, CommCore commCore )
 		throws IOException
 	{
@@ -184,6 +200,14 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 
+	/**
+	 * Creates and returns a <code>CommListenerFactory</code>, selecting it
+	 * from the built-in and externally loaded JOLIE extensions.
+	 * @param name the identifier of the factory to create
+	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
+	 * @return the requested factory
+	 * @throws java.io.IOException if the factory could not have been created
+	 */
 	public synchronized CommListenerFactory createCommListenerFactory( String name, CommCore commCore )
 		throws IOException
 	{
@@ -226,6 +250,14 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 
+	/**
+	 * Creates and returns a <code>CommProtocolFactory</code>, selecting it
+	 * from the built-in and externally loaded JOLIE extensions.
+	 * @param name the identifier of the factory to create
+	 * @param commCore the <code>CommCore</code> instance to use for constructing the factory
+	 * @return the requested factory
+	 * @throws java.io.IOException if the factory could not have been created
+	 */
 	public synchronized CommProtocolFactory createCommProtocolFactory( String name, CommCore commCore )
 		throws IOException
 	{

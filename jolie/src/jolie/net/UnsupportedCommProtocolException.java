@@ -24,10 +24,19 @@ package jolie.net;
 import java.io.IOException;
 import jolie.lang.Constants;
 
+/**
+ * An IOException for denoting that a required communication protocol cannot be used.
+ * @author Fabrizio Montesi
+ */
 public class UnsupportedCommProtocolException extends IOException
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+
+	/**
+	 * Constructor.
+	 *
+	 * @param protocol the name of the medium that could not be used
+	 */
 	public UnsupportedCommProtocolException( String protocol )
 	{
 		super( "Unsupported communication protocol: " + protocol );

@@ -58,7 +58,7 @@ public class ParallelExecution
 	private FaultException fault = null;
 	private boolean isKilled = false;
 
-	public ParallelExecution( Vector< Process > procs )
+	public ParallelExecution( Process[] procs )
 	{
 		for( Process proc : procs ) {
 			threads.add( new ParallelThread( proc ) );

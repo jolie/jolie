@@ -39,11 +39,15 @@ public class ParserException extends Exception
 		this.mesg = mesg;
 	}
 	
+	@Override
 	public String getMessage()
 	{
-		String ret = new String();
-		ret += this.sourceName;
-		ret += ":" + line + ": error: " + mesg;
-		return ret;
+		StringBuilder builder = new StringBuilder();
+		builder.append( this.sourceName )
+			.append( ':' )
+			.append( line )
+			.append( ": error: " )
+			.append( mesg );
+		return builder.toString();
 	}
 }
