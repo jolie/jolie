@@ -23,8 +23,8 @@
 package jolie.runtime;
 
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
@@ -40,7 +40,7 @@ import jolie.runtime.typing.TypeCheckingException;
 public class InternalLink extends AbstractIdentifiableObject implements InputHandler
 {
 	final private List< InputProcessExecution > procsList =
-					new Vector< InputProcessExecution > ();
+					new LinkedList< InputProcessExecution > ();
 	private int signals = 0;
 	final private CommMessage linkMessage;
 	

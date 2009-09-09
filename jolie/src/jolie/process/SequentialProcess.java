@@ -21,7 +21,6 @@
 
 package jolie.process;
 
-import java.util.Vector;
 
 import jolie.ExecutionThread;
 import jolie.runtime.ExitingException;
@@ -29,19 +28,24 @@ import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
 {
-	final private Vector< Process > children;
+	final private Process[] children;
 	
-	public SequentialProcess()
+	public SequentialProcess( Process[] children )
 	{
-		children = new Vector< Process >();
+		if ( children.length < 1 ) {
+			throw new IllegalArgumentException( "Process sequences must contain at least one child." );
+		}
+		this.children = children;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		SequentialProcess p = new SequentialProcess();
-		for( Process child : children )
-			p.addChild( child.clone( reason ) );
-		return p;
+		Process[] p = new Process[ children.length ];
+		int i = 0;
+		for( Process child : children ) {
+			p[ i++ ] = child.clone( reason );
+		}
+		return new SequentialProcess( p );
 	}
 	
 	public void run()
@@ -56,14 +60,8 @@ public class SequentialProcess implements Process
 		}
 	}
 	
-	public void addChild( Process process )
-	{
-		if ( process != null )
-			children.add( process );
-	}
-	
 	public boolean isKillable()
 	{
-		return children.get( 0 ).isKillable();
+		return children[ 0 ].isKillable();
 	}
 }

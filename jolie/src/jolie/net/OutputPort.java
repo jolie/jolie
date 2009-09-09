@@ -25,17 +25,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.WeakHashMap;
 import jolie.lang.Constants;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
 import jolie.process.Process;
-import jolie.process.SequentialProcess;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.process.SequentialProcess;
 import jolie.runtime.VariablePathBuilder;
 
 /**
@@ -101,13 +103,14 @@ public class OutputPort extends AbstractIdentifiableObject
 		// Create the configuration Process
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
 			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
-		SequentialProcess s = new SequentialProcess();
-		s.addChild( a );
+
+		List< Process > children = new LinkedList< Process >();
+		children.add( a );
 		if ( protocolId != null ) {
-			s.addChild( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
+			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
 		}
-		s.addChild( protocolConfigurationProcess );
-		this.configurationProcess = s;
+		children.add( protocolConfigurationProcess );
+		this.configurationProcess = new SequentialProcess( children.toArray( new Process[0] ) );
 	}
 
 	/**
@@ -170,6 +173,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	}
 
 	private static class LazyLocalUriHolder {
+		private LazyLocalUriHolder() {}
 		static final URI uri = URI.create( "local" );
 	}
 

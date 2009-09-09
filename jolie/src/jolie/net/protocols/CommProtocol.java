@@ -40,6 +40,7 @@ import jolie.runtime.VariablePath;
 abstract public class CommProtocol
 {
 	private static class LazyDummyChannelHolder {
+		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends CommChannel {
 			public void closeImpl() {}
 			public void sendImpl( CommMessage message ) {}

@@ -22,7 +22,6 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
 import jolie.process.TransformationReason;
 
@@ -33,20 +32,17 @@ import jolie.process.TransformationReason;
  */
 public class AndCondition implements Condition
 {
-	final private Vector< Condition > children;
+	final private Condition[] children;
 	
 	/** Constructor */
-	public AndCondition()
+	public AndCondition( Condition[] children )
 	{
-		children = new Vector< Condition >();
+		this.children = children;
 	}
 	
 	public Condition cloneCondition( TransformationReason reason )
 	{
-		AndCondition ret = new AndCondition();
-		for( Condition c : children )
-			ret.addChild( c.cloneCondition( reason ) );
-		return ret;
+		return new AndCondition( children );
 	}
 	
 	/** Applies the "logical and" rule.
@@ -64,14 +60,5 @@ public class AndCondition implements Condition
 		}
 
 		return true;
-	}
-	
-	/** Adds a condition to the "logical and" group.
-	 * The condition will be checked by the evaluate method. 
-	 * @param condition the condition to add.
-	 */
-	public void addChild( Condition condition )
-	{
-		children.add( condition );
 	}
 }

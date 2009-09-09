@@ -30,10 +30,10 @@ import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -83,8 +83,8 @@ public class Interpreter
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	final private Value globalValue = Value.createRootValue();
 	final private String[] arguments;
-	final private Vector< EmbeddedServiceLoader > embeddedServiceLoaders =
-			new Vector< EmbeddedServiceLoader >();
+	final private Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
+			new LinkedList< EmbeddedServiceLoader >();
 	final private Logger logger = Logger.getLogger( "JOLIE" );
 	
 	final private Map< String, DefinitionProcess > definitions = 

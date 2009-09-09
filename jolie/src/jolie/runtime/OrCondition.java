@@ -22,25 +22,21 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
 import jolie.process.TransformationReason;
 
 public class OrCondition implements Condition
 {
-	final private Vector< Condition > children;
+	final private Condition[] children;
 	
-	public OrCondition()
+	public OrCondition( Condition[] children )
 	{
-		children = new Vector< Condition >();
+		this.children = children;
 	}
 	
 	public Condition cloneCondition( TransformationReason reason )
 	{
-		OrCondition ret = new OrCondition();
-		for( Condition c : children )
-			ret.addChild( c.cloneCondition( reason ) );
-		return ret;
+		return new OrCondition( children );
 	}
 	
 	public boolean evaluate()
@@ -52,10 +48,5 @@ public class OrCondition implements Condition
 		}
 
 		return false;
-	}
-	
-	public void addChild( Condition condition )
-	{
-		children.add( condition );
 	}
 }

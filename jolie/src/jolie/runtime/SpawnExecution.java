@@ -21,8 +21,9 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
+import java.util.Collection;
+import java.util.HashSet;
 import jolie.ExecutionThread;
 import jolie.SessionThread;
 import jolie.process.Process;
@@ -60,7 +61,7 @@ public class SpawnExecution
 		}
 	}
 	
-	final private Vector< SpawnedThread > threads = new Vector< SpawnedThread >();
+	final private Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
 	final private SpawnProcess parentSpawnProcess;
 	final private ExecutionThread ethread = ExecutionThread.currentThread();
 

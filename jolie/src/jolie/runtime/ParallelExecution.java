@@ -21,8 +21,9 @@
 
 package jolie.runtime;
 
-import java.util.Vector;
 
+import java.util.Collection;
+import java.util.HashSet;
 import jolie.ExecutionThread;
 import jolie.process.Process;
 
@@ -54,7 +55,7 @@ public class ParallelExecution
 		}
 	}
 	
-	final private Vector< ParallelThread > threads = new Vector< ParallelThread >();
+	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 
