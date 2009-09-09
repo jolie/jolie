@@ -8,6 +8,7 @@ type ReadFileRequest:void {
 type WriteFileRequest:void {
 	.filename:string
 	.content:any
+	.format?:string
 }
 
 type DeleteRequest:string { // The filename to delete
