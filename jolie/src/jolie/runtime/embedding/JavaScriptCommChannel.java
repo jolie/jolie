@@ -22,8 +22,8 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.Interpreter;
@@ -39,7 +39,7 @@ import jolie.runtime.Value;
 public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private Invocable invocable;
-	final private List< CommMessage > messages = new Vector< CommMessage >();
+	final private List< CommMessage > messages = new LinkedList< CommMessage >();
 
 	public JavaScriptCommChannel( Invocable invocable )
 	{

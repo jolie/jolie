@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 import java.util.Map.Entry;
 
 import jolie.lang.Constants;
@@ -244,7 +243,7 @@ public class OOITBuilder implements OLVisitor
 		Set< List< VariablePath > > cset = new HashSet< List< VariablePath > > ();
 		List< VariablePath > paths;
 		for( List< VariablePathNode > list : n.cset() ) {
-			paths = new Vector< VariablePath > ();
+			paths = new LinkedList< VariablePath > ();
 			for( VariablePathNode path : list )
 				paths.add( buildVariablePath( path ) );
 			cset.add( paths );
@@ -517,13 +516,13 @@ public class OOITBuilder implements OLVisitor
 				currProcess = makeSessionSpawner( (CorrelatedInputProcess)currProcess );
 			}
 			
-			SequentialProcess mainProcessBody = new SequentialProcess();
+			List< Process > mainChildren = new LinkedList< Process >();
 			try {
-				mainProcessBody.addChild( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
-				mainProcessBody.addChild( interpreter.getDefinition( "init" ) );
+				mainChildren.add( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
+				mainChildren.add( interpreter.getDefinition( "init" ) );
 			} catch( InvalidIdException e ) {}
-			mainProcessBody.addChild( currProcess );
-			currProcess = mainProcessBody;
+			mainChildren.add( currProcess );
+			currProcess = new SequentialProcess( mainChildren.toArray( new Process[0] ) );
 			
 			currProcess = new ScopeProcess(
 				"main",
@@ -557,7 +556,7 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( SequenceStatement n )
 	{
-		SequentialProcess proc = new SequentialProcess();
+		List< Process > children = new LinkedList< Process >();
 		Iterator< OLSyntaxNode > it = n.children().iterator();
 		OLSyntaxNode node;
 		boolean origSpawnSession;
@@ -571,23 +570,24 @@ public class OOITBuilder implements OLVisitor
 				 */
 				origSpawnSession = canSpawnSession;
 				canSpawnSession = false;
-				SequentialProcess sequence = new SequentialProcess();
-				CorrelatedProcess corrProc = new CorrelatedProcess( interpreter, sequence );
-				((CorrelatedInputProcess)currProcess).setCorrelatedProcess( corrProc );
-				sequence.addChild( currProcess );
+				List< Process > sequenceChildren = new LinkedList< Process >();
+				CorrelatedInputProcess c = ((CorrelatedInputProcess)currProcess);
+				sequenceChildren.add( currProcess );
 				while( it.hasNext() ) {
 					node = it.next();
 					node.accept( this );
-					sequence.addChild( currProcess );
+					sequenceChildren.add( currProcess );
 				}
+				CorrelatedProcess corrProc = new CorrelatedProcess( interpreter, new SequentialProcess( sequenceChildren.toArray( new Process[0] ) ) );
+				c.setCorrelatedProcess( corrProc );
 				currProcess = corrProc;
 				canSpawnSession = origSpawnSession;
 			}
-			proc.addChild( currProcess );
+			children.add( currProcess );
 			if ( !it.hasNext() ) // Dirty trick, remove this
 				break;
 		}
-		currProcess = proc;
+		currProcess = new SequentialProcess( children.toArray( new Process[0] ) );
 	}
 
 	public void visit( NDChoiceStatement n )
@@ -596,8 +596,8 @@ public class OOITBuilder implements OLVisitor
 		canSpawnSession = false;
 		
 		CorrelatedProcess corrProc = null;
-		Vector< Pair< InputProcess, Process > > branches = 
-					new Vector< Pair< InputProcess, Process > >();
+		List< Pair< InputProcess, Process > > branches =
+					new LinkedList< Pair< InputProcess, Process > >();
 		
 		Process guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
@@ -616,7 +616,7 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		NDChoiceProcess proc = new NDChoiceProcess( branches );
+		NDChoiceProcess proc = new NDChoiceProcess( branches.toArray( new Pair[0] ) );
 		
 		canSpawnSession = origSpawnSession;
 		if( canSpawnSession ) {
@@ -747,9 +747,9 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
 	}
 	
-	private Vector< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
+	private List< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
 	{
-		Vector< Pair< String, Process > > pairs = new Vector< Pair< String, Process > >();
+		List< Pair< String, Process > > pairs = new LinkedList< Pair< String, Process > >();
 		for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 			pair.value().accept( this );
 			pairs.add( new Pair< String, Process >( pair.key(), currProcess ) );
@@ -872,22 +872,24 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( OrConditionNode n )
 	{
-		OrCondition cond = new OrCondition();
+		Condition[] children = new Condition[ n.children().size() ];
+		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
-			cond.addChild( currCondition );
+			children[ i++ ] = currCondition;
 		}
-		currCondition = cond;
+		currCondition = new OrCondition( children );
 	}
 	
 	public void visit( AndConditionNode n )
 	{
-		AndCondition cond = new AndCondition();
+		Condition[] children = new Condition[ n.children().size() ];
+		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
-			cond.addChild( currCondition );
+			children[ i++ ] = currCondition;
 		}
-		currCondition = cond;
+		currCondition = new AndCondition( children );
 	}
 	
 	public void visit( NotConditionNode n )
@@ -1107,14 +1109,14 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( SpawnStatement n )
 	{
-		SequentialProcess seq = new SequentialProcess();
-		seq.addChild( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
-		seq.addChild( buildProcess( n.body() ) );
+		Process[] children = new Process[2];
+		children[ 0 ] = new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) );
+		children[ 1 ] = buildProcess( n.body() );
 		currProcess = new SpawnProcess(
 			buildVariablePath( n.indexVariablePath() ),
 			buildExpression( n.upperBoundExpression() ),
 			buildVariablePath( n.inVariablePath() ),
-			seq
+			new SequentialProcess( children )
 		);
 	}
 	

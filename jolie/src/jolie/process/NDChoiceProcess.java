@@ -22,9 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jolie.ExecutionThread;
@@ -60,7 +58,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			final private InputHandler inputHandler;
 			final private InputProcess inputProcess;
 			final private Process process;
-			public InputChoice( InputHandler inputHandler, InputProcess inputProcess, Process process )
+			private InputChoice( InputHandler inputHandler, InputProcess inputProcess, Process process )
 			{
 				this.inputHandler = inputHandler;
 				this.inputProcess = inputProcess;
@@ -187,23 +185,22 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		}
 	}
 
-	final private Collection< Pair< InputProcess, Process > > branches;
+	final private Pair< InputProcess, Process >[] branches;
 	private CorrelatedProcess correlatedProcess = null;
 	
 	/** Constructor */
-	public NDChoiceProcess( Collection< Pair< InputProcess, Process > > branches )
+	public NDChoiceProcess( Pair< InputProcess, Process >[] branches )
 	{
 		this.branches = branches;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		Vector< Pair< InputProcess, Process > > b =
-			new Vector< Pair< InputProcess, Process > > ();
+		Pair< InputProcess, Process >[] b = new Pair[ branches.length ];
+		int i = 0;
 		for( Pair< InputProcess, Process > pair : branches ) {
-			b.add( new Pair< InputProcess, Process >( pair.key(), pair.value().clone( reason ) ) );
+			b[ i++ ] = new Pair< InputProcess, Process >( pair.key(), pair.value().clone( reason ) );
 		}
-
 		return new NDChoiceProcess( b );
 	}
 	

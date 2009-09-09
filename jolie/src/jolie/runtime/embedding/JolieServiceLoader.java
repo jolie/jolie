@@ -24,9 +24,9 @@ package jolie.runtime.embedding;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 import jolie.runtime.Expression;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
@@ -45,7 +45,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		super( channelDest );
 		String[] args = currInterpreter.args();
 		String[] ss = servicePathSplitPattern.split( servicePath );
-		List< String > newArgs = new Vector< String >();
+		List< String > newArgs = new LinkedList< String >();
 		
 		int i;
 		for( i = 0; i < args.length; i++ ) {

@@ -24,10 +24,10 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 import java.util.concurrent.locks.ReentrantLock;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -56,13 +56,14 @@ abstract public class CommChannel
 	final private Map< Long, ResponseContainer > waiters =
 			new HashMap< Long, ResponseContainer >();
 	final private List< CommMessage > pendingGenericResponses =
-			new Vector< CommMessage >();
+			new LinkedList< CommMessage >();
 	
 	final protected ReentrantLock lock = new ReentrantLock( true );
 	final private Object responseRecvMutex = new Object();
 
 	private static class ResponseContainer
 	{
+		private ResponseContainer() {}
 		private CommMessage response = null;
 	}
 	

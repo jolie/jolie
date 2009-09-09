@@ -29,6 +29,7 @@ public class ExitProcess implements Process
 	private ExitProcess(){}
 	
 	private static class LazyHolder {
+		private LazyHolder() {}
 		static final ExitProcess instance = new ExitProcess();
 	}
 	

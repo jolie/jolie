@@ -30,6 +30,8 @@ import java.io.IOException;
  */
 public class Jolie
 {
+	private Jolie() {}
+
 	/** 
 	 * Entry point of program execution.
 	 * @param args the command line arguments

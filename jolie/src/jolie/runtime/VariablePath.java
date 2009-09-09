@@ -34,6 +34,7 @@ import jolie.util.Pair;
 public class VariablePath implements Expression, Cloneable
 {
 	public static class EmptyPathLazyHolder {
+		private EmptyPathLazyHolder() {}
 		public static final Pair< Expression, Expression >[] emptyPath = new Pair[0];
 	}
 
@@ -105,10 +106,11 @@ public class VariablePath implements Expression, Cloneable
 		
 		// Now i represents the beginning of the subpath, we can just copy it from there
 		Pair< Expression, Expression >[] subPath = new Pair[ otherVarPath.path.length - i ];
-		for( int k = 0; i < otherVarPath.path.length; i++ ) {
+		System.arraycopy( otherVarPath.path, i, subPath, 0, otherVarPath.path.length - i );
+		/*for( int k = 0; i < otherVarPath.path.length; i++ ) {
 			subPath[k] = otherVarPath.path[i];
 			k++;
-		}
+		}*/
 		
 		return _createVariablePath( subPath );
 	}
@@ -305,8 +307,7 @@ public class VariablePath implements Expression, Cloneable
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( index );
 				} else {
-					Value ret = currVector.get( index );
-					return ret;
+					return currVector.get( index );
 				}
 			}
 		}

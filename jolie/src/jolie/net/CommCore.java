@@ -186,7 +186,7 @@ public class CommCore
 		return threadGroup;
 	}
 	
-	final private Collection< Process > protocolConfigurations = new Vector< Process > ();
+	final private Collection< Process > protocolConfigurations = new LinkedList< Process > ();
 	
 	public Collection< Process > protocolConfigurations()
 	{
@@ -290,6 +290,7 @@ public class CommCore
 	
 	/**
 	 * Adds an input port to this <code>CommCore</code>.
+	 * This method is not thread-safe.
 	 * @param inputPortName the name of the input port to add
 	 * @param uri the <code>URI</code> of the input port to add
 	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for the input port

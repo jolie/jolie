@@ -30,6 +30,7 @@ public class CurrentHandlerProcess implements Process
 	private CurrentHandlerProcess(){}
 	
 	private static class LazyHolder {
+		private LazyHolder() {}
 		static final CurrentHandlerProcess instance = new CurrentHandlerProcess();
 	}
 	
