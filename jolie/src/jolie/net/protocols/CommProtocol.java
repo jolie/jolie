@@ -37,9 +37,9 @@ import jolie.runtime.VariablePath;
  * This class should not be extended directly; see {@link ConcurrentCommProtocol ConcurrentCommProtocol} and {@link SequentialCommProtocol SequentialCommProtocol} instead.
  * @author Fabrizio Montesi
  */
-abstract public class CommProtocol
+public abstract class CommProtocol
 {
-	private static class LazyDummyChannelHolder {
+	private final static class LazyDummyChannelHolder {
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends CommChannel {
 			public void closeImpl() {}
