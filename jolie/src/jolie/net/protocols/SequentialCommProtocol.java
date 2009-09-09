@@ -27,14 +27,14 @@ import jolie.runtime.VariablePath;
  * A CommProtocol that can be used sequentially for multiple communications.
  * @author Fabrizio Montesi
  */
-abstract public class SequentialCommProtocol extends CommProtocol
+public abstract class SequentialCommProtocol extends CommProtocol
 {
 	public SequentialCommProtocol( VariablePath configurationPath )
 	{
 		super( configurationPath );
 	}
 
-	final public boolean isThreadSafe()
+	public final boolean isThreadSafe()
 	{
 		return false;
 	}

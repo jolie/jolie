@@ -27,14 +27,14 @@ import jolie.runtime.VariablePath;
  * A CommProtocol that can be used concurrently for multiple communications.
  * @author Fabrizio Montesi
  */
-abstract public class ConcurrentCommProtocol extends CommProtocol
+public abstract class ConcurrentCommProtocol extends CommProtocol
 {
 	public ConcurrentCommProtocol( VariablePath configurationPath )
 	{
 		super( configurationPath );
 	}
 
-	final public boolean isThreadSafe()
+	public final boolean isThreadSafe()
 	{
 		return true;
 	}
