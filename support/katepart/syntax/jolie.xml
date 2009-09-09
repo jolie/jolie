@@ -47,6 +47,7 @@
 			<item> Location </item>
 			<item> Protocol </item>
 			<item> Interfaces </item>
+			<item> Aggregates </item>
 			<item> Redirects </item>
 		</list>
 		<contexts>
