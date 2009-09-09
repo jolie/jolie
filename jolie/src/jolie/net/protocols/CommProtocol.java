@@ -51,7 +51,7 @@ public abstract class CommProtocol
 	}
 
 
-	final private VariablePath configurationPath;
+	private final VariablePath configurationPath;
 	private CommChannel channel = null;
 
 	protected VariablePath configurationPath()
@@ -59,7 +59,7 @@ public abstract class CommProtocol
 		return configurationPath;
 	}
 
-	abstract public String name();
+	public abstract String name();
 	
 	public CommProtocol( VariablePath configurationPath )
 	{
