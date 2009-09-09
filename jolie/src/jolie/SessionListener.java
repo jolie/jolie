@@ -24,7 +24,8 @@ package jolie;
 import jolie.runtime.FaultException;
 
 /**
- *
+ * A <code>SessionListener</code> is an object listening for events generated
+ * by sessions.
  * @author Fabrizio Montesi
  */
 public interface SessionListener

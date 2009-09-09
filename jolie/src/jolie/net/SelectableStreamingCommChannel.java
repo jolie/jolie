@@ -28,6 +28,13 @@ import java.nio.channels.SelectableChannel;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
+/**
+ * This class implements the support for a selectable channel.
+ * A channel implementation based on this class must provide
+ * methods for accessing its receiving <code>InputStream</code> and
+ * <code>SelectableChannel</code>.
+ * @author Fabrizio Montesi
+ */
 abstract public class SelectableStreamingCommChannel extends StreamingCommChannel
 {
 	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
@@ -35,7 +42,16 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 		super( location, protocol );
 	}
 
+	/**
+	 * Returns the receiving <code>InputStream</code> of this channel.
+	 * @return the receiving <code>InputStream</code> of this channel
+	 */
 	abstract public InputStream inputStream();
+
+	/**
+	 * Returns the receiving <code>SelectableChannel</code> of this channel.
+	 * @return the receiving <code>SelectableChannel</code> of this channel
+	 */
 	abstract public SelectableChannel selectableChannel();
 
 	@Override
@@ -48,11 +64,9 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 			lock.lock();
 			try {
 				_send( message );
-			} catch( IOException e ) {
+			} finally {
 				lock.unlock();
-				throw e;
 			}
-			lock.unlock();
 		}
 	}
 
@@ -86,11 +100,9 @@ abstract public class SelectableStreamingCommChannel extends StreamingCommChanne
 			lock.lock();
 			try {
 				_disposeForInputImpl();
-			} catch( IOException e ) {
+			} finally {
 				lock.unlock();
-				throw e;
 			}
-			lock.unlock();
 		}
 	}
 }

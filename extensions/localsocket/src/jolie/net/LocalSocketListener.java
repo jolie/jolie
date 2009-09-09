@@ -33,6 +33,7 @@ import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
 public class LocalSocketListener extends CommListener
@@ -45,11 +46,12 @@ public class LocalSocketListener extends CommListener
 				CommProtocolFactory protocolFactory,
 				VariablePath protocolConfigurationPath,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
 
 		socketAddress = new UnixSocketAddress( location.getPath(), location.getScheme().equals( "abs" ) );
 		serverSocket = new UnixServerSocket( socketAddress );

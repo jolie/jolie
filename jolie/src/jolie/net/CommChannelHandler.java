@@ -26,6 +26,13 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.JolieThread;
 
+/**
+ * <code>CommChannelHandler</code> is a <code>JolieThread</code> used by
+ * <code>CommCore</code> to handle incoming communications.
+ * @see JolieThread
+ * @see CommCore
+ * @author fmontesi
+ */
 public class CommChannelHandler extends JolieThread
 {
 	private ExecutionThread executionThread;
@@ -34,22 +41,44 @@ public class CommChannelHandler extends JolieThread
 	{
 		super( interpreter );
 	}
-	
+
+	/**
+	 * Constructor
+	 * @param interpreter the interpreter in whose scope this <code>CommChannelHandler</code> will be used
+	 * @param r the <code>Runnable</code> to execute in this thread
+	 * @see Interpreter
+	 * @see Runnable
+	 */
 	public CommChannelHandler( Interpreter interpreter, Runnable r )
 	{
 		super( interpreter, r );
 	}
-	
+
+	/**
+	 * Returns the current <code>CommChannelHandler</code> thread.
+	 * This method must be called only if the caller is sure that the current
+	 * thread is a <code>CommChannelHandler</code>.
+	 * @return the current <code>CommChannelHandler</code> thread
+	 */
 	public static CommChannelHandler currentThread()
 	{
 		return ((CommChannelHandler)Thread.currentThread());
 	}
-	
+
+	/**
+	 * Sets the <code>ExecutionThread</code> this thread must refer to.
+	 * This is needed to refer to the right variable state when in this thread.
+	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state resolution
+	 */
 	public void setExecutionThread( ExecutionThread thread )
 	{
 		executionThread = thread;
 	}
-	
+
+	/**
+	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state resolution.
+	 * @return the <code>ExecutionThread</code> this thread is referring to for variable state resolution
+	 */
 	public ExecutionThread executionThread()
 	{
 		return executionThread;

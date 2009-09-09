@@ -78,7 +78,8 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.ByteArrayInputStream;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -438,7 +439,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			String soapString = CRLF + "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 								new String( tmpStream.toByteArray() );
 
-			String messageString = new String();
+			String messageString = "";
 			String soapAction = null;
 			
 			if ( received ) {
@@ -581,7 +582,7 @@ public class SoapProtocol extends SequentialCommProtocol
 					
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if ( schemaPaths.size() > 0 ) {
-						Vector< Source > sources = new Vector< Source >();
+						List< Source > sources = new LinkedList< Source >();
 						Value schemaPath;
 						for( int i = 0; i < schemaPaths.size(); i++ ) {
 							schemaPath = schemaPaths.get( i );
@@ -592,7 +593,7 @@ public class SoapProtocol extends SequentialCommProtocol
 						if ( !sources.isEmpty() ) {
 							Schema schema =
 								SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI ) 
-									.newSchema( (Source[])sources.toArray() );
+									.newSchema( sources.toArray( new Source[0] ) );
 							schema.newValidator().validate( new DOMSource( soapMessage.getSOAPBody().getFirstChild() ) );
 						}
 					}

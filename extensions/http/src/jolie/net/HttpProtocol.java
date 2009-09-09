@@ -60,8 +60,6 @@ import jolie.net.http.JolieGWTConverter;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.ByteArray;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -213,7 +211,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		return result;
 	}
 	
-	private String send_getCharset( CommMessage message )
+	private String send_getCharset()
 	{
 		String charset = "UTF8";
 		if ( hasParameter( "charset" ) ) {
@@ -222,7 +220,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		return charset;
 	}
 	
-	private String send_getFormat( CommMessage message )
+	private String send_getFormat()
 	{
 		String format = "xml";
 		if ( received && requestFormat != null ) {
@@ -234,7 +232,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		return format;
 	}
 	
-	private class EncodedContent {
+	private static class EncodedContent {
 		private ByteArray content = null;
 		private String contentType = null;
 	}
@@ -390,7 +388,6 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 	
 	private void send_appendGenericHeaders(
-		CommMessage message,
 		EncodedContent encodedContent,
 		String charset,
 		StringBuilder headerBuilder
@@ -440,8 +437,8 @@ public class HttpProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		String charset = send_getCharset( message );
-		String format = send_getFormat( message );
+		String charset = send_getCharset();
+		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
 		if ( received ) {
@@ -452,7 +449,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			// We're sending a notification or a solicit
 			send_appendRequestHeaders( message, headerBuilder, charset );
 		}
-		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
+		send_appendGenericHeaders( encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
 		
 		send_logDebugInfo( headerBuilder, encodedContent );
@@ -620,11 +617,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			decodedMessage.operationName = message.requestPath().split( "\\?" )[0];
 		}
 
-		InputOperation op = null;
-		try {
-			op = Interpreter.getInstance().getInputOperation( decodedMessage.operationName );
-		} catch( InvalidIdException e ) {}
-		if ( op == null || !channel().parentListener().canHandleInputOperation( op ) ) {
+		if ( !channel().parentListener().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getParameterVector( "default" ).first().strValue();
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;
@@ -648,7 +641,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 
-	private class DecodedMessage {
+	private static class DecodedMessage {
 		private String operationName = null;
 		private Value value = Value.create();
 	}

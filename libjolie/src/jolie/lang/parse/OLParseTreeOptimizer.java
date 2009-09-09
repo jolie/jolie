@@ -98,7 +98,7 @@ public class OLParseTreeOptimizer
 	 * TODO Optimize expressions and conditions
 	 *
 	 */
-	private class OptimizerVisitor implements OLVisitor
+	private static class OptimizerVisitor implements OLVisitor
 	{
 		final private Program program;
 		private OLSyntaxNode currNode;
@@ -151,6 +151,7 @@ public class OLParseTreeOptimizer
 								p.location(),
 								p.protocolId(),
 								currNode,
+								p.aggregationList(),
 								p.redirectionMap()
 						);
 				iport.operationsMap().putAll( p.operationsMap() );

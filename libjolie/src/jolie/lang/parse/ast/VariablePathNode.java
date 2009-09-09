@@ -55,13 +55,13 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		Pair< OLSyntaxNode, OLSyntaxNode > left = leftPath.path().get( leftIndex );
 		Pair< OLSyntaxNode, OLSyntaxNode > right = rightPath.path().get( rightIndex );
 
-		if ( left == null && right != null ) {
+		if ( left.value() == null && right.value() != null ) {
 			left = new Pair< OLSyntaxNode, OLSyntaxNode >(
 					left.key(),
 					new ConstantIntegerExpression( leftPath.context(), 0 )
 				);
 			leftPath.path().set( leftIndex, left );
-		} else if ( left != null && right == null ) {
+		} else if ( right.value() == null ) {
 			right = new Pair< OLSyntaxNode, OLSyntaxNode >(
 					right.key(),
 					new ConstantIntegerExpression( rightPath.context(), 0 )

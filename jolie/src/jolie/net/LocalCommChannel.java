@@ -25,7 +25,9 @@ import java.io.IOException;
 import jolie.Interpreter;
 
 /**
- * TODO: this shouldn't be polled.
+ * An in-memory channel that can be used to communicate directly with a specific <code>Interpreter</code> instance.
+ *
+ * @TODO: this shouldn't be polled.
  */
 public class LocalCommChannel extends ListCommChannel implements PollableCommChannel
 {

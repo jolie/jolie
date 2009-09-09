@@ -40,12 +40,14 @@ public class HttpScanner extends Scanner
 	{
 		state = 1;
 		
-		String tmp = new String();
-		tmp += ch;
+		StringBuilder builder = new StringBuilder();
+		builder.append( ch );
 		int i;
+		String tmp;
 		while ( currByte != -1 && isSeparator( ch ) ) {
 			readChar();
-			tmp += ch;
+			builder.append( ch );
+			tmp = builder.toString();
 			if ( (i=tmp.indexOf( '\n', 0 )) < tmp.indexOf( '\n', i + 1 ) ) {
 				return new Token( TokenType.EOF );
 			}
@@ -56,7 +58,7 @@ public class HttpScanner extends Scanner
 		
 		boolean stopOneChar = false;
 		Token retval = null;
-		String str = new String();
+		builder = new StringBuilder();
 
 		while ( currByte != -1 && retval == null ) {
 			switch( state ) {
@@ -127,27 +129,27 @@ public class HttpScanner extends Scanner
 							ch != '_' &&
 							ch != '-' &&
 							ch != '+' ) {
-						retval = new Token( TokenType.ID, str );
+						retval = new Token( TokenType.ID, builder.toString() );
 					}
 					break;	
 				case 3: // INT
 					if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.INT, str );
+						retval = new Token( TokenType.INT, builder.toString() );
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
-						retval = new Token( TokenType.STRING, str.substring( 1 ) );
+						retval = new Token( TokenType.STRING, builder.substring( 1 ) );
 						readChar();
 					} else if ( ch == '\\' ) { // Parse special characters
 						readChar();
 						if ( ch == '\\' )
-							str += '\\';
+							builder.append( '\\' );
 						else if ( ch == 'n' )
-							str += '\n';
+							builder.append( '\n' );
 						else if ( ch == 't' )
-							str += '\t';
+							builder.append( '\t' );
 						else if ( ch == '"' )
-							str += '"';
+							builder.append( '"' );
 						else
 							throw new IOException( "malformed string: bad \\ usage" );
 						
@@ -244,7 +246,7 @@ public class HttpScanner extends Scanner
 				if ( stopOneChar )
 					stopOneChar = false;
 				else {
-					str += ch;
+					builder.append( ch );
 					readChar();
 				}
 			}

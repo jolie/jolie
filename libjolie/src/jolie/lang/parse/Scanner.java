@@ -210,14 +210,14 @@ public class Scanner
 	public String readWord( boolean readChar )
 		throws IOException
 	{
-		String buffer = new String();
+		StringBuilder buffer = new StringBuilder();
 		if ( readChar )
 			readChar();
 		do {
-			buffer += ch;
+			buffer.append( ch );
 			readChar();
 		} while( !isSeparator( ch ) );
-		return buffer;
+		return buffer.toString();
 	}
 	
 	public String readLine()
@@ -635,6 +635,7 @@ public class Scanner
 						retval = new Token( TokenType.ERROR );
 					else
 						state = 20;
+					break;
 				case 20: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.REAL, builder.toString() );

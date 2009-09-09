@@ -43,10 +43,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
-		String[] args = new String[ 0 ];
-		if ( currInterpreter != null ) {
-			args = currInterpreter.args();
-		}
+		String[] args = currInterpreter.args();
 		String[] ss = servicePathSplitPattern.split( servicePath );
 		List< String > newArgs = new Vector< String >();
 		

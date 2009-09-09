@@ -30,6 +30,7 @@ import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.OutputPort;
 import jolie.net.CommListener;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
 public class RMIListenerFactory extends CommListenerFactory
@@ -45,10 +46,11 @@ public class RMIListenerFactory extends CommListenerFactory
 							CommProtocolFactory protocolFactory,
 							VariablePath protocolConfigurationPath,
 							Collection< String > operationNames,
+							Map< String, AggregatedOperation > aggregationMap,
 							Map< String, OutputPort > redirectionMap
 						)
 		throws IOException
 	{
-		return new RMIListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, redirectionMap );
+		return new RMIListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
 	}
 }

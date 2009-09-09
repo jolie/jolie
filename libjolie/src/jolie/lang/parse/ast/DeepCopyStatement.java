@@ -23,7 +23,6 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
-import jolie.util.Pair;
 
 
 public class DeepCopyStatement extends OLSyntaxNode

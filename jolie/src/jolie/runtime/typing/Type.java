@@ -44,8 +44,7 @@ public class Type
 		Range cardinality,
 		boolean undefinedSubTypes,
 		Map< String, Type > subTypes
-	)
-	{
+	) {
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
 		this.undefinedSubTypes = undefinedSubTypes;

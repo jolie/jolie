@@ -21,7 +21,6 @@
 
 package jolie.process;
 
-import java.io.IOException;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -108,7 +107,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		
 		public boolean isKillable()
 		{
-				return true;
+			return true;
 		}
 	}
 	

@@ -60,6 +60,12 @@ public class SessionThread extends ExecutionThread implements Cloneable
 			.toVariablePath();
 	}
 
+	/**
+	 * Creates and returns a default list of handlers, initialized
+	 * with default fault handlers for built-in faults like, e.g., TypeMismatch.
+	 * @param interpreter the <code>Interpreter</code> in which the returned map will be used
+	 * @return a newly created default list of handlers
+	 */
 	final static public List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter )
 	{
 		final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
@@ -120,6 +126,11 @@ public class SessionThread extends ExecutionThread implements Cloneable
 		return ret;
 	}
 
+	/**
+	 * Registers a <code>SessionListener</code> for receiving events from this
+	 * session.
+	 * @param listener the <code>SessionListener</code> to register
+	 */
 	public void addSessionListener( SessionListener listener )
 	{
 		listeners.add( listener );

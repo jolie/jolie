@@ -122,6 +122,10 @@ public class CommandLineParser
 		return( Constants.VERSION + "  " + Constants.COPYRIGHT );
 	}
 
+	/**
+	 * Returns a map containing the constants defined by command line.
+	 * @return a map containing the constants defined by command line
+	 */
 	public Map< String, Scanner.Token > definedConstants()
 	{
 		return constants;
@@ -168,6 +172,10 @@ public class CommandLineParser
 		}
 	}
 
+	/**
+	 * Returns <code>true</code> if the verbose option has been specified, false otherwise.
+	 * @return <code>true</code> if the verbose option has been specified, false otherwise
+	 */
 	public boolean verbose()
 	{
 		return verbose;

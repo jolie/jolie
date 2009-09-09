@@ -21,7 +21,10 @@
 
 package jolie.process;
 
-
+/**
+ * No-op process.
+ * @author Fabrizio Montesi
+ */
 public class NullProcess implements Process
 {
 	private NullProcess(){}

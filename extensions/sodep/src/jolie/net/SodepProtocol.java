@@ -181,9 +181,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		if ( b == 1 ) { // String
 			valueObject = readString( in );
 		} else if ( b == 2 ) { // Integer
-			valueObject = new Integer( in.readInt() );
+			valueObject = Integer.valueOf( in.readInt() );
 		} else if ( b == 3 ) { // Double
-			valueObject = new Double( in.readDouble() );
+			valueObject = Double.valueOf( in.readDouble() );
 		} else if ( b == 4 ) { // ByteArray
 			valueObject = readByteArray( in );
 		}

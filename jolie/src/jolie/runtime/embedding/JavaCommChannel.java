@@ -26,14 +26,19 @@ import java.io.IOException;
 
 import java.util.LinkedList;
 import java.util.List;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
+
+
+// TODO: this should not be polled
 
 /**
  * @author Fabrizio Montesi
  */
-public class JavaCommChannel extends CommChannel
+public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	final private JavaService javaService;
 	final private List< CommMessage > messages = new LinkedList< CommMessage >();
@@ -41,6 +46,18 @@ public class JavaCommChannel extends CommChannel
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
+	}
+
+	public boolean isReady()
+	{
+		return messages.isEmpty() == false;
+	}
+
+	@Override
+	protected void disposeForInputImpl()
+		throws IOException
+	{
+		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	protected void sendImpl( CommMessage message )

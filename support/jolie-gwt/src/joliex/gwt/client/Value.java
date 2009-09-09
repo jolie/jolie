@@ -102,7 +102,7 @@ public class Value implements Serializable, IsSerializable
 	{
 		if ( valueObject == null )
 			return 0;
-		return new Integer( valueObject );
+		return Integer.valueOf( valueObject );
 	}
 
 	public void deepCopy( Value otherValue )

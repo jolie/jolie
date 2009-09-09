@@ -128,17 +128,27 @@ public class Interpreter
 		return includePaths;
 	}
 
-	public void registerSessionSpawner( CorrelatedProcess p )
+	/**
+	 * Registers a session spawner on this <code>Interpreter</code>.
+	 * This must be done for all session spawners in order to ensure correct
+	 * execution termination.
+	 * @param process the session spawner to register
+	 */
+	public void registerSessionSpawner( CorrelatedProcess process )
 	{
 		synchronized( sessionSpawners ) {
-			sessionSpawners.add( p );
+			sessionSpawners.add( process );
 		}
 	}
-	
-	public void unregisterSessionSpawner( CorrelatedProcess p )
+
+	/**
+	 * Unregisters a session spawner.
+	 * @param process the session spawner to unregister
+	 */
+	public void unregisterSessionSpawner( CorrelatedProcess process )
 	{
 		synchronized( sessionSpawners ) {
-			sessionSpawners.remove( p );
+			sessionSpawners.remove( process );
 		}
 	}
 	
@@ -240,31 +250,67 @@ public class Interpreter
 		return ret;
 	}
 
+	/**
+	 * Registers an <code>OutputPort</code> on this interpreter.
+	 * @param key the name of the <code>OutputPort</code> to register
+	 * @param value the <code>OutputPort</code> to register
+	 */
 	public void register( String key, OutputPort value )
 	{
 		outputPorts.put( key, value );
 	}
-	
+
+	/**
+	 * Registers a defined sub-routine on this interpreter.
+	 * @param key the name of the defined sub-routine to register
+	 * @param value the defined sub-routine to register
+	 */
 	public void register( String key, DefinitionProcess value )
 	{
 		definitions.put( key, value );
 	}
-	
+
+	/**
+	 * Registers an <code>InputOperation</code> on this interpreter.
+	 * @param key the name of the <code>InputOperation</code> to register
+	 * @param value the <code>InputOperation</code> to register
+	 */
 	public void register( String key, InputOperation value )
 	{
 		inputOperations.put( key, value );
 	}
-	
+
+	/**
+	 * Registers an <code>EmbeddedServiceLoader</code> on this interpreter.
+	 * @param key the name of the <code>EmbeddedServiceLoader</code> to register
+	 * @param value the <code>EmbeddedServiceLoader</code> to register
+	 */
 	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n )
 	{
 		embeddedServiceLoaders.add( n );
 	}
-	
+
+	/**
+	 * Returns the <code>EmbeddedServiceLoader</code> instances registered on this interpreter.
+	 * @return the <code>EmbeddedServiceLoader</code> instances registered on this interpreter
+	 */
 	public Collection< EmbeddedServiceLoader > embeddedServiceLoaders()
 	{
 		return embeddedServiceLoaders;
 	}
-	
+
+	/**
+	 * Makes this <code>Interpreter</code> entering in exiting mode.
+	 * When in exiting mode, an interpreter waits for each session to finish
+	 * its execution and then terminates gracefully the execution of the entire program.
+	 * An interpreter in exiting mode cannot receive any more messages.
+	 *
+	 * Multiple calls of this method are redundant.
+	 *
+	 * The fact that the interpreter cannot receive any more messages after
+	 * entering exiting mode can cause deadlocks if a session is waiting for a
+	 * message to finish its execution. Use this method with caution.
+	 */
 	public void exit()
 	{
 		synchronized( this ) {
@@ -282,32 +328,60 @@ public class Interpreter
 			}
 		}
 	}
-	
+
+	/**
+	 * Returns <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise.
+	 * @return <code>true</code> if this interpreter is in exiting mode, <code>false</code> otherwise
+	 * @see #exit()
+	 */
 	public boolean exiting()
 	{
 		return exiting;
 	}
 
-	public void logUnhandledFault( FaultException f )
+	/**
+	 * Logs an unhandled fault using the logger of this interpreter.
+	 * This method is used by sessions that had to terminate due to a fault
+	 * which could not be handled, due to a missing fault handler.
+	 * @param fault the <code>FaultException</code> that could not be handled
+	 */
+	public void logUnhandledFault( FaultException fault )
 	{
-		logger.info( logPrefix + "Thrown unhandled fault: " + f.faultName() );
+		logger.info( logPrefix + "Thrown unhandled fault: " + fault.faultName() );
 	}
 
+	/**
+	 * Logs an information message using the logger of this interpreter.
+	 * @param message the message to log
+	 */
 	public void logInfo( String message )
 	{
 		logger.info( logPrefix + message );
 	}
 
+	/**
+	 * Logs a severe error message using the logger of this interpreter.
+	 * @param message the message to log
+	 */
 	public void logSevere( String message )
 	{
 		logger.severe( logPrefix + message );
 	}
 
+	/**
+	 * Logs a warning message using the logger of this interpreter.
+	 * @param message the message to log
+	 */
 	public void logWarning( String message )
 	{
 		logger.warning( logPrefix + message );
 	}
 
+	/**
+	 * Logs a severe error message, created by reading the stack trace of the passed
+	 * <code>Throwable</code>, using the logger of this interpreter.
+	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
+	 */
 	public void logSevere( Throwable t )
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
@@ -315,6 +389,11 @@ public class Interpreter
 		logger.severe( logPrefix + bs.toString() );
 	}
 
+	/**
+	 * Logs a warning message, created by reading the stack trace of the passed
+	 * <code>Throwable</code>, using the logger of this interpreter.
+	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
+	 */
 	public void logWarning( Throwable t )
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
@@ -341,7 +420,11 @@ public class Interpreter
 	{
 		executionMode = mode;
 	}
-	
+
+	/**
+	 * Sets the correlation set of this interpreter.
+	 * @param set the correlation set to set
+	 */
 	public void setCorrelationSet( Set< List< VariablePath > > set )
 	{
 		correlationSet.clear();
@@ -375,6 +458,10 @@ public class Interpreter
 		return classLoader;
 	}
 
+	/**
+	 * Returns <code>true</code> if this interpreter is in verbose mode.
+	 * @return <code>true</code> if this interpreter is in verbose mode
+	 */
 	public boolean verbose()
 	{
 		return verbose;
@@ -426,17 +513,32 @@ public class Interpreter
 
 		verbose = cmdParser.verbose();
 	}
-	
+
+	/**
+	 * Returns the program file this interpreter was launched with.
+	 * @return the program file this interpreter was launched with
+	 */
 	public File programFile()
 	{
 		return programFile;
 	}
-	
+
+	/**
+	 * Returns the parent class loader passed to the constructor of this interpreter.
+	 * @return the parent class loader passed to the constructor of this interpreter
+	 */
 	public ClassLoader parentClassLoader()
 	{
 		return parentClassLoader;
 	}
-	
+
+	/**
+	 * Returns the global lock registered on this interpreter with the passed identifier.
+	 * If a global lock with such identifier is not registered, a new one is
+	 * automatically created, registered and returned.
+	 * @param id the global lock identifier
+	 * @return the global lock registered on this interpreter with the specified identifier
+	 */
 	public Object getLock( String id )
 	{
 		Object l = locksMap.get( id );
@@ -467,7 +569,7 @@ public class Interpreter
 		return mainExec;
 	}
 	
-	public static class InterpreterStartFuture implements Future< Exception >
+	private static class InterpreterStartFuture implements Future< Exception >
 	{
 		final private Lock lock;
 		final private Condition initCompleted;
@@ -488,24 +590,30 @@ public class Interpreter
 		public Exception get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
-			lock.lock();
-			if ( !isDone ) {
-				if ( !initCompleted.await( timeout, unit ) ) {
-					throw new TimeoutException();
+			try {
+				lock.lock();
+				if ( !isDone ) {
+					if ( !initCompleted.await( timeout, unit ) ) {
+						throw new TimeoutException();
+					}
 				}
+			} finally {
+				lock.unlock();
 			}
-			lock.unlock();
 			return result;
 		}
 		
 		public Exception get()
 			throws InterruptedException
 		{
-			lock.lock();
-			if ( !isDone ) {
-				initCompleted.await();
+			try {
+				lock.lock();
+				if ( !isDone ) {
+					initCompleted.await();
+				}
+			} finally {
+				lock.unlock();
 			}
-			lock.unlock();
 			return result;
 		}
 		
@@ -522,13 +630,24 @@ public class Interpreter
 		private void setResult( Exception e )
 		{
 			lock.lock();
-			result = e;
-			isDone = true;
-			initCompleted.signalAll();
-			lock.unlock();
+			try {
+				result = e;
+				isDone = true;
+				initCompleted.signalAll();
+			} finally {
+				lock.unlock();
+			}
 		}
 	}
 	
+	/**
+	 * Starts this interpreter, returning a <code>Future</code> which can
+	 * be interrogated to know when the interpreter start procedure has been 
+	 * completed and the interpreter is ready to receive messages.
+	 * @return a <code>Future</code> which can
+	 *		be interrogated to know when the interpreter start procedure has been 
+	 *		completed and the interpreter is ready to receive messages.
+	 */
 	public Future< Exception > start()
 	{
 		InterpreterStartFuture f = new InterpreterStartFuture();
@@ -641,8 +760,8 @@ public class Interpreter
 
 		private void free()
 		{
-			/* We help the Garbage Collector
-			 * looks like it needs this or the Interpreter
+			/* We help the Java(tm) Garbage Collector.
+			 * Looks like it needs this or the Interpreter
 			 * does not get collected.
 			 */
 			definitions.clear();
@@ -658,7 +777,7 @@ public class Interpreter
 			embeddedServiceLoaders.clear();
 			classLoader = null;
 			commCore = null;
-			System.gc();
+			//System.gc();
 		}
 	}
 	

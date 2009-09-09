@@ -21,6 +21,7 @@
 package jolie.lang.parse.ast;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import jolie.lang.parse.OLVisitor;
@@ -32,6 +33,7 @@ public class InputPortInfo extends PortInfo
 	final private URI location;
 	final private String protocolId;
 	final private OLSyntaxNode protocolConfiguration;
+	final private String[] aggregationList;
 	final private Map< String, String > redirectionMap;
 
 	public InputPortInfo(
@@ -40,17 +42,24 @@ public class InputPortInfo extends PortInfo
 		URI location,
 		String protocolId,
 		OLSyntaxNode protocolConfiguration,
-		Map< String, String > redirectionMap )
-	{
+		String[] aggregationList,
+		Map< String, String > redirectionMap
+	) {
 		super( context, id );
 		this.id = id;
 		this.location = location;
 		this.protocolId = protocolId;
 		this.protocolConfiguration = protocolConfiguration;
+		this.aggregationList = aggregationList;
 		this.redirectionMap = redirectionMap;
 	}
 
-	public Map<String, String> redirectionMap()
+	public String[] aggregationList()
+	{
+		return aggregationList;
+	}
+
+	public Map< String, String > redirectionMap()
 	{
 		return redirectionMap;
 	}

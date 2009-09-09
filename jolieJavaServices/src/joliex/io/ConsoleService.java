@@ -75,7 +75,7 @@ public class ConsoleService extends JavaService
 	{
 		consoleInputThread = new ConsoleInputThread();
 		consoleInputThread.start();
-		return CommMessage.createEmptyMessage();
+		return CommMessage.createEmptyResponse( message );
 	}
 	
 	@Override

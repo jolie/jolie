@@ -143,6 +143,7 @@ import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
+import jolie.runtime.AggregatedOperation;
 import jolie.runtime.AndCondition;
 import jolie.runtime.CastIntExpression;
 import jolie.runtime.CastRealExpression;
@@ -344,6 +345,26 @@ public class OOITBuilder implements OLVisitor
 			n.protocolConfiguration().accept( this );
 		}
 
+		OutputPort outputPort;
+		Map< String, Type > outputPortNotificationTypes;
+		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
+		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
+		for( String outputPortName : n.aggregationList() ) {
+			try {
+				outputPort = interpreter.getOutputPort( outputPortName );
+				outputPortNotificationTypes = notificationTypes.get( outputPortName );
+				outputPortSolicitResponseTypes = solicitResponseTypes.get( outputPortName );
+				for( String operationName : outputPortNotificationTypes.keySet() ) {
+					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.ONE_WAY, outputPort ) );
+				}
+				for( String operationName : outputPortSolicitResponseTypes.keySet() ) {
+					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.REQUEST_RESPONSE, outputPort ) );
+				}
+			} catch( InvalidIdException e ) {
+				error( n.context(), e );
+			}
+		}
+
 		if ( protocolFactory != null ) {
 			try {
 				interpreter.commCore().addInputPort(
@@ -352,7 +373,8 @@ public class OOITBuilder implements OLVisitor
 					protocolFactory,
 					protocolConfigurationPath,
 					currProcess,
-					n.operationsMap().keySet(),
+					new HashSet< String >( n.operationsMap().keySet() ),
+					aggregationMap,
 					redirectionMap
 				);
 			} catch( IOException ioe ) {
@@ -436,9 +458,7 @@ public class OOITBuilder implements OLVisitor
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
 			}
 		} else {
-			if ( decl.requestType() != null ) {
-				notificationTypes.get( currentOutputPort ).put( decl.id(), buildType( decl.requestType() ) );
-			}
+			notificationTypes.get( currentOutputPort ).put( decl.id(), buildType( decl.requestType() ) );
 		}
 		insideOperationDeclaration = backup;
 	}
@@ -458,8 +478,8 @@ public class OOITBuilder implements OLVisitor
 					decl.id(),
 					new RequestResponseOperation(
 						decl.id(),
-						( decl.requestType() == null ) ? null : types.get( decl.requestType().id() ),
-						( decl.responseType() == null ) ? null : types.get( decl.responseType().id() ),
+						types.get( decl.requestType().id() ),
+						types.get( decl.responseType().id() ),
 						faults
 					)
 				);
@@ -520,12 +540,13 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( ParallelStatement n )
 	{
-		ParallelProcess proc = new ParallelProcess();
+		Process[] children = new Process[ n.children().size() ];
+		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
-			proc.addChild( currProcess );
+			children[ i++ ] = currProcess;
 		}
-		currProcess = proc;
+		currProcess = new ParallelProcess( children );
 	}
 	
 	public void visit( SynchronizedStatement n )
