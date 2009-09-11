@@ -110,7 +110,7 @@ public class OutputPort extends AbstractIdentifiableObject
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
 		}
 		children.add( protocolConfigurationProcess );
-		this.configurationProcess = new SequentialProcess( children.toArray( new Process[0] ) );
+		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}
 
 	/**

@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -65,16 +64,16 @@ import jolie.runtime.VariablePath;
  */
 public class CommCore
 {
-	final private Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
+	private final Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
 
-	final private ThreadGroup threadGroup;
+	private final ThreadGroup threadGroup;
 
-	final private Logger logger = Logger.getLogger( "JOLIE" );
+	private final Logger logger = Logger.getLogger( "JOLIE" );
 
-	final private int connectionsLimit;
-	final private Interpreter interpreter;
+	private final int connectionsLimit;
+	private final Interpreter interpreter;
 
-	final private Map< URI, Map< String, CommChannel > > persistentChannels =
+	private final Map< URI, Map< String, CommChannel > > persistentChannels =
 			new HashMap< URI, Map< String, CommChannel > >();
 
 	public CommChannel getPersistentChannel( URI location, String protocol )
@@ -555,9 +554,9 @@ public class CommCore
 	}
 	
 	private class PollingThread extends Thread {
-		final private Set< CommChannel > channels = new HashSet< CommChannel >();
+		private final Set< CommChannel > channels = new HashSet< CommChannel >();
 
-		public PollingThread()
+		private PollingThread()
 		{
 			super( threadGroup, interpreter.programFile().getName() + "-PollingThread" );
 		}
