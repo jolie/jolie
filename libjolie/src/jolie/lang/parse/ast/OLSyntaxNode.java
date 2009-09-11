@@ -22,12 +22,15 @@
 package jolie.lang.parse.ast;
 
 import java.io.Serializable;
+import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
-abstract public class OLSyntaxNode implements Serializable
+public abstract class OLSyntaxNode implements Serializable
 {
-	final private ParsingContext context;
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	
+	private final ParsingContext context;
 	
 	public OLSyntaxNode( ParsingContext context )
 	{

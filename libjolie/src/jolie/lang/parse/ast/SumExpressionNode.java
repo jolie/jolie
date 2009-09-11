@@ -22,8 +22,9 @@
 package jolie.lang.parse.ast;
 
 import java.util.Collection;
-import java.util.Vector;
 
+import java.util.LinkedList;
+import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
@@ -33,12 +34,12 @@ import jolie.util.Pair;
 
 public class SumExpressionNode extends OLSyntaxNode
 {
-	final private Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
 	public SumExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new Vector< Pair< Constants.OperandType, OLSyntaxNode > >();
+		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
 	}
 	
 	public void add( OLSyntaxNode expression )

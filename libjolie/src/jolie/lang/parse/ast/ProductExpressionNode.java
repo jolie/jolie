@@ -22,8 +22,8 @@
 package jolie.lang.parse.ast;
 
 import java.util.Collection;
-import java.util.Vector;
 
+import java.util.LinkedList;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
@@ -38,7 +38,7 @@ public class ProductExpressionNode extends OLSyntaxNode
 	public ProductExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new Vector< Pair< Constants.OperandType, OLSyntaxNode > >();
+		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
 	}
 	
 	public void multiply( OLSyntaxNode expression )

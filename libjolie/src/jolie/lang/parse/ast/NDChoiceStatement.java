@@ -21,8 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
@@ -32,12 +32,12 @@ import jolie.util.Pair;
 
 public class NDChoiceStatement extends OLSyntaxNode
 {
-	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
+	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > children;
 
 	public NDChoiceStatement( ParsingContext context )
 	{
 		super( context );
-		children = new Vector< Pair< OLSyntaxNode, OLSyntaxNode > >();
+		children = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
 	}
 	
 	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children()

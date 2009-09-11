@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -405,7 +406,7 @@ public class OLParser extends AbstractParser
 			Set<List<VariablePathNode>> cset = new HashSet<List<VariablePathNode>>();
 			List<VariablePathNode> list;
 			while ( token.is( Scanner.TokenType.ID ) ) {
-				list = new Vector<VariablePathNode>();
+				list = new LinkedList<VariablePathNode>();
 				varId = token.content();
 				getToken();
 				list.add( parseVariablePath( varId ) );
@@ -697,7 +698,7 @@ public class OLParser extends AbstractParser
 		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
-		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[0] ), redirectionMap );
+		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[ aggregationList.size() ] ), redirectionMap );
 		iface.copyTo( iport );
 		program.addChild( iport );
 	}
@@ -1037,14 +1038,14 @@ public class OLParser extends AbstractParser
 
 		return stm;
 	}
-	private Vector<Vector<Scanner.Token>> inVariablePaths = new Vector<Vector<Scanner.Token>>();
+	private List< List< Scanner.Token > > inVariablePaths = new LinkedList< List< Scanner.Token > >();
 
 	private OLSyntaxNode parseInVariablePathProcess(
 		boolean withConstruct )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode ret = null;
-		Vector<Scanner.Token> tokens = new Vector<Scanner.Token>();
+		List< Scanner.Token > tokens = new LinkedList< Scanner.Token >();
 
 		if ( withConstruct ) {
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1412,11 +1413,11 @@ public class OLParser extends AbstractParser
 	{
 		boolean backup = insideInstallFunction;
 		insideInstallFunction = true;
-		Vector< Pair< String, OLSyntaxNode > > vec =
-			new Vector< Pair< String, OLSyntaxNode > >();
+		List< Pair< String, OLSyntaxNode > > vec =
+			new LinkedList< Pair< String, OLSyntaxNode > >();
 
 		boolean keepRun = true;
-		Vector< String > names = new Vector< String >();
+		List< String > names = new LinkedList< String >();
 		OLSyntaxNode handler;
 		while( keepRun ) {
 			do {
@@ -1444,7 +1445,7 @@ public class OLParser extends AbstractParser
 		}
 
 		insideInstallFunction = backup;
-		return new InstallFunctionNode( vec.toArray( new Pair[]{} ) );
+		return new InstallFunctionNode( vec.toArray( new Pair[ vec.size() ] ) );
 	}
 
 	private OLSyntaxNode parseAssignOrDeepCopyOrPointerStatement( VariablePathNode path )
@@ -1548,17 +1549,16 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		int i = inVariablePaths.size() - 1;
-		Vector<Scanner.Token> tokens = new Vector<Scanner.Token>();
+		List< Scanner.Token > tokens = new ArrayList< Scanner.Token >();
 		tokens.addAll( inVariablePaths.get( i ) );
 
-		while ( tokens.firstElement().is( Scanner.TokenType.DOT ) ) {
+		while ( tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
 			i--;
 			tokens.addAll( 0, inVariablePaths.get( i ) );
 		}
 
 		addTokens( tokens );
-		addTokens(
-			Arrays.asList( new Scanner.Token( Scanner.TokenType.DOT ) ) );
+		addTokens( Arrays.asList( new Scanner.Token( Scanner.TokenType.DOT ) ) );
 		getToken();
 
 		String varId = token.content();
