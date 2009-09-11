@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Scanner implementation of the JOLIE language.
+ * Scanner implementation for the JOLIE language parser.
  * 
  * @author Fabrizio Montesi
  *
@@ -123,33 +123,56 @@ public class Scanner
 	 * @version 1.0
 	 *
 	 */
-	static public class Token
+	public static class Token
 	{
-		final private TokenType type;
-		final private String content;
-		
+		private final TokenType type;
+		private final String content;
+
+		/**
+		 * Constructor. The content of the token will be set to "".
+		 * @param type the type of this token
+		 */
 		public Token( TokenType type )
 		{
 			this.type = type;
 			content = "";
 		}
-		
+
+		/**
+		 * Constructor.
+		 * @param type the type of this token
+		 * @param content the content of this token
+		 */
 		public Token( TokenType type, String content )
 		{
 			this.type = type;
 			this.content = content;
 		}
-		
+
+		/**
+		 * Returns the content of this token.
+		 * @return the content of this token
+		 */
 		public String content()
 		{
 			return content;
 		}
-		
+
+		/**
+		 * Returns the type of this token.
+		 * @return the type of this token
+		 */
 		public TokenType type()
 		{
 			return type;
 		}
 
+		/**
+		 * Returns <code>true</code> if this token can be considered as a valid
+		 * value for a constant, <code>false</code> otherwise.
+		 * @return <code>true</code> if this token can be considered as a valid
+		 * value for a constant, <code>false</code> otherwise
+		 */
 		public boolean isValidConstant()
 		{
 			return	type == TokenType.STRING ||
@@ -158,26 +181,53 @@ public class Scanner
 					type == TokenType.REAL;
 		}
 
+		/**
+		 * Equivalent to <code>is(TokenType.EOF)</code>
+		 * @return <code>true</code> if this token has type <code>TokenType.EOF</code>, false otherwise
+		 */
 		public boolean isEOF()
 		{
 			return ( type == TokenType.EOF );
 		}
-		
+
+		/**
+		 * Returns <code>true</code> if this token has the passed type, <code>false</code> otherwise.
+		 * @param compareType the type to compare the type of this token with
+		 * @return <code>true</code> if this token has the passed type, <code>false</code> otherwise
+		 */
 		public boolean is( TokenType compareType )
 		{
 			return ( type == compareType );
 		}
-		
+
+		/**
+		 * Returns <code>true</code> if this token has a different type from the passed one, <code>false</code> otherwise.
+		 * @param compareType the type to compare the type of this token with
+		 * @return <code>true</code> if this token has a different type from the passed one, <code>false</code> otherwise
+		 */
 		public boolean isNot( TokenType compareType )
 		{
 			return ( type != compareType );
 		}
-		
+
+		/**
+		 * Returns <code>true</code> if this token has type <code>TokenType.ID</code>
+		 * and its content is equal to the passed parameter, <code>false</code> otherwise.
+		 * @param keyword the keyword to check the content of this token against
+		 * @return <code>true</code> if this token has type <code>TokenType.ID</code>
+		 * and its content is equal to the passed parameter, <code>false</code> otherwise
+		 */
 		public boolean isKeyword( String keyword )
 		{
 			return( type == TokenType.ID && content.equals( keyword ) ); 
 		}
-		
+
+		/**
+		 * This method behaves as {@link #isKeyword(java.lang.String) isKeyword}, except that
+		 * it is case insensitive.
+		 * @param keyword the keyword to check the content of this token against
+		 * @return
+		 */
 		public boolean isKeywordIgnoreCase( String keyword )
 		{
 			return( type == TokenType.ID && content.equalsIgnoreCase( keyword ) );
@@ -185,13 +235,19 @@ public class Scanner
 	}
 	
 
-	final private InputStream stream;				// input stream
+	private final InputStream stream;				// input stream
 	protected char ch;						// current character
 	protected int currByte;
 	protected int state;					// current state
 	private int line;						// current line
-	final private String sourceName;				// source name
-	
+	private final String sourceName;				// source name
+
+	/**
+	 * Constructor
+	 * @param stream the <code>InputStream</code> to use for input reading
+	 * @param sourceName an arbitrary name
+	 * @throws java.io.IOException if the input reading initialization fails
+	 */
 	public Scanner( InputStream stream, String sourceName )
 		throws IOException
 	{
@@ -200,7 +256,7 @@ public class Scanner
 		line = 1;
 		readChar();
 	}
-	
+
 	public String readWord()
 		throws IOException
 	{
@@ -211,8 +267,10 @@ public class Scanner
 		throws IOException
 	{
 		StringBuilder buffer = new StringBuilder();
-		if ( readChar )
+		if ( readChar ) {
 			readChar();
+		}
+
 		do {
 			buffer.append( ch );
 			readChar();
@@ -324,65 +382,66 @@ public class Scanner
 				 */
 
 				case 1:	// First character
-					if ( Character.isLetter( ch ) || ch == '_' )
+					if ( Character.isLetter( ch ) || ch == '_' ) {
 						state = 2;
-					else if ( Character.isDigit( ch ) )
+					} else if ( Character.isDigit( ch ) ) {
 						state = 3;
-					else if ( ch == '"' )
+					} else if ( ch == '"' ) {
 						state = 4;
-					else if ( ch == '+' )
+					} else if ( ch == '+' ) {
 						state = 5;
-					else if ( ch == '=' )
+					} else if ( ch == '=' ) {
 						state = 6;
-					else if ( ch == '|' )
+					} else if ( ch == '|' ) {
 						state = 7;
-					else if ( ch == '&' )
+					} else if ( ch == '&' ) {
 						state = 8;
-					else if ( ch == '<' )
+					} else if ( ch == '<' ) {
 						state = 9;
-					else if ( ch == '>' )
+					} else if ( ch == '>' ) {
 						state = 10;
-					else if ( ch == '!' )
+					} else if ( ch == '!' ) {
 						state = 11;
-					else if ( ch == '/' )
+					} else if ( ch == '/' ) {
 						state = 12;
-					else if ( ch == '-' )
+					} else if ( ch == '-' ) {
 						state = 14;
-					else if ( ch == '.') // DOT or REAL
+					} else if ( ch == '.') { // DOT or REAL
 						state = 16;
-					else {	// ONE CHARACTER TOKEN
-						if ( ch == '(' )							
+					} else {	// ONE CHARACTER TOKEN
+						if ( ch == '(' ) {
 							retval = new Token( TokenType.LPAREN );
-						else if ( ch == ')' )
+						} else if ( ch == ')' ) {
 							retval = new Token( TokenType.RPAREN );
-						else if ( ch == '[' )
+						} else if ( ch == '[' ) {
 							retval = new Token( TokenType.LSQUARE );
-						else if ( ch == ']' )
+						} else if ( ch == ']' ) {
 							retval = new Token( TokenType.RSQUARE );
-						else if ( ch == '{' )
+						} else if ( ch == '{' ) {
 							retval = new Token( TokenType.LCURLY );
-						else if ( ch == '}' )
+						} else if ( ch == '}' ) {
 							retval = new Token( TokenType.RCURLY );
-						else if ( ch == '*' )
+						} else if ( ch == '*' ) {
 							retval = new Token( TokenType.ASTERISK );
-						else if ( ch == '@' )
+						} else if ( ch == '@' ) {
 							retval = new Token( TokenType.AT );
-						else if ( ch == ':' )
+						} else if ( ch == ':' ) {
 							retval = new Token( TokenType.COLON );
-						else if ( ch == ',' )
+						} else if ( ch == ',' ) {
 							retval = new Token( TokenType.COMMA );
-						else if ( ch == ';' )
+						} else if ( ch == ';' ) {
 							retval = new Token( TokenType.SEQUENCE );
 						//else if ( ch == '.' )
 							//retval = new Token( TokenType.DOT );
-						else if ( ch == '#' )
+						} else if ( ch == '#' ) {
 							retval = new Token( TokenType.HASH );
-						else if ( ch == '^' )
+						} else if ( ch == '^' ) {
 							retval = new Token( TokenType.CARET );
-						else if ( ch == '%' )
+						} else if ( ch == '%' ) {
 							retval = new Token( TokenType.PERCENT_SIGN );
-						else if ( ch == '?' )
+						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
+						}
 						/*else if ( ch == '$' )
 							retval = new Token( TokenType.DOLLAR );*/
 						
@@ -393,100 +452,102 @@ public class Scanner
 				case 2:	// ID
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
 						String str = builder.toString();
-						if ( "OneWay".equals( str ) )
+						if ( "OneWay".equals( str ) ) {
 							retval = new Token( TokenType.OP_OW );
-						else if ( "RequestResponse".equals( str ) )
+						} else if ( "RequestResponse".equals( str ) ) {
 							retval = new Token( TokenType.OP_RR );
-						else if ( "linkIn".equals( str ) )
+						} else if ( "linkIn".equals( str ) ) {
 							retval = new Token( TokenType.LINKIN );
-						else if ( "linkOut".equals( str ) )
+						} else if ( "linkOut".equals( str ) ) {
 							retval = new Token( TokenType.LINKOUT );
-						else if ( "if".equals( str ) )
+						} else if ( "if".equals( str ) ) {
 							retval = new Token( TokenType.IF );
-						else if ( "else".equals( str ) )
+						} else if ( "else".equals( str ) ) {
 							retval = new Token( TokenType.ELSE );
-						else if ( "and".equals( str ) )
+						} else if ( "and".equals( str ) ) {
 							retval = new Token( TokenType.AND );
-						else if ( "or".equals( str ) )
+						} else if ( "or".equals( str ) ) {
 							retval = new Token( TokenType.OR );
-						else if ( "include".equals( str ) )
+						} else if ( "include".equals( str ) ) {
 							retval = new Token( TokenType.INCLUDE );
-						else if ( "define".equals( str ) )
+						} else if ( "define".equals( str ) ) {
 							retval = new Token( TokenType.DEFINE );
-						else if ( "nullProcess".equals( str ) )
+						} else if ( "nullProcess".equals( str ) ) {
 							retval = new Token( TokenType.NULL_PROCESS );
-						else if ( "while".equals( str ) )
+						} else if ( "while".equals( str ) ) {
 							retval = new Token( TokenType.WHILE );
-						else if ( "single".equals( str ) )
+						} else if ( "single".equals( str ) ) {
 							retval = new Token( TokenType.SINGLE );
-						else if ( "concurrent".equals( str ) )
+						} else if ( "concurrent".equals( str ) ) {
 							retval = new Token( TokenType.CONCURRENT );
-						else if ( "sequential".equals( str ) )
+						} else if ( "sequential".equals( str ) ) {
 							retval = new Token( TokenType.SEQUENTIAL );
-						else if ( "execution".equals( str ) )
+						} else if ( "execution".equals( str ) ) {
 							retval = new Token( TokenType.EXECUTION );
-						else if ( "install".equals( str ) )
+						} else if ( "install".equals( str ) ) {
 							retval = new Token( TokenType.INSTALL );
-						else if ( "this".equals( str ) )
+						} else if ( "this".equals( str ) ) {
 							retval = new Token( TokenType.THIS );
-						else if ( "synchronized".equals( str ) )
+						} else if ( "synchronized".equals( str ) ) {
 							retval = new Token( TokenType.SYNCHRONIZED );
-						else if ( "throw".equals( str ) )
+						} else if ( "throw".equals( str ) ) {
 							retval = new Token( TokenType.THROW );
-						else if ( "scope".equals( str ) )
+						} else if ( "scope".equals( str ) ) {
 							retval = new Token( TokenType.SCOPE );
-						else if ( "spawn".equals( str ) )
+						} else if ( "spawn".equals( str ) ) {
 							retval = new Token( TokenType.SPAWN );
-						else if ( "comp".equals( str ) )
+						} else if ( "comp".equals( str ) ) {
 							retval = new Token( TokenType.COMPENSATE );
-						else if ( "exit".equals( str ) )
+						} else if ( "exit".equals( str ) ) {
 							retval = new Token( TokenType.EXIT );
-						else if ( "constants".equals( str ) )
+						} else if ( "constants".equals( str ) ) {
 							retval = new Token( TokenType.CONSTANTS );
-						else if ( "run".equals( str ) )
+						} else if ( "run".equals( str ) ) {
 							retval = new Token( TokenType.RUN );
-						else if ( "undef".equals( str ) )
+						} else if ( "undef".equals( str ) ) {
 							retval = new Token( TokenType.UNDEF );
-						else if ( "for".equals( str ) )
+						} else if ( "for".equals( str ) ) {
 							retval = new Token( TokenType.FOR );
-						else if ( "foreach".equals( str ) )
+						} else if ( "foreach".equals( str ) ) {
 							retval = new Token( TokenType.FOREACH );
-						else if ( "is_defined".equals( str ) )
+						} else if ( "is_defined".equals( str ) ) {
 							retval = new Token( TokenType.IS_DEFINED );
-						else if ( "is_string".equals( str ) )
+						} else if ( "is_string".equals( str ) ) {
 							retval = new Token( TokenType.IS_STRING );
-						else if ( "is_int".equals( str ) )
+						} else if ( "is_int".equals( str ) ) {
 							retval = new Token( TokenType.IS_INT );
-						else if ( "is_double".equals( str ) )
+						} else if ( "is_double".equals( str ) ) {
 							retval = new Token( TokenType.IS_REAL );
-						else if ( "int".equals( str ) )
+						} else if ( "int".equals( str ) ) {
 							retval = new Token( TokenType.CAST_INT, str );
-						else if ( "string".equals( str ) )
+						} else if ( "string".equals( str ) ) {
 							retval = new Token( TokenType.CAST_STRING, str );
-						else if ( "double".equals( str ) )
+						} else if ( "double".equals( str ) ) {
 							retval = new Token( TokenType.CAST_REAL, str );
-						else if ( "throws".equals( str ) )
+						} else if ( "throws".equals( str ) ) {
 							retval = new Token( TokenType.THROWS );
-						else if ( "cH".equals( str ) )
+						} else if ( "cH".equals( str ) ) {
 							retval = new Token( TokenType.CURRENT_HANDLER );
-						else if ( "init".equals( str ) )
+						} else if ( "init".equals( str ) ) {
 							retval = new Token( TokenType.INIT );
-						else if ( "with".equals( str ) )
+						} else if ( "with".equals( str ) ) {
 							retval = new Token( TokenType.WITH );
-						else
+						} else {
 							retval = new Token( TokenType.ID, str );
+						}
 					}
 					break;	
 				case 3: // INT
 					if ( ch == 'e'|| ch == 'E' ){
 						state = 19;
-					} else if ( !Character.isDigit( ch ) && ch != '.' )
+					} else if ( !Character.isDigit( ch ) && ch != '.' ) {
 						retval = new Token( TokenType.INT, builder.toString() );
-					else if ( ch == '.' ){
+					} else if ( ch == '.' ) {
 						builder.append( ch );
 						readChar();
-						if ( !Character.isDigit( ch ) ) 
+						if ( !Character.isDigit( ch ) ) {
 							retval =  new Token( TokenType.ERROR, builder.toString() );
+						}
 						else state = 17; // recognized a REAL
 					}
 					break;

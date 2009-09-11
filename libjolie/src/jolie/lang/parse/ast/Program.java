@@ -21,8 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
@@ -30,7 +30,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class Program extends OLSyntaxNode
 {
-	final private List< OLSyntaxNode > children = new Vector< OLSyntaxNode > ();
+	private final List< OLSyntaxNode > children = new LinkedList< OLSyntaxNode > ();
 	
 	public Program( ParsingContext context )
 	{

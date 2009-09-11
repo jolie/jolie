@@ -30,11 +30,21 @@ import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
 import jolie.util.Range;
 
+/**
+ * Representation for a type definition.
+ * @author Fabrizio Montesi
+ */
 abstract public class TypeDefinition extends OLSyntaxNode
 {
-	final private String id;
-	final private Range cardinality;
+	private final String id;
+	private final Range cardinality;
 
+	/**
+	 * Constructor
+	 * @param context the parsing context for this AST node
+	 * @param id the name identifier for this type definition
+	 * @param cardinality the cardinality of this type
+	 */
 	public TypeDefinition( ParsingContext context, String id, Range cardinality )
 	{
 		super( context );
@@ -52,52 +62,70 @@ abstract public class TypeDefinition extends OLSyntaxNode
 		return cardinality;
 	}
 
-	/**
-	 * Checks if this TypeDeclaration is equivalent to otherType.
-	 * @author Fabrizio Montesi
-	 */
-	public boolean equals( TypeDefinition otherType )
+	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right )
 	{
-		if ( otherType == null ) {
+		if ( left.nativeType() != right.nativeType() ) {
 			return false;
 		}
 
-		if ( nativeType() != otherType.nativeType() ) {
+		if ( left.cardinality.equals( right.cardinality ) == false ) {
 			return false;
 		}
 
-		if ( cardinality.equals( otherType.cardinality ) == false ) {
-			return false;
-		}
-
-		if ( untypedSubTypes() ) {
-			return otherType.untypedSubTypes();
+		if ( left.untypedSubTypes() ) {
+			return right.untypedSubTypes();
 		} else {
-			if ( otherType.untypedSubTypes() ) {
+			if ( right.untypedSubTypes() ) {
 				return false;
 			}
-			if ( hasSubTypes() ) {
-				if ( subTypes().size() != otherType.subTypes().size() ) {
+			if ( left.hasSubTypes() ) {
+				if ( left.subTypes().size() != right.subTypes().size() ) {
 					return false;
 				}
 
-				for( Entry< String, TypeDefinition > entry : subTypes() ) {
-					if ( entry.getValue().equals( otherType.getSubType( entry.getKey() ) ) == false ) {
+				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
+					if ( entry.getValue().equals( right.getSubType( entry.getKey() ) ) == false ) {
 						return false;
 					}
 				}
 			} else {
-				return otherType.hasSubTypes() == false;
+				return right.hasSubTypes() == false;
 			}
 		}
 
 		return true;
 	}
 
-	abstract public TypeDefinition getSubType( String id );
-	abstract public Set< Map.Entry< String, TypeDefinition > > subTypes();
-	abstract public boolean hasSubTypes();
-	abstract public boolean untypedSubTypes();
-	abstract public NativeType nativeType();
-	abstract public boolean hasSubType( String id );
+	/**
+	 * Checks if this TypeDeclaration is equivalent to otherType.
+	 * @author Fabrizio Montesi
+	 */
+	@Override
+	public boolean equals( Object other )
+	{
+		if ( this == other ) {
+			return true;
+		}
+
+		if ( other instanceof TypeDefinition ) {
+			return checkTypeEqualness( this, (TypeDefinition)other );
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int hash = 7;
+		hash = 31 * hash + this.id.hashCode();
+		hash = 31 * hash + this.cardinality.hashCode();
+		return hash;
+	}
+
+	public abstract TypeDefinition getSubType( String id );
+	public abstract Set< Map.Entry< String, TypeDefinition > > subTypes();
+	public abstract boolean hasSubTypes();
+	public abstract boolean untypedSubTypes();
+	public abstract NativeType nativeType();
+	public abstract boolean hasSubType( String id );
 }

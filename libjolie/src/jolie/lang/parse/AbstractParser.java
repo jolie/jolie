@@ -23,7 +23,8 @@ package jolie.lang.parse;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /** Skeleton implementation of a JOLIE Scanner based parser.
@@ -35,7 +36,7 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
-	final private Vector< Scanner.Token > tokens = new Vector< Scanner.Token > ();
+	private final List< Scanner.Token > tokens = new LinkedList< Scanner.Token > ();
 	
 	/** Constructor
 	 * 
@@ -58,10 +59,11 @@ public abstract class AbstractParser
 	protected void getToken()
 		throws IOException
 	{
-		if ( tokens.size() > 0 )
+		if ( tokens.size() > 0 ) {
 			token = tokens.remove( 0 );
-		else
+		} else {
 			token = scanner.getToken();
+		}
 	}
 	
 	/**
@@ -106,8 +108,9 @@ public abstract class AbstractParser
 		throws ParserException, IOException
 	{
 		assertToken( Scanner.TokenType.ID, errorMessage );
-		if ( !token.content().equals( keyword ) )
+		if ( !token.content().equals( keyword ) ) {
 			throwException( errorMessage );
+		}
 		getToken();
 	}
 	
@@ -133,8 +136,9 @@ public abstract class AbstractParser
 		throws ParserException
 	{
 		String m = mesg + ". Found token type " + token.type().toString();
-		if ( !token.content().equals( "" ) )
+		if ( !token.content().equals( "" ) ) {
 			m += ", token content " + token.content();
+		}
 
 		throw new ParserException( scanner.sourceName(), scanner.line(), m );
 	}

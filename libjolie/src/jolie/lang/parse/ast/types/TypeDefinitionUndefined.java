@@ -31,7 +31,8 @@ import jolie.lang.parse.ParsingContext;
  */
 public class TypeDefinitionUndefined extends TypeInlineDefinition
 {
-	static private class LazyHolder {
+	private static class LazyHolder {
+		private LazyHolder() {}
 		private static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
 	}
 

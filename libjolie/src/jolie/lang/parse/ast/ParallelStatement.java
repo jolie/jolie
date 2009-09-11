@@ -21,8 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
@@ -31,12 +31,12 @@ import jolie.lang.parse.ParsingContext;
 
 public class ParallelStatement extends OLSyntaxNode
 {
-	final private List< OLSyntaxNode > children;
+	private final List< OLSyntaxNode > children;
 
 	public ParallelStatement( ParsingContext context )
 	{
 		super( context );
-		children = new Vector< OLSyntaxNode >();
+		children = new LinkedList< OLSyntaxNode >();
 	}
 	
 	public List< OLSyntaxNode > children()

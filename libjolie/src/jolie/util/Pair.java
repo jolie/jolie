@@ -23,10 +23,18 @@ package jolie.util;
 
 import java.io.Serializable;
 
+/**
+ * A convenience class for expressing a pair of objects.
+ * @author Fabrizio Montesi
+ * @param <K> The type of the first element in the pair
+ * @param <V> The type of the second element in the pair
+ */
 public class Pair< K, V > implements Serializable
 {
-	final private K key;
-	final private V value;
+	public final static long serialVersionUID = jolie.lang.Constants.serialVersionUID();
+
+	private final K key;
+	private final V value;
 	
 	public Pair( K key, V value )
 	{
@@ -34,18 +42,13 @@ public class Pair< K, V > implements Serializable
 		this.value = value;
 	}
 	
-	public K key()
+	public final K key()
 	{
 		return key;
 	}
 	
-	public V value()
+	public final V value()
 	{
 		return value;
 	}
-	
-	/*public boolean equals( Pair< K, V > pair )
-	{
-		return ( pair.key().equals( key ) && pair.value().equals( value ) );
-	}*/
 }

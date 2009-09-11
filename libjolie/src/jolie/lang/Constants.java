@@ -27,11 +27,13 @@ import jolie.util.Range;
 
 public final class Constants
 {
-	static public class Manifest
+	private Constants() {}
+	
+	public interface Manifest
 	{
-		final public static String ChannelExtension = "X-JOLIE-ChannelExtension";
-		final public static String ListenerExtension = "X-JOLIE-ListenerExtension";
-		final public static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
+		public final static String ChannelExtension = "X-JOLIE-ChannelExtension";
+		public final static String ListenerExtension = "X-JOLIE-ListenerExtension";
+		public final static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
 	}
 
 	static public enum Predefined
@@ -72,18 +74,18 @@ public final class Constants
 			this.token = new Scanner.Token( Scanner.TokenType.REAL, content.toString() );
 		}
 
-		public String id()
+		public final String id()
 		{
 			return id;
 		}
 
-		public Scanner.Token token()
+		public final Scanner.Token token()
 		{
 			return token;
 		}
 	}
 
-	static public final Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
+	public final static Range RANGE_ONE_TO_ONE = new Range( 1, 1 );
 
 	public static interface Keywords
 	{

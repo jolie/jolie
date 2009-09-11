@@ -22,11 +22,21 @@
 
 package jolie.util;
 
+/**
+ * A <code>Range</code> instance represents a range between two natural numbers.
+ * @author Fabrizio Montesi
+ */
 public class Range
 {
-	final private int min;
-	final private int max;
+	private final int min;
+	private final int max;
 
+	/**
+	 * Constructor
+	 * @param min
+	 * @param max
+	 * @throws IllegalArgumentException if min or max are less than zero
+	 */
 	public Range( int min, int max )
 	{
 		if ( min < 0 || max < 0 ) {
@@ -37,21 +47,37 @@ public class Range
 		this.max = max;
 	}
 
-	public int min()
+	public final int min()
 	{
 		return min;
 	}
 
-	public int max()
+	public final int max()
 	{
 		return max;
 	}
 
-	public boolean equals( Range range )
+	@Override
+	public int hashCode()
 	{
-		if ( min == range.min && max == range.max ) {
+		int hash = 7;
+		hash = 47 * hash + this.min;
+		hash = 47 * hash + this.max;
+		return hash;
+	}
+
+	@Override
+	public boolean equals( Object other )
+	{
+		if ( this == other ) {
 			return true;
 		}
+
+		if ( other instanceof Range ) {
+			Range otherRange = (Range)other;
+			return min == otherRange.min && max == otherRange.max;
+		}
+
 		return false;
 	}
 }
