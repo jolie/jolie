@@ -21,7 +21,6 @@
 
 package jolie.process;
 
-
 import jolie.runtime.FaultException;
 import jolie.runtime.ParallelExecution;
 

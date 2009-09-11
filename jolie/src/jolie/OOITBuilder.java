@@ -254,7 +254,7 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OutputPortInfo n )
 	{
-		Process protocolConfigurationProcess = null;
+		Process protocolConfigurationProcess = NullProcess.getInstance();
 		if ( n.protocolConfiguration() != null ) {
 			n.protocolConfiguration().accept( this );
 			protocolConfigurationProcess = currProcess;
