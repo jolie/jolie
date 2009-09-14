@@ -46,16 +46,16 @@ import jolie.lang.parse.Scanner;
  */
 public class CommandLineParser
 {
-	final private static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
+	private final static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
 
-	final private int connectionsLimit;
-	final private String[] includePaths;
-	final private URL[] libURLs;
-	final private InputStream programStream;
-	final private String programFilepath;
-	final private String[] arguments;
-	final private Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
-	final private boolean verbose;
+	private final int connectionsLimit;
+	private final String[] includePaths;
+	private final URL[] libURLs;
+	private final InputStream programStream;
+	private final String programFilepath;
+	private final String[] arguments;
+	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
+	private final boolean verbose;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -247,7 +247,7 @@ public class CommandLineParser
 
 		verbose = bVerbose;
 		
-		arguments = argumentsList.toArray( new String[]{} );
+		arguments = argumentsList.toArray( new String[ argumentsList.size() ] );
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
