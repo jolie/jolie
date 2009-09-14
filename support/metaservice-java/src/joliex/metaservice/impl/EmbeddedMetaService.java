@@ -43,6 +43,8 @@ public class EmbeddedMetaService extends MetaService
 	final static String fs = jolie.lang.Constants.fileSeparator;
 	final static String ps = jolie.lang.Constants.pathSeparator;
 
+	private static final String JOLIE_HOME_ENV = "JOLIE_HOME";
+
 	final private static String defaultFilepath = fs + "include" + fs + "services" + fs + "metaservice" + fs + "metaservice.ol";
 	
 	private static String[] buildInterpreterArguments( String jh, String metaServiceFilepath )
@@ -63,21 +65,22 @@ public class EmbeddedMetaService extends MetaService
 	/**
 	 * Creates an embedded MetaService instance, 
 	 * executing a JOLIE interpreter in the local JVM.
+	 */
+	public EmbeddedMetaService()
+		throws IOException, ExecutionException
+	{
+		this( System.getenv( JOLIE_HOME_ENV ) );
+	}
+
+	/**
+	 * Creates an embedded MetaService instance, 
+	 * executing a JOLIE interpreter in the local JVM.
 	 * @param jolieHome the path pointing to the local JOLIE installation directory.
 	 */
 	public EmbeddedMetaService( String jolieHome )
 		throws IOException, ExecutionException
 	{
-		try {
-			interpreter =
-				new Interpreter( buildInterpreterArguments( jolieHome, jolieHome + defaultFilepath ) );
-			startInterpreter();
-			channel = new MetaServiceChannel( this, "/" );
-		} catch( CommandLineException e ) {
-			throw new IOException( e );
-		} catch( FileNotFoundException e ) {
-			throw new IOException( e );
-		}
+		this( jolieHome, jolieHome + defaultFilepath );
 	}
 	
 	private void startInterpreter()
