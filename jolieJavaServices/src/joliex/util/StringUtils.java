@@ -153,4 +153,23 @@ public class StringUtils extends JavaService
 		builder.append( orig );
 		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
 	}
+
+	public CommMessage rightPad( CommMessage request )
+	{
+		String orig = request.value().strValue();
+		int length = request.value().getFirstChild( "length" ).intValue();
+		if ( orig.length() >= length ) {
+			return CommMessage.createResponse( request, Value.create( orig ) );
+		}
+
+		char padChar = request.value().getFirstChild( "char" ).strValue().charAt( 0 );
+
+		StringBuilder builder = new StringBuilder();
+        builder.append( orig );
+		int padLength = length - orig.length();
+		for( int i = 0; i < padLength; i++ ) {
+			builder.append( padChar );
+		}
+		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+	}
 }
