@@ -36,7 +36,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -57,14 +56,14 @@ public class XmlUtils extends JavaService
 		this.transformerFactory = TransformerFactory.newInstance();
 	}
 
-	public CommMessage valueToXml( CommMessage request )
+	public String valueToXml( Value request )
 		throws FaultException
 	{
 		try {
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			String root = request.value().getFirstChild( "root" ).strValue();
+			String root = request.getFirstChild( "root" ).strValue();
 			jolie.xml.XmlUtils.valueToDocument(
-				request.value().getFirstChild( root ),
+				request.getFirstChild( root ),
 				root,
 				doc
 			);
@@ -72,7 +71,7 @@ public class XmlUtils extends JavaService
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( new DOMSource( doc ), result );
-			return CommMessage.createResponse( request, Value.create( writer.toString() ) );
+			return writer.toString();
 		} catch( ParserConfigurationException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
@@ -85,22 +84,22 @@ public class XmlUtils extends JavaService
 		}
 	}
 
-	public CommMessage xmlToValue( CommMessage request )
+	public Value xmlToValue( Value request )
 		throws FaultException
 	{
 		try {
 			Value result = Value.create();
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src;
-			if ( request.value().isByteArray() ) {
-				src = new InputSource( new ByteArrayInputStream( request.value().byteArrayValue().getBytes() ) );
+			if ( request.isByteArray() ) {
+				src = new InputSource( new ByteArrayInputStream( request.byteArrayValue().getBytes() ) );
 			} else {
-				src = new InputSource( new StringReader( request.value().strValue() ) );
+				src = new InputSource( new StringReader( request.strValue() ) );
 			}
 
 			Document doc = builder.parse( src );
 			jolie.xml.XmlUtils.documentToValue( doc, result );
-			return CommMessage.createResponse( request, result );
+			return result;
 		} catch( ParserConfigurationException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
@@ -113,16 +112,16 @@ public class XmlUtils extends JavaService
 		}
 	}
 
-	public CommMessage transform( CommMessage request )
+	public String transform( Value request )
 		throws FaultException
 	{
 		try {
-			StreamSource source = new StreamSource( new StringReader( request.value().getFirstChild( "source" ).strValue() ) );
-			Transformer t = transformerFactory.newTransformer( new StreamSource( new StringReader( request.value().getFirstChild( "xslt" ).strValue() ) ) );
+			StreamSource source = new StreamSource( new StringReader( request.getFirstChild( "source" ).strValue() ) );
+			Transformer t = transformerFactory.newTransformer( new StreamSource( new StringReader( request.getFirstChild( "xslt" ).strValue() ) ) );
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( source, result );
-			return CommMessage.createResponse( request, Value.create( writer.toString() ) );
+			return writer.toString();
 		} catch( TransformerException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );

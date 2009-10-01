@@ -26,7 +26,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
-import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -34,16 +33,16 @@ import jolie.runtime.ValueVector;
 
 public class ExecService extends JavaService
 {
-	public CommMessage exec( CommMessage request )
+	public Value exec( Value request )
 		throws FaultException
 	{
 		Vector< String > command = new Vector< String >();
-		String[] str = request.value().strValue().split( " " );
+		String[] str = request.strValue().split( " " );
 		for( int i = 0; i < str.length; i++ ) {
 			command.add( str[i] );
 		}
 
-		for( Value v : request.value().getChildren( "args" ) ) {
+		for( Value v : request.getChildren( "args" ) ) {
 			command.add( v.strValue() );
 		}
 
@@ -51,7 +50,7 @@ public class ExecService extends JavaService
 		try {
 			Value response = Value.create();
 			Process p = builder.start();
-			ValueVector waitFor = request.value().children().get( "waitFor" );
+			ValueVector waitFor = request.children().get( "waitFor" );
 			if ( waitFor == null || waitFor.first().intValue() > 0 ) {
 				int exitCode = p.waitFor();
 				response.getNewChild( "exitCode" ).setValue( exitCode );
@@ -76,7 +75,7 @@ public class ExecService extends JavaService
 				p.getErrorStream().close();
 				p.getOutputStream().close();
 			}
-			return CommMessage.createResponse( request, response );
+			return response;
 		} catch( Exception e ) {
 			throw new FaultException( e );
 		}

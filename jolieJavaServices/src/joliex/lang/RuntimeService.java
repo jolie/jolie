@@ -26,7 +26,6 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
-import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
 import jolie.net.OutputPort;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
@@ -36,6 +35,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
 {
@@ -46,18 +46,19 @@ public class RuntimeService extends JavaService
 		this.interpreter = Interpreter.getInstance();
 	}
 	
-	public CommMessage getLocalLocation( CommMessage message )
+	public Value getLocalLocation()
 	{
 		Value v = Value.create();
 		v.setValue( new LocalCommChannel( interpreter, interpreter.commCore().localListener() ) );
-		return CommMessage.createResponse( message, v );
+		return v;
 	}
-	
-	public CommMessage setOutputPort( CommMessage message )
+
+	@RequestResponse
+	public void setOutputPort( Value request )
 	{
-		String name = message.value().getFirstChild( "name" ).strValue();
-		Value locationValue = message.value().getFirstChild( "location" );
-		Value protocolValue = message.value().getFirstChild( "protocol" );
+		String name = request.getFirstChild( "name" ).strValue();
+		Value locationValue = request.getFirstChild( "location" );
+		Value protocolValue = request.getFirstChild( "protocol" );
 		OutputPort port =
 			new OutputPort(
 					interpreter(),
@@ -83,87 +84,84 @@ public class RuntimeService extends JavaService
 		r.getFirstChild( name ).getFirstChild( Constants.PROTOCOL_NODE_NAME ).deepCopy( protocolValue );
 
 		interpreter.register( name, port );
-		return null;
 	}
-	
-	public CommMessage removeOutputPort( CommMessage message )
+
+	@RequestResponse
+	public void removeOutputPort( String outputPortName )
 	{
-		interpreter.removeOutputPort( message.value().strValue() );
-		return null;
+		interpreter.removeOutputPort( outputPortName );
 	}
-	
-	public CommMessage setRedirection( CommMessage message )
+
+	@RequestResponse
+	public void setRedirection( Value request )
 		throws FaultException
 	{
-		CommMessage ret = null;
-		String serviceName = message.value().getChildren( "inputPortName" ).first().strValue();
+		String serviceName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
 			interpreter.commCore().getListenerByInputPortName( serviceName );
 		if ( listener == null )
 			throw new FaultException( "RuntimeException", "Unknown inputPort: " + serviceName );
 		
-		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
-		String opName = message.value().getChildren( "outputPortName" ).first().strValue();
+		String resourceName = request.getChildren( "resourceName" ).first().strValue();
+		String opName = request.getChildren( "outputPortName" ).first().strValue();
 		try {
 			OutputPort port = interpreter.getOutputPort( opName );
 			listener.redirectionMap().put( resourceName, port );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "RuntimeException", e );
 		}
-		
-		ret = CommMessage.createResponse( message, Value.create() );
-		return ret;
 	}
-	
-	public CommMessage removeRedirection( CommMessage message )
+
+	@RequestResponse
+	public void removeRedirection( Value request )
 		throws FaultException
 	{
-		String serviceName = message.value().getChildren( "inputPortName" ).first().strValue();
+		String serviceName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
 			interpreter.commCore().getListenerByInputPortName( serviceName );
 		if ( listener == null )
 			throw new FaultException( "RuntimeException", "Unknown inputPort: " + serviceName );
 		
-		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
+		String resourceName = request.getChildren( "resourceName" ).first().strValue();
 		listener.redirectionMap().remove( resourceName );
-		return CommMessage.createResponse( message, Value.create() );
 	}
 
-	public CommMessage getRedirection( CommMessage message )
+
+	public Value getRedirection( Value request )
 		throws FaultException
 	{
-		CommMessage ret = null;
-		String inputPortName = message.value().getChildren( "inputPortName" ).first().strValue();
+		Value ret = null;
+		String inputPortName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
 			interpreter.commCore().getListenerByInputPortName( inputPortName );
 		if ( listener == null ) {
 			throw new FaultException( "RuntimeException", Value.create( "Invalid input port: " + inputPortName ) );
 		}
 		
-		String resourceName = message.value().getChildren( "resourceName" ).first().strValue();
+		String resourceName = request.getChildren( "resourceName" ).first().strValue();
 		OutputPort p = listener.redirectionMap().get( resourceName );
 		if ( p == null ) {
-			ret = CommMessage.createResponse( message, Value.create() );
+			ret = Value.create();
 		} else {
-			ret = CommMessage.createResponse( message, Value.create( p.id() ) );
+			ret = Value.create( p.id() );
 		}
 		return ret;
 	}
 	
-	public CommMessage loadEmbeddedService( CommMessage message )
+	public Value loadEmbeddedService( Value request )
 		throws FaultException
 	{
 		try {
 			Value channel = Value.create();
-			String filePath = message.value().getFirstChild( "filepath" ).strValue();
-			String typeStr = message.value().getFirstChild( "type" ).strValue();
+			String filePath = request.getFirstChild( "filepath" ).strValue();
+			String typeStr = request.getFirstChild( "type" ).strValue();
 			EmbeddedServiceType type =
 				jolie.lang.Constants.stringToEmbeddedServiceType( typeStr );
 			EmbeddedServiceLoader loader =
 				EmbeddedServiceLoader.create( interpreter(), type, filePath, channel );
 			loader.load();
 
-			return CommMessage.createResponse( message, channel );
+			return channel;
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
@@ -173,12 +171,12 @@ public class RuntimeService extends JavaService
 		}
 	}
 
-	public CommMessage callExit( CommMessage request )
+	@RequestResponse
+	public void callExit( Value request )
 	{
-		Object o = request.value().valueObject();
+		Object o = request.valueObject();
 		if ( o instanceof LocalCommChannel ) {
 			((LocalCommChannel)o).interpreter().exit();
 		}
-		return CommMessage.createResponse( request, Value.create() );
 	}
 }

@@ -23,37 +23,31 @@ package joliex.lang;
 
 
 import jolie.Interpreter;
-import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
+import jolie.runtime.embedding.RequestResponse;
 
 public class Concurrent
 {
-	public CommMessage notify( CommMessage message )
+	@RequestResponse
+	public void notify( String lockName )
 		throws FaultException
 	{
-		Interpreter.getInstance().getLock(
-					message.value().strValue()
-				).notify();
-		return CommMessage.createEmptyResponse( message );
+		Interpreter.getInstance().getLock( lockName ).notify();
 	}
-	
-	public CommMessage notifyAll( CommMessage message )
+
+	@RequestResponse
+	public void notifyAll( String lockName )
 		throws FaultException
 	{
-		Interpreter.getInstance().getLock(
-					message.value().strValue()
-				).notifyAll();
-		return CommMessage.createEmptyResponse( message );
+		Interpreter.getInstance().getLock( lockName ).notifyAll();
 	}
-	
-	public CommMessage wait( CommMessage message )
+
+	@RequestResponse
+	public void wait( String lockName )
 		throws FaultException
 	{
 		try {
-			Interpreter.getInstance().getLock(
-					message.value().strValue()
-				).wait();
+			Interpreter.getInstance().getLock( lockName ).wait();
 		} catch( InterruptedException ie ) {}
-		return CommMessage.createEmptyResponse( message );
 	}
 }

@@ -90,7 +90,7 @@ public class BluetoothService extends JavaService
 		public void serviceSearchCompleted( int transID, int respCode ) {}
 	}
 
-	public CommMessage inquire( CommMessage message )
+	public Value inquire()
 		throws FaultException
 	{
 		Value retValue = null;
@@ -104,19 +104,19 @@ public class BluetoothService extends JavaService
 		} catch( BluetoothStateException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( message, retValue );
+		return retValue;
 	}
 
-	public CommMessage setDiscoverable( CommMessage message )
+	public Boolean setDiscoverable( Integer i )
 		throws FaultException
 	{
 		boolean b = false;
 		try {
-			b = LocalDevice.getLocalDevice().setDiscoverable( message.value().intValue() );
+			b = LocalDevice.getLocalDevice().setDiscoverable( i );
 		} catch( BluetoothStateException e ) {
 			throw new FaultException ( e );
 		}
-		return CommMessage.createResponse( message, Value.create( b ) );
+		return b;
 	}
 
 /*	public CommMessage discoveryServices( CommMessage request )

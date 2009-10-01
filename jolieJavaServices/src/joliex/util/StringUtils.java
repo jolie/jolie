@@ -24,69 +24,119 @@ package joliex.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 public class StringUtils extends JavaService
 {
-	public CommMessage length( CommMessage request )
+	public Integer length( String request )
 	{
-		return CommMessage.createResponse( request, Value.create( request.value().strValue().length() ) );
+		return request.length();
 	}
 
-	public CommMessage replaceAll( CommMessage message )
+	public static class ReplaceAllRequest implements ValueConverter
 	{
-		String regex = message.value().getChildren( "regex" ).first().strValue();
-		String replacement = message.value().getChildren( "replacement" ).first().strValue();
-		return CommMessage.createResponse(
-			message,
-			Value.create( message.value().strValue().replaceAll( regex, replacement ) )
-		);
+		private String self, regex, replacement;
+		private ReplaceAllRequest() {}
+		public static ReplaceAllRequest fromValue( Value value )
+		{
+			ReplaceAllRequest ret = new ReplaceAllRequest();
+			ret.self = value.strValue();
+			ret.regex = value.getFirstChild( "regex" ).strValue();
+			ret.replacement = value.getFirstChild( "replacement" ).strValue();
+			return ret;
+		}
+		public static Value toValue( ReplaceAllRequest p )
+		{
+			Value ret = Value.create();
+			ret.setValue( p.self );
+			ret.getFirstChild( "regex" ).setValue( p.regex );
+			ret.getFirstChild( "replacement" ).setValue( p.replacement );
+			return ret;
+		}
 	}
 
-	public CommMessage startsWith( CommMessage request )
+	public String replaceAll( ReplaceAllRequest request )
 	{
-		String str = request.value().strValue();
-		String prefix = request.value().getFirstChild( "prefix" ).strValue();
-		return CommMessage.createResponse(
-			request,
-			Value.create( ( str.startsWith( prefix ) ) ? 1 : 0 )
-		);
+		return request.self.replaceAll( request.regex, request.replacement );
+	}
+	
+	public static class StartsWithRequest implements ValueConverter
+	{
+		private String self, prefix;
+		private StartsWithRequest() {}
+		public static StartsWithRequest fromValue( Value value )
+		{
+			StartsWithRequest ret = new StartsWithRequest();
+			ret.self = value.strValue();
+			ret.prefix = value.getFirstChild( "prefix" ).strValue();
+			return ret;
+		}
+		public static Value toValue( StartsWithRequest p )
+		{
+			Value ret = Value.create();
+			ret.setValue( p.self );
+			ret.getFirstChild( "prefix" ).setValue( p.prefix );
+			return ret;
+		}
 	}
 
-	public CommMessage join( CommMessage request )
+	public Boolean startsWith( StartsWithRequest request )
 	{
-		ValueVector vec = request.value().getChildren( "piece" );
-		int size = vec.size() - 1;
+		return request.self.startsWith( request.prefix );
+	}
+
+	public static class JoinRequest implements ValueConverter
+	{
+		private String delimiter;
+		private ValueVector pieces;
+		private JoinRequest() {}
+		public static JoinRequest fromValue( Value value )
+		{
+			JoinRequest ret = new JoinRequest();
+			ret.delimiter = value.getFirstChild( "delimiter" ).strValue();
+			ret.pieces = value.getChildren( "piece" );
+			return ret;
+		}
+		public static Value toValue( JoinRequest p )
+		{
+			Value ret = Value.create();
+			ret.getFirstChild( "delimiter" ).setValue( p.delimiter );
+			ret.children().put( "piece", p.pieces );
+			return ret;
+		}
+	}
+
+	public String join( JoinRequest request )
+	{
+		int size = request.pieces.size() - 1;
 		StringBuilder builder = new StringBuilder();
 		if ( size >= 0 ) {
-			String delimiter = request.value().getFirstChild( "delimiter" ).strValue();
 			int i;
 			for( i = 0; i < size; i++ ) {
-				builder.append( vec.get( i ).strValue() ).append( delimiter );
+				builder.append( request.pieces.get( i ).strValue() ).append( request.delimiter );
 			}
-			builder.append( vec.get( i ).strValue() );
+			builder.append( request.pieces.get( i ).strValue() );
 		}
-		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+		return builder.toString();
 	}
 	
-	public CommMessage trim( CommMessage message )
+	public String trim( String s )
 	{
-		return CommMessage.createResponse( message, Value.create( message.value().strValue().trim() ) );
+		return s.trim();
 	}
 	
-	public CommMessage split( CommMessage message )
+	public Value split( Value request )
 	{
-		String str = message.value().strValue();
+		String str = request.strValue();
 		int limit = 0;
-		Value lValue = message.value().getFirstChild( "limit" );
+		Value lValue = request.getFirstChild( "limit" );
 		if ( lValue.isDefined() ) {
 			limit = lValue.intValue();
 		}
 		String[] ss = str.split(
-				message.value().getFirstChild( "regex" ).strValue(),
+				request.getFirstChild( "regex" ).strValue(),
 				limit
 			);
 		Value value = Value.create();
@@ -94,13 +144,13 @@ public class StringUtils extends JavaService
 			value.getNewChild( "result" ).add( Value.create( ss[ i ] ) );
 		}
 
-		return CommMessage.createResponse( message, value );
+		return value;
 	}
 
-	public CommMessage splitByLength( CommMessage request )
+	public Value splitByLength( Value request )
 	{
-		String str = request.value().strValue();
-		int length = request.value().getFirstChild( "length" ).intValue();
+		String str = request.strValue();
+		int length = request.getFirstChild( "length" ).intValue();
 		Value responseValue = Value.create();
 		ValueVector result = responseValue.getChildren( "result" );
 		int stringLength = str.length();
@@ -114,13 +164,13 @@ public class StringUtils extends JavaService
 			result.add( Value.create( str.substring( offset, offset += length ) ) );
 		}
 
-		return CommMessage.createResponse( request, responseValue );
+		return responseValue;
 	}
 
-	public CommMessage match( CommMessage message )
+	public Value match( Value request )
 	{
-		Pattern p = Pattern.compile( message.value().getFirstChild( "regex" ).strValue() );
-		Matcher m = p.matcher( message.value().strValue() );
+		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
+		Matcher m = p.matcher( request.strValue() );
 		Value response = Value.create();
 		if ( m.matches() ) {
 			response.setValue( 1 );
@@ -132,18 +182,18 @@ public class StringUtils extends JavaService
 		} else {
 			response.setValue( 0 );
 		}
-		return CommMessage.createResponse( message, response );
+		return response;
 	}
 
-	public CommMessage leftPad( CommMessage request )
+	public String leftPad( Value request )
 	{
-		String orig = request.value().strValue();
-		int length = request.value().getFirstChild( "length" ).intValue();
+		String orig = request.strValue();
+		int length = request.getFirstChild( "length" ).intValue();
 		if ( orig.length() >= length ) {
-			return CommMessage.createResponse( request, Value.create( orig ) );
+			return orig;
 		}
 
-		char padChar = request.value().getFirstChild( "char" ).strValue().charAt( 0 );
+		char padChar = request.getFirstChild( "char" ).strValue().charAt( 0 );
 
 		StringBuilder builder = new StringBuilder();
 		int padLength = length - orig.length();
@@ -151,18 +201,18 @@ public class StringUtils extends JavaService
 			builder.append( padChar );
 		}
 		builder.append( orig );
-		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+		return builder.toString();
 	}
 
-	public CommMessage rightPad( CommMessage request )
+	public String rightPad( Value request )
 	{
-		String orig = request.value().strValue();
-		int length = request.value().getFirstChild( "length" ).intValue();
+		String orig = request.strValue();
+		int length = request.getFirstChild( "length" ).intValue();
 		if ( orig.length() >= length ) {
-			return CommMessage.createResponse( request, Value.create( orig ) );
+			return orig;
 		}
 
-		char padChar = request.value().getFirstChild( "char" ).strValue().charAt( 0 );
+		char padChar = request.getFirstChild( "char" ).strValue().charAt( 0 );
 
 		StringBuilder builder = new StringBuilder();
         builder.append( orig );
@@ -170,6 +220,6 @@ public class StringUtils extends JavaService
 		for( int i = 0; i < padLength; i++ ) {
 			builder.append( padChar );
 		}
-		return CommMessage.createResponse( request, Value.create( builder.toString() ) );
+		return builder.toString();
 	}
 }

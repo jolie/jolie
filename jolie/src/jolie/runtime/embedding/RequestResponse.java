@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,35 +19,16 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.security;
+package jolie.runtime.embedding;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-public class MessageDigestService extends JavaService
-{
-	public String md5( Value request )
-		throws FaultException
-	{
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance( "MD5" );
-			md.update( request.strValue().getBytes( "UTF8" ) );
-		} catch( UnsupportedEncodingException e ) {
-			throw new FaultException( "UnsupportedOperation", e );
-		} catch( NoSuchAlgorithmException e ) {
-			throw new FaultException( "UnsupportedOperation", e );
-		}
-		int radix;
-		if ( (radix=request.getFirstChild( "radix" ).intValue()) < 2 ) {
-			radix = 16;
-		}
-
-		return new BigInteger( 1, md.digest() ).toString( radix );
-	}
-}
+/**
+ * Annotation for RequestResponse Java operations.
+ *
+ * @author Fabrizio Montesi
+ */
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequestResponse
+{}

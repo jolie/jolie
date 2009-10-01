@@ -290,7 +290,7 @@ class RootValueImpl extends Value implements Cloneable
 		return v;
 	}
 
-	final public Value evaluate()
+	public final Value evaluate()
 	{
 		return this;
 	}

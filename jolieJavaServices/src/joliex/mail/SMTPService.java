@@ -36,11 +36,11 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.embedding.RequestResponse;
 
 @AndJarDeps({"mailapi.jar","smtp.jar"})
 public class SMTPService extends JavaService
@@ -62,11 +62,10 @@ public class SMTPService extends JavaService
 		}
 	}
 	
-	
-	public CommMessage sendMail( CommMessage requestMessage )
+	@RequestResponse
+	public void sendMail( Value request )
 		throws FaultException
 	{
-		Value request = requestMessage.value();
 		Authenticator authenticator = null;
 		Properties props = new Properties();
 		props.put( "mail.smtp.host", request.getFirstChild( "host" ).strValue() );
@@ -121,7 +120,5 @@ public class SMTPService extends JavaService
 		} catch( MessagingException e ) {
 			throw new FaultException( "SMTPFault", e );
 		}
-		
-		return CommMessage.createResponse( requestMessage, Value.create() );
 	}
 }

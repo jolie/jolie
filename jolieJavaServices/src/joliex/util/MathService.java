@@ -21,20 +21,17 @@
 
 package joliex.util;
 
-
-import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
-import jolie.runtime.Value;
 
 public class MathService extends JavaService
 {
-	public CommMessage random( CommMessage request )
+	public Double random()
 	{
-		return CommMessage.createResponse( request, Value.create( Math.random() ) );
+		return Math.random();
 	}
 
-	public CommMessage abs( CommMessage request )
+	public Integer abs( Integer i )
 	{
-		return CommMessage.createResponse( request, Value.create( Math.abs( request.value().intValue() ) ) );
+		return Math.abs( i );
 	}
 }

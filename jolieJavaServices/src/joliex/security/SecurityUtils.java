@@ -22,7 +22,6 @@
 package joliex.security;
 
 import java.security.SecureRandom;
-import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -30,13 +29,13 @@ import jolie.runtime.Value;
 
 public class SecurityUtils extends JavaService
 {
-	final private SecureRandom random = new SecureRandom();
+	private final SecureRandom random = new SecureRandom();
 
-	public CommMessage secureRandom( CommMessage request )
+	public ByteArray secureRandom( Value request )
 		throws FaultException
 	{
-		byte[] bb = new byte[ request.value().getFirstChild( "size" ).intValue() ];
+		byte[] bb = new byte[ request.getFirstChild( "size" ).intValue() ];
 		random.nextBytes( bb );
-		return CommMessage.createResponse( request, Value.create( new ByteArray( bb ) ) );
+		return new ByteArray( bb );
 	}
 }
