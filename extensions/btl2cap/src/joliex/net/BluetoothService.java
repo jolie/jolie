@@ -32,7 +32,6 @@ import javax.bluetooth.ServiceRecord;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.AndJarDeps;
-import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
