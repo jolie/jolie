@@ -28,7 +28,6 @@ import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -55,16 +54,16 @@ public class ZipUtils extends JavaService
 		return new ByteArray( ostream.toByteArray() );
 	}
 
-	public CommMessage readEntry( CommMessage request )
+	public Value readEntry( Value request )
 		throws FaultException
 	{
 		Value response = Value.create();
 		try {
 			ZipFile file = new ZipFile(
-				request.value().getFirstChild( "filename" ).strValue()
+				request.getFirstChild( "filename" ).strValue()
 			);
 			ZipEntry entry = file.getEntry(
-				request.value().getFirstChild( "entry" ).strValue()
+				request.getFirstChild( "entry" ).strValue()
 			);
 			if ( entry != null ) {
 				response.setValue(
@@ -74,10 +73,10 @@ public class ZipUtils extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, response );
+		return response;
 	}
 
-	public CommMessage zip( CommMessage request )
+	public ByteArray zip( Value request )
 		throws FaultException
 	{
 		ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
@@ -85,7 +84,7 @@ public class ZipUtils extends JavaService
 			ZipOutputStream zipStream = new ZipOutputStream( bbstream );
 			ZipEntry zipEntry;
 			byte[] bb;
-			for( Entry< String, ValueVector > entry : request.value().children().entrySet() ) {
+			for( Entry< String, ValueVector > entry : request.children().entrySet() ) {
 				zipEntry = new ZipEntry( entry.getKey() );
 				zipStream.putNextEntry( zipEntry );
 				bb = entry.getValue().first().byteArrayValue().getBytes();
@@ -96,6 +95,6 @@ public class ZipUtils extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, Value.create( new ByteArray( bbstream.toByteArray() ) ) );
+		return new ByteArray( bbstream.toByteArray() );
 	}
 }

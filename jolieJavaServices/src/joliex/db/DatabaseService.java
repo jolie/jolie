@@ -36,6 +36,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.RequestResponse;
 
 /**
  * @author Fabrizio Montesi
@@ -58,7 +59,7 @@ public class DatabaseService extends JavaService
 	private String password = null;
 	private boolean mustCheckConnection = false;
 
-	final private Object transactionMutex = new Object();
+	private final Object transactionMutex = new Object();
 
 	@Override
 	protected void finalize()
@@ -70,7 +71,8 @@ public class DatabaseService extends JavaService
 		}
 	}
 
-	public CommMessage connect( CommMessage message )
+	@RequestResponse
+	public void connect( CommMessage message )
 		throws FaultException
 	{
 		if ( connection != null ) {
@@ -124,7 +126,6 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw new FaultException( "ConnectionError", e );
 		}
-		return CommMessage.createResponse( message, Value.create() );
 	}
 
 	private void checkConnection()
@@ -148,12 +149,11 @@ public class DatabaseService extends JavaService
 		}
 	}
 	
-	public CommMessage update( CommMessage request )
+	public Value update( String query )
 		throws FaultException
 	{
 		checkConnection();
 		Value resultValue = Value.create();
-		String query = request.value().strValue();
 		try {
 			synchronized( transactionMutex ) {
 				Statement stm = connection.createStatement();
@@ -162,7 +162,7 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, resultValue );
+		return resultValue;
 	}
 
 	private static void resultSetToValueVector( ResultSet result, ValueVector vector )
@@ -237,7 +237,7 @@ public class DatabaseService extends JavaService
 		}
 	}
 
-	public CommMessage executeTransaction( CommMessage request )
+	public Value executeTransaction( Value request )
 		throws FaultException
 	{
 		checkConnection();
@@ -247,7 +247,7 @@ public class DatabaseService extends JavaService
 			synchronized( transactionMutex ) {
 				connection.setAutoCommit( false );
 				Value currResultValue;
-				for( Value statementValue : request.value().getChildren( "statement" ) ) {
+				for( Value statementValue : request.getChildren( "statement" ) ) {
 					currResultValue = Value.create();
 					Statement stm = connection.createStatement();
 					if ( stm.execute( statementValue.strValue() ) == true ) {
@@ -261,10 +261,10 @@ public class DatabaseService extends JavaService
 		} catch( SQLException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, resultValue );
+		return resultValue;
 	}
 	
-	public CommMessage query( CommMessage request )
+	public Value query( String query )
 		throws FaultException
 	{
 		checkConnection();
@@ -272,13 +272,13 @@ public class DatabaseService extends JavaService
 		try {
 			synchronized( transactionMutex ) {
 				Statement stm = connection.createStatement();
-				ResultSet result = stm.executeQuery( request.value().strValue() );
+				ResultSet result = stm.executeQuery( query );
 				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( "SQLException", e );
 		}
 		
-		return CommMessage.createResponse( request, resultValue );
+		return resultValue;
 	}
 }

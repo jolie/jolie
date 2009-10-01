@@ -34,6 +34,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.RequestResponse;
 
 public class TimeService extends JavaService
 {
@@ -90,28 +91,28 @@ public class TimeService extends JavaService
 		thread.start();
 	}
 	
-	public void setNextTimeout( CommMessage message )
+	public void setNextTimeout( Value request )
 	{
-		long waitTime = message.value().intValue();
+		long waitTime = request.intValue();
 		String callbackOperation = null;
 		ValueVector vec;
 		Value callbackValue = null;
-		if ( (vec=message.value().children().get( "operation" )) != null ) {
+		if ( (vec=request.children().get( "operation" )) != null ) {
 			callbackOperation = vec.first().strValue();
 		}
-		if ( (vec=message.value().children().get( "message" )) != null ) {
+		if ( (vec=request.children().get( "message" )) != null ) {
 			callbackValue = vec.first();
 		}
 		
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
 	
-	public void setNextTimeoutByDateTime( CommMessage message )
+	public void setNextTimeoutByDateTime( Value request )
 	{
 		long waitTime = 0;
 		try {
 			synchronized( dateTimeFormat ) {
-				Date date = dateTimeFormat.parse( message.value().strValue() );
+				Date date = dateTimeFormat.parse( request.strValue() );
 				waitTime = date.getTime() - (new Date()).getTime();
 			}
 		} catch( ParseException e ) {}
@@ -119,23 +120,23 @@ public class TimeService extends JavaService
 		String callbackOperation = null;
 		ValueVector vec;
 		Value callbackValue = null;
-		if ( (vec=message.value().children().get( "operation" )) != null ) {
+		if ( (vec=request.children().get( "operation" )) != null ) {
 			callbackOperation = vec.first().strValue();
 		}
-		if ( (vec=message.value().children().get( "message" )) != null ) {
+		if ( (vec=request.children().get( "message" )) != null ) {
 			callbackValue = vec.first();
 		}
 		
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
 	
-	public void setNextTimeoutByTime( CommMessage message )
+	public void setNextTimeoutByTime( Value request )
 	{
 		long waitTime = 0;
 		try {
 			synchronized( dateTimeFormat ) {
 				String today = dateFormat.format( new Date() );
-				Date date = dateTimeFormat.parse( today + " " + message.value().strValue() );
+				Date date = dateTimeFormat.parse( today + " " + request.strValue() );
 				waitTime = date.getTime() - (new Date()).getTime();
 			}
 		} catch( ParseException pe ) {}
@@ -143,41 +144,39 @@ public class TimeService extends JavaService
 		String callbackOperation = null;
 		ValueVector vec;
 		Value callbackValue = null;
-		if ( (vec=message.value().children().get( "operation" )) != null )
+		if ( (vec=request.children().get( "operation" )) != null )
 			callbackOperation = vec.first().strValue();
-		if ( (vec=message.value().children().get( "message" )) != null )
+		if ( (vec=request.children().get( "message" )) != null )
 			callbackValue = vec.first();
 		
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
-	
-	public CommMessage sleep( CommMessage message )
+
+	@RequestResponse
+	public void sleep( int millis )
 	{
-		int millis = message.value().intValue();
 		try {
 			if ( millis > 0 ) {
 				Thread.sleep( millis );
 			}
 		} catch ( InterruptedException e ) {
 		}
-
-		return CommMessage.createResponse( message, Value.create() );
 	}
 	
-	public CommMessage currentTimeMillis( CommMessage message )
+	public Integer currentTimeMillis()
 	{
-		return CommMessage.createResponse( message, Value.create( (int)System.currentTimeMillis() ) );
+		return (int)System.currentTimeMillis();
 	}
 	
-	public CommMessage getCurrentDateTime( CommMessage message )
+	public String getCurrentDateTime()
 	{
-		return CommMessage.createResponse( message, Value.create( dateTimeFormat.format( new Date() ) ) );
+		return dateTimeFormat.format( new Date() );
 	}
 
 	/**
 	 * @author Claudio Guidi
 	 */
-	public CommMessage getCurrentDateValues( CommMessage message )
+	public Value getCurrentDateValues()
 	{
 		Value v = Value.create();
 
@@ -187,26 +186,26 @@ public class TimeService extends JavaService
 		v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
 		v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
 
-		return CommMessage.createResponse( message, v );
+		return v;
 	}
 
 	/**
 	 * @author Claudio Guidi
 	 */
-	public CommMessage getDateValues( CommMessage message )
+	public Value getDateValues( Value request )
 		throws FaultException
 	{
 		Value v = Value.create();
 		try {
 			String format;
-			if ( message.value().getFirstChild( "format" ).strValue().isEmpty() ) {
+			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
 				format = "dd/MM/yyyy";
 			} else {
-				format = message.value().getFirstChild( "format" ).strValue();
+				format = request.getFirstChild( "format" ).strValue();
 			}
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			GregorianCalendar cal = new GregorianCalendar();
-			final Date dt = sdf.parse( message.value().strValue() );
+			final Date dt = sdf.parse( request.strValue() );
 			cal.setTimeInMillis( dt.getTime() );
 			v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
 			v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
@@ -215,6 +214,6 @@ public class TimeService extends JavaService
 			throw new FaultException( "InvalidDate", pe );
 		}
 		
-		return CommMessage.createResponse( message, v );
+		return v;
 	}
 }

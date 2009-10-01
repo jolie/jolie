@@ -25,7 +25,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map.Entry;
-import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -39,11 +38,11 @@ import org.ini4j.Ini;
 @AndJarDeps({"ini4j.jar"})
 public class IniUtils extends JavaService
 {
-	public CommMessage parseIniFile( CommMessage request )
+	public Value parseIniFile( Value request )
 		throws FaultException
 	{
 		try {
-			Reader reader = new FileReader( request.value().strValue() );
+			Reader reader = new FileReader( request.strValue() );
 			Ini ini = new Ini( reader );
 			Value response = Value.create();
 			Value sectionValue;
@@ -53,7 +52,7 @@ public class IniUtils extends JavaService
 					sectionValue.getFirstChild( entry.getKey() ).setValue( entry.getValue() );
 				}
 			}
-			return CommMessage.createResponse( request, response );
+			return response;
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}

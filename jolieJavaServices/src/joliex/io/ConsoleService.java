@@ -32,6 +32,7 @@ import java.nio.channels.ClosedByInterruptException;
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.embedding.RequestResponse;
 
 public class ConsoleService extends JavaService
 {
@@ -67,15 +68,12 @@ public class ConsoleService extends JavaService
 	}
 	
 	private ConsoleInputThread consoleInputThread;
-	
-	public ConsoleService()
-	{}
 
-	public CommMessage registerForInput( CommMessage message )
+	@RequestResponse
+	public void registerForInput()
 	{
 		consoleInputThread = new ConsoleInputThread();
 		consoleInputThread.start();
-		return CommMessage.createEmptyResponse( message );
 	}
 	
 	@Override
@@ -84,15 +82,15 @@ public class ConsoleService extends JavaService
 		consoleInputThread.kill();
 	}
 
-	public CommMessage print( CommMessage message )
+	@RequestResponse
+	public void print( String s )
 	{
-		System.out.print( message.value().strValue() );
-		return CommMessage.createResponse( message, Value.create() );
+		System.out.print( s );
 	}
 
-	public CommMessage println( CommMessage message )
+	@RequestResponse
+	public void println( String s )
 	{
-		System.out.println( message.value().strValue() );
-		return CommMessage.createResponse( message, Value.create() );
+		System.out.println( s );
 	}
 }

@@ -34,14 +34,13 @@ import java.io.IOException;
 
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
-import javax.activation.MimeType;
-import javax.activation.MimetypesFileTypeMap;
 import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.RequestResponse;
 
 public class FileService extends JavaService
 {
@@ -83,13 +82,13 @@ public class FileService extends JavaService
 		value.setValue( buffer.toString() );
 	}
 	
-	public CommMessage readFile( CommMessage request )
+	public Value readFile( Value request )
 		throws FaultException
 	{
-		Value filenameValue = request.value().getFirstChild( "filename" );
+		Value filenameValue = request.getFirstChild( "filename" );
 
 		Value retValue = Value.create();
-		String format = request.value().getFirstChild( "format" ).strValue();
+		String format = request.getFirstChild( "format" ).strValue();
 		try {
 			if ( "base64".equals( format ) ) {
 				readBase64IntoValue( new File( filenameValue.strValue() ), retValue );
@@ -103,44 +102,43 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( e );
 		}
-		return CommMessage.createResponse( request, retValue );
+		return retValue;
 	}
 
-	public CommMessage getMimeType( CommMessage request )
+	public String getMimeType( String filename )
 		throws FaultException
 	{
-		File file = new File( request.value().strValue() );
+		File file = new File( filename );
 		if ( file.exists() == false ) {
 			throw new FaultException( "FileNotFound" );
 		}
-		return CommMessage.createResponse(
-			request, Value.create( fileTypeMap.getContentType( file ) )
-		);
+		return fileTypeMap.getContentType( file );
 	}
 	
-	public CommMessage getServiceDirectory( CommMessage request )
+	public String getServiceDirectory()
 	{
 		String dir = interpreter().programFile().getParent();
 		if ( dir == null || dir.isEmpty() ) {
 			dir = ".";
 		}
 		
-		return CommMessage.createResponse( request,	Value.create( dir ) );
+		return dir;
 	}
 	
-	public CommMessage getFileSeparator( CommMessage request )
+	public String getFileSeparator()
 	{
-		return CommMessage.createResponse( request,	Value.create( jolie.lang.Constants.fileSeparator ) );
+		return jolie.lang.Constants.fileSeparator;
 	}
-	
-	public CommMessage writeFile( CommMessage request )
+
+	@RequestResponse
+	public void writeFile( Value request )
 		throws FaultException
 	{
-		Value filenameValue = request.value().getFirstChild( "filename" );
+		Value filenameValue = request.getFirstChild( "filename" );
 		if ( !filenameValue.isString() ) {
 			throw new FaultException( "FileNotFound" );
 		}
-		Value content = request.value().getFirstChild( "content" );
+		Value content = request.getFirstChild( "content" );
 		try {
 			if ( content.isByteArray() ) {
 				FileOutputStream os = new FileOutputStream( filenameValue.strValue() );
@@ -156,14 +154,13 @@ public class FileService extends JavaService
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
-		return CommMessage.createResponse( request, Value.create() );
 	}
 	
-	public CommMessage delete( CommMessage request )
+	public Boolean delete( CommMessage request )
 	{
 		String filename = request.value().strValue();
 		boolean isRegex = request.value().getFirstChild( "isRegex" ).intValue() > 0;
-		int ret = 1;
+		boolean ret = true;
 		if ( isRegex ) {
 			File dir = new File( filename ).getAbsoluteFile().getParentFile();
 			String[] files = dir.list( new ListFilter( filename ) );
@@ -174,27 +171,27 @@ public class FileService extends JavaService
 			}
 		} else {
 			if ( new File( filename ).delete() == false ) {
-				ret = 0;
+				ret = false;
 			}
 		}
-		return CommMessage.createResponse( request, Value.create( ret ) );
+		return ret;
 	}
-	
-	public CommMessage rename( CommMessage request )
+
+	@RequestResponse
+	public void rename( Value request )
 		throws FaultException
 	{
-		String filename = request.value().getFirstChild( "filename" ).strValue();
-		String toFilename = request.value().getFirstChild( "to" ).strValue();
+		String filename = request.getFirstChild( "filename" ).strValue();
+		String toFilename = request.getFirstChild( "to" ).strValue();
 		if ( new File( filename ).renameTo( new File( toFilename ) ) == false ) {
 			throw new FaultException( "IOException" );
 		}
-		return CommMessage.createResponse( request, Value.create() );
 	}
 	
-	public CommMessage list( CommMessage request )
+	public Value list( Value request )
 	{
-		File dir = new File( request.value().getFirstChild( "directory" ).strValue() );
-		String[] files = dir.list( new ListFilter( request.value().getFirstChild( "regex" ).strValue() ) );
+		File dir = new File( request.getFirstChild( "directory" ).strValue() );
+		String[] files = dir.list( new ListFilter( request.getFirstChild( "regex" ).strValue() ) );
 		Value response = Value.create();
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
@@ -202,7 +199,7 @@ public class FileService extends JavaService
 				results.add( Value.create( file ) );
 			}
 		}
-		return CommMessage.createResponse( request, response );
+		return response;
 	}
 	
 	private static class ListFilter implements FilenameFilter
