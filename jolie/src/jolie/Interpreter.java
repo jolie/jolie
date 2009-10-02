@@ -495,7 +495,7 @@ public class Interpreter
 		this.args = args;
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
-		commCore = new CommCore( this, cmdParser.connectionsLimit() );
+		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
 		if ( parentClassLoader == null ) {
 			parentClassLoader = this.getClass().getClassLoader();
 		}

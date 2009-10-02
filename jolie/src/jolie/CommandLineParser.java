@@ -49,6 +49,7 @@ public class CommandLineParser
 	private final static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
 
 	private final int connectionsLimit;
+	private final int connectionsCache;
 	private final String[] includePaths;
 	private final URL[] libURLs;
 	private final InputStream programStream;
@@ -111,6 +112,16 @@ public class CommandLineParser
 	{
 		return connectionsLimit;
 	}
+
+	/**
+	 * Returns the connection cache parameter
+	 * passed by command line with the --conncache option.
+	 * @return the connection cache parameter passed by command line
+	 */
+	public int connectionsCache()
+	{
+		return connectionsCache;
+	}
 	
 	private static String getOptionString( String option, String description )
 	{
@@ -144,6 +155,8 @@ public class CommandLineParser
 				getOptionString( "-C ConstantIdentifier=ConstantValue", "Sets constant ConstantIdentifier to ConstantValue before starting execution" ) );
 		helpBuilder.append(
 				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
+		helpBuilder.append(
+				getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
@@ -195,6 +208,7 @@ public class CommandLineParser
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
 		int cLimit = -1;
+		int cCache = 100;
 		String pwd = new File( "" ).getCanonicalPath();
 		includeList.add( pwd );
 		includeList.add( "include" );
@@ -227,6 +241,9 @@ public class CommandLineParser
 			} else if ( "--connlimit".equals( args[ i ] ) ) {
 				i++;
 				cLimit = Integer.parseInt( args[ i ] );
+			} else if ( "--conncache".equals( args[ i ] ) ) {
+				i++;
+				cCache = Integer.parseInt( args[ i ] );
 			} else if ( "--verbose".equals( args[ i ] ) ) {
 				bVerbose = true;
 			} else if ( "--version".equals( args[ i ] ) ) {
@@ -256,6 +273,7 @@ public class CommandLineParser
 		programFilepath = olFilepath;
 		
 		connectionsLimit = cLimit;
+		connectionsCache = cCache;
 		
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
