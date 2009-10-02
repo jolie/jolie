@@ -53,7 +53,7 @@ public class TimeService extends JavaService
 					( callbackValue == null ) ? Value.create() : callbackValue;
 			this.parent = parent;
 		}
-		
+
 		@Override
 		public void run()
 		{
@@ -63,16 +63,16 @@ public class TimeService extends JavaService
 			} catch( InterruptedException e ) {}
 		}
 	}
-	
+
 	private TimeThread thread = null;
 	final private DateFormat dateFormat, dateTimeFormat;
-	
+
 	public TimeService()
 	{
 		dateFormat = DateFormat.getDateInstance( DateFormat.SHORT );
 		dateTimeFormat = DateFormat.getDateTimeInstance( DateFormat.SHORT, DateFormat.MEDIUM );
 	}
-	
+
 	@Override
 	protected void finalize()
 	{
@@ -80,7 +80,7 @@ public class TimeService extends JavaService
 			thread.interrupt();
 		}
 	}
-	
+
 	private void launchTimeThread( long waitTime, String callbackOperation, Value callbackValue )
 	{
 		waitTime = ( waitTime > 0 ) ? waitTime : 0L;
@@ -90,7 +90,7 @@ public class TimeService extends JavaService
 		thread = new TimeThread( this, waitTime, callbackOperation, callbackValue );
 		thread.start();
 	}
-	
+
 	public void setNextTimeout( Value request )
 	{
 		long waitTime = request.intValue();
@@ -103,10 +103,10 @@ public class TimeService extends JavaService
 		if ( (vec=request.children().get( "message" )) != null ) {
 			callbackValue = vec.first();
 		}
-		
+
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
-	
+
 	public void setNextTimeoutByDateTime( Value request )
 	{
 		long waitTime = 0;
@@ -126,10 +126,10 @@ public class TimeService extends JavaService
 		if ( (vec=request.children().get( "message" )) != null ) {
 			callbackValue = vec.first();
 		}
-		
+
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
-	
+
 	public void setNextTimeoutByTime( Value request )
 	{
 		long waitTime = 0;
@@ -148,7 +148,7 @@ public class TimeService extends JavaService
 			callbackOperation = vec.first().strValue();
 		if ( (vec=request.children().get( "message" )) != null )
 			callbackValue = vec.first();
-		
+
 		launchTimeThread( waitTime, callbackOperation, callbackValue );
 	}
 
@@ -162,12 +162,12 @@ public class TimeService extends JavaService
 		} catch ( InterruptedException e ) {
 		}
 	}
-	
+
 	public Integer currentTimeMillis()
 	{
 		return (int)System.currentTimeMillis();
 	}
-	
+
 	public String getCurrentDateTime()
 	{
 		return dateTimeFormat.format( new Date() );
@@ -213,7 +213,7 @@ public class TimeService extends JavaService
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );
 		}
-		
+
 		return v;
 	}
 }
