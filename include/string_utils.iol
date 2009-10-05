@@ -42,6 +42,7 @@ interface StringUtilsInterface {
 RequestResponse:
 	join(JoinRequest)(string),
 	leftPad(PadRequest)(string),
+	rightPad(PadRequest)(string),
 	length(string)(int),
 	match(MatchRequest)(MatchResult),
 	replaceAll(ReplaceAllRequest)(string), 
