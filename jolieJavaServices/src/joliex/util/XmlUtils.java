@@ -47,8 +47,8 @@ import org.xml.sax.SAXException;
 @AndJarDeps({"jolie-xml.jar"})
 public class XmlUtils extends JavaService
 {
-	final private DocumentBuilderFactory documentBuilderFactory;
-	final private TransformerFactory transformerFactory;
+	private final DocumentBuilderFactory documentBuilderFactory;
+	private final TransformerFactory transformerFactory;
 
 	public XmlUtils()
 	{

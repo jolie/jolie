@@ -32,8 +32,19 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
+import java.io.Writer;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import jolie.net.CommMessage;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -41,10 +52,16 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class FileService extends JavaService
 {
-	final private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
+	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+
+	private final FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
 
 	private static void readBase64IntoValue( File file, Value value )
 		throws IOException
@@ -65,6 +82,22 @@ public class FileService extends JavaService
 		fis.read( buffer );
 		fis.close();
 		value.setValue( new ByteArray( buffer ) );
+	}
+
+	private void readXMLIntoValue( File file, Value value )
+		throws IOException
+	{
+		try {
+			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+			InputSource src = new InputSource( new FileReader( file ) );
+			Document doc = builder.parse( src );
+			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
+			jolie.xml.XmlUtils.documentToValue( doc, value );
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		}
 	}
 	
 	private static void readTextIntoValue( File file, Value value )
@@ -89,13 +122,16 @@ public class FileService extends JavaService
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
+		File file = new File( filenameValue.strValue() );
 		try {
 			if ( "base64".equals( format ) ) {
-				readBase64IntoValue( new File( filenameValue.strValue() ), retValue );
+				readBase64IntoValue( file, retValue );
 			} else if ( "binary".equals( format ) ) {
-				readBinaryIntoValue( new File( filenameValue.strValue() ), retValue );
+				readBinaryIntoValue( file, retValue );
+			} else if ( "xml".equals( format ) ) {
+				readXMLIntoValue( file, retValue );
 			} else {
-				readTextIntoValue( new File( filenameValue.strValue() ), retValue );
+				readTextIntoValue( file, retValue );
 			}			
 		} catch( FileNotFoundException e ) {
 			throw new FaultException( "FileNotFound" );
@@ -130,6 +166,52 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
+	private void writeXML( File file, Value value )
+		throws IOException
+	{
+		if ( value.children().isEmpty() ) {
+			return; // TODO: perhaps we should erase the content of the file before returning.
+		}
+		try {
+			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+			String rootName = value.children().keySet().iterator().next();
+			jolie.xml.XmlUtils.valueToDocument(
+				value.getFirstChild( rootName ),
+				rootName,
+				doc
+			);
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			Writer writer = new FileWriter( file );
+			StreamResult result = new StreamResult( writer );
+			transformer.transform( new DOMSource( doc ), result );
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	private static void writeBinary( File file, Value value )
+		throws IOException
+	{
+		FileOutputStream os = new FileOutputStream( file );
+		os.write( value.byteArrayValue().getBytes() );
+		os.flush();
+		os.close();
+	}
+
+	private static void writeText( File file, Value value )
+		throws IOException
+	{
+		FileWriter writer = new FileWriter( file );
+		writer.write( value.strValue() );
+		writer.flush();
+		writer.close();
+	}
+
 	@RequestResponse
 	public void writeFile( Value request )
 		throws FaultException
@@ -139,17 +221,21 @@ public class FileService extends JavaService
 			throw new FaultException( "FileNotFound" );
 		}
 		Value content = request.getFirstChild( "content" );
+		String format = request.getFirstChild( "format" ).strValue();
+		File file = new File( filenameValue.strValue() );
 		try {
-			if ( content.isByteArray() ) {
-				FileOutputStream os = new FileOutputStream( filenameValue.strValue() );
-				os.write( ((ByteArray)content.valueObject()).getBytes() );
-				os.flush();
-				os.close();
-			} else {
-				FileWriter writer = new FileWriter( filenameValue.strValue() );
-				writer.write( content.strValue() );
-				writer.flush();
-				writer.close();
+			if ( "text".equals( format ) ) {
+				writeText( file, content );
+			} else if ( "binary".equals( format ) ) {
+				writeBinary( file, content );
+			} else if ( "xml".equals( format ) ) {
+				writeXML( file, content );
+			} else if ( format.isEmpty() ) {
+				if ( content.isByteArray() ) {
+					writeBinary( file, content );
+				} else {
+					writeText( file, content );
+				}
 			}
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
