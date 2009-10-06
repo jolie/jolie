@@ -30,7 +30,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import jolie.net.CommMessage;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -72,7 +71,7 @@ public class DatabaseService extends JavaService
 	}
 
 	@RequestResponse
-	public void connect( CommMessage message )
+	public void connect( Value request )
 		throws FaultException
 	{
 		if ( connection != null ) {
@@ -84,14 +83,14 @@ public class DatabaseService extends JavaService
 			} catch( SQLException e ) {}
 		}
 
-		mustCheckConnection = message.value().getFirstChild( "checkConnection" ).intValue() > 0;
+		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
-		String driver = message.value().getChildren( "driver" ).first().strValue();
-		String host = message.value().getChildren( "host" ).first().strValue();
-		String port = message.value().getChildren( "port" ).first().strValue();
-		String databaseName = message.value().getChildren( "database" ).first().strValue();
-		username = message.value().getChildren( "username" ).first().strValue();
-		password = message.value().getChildren( "password" ).first().strValue();
+		String driver = request.getChildren( "driver" ).first().strValue();
+		String host = request.getChildren( "host" ).first().strValue();
+		String port = request.getChildren( "port" ).first().strValue();
+		String databaseName = request.getChildren( "database" ).first().strValue();
+		username = request.getChildren( "username" ).first().strValue();
+		password = request.getChildren( "password" ).first().strValue();
 		String separator = "/";
 		try {
 			if ( "postgresql".equals( driver ) ) {
