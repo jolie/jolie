@@ -2,13 +2,13 @@ include "types/IOException.iol"
 
 type ReadFileRequest:void {
 	.filename:string
-	.format?:string // Can be "base64", "binary" or "text" (defaults to "text")
+	.format?:string // Can be "base64", "binary", "text" or "xml" (defaults to "text")
 }
 
 type WriteFileRequest:void {
 	.filename:string
 	.content:any
-	.format?:string
+	.format?:string // Can be "binary", "text" or "xml" (defaults to "text")
 }
 
 type DeleteRequest:string { // The filename to delete
