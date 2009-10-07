@@ -7,7 +7,7 @@ type ReadFileRequest:void {
 
 type WriteFileRequest:void {
 	.filename:string
-	.content:any
+	.content:undefined
 	.format?:string // Can be "binary", "text" or "xml" (defaults to "text")
 }
 
@@ -31,7 +31,7 @@ type ListResponse:void {
 
 outputPort File {
 RequestResponse:
-	readFile(ReadFileRequest)(any) throws FileNotFound(void) IOException(IOExceptionType),
+	readFile(ReadFileRequest)(undefined) throws FileNotFound(void) IOException(IOExceptionType),
 	writeFile(WriteFileRequest)(void) throws FileNotFound(void) IOException(IOExceptionType),
 	delete(DeleteRequest)(int) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
