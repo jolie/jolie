@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public enum NativeType
 {
-	UNDEFINED( "undefined" ),
+	//UNDEFINED( "undefined" ),
 	STRING( "string" ),
 	INT( "int" ),
 	DOUBLE( "double" ),
@@ -38,7 +38,7 @@ public enum NativeType
 	RAW( "raw" ),
 	ANY( "any" );
 
-	final private static Map< String, NativeType > idMap = new ConcurrentHashMap< String, NativeType >();
+	private final static Map< String, NativeType > idMap = new ConcurrentHashMap< String, NativeType >();
 
 	static {
 		for( NativeType type : NativeType.values() ) {
@@ -46,7 +46,7 @@ public enum NativeType
 		}
 	}
 
-	final private String id;
+	private final String id;
 	
 	NativeType( String id )
 	{
@@ -58,7 +58,7 @@ public enum NativeType
 		return id;
 	}
 
-	static public NativeType fromString( String id )
+	public static NativeType fromString( String id )
 	{
 		return idMap.get( id );
 	}

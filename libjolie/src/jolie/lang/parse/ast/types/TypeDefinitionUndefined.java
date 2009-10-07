@@ -31,6 +31,8 @@ import jolie.lang.parse.ParsingContext;
  */
 public class TypeDefinitionUndefined extends TypeInlineDefinition
 {
+	public static final String UNDEFINED_KEYWORD = "undefined";
+
 	private static class LazyHolder {
 		private LazyHolder() {}
 		private static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
@@ -38,7 +40,7 @@ public class TypeDefinitionUndefined extends TypeInlineDefinition
 
 	private TypeDefinitionUndefined()
 	{
-		super( new ParsingContext(), "undefined", NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+		super( new ParsingContext(), UNDEFINED_KEYWORD, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
 		super.setUntypedSubTypes( true );
 	}
 

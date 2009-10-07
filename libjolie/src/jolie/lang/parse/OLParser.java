@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
@@ -147,7 +146,7 @@ public class OLParser extends AbstractParser
 		for( NativeType type : NativeType.values() ) {
 			definedTypes.put( type.id(), new TypeInlineDefinition( new ParsingContext(), type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
 		}
-		definedTypes.put( NativeType.UNDEFINED.id(), TypeDefinitionUndefined.getInstance() );
+		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 		
 		return definedTypes;
 	}
@@ -870,8 +869,8 @@ public class OLParser extends AbstractParser
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
-				String requestTypeName = NativeType.UNDEFINED.id();
-				String responseTypeName = NativeType.UNDEFINED.id();
+				String requestTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
+				String responseTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
 
 				if ( token.is( Scanner.TokenType.LPAREN ) ) {
 					getToken(); //eat (
@@ -890,7 +889,7 @@ public class OLParser extends AbstractParser
 					getToken();
 					while( token.is( Scanner.TokenType.ID ) ) {
 						String faultName = token.content();
-						String faultTypeName = NativeType.UNDEFINED.id();
+						String faultTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
 						getToken();
 						if ( token.is( Scanner.TokenType.LPAREN ) ) {
 							getToken(); //eat (
