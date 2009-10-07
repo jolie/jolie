@@ -46,6 +46,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.net.CommMessage;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -56,6 +57,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+@AndJarDeps({"jolie-xml.jar"})
 public class FileService extends JavaService
 {
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
