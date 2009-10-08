@@ -39,7 +39,7 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
 {
-	private Interpreter interpreter;
+	private final Interpreter interpreter;
 	
 	public RuntimeService()
 	{
@@ -125,7 +125,6 @@ public class RuntimeService extends JavaService
 		String resourceName = request.getChildren( "resourceName" ).first().strValue();
 		listener.redirectionMap().remove( resourceName );
 	}
-
 
 	public Value getRedirection( Value request )
 		throws FaultException
