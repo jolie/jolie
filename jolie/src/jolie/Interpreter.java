@@ -754,7 +754,8 @@ public class Interpreter
 				future.setResult( e );
 			}
 			runMain();
-			commCore.shutdown();
+			//commCore.shutdown();
+			exit();
 			free();
 		}
 
