@@ -30,7 +30,8 @@ Interfaces: TestUnitInterface
 
 init
 {
-	dirs[0] = "primitives"
+	dirs[0] = "primitives";
+	dirs[1] = "library"
 }
 
 main
