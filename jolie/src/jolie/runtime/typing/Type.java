@@ -116,8 +116,6 @@ public class Type
 			return value.valueObject() == null;
 		} else if ( nativeType == NativeType.RAW ) {
 			return value.isByteArray();
-		} else if ( nativeType == NativeType.UNDEFINED ) {
-			return true;
 		}
 
 		return false;
