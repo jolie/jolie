@@ -47,7 +47,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		return global;
 	}
 
-	static public void levelPaths( VariablePathNode leftPath, VariablePathNode rightPath )
+	public static void levelPaths( VariablePathNode leftPath, VariablePathNode rightPath )
 	{
 		int leftIndex = leftPath.path().size() - 1;
 		int rightIndex = rightPath.path().size() - 1;
@@ -61,7 +61,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 					new ConstantIntegerExpression( leftPath.context(), 0 )
 				);
 			leftPath.path().set( leftIndex, left );
-		} else if ( right.value() == null ) {
+		} else if ( left.value() != null && right.value() == null ) {
 			right = new Pair< OLSyntaxNode, OLSyntaxNode >(
 					right.key(),
 					new ConstantIntegerExpression( rightPath.context(), 0 )
