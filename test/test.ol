@@ -47,7 +47,7 @@ main
 			scope( s ) {
 				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() );
 				loadEmbeddedService@Runtime( loadRequest )( TestUnit.location );
-				install( TestFailed => println@Console( "failed." )() );
+				install( TestFailed => println@Console( "failed. " + s.TestFailed )() );
 				test@TestUnit()();
 				println@Console( "passed." )();
 				callExit@Runtime( TestUnit.location )()
