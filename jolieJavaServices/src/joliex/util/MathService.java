@@ -21,8 +21,15 @@
 
 package joliex.util;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import jolie.runtime.JavaService;
+import jolie.runtime.Value;
 
+/**
+ * JavaService offering various math related functionalities.
+ * @author Fabrizio Montesi
+ */
 public class MathService extends JavaService
 {
 	public Double random()
@@ -33,5 +40,21 @@ public class MathService extends JavaService
 	public Integer abs( Integer i )
 	{
 		return Math.abs( i );
+	}
+
+	/**
+	 * @author Claudio Guidi
+	 * @author Fabrizio Montesi
+	 */
+	public Double round( Value v )
+	{
+		int decimals = 0;
+		if ( v.hasChildren( "decimals" ) ) {
+			decimals = v.getFirstChild( "decimals" ).intValue();
+		}
+
+		BigDecimal b = new BigDecimal( v.doubleValue() );
+		b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
+		return b.doubleValue();
 	}
 }
