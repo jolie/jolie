@@ -22,7 +22,6 @@
 package joliex.util;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 
@@ -52,9 +51,17 @@ public class MathService extends JavaService
 		if ( v.hasChildren( "decimals" ) ) {
 			decimals = v.getFirstChild( "decimals" ).intValue();
 		}
-
-		BigDecimal b = new BigDecimal( v.doubleValue() );
-		b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
-		return b.doubleValue();
+		double orig = v.doubleValue();
+		double power = Math.pow( 10, decimals );
+		double ret = orig * power;
+		if ( ret == Double.POSITIVE_INFINITY ) {
+			BigDecimal b = new BigDecimal( orig );
+			b = b.setScale( decimals, BigDecimal.ROUND_HALF_UP );
+			ret = b.doubleValue();
+		} else {
+			ret = Math.round( ret ) / power;
+		}
+		
+		return ret;
 	}
 }
