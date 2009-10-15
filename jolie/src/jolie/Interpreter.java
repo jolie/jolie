@@ -34,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -78,37 +80,40 @@ public class Interpreter
 	private OLParser olParser;
 	
 	private boolean exiting = false;
-	final private Set< List< VariablePath > > correlationSet =
+	private final Set< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
-	final private Value globalValue = Value.createRootValue();
-	final private String[] arguments;
-	final private Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
+	private final Value globalValue = Value.createRootValue();
+	private final String[] arguments;
+	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
 			new LinkedList< EmbeddedServiceLoader >();
-	final private Logger logger = Logger.getLogger( "JOLIE" );
+	private final Logger logger = Logger.getLogger( "JOLIE" );
 	
-	final private Map< String, DefinitionProcess > definitions = 
+	private final Map< String, DefinitionProcess > definitions =
 				new HashMap< String, DefinitionProcess >();
-	final private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	final private Map< String, InputOperation > inputOperations = 
+	private final Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
+	private final Map< String, InputOperation > inputOperations =
 				new HashMap< String, InputOperation>();
 	
-	final private HashMap< String, Object > locksMap =
+	private final HashMap< String, Object > locksMap =
 				new HashMap< String, Object >();
 	
-	final private Set< CorrelatedProcess > sessionSpawners = 
+	private final Set< CorrelatedProcess > sessionSpawners =
 				new HashSet< CorrelatedProcess >();
 	
-	final private ClassLoader parentClassLoader;
-	
-	final private String[] includePaths;
-	final private String[] args;
-	
-	final private File programFile;
+	private final ClassLoader parentClassLoader;
+	private final String[] includePaths;
+	private final String[] args;
+	private final File programFile;
+	private final String logPrefix;
+	private final boolean verbose;
 
-	final private String logPrefix;
+	private final Timer timer;
 
-	final private boolean verbose;
+	public void schedule( TimerTask task, long delay )
+	{
+		timer.schedule( task, delay );
+	}
 	
 	/**
 	 * Returns the arguments passed to this Interpreter.
@@ -327,6 +332,7 @@ public class Interpreter
 				p.interpreterExit();
 			}
 		}
+		timer.cancel();
 	}
 
 	/**
@@ -512,6 +518,7 @@ public class Interpreter
 		logPrefix = builder.toString();
 
 		verbose = cmdParser.verbose();
+		timer = new Timer( programFile.getName() + "-Timer" );
 	}
 
 	/**
@@ -571,8 +578,8 @@ public class Interpreter
 	
 	private static class InterpreterStartFuture implements Future< Exception >
 	{
-		final private Lock lock;
-		final private Condition initCompleted;
+		private final Lock lock;
+		private final Condition initCompleted;
 		private Exception result;
 		private boolean isDone = false;
 		
@@ -711,7 +718,7 @@ public class Interpreter
 		runMain();
 	}
 
-	final private ExecutorService executorService = Executors.newCachedThreadPool();
+	private final ExecutorService executorService = Executors.newCachedThreadPool();
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
@@ -722,10 +729,10 @@ public class Interpreter
 		executorService.execute( r );
 	}
 
-	static private int starterThreadCounter = 0;
-	static final private Object starterThreadCounterMutex = new Object();
+	private static int starterThreadCounter = 0;
+	private static final Object starterThreadCounterMutex = new Object();
 
-	static private String createStarterThreadName( String programFilename )
+	private static String createStarterThreadName( String programFilename )
 	{
 		String ret;
 		synchronized( starterThreadCounterMutex ) {
@@ -736,7 +743,7 @@ public class Interpreter
 
 	private class StarterThread extends Thread
 	{
-		final private InterpreterStartFuture future;
+		private final InterpreterStartFuture future;
 		public StarterThread( InterpreterStartFuture future )
 		{
 			super( createStarterThreadName( programFile.getName() ) );

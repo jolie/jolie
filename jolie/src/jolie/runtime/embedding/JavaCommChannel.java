@@ -24,8 +24,8 @@ package jolie.runtime.embedding;
 import jolie.runtime.JavaService;
 import java.io.IOException;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -40,8 +40,9 @@ import jolie.runtime.InvalidIdException;
  */
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
-	final private JavaService javaService;
-	final private List< CommMessage > messages = new LinkedList< CommMessage >();
+	private final JavaService javaService;
+	private final Map< Long, CommMessage > messages = new HashMap< Long, CommMessage >();
+	//private final List< CommMessage > messages = new LinkedList< CommMessage >();
 
 	public JavaCommChannel( JavaService javaService )
 	{
@@ -74,7 +75,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 							response.fault()
 						);
 				synchronized( messages ) {
-					messages.add( response );
+					messages.put( message.id(), response );
 					messages.notifyAll();
 				}
 			}
@@ -86,6 +87,33 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	protected CommMessage recvImpl()
+		throws IOException
+	{
+		throw new IOException( "Unsupported operation" );
+	}
+
+	@Override
+	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException
+	{
+		boolean keepRun = true;
+		CommMessage ret = null;
+		synchronized( messages ) {
+			while( keepRun ) {
+				if ( messages.containsKey( request.id() ) ) {
+					ret = messages.remove( request.id() );
+					keepRun = false;
+				} else {
+					try {
+						messages.wait();
+					} catch( InterruptedException e ) {}
+				}
+			}
+		}
+		return ret;
+	}
+
+	/*protected CommMessage recvImpl()
 		throws IOException
 	{
 		CommMessage ret = null;
@@ -101,7 +129,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
 		}
 		return ret;
-	}
+	}*/
 
 	protected void closeImpl()
 	{}
