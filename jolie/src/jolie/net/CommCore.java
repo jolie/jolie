@@ -25,7 +25,6 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -158,7 +157,7 @@ public class CommCore
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
-				
+
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new SocketListenerFactory( this );
 		listenerFactories.put( "socket", listenerFactory );

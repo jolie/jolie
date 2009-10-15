@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -51,15 +52,17 @@ import jolie.runtime.Value;
  */
 abstract public class CommChannel
 {
-	final private Map< Long, CommMessage > pendingResponses =
+	private static final long RECEIVER_KEEP_ALIVE = 10000; // msecs
+
+	private final Map< Long, CommMessage > pendingResponses =
 			new HashMap< Long, CommMessage >();
-	final private Map< Long, ResponseContainer > waiters =
+	private final Map< Long, ResponseContainer > waiters =
 			new HashMap< Long, ResponseContainer >();
-	final private List< CommMessage > pendingGenericResponses =
+	private final List< CommMessage > pendingGenericResponses =
 			new LinkedList< CommMessage >();
 	
-	final protected ReentrantLock lock = new ReentrantLock( true );
-	final private Object responseRecvMutex = new Object();
+	protected final ReentrantLock lock = new ReentrantLock( true );
+	private final Object responseRecvMutex = new Object();
 
 	private static class ResponseContainer
 	{
@@ -183,7 +186,7 @@ abstract public class CommChannel
 	 * @return the response for the specified request message
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	final public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
 		CommMessage response;
@@ -195,7 +198,7 @@ abstract public class CommChannel
 					assert( waiters.containsKey( request.id() ) == false );
 					monitor = new ResponseContainer();
 					waiters.put( request.id(), monitor );
-					responseRecvMutex.notify();
+					//responseRecvMutex.notify();
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}
@@ -206,6 +209,8 @@ abstract public class CommChannel
 				if ( responseReceiver == null ) {
 					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
 					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
+				} else {
+					responseReceiver.wakeUp();
 				}
 			}
 			synchronized( monitor ) {
@@ -226,13 +231,54 @@ abstract public class CommChannel
 	
 	private static class ResponseReceiver implements Runnable
 	{
-		final private CommChannel parent;
-		final private ExecutionThread ethread;
+		private final CommChannel parent;
+		private final ExecutionThread ethread;
+		private boolean keepRun;
+		private TimerTask timeoutTask;
+
+		private void timeout()
+		{
+			synchronized( parent.responseRecvMutex ) {
+				if ( keepRun == false ) {
+					timeoutTask = null;
+					parent.responseReceiver = null;
+				}
+			}
+		}
+
+		private void wakeUp()
+		{
+			if ( timeoutTask != null ) {
+				timeoutTask.cancel();
+			}
+			keepRun = true;
+			parent.responseRecvMutex.notify();
+		}
+
+		private void sleep()
+		{
+			final ResponseReceiver receiver = this;
+			timeoutTask = new TimerTask() {
+				public void run()
+				{
+					receiver.timeout();
+				}
+			};
+			ethread.interpreter().schedule( timeoutTask, RECEIVER_KEEP_ALIVE );
+			try {
+				keepRun = false;
+				parent.responseRecvMutex.wait();
+			} catch( InterruptedException e ) {
+				Interpreter.getInstance().logSevere( e );
+			}
+		}
 		
 		private ResponseReceiver( CommChannel parent, ExecutionThread ethread )
 		{
 			this.ethread = ethread;
 			this.parent = parent;
+			this.keepRun = true;
+			this.timeoutTask = null;
 		}
 		
 		private void handleGenericMessage( CommMessage response )
@@ -302,15 +348,10 @@ abstract public class CommChannel
 			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
 
 			CommMessage response;
-			boolean keepRun = true;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
 					if ( parent.waiters.isEmpty() ) {
-						try {
-							parent.responseRecvMutex.wait();
-						} catch( InterruptedException e ) {
-							Interpreter.getInstance().logSevere( e );
-						}
+						sleep();
 					}
 					try {
 						response = parent.recv();
@@ -324,8 +365,7 @@ abstract public class CommChannel
 						keepRun = false;
 					}
 					if ( parent.waiters.isEmpty() ) {
-						keepRun = false;
-						parent.responseReceiver = null;
+						sleep();
 					}
 				}
 			}
