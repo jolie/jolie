@@ -25,7 +25,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 abstract public class JolieCallback implements AsyncCallback< Value >
 {
-	final public void onFailure( Throwable t )
+	public final void onFailure( Throwable t )
 	{
 		if ( t instanceof FaultException ) {
 			onFault( (FaultException)t );
