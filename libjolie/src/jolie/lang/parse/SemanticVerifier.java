@@ -101,24 +101,24 @@ import jolie.util.Pair;
  */
 public class SemanticVerifier implements OLVisitor
 {
-	final private Program program;
+	private final Program program;
 	private boolean valid = true;
 	
-	final private Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
-	final private Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
+	private final Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
+	private final Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
 	
-	final private Set< String > subroutineNames = new HashSet< String > ();
-	final private Map< String, OneWayOperationDeclaration > oneWayOperations =
+	private final Set< String > subroutineNames = new HashSet< String > ();
+	private final Map< String, OneWayOperationDeclaration > oneWayOperations =
 						new HashMap< String, OneWayOperationDeclaration >();
-	final private Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
+	private final Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
 						new HashMap< String, RequestResponseOperationDeclaration >();
 
 	private boolean insideInputPort = false;
 	private boolean mainDefined = false;
 	
-	final private Logger logger = Logger.getLogger( "JOLIE" );
+	private final Logger logger = Logger.getLogger( "JOLIE" );
 	
-	final private Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
+	private final Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
 	//private TypeDefinition rootType; // the type representing the whole session state
 	
 	public SemanticVerifier( Program program )
