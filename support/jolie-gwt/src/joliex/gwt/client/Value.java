@@ -34,7 +34,7 @@ public class Value implements Serializable, IsSerializable
 		UNDEFINED, STRING, INT, DOUBLE
 	}
 
-	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
+	private final Map< String, ValueVector > children = new HashMap< String, ValueVector >();
 
 	private String valueObject = null;
 	private Type type = Type.UNDEFINED;
