@@ -21,8 +21,10 @@
 
 package jolie.runtime.typing;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -34,10 +36,12 @@ import jolie.util.Range;
  */
 public class Type
 {
-	final private Range cardinality;
-	final private NativeType nativeType;
-	final private boolean undefinedSubTypes;
-	final private Map< String, Type > subTypes; // TODO this does not need to be a map
+	private final Range cardinality;
+	private final NativeType nativeType;
+	private final boolean undefinedSubTypes;
+	private final Map< String, Type > subTypes; // TODO this does not need to be a map
+	private final Set< Entry< String, Type > > subTypeSet;
+	private final Set< String > subTypeKeySet;
 
 	public Type(
 		NativeType nativeType,
@@ -49,6 +53,13 @@ public class Type
 		this.cardinality = cardinality;
 		this.undefinedSubTypes = undefinedSubTypes;
 		this.subTypes = subTypes;
+		if ( undefinedSubTypes ) {
+			subTypeSet = null;
+			subTypeKeySet = null;
+		} else {
+			subTypeSet = subTypes.entrySet();
+			subTypeKeySet = subTypes.keySet();
+		}
 	}
 
 	public void check( Value value )
@@ -65,12 +76,12 @@ public class Type
 		}
 
 		if ( undefinedSubTypes == false ) {
-			for( Entry< String, Type > entry : subTypes.entrySet() ) {
+			for( Entry< String, Type > entry : subTypeSet ) {
 				checkSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
 			}
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {
-				if ( subTypes.containsKey( childName ) == false ) {
+				if ( subTypeKeySet.contains( childName ) == false ) {
 					throw new TypeCheckingException( "Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
 			}
