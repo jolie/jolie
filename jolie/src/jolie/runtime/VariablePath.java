@@ -74,7 +74,7 @@ public class VariablePath implements Expression, Cloneable
 		return new VariablePath( clonedPath );
 	}
 
-	final public VariablePath containedSubPath( VariablePath otherVarPath )
+	public final VariablePath containedSubPath( VariablePath otherVarPath )
 	{
 		if ( getRootValue() != otherVarPath.getRootValue() )
 			return null;
@@ -130,7 +130,7 @@ public class VariablePath implements Expression, Cloneable
 		return ExecutionThread.currentThread().state().root();
 	}
 	
-	final public void undef()
+	public final void undef()
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -164,12 +164,12 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
-	final public Value getValue()
+	public final Value getValue()
 	{
 		return getValue( getRootValue() );
 	}
 
-	final public Value getValue( Value rootValue )
+	public final Value getValue( Value rootValue )
 	{
 		Value currValue = rootValue;
 		String keyStr;
@@ -186,12 +186,12 @@ public class VariablePath implements Expression, Cloneable
 		return currValue;
 	}
 
-	final public Value getValueOrNull()
+	public final Value getValueOrNull()
 	{
 		return getValueOrNull( getRootValue() );
 	}
 	
-	final public Value getValueOrNull( Value rootValue )
+	public final Value getValueOrNull( Value rootValue )
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -232,7 +232,7 @@ public class VariablePath implements Expression, Cloneable
 		return currValue;
 	}
 	
-	final public ValueVector getValueVector( Value rootValue )
+	public final ValueVector getValueVector( Value rootValue )
 	{
 		Pair< Expression, Expression > pair;
 		ValueVector currVector = null;
@@ -252,12 +252,12 @@ public class VariablePath implements Expression, Cloneable
 		return currVector;
 	}
 	
-	final public ValueVector getValueVector()
+	public final ValueVector getValueVector()
 	{
 		return getValueVector( getRootValue() );
 	}
 	
-	final public void makePointer( VariablePath rightPath )
+	public final void makePointer( VariablePath rightPath )
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
@@ -316,7 +316,7 @@ public class VariablePath implements Expression, Cloneable
 	}
 	
 	@SuppressWarnings("unchecked")
-	final public void deepCopy( VariablePath rightPath )
+	public final void deepCopy( VariablePath rightPath )
 	{
 		Object myObj = getValueOrValueVector();
 		if ( myObj instanceof Value ) {
@@ -331,7 +331,7 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
-	final public Value evaluate()
+	public final Value evaluate()
 	{
 		final Value v = getValueOrNull();
 		if ( v == null )
