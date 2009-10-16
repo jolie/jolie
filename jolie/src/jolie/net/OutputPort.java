@@ -206,7 +206,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public CommChannel getNewCommChannel()
+	public final CommChannel getNewCommChannel()
 		throws URISyntaxException, IOException
 	{
 		return getCommChannel( true );
@@ -219,7 +219,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public CommChannel getCommChannel()
+	public final CommChannel getCommChannel()
 		throws URISyntaxException, IOException
 	{
 		return getCommChannel( false );
