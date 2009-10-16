@@ -27,9 +27,9 @@ import jolie.runtime.typing.Type;
 
 public class RequestResponseOperation extends InputOperation
 {
-	final private Type requestType;
-	final private Type responseType;
-	final private Map< String, Type > faults;
+	private final Type requestType;
+	private final Type responseType;
+	private final Map< String, Type > faults;
 
 	public RequestResponseOperation(
 		String id,
