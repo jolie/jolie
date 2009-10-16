@@ -23,12 +23,13 @@ package joliex.gwt.client;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 public class ValueVector implements Serializable, Iterable< Value >, IsSerializable
 {
-	private Vector< Value > values = new Vector< Value >();
+	private final List< Value > values = new ArrayList< Value >();
 	
 	public ValueVector()
 	{}
@@ -49,7 +50,7 @@ public class ValueVector implements Serializable, Iterable< Value >, IsSerializa
 			for( int k = values.size(); k <= i; k++ )
 				values.add( new Value() );
 		}
-		return values.elementAt( i );
+		return values.get( i );
 	}
 	
 	public int size()
