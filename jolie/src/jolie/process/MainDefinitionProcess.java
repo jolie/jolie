@@ -57,6 +57,10 @@ public class MainDefinitionProcess extends DefinitionProcess
 				loader.load();
 			}
 
+			for( OutputPort outputPort : interpreter.outputPorts() ) {
+				outputPort.optimizeLocation();
+			}
+
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
 
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {

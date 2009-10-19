@@ -68,10 +68,11 @@ public class RunProcess implements Process
 						);
 				Program program = parser.parse();
 				program = (new OLParseTreeOptimizer( program )).optimize();
-				if ( !(new SemanticVerifier( program )).validate() )
+				SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+				if ( !semanticVerifier.validate() )
 					throw new FaultException( "fInvalidCode" );
 			
-				(new OOITBuilder( Interpreter.getInstance(), program )).build();
+				(new OOITBuilder( Interpreter.getInstance(), program, semanticVerifier.isConstantMap() )).build();
 			} catch( IOException ioe ) {
 				throw new FaultException( "fInvalidCode" );
 			} catch( ParserException ioe ) {

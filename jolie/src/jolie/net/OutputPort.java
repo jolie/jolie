@@ -38,7 +38,9 @@ import jolie.runtime.VariablePath;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.SequentialProcess;
+import jolie.runtime.Expression;
 import jolie.runtime.VariablePathBuilder;
+import jolie.util.LocationParser;
 
 /**
  * This class represents a JOLIE output port, offering methods for getting
@@ -48,11 +50,11 @@ import jolie.runtime.VariablePathBuilder;
  */
 public class OutputPort extends AbstractIdentifiableObject
 {
-	final private Interpreter interpreter;
-	final private Process configurationProcess;
-	final private VariablePath
-				locationVariablePath,
-				protocolVariablePath;
+	private final Interpreter interpreter;
+	private final Process configurationProcess;
+	private Expression locationExpression;
+	private final VariablePath locationVariablePath, protocolVariablePath;
+	private final boolean isConstant;
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -74,7 +76,10 @@ public class OutputPort extends AbstractIdentifiableObject
 					.add( Constants.LOCATION_NODE_NAME, 0 )
 					.toVariablePath();
 
+		this.locationExpression = this.locationVariablePath;
+
 		this.configurationProcess = null;
+		this.isConstant = false;
 	}
 	
 	// To be called by OOITBuilder
@@ -83,9 +88,11 @@ public class OutputPort extends AbstractIdentifiableObject
 			String id,
 			String protocolId,
 			Process protocolConfigurationProcess,
-			URI locationURI
+			URI locationURI,
+			boolean isConstant
 	) {
 		super( id );
+		this.isConstant = isConstant;
 		this.interpreter = interpreter;
 
 		this.protocolVariablePath =
@@ -93,12 +100,14 @@ public class OutputPort extends AbstractIdentifiableObject
 					.add( id(), 0 )
 					.add( Constants.PROTOCOL_NODE_NAME, 0 )
 					.toVariablePath();
-		
+
 		this.locationVariablePath =
 					new VariablePathBuilder( false )
 					.add( id(), 0 )
 					.add( Constants.LOCATION_NODE_NAME, 0 )
 					.toVariablePath();
+
+		this.locationExpression = locationVariablePath;
 		
 		// Create the configuration Process
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
@@ -113,6 +122,13 @@ public class OutputPort extends AbstractIdentifiableObject
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}
 
+	public void optimizeLocation()
+	{
+		if ( isConstant ) {
+			locationExpression = locationVariablePath.getValue();
+		}
+	}
+
 	/**
 	 * Gets the protocol to be used for communicating with this output port.
 	 * @return the protocol to be used for communicating with this output port.
@@ -122,7 +138,7 @@ public class OutputPort extends AbstractIdentifiableObject
 	public CommProtocol getProtocol()
 		throws IOException, URISyntaxException
 	{
-		return getProtocol( new URI( locationVariablePath.getValue().strValue() ) );
+		return getProtocol( new URI( locationExpression.evaluate().strValue() ) );
 	}
 
 	/**
@@ -150,12 +166,12 @@ public class OutputPort extends AbstractIdentifiableObject
 		throws URISyntaxException, IOException
 	{
 		CommChannel ret = null;
-		Value loc = locationVariablePath.getValue();
+		Value loc = locationExpression.evaluate();
 		if ( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
 		} else {
-			URI uri = getLocation();
+			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
 				ret = interpreter.commCore().createCommChannel( uri, this );
@@ -180,18 +196,27 @@ public class OutputPort extends AbstractIdentifiableObject
 	private static final WeakHashMap< String, URI > uriCache = new WeakHashMap< String, URI > ();
 
 	/**
-	 * Returns the location URI of this output port.
-	 * @return the location URI of this output port
+	 * Returns the resource path of the location of this output port.
+	 * @return the resource path of the location of this output port
 	 * @throws java.net.URISyntaxException
 	 */
-	public URI getLocation()
+	public String getResourcePath()
 		throws URISyntaxException
 	{
-		Value loc = locationVariablePath.getValue();
-		if ( loc.isChannel() ) {
+		Value location = locationExpression.evaluate();
+		if ( location.isChannel() ) {
+			return "/";
+		}
+		return LocationParser.getResourcePath( getLocation( location ) );
+	}
+
+	private URI getLocation( Value location )
+		throws URISyntaxException
+	{
+		if ( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
-		String s = loc.strValue();
+		String s = location.strValue();
 		URI ret;
 		if ( (ret=uriCache.get( s )) == null ) {
 			ret = new URI( s );
