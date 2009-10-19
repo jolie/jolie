@@ -80,9 +80,7 @@ public class SolicitResponseProcess implements Process
 
 	private void log( String message )
 	{
-		if ( Interpreter.getInstance().verbose() ) {
-			Interpreter.getInstance().logInfo( "[SolicitResponse operation " + operationId + "@" + outputPort.id() + "]: " + message );
-		}
+		Interpreter.getInstance().logInfo( "[SolicitResponse operation " + operationId + "@" + outputPort.id() + "]: " + message );
 	}
 
 	public void run()
@@ -91,14 +89,15 @@ public class SolicitResponseProcess implements Process
 		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
+
+		boolean verbose = Interpreter.getInstance().verbose();
 		
 		CommChannel channel = null;
 		try {
-			URI uri = outputPort.getLocation();
 			CommMessage message =
 				CommMessage.createRequest(
 					operationId,
-					LocationParser.getResourcePath( uri ),
+					outputPort.getResourcePath(),
 					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
 				);
 
@@ -107,16 +106,23 @@ public class SolicitResponseProcess implements Process
 			}
 
 			channel = outputPort.getCommChannel();
-			log( "sending request " + message.id() );
+			if ( verbose ) {
+				log( "sending request " + message.id() );
+			}
 			channel.send( message );
-			log( "request " + message.id() + " sent" );
+			if ( verbose ) {
+				log( "request " + message.id() + " sent" );
+			}
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
 			} while( response == null );
-			log( "received response for request " + response.id() );
+			if ( verbose ) {
+				log( "received response for request " + response.id() );
+			}
 			
 			if ( inputVarPath != null )	 {
+				//TODO inputVarPath.setValue
 				inputVarPath.getValue().refCopy( response.value() );
 			}
 			

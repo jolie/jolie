@@ -805,11 +805,12 @@ public class Interpreter
 			Program program = olParser.parse();
 			olParser = null; // Free memory
 			program = (new OLParseTreeOptimizer( program )).optimize();
-			if ( !(new SemanticVerifier( program )).validate() ) {
+			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+			if ( !semanticVerifier.validate() ) {
 				throw new InterpreterException( "Exiting" );
 			}
 			
-			return (new OOITBuilder( this, program )).build();
+			return (new OOITBuilder( this, program, semanticVerifier.isConstantMap() )).build();
 		} catch( ParserException e ) {
 			throw new InterpreterException( e );
 		} catch( IOException e ) {

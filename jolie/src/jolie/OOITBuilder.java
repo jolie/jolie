@@ -185,9 +185,9 @@ public class OOITBuilder implements OLVisitor
 {
 	private Program program;
 	private boolean valid = true;
-	final private Interpreter interpreter;
-
+	private final Interpreter interpreter;
 	private String currentOutputPort = null;
+	private final Map< String, Boolean > isConstantMap;
 
 	/**
 	 * Constructor.
@@ -195,10 +195,11 @@ public class OOITBuilder implements OLVisitor
 	 * @param program the Program to generate the interpretation tree from
 	 * @see Program
 	 */
-	public OOITBuilder( Interpreter interpreter, Program program )
+	public OOITBuilder( Interpreter interpreter, Program program, Map< String, Boolean > isConstantMap )
 	{
 		this.interpreter = interpreter;
 		this.program = program;
+		this.isConstantMap = isConstantMap;
 	}
 	
 	private void error( ParsingContext context, String message )
@@ -260,12 +261,17 @@ public class OOITBuilder implements OLVisitor
 			protocolConfigurationProcess = currProcess;
 		}
 
+		Boolean isConstant;
+		if ( (isConstant = isConstantMap.get( n.id() )) == null ) {
+			isConstant = false;
+		}
 		interpreter.register( n.id(), new OutputPort(
 						interpreter,
 						n.id(),
 						n.protocolId(),
 						protocolConfigurationProcess,
-						n.location()
+						n.location(),
+						isConstant
 					)
 				);
 

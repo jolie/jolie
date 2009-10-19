@@ -231,8 +231,8 @@ class ValueImpl extends Value implements Cloneable
 		return vec;
 	}
 
-	private static int INITIAL_CAPACITY = 8;
-	private static float LOAD_FACTOR = 0.75f;
+	private final static int INITIAL_CAPACITY = 8;
+	private final static float LOAD_FACTOR = 0.75f;
 	
 	public synchronized Map< String, ValueVector > children()
 	{
@@ -262,6 +262,9 @@ class ValueImpl extends Value implements Cloneable
 class RootValueImpl extends Value implements Cloneable
 {
 	private static final long serialVersionUID = 1L;
+
+	private final static int INITIAL_CAPACITY = 8;
+	private final static float LOAD_FACTOR = 0.75f;
 
 	final private Map< String, ValueVector > children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
 
@@ -357,9 +360,6 @@ class RootValueImpl extends Value implements Cloneable
 
 		return vec;
 	}
-
-	private static int INITIAL_CAPACITY = 8;
-	private static float LOAD_FACTOR = 0.75f;
 
 	public Object valueObject()
 	{

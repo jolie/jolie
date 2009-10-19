@@ -22,7 +22,6 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
@@ -35,7 +34,6 @@ import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
-import jolie.util.LocationParser;
 
 public class NotificationProcess implements Process
 {
@@ -69,9 +67,7 @@ public class NotificationProcess implements Process
 
 	private void log( String message )
 	{
-		if ( Interpreter.getInstance().verbose() ) {
-			Interpreter.getInstance().logInfo( "[Notification operation " + operationId + "@" + outputPort.id() + "]: " + message );
-		}
+		Interpreter.getInstance().logInfo( "[Notification operation " + operationId + "@" + outputPort.id() + "]: " + message );
 	}
 
 	public void run()
@@ -81,19 +77,24 @@ public class NotificationProcess implements Process
 			return;
 		}
 
+		boolean verbose = Interpreter.getInstance().verbose();
+
 		try {
-			URI uri = outputPort.getLocation();
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operationId, LocationParser.getResourcePath( uri ) ) :
-						new CommMessage( operationId, LocationParser.getResourcePath( uri ), outputExpression.evaluate() );
+						new CommMessage( operationId, outputPort.getResourcePath() ) :
+						new CommMessage( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
 			if ( outputType != null ) {
 				outputType.check( message.value() );
 			}
 			CommChannel channel = outputPort.getCommChannel();
-			log( "sending request " + message.id() );
+			if ( verbose ) {
+				log( "sending request " + message.id() );
+			}
 			channel.send( message );
-			log( "request " + message.id() + " sent" );
+			if ( verbose ) {
+				log( "request " + message.id() + " sent" );
+			}
 			channel.release();
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
