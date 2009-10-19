@@ -120,6 +120,8 @@ public class SemanticVerifier implements OLVisitor
 	
 	private final Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
 	//private TypeDefinition rootType; // the type representing the whole session state
+
+	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
 	
 	public SemanticVerifier( Program program )
 	{
@@ -130,6 +132,20 @@ public class SemanticVerifier implements OLVisitor
 			NativeType.VOID,
 			jolie.lang.Constants.RANGE_ONE_TO_ONE
 		);*/
+	}
+
+	private void encounteredAssignment( String varName )
+	{
+		if ( isConstantMap.containsKey( varName ) ) {
+			isConstantMap.put( varName, false );
+		} else {
+			isConstantMap.put( varName, true );
+		}
+	}
+
+	public Map< String, Boolean > isConstantMap()
+	{
+		return isConstantMap;
 	}
 
 	private void warning( OLSyntaxNode node, String message )
@@ -282,6 +298,8 @@ public class SemanticVerifier implements OLVisitor
 		if ( outputPorts.get( n.id() ) != null )
 			error( n, "output port " + n.id() + " has been already defined" );
 		outputPorts.put( n.id(), n );
+
+		encounteredAssignment( n.id() );
 
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
@@ -448,6 +466,7 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( LinkInStatement n ) {}
 	public void visit( LinkOutStatement n ) {}
+
 	public void visit( SynchronizedStatement n )
 	{
 		n.body().accept( this );
@@ -455,6 +474,7 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( AssignStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 		n.expression().accept( this );
 	}
@@ -466,8 +486,19 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	public void visit( PointerStatement n ) {}
-	public void visit( DeepCopyStatement n ) {}
+	public void visit( PointerStatement n )
+	{
+		encounteredAssignment( ((ConstantStringExpression)n.leftPath().path().get( 0 ).key()).value() );
+		n.leftPath().accept( this );
+		n.rightPath().accept( this );
+	}
+	
+	public void visit( DeepCopyStatement n )
+	{
+		encounteredAssignment( ((ConstantStringExpression)n.leftPath().path().get( 0 ).key()).value() );
+		n.leftPath().accept( this );
+		n.rightPath().accept( this );
+	}
 
 	public void visit( IfStatement n )
 	{
@@ -564,26 +595,31 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( PreIncrementStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PostIncrementStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PreDecrementStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PostDecrementStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( UndefStatement n )
 	{
+		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
 		n.variablePath().accept( this );
 	}
 
