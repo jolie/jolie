@@ -186,6 +186,41 @@ public class VariablePath implements Expression, Cloneable
 		return currValue;
 	}
 
+	public final void setValue( Value value )
+	{
+		Pair< Expression, Expression > pair = null;
+		ValueVector currVector = null;
+		Value currValue = getRootValue();
+		int index;
+		String keyStr;
+
+		for( int i = 0; i < path.length; i++ ) {
+			pair = path[i];
+			keyStr = pair.key().evaluate().strValue();
+			currVector = currValue.children().get( keyStr );
+			if ( currVector == null || currVector.size() < 1 )
+				return;
+			if ( pair.value() == null ) {
+				if ( (i+1) < path.length ) {
+					currValue = currVector.get( 0 );
+				} else { // We're finished
+					currValue.getChildren( keyStr ).set( 0, value );
+				}
+			} else {
+				index = pair.value().evaluate().intValue();
+				if ( (i+1) < path.length ) {
+					if ( currVector.size() <= index )
+						return;
+					currValue = currVector.get( index );
+				} else {
+					if ( currVector.size() > index ) {
+						currVector.set( index, value );
+					}
+				}
+			}
+		}
+	}
+
 	public final Value getValueOrNull()
 	{
 		return getValueOrNull( getRootValue() );

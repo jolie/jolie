@@ -22,7 +22,6 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.ExecutionThread;
@@ -39,7 +38,6 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
-import jolie.util.LocationParser;
 
 public class SolicitResponseProcess implements Process
 {
@@ -122,8 +120,7 @@ public class SolicitResponseProcess implements Process
 			}
 			
 			if ( inputVarPath != null )	 {
-				//TODO inputVarPath.setValue
-				inputVarPath.getValue().refCopy( response.value() );
+				inputVarPath.setValue( response.value() );
 			}
 			
 			if ( response.isFault() ) {
