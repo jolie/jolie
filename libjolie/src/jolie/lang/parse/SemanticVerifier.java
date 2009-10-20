@@ -497,6 +497,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( PointerStatement n )
 	{
 		encounteredAssignment( n.leftPath() );
+		encounteredAssignment( n.rightPath() );
 		n.leftPath().accept( this );
 		n.rightPath().accept( this );
 	}
