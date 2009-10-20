@@ -83,7 +83,7 @@ public class DatabaseService extends JavaService
 			} catch( SQLException e ) {}
 		}
 
-		mustCheckConnection = request.hasChildren( "checkConnection" ) && request.getFirstChild( "checkConnection" ).intValue() > 0;
+		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
 		String driver = request.getChildren( "driver" ).first().strValue();
 		String host = request.getChildren( "host" ).first().strValue();
