@@ -190,7 +190,7 @@ public class OutputPort extends AbstractIdentifiableObject
 
 	private static class LazyLocalUriHolder {
 		private LazyLocalUriHolder() {}
-		static final URI uri = URI.create( "local" );
+		private static final URI uri = URI.create( "local" );
 	}
 
 	private static final WeakHashMap< String, URI > uriCache = new WeakHashMap< String, URI > ();
