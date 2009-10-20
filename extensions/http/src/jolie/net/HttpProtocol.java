@@ -675,14 +675,14 @@ public class HttpProtocol extends SequentialCommProtocol
 		
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
-			retVal = new CommMessage( inputId, "/", decodedMessage.value );
+			retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", decodedMessage.value, null );
 			received = false;
 		} else if ( message.isError() == false ) {
 			recv_parseQueryString( message, decodedMessage.value );
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage.value );
 			//TODO support resourcePath
-			retVal = new CommMessage( decodedMessage.operationName, "/", decodedMessage.value  );
+			retVal = new CommMessage( CommMessage.GENERIC_ID, decodedMessage.operationName, "/", decodedMessage.value, null );
 			received = true;
 		}
 

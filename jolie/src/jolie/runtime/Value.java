@@ -57,7 +57,7 @@ class ValueLink extends Value implements Cloneable
 	}
 */
 	
-	final public Value evaluate()
+	public final Value evaluate()
 	{
 		return getLinkedValue();
 	}
@@ -156,7 +156,7 @@ class ValueImpl extends Value implements Cloneable
 		this.children = value.children();
 	}
 
-	final public Value evaluate()
+	public final Value evaluate()
 	{
 		return this;
 	}
@@ -308,7 +308,7 @@ class RootValueImpl extends Value implements Cloneable
 		return false;
 	}
 
-	final public Map< String, ValueVector > children()
+	public final Map< String, ValueVector > children()
 	{
 		return children;
 	}
@@ -373,61 +373,61 @@ class RootValueImpl extends Value implements Cloneable
  */
 abstract public class Value implements Expression, Cloneable
 {
-	abstract public boolean isLink();
+	public abstract boolean isLink();
 	
-	static final public Value UNDEFINED_VALUE = Value.create();
+	public static final Value UNDEFINED_VALUE = Value.create();
 
-	final public static Value createRootValue()
+	public final static Value createRootValue()
 	{
 		return new RootValueImpl();
 	}
 	
-	final public static Value createLink( VariablePath path )
+	public final static Value createLink( VariablePath path )
 	{
 		return new ValueLink( path );
 	}
 	
-	final public static Value create()
+	public final static Value create()
 	{
 		return new ValueImpl();
 	}
 	
-	final public static Value create( Boolean bool )
+	public final static Value create( Boolean bool )
 	{
 		return new ValueImpl( ( bool == true ) ? 1 : 0 );
 	}
 	
-	final public static Value create( String str )
+	public final static Value create( String str )
 	{
 		return new ValueImpl( str );
 	}
 	
-	final public static Value create( Integer i )
+	public final static Value create( Integer i )
 	{
 		return new ValueImpl( i );
 	}
 	
-	final public static Value create( Double d )
+	public final static Value create( Double d )
 	{
 		return new ValueImpl( d );
 	}
 
-	final public static Value create( ByteArray b )
+	public final static Value create( ByteArray b )
 	{
 		return new ValueImpl( b );
 	}
 	
-	final public static Value create( Value value )
+	public final static Value create( Value value )
 	{
 		return new ValueImpl( value );
 	}
 	
-	final public static Value createClone( Value value )
+	public final static Value createClone( Value value )
 	{
 		return value.clone();
 	}
 	
-	final public static Value createDeepCopy( Value value )
+	public final static Value createDeepCopy( Value value )
 	{
 		Value ret = Value.create();
 		ret.deepCopy( value );
@@ -439,12 +439,12 @@ abstract public class Value implements Expression, Cloneable
 	 * In case of a sub-link, its pointed Value tree is copied.
 	 * @param value The value to be copied. 
 	 */
-	final public synchronized void deepCopy( Value value )
+	public final synchronized void deepCopy( Value value )
 	{
 		_deepCopy( value, false );
 	}
 
-	final public synchronized void refCopy( Value value )
+	public final synchronized void refCopy( Value value )
 	{
 		_refCopy( value );
 	}
@@ -462,7 +462,7 @@ abstract public class Value implements Expression, Cloneable
 	@Override
 	abstract public Value clone();
 	
-	final public synchronized Value getNewChild( String childId )
+	public final synchronized Value getNewChild( String childId )
 	{
 		final ValueVector vec = getChildren( childId );
 		Value retVal = new ValueImpl();
@@ -471,34 +471,34 @@ abstract public class Value implements Expression, Cloneable
 		return retVal;
 	}
 	
-	final public synchronized Value getFirstChild( String childId )
+	public final synchronized Value getFirstChild( String childId )
 	{
 		return getChildren( childId ).get( 0 );
 	}
 	
 	abstract public Value evaluate();
 	
-	final public synchronized void setValue( Object object )
+	public final synchronized void setValue( Object object )
 	{
 		setValueObject( object );
 	}
 
-	final public synchronized void setValue( String object )
+	public final synchronized void setValue( String object )
 	{
 		setValueObject( object );
 	}
 
-	final public synchronized void setValue( Integer object )
+	public final synchronized void setValue( Integer object )
 	{
 		setValueObject( object );
 	}
 
-	final public synchronized void setValue( Double object )
+	public final synchronized void setValue( Double object )
 	{
 		setValueObject( object );
 	}
 		
-	final public synchronized boolean equals( Value val )
+	public final synchronized boolean equals( Value val )
 	{
 		boolean r = false;
 		if ( val.isDefined() ) {
@@ -550,12 +550,12 @@ abstract public class Value implements Expression, Cloneable
 		return ( valueObject() != null );
 	}
 	
-	final public synchronized void setValue( CommChannel value )
+	public final synchronized void setValue( CommChannel value )
 	{
 		setValueObject( value );
 	}
 	
-	final public synchronized CommChannel channelValue()
+	public final synchronized CommChannel channelValue()
 	{
 		if( isChannel() == false ) {
 			return null;
@@ -563,7 +563,7 @@ abstract public class Value implements Expression, Cloneable
 		return (CommChannel)valueObject();
 	}
 
-	final public synchronized String strValue()
+	public final synchronized String strValue()
 	{
 		Object o = valueObject();
 		if ( o == null ) {
@@ -574,7 +574,7 @@ abstract public class Value implements Expression, Cloneable
 		return o.toString();
 	}
 
-	final public synchronized ByteArray byteArrayValue()
+	public final synchronized ByteArray byteArrayValue()
 	{
 		ByteArray r = null;
 		Object o = valueObject();
@@ -606,7 +606,7 @@ abstract public class Value implements Expression, Cloneable
 		return r;
 	}
 	
-	final public synchronized int intValue()
+	public final synchronized int intValue()
 	{
 		int r = 0;
 		Object o = valueObject();
@@ -626,7 +626,7 @@ abstract public class Value implements Expression, Cloneable
 		return r;
 	}
 	
-	final public synchronized double doubleValue()
+	public final synchronized double doubleValue()
 	{
 		double r = 0;
 		Object o = valueObject();

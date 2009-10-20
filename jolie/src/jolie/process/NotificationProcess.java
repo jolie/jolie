@@ -32,15 +32,16 @@ import jolie.net.CommMessage;
 import jolie.net.OutputPort;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
 
 public class NotificationProcess implements Process
 {
-	final private String operationId;
-	final private OutputPort outputPort;
-	final private Expression outputExpression; // may be null
-	final private Type outputType; // may be null
+	private final String operationId;
+	private final OutputPort outputPort;
+	private final Expression outputExpression; // may be null
+	private final Type outputType; // may be null
 
 	public NotificationProcess(
 			String operationId,
@@ -82,8 +83,8 @@ public class NotificationProcess implements Process
 		try {
 			CommMessage message =
 				( outputExpression == null ) ?
-						new CommMessage( operationId, outputPort.getResourcePath() ) :
-						new CommMessage( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
+						new CommMessage( CommMessage.GENERIC_ID, operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE, null ) :
+						new CommMessage( CommMessage.GENERIC_ID, operationId, outputPort.getResourcePath(), outputExpression.evaluate(), null );
 			if ( outputType != null ) {
 				outputType.check( message.value() );
 			}

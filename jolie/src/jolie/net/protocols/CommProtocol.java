@@ -44,7 +44,7 @@ public abstract class CommProtocol
 		private static class DummyChannel extends CommChannel {
 			public void closeImpl() {}
 			public void sendImpl( CommMessage message ) {}
-			public CommMessage recvImpl() { return new CommMessage( "", "/" ); }
+			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
 		private static DummyChannel dummyChannel = new DummyChannel();

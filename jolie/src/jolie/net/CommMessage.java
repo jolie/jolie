@@ -52,16 +52,16 @@ import jolie.runtime.Value;
 public class CommMessage implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final AtomicLong idCounter = new AtomicLong( 1L );
-	
 	public static final long GENERIC_ID = 0L;
+	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", "/", Value.UNDEFINED_VALUE, null );
 	
-	final private long id;
-	final private String operationName;
-	final private String resourcePath;
-	final private Value value;
-	final private FaultException fault;
+	private final long id;
+	private final String operationName;
+	private final String resourcePath;
+	private final Value value;
+	private final FaultException fault;
 
 	/**
 	 * Returns the resource path of this message.
@@ -110,7 +110,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
 	{
-		return new CommMessage( getNewMessageId(), operationName, resourcePath, value );
+		return new CommMessage( getNewMessageId(), operationName, resourcePath, value, null );
 	}
 
 	/**
@@ -120,7 +120,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createEmptyResponse( CommMessage request )
 	{
-		return createResponse( request, Value.create() );
+		return createResponse( request, Value.UNDEFINED_VALUE );
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createResponse( CommMessage request, Value value )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", value );
+		return new CommMessage( request.id, request.operationName, "/", value, null );
 	}
 
 	/**
@@ -144,44 +144,19 @@ public class CommMessage implements Serializable
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", fault );
-	}
-	
-	private CommMessage( long id, String operationName, String resourcePath, Value value )
-	{
-		this.id = id;
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		// TODO This is a performance hit! Make this only when strictly necessary.
-		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
-		this.value = Value.createDeepCopy( value );
-		this.fault = null;
-	}
-	
-	private CommMessage( long id, String operationName, String resourcePath, FaultException fault )
-	{
-		this.id = id;
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		this.value = Value.create();
-		this.fault = fault;
+		return new CommMessage( request.id, request.operationName, "/", Value.UNDEFINED_VALUE, fault );
 	}
 
 	/**
-	 * Constructor. The identifier of this message will be generic.
-	 * @param operationName the operation name for this message
-	 * @param resourcePath the resource path for this message
-	 * @param value the message data to equip the message with
+	 * Creates a one-way message.
+	 * @param operationName the name of the operation this message is meant for
+	 * @param resourcePath the resource path of this message
+	 * @param value the message data
+	 * @return a one-way message as per specified by the parameters
 	 */
-	public CommMessage( String operationName, String resourcePath, Value value )
+	public static CommMessage createOneWayMessage( String operationName, String resourcePath, Value value )
 	{
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		// TODO This is a performance hit! Make this only when strictly necessary.
-		// Perhaps let it be handled by CommProtocol and/or CommChannel ?  
-		this.value = Value.createDeepCopy( value );
-		this.fault = null;
-		this.id = GENERIC_ID;
+		return new CommMessage( GENERIC_ID, operationName, resourcePath, value, null );
 	}
 
 	/**
@@ -197,8 +172,7 @@ public class CommMessage implements Serializable
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
-		// TODO see above performance hit.
-		this.value = Value.createDeepCopy( value );
+		this.value = value;
 		this.fault = fault;
 	}
 
@@ -209,29 +183,41 @@ public class CommMessage implements Serializable
 	 * @param value the message data to equip the message with
 	 * @param fault the fault to equip the message with
 	 */
-	public CommMessage( String operationName, String resourcePath, Value value, FaultException f )
+	/*private CommMessage( String operationName, String resourcePath, Value value, FaultException f )
 	{
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		// TODO see above performance hit.
-		this.value = Value.createDeepCopy( value );
-		fault = f;
-		this.id = GENERIC_ID;
-	}
+		this( GENERIC_ID, operationName, resourcePath, value, f );
+	}*/
 
 	/**
 	 * Constructor. The identifier of this message will be generic.
 	 * @param operationName the operation name of this message
 	 * @param resourcePath the resource path of this message
 	 */
-	public CommMessage( String operationName, String resourcePath )
+	/*private CommMessage( String operationName, String resourcePath )
 	{
-		this.operationName = operationName;
-		this.resourcePath = resourcePath;
-		this.value = Value.create();
-		this.fault = null;
-		this.id = GENERIC_ID;
+		this( GENERIC_ID, operationName, resourcePath, Value.create(), null );
 	}
+
+	private CommMessage( long id, String operationName, String resourcePath, Value value )
+	{
+		this( id, operationName, resourcePath, value, null );
+	}
+
+	private CommMessage( long id, String operationName, String resourcePath, FaultException fault )
+	{
+		this( id, operationName, resourcePath, Value.create(), fault );
+	}*/
+
+	/**
+	 * Constructor. The identifier of this message will be generic.
+	 * @param operationName the operation name for this message
+	 * @param resourcePath the resource path for this message
+	 * @param value the message data to equip the message with
+	 */
+	/*private CommMessage( String operationName, String resourcePath, Value value )
+	{
+		this( GENERIC_ID, operationName, resourcePath, value, null );
+	}*/
 
 	/**
 	 * Returns the value representing the data contained in this message.

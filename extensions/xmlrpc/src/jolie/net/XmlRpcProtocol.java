@@ -465,11 +465,11 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			if ( message.isResponse() ) {
 				//fault = new FaultException( "InternalServerError", "" );
 				//TODO support resourcePath
-				retVal = new CommMessage( inputId, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
 			} else if ( !message.isError() ) {
 				//TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
-				retVal = new CommMessage( opname, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
 
 			}
 		}

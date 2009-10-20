@@ -59,13 +59,13 @@ public class TimeService extends JavaService
 		{
 			try {
 				Thread.sleep( waitTime );
-				parent.sendMessage( new CommMessage( callbackOperation, "/", callbackValue ) );
+				parent.sendMessage( CommMessage.createOneWayMessage( callbackOperation, "/", callbackValue ) );
 			} catch( InterruptedException e ) {}
 		}
 	}
 
 	private TimeThread thread = null;
-	final private DateFormat dateFormat, dateTimeFormat;
+	private final DateFormat dateFormat, dateTimeFormat;
 
 	public TimeService()
 	{

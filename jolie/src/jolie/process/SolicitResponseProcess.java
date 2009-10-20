@@ -96,7 +96,7 @@ public class SolicitResponseProcess implements Process
 				CommMessage.createRequest(
 					operationId,
 					outputPort.getResourcePath(),
-					( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
+					( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 				);
 
 			if ( types.requestType() != null ) {

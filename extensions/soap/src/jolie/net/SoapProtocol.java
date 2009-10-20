@@ -621,12 +621,12 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( fault != null && message.httpCode() == 500 ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessage( inputId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
 			} else if ( !message.isError() ) {
 				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessage( messageId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
 			}
 		} catch( SOAPException e ) {
 			throw new IOException( e );
@@ -634,7 +634,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessage( messageId, "/", value, new FaultException( "InvalidType" ) );
+			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "InvalidType" ) );
 		}
 		
 		received = true;
