@@ -31,6 +31,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.Value;
 
 
 // TODO: this should not be polled
@@ -67,13 +68,6 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		try {
 			CommMessage response = javaService.callOperation( message );
 			if ( response != null ) {
-				response = new CommMessage(
-							message.id(),
-							message.operationName(),
-							message.resourcePath(),
-							response.value(),
-							response.fault()
-						);
 				synchronized( messages ) {
 					messages.put( message.id(), response );
 					messages.notifyAll();
