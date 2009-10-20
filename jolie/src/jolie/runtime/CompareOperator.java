@@ -28,15 +28,15 @@ package jolie.runtime;
 public enum CompareOperator
 {
 	EQUAL {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			return left.equals( right );
 		}
 	}, NOT_EQUAL {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			return EQUAL.evaluate( left, right ) == false;
 		}
 	}, MINOR {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() < right.doubleValue() );
 			} else {
@@ -44,7 +44,7 @@ public enum CompareOperator
 			}
 		}
 	}, MAJOR {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() > right.doubleValue() );
 			} else {
@@ -52,7 +52,7 @@ public enum CompareOperator
 			}
 		}
 	}, MINOR_OR_EQUAL {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() <= right.doubleValue() );
 			} else {
@@ -60,7 +60,7 @@ public enum CompareOperator
 			}
 		}
 	}, MAJOR_OR_EQUAL {
-		final public boolean evaluate( Value left, Value right) {
+		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() >= right.doubleValue() );
 			} else {
@@ -69,5 +69,5 @@ public enum CompareOperator
 		}
 	};
 
-	abstract public boolean evaluate( Value left, Value right );
+	public abstract boolean evaluate( Value left, Value right );
 }
