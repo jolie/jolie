@@ -39,15 +39,15 @@ import jolie.runtime.typing.TypeCheckingException;
  */
 public class InternalLink extends AbstractIdentifiableObject implements InputHandler
 {
-	final private List< InputProcessExecution > procsList =
+	private final List< InputProcessExecution > procsList =
 					new LinkedList< InputProcessExecution > ();
 	private int signals = 0;
-	final private CommMessage linkMessage;
+	private final CommMessage linkMessage;
 	
 	public InternalLink( String id )
 	{
 		super( id );
-		linkMessage = new CommMessage( id, "" );
+		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null );
 	}
 	
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )

@@ -29,7 +29,7 @@ import java.util.List;
 
 public class ValueVector implements Serializable, Iterable< Value >, IsSerializable
 {
-	private final List< Value > values = new ArrayList< Value >();
+	private List< Value > values = new ArrayList< Value >();
 	
 	public ValueVector()
 	{}
