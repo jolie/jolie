@@ -100,13 +100,12 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		CommMessage ret = null;
 		synchronized( messages ) {
 			while( keepRun ) {
-				if ( messages.containsKey( request.id() ) ) {
-					ret = messages.remove( request.id() );
-					keepRun = false;
-				} else {
+				if ( (ret=messages.remove( request.id() )) == null ) {
 					try {
 						messages.wait();
 					} catch( InterruptedException e ) {}
+				} else {
+					keepRun = false;
 				}
 			}
 		}

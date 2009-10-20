@@ -197,25 +197,19 @@ public class VariablePath implements Expression, Cloneable
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[i];
 			keyStr = pair.key().evaluate().strValue();
-			currVector = currValue.children().get( keyStr );
-			if ( currVector == null || currVector.size() < 1 )
-				return;
+			currVector = currValue.getChildren( keyStr );
 			if ( pair.value() == null ) {
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( 0 );
 				} else { // We're finished
-					currValue.getChildren( keyStr ).set( 0, value );
+					currVector.set( 0, value );
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( (i+1) < path.length ) {
-					if ( currVector.size() <= index )
-						return;
 					currValue = currVector.get( index );
 				} else {
-					if ( currVector.size() > index ) {
-						currVector.set( index, value );
-					}
+					currVector.set( index, value );
 				}
 			}
 		}
