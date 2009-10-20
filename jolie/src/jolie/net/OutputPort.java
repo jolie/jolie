@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.WeakHashMap;
 import jolie.lang.Constants;
 import jolie.process.AssignmentProcess;
@@ -193,7 +194,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		private static final URI uri = URI.create( "local" );
 	}
 
-	private static final WeakHashMap< String, URI > uriCache = new WeakHashMap< String, URI > ();
+	private static final Map< String, URI > uriCache = new WeakHashMap< String, URI > ();
 
 	/**
 	 * Returns the resource path of the location of this output port.
