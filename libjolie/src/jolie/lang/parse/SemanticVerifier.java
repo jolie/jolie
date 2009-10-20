@@ -143,6 +143,11 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	private void encounteredAssignment( VariablePathNode path )
+	{
+		encounteredAssignment( ((ConstantStringExpression)path.path().get( 0 ).key()).value() );
+	}
+
 	public Map< String, Boolean > isConstantMap()
 	{
 		return isConstantMap;
@@ -422,6 +427,9 @@ public class SemanticVerifier implements OLVisitor
 	
 	public void visit( SolicitResponseOperationStatement n )
 	{
+		if ( n.inputVarPath() != null ) {
+			encounteredAssignment( n.inputVarPath() );
+		}
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
 		if ( p == null )
 			error( n, n.outputPortId() + " is not a valid output port" );
@@ -474,7 +482,7 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( AssignStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 		n.expression().accept( this );
 	}
@@ -488,14 +496,14 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( PointerStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.leftPath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.leftPath() );
 		n.leftPath().accept( this );
 		n.rightPath().accept( this );
 	}
 	
 	public void visit( DeepCopyStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.leftPath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.leftPath() );
 		n.leftPath().accept( this );
 		n.rightPath().accept( this );
 	}
@@ -595,31 +603,31 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( PreIncrementStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PostIncrementStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PreDecrementStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( PostDecrementStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
 	public void visit( UndefStatement n )
 	{
-		encounteredAssignment( ((ConstantStringExpression)n.variablePath().path().get( 0 ).key()).value() );
+		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
