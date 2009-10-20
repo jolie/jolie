@@ -256,7 +256,7 @@ public abstract class JavaService
 			try {
 				retObject = javaOperation.method.invoke( this, args );
 				if ( retObject == null ) {
-					ret = CommMessage.createResponse( message, Value.create() );
+					ret = CommMessage.createEmptyResponse( message );
 				} else {
 					ret = CommMessage.createResponse( message, (Value)javaOperation.returnValueConstructor.invoke( null, retObject ) );
 				}

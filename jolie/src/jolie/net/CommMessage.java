@@ -110,7 +110,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
 	{
-		return new CommMessage( getNewMessageId(), operationName, resourcePath, value, null );
+		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -120,7 +120,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createEmptyResponse( CommMessage request )
 	{
-		return createResponse( request, Value.UNDEFINED_VALUE );
+		return createResponse( request, Value.create() );
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createResponse( CommMessage request, Value value )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", value, null );
+		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null );
 	}
 
 	/**
@@ -144,7 +144,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.UNDEFINED_VALUE, fault );
+		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault );
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createOneWayMessage( String operationName, String resourcePath, Value value )
 	{
-		return new CommMessage( GENERIC_ID, operationName, resourcePath, value, null );
+		return new CommMessage( GENERIC_ID, operationName, resourcePath, Value.createDeepCopy( value ), null );
 	}
 
 	/**
