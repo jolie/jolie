@@ -38,9 +38,9 @@ public class VariablePath implements Expression, Cloneable
 		public static final Pair< Expression, Expression >[] emptyPath = new Pair[0];
 	}
 
-	final private Pair< Expression, Expression >[] path; // Right Expression may be null
+	private final Pair< Expression, Expression >[] path; // Right Expression may be null
 
-	final protected Pair< Expression, Expression >[] path()
+	protected final Pair< Expression, Expression >[] path()
 	{
 		return path;
 	}
