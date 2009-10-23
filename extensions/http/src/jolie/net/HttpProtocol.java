@@ -590,6 +590,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
+		requestFormat = null;
 		String format = "xml";
 		if ( hasParameter( "format" ) ) {
 			format = getStringParameter( "format" );
