@@ -240,8 +240,13 @@ abstract public class CommChannel
 		{
 			synchronized( parent.responseRecvMutex ) {
 				if ( keepRun == false ) {
-					timeoutTask = null;
-					parent.responseReceiver = null;
+					if ( parent.waiters.isEmpty() ) {
+						timeoutTask = null;
+						parent.responseReceiver = null;
+					} else {
+						keepRun = true;
+					}
+					parent.responseRecvMutex.notify();
 				}
 			}
 		}
@@ -350,9 +355,9 @@ abstract public class CommChannel
 			CommMessage response;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
-					if ( parent.waiters.isEmpty() ) {
+					/*if ( parent.waiters.isEmpty() ) {
 						sleep();
-					}
+					}*/
 					try {
 						response = parent.recv();
 						if ( response.hasGenericId() ) {

@@ -125,9 +125,9 @@ public class OutputPort extends AbstractIdentifiableObject
 
 	public void optimizeLocation()
 	{
-		/*if ( isConstant ) {
+		if ( isConstant ) {
 			locationExpression = locationVariablePath.getValue();
-		}*/
+		}
 	}
 
 	/**

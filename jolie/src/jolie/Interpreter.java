@@ -112,7 +112,9 @@ public class Interpreter
 
 	public void schedule( TimerTask task, long delay )
 	{
-		timer.schedule( task, delay );
+		if ( exiting == false ) {
+			timer.schedule( task, delay );
+		}
 	}
 	
 	/**

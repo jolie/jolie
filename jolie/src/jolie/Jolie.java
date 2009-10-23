@@ -47,7 +47,7 @@ public class Jolie
 				@Override
 				public void run()
 				{
-					interpreter.commCore().shutdown();
+					interpreter.exit();
 				}
 			} );
 			interpreter.run();

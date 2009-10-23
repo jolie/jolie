@@ -228,7 +228,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		log( "received message " + message.id() );
 
 		if ( inputVarPath != null ) {
-			inputVarPath.getValue().refCopy( message.value() );
+			inputVarPath.setValue( message.value() );
 		}
 
 		FaultException typeMismatch = null;
@@ -251,7 +251,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				response =
 					CommMessage.createResponse(
 						message,
-						( outputExpression == null ) ? Value.create() : outputExpression.evaluate()
+						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 					);
 				if ( operation.responseType() != null ) {
 					try {
