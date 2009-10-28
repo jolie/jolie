@@ -213,7 +213,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private String send_getCharset()
 	{
-		String charset = "UTF8";
+		String charset = "UTF-8";
 		if ( hasParameter( "charset" ) ) {
 			charset = getStringParameter( "charset" );
 		}
@@ -240,9 +240,6 @@ public class HttpProtocol extends SequentialCommProtocol
 	private EncodedContent send_encodeContent( CommMessage message, String charset, String format )
 		throws IOException
 	{
-		if ( charset == null ) {
-			charset = "UTF8";
-		}
 		EncodedContent ret = new EncodedContent();
 		if ( "xml".equals( format ) ) {
 			Document doc = docBuilder.newDocument();
