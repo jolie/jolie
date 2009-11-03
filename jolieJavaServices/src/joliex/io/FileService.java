@@ -168,7 +168,7 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	private void writeXML( File file, Value value )
+	private void writeXML( File file, Value value, boolean append )
 		throws IOException
 	{
 		if ( value.children().isEmpty() ) {
@@ -184,7 +184,7 @@ public class FileService extends JavaService
 			);
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-			Writer writer = new FileWriter( file );
+			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
 		} catch( ParserConfigurationException e ) {
@@ -196,19 +196,19 @@ public class FileService extends JavaService
 		}
 	}
 
-	private static void writeBinary( File file, Value value )
+	private static void writeBinary( File file, Value value, boolean append )
 		throws IOException
 	{
-		FileOutputStream os = new FileOutputStream( file );
+		FileOutputStream os = new FileOutputStream( file, append );
 		os.write( value.byteArrayValue().getBytes() );
 		os.flush();
 		os.close();
 	}
 
-	private static void writeText( File file, Value value )
+	private static void writeText( File file, Value value, boolean append )
 		throws IOException
 	{
-		FileWriter writer = new FileWriter( file );
+		FileWriter writer = new FileWriter( file, append );
 		writer.write( value.strValue() );
 		writer.flush();
 		writer.close();
@@ -218,6 +218,7 @@ public class FileService extends JavaService
 	public void writeFile( Value request )
 		throws FaultException
 	{
+		boolean append = false;
 		Value filenameValue = request.getFirstChild( "filename" );
 		if ( !filenameValue.isString() ) {
 			throw new FaultException( "FileNotFound" );
@@ -225,18 +226,21 @@ public class FileService extends JavaService
 		Value content = request.getFirstChild( "content" );
 		String format = request.getFirstChild( "format" ).strValue();
 		File file = new File( filenameValue.strValue() );
+		if ( request.getFirstChild( "append" ).intValue() > 0 ) {
+			append = true;
+		}
 		try {
 			if ( "text".equals( format ) ) {
-				writeText( file, content );
+				writeText( file, content, append );
 			} else if ( "binary".equals( format ) ) {
-				writeBinary( file, content );
+				writeBinary( file, content, append );
 			} else if ( "xml".equals( format ) ) {
-				writeXML( file, content );
+				writeXML( file, content, append );
 			} else if ( format.isEmpty() ) {
 				if ( content.isByteArray() ) {
-					writeBinary( file, content );
+					writeBinary( file, content, append );
 				} else {
-					writeText( file, content );
+					writeText( file, content, append );
 				}
 			}
 		} catch( IOException e ) {
