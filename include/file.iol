@@ -9,6 +9,7 @@ type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
 	.format?:string // Can be "binary", "text" or "xml" (defaults to "text")
+	.append?:int // Default: 0
 }
 
 type DeleteRequest:string { // The filename to delete
