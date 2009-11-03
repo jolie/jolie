@@ -78,20 +78,20 @@ import org.xml.sax.SAXException;
  */
 public class HttpProtocol extends SequentialCommProtocol
 {
-	private static byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
+	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
 
 	private static class Parameters {
 		private static String DEBUG = "debug";
 	}
 
 	private String inputId = null;
-	final private Transformer transformer;
-	final private DocumentBuilderFactory docBuilderFactory;
-	final private DocumentBuilder docBuilder;
-	final private URI uri;
+	private final Transformer transformer;
+	private final DocumentBuilderFactory docBuilderFactory;
+	private final DocumentBuilder docBuilder;
+	private final URI uri;
 	private boolean received = false;
 	
-	final public static String CRLF = new String( new char[] { 13, 10 } );
+	public final static String CRLF = new String( new char[] { 13, 10 } );
 
 	public String name()
 	{
@@ -616,7 +616,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 
 		if ( !channel().parentListener().canHandleInputOperation( decodedMessage.operationName ) ) {
-			String defaultOpId = getParameterVector( "default" ).first().strValue();
+			String defaultOpId = getStringParameter( "default" );
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
