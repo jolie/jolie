@@ -416,7 +416,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 				if ( result.moreToUnwrap == false ) {
 					receivedData = readFromChannel( istream );
 				} else {
-					receivedData = clearUntilPosition( receivedData );    // drops data already processed
+					receivedData = clearUntilPosition( receivedData ); // drops data already processed
 				}
 				if ( receivedData == null ) {
 					return null;
@@ -434,7 +434,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 					result.moreToUnwrap = false;
 				}
 
-			} while ( result.moreToUnwrap == true );
+			} while( result.moreToUnwrap == true );
 
 			return compactToByte( recvBuffer );
 		} else {
