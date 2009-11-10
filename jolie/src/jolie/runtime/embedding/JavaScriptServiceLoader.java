@@ -25,6 +25,8 @@ import jolie.runtime.Expression;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -36,7 +38,7 @@ import javax.script.ScriptException;
  */
 public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 {
-	final private Invocable invocable;
+	private final Invocable invocable;
 
 	public JavaScriptServiceLoader( Expression channelDest, String jsPath )
 		throws EmbeddedServiceLoaderCreationException
@@ -47,11 +49,14 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 		if ( engine == null ) {
 			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
 		}
-	
+
+		Compilable compilable = (Compilable)engine;
 		try {
 			FileReader reader = new FileReader( jsPath );
 			try {
-				engine.eval( reader );
+				CompiledScript compiledScript = compilable.compile( reader );
+				compiledScript.eval();
+				this.invocable = (Invocable)engine;
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );
 			} finally {
@@ -64,7 +69,6 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 		} catch( FileNotFoundException e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
-		this.invocable = (Invocable)engine;
 	}
 
 	public void load()
