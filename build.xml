@@ -119,6 +119,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
@@ -136,6 +137,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
@@ -168,6 +170,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<copy todir="dist/extensions" flatten="true">
 			<resources>
 				<file file="${project.http}/dist/http.jar"/>
+				<file file="${project.https}/dist/https.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
