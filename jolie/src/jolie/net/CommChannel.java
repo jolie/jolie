@@ -355,15 +355,14 @@ abstract public class CommChannel
 			CommMessage response;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
-					/*if ( parent.waiters.isEmpty() ) {
-						sleep();
-					}*/
 					try {
 						response = parent.recv();
-						if ( response.hasGenericId() ) {
-							handleGenericMessage( response );
-						} else {
-							handleMessage( response );
+						if ( response != null ) {
+							if ( response.hasGenericId() ) {
+								handleGenericMessage( response );
+							} else {
+								handleMessage( response );
+							}
 						}
 					} catch( IOException e ) {
 						throwIOExceptionFault( e );
