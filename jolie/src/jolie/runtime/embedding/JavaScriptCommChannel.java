@@ -38,8 +38,8 @@ import jolie.runtime.Value;
  */
 public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
 {
-	final private Invocable invocable;
-	final private List< CommMessage > messages = new LinkedList< CommMessage >();
+	private final Invocable invocable;
+	private final List< CommMessage > messages = new LinkedList< CommMessage >();
 
 	public JavaScriptCommChannel( Invocable invocable )
 	{

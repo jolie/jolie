@@ -87,7 +87,8 @@ public abstract class CommProtocol
 	protected boolean hasParameter( String id )
 	{
 		if ( configurationPath.getValue().hasChildren( id ) ) {
-			return configurationPath.getValue().getFirstChild( id ).isDefined();
+			Value v = configurationPath.getValue().getFirstChild( id );
+			return v.isDefined() || v.hasChildren();
 		}
 		return false;
 	}

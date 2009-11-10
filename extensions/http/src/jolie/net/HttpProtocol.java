@@ -200,7 +200,7 @@ public class HttpProtocol extends SequentialCommProtocol
 		Matcher m = Pattern.compile( "%\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-			currKey = alias.substring( m.start()+2, m.end()-1 );
+			currKey = alias.substring( m.start() + 2, m.end() - 1 );
 			currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
 			result.replace(
 				m.start() + offset, m.end() + offset,
