@@ -30,13 +30,10 @@ import jolie.runtime.VariablePath;
 
 public class HttpsProtocolFactory extends CommProtocolFactory
 {
-	private final HttpProtocolFactory httpProtocolFactory;
-
 	public HttpsProtocolFactory( CommCore commCore )
 		throws ParserConfigurationException, TransformerConfigurationException
 	{
 		super( commCore );
-		httpProtocolFactory = new HttpProtocolFactory( commCore );
 	}
 
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
@@ -45,7 +42,7 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		return new HttpsProtocol(
 			configurationPath,
 			location,
-			httpProtocolFactory.createProtocol( configurationPath, location )
+			commCore().createCommProtocol( "http", configurationPath, location )
 		);
 	}
 }
