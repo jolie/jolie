@@ -26,8 +26,6 @@ import java.net.URI;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -40,9 +38,9 @@ import jolie.runtime.VariablePath;
 @CanUseJars({"gwt-servlet.jar","jolie-gwt.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {
-	final private TransformerFactory transformerFactory;
-	final private DocumentBuilderFactory docBuilderFactory;
-	final private DocumentBuilder docBuilder;
+	private final TransformerFactory transformerFactory;
+	private final DocumentBuilderFactory docBuilderFactory;
+	private final DocumentBuilder docBuilder;
 
 	public HttpProtocolFactory( CommCore commCore )
 		throws ParserConfigurationException, TransformerConfigurationException
