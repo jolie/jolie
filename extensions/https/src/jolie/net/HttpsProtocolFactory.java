@@ -26,8 +26,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
+import jolie.net.ssl.SSLProtocol;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
+@AndJarDeps({"jolie-ssl.jar"})
 public class HttpsProtocolFactory extends CommProtocolFactory
 {
 	public HttpsProtocolFactory( CommCore commCore )
@@ -39,7 +42,7 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new HttpsProtocol(
+		return new SSLProtocol(
 			configurationPath,
 			location,
 			commCore().createCommProtocol( "http", configurationPath, location )
