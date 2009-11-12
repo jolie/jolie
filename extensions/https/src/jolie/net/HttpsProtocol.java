@@ -54,6 +54,8 @@ import jolie.runtime.VariablePath;
  */
 public class HttpsProtocol extends SequentialCommProtocol
 {
+
+	protected Status lastSSLStatus = null;
 	private boolean isClient = true;
 	private boolean firstTime;
 	private final CommProtocol http;
@@ -63,6 +65,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 
 	private class SSLResult
 	{
+
 		boolean moreToUnwrap;
 		ByteBuffer buffer;
 		SSLEngineResult log = null;
@@ -85,6 +88,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 			this.log = log;
 			emptyBuffer();
 			this.moreToUnwrap = moreToUnwrap;
+			lastSSLStatus = null;
 		}
 
 		public SSLResult( SSLEngineResult log )
@@ -92,18 +96,21 @@ public class HttpsProtocol extends SequentialCommProtocol
 			this.log = log;
 			emptyBuffer();
 			this.moreToUnwrap = false;
+			lastSSLStatus = null;
 		}
 
 		public SSLResult( boolean moreToUnwrap )
 		{
 			emptyBuffer();
 			this.moreToUnwrap = moreToUnwrap;
+			lastSSLStatus = null;
 		}
 
 		public SSLResult()
 		{
 			emptyBuffer();
 			this.moreToUnwrap = false;
+			lastSSLStatus = null;
 		}
 	}
 
@@ -115,8 +122,8 @@ public class HttpsProtocol extends SequentialCommProtocol
 	public HttpsProtocol(
 		VariablePath configurationPath,
 		URI uri,
-		CommProtocol http
-	) {
+		CommProtocol http )
+	{
 		super( configurationPath );
 		this.http = http;
 		firstTime = true;
@@ -156,15 +163,17 @@ public class HttpsProtocol extends SequentialCommProtocol
 		return buffer;
 	}
 
-	// performs the unwrap operation taking care of buffer overflows
+	// performs the wrap operation taking care of buffer overflows
 	private SSLResult wrap( ByteBuffer source )
 	{
 		result.emptyBuffer();
 		try {
 			result.log = ssl.wrap( source, result.buffer );
+			lastSSLStatus = result.log.getStatus();
 			while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
 				result.enlargeBuffer();
 				result.log = ssl.wrap( source, result.buffer );
+				lastSSLStatus = result.log.getStatus();
 			}
 		} catch ( SSLException e ) {
 			e.printStackTrace();
@@ -188,6 +197,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 		source.rewind();
 		do {
 			result.log = ssl.unwrap( source, result.buffer );
+			lastSSLStatus = result.log.getStatus();
 			switch ( result.log.getStatus() ) {
 				case BUFFER_UNDERFLOW:
 					source.position( source.limit() );
@@ -249,7 +259,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 			SSLContext context = SSLContext.getInstance( protocol );
 			KeyStore ks = KeyStore.getInstance( keyStoreFormat );
 			KeyStore ts = KeyStore.getInstance( trustStoreFormat );
-			
+
 			char[] passphrase;
 			if ( keyStorePassword != null ) {
 				passphrase = keyStorePassword.toCharArray();
@@ -322,7 +332,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 				case NEED_WRAP:
 					inbound.clear();
 					result = wrap( inbound );
-					if ( result.log.bytesProduced() > 0 )  {//need to send result to other side
+					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
 						ostream.write( result.buffer.array(), 0, result.buffer.limit() );
 						ostream.flush();
 					}
@@ -373,17 +383,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 
 			// sending request to httpProtocol
 			http.send( bostream, message, null );
-			// now wrapping the message
-			ByteBuffer inbound;
-			inbound = ByteBuffer.wrap( bostream.toByteArray() );
-			result = wrap( inbound );
-
-			if ( result.log.bytesProduced() > 0 ) { //need to send result to client
-				ostream.write( result.buffer.array(), 0, result.buffer.limit() );
-				ostream.flush();
-			}
-			
-			inbound = ByteBuffer.allocate( bufferSize );
+			sendAux( bostream, ostream );
 		} else { // We need to handshake first
 			if ( ssl == null ) {
 				isClient = true;
@@ -393,10 +393,25 @@ public class HttpsProtocol extends SequentialCommProtocol
 		}
 	}
 
+	private void sendAux( ByteArrayOutputStream bostream, OutputStream ostream )
+		throws IOException
+	{
+		// now wrapping the message
+		ByteBuffer inbound = ByteBuffer.wrap( "".getBytes() );
+		if ( bostream != null ) {
+			inbound = ByteBuffer.wrap( bostream.toByteArray() );
+		}
+		result = wrap( inbound );
+		if ( result.log.bytesProduced() > 0 ) { //need to send result to client
+			ostream.write( result.buffer.array(), 0, result.buffer.limit() );
+			ostream.flush();
+		}
+	}
+
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		byte[] recvBytes = recvBody( istream, ostream );
+		byte[] recvBytes = recvAux( istream, ostream );
 		if ( recvBytes != null ) {
 			return http.recv( new SSLInputStream( recvBytes, this, istream, ostream ), ostream );
 		} else {
@@ -404,7 +419,7 @@ public class HttpsProtocol extends SequentialCommProtocol
 		}
 	}
 
-	public byte[] recvBody( InputStream istream, OutputStream ostream )
+	public byte[] recvAux( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		ByteBuffer recvBuffer = ByteBuffer.allocate( bufferSize );
@@ -423,26 +438,31 @@ public class HttpsProtocol extends SequentialCommProtocol
 				}
 				try {
 					result = unwrap( receivedData, istream );
-					if ( result.buffer.limit() == 0 ) {
-						return null;
+					if ( result.buffer.limit() >= 0 ) {
+						// merges the received data with the previous ones
+						justRead = compactToByte( result.buffer );
+						recvBuffer = addToBuffer( recvBuffer, justRead );
 					}
-					// merges the received data with the previous ones
-					justRead = compactToByte( result.buffer );
-					recvBuffer = addToBuffer( recvBuffer, justRead );
 				} catch ( SSLException e ) {
-					e.printStackTrace();
 					result.moreToUnwrap = false;
+					throw e;
 				}
+			} while ( result.moreToUnwrap == true );
 
-			} while( result.moreToUnwrap == true );
-
+			if ( lastSSLStatus == Status.CLOSED && result.log.getHandshakeStatus() == HandshakeStatus.NEED_WRAP ) {
+				// Connection is about to gracefully shut down. Sending message to other peer to gracefully shutdown too.
+				sendAux( null, ostream );
+			}
+			if ( recvBuffer.limit() == 0 ) {
+				return null;
+			}
 			return compactToByte( recvBuffer );
 		} else {
 			if ( ssl == null ) {
 				isClient = false;
 			}
 			startHandshake( ostream, istream );
-			return recvBody( istream, ostream ); // TODO after handshaking go again in recv mode
+			return recvAux( istream, ostream ); // TODO after handshaking go again in recv mode
 		}
 	}
 }
