@@ -117,6 +117,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
@@ -124,6 +125,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
@@ -135,6 +137,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
@@ -142,6 +145,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
@@ -163,6 +167,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 				<file file="${project.libjolie}/dist/libjolie.jar"/>
 				<file file="${project.xsom}/dist/xsom.jar"/>
 				<file file="${project.jolie-xml}/dist/jolie-xml.jar"/>
+				<file file="${project.jolie-ssl}/dist/jolie-ssl.jar"/>
 				<file file="${project.jolie-gwt}/dist/jolie-gwt.jar"/>
 				<file file="${project.metaservice-java}/dist/metaservice-java.jar"/>
 			</resources>
@@ -175,6 +180,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
 				<file file="${project.sodep}/dist/sodep.jar"/>
+				<file file="${project.sodeps}/dist/sodeps.jar"/>
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
 			</resources>
