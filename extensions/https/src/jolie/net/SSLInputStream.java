@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import javax.net.ssl.SSLEngineResult.Status;
 
 /**
  *
@@ -54,13 +55,15 @@ public class SSLInputStream extends InputStream
 		int b;
 		byte[] ret;
 		while ( (b = bufferInputStream.read()) == -1 ) {
-			if ( b == -1 ) {
-				ret = https.recvBody( istream, ostream );
+			if ( b == -1 && https.lastSSLStatus != Status.CLOSED ) {
+				ret = https.recvAux( istream, ostream );
 				if ( ret == null ) {
 					return -1;
 				} else {
 					bufferInputStream = new ByteArrayInputStream( ret );
 				}
+			} else {
+				return -1;
 			}
 		}
 
@@ -74,13 +77,15 @@ public class SSLInputStream extends InputStream
 		int l = 0;
 		byte[] ret;
 		while ( (l = bufferInputStream.read( b, off, len )) == -1 ) {
-			if ( l == -1 ) {
-				ret = https.recvBody( istream, ostream );
+			if ( l == -1 && https.lastSSLStatus != Status.CLOSED ) {
+				ret = https.recvAux( istream, ostream );
 				if ( ret == null ) {
 					return -1;
 				} else {
 					bufferInputStream = new ByteArrayInputStream( ret );
 				}
+			} else {
+				return -1;
 			}
 		}
 		return l;
