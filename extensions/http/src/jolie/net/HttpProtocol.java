@@ -321,6 +321,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			headerBuilder.append( "Location: " + redirect + CRLF );
 		}
 		send_appendSetCookieHeader( message, headerBuilder );
+		headerBuilder.append( "Server: JOLIE" ).append( CRLF );
 	}
 	
 	private void send_appendRequestMethod( StringBuilder headerBuilder )
