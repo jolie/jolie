@@ -395,7 +395,7 @@ abstract public class ExecutionThread extends JolieThread
 	 */
 	public synchronized boolean checkCorrelation( VariablePath recvPath, CommMessage message )
 	{
-		if ( recvPath == null ) {
+		if ( recvPath == null || interpreter().correlationSet().isEmpty() ) {
 			return true;
 		}
 
