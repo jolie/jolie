@@ -21,25 +21,13 @@
 
 package jolie.process;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.OOITBuilder;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
-import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.ast.Program;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
-import jolie.runtime.Value;
 
 public class RunProcess implements Process
 {
-	final private Expression expression;
+	private final Expression expression;
 	
 	public RunProcess( Expression expression )
 	{
@@ -54,7 +42,8 @@ public class RunProcess implements Process
 	public void run()
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		throw new FaultException( "UnsupportedStatement" );
+		/*if ( ExecutionThread.currentThread().isKilled() )
 			return;
 		Value val = expression.evaluate();
 		if ( val.isString() ) {
@@ -69,17 +58,22 @@ public class RunProcess implements Process
 				Program program = parser.parse();
 				program = (new OLParseTreeOptimizer( program )).optimize();
 				SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-				if ( !semanticVerifier.validate() )
+				if ( !semanticVerifier.validate() ) {
 					throw new FaultException( "fInvalidCode" );
+				}
 			
-				(new OOITBuilder( Interpreter.getInstance(), program, semanticVerifier.isConstantMap() )).build();
-			} catch( IOException ioe ) {
+				Interpreter parentInterpreter = Interpreter.getInstance();
+				Interpreter runInterpreter = new Interpreter( parentInterpreter.args() );
+				(new OOITBuilder( runInterpreter, program, semanticVerifier.isConstantMap() )).build();
+			} catch( IOException e ) {
 				throw new FaultException( "fInvalidCode" );
-			} catch( ParserException ioe ) {
+			} catch( ParserException e ) {
 				throw new FaultException( "fInvalidCode" );
-			}			
+			} catch( CommandLineException e ) {
+				throw new FaultException( "fInvalidCode" );
+			}
 		} else
-			throw new FaultException( "fInvalidCode" );
+			throw new FaultException( "fInvalidCode" );*/
 	}
 	
 	public boolean isKillable()
