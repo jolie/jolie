@@ -40,10 +40,10 @@ public class TimeService extends JavaService
 {
 	protected class TimeThread extends Thread
 	{
-		final private long waitTime;
-		final private String callbackOperation;
-		final private Value callbackValue;
-		final private TimeService parent;
+		private final long waitTime;
+		private final String callbackOperation;
+		private final Value callbackValue;
+		private final TimeService parent;
 		public TimeThread( TimeService parent, long waitTime, String callbackOperation, Value callbackValue )
 		{
 			this.waitTime = waitTime;
@@ -153,7 +153,7 @@ public class TimeService extends JavaService
 	}
 
 	@RequestResponse
-	public void sleep( int millis )
+	public void sleep( Integer millis )
 	{
 		try {
 			if ( millis > 0 ) {
