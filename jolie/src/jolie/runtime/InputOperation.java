@@ -24,9 +24,12 @@ package jolie.runtime;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommChannelHandler;
 import jolie.net.CommMessage;
@@ -34,21 +37,20 @@ import jolie.process.InputOperationProcess;
 import jolie.process.InputProcessExecution;
 import jolie.process.NDChoiceProcess;
 import jolie.util.Pair;
-import jolie.process.Process;
 import jolie.runtime.typing.TypeCheckingException;
 
 /**
  * @author Fabrizio Montesi
  * 
  */
-abstract public class InputOperation extends AbstractIdentifiableObject implements InputHandler
+public abstract class InputOperation extends AbstractIdentifiableObject implements InputHandler
 {
-	final private HashMap< InputProcessExecution, ExecutionThread > procsMap =
+	private final Map< InputProcessExecution, ExecutionThread > procsMap =
 						new HashMap< InputProcessExecution, ExecutionThread >();
 	
-	final private LinkedList< Pair< CommChannel, CommMessage > > mesgList =
+	private final List< Pair< CommChannel, CommMessage > > mesgList =
 						new LinkedList< Pair< CommChannel, CommMessage > > ();
-	
+
 	public InputOperation( String id )
 	{
 		super( id );
@@ -85,7 +87,18 @@ abstract public class InputOperation extends AbstractIdentifiableObject implemen
 			}
 		}
 
-		mesgList.add( new Pair< CommChannel, CommMessage >( channel, message ) );
+		final Pair< CommChannel, CommMessage > pair = new Pair< CommChannel, CommMessage >( channel, message );
+		mesgList.add( pair );
+		Interpreter interpreter = Interpreter.getInstance();
+		interpreter.addTimeoutHandler( new TimeoutHandler( interpreter.inputMessageTimeout() ) {
+			@Override
+			public void onTimeout()
+			{
+				synchronized( this ) {
+					mesgList.remove( pair );
+				}
+			}
+		} );
 	}
 
 	public synchronized void signForMessage( InputProcessExecution process )
