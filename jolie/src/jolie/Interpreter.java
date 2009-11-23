@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -62,6 +64,7 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -69,7 +72,7 @@ import jolie.runtime.VariablePath;
 /**
  * The Jolie interpreter engine.
  * Multiple Interpreter instances can be run in the same JavaVM;
- * this is the case, e.g., for service embedding.
+ * this is used, e.g., for service embedding.
  * @author Fabrizio Montesi
  */
 public class Interpreter
@@ -107,13 +110,46 @@ public class Interpreter
 	private final File programFile;
 	private final String logPrefix;
 	private final boolean verbose;
-
 	private final Timer timer;
+	private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
+
+	private final Queue< TimeoutHandler > timeoutHandlerQueue = new PriorityQueue< TimeoutHandler >( 11, new TimeoutHandler.Comparator() );
+	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
+
+	public long inputMessageTimeout()
+	{
+		return inputMessageTimeout;
+	}
 
 	public void schedule( TimerTask task, long delay )
 	{
 		if ( exiting == false ) {
 			timer.schedule( task, delay );
+		}
+	}
+
+	public void addTimeoutHandler( TimeoutHandler handler )
+	{
+		synchronized( timeoutHandlerQueue ) {
+			timeoutHandlerQueue.add( handler );
+			checkForExpiredTimeoutHandlers();
+		}
+	}
+
+	private void checkForExpiredTimeoutHandlers()
+	{
+		long currentTime = System.currentTimeMillis();
+		TimeoutHandler handler = timeoutHandlerQueue.peek();
+		while( handler != null && handler.time() < currentTime ) {
+			final TimeoutHandler h = handler;
+			timeoutHandlerExecutor.execute( new Runnable() {
+				public void run()
+				{
+					h.onTimeout();
+				}
+			} );
+			timeoutHandlerQueue.remove();
+			handler = timeoutHandlerQueue.peek();
 		}
 	}
 	
