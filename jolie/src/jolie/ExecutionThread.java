@@ -24,7 +24,6 @@ package jolie;
 import java.util.ArrayList;
 import jolie.lang.Constants;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -413,7 +412,6 @@ abstract public class ExecutionThread extends JolieThread
 				correlationValue = Value.UNDEFINED_VALUE;
 			}
 
-			int i = 0;
 			for( VariablePath corrPath : corrList ) {
 				if ( (messagePath=recvPath.containedSubPath( corrPath )) != null ) {
 					messageValue = messagePath.getValueOrNull( message.value() );
@@ -426,15 +424,10 @@ abstract public class ExecutionThread extends JolieThread
 						}
 					} else {
 						if ( messageValue.isDefined() ) {
-							if ( i <= 1 ) {
-								correlationValue = messageValue;
-							} else {
-								return false;
-							}
+							correlationValue = messageValue;
 						}
 					}
 				}
-				i++;
 			}
 			toBeSet.add( new Pair< VariablePath, Value >( corrList.get( 0 ), correlationValue ) );
 		}
