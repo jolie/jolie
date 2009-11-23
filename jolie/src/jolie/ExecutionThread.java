@@ -21,8 +21,10 @@
 
 package jolie;
 
+import java.util.ArrayList;
 import jolie.lang.Constants;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -34,6 +36,7 @@ import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.util.Pair;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -399,40 +402,47 @@ abstract public class ExecutionThread extends JolieThread
 			return true;
 		}
 
-		VariablePath path;
+		VariablePath messagePath;
+		Value messageValue;
 		Value correlationValue;
-		Value mValue = null;
-		Value cValue;
-		for( List< VariablePath > list : interpreter().correlationSet() ) {
-			cValue = null;
-			correlationValue = list.get( 0 ).getValueOrNull();
-			if ( correlationValue != null ) {
-				for( VariablePath p : list ) {
-					if ( (path=recvPath.containedSubPath( p )) != null ) {
-						mValue = path.getValueOrNull( message.value() );
-						if (
-							correlationValue.isDefined() &&
-							( mValue == null ||	!mValue.equals( correlationValue ) )
-						) {
+
+		List< Pair< VariablePath, Value > > toBeSet = new ArrayList< Pair< VariablePath, Value > >( interpreter().correlationSet().size() );
+		for( List< VariablePath > corrList : interpreter().correlationSet() ) {
+			correlationValue = corrList.get( 0 ).getValueOrNull();
+			if ( correlationValue == null ) {
+				correlationValue = Value.UNDEFINED_VALUE;
+			}
+
+			int i = 0;
+			for( VariablePath corrPath : corrList ) {
+				if ( (messagePath=recvPath.containedSubPath( corrPath )) != null ) {
+					messageValue = messagePath.getValueOrNull( message.value() );
+					if ( messageValue == null ) {
+						messageValue = Value.UNDEFINED_VALUE;
+					}
+					if ( correlationValue.isDefined() ) {
+						if ( messageValue.equals( correlationValue ) == false ) {
 							return false;
-						} else if ( !correlationValue.isDefined() ) {
-							// Every correlated value must be equal
-							if ( cValue != null && mValue != null && !cValue.equals( mValue ) )
+						}
+					} else {
+						if ( messageValue.isDefined() ) {
+							if ( i <= 1 ) {
+								correlationValue = messageValue;
+							} else {
 								return false;
-							else if ( cValue == null )
-								cValue = mValue;
+							}
 						}
 					}
 				}
-
-				// TODO this must become a List!
-				// CSet values should be set only if the whole message is valid.
-				if ( cValue != null ) {
-					correlationValue.assignValue( cValue );
-				}
+				i++;
 			}
+			toBeSet.add( new Pair< VariablePath, Value >( corrList.get( 0 ), correlationValue ) );
 		}
-		
+
+		for( Pair< VariablePath, Value > pair : toBeSet ) {
+			pair.key().getValue().assignValue( pair.value() );
+		}
+
 		return true;
 	}
 	
