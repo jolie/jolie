@@ -62,7 +62,7 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 	 * @param channel The channel which received the message. Useful if the operation wants to send a response.
 	 * @param message The received message.
 	 */
-	public synchronized void recvMessage( CommChannel channel, CommMessage message )
+	public synchronized void recvMessage( CommChannel channel, final CommMessage message )
 	{
 		VariablePath path = null;
 		InputProcessExecution pe = null;
@@ -89,13 +89,16 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 
 		final Pair< CommChannel, CommMessage > pair = new Pair< CommChannel, CommMessage >( channel, message );
 		mesgList.add( pair );
-		Interpreter interpreter = Interpreter.getInstance();
+		final Interpreter interpreter = Interpreter.getInstance();
 		interpreter.addTimeoutHandler( new TimeoutHandler( interpreter.inputMessageTimeout() ) {
 			@Override
 			public void onTimeout()
 			{
 				synchronized( this ) {
 					mesgList.remove( pair );
+				}
+				if ( interpreter.verbose() ) {
+					interpreter.logInfo( "Message " + message.id() + " discarded for timeout" );
 				}
 			}
 		} );
