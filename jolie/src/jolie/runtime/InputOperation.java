@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2007 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -51,6 +51,10 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 	private final List< Pair< CommChannel, CommMessage > > mesgList =
 						new LinkedList< Pair< CommChannel, CommMessage > > ();
 
+	/**
+	 * Constructor
+	 * @param id the name that identified this input operation
+	 */
 	public InputOperation( String id )
 	{
 		super( id );
@@ -104,6 +108,13 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 		} );
 	}
 
+	/**
+	 * Registers an {@link InputProcessExecution} instance for receiving a message
+	 * regarding this input operation.
+	 * If a message is not available, the requester is put in queue for receiving
+	 * one as soon as possible.
+	 * @param process
+	 */
 	public synchronized void signForMessage( InputProcessExecution process )
 	{
 		ExecutionThread ethread = ExecutionThread.currentThread();
@@ -131,7 +142,12 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 		
 		procsMap.put( process, ethread );
 	}
-	
+
+	/**
+	 * Removes an {@link InputProcessExecution} instance from the list
+	 * of waiters for receiving a message.
+	 * @param process
+	 */
 	public synchronized void cancelWaiting( InputProcessExecution process ) 
 	{
 		procsMap.remove( process );
