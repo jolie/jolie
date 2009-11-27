@@ -36,6 +36,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import jolie.lang.parse.Scanner;
 
@@ -256,12 +259,23 @@ public class CommandLineParser
 				}
 			} else if ( args[ i ].endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
-					String name = new File( args[ i ] ).getName();
+					File japFile = new File( args[ i ] );
+					String name = japFile.getName();
 					olFilepath = new StringBuilder()
 						.append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
 						.append( ".ol" )
 						.toString();
 					libList.add( args[ i ] );
+					JarFile jap = new JarFile( japFile );
+					Manifest manifest = jap.getManifest();
+					if ( manifest != null ) {
+						Attributes attrs = manifest.getMainAttributes();
+						String libs = attrs.getValue( Constants.Manifest.Libraries );
+						String[] tmp = pathSeparatorPattern.split( libs );
+						for( String s : tmp ) {
+							libList.add( s );
+						}
+					}
 				} else {
 					throw new CommandLineException( "You can specify only an input file." );
 				}
