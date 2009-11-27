@@ -21,7 +21,6 @@
 
 package jolie.runtime.typing;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,7 +38,6 @@ public class Type
 	private final Range cardinality;
 	private final NativeType nativeType;
 	private final boolean undefinedSubTypes;
-	private final Map< String, Type > subTypes; // TODO this does not need to be a map
 	private final Set< Entry< String, Type > > subTypeSet;
 	private final Set< String > subTypeKeySet;
 
@@ -52,7 +50,6 @@ public class Type
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
 		this.undefinedSubTypes = undefinedSubTypes;
-		this.subTypes = subTypes;
 		if ( undefinedSubTypes ) {
 			subTypeSet = null;
 			subTypeKeySet = null;
