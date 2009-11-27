@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -79,7 +79,7 @@ public class Interpreter
 {
 	private CommCore commCore;
 	
-	// TODO remove this and put it into a private method temporary variable
+	// TODO remove this variable and put it as a local into a private method
 	private OLParser olParser;
 	
 	private boolean exiting = false;
