@@ -254,6 +254,17 @@ public class CommandLineParser
 				} else {
 					throw new CommandLineException( "You can specify only an input file." );
 				}
+			} else if ( args[ i ].endsWith( ".jap" ) ) {
+				if ( olFilepath == null ) {
+					String name = new File( args[ i ] ).getName();
+					olFilepath = new StringBuilder()
+						.append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
+						.append( ".ol" )
+						.toString();
+					libList.add( args[ i ] );
+				} else {
+					throw new CommandLineException( "You can specify only an input file." );
+				}
 			} else {
 				for( int j = i; j < args.length; j++ ) {
 					argumentsList.add( args[ j ] );
