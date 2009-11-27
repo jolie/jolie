@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -240,6 +241,9 @@ public class CommandLineParser
 				String[] tmp = pathSeparatorPattern.split( args[ i ] );
 				for( String s : tmp ) {
 					libList.add( s );
+					if ( s.endsWith( ".jap" ) ) {
+						parseJapFile( new File( s ), libList );
+					}
 				}
 			} else if ( "--connlimit".equals( args[ i ] ) ) {
 				i++;
@@ -266,16 +270,7 @@ public class CommandLineParser
 						.append( ".ol" )
 						.toString();
 					libList.add( args[ i ] );
-					JarFile jap = new JarFile( japFile );
-					Manifest manifest = jap.getManifest();
-					if ( manifest != null ) {
-						Attributes attrs = manifest.getMainAttributes();
-						String libs = attrs.getValue( Constants.Manifest.Libraries );
-						String[] tmp = pathSeparatorPattern.split( libs );
-						for( String s : tmp ) {
-							libList.add( s );
-						}
-					}
+					parseJapFile( japFile, libList );
 				} else {
 					throw new CommandLineException( "You can specify only an input file." );
 				}
@@ -302,7 +297,7 @@ public class CommandLineParser
 		
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
-			if ( path.endsWith( ".jar" ) ) {
+			if ( path.endsWith( ".jar" ) || path.endsWith( ".jap" ) ) {
 				urls.add( new URL( "jar:file:" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
@@ -328,6 +323,21 @@ public class CommandLineParser
 		}
 
 		includePaths = includeList.toArray( new String[]{} );
+	}
+
+	private void parseJapFile( File japFile, Collection< String > libList )
+		throws IOException
+	{
+		JarFile jap = new JarFile( japFile );
+		Manifest manifest = jap.getManifest();
+		if ( manifest != null ) {
+			Attributes attrs = manifest.getMainAttributes();
+			String libs = attrs.getValue( Constants.Manifest.Libraries );
+			String[] tmp = pathSeparatorPattern.split( libs );
+			for( String s : tmp ) {
+				libList.add( s );
+			}
+		}
 	}
 	
 	private InputStream getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
