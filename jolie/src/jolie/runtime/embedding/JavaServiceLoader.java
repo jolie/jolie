@@ -30,8 +30,8 @@ import jolie.JolieClassLoader;
 
 public class JavaServiceLoader extends EmbeddedServiceLoader
 {
-	final private String servicePath;
-	final private Interpreter interpreter;
+	private final String servicePath;
+	private final Interpreter interpreter;
 	
 	public JavaServiceLoader( Expression channelDest, String servicePath, Interpreter interpreter )
 	{
