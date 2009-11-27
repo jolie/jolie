@@ -34,7 +34,7 @@ public final class Constants
 		public final static String ChannelExtension = "X-JOLIE-ChannelExtension";
 		public final static String ListenerExtension = "X-JOLIE-ListenerExtension";
 		public final static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
-		public final static String Options = "X-JOLIE-Options";
+		public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
 	static public enum Predefined
