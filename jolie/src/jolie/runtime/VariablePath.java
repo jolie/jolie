@@ -349,8 +349,7 @@ public class VariablePath implements Expression, Cloneable
 	{
 		Object myObj = getValueOrValueVector();
 		if ( myObj instanceof Value ) {
-			Value myVal = (Value) myObj;
-			myVal.deepCopy( rightPath.getValue() );
+			((Value) myObj).deepCopy( rightPath.getValue() );
 		} else {
 			ValueVector myVec = (ValueVector) myObj;
 			ValueVector rightVec = rightPath.getValueVector();
