@@ -317,9 +317,7 @@ public class CommCore
 			)
 		throws IOException
 	{
-		if ( protocolConfigurationProcess != null ) {
-			protocolConfigurations.add( protocolConfigurationProcess );
-		}
+		protocolConfigurations.add( protocolConfigurationProcess );
 
 		CommListener listener = null;
 		String medium = uri.getScheme();
