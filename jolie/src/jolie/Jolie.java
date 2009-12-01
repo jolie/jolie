@@ -41,7 +41,7 @@ public class Jolie
 	{
 		int exitCode = 0;
 		try {
-			final Interpreter interpreter = new Interpreter( args );
+			final Interpreter interpreter = new Interpreter( args, Jolie.class.getClassLoader() );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread() {
 				@Override

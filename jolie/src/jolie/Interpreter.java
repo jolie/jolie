@@ -512,19 +512,6 @@ public class Interpreter
 	}
 	
 	/** Constructor.
-	 * 
-	 * @param args The command line arguments.
-	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
-	 * @throws FileNotFoundException if one of the passed input files is not found.
-	 * @throws IOException if a Scanner constructor signals an error.
-	 */
-	public Interpreter( String[] args )
-		throws CommandLineException, FileNotFoundException, IOException
-	{
-		this( args, null );
-	}
-
-	/** Constructor.
 	 *
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
@@ -535,16 +522,13 @@ public class Interpreter
 	public Interpreter( String[] args, ClassLoader parentClassLoader )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+		this.parentClassLoader = parentClassLoader;
 		CommandLineParser cmdParser = new CommandLineParser( args, parentClassLoader );
+		classLoader = cmdParser.jolieClassLoader();
 		this.args = args;
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
-		if ( parentClassLoader == null ) {
-			parentClassLoader = this.getClass().getClassLoader();
-		}
-		this.parentClassLoader = parentClassLoader;
-		classLoader = new JolieClassLoader( cmdParser.libURLs(), parentClassLoader );
 		includePaths = cmdParser.includePaths();
 		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
 		olParser.putConstants( cmdParser.definedConstants() );
