@@ -345,10 +345,23 @@ public class OOITBuilder implements OLVisitor
 		} catch( IOException e ) {
 			error( n.context(), e );
 		}
-		currProcess = null;
-		if ( n.protocolConfiguration() != null ) {
-			n.protocolConfiguration().accept( this );
-		}
+
+		VariablePath path =
+			new VariablePathBuilder( true )
+			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+			.add( n.id(), 0 )
+			.add( Constants.LOCATION_NODE_NAME, 0 )
+			.toVariablePath();
+		Process assignLocation = new AssignmentProcess( path, Value.create( n.location().toString() ) );
+		path =
+			new VariablePathBuilder( true )
+			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+			.add( n.id(), 0 )
+			.add( Constants.PROTOCOL_NODE_NAME, 0 )
+			.toVariablePath();
+		Process assignProtocol = new AssignmentProcess( path, Value.create( n.protocolId() ) );
+		Process[] confChildren = new Process[] { assignLocation, assignProtocol, buildProcess( n.protocolConfiguration() ) };
+		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
 		OutputPort outputPort;
 		Map< String, Type > outputPortNotificationTypes;
@@ -377,7 +390,7 @@ public class OOITBuilder implements OLVisitor
 					n.location(),
 					protocolFactory,
 					protocolConfigurationPath,
-					currProcess,
+					protocolConfigurationSequence,
 					new HashSet< String >( n.operationsMap().keySet() ),
 					aggregationMap,
 					redirectionMap
