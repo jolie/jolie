@@ -333,9 +333,11 @@ public class CommandLineParser
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
 			String libs = attrs.getValue( Constants.Manifest.Libraries );
-			String[] tmp = pathSeparatorPattern.split( libs );
-			for( String s : tmp ) {
-				libList.add( s );
+			if ( libs != null ) {
+				String[] tmp = pathSeparatorPattern.split( libs );
+				for( String s : tmp ) {
+					libList.add( s );
+				}
 			}
 		}
 	}
