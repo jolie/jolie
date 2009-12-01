@@ -61,6 +61,7 @@ public class CommandLineParser
 	private final String[] arguments;
 	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
 	private final boolean verbose;
+	private final JolieClassLoader jolieClassLoader;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
@@ -204,7 +205,7 @@ public class CommandLineParser
 	 * @param classLoader the ClassLoader to use for finding resources
 	 * @throws jolie.CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 */
-	public CommandLineParser( String[] args, ClassLoader classLoader )
+	public CommandLineParser( String[] args, ClassLoader parentClassLoader )
 		throws CommandLineException, IOException
 	{
 		boolean bVerbose = false;
@@ -316,13 +317,19 @@ public class CommandLineParser
 			}
 		}
 		libURLs = urls.toArray( new URL[]{} );
+		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		programStream = getOLStream( olFilepath, includeList, classLoader );
+		programStream = getOLStream( olFilepath, includeList, jolieClassLoader );
 		if ( programStream == null ) {
 			throw new FileNotFoundException( olFilepath );
 		}
 
 		includePaths = includeList.toArray( new String[]{} );
+	}
+
+	public JolieClassLoader jolieClassLoader()
+	{
+		return jolieClassLoader;
 	}
 
 	private void parseJapFile( File japFile, Collection< String > libList )
