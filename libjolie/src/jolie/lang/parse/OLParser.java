@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.GroupLayout.SequentialGroup;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -581,7 +582,7 @@ public class OLParser extends AbstractParser
 		String inputPortName;
 		String protocolId;
 		URI inputPortLocation;
-		OLSyntaxNode protocolConfiguration;
+		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
 
 		getToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
@@ -591,7 +592,6 @@ public class OLParser extends AbstractParser
 		InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + inputPortName );
 		inputPortLocation = null;
 		protocolId = null;
-		protocolConfiguration = null;
 		Map<String, String> redirectionMap = new HashMap<String, String>();
 		List< String > aggregationList = new LinkedList< String >();
 		while ( token.isNot( Scanner.TokenType.RCURLY ) ) {
@@ -1242,14 +1242,6 @@ public class OLParser extends AbstractParser
 
 			retVal =
 				new ForEachStatement( getContext(), keyPath, targetPath, body );
-		} else if ( token.is( Scanner.TokenType.RUN ) ) { // run( <Expression> )
-			getToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
-			retVal =
-				new RunStatement( getContext(), parseExpression() );
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.LINKIN ) ) {
 			retVal = parseLinkInStatement();
 		} else if ( token.is( Scanner.TokenType.CURRENT_HANDLER ) ) {

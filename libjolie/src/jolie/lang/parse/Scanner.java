@@ -502,8 +502,6 @@ public class Scanner
 							retval = new Token( TokenType.EXIT );
 						} else if ( "constants".equals( str ) ) {
 							retval = new Token( TokenType.CONSTANTS );
-						} else if ( "run".equals( str ) ) {
-							retval = new Token( TokenType.RUN );
 						} else if ( "undef".equals( str ) ) {
 							retval = new Token( TokenType.UNDEF );
 						} else if ( "for".equals( str ) ) {

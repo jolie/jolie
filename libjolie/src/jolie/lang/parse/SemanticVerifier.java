@@ -512,8 +512,8 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( IfStatement n )
 	{
 		for( Pair< OLSyntaxNode, OLSyntaxNode > choice : n.children() ) {
-			choice.key().accept(  this );
-			choice.value().accept(  this );
+			verify( choice.key() );
+			verify( choice.value() );
 		}
 		verify( n.elseProcess() );
 	}
