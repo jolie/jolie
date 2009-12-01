@@ -21,6 +21,9 @@
 
 package joliex.lang;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import jolie.lang.Constants;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -35,6 +38,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
@@ -177,5 +181,17 @@ public class RuntimeService extends JavaService
 		if ( o instanceof LocalCommChannel ) {
 			((LocalCommChannel)o).interpreter().exit();
 		}
+	}
+
+	public String dumpState()
+	{
+		Writer writer = new StringWriter();
+		ValuePrettyPrinter printer = new ValuePrettyPrinter( interpreter.globalValue(), writer, "Global state" );
+		try {
+			printer.run();
+			printer = new ValuePrettyPrinter( ExecutionThread.currentThread().state().root(), writer, "Session state" );
+			printer.run();
+		} catch( IOException e ) {} // Should never happen
+		return writer.toString();
 	}
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,6 +21,7 @@
 
 package joliex.util;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,13 +37,13 @@ import jolie.runtime.ValueVector;
 
 /**
  *
- * @author fmontesi
+ * @author Fabrizio Montesi
  */
 public class ZipUtils extends JavaService
 {
-	static private int BUFFER_SIZE = 1024;
+	private static int BUFFER_SIZE = 1024;
 
-	static private ByteArray inputStreamToByteArray( InputStream istream )
+	private static ByteArray inputStreamToByteArray( InputStream istream )
 		throws IOException
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
@@ -67,7 +68,7 @@ public class ZipUtils extends JavaService
 			);
 			if ( entry != null ) {
 				response.setValue(
-					inputStreamToByteArray( file.getInputStream( entry ) )
+					inputStreamToByteArray( new BufferedInputStream( file.getInputStream( entry ) ) )
 				);
 			}
 		} catch( IOException e ) {

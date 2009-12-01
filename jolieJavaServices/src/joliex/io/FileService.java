@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -57,6 +57,10 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+/**
+ *
+ * @author Fabrizio Montesi
+ */
 @AndJarDeps({"jolie-xml.jar"})
 public class FileService extends JavaService
 {
@@ -229,6 +233,7 @@ public class FileService extends JavaService
 		if ( request.getFirstChild( "append" ).intValue() > 0 ) {
 			append = true;
 		}
+
 		try {
 			if ( "text".equals( format ) ) {
 				writeText( file, content, append );
@@ -248,10 +253,10 @@ public class FileService extends JavaService
 		}
 	}
 	
-	public Boolean delete( CommMessage request )
+	public Boolean delete( Value request )
 	{
-		String filename = request.value().strValue();
-		boolean isRegex = request.value().getFirstChild( "isRegex" ).intValue() > 0;
+		String filename = request.strValue();
+		boolean isRegex = request.getFirstChild( "isRegex" ).intValue() > 0;
 		boolean ret = true;
 		if ( isRegex ) {
 			File dir = new File( filename ).getAbsoluteFile().getParentFile();
