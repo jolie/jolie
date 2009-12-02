@@ -89,7 +89,9 @@ public class HttpParser
 				String ss[] = value.split(  ";" );
 				for( String s : ss ) {
 					String nv[] = s.split( "=" );
-					message.addCookie( nv[0], nv[1] );
+					if ( nv.length > 1 ) {
+						message.addCookie( nv[0], nv[1] );
+					}
 				}
 			} else {
 				message.setProperty( name.toLowerCase(), value );
