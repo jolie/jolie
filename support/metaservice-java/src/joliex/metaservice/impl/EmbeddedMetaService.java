@@ -108,7 +108,7 @@ public class EmbeddedMetaService extends MetaService
 	{
 		try {
 			interpreter =
-				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ) );
+				new Interpreter( buildInterpreterArguments( jolieHome, metaserviceFilepath ), this.getClass().getClassLoader() );
 			startInterpreter();
 			channel = new MetaServiceChannel( this, "/" );
 		} catch( CommandLineException e ) {
