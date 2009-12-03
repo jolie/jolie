@@ -529,7 +529,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private static void recv_checkForCookies( HttpMessage message, Value value )
 	{
-//		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
+		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
 			ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
 			Value v;
 			for( Entry< String, String > entry : message.cookies().entrySet() ) {
@@ -538,14 +538,14 @@ public class HttpProtocol extends SequentialCommProtocol
 				v.getNewChild( "value" ).setValue( entry.getValue() );
 				cookieVec.add( v );
 			}
-		//}
+		}
 	}
 	
 	private static void recv_parseQueryString( HttpMessage message, Value value )
 	{
 		if ( message.requestPath() != null ) {
 			try {
-				//if ( value.hasChildren( Constants.Predefined.QUERY_STRING.token().content() ) ) {
+				if ( value.hasChildren( Constants.Predefined.QUERY_STRING.token().content() ) ) {
 					Value qsValue = value.getFirstChild( Constants.Predefined.QUERY_STRING.token().content() );
 					String qs = message.requestPath().split( "\\?" )[1];
 					String[] params = qs.split( "&" );
@@ -553,7 +553,7 @@ public class HttpProtocol extends SequentialCommProtocol
 						String[] kv = param.split( "=" );
 						qsValue.getNewChild( kv[0] ).setValue( kv[1] );
 					}
-				//}
+				}
 			} catch( ArrayIndexOutOfBoundsException e ) {}
 		}
 	}
