@@ -23,7 +23,6 @@ package joliex.xmpp;
 
 import java.util.HashMap;
 import java.util.Map;
-import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.Identifier;
