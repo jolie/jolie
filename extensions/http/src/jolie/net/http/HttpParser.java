@@ -240,6 +240,10 @@ public class HttpParser
 		if ( p != null && !p.isEmpty() ) {
 			try {
 				contentLength = Integer.parseInt( p );
+				if ( contentLength == 0 ) {
+					message.setContent( new byte[0] );
+					return;
+				}
 			} catch( NumberFormatException e ) {
 				contentLength = 0;
 			}
