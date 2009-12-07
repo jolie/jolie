@@ -53,13 +53,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.JolieGWTConverter;
+import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.ByteArray;
@@ -87,6 +87,8 @@ public class HttpProtocol extends SequentialCommProtocol
 	private static class Parameters {
 		private static String DEBUG = "debug";
 		private static String COOKIES = "cookies";
+		private static String METHOD = "method";
+		private static String ALIAS = "alias";
 	}
 
 	private String inputId = null;
@@ -206,8 +208,23 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 	
 	private String requestFormat = null;
+
+	private void send_appendQuerystring( Value value, String charset, StringBuilder headerBuilder )
+		throws IOException
+	{
+		if ( value.children().isEmpty() == false ) {
+			headerBuilder.append( '?' );
+			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
+				headerBuilder
+					.append( entry.getKey() )
+					.append( '=' )
+					.append( URLEncoder.encode( entry.getValue().first().strValue(), charset ) )
+					.append( '&' );
+			}
+		}
+	}
 	
-	private static CharSequence parseAlias( String alias, Value value, String charset )
+	private void send_appendParsedAlias( String alias, Value value, String charset, StringBuilder headerBuilder )
 		throws IOException
 	{
 		int offset = 0;
@@ -225,7 +242,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			);
 			offset += currStrValue.length() - 3 - currKey.length();
 		}
-		return result;
+		headerBuilder.append( result );
 	}
 	
 	private String send_getCharset()
@@ -254,10 +271,15 @@ public class HttpProtocol extends SequentialCommProtocol
 		private String contentType = null;
 	}
 		
-	private EncodedContent send_encodeContent( CommMessage message, String charset, String format )
+	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
 		throws IOException
 	{
 		EncodedContent ret = new EncodedContent();
+		if ( received == false && method == Method.GET ) {
+			// We are building a GET request
+			return ret;
+		}
+
 		if ( "xml".equals( format ) ) {
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
@@ -341,38 +363,28 @@ public class HttpProtocol extends SequentialCommProtocol
 		headerBuilder.append( "Server: JOLIE" ).append( CRLF );
 	}
 	
-	private void send_appendRequestMethod( StringBuilder headerBuilder )
+	private void send_appendRequestMethod( Method method, StringBuilder headerBuilder )
 	{
-		if ( hasParameter( "method" ) ) {
-			headerBuilder.append( getStringParameter( "method" ).toUpperCase() );
-		} else {
-			headerBuilder.append( "GET" );
-		}
+		headerBuilder.append( method.id() );
 	}
 	
-	private void send_appendRequestPath( CommMessage message, StringBuilder headerBuilder, String charset )
+	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
 		throws IOException
 	{
 		if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' ) {
 			headerBuilder.append( '/' );
 		}
 		headerBuilder.append( uri.getPath() );
-		/*if ( uri.toString().endsWith( "/" ) == false ) {
-			headerBuilder.append( '/' );
-		}*/
-		if (
-			hasParameter( "aliases" ) &&
-			getParameterFirstValue( "aliases" ).hasChildren( message.operationName() )
-		) {
-			headerBuilder.append(
-				parseAlias(
-					getParameterFirstValue( "aliases" ).getFirstChild( message.operationName() ).strValue(),
-					message.value(),
-					charset
-				)
-			);
-		} else {
+
+		String alias = getOperationSpecificStringParameter( message.operationName(), Parameters.ALIAS );
+		if ( alias.isEmpty() ) {
 			headerBuilder.append( message.operationName() );
+		} else {
+			send_appendParsedAlias( alias, message.value(), charset, headerBuilder );
+		}
+
+		if ( method == Method.GET ) {
+			send_appendQuerystring( message.value(), charset, headerBuilder );
 		}
 	}
 	
@@ -389,13 +401,29 @@ public class HttpProtocol extends SequentialCommProtocol
 			headerBuilder.append( "Authorization: Basic " + userpass + CRLF );
 		}
 	}
-	
-	private void send_appendRequestHeaders( CommMessage message, StringBuilder headerBuilder, String charset )
+
+	private Method send_getRequestMethod()
 		throws IOException
 	{
-		send_appendRequestMethod( headerBuilder );
+		try {
+			Method method;
+			if ( hasParameter( Parameters.METHOD ) ) {
+				method = Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() );
+			} else {
+				method = Method.POST;
+			}
+			return method;
+		} catch( Method.UnsupportedMethodException e ) {
+			throw new IOException( e );
+		}
+	}
+	
+	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
+		throws IOException
+	{
+		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
-		send_appendRequestPath( message, headerBuilder, charset );
+		send_appendRequestPath( message, method, headerBuilder, charset );
 		headerBuilder.append( " HTTP/1.1" + CRLF );
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
@@ -452,9 +480,10 @@ public class HttpProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
+		Method method = send_getRequestMethod();
 		String charset = send_getCharset();
 		String format = send_getFormat();
-		EncodedContent encodedContent = send_encodeContent( message, charset, format );
+		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
 		if ( received ) {
 			// We're responding to a request
@@ -462,7 +491,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			received = false;
 		} else {
 			// We're sending a notification or a solicit
-			send_appendRequestHeaders( message, headerBuilder, charset );
+			send_appendRequestHeaders( message, method, headerBuilder, charset );
 		}
 		send_appendGenericHeaders( encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
@@ -606,21 +635,20 @@ public class HttpProtocol extends SequentialCommProtocol
 			}
 		}
 	}
-	
+
 	private static void recv_parseQueryString( HttpMessage message, Value value )
 	{
-		if ( message.requestPath() != null ) {
-			try {
-				if ( value.hasChildren( Constants.Predefined.QUERY_STRING.token().content() ) ) {
-					Value qsValue = value.getFirstChild( Constants.Predefined.QUERY_STRING.token().content() );
-					String qs = message.requestPath().split( "\\?" )[1];
-					String[] params = qs.split( "&" );
-					for( String param : params ) {
-						String[] kv = param.split( "=" );
-						qsValue.getNewChild( kv[0] ).setValue( kv[1] );
-					}
+		String queryString = message.requestPath() == null ? "" : message.requestPath();
+		String[] kv = queryString.split( "\\?" );
+		if ( kv.length > 1 ) {
+			queryString = kv[1];
+			String[] params = queryString.split( "&" );
+			for( String param : params ) {
+				kv = param.split( "=" );
+				if ( kv.length > 1 ) {
+					value.getFirstChild( kv[0] ).setValue( kv[1] );
 				}
-			} catch( ArrayIndexOutOfBoundsException e ) {}
+			}
 		}
 	}
 	
@@ -666,7 +694,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			decodedMessage.value.setValue( new String( message.content() ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value );
-		} else if ( "text/xml".equals( type ) || "rest".equals( format ) ) {
+		} else if ( "text/xml".equals( type ) || "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
@@ -746,14 +774,15 @@ public class HttpProtocol extends SequentialCommProtocol
 			retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", decodedMessage.value, null );
 			received = false;
 		} else if ( message.isError() == false ) {
-			recv_parseQueryString( message, decodedMessage.value );
+			if ( message.isGet() ) {
+				recv_parseQueryString( message, decodedMessage.value );
+			}
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage.value );
 			//TODO support resourcePath
 			retVal = new CommMessage( CommMessage.GENERIC_ID, decodedMessage.operationName, "/", decodedMessage.value, null );
 			received = true;
 		}
-
 		return retVal;
 	}
 }
