@@ -50,6 +50,10 @@ public abstract class CommProtocol
 		private static DummyChannel dummyChannel = new DummyChannel();
 	}
 
+	private static class Parameters {
+		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
+	}
+
 
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
@@ -130,6 +134,31 @@ public abstract class CommProtocol
 	protected String getStringParameter( String id )
 	{
 		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : "" );
+	}
+
+	protected boolean hasOperationSpecificParameter( String operationName, String parameterName )
+	{
+		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
+			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+			if ( osc.hasChildren( operationName ) ) {
+				return osc.getFirstChild( operationName ).hasChildren( parameterName );
+			}
+		}
+		return false;
+	}
+
+	protected String getOperationSpecificStringParameter( String operationName, String parameterName )
+	{
+		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
+			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+			if ( osc.hasChildren( operationName ) ) {
+				Value opConfig = osc.getFirstChild( operationName );
+				if ( opConfig.hasChildren( parameterName ) ) {
+					return opConfig.getFirstChild( parameterName ).strValue();
+				}
+			}
+		}
+		return "";
 	}
 
 	/**
