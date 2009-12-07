@@ -88,7 +88,7 @@ public class HttpParser
 			} else if ( "cookie".equals( name.toLowerCase() ) ) {
 				String ss[] = value.split(  ";" );
 				for( String s : ss ) {
-					String nv[] = s.split( "=" );
+					String nv[] = s.trim().split( "=" );
 					if ( nv.length > 1 ) {
 						message.addCookie( nv[0], nv[1] );
 					}

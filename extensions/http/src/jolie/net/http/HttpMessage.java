@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
-import sun.font.Type1Font;
 
 
 public class HttpMessage
@@ -119,6 +118,11 @@ public class HttpMessage
 	public boolean isSupported()
 	{
 		return type != Type.UNSUPPORTED;
+	}
+
+	public boolean isGet()
+	{
+		return type == Type.GET;
 	}
 
 	public void addCookie( String name, String value )

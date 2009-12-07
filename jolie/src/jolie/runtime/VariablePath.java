@@ -142,8 +142,9 @@ public class VariablePath implements Expression, Cloneable
 			pair = path[i];
 			keyStr = pair.key().evaluate().strValue();
 			currVector = currValue.children().get( keyStr );
-			if ( currVector == null || currVector.size() < 1 )
+			if ( currVector == null || currVector.size() < 1 ) {
 				return;
+			}
 			if ( pair.value() == null ) {
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( 0 );
@@ -153,12 +154,14 @@ public class VariablePath implements Expression, Cloneable
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( (i+1) < path.length ) {
-					if ( currVector.size() <= index )
+					if ( currVector.size() <= index ) {
 						return;
+					}
 					currValue = currVector.get( index );
 				} else {
-					if ( currVector.size() > index )
+					if ( currVector.size() > index ) {
 						currVector.remove( index );
+					}
 				}
 			}
 		}
@@ -202,14 +205,22 @@ public class VariablePath implements Expression, Cloneable
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( 0 );
 				} else { // We're finished
-					currVector.set( 0, value );
+					if ( currVector.get( 0 ).isUsedInCorrelation() ) {
+						currVector.get( 0 ).refCopy( value );
+					} else {
+						currVector.set( 0, value );
+					}
 				}
 			} else {
 				index = pair.value().evaluate().intValue();
 				if ( (i+1) < path.length ) {
 					currValue = currVector.get( index );
 				} else {
-					currVector.set( index, value );
+					if ( currVector.get( index ).isUsedInCorrelation() ) {
+						currVector.get( index ).refCopy( value );
+					} else {
+						currVector.set( index, value );
+					}
 				}
 			}
 		}

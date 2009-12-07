@@ -68,6 +68,9 @@ public class ValuePrettyPrinter
 	private void writeNativeValue( Value value )
 		throws IOException
 	{
+		if ( value.isUsedInCorrelation() ) {
+			writer.write( " (cset)" );
+		}
 		if ( value.valueObject() != null ) {
 			writer.write( " = " );
 			writer.write( value.valueObject().toString() );

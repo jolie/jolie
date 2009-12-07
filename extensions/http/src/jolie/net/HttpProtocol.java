@@ -30,6 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -53,6 +55,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import jolie.lang.Constants;
 import jolie.Interpreter;
+import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -61,6 +64,7 @@ import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
@@ -82,6 +86,7 @@ public class HttpProtocol extends SequentialCommProtocol
 
 	private static class Parameters {
 		private static String DEBUG = "debug";
+		private static String COOKIES = "cookies";
 	}
 
 	private String inputId = null;
@@ -146,45 +151,57 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private final static String BOUNDARY = "----Jol13H77p$$Bound4r1$$";
 	
-	private static void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
+	private void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
-		if ( message.value().hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
-			ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
-			StringBuilder cookieSB = new StringBuilder();
+		if ( hasParameter( Parameters.COOKIES ) ) {
+			Value cookieConfig;
 			String domain;
-			// TODO check for cookie expiration
-			for( Value v : cookieVec ) {
-				domain = v.getChildren( "domain" ).first().strValue();
-				if ( domain.isEmpty() ||
-						(!domain.isEmpty() && hostname.endsWith( domain )) ) {
-					cookieSB.append(
-								v.getChildren( "name" ).first().strValue() + "=" +
-								v.getChildren( "value" ).first().strValue() + "; "
-					);
+			StringBuilder cookieSB = new StringBuilder();
+			for( Entry< String, ValueVector > entry : getParameterFirstValue( Parameters.COOKIES ).children().entrySet() ) {
+				cookieConfig = entry.getValue().first();
+				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
+					domain = cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue() : "";
+					if ( domain.isEmpty() || hostname.endsWith( domain ) ) {
+						cookieSB
+							.append( entry.getKey() )
+							.append( '=' )
+							.append( message.value().getFirstChild( cookieConfig.strValue() ).strValue() )
+							.append( ";" );
+					}
 				}
 			}
 			if ( cookieSB.length() > 0 ) {
-				headerBuilder.append( "Cookie: " );
-				headerBuilder.append( cookieSB );
-				headerBuilder.append( CRLF );
+				headerBuilder
+					.append( "Cookie: " )
+					.append( cookieSB )
+					.append( CRLF );
 			}
 		}
 	}
 	
-	private static void send_appendSetCookieHeader( CommMessage message, StringBuilder headerBuilder )
+	private void send_appendSetCookieHeader( CommMessage message, StringBuilder headerBuilder )
 	{
-		ValueVector cookieVec = message.value().getChildren( Constants.Predefined.COOKIES.token().content() );
-		// TODO check for cookie expiration
-		for( Value v : cookieVec ) {
-			headerBuilder.append( "Set-Cookie: " +
-					v.getFirstChild( "name" ).strValue() + "=" +
-					v.getFirstChild( "value" ).strValue() + "; " +
-					"expires=" + v.getFirstChild( "expires" ).strValue() + "; " +
-					"path=" + v.getFirstChild( "path" ).strValue() + "; " +
-					"domain=" + v.getFirstChild( "domain" ).strValue() +
-					( (v.getFirstChild( "secure" ).intValue() > 0) ? "; secure" : "" ) +
-					CRLF
-			);
+		if ( hasParameter( Parameters.COOKIES ) ) {
+			Value cookieConfig;
+			for( Entry< String, ValueVector > entry : getParameterFirstValue( Parameters.COOKIES ).children().entrySet() ) {
+				cookieConfig = entry.getValue().first();
+				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
+					headerBuilder
+						.append( "Set-Cookie: " )
+						.append( entry.getKey() ).append( '=' )
+						.append( message.value().getFirstChild( cookieConfig.strValue() ).strValue() )
+						.append( "; expires=" )
+						.append( cookieConfig.hasChildren( "expires" ) ? cookieConfig.getFirstChild( "expires" ).strValue() : "" )
+						.append( "; domain=" )
+						.append( cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue() : "" )
+						.append( "; path=" )
+						.append( cookieConfig.hasChildren( "path" ) ? cookieConfig.getFirstChild( "path" ).strValue() : "" );
+					if ( cookieConfig.hasChildren( "secure" ) && cookieConfig.getFirstChild( "secure" ).intValue() > 0 ) {
+						headerBuilder.append( "; secure" );
+					}
+					headerBuilder.append( CRLF );
+				}
+			}
 		}
 	}
 	
@@ -509,34 +526,83 @@ public class HttpProtocol extends SequentialCommProtocol
 		return operationName;
 	}
 	
-	private static void recv_checkForSetCookie( HttpMessage message, Value value )
+	private void recv_checkForSetCookie( HttpMessage message, Value value )
+		throws IOException
 	{
-		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
-			ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
-			Value currValue;
+		if ( hasParameter( Parameters.COOKIES ) ) {
+			String type;
+			Value cookies = getParameterFirstValue( Parameters.COOKIES );
+			Value cookieConfig;
+			Value v;
 			for( HttpMessage.Cookie cookie : message.setCookies() ) {
-				currValue = Value.create();
+				if ( cookies.hasChildren( cookie.name() ) ) {
+					cookieConfig = cookies.getFirstChild( cookie.name() );
+					if ( cookieConfig.isString() ) {
+						v = value.getFirstChild( cookieConfig.strValue() );
+						if ( cookieConfig.hasChildren( "type" ) ) {
+							type = cookieConfig.getFirstChild( "type" ).strValue();
+						} else {
+							type = "string";
+						}
+						recv_assignCookieValue( cookie.value(), v, type );
+					}
+				}
+
+				/*currValue = Value.create();
 				currValue.getNewChild( "expires" ).setValue( cookie.expirationDate() );
 				currValue.getNewChild( "path" ).setValue( cookie.path() );
 				currValue.getNewChild( "name" ).setValue( cookie.name() );
 				currValue.getNewChild( "value" ).setValue( cookie.value() );
 				currValue.getNewChild( "domain" ).setValue( cookie.domain() );
 				currValue.getNewChild( "secure" ).setValue( (cookie.secure() ? 1 : 0) );
-				cookieVec.add( currValue );
+				cookieVec.add( currValue );*/
 			}
 		}
 	}
-	
-	private static void recv_checkForCookies( HttpMessage message, Value value )
+
+	private void recv_assignCookieValue( String cookieValue, Value value, String typeKeyword )
+		throws IOException
 	{
-		if ( value.hasChildren( Constants.Predefined.COOKIES.token().content() ) ) {
-			ValueVector cookieVec = value.getChildren( Constants.Predefined.COOKIES.token().content() );
+		NativeType type = NativeType.fromString( typeKeyword );
+		if ( NativeType.INT == type ) {
+			try {
+				value.setValue( new Integer( cookieValue ) );
+			} catch( NumberFormatException e ) {
+				throw new IOException( e );
+			}
+		} else if ( NativeType.STRING == type ) {
+			value.setValue( cookieValue );
+		} else if ( NativeType.DOUBLE == type ) {
+			try {
+				value.setValue( new Double( cookieValue ) );
+			} catch( NumberFormatException e ) {
+				throw new IOException( e );
+			}
+		} else {
+			value.setValue( cookieValue );
+		}
+	}
+
+	private void recv_checkForCookies( HttpMessage message, Value value )
+		throws IOException
+	{
+		if ( hasParameter( Parameters.COOKIES ) ) {
+			Value cookies = getParameterFirstValue( Parameters.COOKIES );
 			Value v;
+			String type;
 			for( Entry< String, String > entry : message.cookies().entrySet() ) {
-				v = Value.create();
-				v.getNewChild( "name" ).setValue( entry.getKey() );
-				v.getNewChild( "value" ).setValue( entry.getValue() );
-				cookieVec.add( v );
+				if ( cookies.hasChildren( entry.getKey() ) ) {
+					Value cookieConfig = cookies.getFirstChild( entry.getKey() );
+					if ( cookieConfig.isString() ) {
+						v = value.getFirstChild( cookieConfig.strValue() );
+						if ( cookieConfig.hasChildren( "type" ) ) {
+							type = cookieConfig.getFirstChild( "type" ).strValue();
+						} else {
+							type = "string";
+						}
+						recv_assignCookieValue( entry.getValue(), v, type );
+					}
+				}
 			}
 		}
 	}
@@ -558,7 +624,9 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	// Print debug information about a received message
+	/*
+	 * Prints debug information about a received message
+	 */
 	private void recv_logDebugInfo( HttpMessage message )
 	{
 		StringBuilder debugSB = new StringBuilder();
@@ -629,6 +697,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 	
 	private void recv_checkForMessageProperties( HttpMessage message, Value messageValue )
+		throws IOException
 	{
 		recv_checkForCookies( message, messageValue );
 		String property;

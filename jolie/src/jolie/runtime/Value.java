@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2006-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -31,15 +31,9 @@ import java.util.Map.Entry;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 
-/**
- * Handles JOLIE internal data representation.
- * @author Fabrizio Montesi
- * 2007 - Claudio Guidi: added support for double values
- * 2008 - Fabrizio Montesi: new system for internal value storing
- */
 class ValueLink extends Value implements Cloneable
 {
-	final private VariablePath linkPath;
+	private final VariablePath linkPath;
 	private Value getLinkedValue()
 	{
 		return linkPath.getValue();
@@ -209,7 +203,7 @@ class ValueImpl extends Value implements Cloneable
 						if ( copyLinks && v.isLink() ) {
 							vec.set( i, ((ValueLink)v).clone() );
 						} else {
-							newValue = new ValueImpl();
+							newValue = ( v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl() );
 							newValue._deepCopy( v, copyLinks );
 							vec.set( i, newValue );
 						}
@@ -266,7 +260,7 @@ class RootValueImpl extends Value implements Cloneable
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 
-	final private Map< String, ValueVector > children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
+	private final Map< String, ValueVector > children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
 
 	public RootValueImpl clone()
 	{
@@ -339,7 +333,7 @@ class RootValueImpl extends Value implements Cloneable
 						if ( copyLinks && v.isLink() ) {
 							vec.set( i, ((ValueLink)v).clone() );
 						} else {
-							newValue = new ValueImpl();
+							newValue = ( v.isUsedInCorrelation() ? new CSetValue() : new ValueImpl() );
 							newValue._deepCopy( v, copyLinks );
 							vec.set( i, newValue );
 						}
@@ -367,15 +361,50 @@ class RootValueImpl extends Value implements Cloneable
 	}
 }
 
+class CSetValue extends ValueImpl
+{
+	@Override
+	public void setValueObject( Object object )
+	{
+		//CommCore commCore = Interpreter.getInstance().commCore();
+		//synchronized( commCore.correlationLock() )
+			//removeFromRadixTree();
+			super.setValueObject( object );
+			//addToRadixTree();
+		//}
+	}
+
+	@Override
+	public CSetValue clone()
+	{
+		CSetValue ret = new CSetValue();
+		ret._deepCopy( this, true );
+		return ret;
+	}
+
+	@Override
+	public boolean isUsedInCorrelation()
+	{
+		return true;
+	}
+}
+
 /**
+ * Handles JOLIE internal data representation.
  * @author Fabrizio Montesi
- *
+ * 2007 - Claudio Guidi: added support for double values
+ * 2008 - Fabrizio Montesi: new system for internal value storing
  */
-abstract public class Value implements Expression, Cloneable
+public abstract class Value implements Expression, Cloneable
 {
 	public abstract boolean isLink();
 	
 	public static final Value UNDEFINED_VALUE = Value.create();
+
+	public boolean isUsedInCorrelation()
+	{
+		return false;
+	}
 
 	public final static Value createRootValue()
 	{
@@ -390,6 +419,11 @@ abstract public class Value implements Expression, Cloneable
 	public final static Value create()
 	{
 		return new ValueImpl();
+	}
+
+	public final static Value createCSetValue()
+	{
+		return new CSetValue();
 	}
 	
 	public final static Value create( Boolean bool )
