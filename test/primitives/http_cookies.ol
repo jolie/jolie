@@ -19,36 +19,40 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-include "cset_server.iol"
-include "console.iol"
+include "../AbstractTestUnit.iol"
+
+include "private/http_cookies_server.iol"
 include "runtime.iol"
 
-execution { concurrent }
-
-cset {
-	firstName: request.person.firstName person.firstName,
-	lastName: request.person.lastName person.lastName
+outputPort Server {
+Location: Location_HTTPServer
+Protocol: http {
+	.cookies.first_name = "firstName";
+	.cookies.last_name = "lastName";
+	.cookies.age = "age";
+	.cookies.age.type = "int"
 }
-
-inputPort ServerInput {
-Location: "local"
 Interfaces: ServerInterface
 }
 
-outputPort Client {
-Interfaces: ClientInterface
+embedded {
+Jolie:
+	"private/http_cookies_server.ol"
 }
 
-main
+define doTest
 {
-	startSession( request )( sid ) {
-		synchronized( Lock ) {
-			sid = global.sid++
-		};
-		Client.location = request.clientLocation
+	with( person ) {
+		.firstName = "John";
+		.lastName = "Smith";
+		.age = 30
 	};
-	endSession( person );
-	event.person -> person;
-	event.sid -> sid;
-	onSessionEnd@Client( event )
+	scope( s ) {
+		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+		echoPerson@Server( person )( response );
+		if ( response.firstName != "John" ) {
+			throw( TestFailed, "Data <=> Cookie value mismatch" )
+		}
+	}
 }
+

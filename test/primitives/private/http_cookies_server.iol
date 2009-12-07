@@ -19,36 +19,18 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-include "cset_server.iol"
-include "console.iol"
-include "runtime.iol"
-
-execution { concurrent }
-
-cset {
-	firstName: request.person.firstName person.firstName,
-	lastName: request.person.lastName person.lastName
+constants {
+	Location_HTTPServer = "socket://localhost:10101"
 }
 
-inputPort ServerInput {
-Location: "local"
-Interfaces: ServerInterface
+type Person:any {
+	.firstName:string
+	.lastName:string
+	.age:int
 }
 
-outputPort Client {
-Interfaces: ClientInterface
+interface ServerInterface {
+RequestResponse:
+	echoPerson(Person)(Person)
 }
 
-main
-{
-	startSession( request )( sid ) {
-		synchronized( Lock ) {
-			sid = global.sid++
-		};
-		Client.location = request.clientLocation
-	};
-	endSession( person );
-	event.person -> person;
-	event.sid -> sid;
-	onSessionEnd@Client( event )
-}
