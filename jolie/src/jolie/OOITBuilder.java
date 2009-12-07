@@ -245,8 +245,9 @@ public class OOITBuilder implements OLVisitor
 		List< VariablePath > paths;
 		for( List< VariablePathNode > list : n.cset() ) {
 			paths = new LinkedList< VariablePath > ();
-			for( VariablePathNode path : list )
+			for( VariablePathNode path : list ) {
 				paths.add( buildVariablePath( path ) );
+			}
 			cset.add( paths );
 		}
 

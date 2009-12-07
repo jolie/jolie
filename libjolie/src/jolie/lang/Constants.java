@@ -40,7 +40,6 @@ public final class Constants
 	static public enum Predefined
 	{
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
-		COOKIES( "@Cookies", "@Cookies" ),
 		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
 		PI( "PI", java.lang.Math.PI ),
 		QUERY_STRING( "@QueryString", "@QueryString" );

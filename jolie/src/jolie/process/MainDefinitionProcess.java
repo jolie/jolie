@@ -21,18 +21,29 @@
 
 package jolie.process;
 
+import java.util.Collection;
+import java.util.List;
 import jolie.Interpreter;
 import jolie.net.OutputPort;
 import jolie.runtime.ExitingException;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
 public class MainDefinitionProcess extends DefinitionProcess
 {
 	public MainDefinitionProcess( Process process )
 	{
 		super( process );
+	}
+
+	private void insertCorrelationSetValues( Collection< List< VariablePath > > correlationSet )
+	{
+		for( List< VariablePath > cvarList : correlationSet ) {
+			cvarList.get( 0 ).setValue( Value.createCSetValue() );
+		}
 	}
 	
 	@Override
@@ -62,6 +73,8 @@ public class MainDefinitionProcess extends DefinitionProcess
 			}
 
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
+			
+			insertCorrelationSetValues( interpreter.correlationSet() );
 
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {
 				try {

@@ -34,8 +34,8 @@ import jolie.runtime.Value;
  */
 public class State implements Cloneable
 {
-	final private Value root;
-	final private HashMap< String, InternalLink > linksMap =
+	private final Value root;
+	private final HashMap< String, InternalLink > linksMap =
 				new HashMap< String, InternalLink >();
 	
 	private State( Value root )

@@ -83,7 +83,7 @@ public class Interpreter
 	private OLParser olParser;
 	
 	private boolean exiting = false;
-	private final Set< List< VariablePath > > correlationSet =
+	private final Collection< List< VariablePath > > correlationSet =
 				new HashSet< List< VariablePath > > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
@@ -479,7 +479,7 @@ public class Interpreter
 	 * Returns the correlation set of this Interpreter.
 	 * @return the correlation set of this Interpreter
 	 */
-	public Set< List< VariablePath > > correlationSet()
+	public Collection< List< VariablePath > > correlationSet()
 	{
 		return correlationSet;
 	}

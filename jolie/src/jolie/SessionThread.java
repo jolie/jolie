@@ -40,11 +40,11 @@ import jolie.util.Pair;
  */
 public class SessionThread extends ExecutionThread implements Cloneable
 {
-	final private jolie.State state;
-	final private List< SessionListener > listeners = new LinkedList< SessionListener >();
+	private final jolie.State state;
+	private final List< SessionListener > listeners = new LinkedList< SessionListener >();
 
-	final private static VariablePath typeMismatchPath;
-	final private static VariablePath ioExceptionPath;
+	private final static VariablePath typeMismatchPath;
+	private final static VariablePath ioExceptionPath;
 
 	static {
 		typeMismatchPath =
@@ -66,7 +66,7 @@ public class SessionThread extends ExecutionThread implements Cloneable
 	 * @param interpreter the <code>Interpreter</code> in which the returned map will be used
 	 * @return a newly created default list of handlers
 	 */
-	final static public List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter )
+	public static final List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter )
 	{
 		final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
 		instList.add( new Pair< String, Process >(
@@ -161,7 +161,6 @@ public class SessionThread extends ExecutionThread implements Cloneable
 		super( process, parent );
 
 		assert( parent != null );
-
 		state = parent.state().clone();
 		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
