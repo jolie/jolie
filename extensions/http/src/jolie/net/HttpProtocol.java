@@ -30,8 +30,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -64,7 +62,6 @@ import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 
@@ -402,12 +399,14 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 
-	private Method send_getRequestMethod()
+	private Method send_getRequestMethod( CommMessage message )
 		throws IOException
 	{
 		try {
 			Method method;
-			if ( hasParameter( Parameters.METHOD ) ) {
+			if ( hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ) {
+				method = Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() );
+			} else if ( hasParameter( Parameters.METHOD ) ) {
 				method = Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() );
 			} else {
 				method = Method.POST;
@@ -480,7 +479,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		Method method = send_getRequestMethod();
+		Method method = send_getRequestMethod( message );
 		String charset = send_getCharset();
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
@@ -694,18 +693,20 @@ public class HttpProtocol extends SequentialCommProtocol
 			decodedMessage.value.setValue( new String( message.content() ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value );
-		} else if ( "text/xml".equals( type ) || "xml".equals( format ) || "rest".equals( format ) ) {
+		} else if ( "text/xml".equals( type ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
 			requestFormat = "text/x-gwt-rpc";
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value );
+		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
+			parseXML( message, decodedMessage.value );
 		} else {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		}
 	}
-	
+
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
