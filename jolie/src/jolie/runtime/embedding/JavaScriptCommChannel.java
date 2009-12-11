@@ -27,6 +27,7 @@ import java.util.List;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.Interpreter;
+import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
@@ -36,7 +37,7 @@ import jolie.runtime.Value;
  * @TODO this shouldn't be polled
  * @author Fabrizio Montesi
  */
-public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
+public class JavaScriptCommChannel extends AbstractCommChannel implements PollableCommChannel
 {
 	private final Invocable invocable;
 	private final List< CommMessage > messages = new LinkedList< CommMessage >();
@@ -44,6 +45,12 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	public JavaScriptCommChannel( Invocable invocable )
 	{
 		this.invocable = invocable;
+	}
+
+	@Override
+	public CommChannel createDuplicate()
+	{
+		return new JavaScriptCommChannel( invocable );
 	}
 
 	protected void sendImpl( CommMessage message )

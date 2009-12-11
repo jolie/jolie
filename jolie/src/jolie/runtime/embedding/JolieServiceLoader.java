@@ -70,7 +70,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
-				setChannel( new LocalCommChannel( interpreter, interpreter.commCore().localListener() ) );
+				setChannel( interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}

@@ -55,6 +55,7 @@ import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 /** 
@@ -259,6 +260,11 @@ public class CommCore
 						new HashMap< String, CommListenerFactory > ();
 
 	private final LocalListener localListener;
+
+	public LocalCommChannel getLocalCommChannel()
+	{
+		return new LocalCommChannel( interpreter, localListener );
+	}
 
 	private CommListenerFactory getCommListenerFactory( String name )
 		throws IOException
@@ -489,13 +495,16 @@ public class CommCore
 				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
 				channel.lock.lock();
 				try {
-					CommMessage message = channel.recv();
-					if ( message != null ) {
-						if ( channel.redirectionChannel() == null ) {
-							assert( listener != null );
+					if ( channel.redirectionChannel() == null ) {
+						assert( listener != null );
+						CommMessage message = channel.recv();
+						if ( message != null ) {
 							handleMessage( message );
-						} else {
-							forwardResponse( message );
+						}
+					} else {
+						CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+						if ( response != null ) {
+							forwardResponse( response );
 						}
 					}
 				} finally {

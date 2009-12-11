@@ -21,6 +21,7 @@
 
 package jolie.net;
 
+import java.io.IOException;
 import java.net.URI;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
@@ -30,7 +31,7 @@ import jolie.net.protocols.CommProtocol;
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */
-abstract public class StreamingCommChannel extends CommChannel
+abstract public class StreamingCommChannel extends AbstractCommChannel
 {
 	final private URI location;
 	final private CommProtocol protocol;
@@ -53,14 +54,18 @@ abstract public class StreamingCommChannel extends CommChannel
 	}
 
 	private void _releaseImpl()
+		throws IOException
 	{
 		if ( toBeClosed() == false ) {
 			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
+		} else {
+			closeImpl();
 		}
 	}
 
 	@Override
 	final protected void releaseImpl()
+		throws IOException
 	{
 		if ( lock.isHeldByCurrentThread() ) {
 			_releaseImpl();

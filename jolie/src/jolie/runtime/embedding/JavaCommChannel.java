@@ -31,7 +31,6 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.Value;
 
 
 // TODO: this should not be polled
@@ -43,7 +42,6 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final JavaService javaService;
 	private final Map< Long, CommMessage > messages = new HashMap< Long, CommMessage >();
-	//private final List< CommMessage > messages = new LinkedList< CommMessage >();
 
 	public JavaCommChannel( JavaService javaService )
 	{
@@ -60,6 +58,12 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		throws IOException
 	{
 		Interpreter.getInstance().commCore().registerForPolling( this );
+	}
+
+	@Override
+	public CommChannel createDuplicate()
+	{
+		return new JavaCommChannel( javaService );
 	}
 
 	protected void sendImpl( CommMessage message )

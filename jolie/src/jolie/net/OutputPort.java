@@ -171,6 +171,9 @@ public class OutputPort extends AbstractIdentifiableObject
 		if ( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
+			if ( forceNew ) {
+				ret = ret.createDuplicate();
+			}
 		} else {
 			URI uri = getLocation( loc );
 			if ( forceNew ) {

@@ -22,6 +22,7 @@
 
 package jolie.runtime;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,7 +32,7 @@ import jolie.lang.Constants;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.ListCommChannel;
+import jolie.net.LocalCommChannel;
 import jolie.runtime.embedding.JavaServiceHelpers;
 import jolie.runtime.embedding.RequestResponse;
 
@@ -287,9 +288,12 @@ public abstract class JavaService
 	
 	public CommChannel sendMessage( CommMessage message )
 	{
-		ListCommChannel c = new ListCommChannel();
-		c.inputList().add( message );
-		interpreter.commCore().scheduleReceive( c, interpreter().commCore().localListener() );
-		return new ListCommChannel( c.outputList(), c.inputList() );
+		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
+		try {
+			c.send( message );
+		} catch( IOException e ) {
+			e.printStackTrace();
+		}
+		return c;
 	}
 }

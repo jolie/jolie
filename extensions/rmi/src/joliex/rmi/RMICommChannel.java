@@ -23,11 +23,11 @@ package joliex.rmi;
 
 import java.io.IOException;
 import jolie.Interpreter;
-import jolie.net.CommChannel;
+import jolie.net.AbstractCommChannel;
 import jolie.net.PollableCommChannel;
 import jolie.net.CommMessage;
 
-public class RMICommChannel extends CommChannel implements PollableCommChannel
+public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel
 {
 	final private RemoteBasicChannel remoteChannel;
 
