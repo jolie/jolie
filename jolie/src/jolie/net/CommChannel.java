@@ -23,17 +23,7 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
 
 /**
  * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
@@ -50,25 +40,9 @@ import jolie.runtime.Value;
  * @author Fabrizio Montesi
  * @see CommMessage
  */
-abstract public class CommChannel
+public abstract class CommChannel
 {
-	private static final long RECEIVER_KEEP_ALIVE = 10000; // msecs
-
-	private final Map< Long, CommMessage > pendingResponses =
-			new HashMap< Long, CommMessage >();
-	private final Map< Long, ResponseContainer > waiters =
-			new HashMap< Long, ResponseContainer >();
-	private final List< CommMessage > pendingGenericResponses =
-			new LinkedList< CommMessage >();
-	
 	protected final ReentrantLock lock = new ReentrantLock( true );
-	private final Object responseRecvMutex = new Object();
-
-	private static class ResponseContainer
-	{
-		private ResponseContainer() {}
-		private CommMessage response = null;
-	}
 	
 	private boolean toBeClosed = true;
 	private CommListener listener = null;
@@ -94,10 +68,15 @@ abstract public class CommChannel
 	 * @return <code>true</code> if this channel is to be closed when not used,
 	 *							<code>false</code> otherwise.
 	 */
-    final public boolean toBeClosed()
+    public final boolean toBeClosed()
     {
         return toBeClosed;
     }
+
+	public CommChannel createDuplicate()
+	{
+		throw new IllegalAccessError( "Only local channels can be duplicated" );
+	}
 
 	/**
 	 * Sets a redirection channel for this channel.
@@ -143,7 +122,7 @@ abstract public class CommChannel
 	 * Returns <code>true</code> if this channel is open, <code>false</code> otherwise.
 	 * @return <code>true</code> if this channel is open, <code>false</code> otherwise
 	 */
-	final public boolean isOpen()
+	public final boolean isOpen()
 	{
 		return isOpen && isOpenImpl();
 	}
@@ -157,7 +136,7 @@ abstract public class CommChannel
 	{
 		return false;
 	}
-	
+
 	/**
 	 * Receives a message from the channel. This is a blocking operation.
 	 * @return the received message
@@ -186,196 +165,9 @@ abstract public class CommChannel
 	 * @return the response for the specified request message
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public CommMessage recvResponseFor( CommMessage request )
-		throws IOException
-	{
-		CommMessage response;
-		ResponseContainer monitor = null;
-		synchronized( responseRecvMutex ) {
-			response = pendingResponses.remove( request.id() );
-			if ( response == null ) {
-				if ( pendingGenericResponses.isEmpty() ) {
-					assert( waiters.containsKey( request.id() ) == false );
-					monitor = new ResponseContainer();
-					waiters.put( request.id(), monitor );
-					//responseRecvMutex.notify();
-				} else {
-					response = pendingGenericResponses.remove( 0 );
-				}
-			}
-		}
-		if ( response == null ) {
-			synchronized( responseRecvMutex ) {
-				if ( responseReceiver == null ) {
-					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
-				} else {
-					responseReceiver.wakeUp();
-				}
-			}
-			synchronized( monitor ) {
-				if ( monitor.response == null ) {
-					try {
-						monitor.wait();
-					} catch( InterruptedException e ) {
-						Interpreter.getInstance().logSevere( e );
-					}
-				}
-				response = monitor.response;
-			}
-		}
-		return response;
-	}
-	
-	private ResponseReceiver responseReceiver = null;
-	
-	private static class ResponseReceiver implements Runnable
-	{
-		private final CommChannel parent;
-		private final ExecutionThread ethread;
-		private boolean keepRun;
-		private TimerTask timeoutTask;
+	public abstract CommMessage recvResponseFor( CommMessage request )
+		throws IOException;
 
-		private void timeout()
-		{
-			synchronized( parent.responseRecvMutex ) {
-				if ( keepRun == false ) {
-					if ( parent.waiters.isEmpty() ) {
-						timeoutTask = null;
-						parent.responseReceiver = null;
-					} else {
-						keepRun = true;
-					}
-					parent.responseRecvMutex.notify();
-				}
-			}
-		}
-
-		private void wakeUp()
-		{
-			if ( timeoutTask != null ) {
-				timeoutTask.cancel();
-			}
-			keepRun = true;
-			parent.responseRecvMutex.notify();
-		}
-
-		private void sleep()
-		{
-			final ResponseReceiver receiver = this;
-			timeoutTask = new TimerTask() {
-				public void run()
-				{
-					receiver.timeout();
-				}
-			};
-			ethread.interpreter().schedule( timeoutTask, RECEIVER_KEEP_ALIVE );
-			try {
-				keepRun = false;
-				parent.responseRecvMutex.wait();
-			} catch( InterruptedException e ) {
-				Interpreter.getInstance().logSevere( e );
-			}
-		}
-		
-		private ResponseReceiver( CommChannel parent, ExecutionThread ethread )
-		{
-			this.ethread = ethread;
-			this.parent = parent;
-			this.keepRun = true;
-			this.timeoutTask = null;
-		}
-		
-		private void handleGenericMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( parent.waiters.isEmpty() ) {
-				parent.pendingGenericResponses.add( response );
-			} else {
-				Entry< Long, ResponseContainer > entry =
-					parent.waiters.entrySet().iterator().next();
-				monitor = entry.getValue();
-				parent.waiters.remove( entry.getKey() );
-				synchronized( monitor ) {
-					monitor.response = new CommMessage(
-						entry.getKey(),
-						response.operationName(),
-						response.resourcePath(),
-						response.value(),
-						response.fault()
-					);
-					monitor.notify();
-				}
-			}
-		}
-
-		private void handleMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( (monitor=parent.waiters.remove( response.id() )) == null ) {
-				parent.pendingResponses.put( response.id(), response );
-			} else {
-				synchronized( monitor ) {
-					monitor.response = response;
-					monitor.notify();
-				}
-			}
-		}
-
-		private void throwIOExceptionFault( IOException e )
-		{
-			if ( parent.waiters.isEmpty() == false ) {
-				ResponseContainer monitor;
-				for( Entry< Long, ResponseContainer > entry : parent.waiters.entrySet() ) {
-					monitor = entry.getValue();
-					synchronized( monitor ) {
-						monitor.response = new CommMessage(
-							entry.getKey(),
-							"",
-							"/",
-							Value.create(),
-							new FaultException( "IOException", e )
-						);
-						monitor.notify();
-					}
-				}
-				parent.waiters.clear();
-			}
-		}
-		
-		public void run()
-		{
-			/*
-			 * Warning: the following line implies that this
-			 * whole thing is safe iff the CommChannel is used only for outputs,
-			 * otherwise we are messing with correlation set checking.
-			 */
-			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
-
-			CommMessage response;
-			while( keepRun ) {
-				synchronized( parent.responseRecvMutex ) {
-					try {
-						response = parent.recv();
-						if ( response != null ) {
-							if ( response.hasGenericId() ) {
-								handleGenericMessage( response );
-							} else {
-								handleMessage( response );
-							}
-						}
-					} catch( IOException e ) {
-						throwIOExceptionFault( e );
-						keepRun = false;
-					}
-					if ( parent.waiters.isEmpty() ) {
-						sleep();
-					}
-				}
-			}
-		}
-	}
-	
 	/**
 	 * Sends a message through this channel.
 	 * @param message the message to send
@@ -407,7 +199,7 @@ abstract public class CommChannel
 	 * to other processes for sending data.
 	 * @throws IOException in case of an internal error
 	 */
-	final public void release()
+	public final void release()
 		throws IOException
 	{
 		if ( toBeClosed ) {
@@ -439,7 +231,7 @@ abstract public class CommChannel
 	 * @throws java.io.IOException in case of some error generated by this channel
 	 *								implementation
 	 */
-	final public void disposeForInput()
+	public final void disposeForInput()
 		throws IOException
 	{
 		disposeForInputImpl();
@@ -461,11 +253,10 @@ abstract public class CommChannel
 	protected void close()
 		throws IOException
 	{
-
 		closeImpl();
 	}
 
 	/** Implements the communication channel closing operation. */
-	abstract protected void closeImpl()
+	protected abstract void closeImpl()
 		throws IOException;
 }

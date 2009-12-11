@@ -22,17 +22,63 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import jolie.Interpreter;
 
 /**
  * An in-memory channel that can be used to communicate directly with a specific <code>Interpreter</code> instance.
- *
- * @TODO: this shouldn't be polled.
  */
-public class LocalCommChannel extends ListCommChannel implements PollableCommChannel
+public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
-	final private Interpreter interpreter;
-	final private CommListener listener;
+	private static class CoLocalCommChannel extends CommChannel
+	{
+		private CommMessage request;
+		private final LocalCommChannel senderChannel;
+
+		private CoLocalCommChannel( LocalCommChannel senderChannel, CommMessage request )
+		{
+			this.senderChannel = senderChannel;
+			this.request = request;
+		}
+
+		protected CommMessage recvImpl()
+			throws IOException
+		{
+			if ( request == null ) {
+				throw new IOException( "Unsupported operation" );
+			}
+			CommMessage r = request;
+			request = null;
+			return r;
+		}
+
+		protected void sendImpl( CommMessage message )
+		{
+			synchronized( senderChannel.messages ) {
+				senderChannel.messages.put( message.id(), message );
+				senderChannel.messages.notifyAll();
+			}
+		}
+
+		public CommMessage recvResponseFor( CommMessage request )
+			throws IOException
+		{
+			throw new IOException( "Unsupported operation" );
+		}
+
+		@Override
+		protected void disposeForInputImpl()
+			throws IOException
+		{}
+
+		protected void closeImpl()
+		{}
+	}
+
+	private final Interpreter interpreter;
+	private final CommListener listener;
+	private final Map< Long, CommMessage > messages = new HashMap< Long, CommMessage >();
 	
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
@@ -40,27 +86,53 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 		this.listener = listener;
 	}
 
+	@Override
+	public CommChannel createDuplicate()
+	{
+		return new LocalCommChannel( interpreter, listener );
+	}
+
 	public Interpreter interpreter()
 	{
 		return interpreter;
 	}
-	
-	@Override
+
+	protected CommMessage recvImpl()
+		throws IOException
+	{
+		throw new IOException( "Unsupported operation" );
+	}
+
 	protected void sendImpl( CommMessage message )
 	{
-		synchronized( olist ) {
-			olist.add( message );
+		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener );
+	}
+
+	public CommMessage recvResponseFor( CommMessage request )
+	{
+		boolean keepRun = true;
+		CommMessage ret = null;
+		synchronized( messages ) {
+			while( keepRun ) {
+				if ( (ret=messages.remove( request.id() )) == null ) {
+					try {
+						messages.wait();
+					} catch( InterruptedException e ) {}
+				} else {
+					keepRun = false;
+				}
+			}
 		}
-		assert( interpreter != null );
-		assert( interpreter.commCore() != null );
-		interpreter.commCore().scheduleReceive(
-					new ListCommChannel( olist, ilist ), listener
-				);
+		return ret;
 	}
 	
 	public boolean isReady()
 	{
-		return( !ilist.isEmpty() );
+		boolean isReady;
+		synchronized( messages ) {
+			isReady = messages.isEmpty() == false;
+		}
+		return isReady;
 	}
 	
 	@Override
@@ -69,4 +141,7 @@ public class LocalCommChannel extends ListCommChannel implements PollableCommCha
 	{
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
+
+	protected void closeImpl()
+	{}
 }

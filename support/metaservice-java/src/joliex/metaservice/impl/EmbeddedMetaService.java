@@ -28,7 +28,6 @@ import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
-import jolie.net.LocalCommChannel;
 import joliex.metaservice.MetaService;
 import joliex.metaservice.MetaServiceChannel;
 
@@ -120,7 +119,7 @@ public class EmbeddedMetaService extends MetaService
 	
 	protected CommChannel createCommChannel()
 	{
-		return new LocalCommChannel( interpreter, interpreter.commCore().localListener() );
+		return interpreter.commCore().getLocalCommChannel();
 	}
 	
 	public MetaServiceChannel getChannel()
