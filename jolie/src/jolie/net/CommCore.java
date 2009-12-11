@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -188,7 +188,7 @@ public class CommCore
 		return threadGroup;
 	}
 	
-	final private Collection< Process > protocolConfigurations = new LinkedList< Process > ();
+	private final Collection< Process > protocolConfigurations = new LinkedList< Process > ();
 	
 	public Collection< Process > protocolConfigurations()
 	{
@@ -200,7 +200,7 @@ public class CommCore
 		return listenersMap.get( serviceName );
 	}
 	
-	final private Map< String, CommChannelFactory > channelFactories = 
+	private final Map< String, CommChannelFactory > channelFactories =
 						new HashMap< String, CommChannelFactory > ();
 
 	private CommChannelFactory getCommChannelFactory( String name )
@@ -228,7 +228,7 @@ public class CommCore
 		return factory.createChannel( uri, port );
 	}
 	
-	final private Map< String, CommProtocolFactory > protocolFactories = 
+	private final Map< String, CommProtocolFactory > protocolFactories =
 						new HashMap< String, CommProtocolFactory > ();
 	
 	public CommProtocolFactory getCommProtocolFactory( String name )
@@ -255,10 +255,10 @@ public class CommCore
 		return factory.createProtocol( configurationPath, uri );
 	}
 	
-	final private Map< String, CommListenerFactory > listenerFactories = 
+	private final Map< String, CommListenerFactory > listenerFactories =
 						new HashMap< String, CommListenerFactory > ();
 
-	final private LocalListener localListener;
+	private final LocalListener localListener;
 
 	private CommListenerFactory getCommListenerFactory( String name )
 		throws IOException
@@ -338,7 +338,7 @@ public class CommCore
 		listenersMap.put( inputPortName, listener );
 	}
 	
-	final private ExecutorService executorService;
+	private final ExecutorService executorService;
 	
 	private class CommThreadFactory implements ThreadFactory {
 		public Thread newThread( Runnable r )
@@ -350,8 +350,8 @@ public class CommCore
 	private static Pattern pathSplitPattern = Pattern.compile( "/" );
 
 	private class CommChannelHandlerRunnable implements Runnable {
-		final private CommChannel channel;
-		final private CommListener listener;
+		private final CommChannel channel;
+		private final CommListener listener;
 		
 		public CommChannelHandlerRunnable( CommChannel channel, CommListener listener )
 		{
@@ -492,6 +492,7 @@ public class CommCore
 					CommMessage message = channel.recv();
 					if ( message != null ) {
 						if ( channel.redirectionChannel() == null ) {
+							assert( listener != null );
 							handleMessage( message );
 						} else {
 							forwardResponse( message );
@@ -513,7 +514,6 @@ public class CommCore
 	 */
 	public void scheduleReceive( CommChannel channel, CommListener listener )
 	{
-		assert( listener != null );
 		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
 
@@ -647,8 +647,8 @@ public class CommCore
 	}
 
 	private class SelectorThread extends JolieThread {
-		final private Selector selector;
-		final private Object selectingMutex = new Object();
+		private final Selector selector;
+		private final Object selectingMutex = new Object();
 		public SelectorThread( Interpreter interpreter )
 			throws IOException
 		{
@@ -782,7 +782,7 @@ public class CommCore
 		selectorThread().register( channel );
 	}
 
-	final private Collection< InputProcessExecution<?> > waitingCorrelatedInputs = new LinkedList< InputProcessExecution<?> >();
+	private final Collection< InputProcessExecution<?> > waitingCorrelatedInputs = new LinkedList< InputProcessExecution<?> >();
 
 	/**
 	 * Registers a waiting session spawner. This is necessary for operating graceful shutdowns.
