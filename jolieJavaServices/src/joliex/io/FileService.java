@@ -45,7 +45,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jolie.net.CommMessage;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
