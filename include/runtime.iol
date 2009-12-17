@@ -65,7 +65,8 @@ RequestResponse:
 
 	setOutputPort(SetOutputPortRequest)(void),
 	removeOutputPort(string)(void),
-	callExit(any)(void)
+	callExit(any)(void),
+	dumpState(void)(string)
 }
 
 outputPort Runtime {
