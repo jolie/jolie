@@ -473,12 +473,19 @@ public class SemanticVerifier implements OLVisitor
 		if ( isInCorrelationSet( n.inputVarPath() ) ) {
 			error( n, "Receiving a message in a correlation variable is forbidden" );
 		}
+
+		if ( n.inputVarPath() != null ) {
+			encounteredAssignment( n.inputVarPath() );
+		}
 	}
 
 	public void visit( RequestResponseOperationStatement n )
 	{
 		verify( n.inputVarPath() );
 		verify( n.process() );
+		if ( n.inputVarPath() != null ) {
+			encounteredAssignment( n.inputVarPath() );
+		}
 		if ( isInCorrelationSet( n.inputVarPath() ) ) {
 			error( n, "Receiving a message in a correlation variable is forbidden" );
 		}
