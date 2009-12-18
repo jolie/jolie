@@ -28,7 +28,7 @@ import java.util.List;
 
 class ValueVectorLink extends ValueVector implements Cloneable
 {
-	final private VariablePath linkPath;
+	private final VariablePath linkPath;
 
 	@Override
 	public ValueVectorLink clone()
@@ -69,7 +69,7 @@ class ValueVectorLink extends ValueVector implements Cloneable
 
 class ValueVectorImpl extends ValueVector implements Serializable
 {
-	final private ArrayList< Value > values;
+	private final ArrayList< Value > values;
 	
 	protected List< Value > values()
 	{
@@ -111,7 +111,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	}
 }
 
-abstract public class ValueVector implements Iterable< Value >
+public abstract class ValueVector implements Iterable< Value >
 {
 	public static ValueVector create()
 	{
@@ -158,8 +158,8 @@ abstract public class ValueVector implements Iterable< Value >
 		return values().iterator();
 	}
 
-	abstract public Value get( int i );
-	abstract public void set( int i, Value value );
+	public abstract Value get( int i );
+	public abstract void set( int i, Value value );
 	
 	public synchronized int size()
 	{
@@ -178,6 +178,6 @@ abstract public class ValueVector implements Iterable< Value >
 			get( i ).deepCopy( vec.get( i ) );
 	}
 
-	abstract protected List< Value > values();
-	abstract public boolean isLink();
+	protected abstract List< Value > values();
+	public abstract boolean isLink();
 }
