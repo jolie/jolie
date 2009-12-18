@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi                                *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -37,7 +37,6 @@ public class Type
 {
 	private final Range cardinality;
 	private final NativeType nativeType;
-	private final boolean undefinedSubTypes;
 	private final Set< Entry< String, Type > > subTypeSet;
 	private final Set< String > subTypeKeySet;
 
@@ -49,7 +48,6 @@ public class Type
 	) {
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
-		this.undefinedSubTypes = undefinedSubTypes;
 		if ( undefinedSubTypes ) {
 			subTypeSet = null;
 			subTypeKeySet = null;
@@ -72,7 +70,7 @@ public class Type
 			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
 		}
 
-		if ( undefinedSubTypes == false ) {
+		if ( subTypeSet != null ) {
 			for( Entry< String, Type > entry : subTypeSet ) {
 				checkSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
 			}

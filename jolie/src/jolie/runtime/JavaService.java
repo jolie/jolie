@@ -63,6 +63,41 @@ public abstract class JavaService
 		}
 	}
 
+	protected static class Embedder {
+		private final Interpreter interpreter;
+		
+		private Embedder( Interpreter interpreter )
+		{
+			this.interpreter = interpreter;
+		}
+
+		public void callOneWay( CommMessage message )
+		{
+			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
+			try {
+				c.send( message );
+			} catch( IOException e ) {
+				e.printStackTrace();
+			}
+		}
+
+		public Value callRequestResponse( CommMessage request )
+			throws FaultException
+		{
+			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
+			try {
+				c.send( request );
+				CommMessage response = c.recvResponseFor( request );
+				if ( response.isFault() ) {
+					throw response.fault();
+				}
+				return response.value();
+			} catch( IOException e ) {
+				throw new FaultException( "IOException", e );
+			}
+		}
+	}
+
 	private Interpreter interpreter;
 	private final Map< String, JavaOperation > operations =
 					new HashMap< String, JavaOperation >();
@@ -285,6 +320,11 @@ public abstract class JavaService
 	{
 		return interpreter;
 	}
+
+	/*protected Embedder getEmbedder()
+	{
+
+	}*/
 	
 	public CommChannel sendMessage( CommMessage message )
 	{
