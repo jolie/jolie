@@ -235,15 +235,17 @@ public class VariablePath implements Expression, Cloneable
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
+		String key;
 		Value currValue = rootValue;
 		int index;
 
 		for( int i = 0; i < path.length; i++ ) {
 			pair = path[i];
-			currVector = currValue.getChildren( pair.key().evaluate().strValue() );
-			if ( currVector == null ) {
+			key = pair.key().evaluate().strValue();
+			if ( currValue.hasChildren( key ) == false ) {
 				return null;
 			}
+			currVector = currValue.getChildren( key );
 			if ( pair.value() == null ) {
 				if ( (i+1) < path.length ) {
 					if ( currVector.isEmpty() ) {

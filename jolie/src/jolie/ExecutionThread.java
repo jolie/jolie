@@ -21,8 +21,6 @@
 
 package jolie;
 
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import jolie.lang.Constants;
 import java.util.HashMap;
@@ -36,7 +34,6 @@ import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.VariablePath;
 import jolie.util.Pair;
 
