@@ -277,7 +277,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 			log( "sent response for message " + message.id() );
 			//channel.release();
 		} catch( IOException e ) {
-			Interpreter.getInstance().logSevere( e );
+			//Interpreter.getInstance().logSevere( e );
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		}
 
 		if ( fault != null ) {

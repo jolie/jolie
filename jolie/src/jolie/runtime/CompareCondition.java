@@ -32,8 +32,8 @@ import jolie.process.TransformationReason;
  */
 public class CompareCondition implements Condition
 {
-	final private Expression leftExpression, rightExpression;
-	final private CompareOperator compareOperator;
+	private final Expression leftExpression, rightExpression;
+	private final CompareOperator compareOperator;
 	
 	public CompareCondition( Expression left, Expression right, CompareOperator compareOperator )
 	{
