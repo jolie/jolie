@@ -23,7 +23,7 @@ package joliex.gwt.client;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
-abstract public class JolieCallback implements AsyncCallback< Value >
+public abstract class JolieCallback implements AsyncCallback< Value >
 {
 	public final void onFailure( Throwable t )
 	{
@@ -34,7 +34,7 @@ abstract public class JolieCallback implements AsyncCallback< Value >
 		}
 	}
 	
-	abstract protected void onFault( FaultException fault );
-	abstract protected void onError( Throwable t );
-	abstract public void onSuccess( Value response );
+	protected abstract void onFault( FaultException fault );
+	protected abstract void onError( Throwable t );
+	public abstract void onSuccess( Value response );
 }
