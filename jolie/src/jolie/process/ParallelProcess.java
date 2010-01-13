@@ -52,6 +52,6 @@ public class ParallelProcess implements Process
 			}
 		}
 		
-		return false;
+		return true;
 	}
 }
