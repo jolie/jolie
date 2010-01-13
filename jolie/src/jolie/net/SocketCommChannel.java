@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.IllegalBlockingModeException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import jolie.Interpreter;
@@ -114,7 +115,11 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		return protocol().recv( istream, ostream );
+		try {
+			return protocol().recv( istream, ostream );
+		} catch( IllegalBlockingModeException e ) {
+			throw new IOException( e );
+		}
 	}
 	
 	/**
@@ -126,8 +131,12 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		protocol().send( ostream, message, istream );
-		ostream.flush();
+		try {
+			protocol().send( ostream, message, istream );
+			ostream.flush();
+		} catch( IllegalBlockingModeException e ) {
+			throw new IOException( e );
+		}
 	}
 
 	protected void closeImpl()
@@ -142,7 +151,17 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		boolean oldBlockingConfig = socketChannel.isBlocking();
 		ByteBuffer buffer = ByteBuffer.allocate( 1 );
 		socketChannel.configureBlocking( false );
-		int read = socketChannel.read( buffer );
+		int read = -1;
+		try {
+			read = socketChannel.read( buffer );
+		} catch( IOException e ) {
+			/* This should never happen in non Windows systems.
+			 * In Windows systems an IOException is thrown
+			 * whenever a client has closed its output connection
+			 * towards this channel and this method is called by
+			 * CommCore. 
+			 */
+		}
 		socketChannel.configureBlocking( oldBlockingConfig );
 		if ( read == -1 ) {
 			return false;
