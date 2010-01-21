@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -40,7 +40,7 @@ public class BluetoothService extends JavaService
 {
 	private static class DiscoveryListenerImpl implements DiscoveryListener
 	{
-		final private Value value = Value.create();
+		private final Value value = Value.create();
 		private boolean completed = false;
 
 		public void deviceDiscovered( RemoteDevice btDevice, DeviceClass cod )

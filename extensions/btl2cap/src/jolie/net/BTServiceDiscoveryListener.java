@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -30,7 +30,7 @@ import javax.bluetooth.UUID;
 
 public class BTServiceDiscoveryListener implements DiscoveryListener
 {
-	final private UUID uuid;
+	private final UUID uuid;
 	private boolean completed = false;
 	private ServiceRecord serviceRecord = null;
 	

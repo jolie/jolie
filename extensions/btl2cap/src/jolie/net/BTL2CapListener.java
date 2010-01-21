@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -37,7 +37,7 @@ import jolie.runtime.VariablePath;
 
 public class BTL2CapListener extends CommListener
 {
-	final private L2CAPConnectionNotifier connectionNotifier;
+	private final L2CAPConnectionNotifier connectionNotifier;
 	public BTL2CapListener(
 				Interpreter interpreter,
 				URI location,
