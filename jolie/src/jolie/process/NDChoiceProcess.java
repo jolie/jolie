@@ -55,9 +55,9 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 	public class Execution extends AbstractInputProcessExecution< NDChoiceProcess >
 	{
 		private class InputChoice {
-			final private InputHandler inputHandler;
-			final private InputProcess inputProcess;
-			final private Process process;
+			private final InputHandler inputHandler;
+			private final InputProcess inputProcess;
+			private final Process process;
 			private InputChoice( InputHandler inputHandler, InputProcess inputProcess, Process process )
 			{
 				this.inputHandler = inputHandler;
@@ -116,9 +116,9 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 			}
 
 			assert( choice != null );
-			
+
 			choice.inputProcess.runBehaviour( channel, message );
-			
+		
 			// Clean up for the garbage collector
 			inputMap = null;
 			channel = null;
@@ -185,7 +185,7 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 		}
 	}
 
-	final private Pair< InputProcess, Process >[] branches;
+	private final Pair< InputProcess, Process >[] branches;
 	private CorrelatedProcess correlatedProcess = null;
 	
 	/** Constructor */

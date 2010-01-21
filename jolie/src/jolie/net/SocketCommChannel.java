@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -71,9 +71,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		}
 	}
 
-	final private SocketChannel socketChannel;
-	final private PreBufferedInputStream istream;
-	final private OutputStream ostream;
+	private final SocketChannel socketChannel;
+	private final PreBufferedInputStream istream;
+	private final OutputStream ostream;
 	
 	/** Constructor.
 	 * 
