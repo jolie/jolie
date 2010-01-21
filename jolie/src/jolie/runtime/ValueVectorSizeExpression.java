@@ -40,6 +40,7 @@ public class ValueVectorSizeExpression implements Expression
 	
 	public Value evaluate()
 	{
+		// TODO: if path points to an undefined vector, we are creating a new vector
 		return Value.create( path.getValueVector().size() );
 	}
 }

@@ -63,7 +63,8 @@ public abstract class JavaService
 		}
 	}
 
-	protected static class Embedder {
+	protected static class Embedder
+	{
 		private final Interpreter interpreter;
 		
 		private Embedder( Interpreter interpreter )
@@ -77,6 +78,7 @@ public abstract class JavaService
 			try {
 				c.send( message );
 			} catch( IOException e ) {
+				// This should never happen
 				e.printStackTrace();
 			}
 		}
@@ -93,7 +95,7 @@ public abstract class JavaService
 				}
 				return response.value();
 			} catch( IOException e ) {
-				throw new FaultException( "IOException", e );
+				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 			}
 		}
 	}
