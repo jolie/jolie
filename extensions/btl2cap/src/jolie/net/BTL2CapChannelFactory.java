@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -38,8 +38,8 @@ import jolie.runtime.AndJarDeps;
 @AndJarDeps({"bluetooth.jar"})
 public class BTL2CapChannelFactory extends CommChannelFactory
 {
-	final static int cacheLimit = 1000; // Must be > 0
-	final private Map< String, Map< String, ServiceRecord > > serviceCache =
+	private final static int cacheLimit = 1000; // Must be > 0
+	private final Map< String, Map< String, ServiceRecord > > serviceCache =
 						new HashMap< String, Map< String, ServiceRecord > > ();
 
 	public BTL2CapChannelFactory( CommCore commCore )
