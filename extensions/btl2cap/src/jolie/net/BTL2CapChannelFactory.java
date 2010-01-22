@@ -25,12 +25,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.bluetooth.BluetoothStateException;
+import javax.bluetooth.BTL2CapHelper;
 import javax.bluetooth.L2CAPConnection;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
 import javax.bluetooth.ServiceRecord;
-import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import jolie.net.ext.CommChannelFactory;
 import jolie.runtime.AndJarDeps;
@@ -47,7 +44,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		super( commCore );
 	}
 
-	private ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
+	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
 	{
 		ServiceRecord r = null;
 		try {
@@ -56,7 +53,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		return r;
 	}
 	
-	private void putInServiceCache( String btAddr, String uuidStr, ServiceRecord record )
+	public void putInServiceCache( String btAddr, String uuidStr, ServiceRecord record )
 	{
 		if ( serviceCache.size() > cacheLimit ) {
 			serviceCache.remove( serviceCache.keySet().iterator().next() );
@@ -72,30 +69,6 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		map.put( uuidStr, record);
 	}
 	
-	private String getConnectionURL( URI uri )
-		throws BluetoothStateException, IOException
-	{
-		String[] ss = uri.getSchemeSpecificPart().split( ":" );
-		String uuidStr = ss[1].split( "/" )[0];
-		String btAddr = ss[0].substring( 2 );
-		ServiceRecord record = getFromServiceCache( btAddr, uuidStr );
-		
-		if ( record == null ) {
-			UUID uuid = new UUID( uuidStr, false );
-			BTServiceDiscoveryListener listener = new BTServiceDiscoveryListener( uuid );
-			LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices( null, new UUID[] { uuid }, new RemoteDevice( btAddr ), listener );
-			record = listener.getResult();
-			putInServiceCache( btAddr, uuidStr, record );
-		}
-		
-		if ( record == null ) {
-			throw new IOException( "Service not found" );
-		}
-		
-		String url = record.getConnectionURL( ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false );
-		return url;
-	}
-	
 	public CommChannel createChannel( URI uri, OutputPort port )
 		throws IOException
 	{
@@ -103,7 +76,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 			throw new IOException( "Malformed output btl2cap location: " + uri.toString() );
 		}
 		try {
-			String connectionURL = getConnectionURL( uri );
+			String connectionURL = BTL2CapHelper.getConnectionURL( uri, this );
 			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
 			return new BTL2CapCommChannel( conn, uri, port.getProtocol() );
 		} catch( ClassCastException e ) {
