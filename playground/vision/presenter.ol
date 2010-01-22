@@ -24,7 +24,7 @@ include "console.iol"
 include "runtime.iol"
 
 constants {
-	Location_PresenterService = "socket://localhost:9001",
+	Location_Presenter = "socket://localhost:9001",
 	Debug = 1
 }
 
@@ -34,8 +34,8 @@ include "presenter.iol"
 include "viewer.iol"
 
 inputPort PresenterInputPort {
-Location: Location_PresenterService
-Protocol: sodep
+Location: Location_Presenter
+Protocol: sodep { .charset = "ISO8859-1" }
 Interfaces: PresenterInterface
 }
 
@@ -43,7 +43,7 @@ define initViewer
 {
 	install( CouldNotStartFault => println@Console( main.CouldNotStartFault )() );
 	if ( #args < 1 ) {
-		throw( CouldNotStartFault, "Syntax is: jolie presenter.ol kpdf|okular|previewer [presenter_uri]" )
+		throw( CouldNotStartFault, "Syntax is: jolie [-C \"Location_Presenter=\\\"location\\\"\"] presenter.ol kpdf|okular|previewer [presenter_uri]" )
 	} else {
 		embedInfo.filepath = "viewers/" + args[0] + ".ol";
 		embedInfo.type = "Jolie";
@@ -119,7 +119,7 @@ main
 				}
 			}
 			|
-			if ( request.local == 0 ) {
+			if ( request.local == 0 || !is_defined( request.local ) ) {
 				goToPage@Viewer( request )
 			}
 		}

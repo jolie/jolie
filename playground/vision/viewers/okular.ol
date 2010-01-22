@@ -49,7 +49,12 @@ define startPoller
 
 define initDocumentViewer
 {
-	exec@Exec( "qdbus org.kde.okular*" )( cmdStr );
+	exec@Exec( "qdbus org.kde.okular*" )( cmdResult );
+	if ( !is_defined( cmdResult ) ) {
+		throw( ViewerFault, "Could not query Okular" )
+	} else {
+		cmdStr = cmdResult
+	};
 	trim@StringUtils( cmdStr )( cmdStr );
 	cmdStr.regex = "\n";
 	split@StringUtils( cmdStr )( ss );
@@ -64,8 +69,9 @@ define initDocumentViewer
 	for( i = 0, i < #ss.result, i++ ) {
 		// We display numbers starting by 1
 		exec@Exec( "qdbus " + ss.result[i] + " /okular currentDocument" )( cDoc );
-		trim@StringUtils( cDoc )( cDoc );
-		println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + cDoc )()
+		doc = cDoc;
+		trim@StringUtils( doc )( doc );
+		println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + doc )()
 	};
 	selected = -1;
 	registerForInput@Console()();
@@ -107,12 +113,14 @@ main
 	}
 
 	[ currentPage()( response ) {
-		exec@Exec( cmdStr + "/okular currentPage" )( response );
+		exec@Exec( cmdStr + "/okular currentPage" )( r );
+		response = r;
 		trim@StringUtils( response )( response )
 	} ] { nullProcess }
 
 	[ currentDocument()( response ) {
-		exec@Exec( cmdStr + "/okular currentDocument" )( response );
+		exec@Exec( cmdStr + "/okular currentDocument" )( r );
+		response = r;
 		trim@StringUtils( response )( response )
 	} ] { nullProcess }
 }
