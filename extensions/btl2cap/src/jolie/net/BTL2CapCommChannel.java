@@ -62,6 +62,21 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		} else {
 			connection.send( result );
 		}
+		if ( result.length >= sendMTU ) {
+			int times = (result.length / sendMTU);
+			byte[] chunk;
+			int i;
+			for( i = 0; i < times; i++ ) {
+				chunk = Arrays.copyOfRange( result, i*sendMTU, ((i+1)*sendMTU) - 1 );
+				connection.send( chunk );
+			}
+			int remaining = result.length % sendMTU;
+			if ( remaining > 0 ) {
+				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU) + remaining - 1 );
+			}
+		} else {
+			connection.send( result );
+		}
 	}
 	
 	protected CommMessage recvImpl()
@@ -69,11 +84,11 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		byte[] chunk;
-		int len = recvMTU + 1;
+		int len = recvMTU;
 		while( len >= recvMTU ) {
 			chunk = new byte[ recvMTU ];
 			len = connection.receive( chunk );
-			ostream.write( chunk );
+			ostream.write( chunk, 0, len );
 		}
 		ByteArrayInputStream istream = new ByteArrayInputStream( ostream.toByteArray() );
 		return protocol().recv( istream, null ); // TODO fix this null pointer
