@@ -52,33 +52,24 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		protocol().send( ostream, message, null ); // TODO Fix this null pointer.
 		byte[] result = ostream.toByteArray();
-		if ( result.length >= sendMTU ) {
-			int times = (result.length / sendMTU) + 1;
-			byte[] chunk;
-			for( int i = 0; i < times; i++ ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU)+1 );
-				connection.send( chunk );
-			}
-		} else {
-			connection.send( result );
-		}
-		if ( result.length >= sendMTU ) {
+		if ( result.length > sendMTU ) {
 			int times = (result.length / sendMTU);
 			byte[] chunk;
 			int i;
 			for( i = 0; i < times; i++ ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, ((i+1)*sendMTU) - 1 );
+				chunk = Arrays.copyOfRange( result, i*sendMTU, ((i+1)*sendMTU) );
 				connection.send( chunk );
 			}
 			int remaining = result.length % sendMTU;
 			if ( remaining > 0 ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU) + remaining - 1 );
+				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU) + remaining );
+				connection.send( chunk );
 			}
 		} else {
 			connection.send( result );
 		}
 	}
-	
+
 	protected CommMessage recvImpl()
 		throws IOException
 	{
@@ -86,7 +77,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		byte[] chunk;
 		int len = recvMTU;
 		while( len >= recvMTU ) {
-			chunk = new byte[ recvMTU ];
+			chunk = new byte[ recvMTU ]; // Most probably we do not need to re-initialize this
 			len = connection.receive( chunk );
 			ostream.write( chunk, 0, len );
 		}
