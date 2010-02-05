@@ -31,7 +31,7 @@ import jolie.net.OutputPort;
  * A factory for delegating the creation of output communication channels to extensions.
  * @author Fabrizio Montesi
  */
-abstract public class CommChannelFactory
+public abstract class CommChannelFactory
 {
 	final private CommCore commCore;
 

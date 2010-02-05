@@ -483,18 +483,18 @@ public abstract class Value implements Expression, Cloneable
 		_refCopy( value );
 	}
 
-	abstract protected void _refCopy( Value value );
-	abstract public void erase();
-	abstract protected void _deepCopy( Value value, boolean copyLinks );
-	abstract public Map< String, ValueVector > children();
-	abstract public Object valueObject();
-	abstract protected void setValueObject( Object object );
-	abstract public boolean hasChildren();
-	abstract public boolean hasChildren( String childId );
-	abstract public ValueVector getChildren( String childId );
+	protected abstract void _refCopy( Value value );
+	public abstract void erase();
+	protected abstract void _deepCopy( Value value, boolean copyLinks );
+	public abstract Map< String, ValueVector > children();
+	public abstract Object valueObject();
+	protected abstract void setValueObject( Object object );
+	public abstract boolean hasChildren();
+	public abstract boolean hasChildren( String childId );
+	public abstract ValueVector getChildren( String childId );
 	
 	@Override
-	abstract public Value clone();
+	public abstract Value clone();
 	
 	public final synchronized Value getNewChild( String childId )
 	{
@@ -510,7 +510,7 @@ public abstract class Value implements Expression, Cloneable
 		return getChildren( childId ).get( 0 );
 	}
 	
-	abstract public Value evaluate();
+	public abstract Value evaluate();
 	
 	public final synchronized void setValue( Object object )
 	{

@@ -62,6 +62,8 @@ import jolie.runtime.VariablePath;
  * Handles the communications mechanisms for an Interpreter instance.
  * 
  * Each CommCore is related to an Interpreter, and each Interpreter owns one and only CommCore instance.
+ *
+ * @author Fabrizio Montesi
  */
 public class CommCore
 {

@@ -45,13 +45,13 @@ abstract public class CommListener extends JolieThread
 {
 	private static int index = 0;
 
-	final private CommProtocolFactory protocolFactory;
-	final protected Collection< String > operationNames;
-	final protected Map< String, AggregatedOperation > aggregationMap;
-	final protected Map< String, OutputPort > redirectionMap;
+	private final CommProtocolFactory protocolFactory;
+	protected final Collection< String > operationNames;
+	protected final Map< String, AggregatedOperation > aggregationMap;
+	protected final Map< String, OutputPort > redirectionMap;
 
-	final private VariablePath protocolConfigurationPath;
-	final private URI location;
+	private final VariablePath protocolConfigurationPath;
+	private final URI location;
 
 	/**
 	 * Constructor
