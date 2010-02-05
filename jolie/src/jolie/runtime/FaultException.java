@@ -25,51 +25,75 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.PrintStream;
 
+/**
+ * Java representation for a Jolie fault.
+ * @author Fabrizio Montesi
+ */
 public class FaultException extends Exception
 {
 	private static final long serialVersionUID = jolie.lang.Constants.serialVersionUID();
-	final private String faultName;
-	final private Value value;
+	private final String faultName;
+	private final Value value;
 	
+	/**
+	 * Constructor.
+	 * This constructor behaves as
+	 * {@code FaultException( faultName, Value.create( t.getMessage() ) )}, but
+	 * it also adds a {@code stackTrace} subnode to the value of this fault
+	 * containing the stack trace of the passed {@link Throwable} t.
+	 * @param faultName the name of the fault
+	 * @param t the {@link Throwable} whose message and stack trace should be read
+	 */
 	public FaultException( String faultName, Throwable t )
 	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create( t.getMessage() );
+		this( faultName, Value.create( t.getMessage() ) );
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
+		value.getNewChild( "stackTrace" ).setValue( bs.toString() );
 	}
-	
+
+	/**
+	 * Constructor.
+	 * Shortcut for {@code FaultException( t.getClass().getSimpleName(), t )}.
+	 * @param t
+	 */
 	public FaultException( Throwable t )
 	{
-		super();
-		this.faultName = t.getClass().getSimpleName();
-		this.value = Value.create( t.getMessage() );
-		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-		t.printStackTrace( new PrintStream( bs ) );
-		this.value.getNewChild( "stackTrace" ).setValue( bs.toString() );
+		this( t.getClass().getSimpleName(), t );
 	}
-	
+
+	/**
+	 * Constructor.
+	 * Shortcut for {@code FaultException( faultName, Value.create( message ) )}
+	 * @param faultName
+	 * @param message
+	 */
 	public FaultException( String faultName, String message )
 	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create( message );
+		this( faultName, Value.create( message ) );
 	}
-	
+
+	/**
+	 * Constructor.
+	 * @param faultName the name of the fault
+	 * @param value the {@link Value} containing the fault data
+	 */
 	public FaultException( String faultName, Value value )
 	{
 		super();
 		this.faultName = faultName;
 		this.value = value;
 	}
-	
+
+	/**
+	 * Constructor.
+	 * Shortcut for {@code FaultException( faultName, Value.create() )}
+	 * @param faultName
+	 * @param message
+	 */
 	public FaultException( String faultName )
 	{
-		super();
-		this.faultName = faultName;
-		this.value = Value.create();
+		this( faultName, Value.create() );
 	}
 	
 	@Override
@@ -81,12 +105,20 @@ public class FaultException extends Exception
 		builder.append( value.strValue() );
 		return builder.toString();
 	}
-	
+
+	/**
+	 * Returns the {@link Value} of this fault.
+	 * @return the {@link Value} of this fault.
+	 */
 	public Value value()
 	{
 		return value;
 	}
-	
+
+	/**
+	 * Returns the name of this fault instance.
+	 * @return the name of this fault instance
+	 */
 	public String faultName()
 	{
 		return faultName;

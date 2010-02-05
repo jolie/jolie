@@ -36,7 +36,7 @@ import jolie.runtime.VariablePath;
  * A factory for delegating the creation of communication listeners to extensions.
  * @author Fabrizio Montesi
  */
-abstract public class CommListenerFactory
+public abstract class CommListenerFactory
 {
 	final private CommCore commCore;
 
