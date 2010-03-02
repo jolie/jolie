@@ -72,7 +72,8 @@ RequestResponse:
 	split(SplitRequest)(SplitResult),
 	splitByLength(SplitByLengthRequest)(SplitResult),
 	trim(string)(string),
-	startsWith(StartsWithRequest)(int)
+	startsWith(StartsWithRequest)(int),
+	valueToPrettyString(undefined)(string)
 }
 
 outputPort StringUtils {
