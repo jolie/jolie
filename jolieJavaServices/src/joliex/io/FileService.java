@@ -68,6 +68,12 @@ public class FileService extends JavaService
 
 	private final FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
 
+	public FileService()
+	{
+		super();
+		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+	}
+
 	private static void readBase64IntoValue( File file, Value value )
 		throws IOException
 	{
