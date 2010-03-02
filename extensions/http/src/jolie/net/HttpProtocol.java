@@ -80,6 +80,7 @@ import org.xml.sax.SAXException;
 public class HttpProtocol extends SequentialCommProtocol
 {
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
+	//private static final byte[] INTERNAL_SERVER_ERROR_HEADER = "HTTP/1.1 500 Internal Server error".getBytes();
 
 	private static class Parameters {
 		private static String DEBUG = "debug";
@@ -281,7 +282,13 @@ public class HttpProtocol extends SequentialCommProtocol
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
 			doc.appendChild( root );
-			valueToDocument( message.value(), root, doc );
+			if ( message.isFault() ) {
+				Element faultElement = doc.createElement( message.fault().faultName() );
+				root.appendChild( faultElement );
+				valueToDocument( message.fault().value(), faultElement, doc );
+			} else {
+				valueToDocument( message.value(), root, doc );
+			}
 			Source src = new DOMSource( doc );
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			Result dest = new StreamResult( tmpStream );
