@@ -265,7 +265,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private static class EncodedContent {
 		private ByteArray content = null;
-		private String contentType = null;
+		private String contentType = "";
 	}
 		
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
@@ -328,6 +328,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			}
 			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
 		} else if ( "text/x-gwt-rpc".equals( format ) ) {
+			ret.contentType = "text/x-gwt-rpc";
 			try {
 				if ( message.isFault() ) {
 					ret.content = new ByteArray(
@@ -442,7 +443,10 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 		
 		if ( encodedContent.content != null ) {
-			encodedContent.contentType = getStringParameter( "contentType" );
+			String contentType = getStringParameter( "contentType" );
+			if ( contentType.length() > 0 ) {
+				encodedContent.contentType = contentType;
+			}
 
 			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
 			if ( charset != null ) {
