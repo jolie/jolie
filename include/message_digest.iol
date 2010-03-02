@@ -20,7 +20,7 @@
  ***************************************************************************/
 
 
-include "JavaException.iol"
+include "types/JavaException.iol"
 
 type MD5Request:string {
 	.radix?:int

@@ -24,9 +24,10 @@ include "types/JavaException.iol"
 
 type SendMailRequest:void {
 	.host:string
-	.authenticate?:int // 1 if host needs authentication, 0 otherwise.
-	.username?:string
-	.password?:string
+	.authenticate?:void {
+		.username:string
+		.password:string
+	}
 	.from:string
 	.to[1,*]:string
 	.cc[0,*]:string
