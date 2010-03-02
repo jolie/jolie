@@ -47,7 +47,7 @@ public class SMTPService extends JavaService
 {
 	private class SimpleAuthenticator extends Authenticator
 	{
-		final private String username, password;
+		private final String username, password;
 		
 		public SimpleAuthenticator( String username, String password )
 		{
@@ -69,16 +69,17 @@ public class SMTPService extends JavaService
 		Authenticator authenticator = null;
 		Properties props = new Properties();
 		props.put( "mail.smtp.host", request.getFirstChild( "host" ).strValue() );
-		if ( request.getFirstChild( "authenticate" ).intValue() == 1 ) {
+		if ( request.hasChildren( "authenticate" ) ) {
+			Value auth = request.getFirstChild( "authenticate" );
 			props.put( "mail.smtp.auth", "true" );
 			authenticator = new SimpleAuthenticator(
-				request.getFirstChild( "username" ).strValue(),
-				request.getFirstChild( "password" ).strValue()
+				auth.getFirstChild( "username" ).strValue(),
+				auth.getFirstChild( "password" ).strValue()
 			);
 		}
 		Session session = Session.getDefaultInstance( props, authenticator );
 		Message msg = new MimeMessage( session );
-		
+
 		try {
 			msg.setFrom( new InternetAddress( request.getFirstChild( "from" ).strValue() ) );
 
