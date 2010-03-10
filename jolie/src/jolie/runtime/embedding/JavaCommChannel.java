@@ -66,6 +66,13 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		return new JavaCommChannel( javaService );
 	}
 
+	@Override
+	public void send( CommMessage message )
+		throws IOException
+	{
+		sendImpl( message );
+	}
+
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
