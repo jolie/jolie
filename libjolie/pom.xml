@@ -24,6 +24,6 @@
         </plugins>
   </build>
   <properties>
-        <sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
+        <sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
   </properties>
 </project>
