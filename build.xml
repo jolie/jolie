@@ -37,7 +37,11 @@ set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -ea:jolie... -ea:joliex... -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
-		<chmod file="${private.install.launcher_dir}/jolie" perm="a+x"/>
+		<echo file="${private.install.launcher_dir}/joliec.bat">@echo off
+set joliepath=${install.dir}\
+set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar -jar %joliepath%tools\joliec.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+		</echo>
 	</target>
 
 	<target name="-install-unix-launcher" unless="isWindows">
@@ -97,7 +101,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/tools/joliec.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
-		<chmod file="${private.install.launcher_dir}/jolie2plasma" perm="a+x"/>
+		<chmod file="${private.install.launcher_dir}/joliec" perm="a+x"/>
 	</target>
 
 	<target name="install" depends="-init,-delete-old-dir">
