@@ -68,7 +68,13 @@ public class SocketListener extends CommListener
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();
-		socket.bind( new InetSocketAddress( location.getPort() ) );
+		try {
+			socket.bind( new InetSocketAddress( location.getPort() ) );
+		} catch( IOException e ) {
+			IOException exception = new IOException( e.getMessage() + " [with location: " + location.toString() + "]" );
+			exception.setStackTrace( e.getStackTrace() );
+			throw exception;
+		}
 	}
 
 	public void shutdown()
