@@ -153,11 +153,17 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
-		if ( hasParameter( Parameters.COOKIES ) ) {
+		Value cookieParam = null;
+		if ( hasOperationSpecificParameter( message.operationName(), Parameters.COOKIES ) ) {
+			cookieParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.COOKIES );
+		} else if ( hasParameter( Parameters.COOKIES ) ) {
+			cookieParam = getParameterFirstValue( Parameters.COOKIES );
+		}
+		if ( cookieParam != null ) {
 			Value cookieConfig;
 			String domain;
 			StringBuilder cookieSB = new StringBuilder();
-			for( Entry< String, ValueVector > entry : getParameterFirstValue( Parameters.COOKIES ).children().entrySet() ) {
+			for( Entry< String, ValueVector > entry : cookieParam.children().entrySet() ) {
 				cookieConfig = entry.getValue().first();
 				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
 					domain = cookieConfig.hasChildren( "domain" ) ? cookieConfig.getFirstChild( "domain" ).strValue() : "";
@@ -181,9 +187,15 @@ public class HttpProtocol extends SequentialCommProtocol
 	
 	private void send_appendSetCookieHeader( CommMessage message, StringBuilder headerBuilder )
 	{
-		if ( hasParameter( Parameters.COOKIES ) ) {
+		Value cookieParam = null;
+		if ( hasOperationSpecificParameter( message.operationName(), Parameters.COOKIES ) ) {
+			cookieParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.COOKIES );
+		} else if ( hasParameter( Parameters.COOKIES ) ) {
+			cookieParam = getParameterFirstValue( Parameters.COOKIES );
+		}
+		if ( cookieParam != null ) {
 			Value cookieConfig;
-			for( Entry< String, ValueVector > entry : getParameterFirstValue( Parameters.COOKIES ).children().entrySet() ) {
+			for( Entry< String, ValueVector > entry : cookieParam.children().entrySet() ) {
 				cookieConfig = entry.getValue().first();
 				if ( message.value().hasChildren( cookieConfig.strValue() ) ) {
 					headerBuilder
@@ -622,18 +634,23 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 
-	private void recv_checkForCookies( HttpMessage message, Value value )
+	private void recv_checkForCookies( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
-		if ( hasParameter( Parameters.COOKIES ) ) {
-			Value cookies = getParameterFirstValue( Parameters.COOKIES );
+		Value cookies = null;
+		if ( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.COOKIES ) ) {
+			cookies = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.COOKIES );
+		} else if ( hasParameter( Parameters.COOKIES ) ) {
+			cookies = getParameterFirstValue( Parameters.COOKIES );
+		}
+		if ( cookies != null ) {
 			Value v;
 			String type;
 			for( Entry< String, String > entry : message.cookies().entrySet() ) {
 				if ( cookies.hasChildren( entry.getKey() ) ) {
 					Value cookieConfig = cookies.getFirstChild( entry.getKey() );
 					if ( cookieConfig.isString() ) {
-						v = value.getFirstChild( cookieConfig.strValue() );
+						v = decodedMessage.value.getFirstChild( cookieConfig.strValue() );
 						if ( cookieConfig.hasChildren( "type" ) ) {
 							type = cookieConfig.getFirstChild( "type" ).strValue();
 						} else {
@@ -736,10 +753,10 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private void recv_checkForMessageProperties( HttpMessage message, Value messageValue )
+	private void recv_checkForMessageProperties( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
-		recv_checkForCookies( message, messageValue );
+		recv_checkForCookies( message, decodedMessage );
 		String property;
 		if (
 			(property=message.getProperty( "user-agent" )) != null &&
@@ -790,7 +807,7 @@ public class HttpProtocol extends SequentialCommProtocol
 				recv_parseQueryString( message, decodedMessage.value );
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
-			recv_checkForMessageProperties( message, decodedMessage.value );
+			recv_checkForMessageProperties( message, decodedMessage );
 			//TODO support resourcePath
 			retVal = new CommMessage( CommMessage.GENERIC_ID, decodedMessage.operationName, "/", decodedMessage.value, null );
 			received = true;
