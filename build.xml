@@ -93,6 +93,10 @@ fi
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
+		<echo file="${private.install.launcher_dir}/joliec">#!/bin/sh
+JOLIE_HOME=${install.dir}
+java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/tools/joliec.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+		</echo>
 		<chmod file="${private.install.launcher_dir}/jolie2plasma" perm="a+x"/>
 	</target>
 
