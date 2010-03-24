@@ -163,6 +163,20 @@ public abstract class CommProtocol
 	}
 
 	/**
+	 * Shortcut for getOperationSpecificParameterVector( id ).first()
+	 */
+	protected Value getOperationSpecificParameterFirstValue( String operationName, String parameterName )
+	{
+		return getOperationSpecificParameterVector( operationName, parameterName ).first();
+	}
+
+	protected ValueVector getOperationSpecificParameterVector( String operationName, String parameterName )
+	{
+		Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+		return osc.getFirstChild( operationName ).getChildren( parameterName );
+	}
+
+	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
 	 * @param id the parameter identifier
 	 */
