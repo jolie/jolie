@@ -33,10 +33,10 @@ import jolie.runtime.Value;
  */
 public class MetaServiceChannel implements Cloneable
 {
-	final private MetaService metaService;
-	final private String resourceName;
-	final private CommChannel channel;
-	//final private boolean persistent;
+	private final MetaService metaService;
+	private final String resourceName;
+	private final CommChannel channel;
+	//private final boolean persistent;
 	
 	public MetaServiceChannel( MetaService metaService, String resourceName )
 		throws IOException
@@ -65,7 +65,7 @@ public class MetaServiceChannel implements Cloneable
 	{
 		return resourceName;
 	}
-	
+
 	public void send( String operationName, Value value )
 		throws IOException
 	{

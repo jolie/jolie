@@ -33,11 +33,11 @@ import jolie.runtime.Value;
  */
 abstract public class MetaService
 {
-	final private static String SHUTDOWN = "shutdown";
-	final private static String ADD_REDIRECTION = "addRedirection";
-	final private static String REMOVE_REDIRECTION = "removeRedirection";
-	final private static String LOAD_EMBEDDED_JOLIE_SERVICE = "loadEmbeddedJolieService";
-	final private static String UNLOAD_EMBEDDED_JOLIE_SERVICE = "unloadEmbeddedService";
+	private final static String SHUTDOWN = "shutdown";
+	private final static String ADD_REDIRECTION = "addRedirection";
+	private final static String REMOVE_REDIRECTION = "removeRedirection";
+	private final static String LOAD_EMBEDDED_JOLIE_SERVICE = "loadEmbeddedJolieService";
+	private final static String UNLOAD_EMBEDDED_JOLIE_SERVICE = "unloadEmbeddedService";
 	
 	abstract public MetaServiceChannel getChannel()
 		throws IOException;
