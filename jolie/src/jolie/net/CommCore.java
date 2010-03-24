@@ -700,7 +700,9 @@ public class CommCore
 									if ( channel.lock.isHeldByCurrentThread() ) {
 										channel.lock.unlock();
 									}
-									interpreter.logSevere( e );
+									if ( interpreter.verbose() ) {
+										interpreter.logSevere( e );
+									}
 								}
 							}
 						}
