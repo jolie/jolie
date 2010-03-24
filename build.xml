@@ -199,6 +199,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		
 		<copy file="${libs.bluetooth}" tofile="dist/lib/bluetooth.jar"/>
 		<copy file="${libs.gwt-servlet}" tofile="dist/lib/gwt-servlet.jar"/>
+		<copy file="${libs.gwt-dev}" tofile="dist/lib/gwt-dev.jar"/>
 		<copy file="${libs.javamail.smtp}" tofile="dist/lib/smtp.jar"/>
 		<copy file="${libs.javamail.mailapi}" tofile="dist/lib/mailapi.jar"/>
 		<copy file="${libs.libmatthew.unix}" tofile="dist/lib/unix.jar"/>
