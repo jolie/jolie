@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
+ *   Copyright (C) 2008-09-10 by Fabrizio Montesi <famontesi@gmail.com>    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -19,13 +19,13 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 include "console.iol"
 include "runtime.iol"
 
 constants {
 	Location_Presenter = "socket://localhost:9001",
-	Debug = 1
+	Debug = 1,
+	NetworkCharset = "ISO8859-1" // Useful default for interacting with J2ME applications
 }
 
 execution { sequential }
@@ -35,7 +35,7 @@ include "viewer.iol"
 
 inputPort PresenterInputPort {
 Location: Location_Presenter
-Protocol: sodep { .charset = "ISO8859-1" }
+Protocol: sodep { .charset = NetworkCharset }
 Interfaces: PresenterInterface
 }
 
@@ -100,7 +100,7 @@ main
 				}
 			}
 			|
-			if ( request.local == 0 ) {
+			if ( !is_defined( request.local ) || request.local == 0 ) {
 				openDocument@Viewer( request )
 			}
 		}
@@ -119,7 +119,7 @@ main
 				}
 			}
 			|
-			if ( request.local == 0 || !is_defined( request.local ) ) {
+			if ( !is_defined( request.local ) || request.local == 0 ) {
 				goToPage@Viewer( request )
 			}
 		}

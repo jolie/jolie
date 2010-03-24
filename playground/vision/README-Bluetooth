@@ -1,5 +1,6 @@
 If you want to expose Vision via Bluetooth, you need a Bluetooth library and point JOLIE to it.
-The following is an example using BlueCove:
+
+The following is an example using BlueCove under Linux:
 - put bluecove-2.1.0.jar in your directory as bluetooth.jar;
 - run the following command:
 
