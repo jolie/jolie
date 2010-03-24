@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Fabrizio Montesi                           *
+ *   Copyright (C) 2008-09-10 by Fabrizio Montesi <famontesi@gmail.com>    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as               *
@@ -19,13 +19,32 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+include "types.iol"
+
+type OpenDocumentMessage:void {
+	.documentUrl:string
+	.local?:int  // 1 if sent from a local Viewer, 0 or undefined otherwise
+}
+
+type CloseClientSessionMessage:int // The client session id
+
+type StartClientSessionRequest:void {
+	.location:string // The location of the client
+}
+
+type StartClientSessionResponse:void {
+	.documentUrl:string
+	.pageNumber:int
+	.sid:int
+}
+
 interface PresenterInterface {
 OneWay:
-	goToPage,
-	openDocument,
-	closeClientSession
+	goToPage(GoToPageMessage),
+	openDocument(OpenDocumentMessage),
+	closeClientSession(CloseClientSessionMessage)
 RequestResponse:
-	startClientSession
+	startClientSession(StartClientSessionRequest)(StartClientSessionResponse)
 }
 
 outputPort Presenter {
