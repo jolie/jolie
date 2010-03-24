@@ -31,9 +31,13 @@ public final class Constants
 	
 	public interface Manifest
 	{
+		// JOLIE Extensions
 		public final static String ChannelExtension = "X-JOLIE-ChannelExtension";
 		public final static String ListenerExtension = "X-JOLIE-ListenerExtension";
 		public final static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
+
+		// JAP Manifest
+		public final static String MainProgram = "X-JOLIE-Main-Program";
 		public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
@@ -41,8 +45,7 @@ public final class Constants
 	{
 		ATTRIBUTES( "@Attributes", "@Attributes" ),
 		HTTP_BASIC_AUTHENTICATION( "@HttpBasicAuthentication", "@HttpBasicAuthentication" ),
-		PI( "PI", java.lang.Math.PI ),
-		QUERY_STRING( "@QueryString", "@QueryString" );
+		PI( "PI", java.lang.Math.PI );
 		private final String id;
 		private final Scanner.Token token;
 

@@ -62,14 +62,24 @@ public class CommandLineParser
 	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
 	private final boolean verbose;
 	private final JolieClassLoader jolieClassLoader;
+	private final boolean isProgramCompiled;
 
 	/**
 	 * Returns the arguments passed to the JOLIE program.
-	 * @return the arguments passed to the JOLIE program
+	 * @return the arguments passed to the JOLIE program.
 	 */
 	public String[] arguments()
 	{
 		return arguments;
+	}
+
+	/**
+	 * Returns {@code true} if the program is compiled, {@code false} otherwise.
+	 * @return {@code true} if the program is compiled, {@code false} otherwise.
+	 */
+	public boolean isProgramCompiled()
+	{
+		return isProgramCompiled;
 	}
 
 	/**
@@ -243,7 +253,8 @@ public class CommandLineParser
 				for( String s : tmp ) {
 					libList.add( s );
 					if ( s.endsWith( ".jap" ) ) {
-						parseJapFile( new File( s ), libList );
+						Manifest manifest = new JarFile( new File( s ) ).getManifest();
+						parseJapManifestForLibraries( manifest, libList );
 					}
 				}
 			} else if ( "--connlimit".equals( args[ i ] ) ) {
@@ -262,16 +273,19 @@ public class CommandLineParser
 				} else {
 					argumentsList.add( args[ i ] );
 				}
+			} else if ( args[ i ].endsWith( ".olc" ) ) {
+				if ( olFilepath == null ) {
+					olFilepath = args[ i ];
+				} else {
+					argumentsList.add( args[ i ] );
+				}
 			} else if ( args[ i ].endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
-					File japFile = new File( args[ i ] );
-					String name = japFile.getName();
-					olFilepath = new StringBuilder()
-						.append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
-						.append( ".ol" )
-						.toString();
+					JarFile japFile = new JarFile( new File( args[ i ] ) );
+					Manifest manifest = japFile.getManifest();
+					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
 					libList.add( args[ i ] );
-					parseJapFile( japFile, libList );
+					parseJapManifestForLibraries( manifest, libList );
 				} else {
 					argumentsList.add( args[ i ] );
 				}
@@ -289,6 +303,10 @@ public class CommandLineParser
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
+		} else if ( olFilepath.endsWith( ".olc" ) ) {
+			isProgramCompiled = true;
+		} else {
+			isProgramCompiled = false;
 		}
 		
 		programFilepath = olFilepath;
@@ -332,11 +350,35 @@ public class CommandLineParser
 		return jolieClassLoader;
 	}
 
-	private void parseJapFile( File japFile, Collection< String > libList )
+	private String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
+	{
+		String filepath = null;
+		if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
+			Attributes attrs = manifest.getMainAttributes();
+			filepath = attrs.getValue( Constants.Manifest.MainProgram );
+		}
+
+		if ( filepath == null ) { // Main program not defined, we make <japName>.ol and <japName>.olc guesses
+			String name = japFile.getName();
+			filepath = new StringBuilder()
+						.append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
+						.append( ".ol" )
+						.toString();
+			if ( japFile.getEntry( filepath ) == null ) {
+				filepath = null;
+				filepath = filepath + 'c';
+				if ( japFile.getEntry( filepath ) == null ) {
+					filepath = null;
+				}
+			}
+		}
+
+		return filepath;
+	}
+
+	private void parseJapManifestForLibraries( Manifest manifest, Collection< String > libList )
 		throws IOException
 	{
-		JarFile jap = new JarFile( japFile );
-		Manifest manifest = jap.getManifest();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
 			String libs = attrs.getValue( Constants.Manifest.Libraries );

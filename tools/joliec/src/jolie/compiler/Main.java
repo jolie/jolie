@@ -1,3 +1,5 @@
+package jolie.compiler;
+
 /***************************************************************************
  *   Copyright (C) 2008 by Fabrizio Montesi                                *
  *                                                                         *
@@ -19,7 +21,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.compiler;
+
 
 import java.io.IOException;
 import jolie.CommandLineException;

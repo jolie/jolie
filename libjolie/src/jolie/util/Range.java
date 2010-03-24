@@ -22,12 +22,17 @@
 
 package jolie.util;
 
+import java.io.Serializable;
+import jolie.lang.Constants;
+
 /**
  * A <code>Range</code> instance represents a range between two natural numbers.
  * @author Fabrizio Montesi
  */
-public class Range
+public class Range implements Serializable
 {
+	private static final long serialVersionUID = Constants.serialVersionUID();
+	
 	private final int min;
 	private final int max;
 

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-09-10 by Fabrizio Montesi <famontesi@gmail.com>    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -26,6 +26,7 @@ import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,12 +44,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
-import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -78,9 +79,7 @@ import jolie.runtime.VariablePath;
 public class Interpreter
 {
 	private CommCore commCore;
-	
-	// TODO remove this variable and put it as a local into a private method
-	private OLParser olParser;
+	private CommandLineParser cmdParser;
 	
 	private boolean exiting = false;
 	private final Collection< List< VariablePath > > correlationSet =
@@ -523,15 +522,13 @@ public class Interpreter
 		throws CommandLineException, FileNotFoundException, IOException
 	{
 		this.parentClassLoader = parentClassLoader;
-		CommandLineParser cmdParser = new CommandLineParser( args, parentClassLoader );
+		cmdParser = new CommandLineParser( args, parentClassLoader );
 		classLoader = cmdParser.jolieClassLoader();
 		this.args = args;
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
 		includePaths = cmdParser.includePaths();
-		olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
-		olParser.putConstants( cmdParser.definedConstants() );
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
@@ -751,16 +748,11 @@ public class Interpreter
 		executorService.execute( r );
 	}
 
-	private static int starterThreadCounter = 0;
-	private static final Object starterThreadCounterMutex = new Object();
+	private static final AtomicInteger starterThreadCounter = new AtomicInteger();
 
 	private static String createStarterThreadName( String programFilename )
 	{
-		String ret;
-		synchronized( starterThreadCounterMutex ) {
-			ret = programFilename + "-StarterThread-" + ++starterThreadCounter;
-		}
-		return ret;
+		return programFilename + "-StarterThread-" + starterThreadCounter.incrementAndGet();
 	}
 
 	private class StarterThread extends Thread
@@ -824,19 +816,34 @@ public class Interpreter
 		throws InterpreterException
 	{
 		try {
-			Program program = olParser.parse();
-			olParser = null; // Free memory
-			program = (new OLParseTreeOptimizer( program )).optimize();
+			Program program = null;
+			if ( cmdParser.isProgramCompiled() ) {
+				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
+				Object o = istream.readObject();
+				if ( o instanceof Program ) {
+					program = (Program)o;
+				} else {
+					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
+				}
+			} else {
+				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
+				olParser.putConstants( cmdParser.definedConstants() );
+				program = olParser.parse();
+			}
 			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 			if ( !semanticVerifier.validate() ) {
 				throw new InterpreterException( "Exiting" );
 			}
-			
+
 			return (new OOITBuilder( this, program, semanticVerifier.isConstantMap() )).build();
-		} catch( ParserException e ) {
-			throw new InterpreterException( e );
 		} catch( IOException e ) {
 			throw new InterpreterException( e );
+		} catch( ParserException e ) {
+			throw new InterpreterException( e );
+		} catch( ClassNotFoundException e ) {
+			throw new InterpreterException( e );
+		} finally {
+			cmdParser = null; // Free memory
 		}
 	}
 }
