@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008-2010 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,37 +32,39 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 
 /**
  *
- * @author fmontesi
+ * @author Fabrizio Montesi
  */
 public class Compiler
 {
-	final private InputStream programStream;
-	final private String programFilepath;
-	final private String[] includePaths;
-	final private ClassLoader classLoader;
+	private final ClassLoader classLoader;
+	private final CommandLineParser cmdParser;
 	
 	public Compiler( String[] args )
 		throws CommandLineException, IOException
 	{
-		CommandLineParser cmdParser = new CommandLineParser( args, this.getClass().getClassLoader() );
+		cmdParser = new CommandLineParser( args, this.getClass().getClassLoader() );
 		classLoader = this.getClass().getClassLoader();
-		programStream = cmdParser.programStream();
-		programFilepath = cmdParser.programFilepath();
-		includePaths = cmdParser.includePaths();
 	}
 	
 	public void compile( OutputStream ostream )
 		throws IOException, ParserException
 	{
-		OLParser parser = new OLParser( new Scanner( programStream, programFilepath ), includePaths, classLoader );
+		OLParser parser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), cmdParser.includePaths(), classLoader );
+		parser.putConstants( cmdParser.definedConstants() );
 		Program program = parser.parse();
+
 		// TODO: Use the SemanticVerifier
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 		program = optimizer.optimize();
+		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+		if ( !semanticVerifier.validate() ) {
+			throw new IOException( "Exiting" );
+		}
 		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
 		oos.writeObject( program );
@@ -74,6 +76,6 @@ public class Compiler
 	public void compile()
 		throws IOException, ParserException
 	{
-		compile( new FileOutputStream( programFilepath + "c" ) );
+		compile( new FileOutputStream( cmdParser.programFilepath() + "c" ) );
 	}
 }
