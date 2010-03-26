@@ -38,7 +38,8 @@ public final class Constants
 
 		// JAP Manifest
 		public final static String MainProgram = "X-JOLIE-Main-Program";
-		public final static String Libraries = "X-JOLIE-Libraries";
+		public final static String Options = "X-JOLIE-Options";
+		//public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
 	static public enum Predefined

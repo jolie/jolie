@@ -22,7 +22,6 @@
 
 package jolie.runtime.embedding;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import jolie.runtime.Expression;
@@ -31,7 +30,6 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.Interpreter;
-import jolie.net.LocalCommChannel;
 
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
@@ -43,24 +41,27 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
-		String[] args = currInterpreter.args();
 		String[] ss = servicePathSplitPattern.split( servicePath );
 		List< String > newArgs = new LinkedList< String >();
 		
-		int i;
+		String[] options = currInterpreter.optionArgs();
+		for( int i = 0; i < options.length; i++ ) {
+			newArgs.add( options[ i ] );
+		}
+		/*int i;
 		for( i = 0; i < args.length; i++ ) {
-			if ( !args[ i ].endsWith( ".ol" ) ) {
+			if ( !args[ i ].equals( currInterpreter.programFile().getName() ) ) {
 				newArgs.add( args[ i ] );
 			} else {
 				String parent = new File( servicePath ).getParent();
 				newArgs.add( "-i" );
 				newArgs.add( ( parent == null ) ? "." : parent );
 			}
-		}
-		for( int k = 0; k < ss.length; k++, i++ ) {
+		}*/
+		for( int k = 0; k < ss.length; k++ ) {
 			newArgs.add( ss[ k ] );
 		}
-		interpreter = new Interpreter( newArgs.toArray( args ), currInterpreter.getClassLoader() );
+		interpreter = new Interpreter( newArgs.toArray( new String[ newArgs.size() ] ), currInterpreter.getClassLoader() );
 	}
 
 	public void load()

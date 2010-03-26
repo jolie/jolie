@@ -51,10 +51,12 @@ import jolie.lang.parse.Scanner;
 public class CommandLineParser
 {
 	private final static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
+	private final static Pattern optionSeparatorPattern = Pattern.compile( " " );
 
 	private final int connectionsLimit;
 	private final int connectionsCache;
 	private final String[] includePaths;
+	private final String[] optionArgs;
 	private final URL[] libURLs;
 	private final InputStream programStream;
 	private final String programFilepath;
@@ -218,8 +220,13 @@ public class CommandLineParser
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader )
 		throws CommandLineException, IOException
 	{
+		List< String > argsList = new ArrayList< String >( args.length );
+		for( int i = 0; i < args.length; i++ ) {
+			argsList.add( args[ i ] );
+		}
+		List< String > optionsList = new ArrayList< String >();
 		boolean bVerbose = false;
-		List< String > argumentsList = new ArrayList< String >();
+		List< String > programArgumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
 		int cLimit = -1;
@@ -231,75 +238,88 @@ public class CommandLineParser
 		libList.add( "ext" );
 		libList.add( "lib" );
 		String olFilepath = null;
-		for( int i = 0; i < args.length; i++ ) {
-			if ( "--help".equals( args[ i ] ) || "-h".equals( args[ i ] ) ) {
+		for( int i = 0; i < argsList.size(); i++ ) {
+			if ( "--help".equals( argsList.get( i ) ) || "-h".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getHelpString() );
-			} else if ( "-C".equals( args[ i ] ) ) {
+			} else if ( "-C".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
 				try {
-					parseCommandLineConstant( args[ i ] );
+					parseCommandLineConstant( argsList.get( i ) );
 				} catch( IOException e ) {
 					throw new CommandLineException( "Invalid constant definition, reason: " + e.getMessage() );
 				}
-			} else if ( "-i".equals( args[ i ] ) ) {
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-i".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
-				String[] tmp = pathSeparatorPattern.split( args[ i ] );
+				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				for( String s : tmp ) {
 					includeList.add( s );
 				}
-			} else if ( "-l".equals( args[ i ] ) ) {
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-l".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
-				String[] tmp = pathSeparatorPattern.split( args[ i ] );
+				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				for( String s : tmp ) {
 					libList.add( s );
-					if ( s.endsWith( ".jap" ) ) {
+					/*if ( s.endsWith( ".jap" ) ) {
 						Manifest manifest = new JarFile( new File( s ) ).getManifest();
 						parseJapManifestForLibraries( manifest, libList );
-					}
+					}*/
 				}
-			} else if ( "--connlimit".equals( args[ i ] ) ) {
+				optionsList.add( argsList.get( i ) );
+			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
-				cLimit = Integer.parseInt( args[ i ] );
-			} else if ( "--conncache".equals( args[ i ] ) ) {
+				cLimit = Integer.parseInt( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "--conncache".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
-				cCache = Integer.parseInt( args[ i ] );
-			} else if ( "--verbose".equals( args[ i ] ) ) {
+				cCache = Integer.parseInt( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "--verbose".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				bVerbose = true;
-			} else if ( "--version".equals( args[ i ] ) ) {
+			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if ( args[ i ].endsWith( ".ol" ) ) {
+			} else if ( argsList.get( i ).endsWith( ".ol" ) ) {
 				if ( olFilepath == null ) {
-					olFilepath = args[ i ];
+					olFilepath = argsList.get( i );
 				} else {
-					argumentsList.add( args[ i ] );
+					programArgumentsList.add( argsList.get( i ) );
 				}
-			} else if ( args[ i ].endsWith( ".olc" ) ) {
+			} else if ( argsList.get( i ).endsWith( ".olc" ) ) {
 				if ( olFilepath == null ) {
-					olFilepath = args[ i ];
+					olFilepath = argsList.get( i );
 				} else {
-					argumentsList.add( args[ i ] );
+					programArgumentsList.add( argsList.get( i ) );
 				}
-			} else if ( args[ i ].endsWith( ".jap" ) ) {
+			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
-					JarFile japFile = new JarFile( new File( args[ i ] ) );
+					JarFile japFile = new JarFile( new File( argsList.get( i ) ) );
 					Manifest manifest = japFile.getManifest();
 					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
-					libList.add( args[ i ] );
-					parseJapManifestForLibraries( manifest, libList );
+					libList.add( argsList.get( i ) );
+					Collection< String > japOptions = parseJapManifestForOptions( manifest );
+					argsList.addAll( i+1, japOptions );
 				} else {
-					argumentsList.add( args[ i ] );
+					programArgumentsList.add( argsList.get( i ) );
 				}
 			} else {
-				for( int j = i; j < args.length; j++ ) {
-					argumentsList.add( args[ j ] );
+				for( ; i < argsList.size(); i++ ) {
+					programArgumentsList.add( argsList.get( i ) );
 				}
 			}/* else
-				throw new CommandLineException( "Unrecognized command line token: " + args[ i ] );*/
+				throw new CommandLineException( "Unrecognized command line token: " + argsList.get( i ) );*/
 		}
 
 		verbose = bVerbose;
-		
-		arguments = argumentsList.toArray( new String[ argumentsList.size() ] );
+
+		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
+		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
@@ -350,6 +370,11 @@ public class CommandLineParser
 		return jolieClassLoader;
 	}
 
+	public String[] optionArgs()
+	{
+		return optionArgs;
+	}
+
 	private String parseJapManifestForMainProgram( Manifest manifest, JarFile japFile )
 	{
 		String filepath = null;
@@ -373,22 +398,32 @@ public class CommandLineParser
 			}
 		}
 
+		if ( filepath != null ) {
+			filepath = new StringBuilder()
+						.append( "jar:file:" )
+						.append( japFile.getName() )
+						.append( "!/" )
+						.append( filepath )
+						.toString();
+		}
 		return filepath;
 	}
 
-	private void parseJapManifestForLibraries( Manifest manifest, Collection< String > libList )
+	private Collection< String > parseJapManifestForOptions( Manifest manifest )
 		throws IOException
 	{
+		Collection< String > optionList = new ArrayList();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
-			String libs = attrs.getValue( Constants.Manifest.Libraries );
-			if ( libs != null ) {
-				String[] tmp = pathSeparatorPattern.split( libs );
+			String options = attrs.getValue( Constants.Manifest.Options );
+			if ( options != null ) {
+				String[] tmp = optionSeparatorPattern.split( options );
 				for( String s : tmp ) {
-					libList.add( s );
+					optionList.add( s );
 				}
 			}
 		}
+		return optionList;
 	}
 	
 	private InputStream getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
