@@ -22,17 +22,22 @@
 package joliex.io;
 
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.io.Writer;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -74,33 +79,31 @@ public class FileService extends JavaService
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
 	}
 
-	private static void readBase64IntoValue( File file, Value value )
+	private static void readBase64IntoValue( InputStream istream, long size, Value value )
 		throws IOException
 	{
-		FileInputStream fis = new FileInputStream( file );
-		byte[] buffer = new byte[ (int)file.length() ];
-		fis.read( buffer );
-		fis.close();
+		byte[] buffer = new byte[ (int)size ];
+		istream.read( buffer );
+		istream.close();
 		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 		value.setValue( encoder.encode( buffer ) );
 	}
 	
-	private static void readBinaryIntoValue( File file, Value value )
+	private static void readBinaryIntoValue( InputStream istream, long size, Value value )
 		throws IOException
 	{
-		FileInputStream fis = new FileInputStream( file );
-		byte[] buffer = new byte[ (int)file.length() ];
-		fis.read( buffer );
-		fis.close();
+		byte[] buffer = new byte[ (int)size ];
+		istream.read( buffer );
+		istream.close();
 		value.setValue( new ByteArray( buffer ) );
 	}
 
-	private void readXMLIntoValue( File file, Value value )
+	private void readXMLIntoValue( InputStream istream, Value value )
 		throws IOException
 	{
 		try {
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-			InputSource src = new InputSource( new FileReader( file ) );
+			InputSource src = new InputSource( new InputStreamReader( istream ) );
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.documentToValue( doc, value );
@@ -111,13 +114,13 @@ public class FileService extends JavaService
 		}
 	}
 	
-	private static void readTextIntoValue( File file, Value value )
+	private static void readTextIntoValue( InputStream istream, Value value )
 		throws IOException
 	{
 		String separator = System.getProperty( "line.separator" );
 		StringBuffer buffer = new StringBuffer();
 		String line;
-		BufferedReader reader = new BufferedReader( new FileReader( file ) );
+		BufferedReader reader = new BufferedReader( new InputStreamReader( istream ) );
 		while( (line=reader.readLine()) != null ) {
 			buffer.append( line );
 			buffer.append( separator );
@@ -134,21 +137,52 @@ public class FileService extends JavaService
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
 		File file = new File( filenameValue.strValue() );
+		InputStream istream = null;
+		long size;
 		try {
-			if ( "base64".equals( format ) ) {
-				readBase64IntoValue( file, retValue );
-			} else if ( "binary".equals( format ) ) {
-				readBinaryIntoValue( file, retValue );
-			} else if ( "xml".equals( format ) ) {
-				readXMLIntoValue( file, retValue );
+			if ( file.exists() ) {
+				istream = new FileInputStream( file );
+				size = file.length();
 			} else {
-				readTextIntoValue( file, retValue );
-			}			
+				URL fileURL = interpreter().getClassLoader().findResource( filenameValue.strValue() );
+				if ( fileURL.toString().startsWith( "jar:file") ) {
+					URLConnection conn = fileURL.openConnection();
+					if ( conn instanceof JarURLConnection ) {
+						JarURLConnection jarConn = (JarURLConnection)conn;
+						size = jarConn.getJarEntry().getSize();
+						if ( size < 0 ) {
+							throw new IOException( "File dimension is negative for file " + fileURL.toString() );
+						}
+						istream = jarConn.getInputStream();
+					} else {
+						throw new FileNotFoundException( filenameValue.strValue() );
+					}
+				} else {
+					throw new FileNotFoundException( filenameValue.strValue() );
+				}
+			}
+			
+			istream = new BufferedInputStream( istream );
+
+			try {
+				if ( "base64".equals( format ) ) {
+					readBase64IntoValue( istream, size, retValue );
+				} else if ( "binary".equals( format ) ) {
+					readBinaryIntoValue( istream, size, retValue );
+				} else if ( "xml".equals( format ) ) {
+					readXMLIntoValue( istream, retValue );
+				} else {
+					readTextIntoValue( istream, retValue );
+				}
+			} finally {
+				istream.close();
+			}
 		} catch( FileNotFoundException e ) {
 			throw new FaultException( "FileNotFound" );
 		} catch( IOException e ) {
-			throw new FaultException( e );
+			throw new FaultException( "IOException", e );
 		}
+
 		return retValue;
 	}
 

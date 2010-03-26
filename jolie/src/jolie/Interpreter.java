@@ -49,6 +49,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
+import jolie.lang.parse.OLParseTreeOptimizer;
 
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
@@ -105,7 +106,7 @@ public class Interpreter
 	
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
-	private final String[] args;
+	private final String[] optionArgs;
 	private final File programFile;
 	private final String logPrefix;
 	private final boolean verbose;
@@ -153,12 +154,12 @@ public class Interpreter
 	}
 	
 	/**
-	 * Returns the arguments passed to this Interpreter.
-	 * @return the arguments passed to this Interpreter
+	 * Returns the option arguments passed to this Interpreter.
+	 * @return the option arguments passed to this Interpreter
 	 */
-	public String[] args()
+	public String[] optionArgs()
 	{
-		return args;
+		return optionArgs;
 	}
 	
 	/**
@@ -524,7 +525,7 @@ public class Interpreter
 		this.parentClassLoader = parentClassLoader;
 		cmdParser = new CommandLineParser( args, parentClassLoader );
 		classLoader = cmdParser.jolieClassLoader();
-		this.args = args;
+		optionArgs = cmdParser.optionArgs();
 		programFile = new File( cmdParser.programFilepath() );
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
@@ -826,9 +827,11 @@ public class Interpreter
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
 			} else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, parentClassLoader );
+				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, classLoader );
 				olParser.putConstants( cmdParser.definedConstants() );
 				program = olParser.parse();
+				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+				program = optimizer.optimize();
 			}
 			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 			if ( !semanticVerifier.validate() ) {
