@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import java.io.Writer;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.regex.Pattern;
@@ -50,6 +49,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import jolie.jap.JapURLConnection;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -145,11 +145,11 @@ public class FileService extends JavaService
 				size = file.length();
 			} else {
 				URL fileURL = interpreter().getClassLoader().findResource( filenameValue.strValue() );
-				if ( fileURL.toString().startsWith( "jar:file") ) {
+				if ( fileURL != null && fileURL.getProtocol().equals( "jap" ) ) {
 					URLConnection conn = fileURL.openConnection();
-					if ( conn instanceof JarURLConnection ) {
-						JarURLConnection jarConn = (JarURLConnection)conn;
-						size = jarConn.getJarEntry().getSize();
+					if ( conn instanceof JapURLConnection ) {
+						JapURLConnection jarConn = (JapURLConnection)conn;
+						size = jarConn.getEntrySize();
 						if ( size < 0 ) {
 							throw new IOException( "File dimension is negative for file " + fileURL.toString() );
 						}
@@ -198,7 +198,12 @@ public class FileService extends JavaService
 	
 	public String getServiceDirectory()
 	{
-		String dir = interpreter().programFile().getParent();
+		String dir = null;
+		try {
+			dir = interpreter().programDirectory().getCanonicalPath();
+		} catch( IOException e ) {
+			e.printStackTrace();
+		}
 		if ( dir == null || dir.isEmpty() ) {
 			dir = ".";
 		}
@@ -262,13 +267,9 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		boolean append = false;
-		Value filenameValue = request.getFirstChild( "filename" );
-		if ( !filenameValue.isString() ) {
-			throw new FaultException( "FileNotFound" );
-		}
 		Value content = request.getFirstChild( "content" );
 		String format = request.getFirstChild( "format" ).strValue();
-		File file = new File( filenameValue.strValue() );
+		File file = new File( request.getFirstChild( "filename" ).strValue() );
 		if ( request.getFirstChild( "append" ).intValue() > 0 ) {
 			append = true;
 		}

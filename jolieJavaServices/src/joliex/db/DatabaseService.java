@@ -157,6 +157,7 @@ public class DatabaseService extends JavaService
 			synchronized( transactionMutex ) {
 				Statement stm = connection.createStatement();
 				resultValue.setValue( stm.executeUpdate( query ) );
+				stm.close();
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( e );
@@ -253,6 +254,7 @@ public class DatabaseService extends JavaService
 						resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 					}
 					resultVector.add( currResultValue );
+					stm.close();
 				}
 				connection.commit();
 				connection.setAutoCommit( true );
@@ -273,6 +275,7 @@ public class DatabaseService extends JavaService
 				Statement stm = connection.createStatement();
 				ResultSet result = stm.executeQuery( query );
 				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
+				stm.close();
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( "SQLException", e );

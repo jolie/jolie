@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2010 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,35 +19,23 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.jap;
 
-package jolie.lang.parse;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
-import jolie.lang.Constants;
-
-public class ParserException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class JapURLStreamHandler extends URLStreamHandler
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	private final String sourceName;
-	private final int line;
-	private final String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
+	protected URLConnection openConnection( URL url )
+		throws MalformedURLException, IOException
 	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
-	}
-	
-	@Override
-	public String getMessage()
-	{
-		return new StringBuilder()
-			.append( this.sourceName )
-			.append( ':' )
-			.append( line )
-			.append( ": error: " )
-			.append( mesg )
-			.toString();
+		return new JapURLConnection( url );
 	}
 }
