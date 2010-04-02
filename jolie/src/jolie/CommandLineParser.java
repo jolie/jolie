@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +44,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
+import jolie.jap.JapURLConnection;
 import jolie.lang.parse.Scanner;
 
 /**
@@ -473,6 +475,15 @@ public class CommandLineParser
 					if ( olURL != null ) {
 						olStream = olURL.openStream();
 					}
+				}
+				if ( programDirectory == null && olURL != null && olURL.getPath() != null ) {
+					// Try to extract the parent directory of the JAP/JAR library file
+					try {
+						File urlFile = new File( JapURLConnection.nestingSeparatorPattern.split( new URI( olURL.getPath() ).getSchemeSpecificPart() )[0] ).getAbsoluteFile();
+						if ( urlFile.exists() ) {
+							programDirectory = urlFile.getParentFile();
+						}
+					} catch( URISyntaxException e ) {}
 				}
 			}
 		}

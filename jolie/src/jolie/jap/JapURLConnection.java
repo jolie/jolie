@@ -48,7 +48,7 @@ public class JapURLConnection extends URLConnection
 {
 	private static final int BUF_SIZE = 2048;
 	private static final Pattern urlPattern = Pattern.compile( "([^!]*!/[^!]*)(?:!/)?(.*)?" );
-	private static final Pattern separator = Pattern.compile( "!/" );
+	public static final Pattern nestingSeparatorPattern = Pattern.compile( "!/" );
 
 	private static final Map< URL, JarFile > japCache = new HashMap< URL, JarFile >();
 
@@ -139,7 +139,7 @@ public class JapURLConnection extends URLConnection
 				inputStream = jarURLConnection.getInputStream();
 				if ( subPath.isEmpty() == false ) {
 					JarFile jar = retrieve( new URL( path ), inputStream );
-					String[] nodes = separator.split( subPath );
+					String[] nodes = nestingSeparatorPattern.split( subPath );
 					int i;
 					for( i = 0; i < nodes.length - 1; i++ ) {
 						path += "!/" + nodes[ i ];
