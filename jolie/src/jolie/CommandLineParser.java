@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,7 +67,8 @@ public class CommandLineParser
 	private final boolean verbose;
 	private final JolieClassLoader jolieClassLoader;
 	private final boolean isProgramCompiled;
-
+	private File programDirectory = null;
+	
 	/**
 	 * Returns the arguments passed to the JOLIE program.
 	 * @return the arguments passed to the JOLIE program.
@@ -238,6 +241,7 @@ public class CommandLineParser
 		libList.add( "ext" );
 		libList.add( "lib" );
 		String olFilepath = null;
+		String japUrl = null;
 		for( int i = 0; i < argsList.size(); i++ ) {
 			if ( "--help".equals( argsList.get( i ) ) || "-h".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getHelpString() );
@@ -253,6 +257,9 @@ public class CommandLineParser
 			} else if ( "-i".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
+				if ( japUrl != null ) {
+					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
+				}
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				for( String s : tmp ) {
 					includeList.add( s );
@@ -261,13 +268,12 @@ public class CommandLineParser
 			} else if ( "-l".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
+				if ( japUrl != null ) {
+					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
+				}
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				for( String s : tmp ) {
 					libList.add( s );
-					/*if ( s.endsWith( ".jap" ) ) {
-						Manifest manifest = new JarFile( new File( s ) ).getManifest();
-						parseJapManifestForLibraries( manifest, libList );
-					}*/
 				}
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
@@ -299,12 +305,15 @@ public class CommandLineParser
 				}
 			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
-					JarFile japFile = new JarFile( new File( argsList.get( i ) ) );
+					String japFilename = new File( argsList.get( i ) ).getCanonicalPath();
+					JarFile japFile = new JarFile( japFilename );
 					Manifest manifest = japFile.getManifest();
 					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
-					libList.add( argsList.get( i ) );
+					libList.add( japFilename );
 					Collection< String > japOptions = parseJapManifestForOptions( manifest );
 					argsList.addAll( i+1, japOptions );
+					japUrl = japFilename + "!";
+					programDirectory = new File( japFilename ).getParentFile();
 				} else {
 					programArgumentsList.add( argsList.get( i ) );
 				}
@@ -333,11 +342,11 @@ public class CommandLineParser
 		
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
-		
+
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
 			if ( path.endsWith( ".jar" ) || path.endsWith( ".jap" ) ) {
-				urls.add( new URL( "jar:file:" + path + "!/" ) );
+				urls.add( new URL( "jap:file:" + path + "!/" ) );
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
@@ -349,7 +358,7 @@ public class CommandLineParser
 				} );
 				if ( jars != null ) {
 					for( String jarPath : jars ) {
-						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + Constants.fileSeparator + jarPath + "!/" ) );
+						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + '/' + jarPath + "!/" ) );
 					}
 				}
 			}
@@ -363,6 +372,11 @@ public class CommandLineParser
 		}
 
 		includePaths = includeList.toArray( new String[]{} );
+	}
+
+	public File programDirectory()
+	{
+		return programDirectory;
 	}
 
 	public JolieClassLoader jolieClassLoader()
@@ -400,7 +414,7 @@ public class CommandLineParser
 
 		if ( filepath != null ) {
 			filepath = new StringBuilder()
-						.append( "jar:file:" )
+						.append( "jap:file:" )
 						.append( japFile.getName() )
 						.append( "!/" )
 						.append( filepath )
@@ -430,9 +444,11 @@ public class CommandLineParser
 		throws FileNotFoundException, IOException
 	{
 		InputStream olStream = null;
+		URL olURL = null;
 		File f = new File( olFilepath );
 		if ( f.exists() ) {
 			olStream = new FileInputStream( f );
+			programDirectory = f.getParentFile();
 		} else {
 			for( int i = 0; i < includePaths.size() && olStream == null; i++ ) {
 				f = new File(
@@ -442,17 +458,31 @@ public class CommandLineParser
 						);
 				if ( f.exists() ) {
 					olStream = new BufferedInputStream( new FileInputStream( f ) );
+					programDirectory = f.getParentFile();
 				}
 			}
 			if ( olStream == null ) {
-				URL olURL = classLoader.getResource( olFilepath );
-				if ( olURL != null ) {
+				try {
+					olURL = new URL( olFilepath );
 					olStream = olURL.openStream();
+					if ( olStream == null ) {
+						throw new MalformedURLException();
+					}
+				} catch( MalformedURLException e ) {
+					olURL = classLoader.getResource( olFilepath );
+					if ( olURL != null ) {
+						olStream = olURL.openStream();
+					}
 				}
 			}
 		}
-		if ( olStream != null && f.getParent() != null ) {
-			includePaths.addFirst( f.getParent() );
+		if ( olStream != null ) {
+			if ( f.exists() && f.getParent() != null ) {
+				includePaths.addFirst( f.getParent() );
+			} else if ( olURL != null ) {
+				String urlString = olURL.toString();
+				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( "/" ) + 1 ) );
+			}
 		}
 		return olStream;
 	}

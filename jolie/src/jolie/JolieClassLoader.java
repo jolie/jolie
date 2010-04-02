@@ -47,11 +47,11 @@ import jolie.runtime.JavaService;
  */
 public class JolieClassLoader extends URLClassLoader
 {
-	final private static Pattern extensionSplitPattern = Pattern.compile( ":" );
+	private final static Pattern extensionSplitPattern = Pattern.compile( ":" );
 
-	final private Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
-	final private Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
-	final private Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
+	private final Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
+	private final Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
+	private final Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
 
 	private void init( URL[] urls )
 		throws IOException
@@ -325,6 +325,6 @@ public class JolieClassLoader extends URLClassLoader
 		if ( url == null ) {
 			throw new IOException( "Resource not found: " + jarName );
 		}
-		addURL( new URL( "jar:" + url + "!/" ) );
+		addURL( new URL( "jap:" + url + "!/" ) );
 	}
 }

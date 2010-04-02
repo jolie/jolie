@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2010 by Fabrizio Montesi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,35 +19,49 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie;
 
-package jolie.lang.parse;
+import java.net.URL;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import jolie.jap.JapURLStreamHandler;
 
-import jolie.lang.Constants;
-
-public class ParserException extends Exception
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
 {
-	private static final long serialVersionUID = Constants.serialVersionUID();
-	
-	private final String sourceName;
-	private final int line;
-	private final String mesg;
-	
-	public ParserException( String sourceName, int line, String mesg )
+	private static AtomicBoolean registered = new AtomicBoolean( false );
+
+	private final Map< String, URLStreamHandler > handlers = new HashMap< String, URLStreamHandler >();
+
+	public JolieURLStreamHandlerFactory()
 	{
-		this.sourceName = sourceName;
-		this.line = line;
-		this.mesg = mesg;
+		handlers.put( "jap", new JapURLStreamHandler() );
 	}
-	
-	@Override
-	public String getMessage()
+
+	public URLStreamHandler createURLStreamHandler( String protocol )
 	{
-		return new StringBuilder()
-			.append( this.sourceName )
-			.append( ':' )
-			.append( line )
-			.append( ": error: " )
-			.append( mesg )
-			.toString();
+		URLStreamHandler handler;
+		if ( (handler=handlers.get( protocol )) != null ) {
+			return handler;
+		}
+		return null;
+	}
+
+	public void putURLStreamHandler( String protocol, URLStreamHandler handler )
+	{
+		handlers.put( protocol, handler );
+	}
+
+	public static void registerInVM()
+	{
+		if ( registered.compareAndSet( false, true ) ) {
+			URL.setURLStreamHandlerFactory( new JolieURLStreamHandlerFactory() );
+		}
 	}
 }

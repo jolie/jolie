@@ -107,7 +107,6 @@ public class Interpreter
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
 	private final String[] optionArgs;
-	private final File programFile;
 	private final String logPrefix;
 	private final boolean verbose;
 	private final Timer timer;
@@ -115,6 +114,9 @@ public class Interpreter
 
 	private final Queue< TimeoutHandler > timeoutHandlerQueue = new PriorityQueue< TimeoutHandler >( 11, new TimeoutHandler.Comparator() );
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
+
+	private final String programFilename;
+	private final File programDirectory;
 
 	public long inputMessageTimeout()
 	{
@@ -510,7 +512,7 @@ public class Interpreter
 	{
 		return verbose;
 	}
-	
+
 	/** Constructor.
 	 *
 	 * @param args The command line arguments.
@@ -522,32 +524,65 @@ public class Interpreter
 	public Interpreter( String[] args, ClassLoader parentClassLoader )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+		this( args, parentClassLoader, null );
+	}
+	
+	/** Constructor.
+	 *
+	 * @param args The command line arguments.
+	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
+	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
+		throws CommandLineException, FileNotFoundException, IOException
+	{
 		this.parentClassLoader = parentClassLoader;
 		cmdParser = new CommandLineParser( args, parentClassLoader );
 		classLoader = cmdParser.jolieClassLoader();
 		optionArgs = cmdParser.optionArgs();
-		programFile = new File( cmdParser.programFilepath() );
+		programFilename = new File( cmdParser.programFilepath() ).getName();
 		arguments = cmdParser.arguments();
 		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
-		builder.append( programFile.getName() );
+		builder.append( programFilename );
 		builder.append( "] " );
 		logPrefix = builder.toString();
 
 		verbose = cmdParser.verbose();
-		timer = new Timer( programFile.getName() + "-Timer" );
+		timer = new Timer( programFilename + "-Timer" );
+
+		if ( cmdParser.programDirectory() == null ) {
+			this.programDirectory = programDirectory;
+		} else {
+			this.programDirectory = cmdParser.programDirectory();
+		}
+		if ( this.programDirectory == null ) {
+			throw new IOException( "Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
+		}
 	}
 
 	/**
-	 * Returns the program file this interpreter was launched with.
-	 * @return the program file this interpreter was launched with
+	 * Returns the parent directory of the program executed by this Interpreter.
+	 * @return the parent directory of the program executed by this Interpreter.
 	 */
-	public File programFile()
+	public File programDirectory()
 	{
-		return programFile;
+		return programDirectory;
+	}
+
+	/**
+	 * Returns the program filename this interpreter was launched with.
+	 * @return the program filename this interpreter was launched with
+	 */
+	public String programFilename()
+	{
+		return programFilename;
 	}
 
 	/**
@@ -761,7 +796,7 @@ public class Interpreter
 		private final InterpreterStartFuture future;
 		public StarterThread( InterpreterStartFuture future )
 		{
-			super( createStarterThreadName( programFile.getName() ) );
+			super( createStarterThreadName( programFilename ) );
 			this.future = future;
 			setContextClassLoader( classLoader );
 		}

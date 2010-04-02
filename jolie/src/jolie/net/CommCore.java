@@ -493,8 +493,10 @@ public class CommCore
 		
 		public void run()
 		{
+			CommChannelHandler thread = CommChannelHandler.currentThread();
+			thread.setExecutionThread( interpreter().mainThread() );
 			try {
-				CommChannelHandler.currentThread().setExecutionThread( interpreter().mainThread() );
+				
 				channel.lock.lock();
 				try {
 					if ( channel.redirectionChannel() == null ) {
@@ -514,6 +516,8 @@ public class CommCore
 				}
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
+			} finally {
+				thread.setExecutionThread( null );
 			}
 		}
 	}
@@ -570,7 +574,7 @@ public class CommCore
 
 		private PollingThread()
 		{
-			super( threadGroup, interpreter.programFile().getName() + "-PollingThread" );
+			super( threadGroup, interpreter.programFilename() + "-PollingThread" );
 		}
 
 		@Override
@@ -663,7 +667,7 @@ public class CommCore
 		public SelectorThread( Interpreter interpreter )
 			throws IOException
 		{
-			super( interpreter, threadGroup, interpreter.programFile().getName() + "-SelectorThread" );
+			super( interpreter, threadGroup, interpreter.programFilename() + "-SelectorThread" );
 			this.selector = Selector.open();
 		}
 		

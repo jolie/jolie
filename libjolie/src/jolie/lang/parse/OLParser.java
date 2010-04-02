@@ -24,8 +24,10 @@ package jolie.lang.parse;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -479,54 +481,113 @@ public class OLParser extends AbstractParser
 		}
 	}
 
+	private static class IncludeFile {
+		private final InputStream inputStream;
+		private final String parentPath;
+		private IncludeFile( InputStream inputStream, String parentPath )
+		{
+			this.inputStream = inputStream;
+			this.parentPath = parentPath;
+		}
+
+		private InputStream getInputStream()
+		{
+			return inputStream;
+		}
+
+		private String getParentPath()
+		{
+			return parentPath;
+		}
+	}
+
+	private static IncludeFile retrieveIncludeFile( String path, String filename )
+	{
+		IncludeFile ret = null;
+
+		File f = new File(
+				new StringBuilder()
+					.append( path )
+					.append( Constants.fileSeparator )
+					.append( filename )
+					.toString()
+				);
+		try {
+			ret = new IncludeFile(
+					new BufferedInputStream( new FileInputStream( f ) ),
+					f.getParent()
+				);
+		} catch( FileNotFoundException e ) {
+			try {
+				String urlStr =
+					new StringBuilder()
+						.append( path )
+						.append( filename )
+						.toString();
+				URL url = null;
+				if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
+					/*
+					 * We need the embedded URL path, otherwise URI.normalize
+					 * is going to do nothing.
+					 */
+					url = new URL(
+						urlStr.substring( 0,4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString()
+					);
+				} else {
+					url = new URL( new URI( urlStr ).normalize().toString() );
+				}
+				ret = new IncludeFile(
+					url.openStream(),
+					path
+				);
+			} catch( MalformedURLException mue ) {
+			} catch( IOException ioe ) {
+			} catch( URISyntaxException use ) {}
+		}
+		return ret;
+	}
+
 	private void parseInclude()
 		throws IOException, ParserException
 	{
 		String[] origIncludePaths;
+		IncludeFile includeFile;
 		while ( token.is( Scanner.TokenType.INCLUDE ) ) {
 			getToken();
 			Scanner oldScanner = scanner();
 			assertToken( Scanner.TokenType.STRING, "expected filename to include" );
 			String includeStr = token.content();
-			InputStream stream = null;
-			File f = null;
+			includeFile = null;
 
+			// Try the same directory of the program file first.
 			if ( includePaths.length > 1 ) {
-				f = new File(
-					includePaths[0] +
-					Constants.fileSeparator +
-					includeStr );
-				if ( f.exists() ) {
-					stream = new BufferedInputStream( new FileInputStream( f ) );
-				}
+				includeFile = retrieveIncludeFile( includePaths[0], includeStr );
 			}
 
-			if ( stream == null ) {
+			if ( includeFile == null ) {
 				URL includeURL = classLoader.getResource( includeStr );
 				if ( includeURL != null ) {
-					stream = includeURL.openStream();
+					includeFile = new IncludeFile( includeURL.openStream(), null );
 				}
 			}
 
-			for ( int i = 1; i < includePaths.length && stream == null; i++ ) {
-				f = new File(
-					includePaths[i] +
-					Constants.fileSeparator +
-					includeStr );
-				if ( f.exists() ) {
-					stream = new BufferedInputStream( new FileInputStream( f ) );
-				}
+			for ( int i = 1; i < includePaths.length && includeFile == null; i++ ) {
+				includeFile = retrieveIncludeFile( includePaths[i], includeStr );
 			}
 
-			if ( stream == null ) {
+			if ( includeFile == null ) {
 				throwException( "File not found: " + includeStr );
 			}
 
 			origIncludePaths = includePaths;
-			setScanner( new Scanner( stream, includeStr ) );
-			
-			includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
-			includePaths[ origIncludePaths.length ] = f.getParent();
+			setScanner( new Scanner( includeFile.getInputStream(), includeStr ) );
+
+			if ( includeFile.getParentPath() == null ) {
+				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
+			} else {
+				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length + 1 );
+				includePaths[ origIncludePaths.length ] = includeFile.getParentPath();
+			}
 			_parse();
 			includePaths = origIncludePaths;
 			setScanner( oldScanner );

@@ -30,13 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see Interpreter
  * @author Fabrizio Montesi
  */
-abstract public class JolieThread extends Thread
+public abstract class JolieThread extends Thread
 {
-	final private Interpreter interpreter;
+	private final Interpreter interpreter;
 
-	static final private AtomicInteger counter = new AtomicInteger( 0 );
+	private static final AtomicInteger counter = new AtomicInteger( 0 );
 
-	static private String createThreadName()
+	private static String createThreadName()
 	{
 		return "JolieThread-" + counter.getAndIncrement();
 	}
@@ -52,7 +52,7 @@ abstract public class JolieThread extends Thread
 	 */
 	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
 	{
-		super( threadGroup, interpreter.programFile().getName() + "-" + name );
+		super( threadGroup, interpreter.programFilename() + "-" + name );
 		this.interpreter = interpreter;
 	}
 
@@ -65,7 +65,7 @@ abstract public class JolieThread extends Thread
 	 */
 	public JolieThread( Interpreter interpreter )
 	{
-		super( interpreter.programFile().getName() + "-" + createThreadName() );
+		super( interpreter.programFilename() + "-" + createThreadName() );
 		this.interpreter = interpreter;
 	}
 
@@ -78,7 +78,7 @@ abstract public class JolieThread extends Thread
 	 */
 	public JolieThread( Interpreter interpreter, Runnable r )
 	{
-		super( r, interpreter.programFile().getName() + "-" + createThreadName() );
+		super( r, interpreter.programFilename() + "-" + createThreadName() );
 		this.interpreter = interpreter;
 	}
 	

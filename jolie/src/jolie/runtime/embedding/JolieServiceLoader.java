@@ -34,8 +34,8 @@ import jolie.Interpreter;
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
 {
-	final private static Pattern servicePathSplitPattern = Pattern.compile( " " );
-	final private Interpreter interpreter;
+	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
+	private final Interpreter interpreter;
 	
 	public JolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String servicePath )
 		throws IOException, CommandLineException
@@ -48,20 +48,14 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		for( int i = 0; i < options.length; i++ ) {
 			newArgs.add( options[ i ] );
 		}
-		/*int i;
-		for( i = 0; i < args.length; i++ ) {
-			if ( !args[ i ].equals( currInterpreter.programFile().getName() ) ) {
-				newArgs.add( args[ i ] );
-			} else {
-				String parent = new File( servicePath ).getParent();
-				newArgs.add( "-i" );
-				newArgs.add( ( parent == null ) ? "." : parent );
-			}
-		}*/
 		for( int k = 0; k < ss.length; k++ ) {
 			newArgs.add( ss[ k ] );
 		}
-		interpreter = new Interpreter( newArgs.toArray( new String[ newArgs.size() ] ), currInterpreter.getClassLoader() );
+		interpreter = new Interpreter(
+			newArgs.toArray( new String[ newArgs.size() ] ),
+			currInterpreter.getClassLoader(),
+			currInterpreter.programDirectory()
+		);
 	}
 
 	public void load()

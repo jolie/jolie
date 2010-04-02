@@ -41,6 +41,7 @@ public class Jolie
 	{
 		int exitCode = 0;
 		try {
+			JolieURLStreamHandlerFactory.registerInVM();
 			final Interpreter interpreter = new Interpreter( args, Jolie.class.getClassLoader() );
 			Thread.currentThread().setContextClassLoader( interpreter.getClassLoader() );
 			Runtime.getRuntime().addShutdownHook( new Thread() {
