@@ -75,7 +75,7 @@ public class JapURLConnection extends URLConnection
 		throws IOException
 	{
 		JarFile jar = getFromCache( url );
-			if ( jar == null ) {
+		if ( jar == null ) {
 			try {
 				jar = AccessController.doPrivileged(
 				new PrivilegedExceptionAction< JarFile >() {
