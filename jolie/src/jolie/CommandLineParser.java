@@ -347,8 +347,15 @@ public class CommandLineParser
 
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
+			if ( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
+				path = "jap:file:" + path;
+			}
 			if ( path.endsWith( ".jar" ) || path.endsWith( ".jap" ) ) {
-				urls.add( new URL( "jap:file:" + path + "!/" ) );
+				if ( path.startsWith( "jap:" ) ) {
+					urls.add( new URL( path + "!/" ) );
+				} else {
+					urls.add( new URL( "jap:file:" + path + "!/" ) );
+				}
 			} else if ( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
@@ -363,6 +370,10 @@ public class CommandLineParser
 						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + '/' + jarPath + "!/" ) );
 					}
 				}
+			} else {
+				try {
+					urls.add( new URL( path ) );
+				} catch( MalformedURLException e ) {}
 			}
 		}
 		libURLs = urls.toArray( new URL[]{} );
