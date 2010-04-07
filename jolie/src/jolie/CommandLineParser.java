@@ -458,7 +458,7 @@ public class CommandLineParser
 	{
 		InputStream olStream = null;
 		URL olURL = null;
-		File f = new File( olFilepath );
+		File f = new File( olFilepath ).getAbsoluteFile();
 		if ( f.exists() ) {
 			olStream = new FileInputStream( f );
 			programDirectory = f.getParentFile();
