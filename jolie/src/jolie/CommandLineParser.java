@@ -470,6 +470,7 @@ public class CommandLineParser
 							olFilepath
 						);
 				if ( f.exists() ) {
+					f = f.getAbsoluteFile();
 					olStream = new BufferedInputStream( new FileInputStream( f ) );
 					programDirectory = f.getParentFile();
 				}

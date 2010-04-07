@@ -144,7 +144,7 @@ public class CommCore
 	 * Constructor.
 	 * @param interpreter the Interpreter to refer to for this CommCore operations
 	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in parallel.
-	 * * @param connectionsCache specifies an upper bound to the persistent output connection cache.
+	 * @param connectionsCache specifies an upper bound to the persistent output connection cache.
 	 * @throws java.io.IOException
 	 */
 	public CommCore( Interpreter interpreter, int connectionsLimit, int connectionsCache )
