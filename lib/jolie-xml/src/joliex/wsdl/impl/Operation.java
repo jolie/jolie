@@ -21,6 +21,8 @@
 
 package joliex.wsdl.impl;
 
+import java.util.List;
+
 /**
  *
  * @author Fabrizio Montesi
@@ -29,11 +31,18 @@ public class Operation
 {
 	private final String name;
 	private final String comment;
+	private final List< String > faults;
 
-	public Operation( String name, String comment )
+	public Operation( String name, List< String > faults, String comment )
 	{
 		this.name = name;
+		this.faults = faults;
 		this.comment = comment;
+	}
+
+	public List< String > faults()
+	{
+		return faults;
 	}
 
 	public String name()
