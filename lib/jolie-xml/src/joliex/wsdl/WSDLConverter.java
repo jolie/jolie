@@ -21,10 +21,16 @@
 
 package joliex.wsdl;
 
+import com.ibm.wsdl.extensions.schema.SchemaImpl;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,12 +44,30 @@ import javax.wsdl.Operation;
 import javax.wsdl.Port;
 import javax.wsdl.PortType;
 import javax.wsdl.Service;
+import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.http.HTTPAddress;
 import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import jolie.lang.Constants;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.xml.xsd.XsdToJolieConverter;
+import jolie.xml.xsd.impl.XsdToJolieConverterImpl;
 import joliex.wsdl.impl.Interface;
 import joliex.wsdl.impl.OutputPort;
+import org.w3c.dom.Element;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  *
@@ -56,11 +80,35 @@ public class WSDLConverter
 	private int indentationLevel = 0;
 	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
 	private Map< String, Interface > interfaces = new HashMap< String, Interface >();
+	private List< TypeDefinition > typeDefinitions = new ArrayList< TypeDefinition >( 0 );
+	private final XSOMParser schemaParser;
+	private final TransformerFactory transformerFactory;
 
 	public WSDLConverter( Definition definition, Writer writer )
 	{
 		this.writer = writer;
 		this.definition = definition;
+		transformerFactory = TransformerFactory.newInstance();
+		schemaParser = new XSOMParser();
+		schemaParser.setErrorHandler( new ErrorHandler() {
+			public void warning( SAXParseException exception )
+				throws SAXException
+			{
+				throw new SAXException( exception );
+			}
+
+			public void error( SAXParseException exception )
+				throws SAXException
+			{
+				throw new SAXException( exception );
+			}
+
+			public void fatalError( SAXParseException exception )
+				throws SAXException
+			{
+				throw new SAXException( exception );
+			}
+		} );
 	}
 
 	private void indent()
@@ -80,20 +128,35 @@ public class WSDLConverter
 			writer.write( "\t" );
 		}
 		writer.write( s );
-		writer.write( "\n" );
+		writer.write( '\n' );
+	}
+
+	private void parseSchemaElement( Element element )
+		throws IOException
+	{
+		try {
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty( "indent", "yes" );
+			StringWriter sw = new StringWriter();
+			StreamResult result = new StreamResult( sw );
+			DOMSource source = new DOMSource( element );
+			transformer.transform( source, result );
+			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
+			schemaSource.setSystemId( definition.getDocumentBaseURI() );
+			schemaParser.parse( schemaSource );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerException e ) {
+			throw new IOException( e );
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		}
 	}
 
 	public void convert()
 		throws IOException
 	{
-		/*Types types = definition.getTypes();
-		List< ExtensibilityElement > list = types.getExtensibilityElements();
-		for( ExtensibilityElement element : list ) {
-			if ( element instanceof SchemaImpl ) {
-				Element schemaElement = ((SchemaImpl)element).getElement();
-				
-			}
-		}*/
+		convertTypes();
 		Map< QName, Service > services = definition.getServices();
 		for( Entry< QName, Service > service : services.entrySet() ) {
 			convertService( service.getValue() );
@@ -101,9 +164,101 @@ public class WSDLConverter
 		writeData();
 	}
 
+	private void convertTypes()
+		throws IOException
+	{
+		Types types = definition.getTypes();
+		List< ExtensibilityElement > list = types.getExtensibilityElements();
+		for( ExtensibilityElement element : list ) {
+			if ( element instanceof SchemaImpl ) {
+				Element schemaElement = ((SchemaImpl)element).getElement();
+				parseSchemaElement( schemaElement );
+			}
+		}
+		try {
+			XSSchemaSet schemaSet = schemaParser.getResult();
+			if ( schemaSet == null ) {
+				throw new IOException( "An error occurred while parsing the WSDL types section" ) ;
+			}
+			XsdToJolieConverter schemaConverter = new XsdToJolieConverterImpl( schemaSet, false, null );
+			typeDefinitions = schemaConverter.convert();
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		} catch( XsdToJolieConverter.ConversionException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	private String getCardinalityString( TypeDefinition type )
+	{
+		if ( type.cardinality().equals( Constants.RANGE_ONE_TO_ONE ) ) {
+			return "";
+		} else if ( type.cardinality().min() == 0 && type.cardinality().max() == 1 ) {
+			return "?";
+		} else {
+			return new StringBuilder()
+				.append( '[' )
+				.append( type.cardinality().min() )
+				.append( ',' )
+				.append( type.cardinality().max() )
+				.append( ']' )
+				.toString();
+		}
+	}
+
+	private void writeType( TypeDefinition type, boolean subType )
+		throws IOException
+	{
+		StringBuilder builder = new StringBuilder();
+		if ( subType ) {
+			builder.append( '.' );
+		} else {
+			builder.append( "type " );
+		}
+		builder.append( type.id() )
+			.append( getCardinalityString( type ) )
+			.append( ':' );
+		if ( type instanceof TypeDefinitionLink ) {
+			TypeDefinitionLink link = (TypeDefinitionLink)type;
+			builder.append( link.linkedType().id() );
+			if ( subType == false ) {
+				builder.append( '\n' );
+			}
+			writeLine( builder.toString() );
+		} else {
+			builder.append( nativeTypeToString( type.nativeType() ) );
+			if ( type.hasSubTypes() ) {
+				builder.append( " {" );
+			}
+			writeLine( builder.toString() );
+			if ( type.hasSubTypes() ) {
+				indent();
+				for( Entry< String, TypeDefinition > entry : type.subTypes() ) {
+					writeType( entry.getValue(), true );
+				}
+				unindent();
+			}
+
+			if ( type.hasSubTypes() ) {
+				writeLine( "}" );
+			}
+			if ( subType == false ) {
+				writeLine( "" );
+			}
+		}		
+	}
+
+	private static String nativeTypeToString( NativeType nativeType )
+	{
+		return (nativeType == null) ? "" : nativeType.id();
+    }
+
 	private void writeData()
 		throws IOException
 	{
+		for( TypeDefinition typeDefinition : typeDefinitions ) {
+			writeType( typeDefinition, false );
+		}
 		for( Entry< String, Interface > entry : interfaces.entrySet() ) {
 			writeInterface( entry.getValue() );
 			writeLine( "" );
