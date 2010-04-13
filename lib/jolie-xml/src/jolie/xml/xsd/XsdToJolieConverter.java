@@ -19,38 +19,31 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.util;
+package jolie.xml.xsd;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import javax.wsdl.Definition;
-import javax.wsdl.WSDLException;
-import javax.wsdl.factory.WSDLFactory;
-import javax.wsdl.xml.WSDLReader;
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.FaultException;
-import jolie.runtime.JavaService;
-import joliex.wsdl.WSDLConverter;
+import java.util.List;
+import jolie.lang.parse.ast.types.TypeDefinition;
 
-@AndJarDeps({"wsdl4j.jar","jolie-xml.jar","xsom.jar","relaxngDatatype.jar"})
-public class WebServicesUtils extends JavaService
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public interface XsdToJolieConverter
 {
-	public String wsdlToJolie( String wsdlUrl )
-		throws FaultException
+	public static class ConversionException extends Exception
 	{
-		StringWriter writer = new StringWriter();
-		try {
-			WSDLFactory factory = WSDLFactory.newInstance();
-			WSDLReader reader = factory.newWSDLReader();
-
-			Definition definition = reader.readWSDL( wsdlUrl );
-			WSDLConverter converter = new WSDLConverter( definition, writer );
-			converter.convert();
-		} catch( WSDLException e ) {
-			throw new FaultException( "IOException", e );
-		} catch( IOException e ) {
-			throw new FaultException( "IOException", e );
+		public ConversionException( String message )
+		{
+			super( message );
 		}
-		return writer.toString();
 	}
+
+	/**
+	 * Converts a schema set into a list of JOLIE type definitions.
+	 * @return a list of JOLIE type definitions obtained by reading the passed schema set.
+	 * @throws ConversionException if an unsupported XSD element is encountered
+	 * @see TypeDefinition
+	 */
+	public List< TypeDefinition > convert()
+		throws ConversionException;
 }
