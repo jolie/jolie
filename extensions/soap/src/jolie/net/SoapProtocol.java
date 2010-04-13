@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Fabrizio Montesi                                *
+ *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -108,14 +108,14 @@ import org.xml.sax.InputSource;
 public class SoapProtocol extends SequentialCommProtocol
 {
 	private String inputId = null;
-	final private Interpreter interpreter;
-	final private MessageFactory messageFactory;
+	private final Interpreter interpreter;
+	private final MessageFactory messageFactory;
 	private XSSchemaSet schemaSet = null;
 	private URI uri = null;
 	
 	private boolean received = false;
 	
-	final private static String CRLF = new String( new char[] { 13, 10 } );
+	private final static String CRLF = new String( new char[] { 13, 10 } );
 
 	public String name()
 	{

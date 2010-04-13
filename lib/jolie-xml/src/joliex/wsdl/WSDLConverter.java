@@ -23,13 +23,17 @@ package joliex.wsdl;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.wsdl.Binding;
 import javax.wsdl.Definition;
+import javax.wsdl.Fault;
 import javax.wsdl.Operation;
 import javax.wsdl.Port;
 import javax.wsdl.PortType;
@@ -82,6 +86,14 @@ public class WSDLConverter
 	public void convert()
 		throws IOException
 	{
+		/*Types types = definition.getTypes();
+		List< ExtensibilityElement > list = types.getExtensibilityElements();
+		for( ExtensibilityElement element : list ) {
+			if ( element instanceof SchemaImpl ) {
+				Element schemaElement = ((SchemaImpl)element).getElement();
+				
+			}
+		}*/
 		Map< QName, Service > services = definition.getServices();
 		for( Entry< QName, Service > service : services.entrySet() ) {
 			convertService( service.getValue() );
@@ -113,6 +125,22 @@ public class WSDLConverter
 		writeLine( "}" );
 	}
 
+	private String operationToString( joliex.wsdl.impl.Operation operation )
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append( operation.name() );
+		if ( operation.faults().isEmpty() == false ) {
+			builder.append( " throws " );
+			List< String > faults = operation.faults();
+			int i = 0;
+			for( i = 0; i < faults.size() - 1; i++ ) {
+				builder.append( faults.get( i ) + " " );
+			}
+			builder.append( faults.get( i ) );
+		}
+		return builder.toString();
+	}
+
 	private void writeInterface( Interface iface )
 		throws IOException
 	{
@@ -122,9 +150,9 @@ public class WSDLConverter
 			indent();
 			int i;
 			for( i = 0; i < iface.oneWayOperations().size() - 1; i++ ) {
-				writeLine( iface.oneWayOperations().get(i).name() + "," );
+				writeLine( operationToString( iface.oneWayOperations().get( i ) ) + "," );
 			}
-			writeLine( iface.oneWayOperations().get(i).name() );
+			writeLine( operationToString( iface.oneWayOperations().get( i ) ) );
 			unindent();
 		}
 		if ( iface.requestResponseOperations().isEmpty() == false ) {
@@ -132,9 +160,9 @@ public class WSDLConverter
 			indent();
 			int i;
 			for( i = 0; i < iface.requestResponseOperations().size() - 1; i++ ) {
-				writeLine( iface.requestResponseOperations().get(i).name() + "," );
+				writeLine( operationToString( iface.requestResponseOperations().get( i ) ) + "," );
 			}
-			writeLine( iface.requestResponseOperations().get(i).name() );
+			writeLine( operationToString( iface.requestResponseOperations().get( i ) ) );
 			unindent();
 		}
 		writeLine( "}" );
@@ -161,11 +189,32 @@ public class WSDLConverter
 		for( ExtensibilityElement element : extElements ) {
 			if ( element instanceof SOAPAddress ) {
 				location = ((SOAPAddress)element).getLocationURI().toString();
-				protocol = "soap";
+				StringBuilder builder = new StringBuilder();
+				builder.append( "soap {\n" )
+					.append( "\t.wsdl = \"" )
+					.append( definition.getDocumentBaseURI() )
+					.append( "\"\n}");
+				protocol = builder.toString();
+
 			} else if ( element instanceof HTTPAddress ) {
 				location = ((HTTPAddress)element).getLocationURI().toString();
 				protocol = "http";
 			}
+		}
+		try {
+			URI uri = new URI( location );
+			uri = new URI(
+				"socket",
+				uri.getUserInfo(),
+				uri.getHost(),
+				( uri.getPort() < 1 ) ? 80 : uri.getPort(),
+				uri.getPath(),
+				uri.getQuery(),
+				uri.getFragment()
+			);
+			location = uri.toString();
+		} catch( URISyntaxException e ) {
+			e.printStackTrace();
 		}
 		Binding binding = port.getBinding();
 		PortType portType = binding.getPortType();
@@ -199,8 +248,16 @@ public class WSDLConverter
 		if ( operation.getDocumentationElement() != null ) {
 			operation.getDocumentationElement().getNodeValue();
 		}
+
+		List< String > faultList = new LinkedList< String >();
+		Map< String, Fault > faults = operation.getFaults();
+		for( Entry< String, Fault > entry : faults.entrySet() ) {
+			faultList.add( entry.getKey() );
+		}
+
 		return new joliex.wsdl.impl.Operation(
 			operation.getName(),
+			faultList,
 			comment
 		);
 	}

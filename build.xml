@@ -37,10 +37,17 @@ set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -ea:jolie... -ea:joliex... -jar %joliepath%jolie.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
+		<echo message="Installing JolieC (Jolie Compiler) Windows launcher script..." />
 		<echo file="${private.install.launcher_dir}/joliec.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar -jar %joliepath%tools\joliec.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+		</echo>
+		<echo message="Installing WSDL2Jolie Windows launcher script..." />
+		<echo file="${private.install.launcher_dir}/wsdl2jolie.bat">@echo off
+set joliepath=${install.dir}\
+set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+jolie %joliepath%tools\wsdl2jolie.ol %params%
 		</echo>
 	</target>
 
@@ -97,6 +104,12 @@ fi
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
+		<echo message="Installing WSDL2Jolie Unix launcher script..." />
+		<echo file="${private.install.launcher_dir}/wsdl2jolie">#!/bin/sh
+JOLIE_HOME=${install.dir}
+jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
+		</echo>
+		<echo message="Installing JolieC (Jolie Compiler) Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/joliec">#!/bin/sh
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/tools/joliec.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
@@ -158,7 +171,6 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
 	</target>
 	<target name="dist" depends="-init,jar">
 		<delete dir="dist"/>
@@ -202,6 +214,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<copy todir="dist/tools" flatten="true">
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
+				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
 			</resources>
 		</copy>
 		
@@ -213,6 +226,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<copy file="${libs.libmatthew.unix}" tofile="dist/lib/unix.jar"/>
 		<copy file="${libs.relaxngDatatype}" tofile="dist/lib/relaxngDatatype.jar"/>
 		<copy file="${libs.ini4j}" tofile="dist/lib/ini4j.jar"/>
+		<copy file="${libs.wsdl4j}" tofile="dist/lib/wsdl4j.jar"/>
 		<copy file="${libs.smack}" tofile="dist/lib/smack.jar"/>
 		<copy file="${libs.smackx}" tofile="dist/lib/smackx.jar"/>
 	</target>
