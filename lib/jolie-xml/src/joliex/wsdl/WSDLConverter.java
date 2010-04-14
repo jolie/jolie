@@ -200,6 +200,8 @@ public class WSDLConverter
 			return "";
 		} else if ( type.cardinality().min() == 0 && type.cardinality().max() == 1 ) {
 			return "?";
+		} else if ( type.cardinality().min() == 0 && type.cardinality().max() == Integer.MAX_VALUE ) {
+			return "*";
 		} else {
 			return new StringBuilder()
 				.append( '[' )
