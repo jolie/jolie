@@ -191,6 +191,12 @@ public class SoapProtocol extends SequentialCommProtocol
 				for( ExtensibilityElement element : list ) {
 					if ( element instanceof SchemaImpl ) {
 						Element schemaElement = ((SchemaImpl)element).getElement();
+						Map< String, String > namespaces = definition.getNamespaces();
+						for( Entry< String, String > entry : namespaces.entrySet() ) {
+							if ( schemaElement.getAttribute( "xmlns:" + entry.getKey() ).isEmpty() ) {
+								schemaElement.setAttribute( "xmlns:" + entry.getKey(), entry.getValue() );
+							}
+						}
 						parseSchemaElement( definition, schemaElement, schemaParser );
 					}
 				}
