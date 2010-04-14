@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi                                *
+ *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2010 by Mirco Gamberini                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,54 +20,34 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.wsdl.impl;
 
-import java.util.List;
-import jolie.util.Pair;
+package jolie.xml.xsd;
+
+import java.util.HashMap;
+import java.util.Map;
+import jolie.lang.NativeType;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public class Operation
+public class XsdUtils
 {
-	private final String name;
-	private final String comment;
-	private final List< Pair< String, String > > faults;
-	private final String requestTypeName;
-	private final String responseTypeName;
+	private final static Map< String, NativeType > xsdToNativeTypeMap;
 
-	public Operation( String name, String requestTypeName, String responseTypeName, List< Pair< String, String > > faults, String comment )
-	{
-		this.name = name;
-		this.faults = faults;
-		this.comment = comment;
-		this.requestTypeName = requestTypeName;
-		this.responseTypeName = responseTypeName;
+	static {
+		xsdToNativeTypeMap = new HashMap< String, NativeType >();
+		xsdToNativeTypeMap.put( "string", NativeType.STRING );
+		xsdToNativeTypeMap.put( "date", NativeType.STRING );
+		xsdToNativeTypeMap.put( "time", NativeType.STRING );
+		xsdToNativeTypeMap.put( "boolean", NativeType.STRING );
+		xsdToNativeTypeMap.put( "int", NativeType.INT );
+		xsdToNativeTypeMap.put( "decimal", NativeType.DOUBLE );
+		xsdToNativeTypeMap.put( "anyType", NativeType.ANY );
 	}
 
-	public String requestTypeName()
+	public static NativeType xsdToNativeType( String xsdTypeName )
 	{
-		return requestTypeName;
-	}
-
-	public String responseTypeName()
-	{
-		return responseTypeName;
-	}
-
-	public List< Pair< String, String > > faults()
-	{
-		return faults;
-	}
-
-	public String name()
-	{
-		return name;
-	}
-
-	public String comment()
-	{
-		return comment;
+		return xsdToNativeTypeMap.get( xsdTypeName );
 	}
 }
