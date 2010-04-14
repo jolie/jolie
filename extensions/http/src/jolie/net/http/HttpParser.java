@@ -103,7 +103,7 @@ public class HttpParser
 	private HttpMessage.Cookie parseSetCookie( String cookieString )
 	{
 		String ss[] = cookieString.split( ";" );
-		if ( ss.length > 0 ) {
+		if ( cookieString.isEmpty() == false && ss.length > 0 ) {
 			boolean secure = false;
 			String domain = "";
 			String path = "";
