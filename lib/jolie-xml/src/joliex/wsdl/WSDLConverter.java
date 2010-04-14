@@ -65,7 +65,15 @@ import jolie.xml.xsd.XsdUtils;
 import jolie.xml.xsd.impl.XsdToJolieConverterImpl;
 import joliex.wsdl.impl.Interface;
 import joliex.wsdl.impl.OutputPort;
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.TypeInfo;
+import org.w3c.dom.UserDataHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -175,6 +183,13 @@ public class WSDLConverter
 			for( ExtensibilityElement element : list ) {
 				if ( element instanceof SchemaImpl ) {
 					Element schemaElement = ((SchemaImpl)element).getElement();
+					// We need to inject the namespaces declared in parent nodes into the schema element
+					Map< String, String > namespaces = definition.getNamespaces();
+					for( Entry< String, String > entry : namespaces.entrySet() ) {
+						if ( schemaElement.getAttribute( "xmlns:" + entry.getKey() ).isEmpty() ) {
+							schemaElement.setAttribute( "xmlns:" + entry.getKey(), entry.getValue() );
+						}
+					}
 					parseSchemaElement( schemaElement );
 				}
 			}
