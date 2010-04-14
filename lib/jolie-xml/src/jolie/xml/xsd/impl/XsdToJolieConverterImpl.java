@@ -213,6 +213,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 					if ( contentType.asSimpleType() != null ) {
 						checkStrictModeForSimpleType( contentType );
 					} else if ( (particle = contentType.asParticle()) != null ) {
+						
 						XSTerm term = particle.getTerm();
 						XSModelGroupDecl modelGroupDecl = null;
 						XSModelGroup modelGroup = null;
@@ -226,7 +227,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 
 								// Create a new complex type
 								TypeInlineDefinition jolieComplexType = createComplexType( complexType, currElementDecl.getName(), children[i] );
-								navigateSubTypes( modelGroup.getChildren(), jolieComplexType );
+								if ( type.getBaseType().getName().equals( "anyType" ) ) {
+									jolieComplexType.setUntypedSubTypes( true );
+								} else {
+									navigateSubTypes( modelGroup.getChildren(), jolieComplexType );
+								}
 								jolieType.putSubType( jolieComplexType );
 							} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
 								throw new ConversionException( ERROR_CHOICE );
@@ -279,8 +284,10 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 							checkDefaultAndFixed( currElementDecl );
 							if ( type.isSimpleType() ) {
 								checkForNativeType( type, WARNING_2 );
-								if ( type.getName() != null && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
-									jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( modelGroup.getChildren()[i] ) ) );
+								if ( type.getName() != null ) {
+									if ( XsdUtils.xsdToNativeType( type.getName() ) != null ) {
+										jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( modelGroup.getChildren()[i] ) ) );
+									}
 								}
 							} else if ( type.isComplexType() ) {
 								TypeDefinition jolieComplexType = null;

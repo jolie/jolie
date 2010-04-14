@@ -232,6 +232,9 @@ public class WSDLConverter
 				builder.append( '\n' );
 			}
 			writeLine( builder.toString() );
+		} else if ( type.untypedSubTypes() ) {
+			builder.append( "undefined" );
+			writeLine( builder.toString() );
 		} else {
 			builder.append( nativeTypeToString( type.nativeType() ) );
 			if ( type.hasSubTypes() ) {
