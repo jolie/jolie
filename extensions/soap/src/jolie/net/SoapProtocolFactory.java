@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,7 +29,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"relaxngDatatype.jar","xsom.jar"})
+@AndJarDeps({"relaxngDatatype.jar","xsom.jar","wsdl4j.jar"})
 public class SoapProtocolFactory extends CommProtocolFactory
 {
 	public SoapProtocolFactory( CommCore commCore )
