@@ -45,6 +45,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Range;
 import jolie.xml.xsd.XsdToJolieConverter;
+import jolie.xml.xsd.XsdUtils;
 
 /**
  * @author Mirco Gamberini
@@ -53,7 +54,6 @@ import jolie.xml.xsd.XsdToJolieConverter;
 public class XsdToJolieConverterImpl implements XsdToJolieConverter
 {
 	private final Logger logger;
-	private final Map< String, NativeType > nativeTypes = new HashMap< String, NativeType >();
 	private final List< TypeDefinition > jolieTypes = new ArrayList< TypeDefinition >();
 	private final static ParsingContext parsingContext = new ParsingContext();
 	private final boolean strict;
@@ -80,7 +80,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		this.strict = strict;
 		this.schemaSet = schemaSet;
 		this.logger = logger;
-		initMapType();
 	}
 
 	public List< TypeDefinition > convert()
@@ -186,7 +185,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				currElementDecl = currTerm.asElementDecl();
 				XSType type = currElementDecl.getType();
 				/*if ( type != null && type.getName() != null && type.getName().contentEquals( "anyType" ) ) {
-					TypeInlineDefinition jolieSimpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), nativeTypes.get( type.getName() ), getRange( children[i] ) );
+					TypeInlineDefinition jolieSimpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), XsdUtils.xsdToNativeType( type.getName() ), getRange( children[i] ) );
 					jolieType.putSubType( jolieSimpleType );
 					continue;
 				}*/
@@ -199,7 +198,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				checkDefaultAndFixed( currElementDecl );
 				if ( type.isSimpleType() ) {
 					checkForNativeType( type, WARNING_2 );
-					if ( type.getName() != null && nativeTypes.get( type.getName() ) != null ) {
+					if ( type.getName() != null && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( children[i] ) ) );
 					}
 				} else if ( type.isComplexType() ) {
@@ -272,7 +271,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 							currElementDecl = currTerm.asElementDecl();
 							XSType type = currElementDecl.getType();
 							if ( type != null && type.getName() != null && type.getName().contentEquals( "anyType" ) ) {
-								TypeInlineDefinition simpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), nativeTypes.get( type.getName() ), getRange( modelGroup.getChildren()[i] ) );
+								TypeInlineDefinition simpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), XsdUtils.xsdToNativeType( type.getName() ), getRange( modelGroup.getChildren()[i] ) );
 								jolieType.putSubType( simpleType );
 								continue;
 							}
@@ -280,7 +279,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 							checkDefaultAndFixed( currElementDecl );
 							if ( type.isSimpleType() ) {
 								checkForNativeType( type, WARNING_2 );
-								if ( type.getName() != null && nativeTypes.get( type.getName() ) != null ) {
+								if ( type.getName() != null && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 									jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( modelGroup.getChildren()[i] ) ) );
 								}
 							} else if ( type.isComplexType() ) {
@@ -337,7 +336,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private TypeInlineDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
 	{
 		checkType( type );
-		return new TypeInlineDefinition( parsingContext, element.getName(), nativeTypes.get( type.getName() ), range );
+		return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
 	}
 
 	private TypeInlineDefinition createComplexType( XSComplexType complexType, String typeName, XSParticle particle )
@@ -371,7 +370,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private void checkForNativeType( XSType type, String msg )
 		throws ConversionException
 	{
-		if ( nativeTypes.get( type.getName() ) == null ) {
+		if ( XsdUtils.xsdToNativeType( type.getName() ) == null ) {
 			if ( !strict() ) {
 				log( Level.WARNING, msg + " Name: " + type.getName() );
 			} else {
@@ -403,16 +402,5 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		}
 
 		return new Range( min, max );
-	}
-
-	private void initMapType()
-	{
-		nativeTypes.put( "string", NativeType.STRING );
-		nativeTypes.put( "date", NativeType.STRING );
-		nativeTypes.put( "time", NativeType.STRING );
-		nativeTypes.put( "boolean", NativeType.STRING );
-		nativeTypes.put( "int", NativeType.INT );
-		nativeTypes.put( "decimal", NativeType.DOUBLE );
-		nativeTypes.put( "anyType", NativeType.ANY );
 	}
 }
