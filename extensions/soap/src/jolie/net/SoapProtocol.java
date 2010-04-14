@@ -22,6 +22,7 @@
 
 package jolie.net;
 
+import com.ibm.wsdl.extensions.schema.SchemaImpl;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -78,13 +79,33 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.ByteArrayInputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import javax.wsdl.BindingOperation;
+import javax.wsdl.Definition;
+import javax.wsdl.Operation;
+import javax.wsdl.Part;
+import javax.wsdl.Port;
+import javax.wsdl.Service;
+import javax.wsdl.Types;
+import javax.wsdl.WSDLException;
+import javax.wsdl.extensions.ExtensibilityElement;
+import javax.wsdl.extensions.soap.SOAPOperation;
+import javax.wsdl.factory.WSDLFactory;
+import javax.wsdl.xml.WSDLReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -93,6 +114,7 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.protocols.SequentialCommProtocol;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 /** Implements the SOAP over HTTP protocol.
@@ -103,6 +125,7 @@ import org.xml.sax.InputSource;
  * 2007 - Fabrizio Montesi: rewritten from scratch, exploiting new JOLIE capabilities.
  * 2008 - Fabrizio Montesi: initial support for schemas.
  * 2008 - Claudio Guidi: initial support for WS-Addressing.
+ * 2010 - Fabrizio Montesi: initial support for WSDL documents.
  * 
  */
 public class SoapProtocol extends SequentialCommProtocol
@@ -112,6 +135,10 @@ public class SoapProtocol extends SequentialCommProtocol
 	private final MessageFactory messageFactory;
 	private XSSchemaSet schemaSet = null;
 	private URI uri = null;
+	private Definition wsdlDefinition = null;
+	private Port wsdlPort = null;
+	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
 	
 	private boolean received = false;
 	
@@ -130,29 +157,80 @@ public class SoapProtocol extends SequentialCommProtocol
 		this.interpreter = interpreter;
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 	}
-	
-	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
-	
+
+	private void parseSchemaElement( Definition definition, Element element, XSOMParser schemaParser )
+		throws IOException
+	{
+		try {
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty( "indent", "yes" );
+			StringWriter sw = new StringWriter();
+			StreamResult result = new StreamResult( sw );
+			DOMSource source = new DOMSource( element );
+			transformer.transform( source, result );
+			InputSource schemaSource = new InputSource( new StringReader( sw.toString() ) );
+			schemaSource.setSystemId( definition.getDocumentBaseURI() );
+			schemaParser.parse( schemaSource );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerException e ) {
+			throw new IOException( e );
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	private void parseWSDLTypes( XSOMParser schemaParser )
+		throws IOException
+	{
+		Definition definition = getWSDLDefinition();
+		if ( definition != null ) {
+			Types types = definition.getTypes();
+			if ( types != null ) {
+				List< ExtensibilityElement > list = types.getExtensibilityElements();
+				for( ExtensibilityElement element : list ) {
+					if ( element instanceof SchemaImpl ) {
+						Element schemaElement = ((SchemaImpl)element).getElement();
+						parseSchemaElement( definition, schemaElement, schemaParser );
+					}
+				}
+			}
+		}
+	}
+
 	private XSSchemaSet getSchemaSet()
 		throws IOException, SAXException
 	{
 		if ( schemaSet == null ) {
+			XSOMParser schemaParser = new XSOMParser();
 			ValueVector vec = getParameterVector( "schema" );
 			if ( vec.size() > 0 ) {
-				XSOMParser schemaParser = new XSOMParser();
-				for( Value v : vec )
+				for( Value v : vec ) {
 					schemaParser.parse( new File( v.strValue() ) );
-				schemaSet = schemaParser.getResult();
-				String nsPrefix = "jolie";
-				int i = 1;
-				for( XSSchema schema : schemaSet.getSchemas() ) {
-					if ( !schema.getTargetNamespace().equals( XMLConstants.W3C_XML_SCHEMA_NS_URI ) )
-						namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
+				}
+				
+			}
+			parseWSDLTypes( schemaParser );
+			schemaSet = schemaParser.getResult();
+			String nsPrefix = "jolie";
+			int i = 1;
+			for( XSSchema schema : schemaSet.getSchemas() ) {
+				if ( !schema.getTargetNamespace().equals( XMLConstants.W3C_XML_SCHEMA_NS_URI ) ) {
+					namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
 				}
 			}
 		}
 
 		return schemaSet;
+	}
+
+	private boolean convertAttributes()
+	{
+		boolean ret = false;
+		if ( hasParameter( "convertAttributes" ) ) {
+			ret = checkBooleanParameter( "convertAttributes" );
+		}
+		return ret;
 	}
 	
 	private void initNamespacePrefixes( SOAPElement element )
@@ -163,7 +241,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private static void valueToSOAPElement(
+	private void valueToSOAPElement(
 			Value value,
 			SOAPElement element,
 			SOAPEnvelope soapEnvelope
@@ -182,14 +260,16 @@ public class SoapProtocol extends SequentialCommProtocol
 			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
 		}
-		
-		Map< String, ValueVector > attrs = getAttributesOrNull( value );
-		if ( attrs != null ) {
-			for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
-				element.addAttribute(
-					soapEnvelope.createName( attrEntry.getKey() ),
-					attrEntry.getValue().first().strValue()
-				);
+
+		if ( convertAttributes() ) {
+			Map< String, ValueVector > attrs = getAttributesOrNull( value );
+			if ( attrs != null ) {
+				for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
+					element.addAttribute(
+						soapEnvelope.createName( attrEntry.getKey() ),
+						attrEntry.getValue().first().strValue()
+					);
+				}
 			}
 		}
 
@@ -345,19 +425,98 @@ public class SoapProtocol extends SequentialCommProtocol
 			}
 		}
 	}
+
+	private Definition getWSDLDefinition()
+		throws IOException
+	{
+		if ( wsdlDefinition == null && hasParameter( "wsdl" ) ) {
+			String wsdlUrl = getStringParameter( "wsdl" );
+			try {
+				WSDLFactory factory = WSDLFactory.newInstance();
+				WSDLReader reader = factory.newWSDLReader();
+				wsdlDefinition = reader.readWSDL( wsdlUrl );
+			} catch( WSDLException e ) {
+				throw new IOException( e );
+			}
+		}
+		return wsdlDefinition;
+	}
+
+	private String getSoapActionForOperation( String operationName )
+		throws IOException
+	{
+		String soapAction = null;
+		Port port = getWSDLPort();
+		if ( port != null ) {
+			BindingOperation bindingOperation = port.getBinding().getBindingOperation( operationName, null, null );
+			for( ExtensibilityElement element : (List< ExtensibilityElement >)bindingOperation.getExtensibilityElements() ) {
+				if ( element instanceof SOAPOperation ) {
+					soapAction = ((SOAPOperation)element).getSoapActionURI();
+				}
+			}
+		}
+		if ( soapAction == null ) {
+			soapAction = getStringParameter( "namespace" ) + "/" + operationName;
+		}
+		return soapAction;
+	}
+
+	private Port getWSDLPort()
+		throws IOException
+	{
+		Port port = wsdlPort;
+		if ( port == null && hasParameter( "wsdl" ) && getParameterFirstValue( "wsdl" ).hasChildren( "port" ) ) {
+			String portName = getParameterFirstValue( "wsdl" ).getFirstChild( "port" ).strValue();
+			Definition definition = getWSDLDefinition();
+			if ( definition != null ) {
+				Map< QName, Service > services = definition.getServices();
+				Iterator< Entry< QName, Service > > it = services.entrySet().iterator();
+				while( port == null && it.hasNext() ) {
+					port = it.next().getValue().getPort( portName );
+				}
+			}
+			if ( port != null ) {
+				wsdlPort = port;
+			}
+		}
+		return port;
+	}
+
+	private String getOutputMessageNamespace( String operationName )
+		throws IOException
+	{
+		String messageNamespace = "";
+		Port port = getWSDLPort();
+		if ( port == null ) {
+			if ( hasParameter( "namespace" ) ) {
+				messageNamespace = getStringParameter( "namespace" );
+			}
+		} else {
+			Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
+			if ( operation != null ) {
+				Map< String, Part > parts = operation.getOutput().getMessage().getParts();
+				if ( parts.size() == 1 ) {
+					Part part = parts.entrySet().iterator().next().getValue();
+					messageNamespace = part.getElementName().getNamespaceURI();
+				}
+			}
+		}
+		return messageNamespace;
+	}
+	
 	
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{		
 		try {
 			inputId = message.operationName();
+			String messageNamespace = getOutputMessageNamespace( message.operationName() );
 
 			if ( received ) {
 				// We're responding to a request
 				inputId += "Response";
 			}
 
-			String messageNamespace = getParameterVector( "namespace" ).first().strValue();
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
 			SOAPBody soapBody = soapEnvelope.getBody();
@@ -454,8 +613,9 @@ public class SoapProtocol extends SequentialCommProtocol
 				}
 				messageString += "POST " + path + " HTTP/1.1" + CRLF;
 				messageString += "Host: " + uri.getHost() + CRLF;
-				soapAction =
-					"SOAPAction: \"" + messageNamespace + "/" + message.operationName() + '\"' + CRLF;
+				/*soapAction =
+					"SOAPAction: \"" + messageNamespace + "/" + message.operationName() + '\"' + CRLF;*/
+				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + CRLF;
 			}
 			
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
@@ -487,7 +647,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 	}
 	
-	private static void xmlNodeToValue( Value value, Node node )
+	private void xmlNodeToValue( Value value, Node node )
 	{
 		String type = "xsd:string";
 		Node currNode;
@@ -497,7 +657,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				if ( "type".equals( currNode.getNodeName() ) == false ) {
+				if ( "type".equals( currNode.getNodeName() ) == false && convertAttributes() ) {
 					getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
 				} else {
 					type = currNode.getNodeValue();
@@ -522,7 +682,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 
 		if ( "xsd:int".equals( type ) ) {
-				value.setValue( value.intValue() );
+			value.setValue( value.intValue() );
 		} else if ( "xsd:double".equals( type ) ) {
 			value.setValue( value.doubleValue() );
 		}
