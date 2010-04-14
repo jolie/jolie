@@ -395,6 +395,9 @@ public class WSDLConverter
 				builder.append( "soap {\n" )
 					.append( "\t.wsdl = \"" )
 					.append( definition.getDocumentBaseURI() )
+					.append( "\";\n" )
+					.append( "\t.wsdl.port = \"" )
+					.append( port.getName() )
 					.append( "\"\n}");
 				protocol = builder.toString();
 
