@@ -193,6 +193,9 @@ public class SoapProtocol extends SequentialCommProtocol
 						Element schemaElement = ((SchemaImpl)element).getElement();
 						Map< String, String > namespaces = definition.getNamespaces();
 						for( Entry< String, String > entry : namespaces.entrySet() ) {
+							if ( entry.getKey().equals( "xmlns" ) || entry.getKey().trim().isEmpty() ) {
+								continue;
+							}
 							if ( schemaElement.getAttribute( "xmlns:" + entry.getKey() ).isEmpty() ) {
 								schemaElement.setAttribute( "xmlns:" + entry.getKey(), entry.getValue() );
 							}
@@ -213,8 +216,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			if ( vec.size() > 0 ) {
 				for( Value v : vec ) {
 					schemaParser.parse( new File( v.strValue() ) );
-				}
-				
+				}				
 			}
 			parseWSDLTypes( schemaParser );
 			schemaSet = schemaParser.getResult();
@@ -692,20 +694,43 @@ public class SoapProtocol extends SequentialCommProtocol
 		} else if ( "xsd:double".equals( type ) ) {
 			value.setValue( value.doubleValue() );
 		}
-
-		/*Value attr;
-		if ( (attr=getAttributeOrNull( value, "type" )) != null ) {
-			String type = attr.strValue();
-			if ( "xsd:int".equals( type ) ) {
-				value.setValue( value.intValue() );
-			} else if ( "xsd:double".equals( type ) ) {
-				value.setValue( value.doubleValue() );
-			} else if ( "xsd:string".equals( type ) ) {
-				value.setValue( value.strValue() );
-			}
-		}*/
 	}
-	
+
+	private static Element getFirstElement( Node node )
+	{
+		NodeList nodes = node.getChildNodes();
+		for( int i = 0; i < nodes.getLength(); i++ ) {
+			if ( nodes.item( i ).getNodeType() == Node.ELEMENT_NODE ) {
+				return (Element)nodes.item( i );
+			}
+		}
+		return null;
+	}
+
+	/*private Schema getRecvMessageValidationSchema()
+		throws IOException
+	{
+		List< Source > sources = new ArrayList< Source >();
+		Definition definition = getWSDLDefinition();
+		if ( definition != null ) {
+			Types types = definition.getTypes();
+			if ( types != null ) {
+				List< ExtensibilityElement > list = types.getExtensibilityElements();
+				for( ExtensibilityElement element : list ) {
+					if ( element instanceof SchemaImpl ) {
+						sources.add( new DOMSource( ((SchemaImpl)element).getElement() ) );
+					}
+				}
+			}
+		}
+		SchemaFactory schemaFactory = SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI );
+		try {
+			return schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		}
+	}*/
+
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -721,15 +746,18 @@ public class SoapProtocol extends SequentialCommProtocol
 		try {
 			if ( message.content() != null ) {
 				SOAPMessage soapMessage = messageFactory.createMessage();
-				
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+				/*Schema messageSchema = getRecvMessageValidationSchema();
+				if ( messageSchema != null ) {
+					factory.setIgnoringElementContentWhitespace( true );
+					factory.setSchema( messageSchema );
+				}*/
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 	
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				Document doc = builder.parse( src );
 				DOMSource dom = new DOMSource( doc );
-	
 				soapMessage.getSOAPPart().setContent( dom );
 				
 				if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
@@ -740,11 +768,9 @@ public class SoapProtocol extends SequentialCommProtocol
 				
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault(); 
 				if ( soapFault == null ) {
-					messageId = soapMessage.getSOAPBody().getFirstChild().getLocalName();
-					
-					xmlNodeToValue(
-							value, soapMessage.getSOAPBody().getFirstChild()
-							);
+					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
+					messageId = soapValueElement.getLocalName();
+					xmlNodeToValue( value, soapValueElement );
 					
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if ( schemaPaths.size() > 0 ) {
