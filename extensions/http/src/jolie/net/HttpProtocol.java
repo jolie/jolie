@@ -333,7 +333,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			builder.append( "--" + BOUNDARY + "--" );
 			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
 		} else if ( "x-www-form-urlencoded".equals( format ) ) {
-			ret.contentType = "x-www-form-urlencoded";
+			ret.contentType = "application/x-www-form-urlencoded";
 			Iterator< Entry< String, ValueVector > > it =
 				message.value().children().entrySet().iterator();
 			Entry< String, ValueVector > entry;
