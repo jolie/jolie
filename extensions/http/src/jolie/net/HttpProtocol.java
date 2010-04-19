@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -748,6 +748,10 @@ public class HttpProtocol extends SequentialCommProtocol
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
 				decodedMessage.value.getChildren( "operation" ).first().setValue( decodedMessage.operationName );
+				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
+				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
+					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );
+				}
 				decodedMessage.operationName = defaultOpId;
 			}
 		}
