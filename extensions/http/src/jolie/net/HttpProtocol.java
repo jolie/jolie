@@ -56,7 +56,7 @@ import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
-import jolie.net.http.JolieGWTConverter;
+import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.protocols.SequentialCommProtocol;
