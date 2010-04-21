@@ -23,8 +23,10 @@ package joliex.gwt.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
+import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
+@RemoteServiceRelativePath("JolieService")
 public interface JolieService extends RemoteService
 {
 	/**
@@ -35,8 +37,6 @@ public interface JolieService extends RemoteService
 		public static JolieServiceAsync getInstance() {
 			if ( instance == null ) {
 				instance = (JolieServiceAsync)GWT.create( JolieService.class );
-				ServiceDefTarget target = (ServiceDefTarget)instance;
-				target.setServiceEntryPoint( GWT.getModuleBaseURL() + "JolieService" );
 			}
 			return instance;
 		}
