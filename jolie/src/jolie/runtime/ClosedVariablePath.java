@@ -29,7 +29,7 @@ import jolie.util.Pair;
  */
 public class ClosedVariablePath extends VariablePath
 {
-	final private Value rootValue;
+	private final Value rootValue;
 
 	public ClosedVariablePath( Pair< Expression, Expression >[] path, Value rootValue )
 	{
