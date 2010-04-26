@@ -62,7 +62,7 @@ RequestResponse:
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(void),
-	setMimeTypeFile(string)(void) throw IOException(void)
+	setMimeTypeFile(string)(void) throws IOException(void)
 }
 
 embedded {
