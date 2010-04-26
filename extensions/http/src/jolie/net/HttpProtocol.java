@@ -378,6 +378,16 @@ public class HttpProtocol extends SequentialCommProtocol
 		}
 		send_appendSetCookieHeader( message, headerBuilder );
 		headerBuilder.append( "Server: JOLIE" ).append( CRLF );
+		StringBuilder cacheControlHeader = new StringBuilder();
+		if ( hasParameter( "cacheControl" ) ) {
+			Value cacheControl = getParameterFirstValue( "cacheControl" );
+			if ( cacheControl.hasChildren( "maxAge" ) ) {
+				cacheControlHeader.append( "max-age=" ).append( cacheControl.getFirstChild( "maxAge" ).intValue() );
+			}
+		}
+		if ( cacheControlHeader.length() > 0 ) {
+			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( CRLF );
+		}
 	}
 	
 	private void send_appendRequestMethod( Method method, StringBuilder headerBuilder )
@@ -747,7 +757,7 @@ public class HttpProtocol extends SequentialCommProtocol
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
-				decodedMessage.value.getChildren( "operation" ).first().setValue( decodedMessage.operationName );
+				decodedMessage.value.getFirstChild( "operation" ).setValue( decodedMessage.operationName );
 				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
 				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
 					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );

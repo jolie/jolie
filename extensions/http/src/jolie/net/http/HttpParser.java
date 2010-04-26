@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import jolie.lang.parse.Scanner;
 
@@ -40,8 +41,11 @@ public class HttpParser
 	private static final String TRACE = "TRACE";
 	private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
+
+	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
+	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
 	
-	final private HttpScanner scanner;
+	private final HttpScanner scanner;
 	private Scanner.Token token;
 	
 	private void getToken()
@@ -76,16 +80,16 @@ public class HttpParser
 		getToken();
 		HttpMessage.Cookie cookie;
 		while( token.is( Scanner.TokenType.ID ) ) {
-			name = token.content();
+			name = token.content().toLowerCase();
 			getToken();
 			tokenAssert( Scanner.TokenType.COLON );
 			value = scanner.readLine();
-			if ( "set-cookie".equals( name.toLowerCase() ) ) {
+			if ( "set-cookie".equals( name ) ) {
 				//cookie = parseSetCookie( value );
 				if ( (cookie=parseSetCookie( value )) != null ) {
 					message.addSetCookie( cookie );
 				}
-			} else if ( "cookie".equals( name.toLowerCase() ) ) {
+			} else if ( "cookie".equals( name ) ) {
 				String ss[] = value.split(  ";" );
 				for( String s : ss ) {
 					String nv[] = s.trim().split( "=" );
@@ -94,7 +98,7 @@ public class HttpParser
 					}
 				}
 			} else {
-				message.setProperty( name.toLowerCase(), value );
+				message.setProperty( name, value );
 			}
 			getToken();
 		}
@@ -102,20 +106,20 @@ public class HttpParser
 	
 	private HttpMessage.Cookie parseSetCookie( String cookieString )
 	{
-		String ss[] = cookieString.split( ";" );
+		String ss[] = cookiesSplitPattern.split( cookieString );
 		if ( cookieString.isEmpty() == false && ss.length > 0 ) {
 			boolean secure = false;
 			String domain = "";
 			String path = "";
 			String expires = "";
-			String nameValue[] = ss[ 0 ].split( "=", 2 );
+			String nameValue[] = cookieNameValueSplitPattern.split( ss[ 0 ], 2 );
 			if ( ss.length > 1 ) {
 				String kv[];
 				for( int i = 1; i < ss.length; i++ ) {
 					if ( "secure".equals( ss[ i ] ) ) {
 						secure = true;
 					} else {
-						kv = ss[ i ].split( "=", 2 );
+						kv = cookieNameValueSplitPattern.split( ss[ i ], 2 );
 						if ( kv.length > 1 ) {
 							kv[ 0 ] = kv[ 0 ].trim();
 							if ( "expires".equalsIgnoreCase( kv[ 0 ] ) ) {
