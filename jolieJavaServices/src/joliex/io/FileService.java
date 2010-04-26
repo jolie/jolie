@@ -79,7 +79,7 @@ public class FileService extends JavaService
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
 	}
 
-	public void setFileTypeMap( String filename )
+	public void setMimeTypeFile( String filename )
 		throws FaultException
 	{
 		try {
