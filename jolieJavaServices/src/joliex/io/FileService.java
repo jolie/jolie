@@ -38,6 +38,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -70,12 +71,22 @@ public class FileService extends JavaService
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
-	private final FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
+	private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
 
 	public FileService()
 	{
 		super();
 		documentBuilderFactory.setIgnoringElementContentWhitespace( true );
+	}
+
+	public void setFileTypeMap( String filename )
+		throws FaultException
+	{
+		try {
+			fileTypeMap = new MimetypesFileTypeMap( filename );
+		} catch( IOException e ) {
+			throw new FaultException( "IOException", e );
+		}
 	}
 
 	private static void readBase64IntoValue( InputStream istream, long size, Value value )
