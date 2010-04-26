@@ -61,7 +61,8 @@ RequestResponse:
 	list(ListRequest)(ListResponse),
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
-	getMimeType(string)(string) throws FileNotFound(void)
+	getMimeType(string)(string) throws FileNotFound(void),
+	setMimeTypeFile(string)(void) throw IOException(void)
 }
 
 embedded {
