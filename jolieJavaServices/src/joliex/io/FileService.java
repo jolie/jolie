@@ -23,7 +23,6 @@ package joliex.io;
 
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -114,10 +113,14 @@ public class FileService extends JavaService
 		}
 	}
 	
-	private static void readTextIntoValue( InputStream istream, Value value )
+	private static void readTextIntoValue( InputStream istream, long size, Value value )
 		throws IOException
 	{
-		String separator = System.getProperty( "line.separator" );
+		byte[] buffer = new byte[ (int)size ];
+		istream.read( buffer );
+		istream.close();
+		value.setValue( new String( buffer ) );
+		/*String separator = System.getProperty( "line.separator" );
 		StringBuffer buffer = new StringBuffer();
 		String line;
 		BufferedReader reader = new BufferedReader( new InputStreamReader( istream ) );
@@ -126,7 +129,7 @@ public class FileService extends JavaService
 			buffer.append( separator );
 		}
 		reader.close();
-		value.setValue( buffer.toString() );
+		value.setValue( buffer.toString() );*/
 	}
 	
 	public Value readFile( Value request )
@@ -172,7 +175,7 @@ public class FileService extends JavaService
 				} else if ( "xml".equals( format ) ) {
 					readXMLIntoValue( istream, retValue );
 				} else {
-					readTextIntoValue( istream, retValue );
+					readTextIntoValue( istream, size, retValue );
 				}
 			} finally {
 				istream.close();
