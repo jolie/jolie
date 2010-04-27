@@ -131,7 +131,15 @@ public class StringUtils extends JavaService
 	{
 		return s.trim();
 	}
-	
+
+	public String substring( Value request )
+	{
+		return request.strValue().substring(
+			request.getFirstChild( "begin" ).intValue(),
+			request.getFirstChild( "end" ).intValue()
+		);
+	}
+
 	public Value split( Value request )
 	{
 		String str = request.strValue();
