@@ -109,6 +109,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 JOLIE_HOME=${install.dir}
 jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
 		</echo>
+		<chmod file="${private.install.launcher_dir}/wsdl2jolie" perm="a+x"/>
 		<echo message="Installing JolieC (Jolie Compiler) Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/joliec">#!/bin/sh
 JOLIE_HOME=${install.dir}
