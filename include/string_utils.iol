@@ -61,8 +61,14 @@ type StartsWithRequest:string {
 	.prefix:string
 }
 
+type SubStringRequest:string {
+	.start:int
+	.end:int
+}
+
 interface StringUtilsInterface {
 RequestResponse:
+	substring(SubStringRequest)(string),
 	join(JoinRequest)(string),
 	leftPad(PadRequest)(string),
 	rightPad(PadRequest)(string),
