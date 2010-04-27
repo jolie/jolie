@@ -62,7 +62,7 @@ type StartsWithRequest:string {
 }
 
 type SubStringRequest:string {
-	.start:int
+	.begin:int
 	.end:int
 }
 
