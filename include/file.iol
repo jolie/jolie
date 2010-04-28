@@ -30,7 +30,9 @@ type ReadFileRequest:void {
 type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
-	.format?:string // Can be "binary", "text" or "xml" (defaults to "text")
+	.format?:string { // Can be "binary", "text" or "xml" (defaults to "text")
+		.schema*:string
+	}
 	.append?:int // Default: 0
 }
 
