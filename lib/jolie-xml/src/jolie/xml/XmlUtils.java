@@ -21,6 +21,16 @@
 
 package jolie.xml;
 
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSModelGroupDecl;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSTerm;
+import com.sun.xml.xsom.XSType;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,14 +56,124 @@ public class XmlUtils
 	 * @param rootNodeName the name to give to the root node of the document
 	 * @param document the XML document receiving the transformation
 	 */
-	static public void valueToDocument( Value value, String rootNodeName, Document document )
+	public static void valueToDocument( Value value, String rootNodeName, Document document )
 	{
 		Element root = document.createElement( rootNodeName );
 		document.appendChild( root );
 		_valueToDocument( value, root, document );
 	}
 
-	static private void _valueToDocument(
+	/**
+	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type Definition.
+	 * @see Document
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document.
+	 * @param document the XML document receiving the transformation.
+	 * @param type the XML type definition to follow in writing the XML document.
+	 */
+	public static void valueToDocument( Value value, String rootNodeName, Document document, XSType type )
+	{
+		Element root = document.createElement( rootNodeName );
+		document.appendChild( root );
+		_valueToDocument( value, root, document, type );
+	}
+
+	private static void _valueToDocument( Value value, Element element, Document doc, XSModelGroup modelGroup )
+	{
+		String name;
+		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
+		if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
+			XSParticle[] children = modelGroup.getChildren();
+			XSTerm currTerm;
+			XSElementDecl currElementDecl;
+			Value v;
+			ValueVector vec;
+			for( int i = 0; i < children.length; i++ ) {
+				currTerm = children[i].getTerm();
+				if ( currTerm.isElementDecl() ) {
+					currElementDecl = currTerm.asElementDecl();
+					name = currElementDecl.getName();
+					Element childElement = null;
+					if ( (vec=value.children().get( name )) != null ) {
+						childElement = doc.createElement( name );
+						element.appendChild( childElement );
+						v = vec.remove( 0 );
+						_valueToDocument( v, childElement, doc, currElementDecl.getType() );
+					} else if ( children[i].getMinOccurs() > 0 ) {
+						// TODO throw some error here
+					}
+				} else if ( currTerm.isModelGroupDecl() ) {
+					_valueToDocument( value, element, doc, currTerm.asModelGroupDecl().getModelGroup() );
+				} else if ( currTerm.isModelGroup() ) {
+					_valueToDocument( value, element, doc, currTerm.asModelGroup() );
+				}
+			}
+		} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
+			XSParticle[] children = modelGroup.getChildren();
+			XSTerm currTerm;
+			XSElementDecl currElementDecl;
+			Value v;
+			ValueVector vec;
+			boolean found = false;
+			for( int i = 0; i < children.length && !found; i++ ) {
+				currTerm = children[i].getTerm();
+				if ( currTerm.isElementDecl() ) {
+					currElementDecl = currTerm.asElementDecl();
+					name = currElementDecl.getName();
+					Element childElement = null;
+					if ( (vec=value.children().get( name )) != null ) {
+						childElement = doc.createElement( name );
+						element.appendChild( childElement );
+						found = true;
+						v = vec.remove( 0 );
+						_valueToDocument( v, childElement, doc, currElementDecl.getType() );
+					} else if ( children[i].getMinOccurs() > 0 ) {
+						// TODO throw some error here
+					}
+				}
+			}
+		}
+	}
+
+	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
+	{
+		if ( type.isSimpleType() ) {
+			element.appendChild( doc.createTextNode( value.strValue() ) );
+		} else if ( type.isComplexType() ) {
+			String name;
+			Value currValue;
+			XSComplexType complexType = type.asComplexType();
+
+			// Iterate over attributes
+			Collection< ? extends XSAttributeUse > attributeUses = complexType.getAttributeUses();
+			for( XSAttributeUse attrUse : attributeUses ) {
+				name = attrUse.getDecl().getName();
+				if ( (currValue=getAttributeOrNull( value, name )) != null ) {
+					element.setAttribute( name, currValue.strValue() );
+				}
+			}
+
+			XSParticle particle;
+			XSContentType contentType = complexType.getContentType();
+			if ( contentType.asSimpleType() != null ) {
+				element.appendChild( doc.createTextNode( value.strValue() ) );
+			} else if ( (particle=contentType.asParticle()) != null ) {
+				XSTerm term = particle.getTerm();
+				XSModelGroupDecl modelGroupDecl;
+				XSModelGroup modelGroup = null;
+				if ( (modelGroupDecl=term.asModelGroupDecl()) != null ) {
+					modelGroup = modelGroupDecl.getModelGroup();
+				} else if ( term.isModelGroup() ) {
+					modelGroup = term.asModelGroup();
+				}
+				if ( modelGroup != null ) {
+					_valueToDocument( value, element, doc, modelGroup );
+				}
+			}
+		}
+	}
+
+	private static void _valueToDocument(
 			Value value,
 			Element element,
 			Document doc
@@ -102,7 +222,7 @@ public class XmlUtils
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
 	 */
-	static public void documentToValue( Document document, Value value )
+	public static void documentToValue( Document document, Value value )
 	{
 		setAttributes( value, document.getDocumentElement() );
 		elementsToSubValues(
@@ -115,6 +235,20 @@ public class XmlUtils
 	{
 		return value.getFirstChild( Constants.Predefined.ATTRIBUTES.token().content() )
 					.getFirstChild( attrName );
+	}
+
+	private static Value getAttributeOrNull( Value value, String attributeName )
+	{
+		Value ret = null;
+		Map< String, ValueVector > attrs = getAttributesOrNull( value );
+		if ( attrs != null ) {
+			ValueVector vec = attrs.get( attributeName );
+			if ( vec != null && vec.size() > 0 ) {
+				ret = vec.first();
+			}
+		}
+
+		return ret;
 	}
 	
 	private static void setAttributes( Value value, Node node )
