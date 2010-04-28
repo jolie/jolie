@@ -22,6 +22,9 @@
 package joliex.io;
 
 
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,7 +68,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"jolie-xml.jar"})
+@AndJarDeps({"jolie-xml.jar","xsom.jar"})
 public class FileService extends JavaService
 {
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -132,16 +135,6 @@ public class FileService extends JavaService
 		istream.read( buffer );
 		istream.close();
 		value.setValue( new String( buffer ) );
-		/*String separator = System.getProperty( "line.separator" );
-		StringBuffer buffer = new StringBuffer();
-		String line;
-		BufferedReader reader = new BufferedReader( new InputStreamReader( istream ) );
-		while( (line=reader.readLine()) != null ) {
-			buffer.append( line );
-			buffer.append( separator );
-		}
-		reader.close();
-		value.setValue( buffer.toString() );*/
 	}
 	
 	public Value readFile( Value request )
@@ -231,20 +224,43 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	private void writeXML( File file, Value value, boolean append )
+	private void writeXML( File file, Value value, boolean append, String schemaFilename )
 		throws IOException
 	{
 		if ( value.children().isEmpty() ) {
 			return; // TODO: perhaps we should erase the content of the file before returning.
 		}
+		String rootName = value.children().keySet().iterator().next();
 		try {
+			XSType type = null;
+			if ( schemaFilename != null ) {
+				try {
+					XSOMParser parser = new XSOMParser();
+					parser.parse( schemaFilename );
+					XSSchemaSet schemaSet = parser.getResult();
+					if ( schemaSet != null ) {
+						type = schemaSet.getElementDecl( "", rootName ).getType();
+					}
+				} catch( SAXException e ) {
+					throw new IOException( e );
+				}
+			}
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			String rootName = value.children().keySet().iterator().next();
-			jolie.xml.XmlUtils.valueToDocument(
-				value.getFirstChild( rootName ),
-				rootName,
-				doc
-			);
+			
+			if ( type == null ) {
+				jolie.xml.XmlUtils.valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					doc
+				);
+			} else {
+				jolie.xml.XmlUtils.valueToDocument(
+					value.getFirstChild( rootName ),
+					rootName,
+					doc,
+					type
+				);
+			}
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
 			Writer writer = new FileWriter( file, append );
@@ -295,7 +311,11 @@ public class FileService extends JavaService
 			} else if ( "binary".equals( format ) ) {
 				writeBinary( file, content, append );
 			} else if ( "xml".equals( format ) ) {
-				writeXML( file, content, append );
+				String schemaFilename = null;
+				if ( request.getFirstChild( "format" ).hasChildren( "schema" ) ) {
+					schemaFilename = request.getFirstChild( "format" ).getFirstChild( "schema" ).strValue();
+				}
+				writeXML( file, content, append, schemaFilename );
 			} else if ( format.isEmpty() ) {
 				if ( content.isByteArray() ) {
 					writeBinary( file, content, append );
