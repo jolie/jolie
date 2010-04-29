@@ -1255,7 +1255,6 @@ public class OLParser extends AbstractParser
 			VariablePathNode keyPath = parseVariablePath();
 			eat(
 				Scanner.TokenType.COLON, "expected :" );
-			getToken();
 
 			VariablePathNode targetPath = parseVariablePath();
 			eat(
@@ -1500,7 +1499,7 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.DOT ) ) {
 			return parsePrefixedVariablePath();
 		}
-		assertToken( Scanner.TokenType.ID, "Expected variable path." );
+		assertToken( Scanner.TokenType.ID, "Expected variable path" );
 		String varId = token.content();
 		getToken();
 		return _parseVariablePath( varId );
