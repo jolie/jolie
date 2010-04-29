@@ -1565,7 +1565,11 @@ public class OLParser extends AbstractParser
 	{
 		int i = inVariablePaths.size() - 1;
 		List< Scanner.Token > tokens = new ArrayList< Scanner.Token >();
-		tokens.addAll( inVariablePaths.get( i ) );
+		try {
+			tokens.addAll( inVariablePaths.get( i ) );
+		} catch( IndexOutOfBoundsException e ) {
+			throwException( "Prefixed variable paths must be inside a with block" );
+		}
 
 		while ( tokens.get( 0 ).is( Scanner.TokenType.DOT ) ) {
 			i--;
