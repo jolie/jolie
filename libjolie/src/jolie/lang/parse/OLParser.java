@@ -402,20 +402,15 @@ public class OLParser extends AbstractParser
 		if ( token.isKeyword( "cset" ) ) {
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			String varId;
 			Set<List<VariablePathNode>> cset = new HashSet<List<VariablePathNode>>();
 			List<VariablePathNode> list;
 			while ( token.is( Scanner.TokenType.ID ) ) {
 				list = new LinkedList<VariablePathNode>();
-				varId = token.content();
-				getToken();
-				list.add( parseVariablePath( varId ) );
+				list.add( parseVariablePath() );
 				if ( token.is( Scanner.TokenType.COLON ) ) {
 					getToken();
 					while ( token.is( Scanner.TokenType.ID ) ) {
-						varId = token.content();
-						getToken();
-						list.add( parseVariablePath( varId ) );
+						list.add( parseVariablePath() );
 					}
 				}
 				cset.add( list );
@@ -1158,7 +1153,7 @@ public class OLParser extends AbstractParser
 			getToken();
 
 			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.CHOICE ) ) {
-				retVal = parseAssignOrDeepCopyOrPointerStatement( parseVariablePath( id ) );
+				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
 			} else if ( token.is( Scanner.TokenType.AT ) ) {
@@ -1176,22 +1171,11 @@ public class OLParser extends AbstractParser
 			retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-
-			retVal =
-				new PreIncrementStatement( getContext(), parseVariablePath( varId ) );
+			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-
 			retVal =
-				new PreDecrementStatement( getContext(), parseVariablePath( varId ) );
+				new PreDecrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.SYNCHRONIZED ) ) {
 			getToken();
 			eat(
@@ -1214,14 +1198,8 @@ public class OLParser extends AbstractParser
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
 			checkConstant();
-
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String id = token.content();
-			getToken();
-
 			retVal =
-				new UndefStatement( getContext(), parseVariablePath( id ) );
+				new UndefStatement( getContext(), parseVariablePath() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.FOR ) ) {
@@ -1245,11 +1223,7 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.SPAWN ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String id = token.content();
-			getToken();
-			VariablePathNode indexVariablePath = parseVariablePath( id );
+			VariablePathNode indexVariablePath = parseVariablePath();
 			assertToken( Scanner.TokenType.ID, "expected over" );
 			if ( token.isKeyword( "over" ) == false ) {
 				throwException( "expected over" );
@@ -1261,9 +1235,7 @@ public class OLParser extends AbstractParser
 			VariablePathNode inVariablePath = null;
 			if ( token.isKeyword( "in" ) ) {
 				getToken();
-				id = token.content();
-				getToken();
-				inVariablePath = parseVariablePath( id );
+				inVariablePath = parseVariablePath();
 			}
 			eat( Scanner.TokenType.LCURLY, "expected {" );
 			OLSyntaxNode process = parseProcess();
@@ -1279,21 +1251,13 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
-			assertToken(
-				Scanner.TokenType.ID, "expected variable path" );
-			String varId = token.content();
-			getToken();
 
-			VariablePathNode keyPath = parseVariablePath( varId );
+			VariablePathNode keyPath = parseVariablePath();
 			eat(
 				Scanner.TokenType.COLON, "expected :" );
-			assertToken(
-				Scanner.TokenType.ID, "expected variable path" );
-			varId =
-				token.content();
 			getToken();
 
-			VariablePathNode targetPath = parseVariablePath( varId );
+			VariablePathNode targetPath = parseVariablePath();
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 
@@ -1517,22 +1481,12 @@ public class OLParser extends AbstractParser
 				new PostDecrementStatement( getContext(), path );
 		} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String id = token.content();
-			getToken();
-
 			retVal =
-				new PointerStatement( getContext(), path, parseVariablePath( id ) );
+				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String id = token.content();
-			getToken();
-
 			retVal =
-				new DeepCopyStatement( getContext(), path, parseVariablePath( id ) );
+				new DeepCopyStatement( getContext(), path, parseVariablePath() );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}
@@ -1540,7 +1494,19 @@ public class OLParser extends AbstractParser
 		return retVal;
 	}
 
-	private VariablePathNode parseVariablePath( String varId )
+	private VariablePathNode parseVariablePath()
+		throws ParserException, IOException
+	{
+		if ( token.is( Scanner.TokenType.DOT ) ) {
+			return parsePrefixedVariablePath();
+		}
+		assertToken( Scanner.TokenType.ID, "Expected variable path." );
+		String varId = token.content();
+		getToken();
+		return _parseVariablePath( varId );
+	}
+
+	private VariablePathNode _parseVariablePath( String varId )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode expr = null;
@@ -1614,7 +1580,7 @@ public class OLParser extends AbstractParser
 		String varId = token.content();
 		getToken();
 
-		return parseVariablePath( varId );
+		return _parseVariablePath( varId );
 	}
 
 	private NDChoiceStatement parseNDChoiceStatement()
@@ -1707,11 +1673,7 @@ public class OLParser extends AbstractParser
 		eat(
 			Scanner.TokenType.LPAREN, "expected (" );
 		if ( token.is( Scanner.TokenType.ID ) ) {
-			String varId = token.content();
-			getToken();
-
-			ret =
-				parseVariablePath( varId );
+			ret = parseVariablePath();
 		} else if ( token.is( Scanner.TokenType.DOT ) ) {
 			ret = parsePrefixedVariablePath();
 		}
@@ -1937,22 +1899,12 @@ public class OLParser extends AbstractParser
 
 		checkConstant();
 
-		if ( token.is( Scanner.TokenType.ID ) ) {
-			String varId = token.content();
-			getToken();
-			path = parseVariablePath( varId );
-		} else if ( token.is( Scanner.TokenType.DOT ) ) {
-			path = parsePrefixedVariablePath();
+		if ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.DOT ) ) {
+			path = parseVariablePath();
 		} else if ( insideInstallFunction && token.is( Scanner.TokenType.CARET ) ) {
 			getToken();
-			String varId = token.content();
-			getToken();
-
-			path =
-				parseVariablePath( varId );
-			retVal =
-				new InstallFixedVariableExpressionNode( getContext(), path );
-
+			path = parseVariablePath();
+			retVal = new InstallFixedVariableExpressionNode( getContext(), path );
 			return retVal;
 		}
 
@@ -1987,76 +1939,50 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.HASH ) ) {
 			getToken();
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
 			retVal = new ValueVectorSizeExpressionNode(
 				getContext(),
-				parseVariablePath( varId )
+				parseVariablePath()
 			);
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-			retVal = new PreIncrementStatement( getContext(), parseVariablePath( varId ) );
+			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
 			getToken();
-			assertToken(
-				Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-			retVal = new PreDecrementStatement( getContext(), parseVariablePath( varId ) );
+			retVal = new PreDecrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.IS_DEFINED ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
 			retVal = new IsTypeExpressionNode(
 				getContext(),
 				IsTypeExpressionNode.CheckType.DEFINED,
-				parseVariablePath( varId )
+				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_INT ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-
 			retVal = new IsTypeExpressionNode(
 				getContext(),
 				IsTypeExpressionNode.CheckType.INT,
-				parseVariablePath( varId )
+				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_REAL ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-
 			retVal = new IsTypeExpressionNode(
 				getContext(),
 				IsTypeExpressionNode.CheckType.REAL,
-				parseVariablePath( varId )
+				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.IS_STRING ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-			assertToken( Scanner.TokenType.ID, "expected variable identifier" );
-			String varId = token.content();
-			getToken();
-
 			retVal = new IsTypeExpressionNode(
 				getContext(),
 				IsTypeExpressionNode.CheckType.STRING,
-				parseVariablePath( varId )
+				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.CAST_INT ) ) {
