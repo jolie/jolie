@@ -188,25 +188,41 @@ public abstract class CommChannel
 		}
 	}
 	
-	abstract protected CommMessage recvImpl()
+	protected abstract CommMessage recvImpl()
 		throws IOException;
 	
-	abstract protected void sendImpl( CommMessage message )
+	protected abstract void sendImpl( CommMessage message )
 		throws IOException;
 	
 	/**
 	 * Releases this CommChannel, making it available
 	 * to other processes for sending data.
 	 * @throws IOException in case of an internal error
+	 *
 	 */
 	public final void release()
 		throws IOException
 	{
-		if ( toBeClosed ) {
-			isOpen = false;
-			close();
+		// TODO: get rid of the code duplication
+		if ( lock.isHeldByCurrentThread() ) {
+			if ( toBeClosed() ) {
+				isOpen = false;
+				close();
+			} else {
+				releaseImpl();
+			}
 		} else {
-			releaseImpl();
+			lock.lock();
+			try {
+				if ( toBeClosed() ) {
+					isOpen = false;
+					close();
+				} else {
+					releaseImpl();
+				}
+			} finally {
+				lock.unlock();
+			}
 		}
 	}
 
@@ -234,7 +250,16 @@ public abstract class CommChannel
 	public final void disposeForInput()
 		throws IOException
 	{
-		disposeForInputImpl();
+		if ( lock.isHeldByCurrentThread() ) {
+			disposeForInputImpl();
+		} else {
+			lock.lock();
+			try {
+				disposeForInputImpl();
+			} finally {
+				lock.unlock();
+			}
+		}
 	}
 	
 	protected void disposeForInputImpl()

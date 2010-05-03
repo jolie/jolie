@@ -31,10 +31,10 @@ import jolie.net.protocols.CommProtocol;
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */
-abstract public class StreamingCommChannel extends AbstractCommChannel
+public abstract class StreamingCommChannel extends AbstractCommChannel
 {
-	final private URI location;
-	final private CommProtocol protocol;
+	private final URI location;
+	private final CommProtocol protocol;
 	public StreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		this.location = location;
@@ -56,15 +56,15 @@ abstract public class StreamingCommChannel extends AbstractCommChannel
 	private void _releaseImpl()
 		throws IOException
 	{
-		if ( toBeClosed() == false ) {
-			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
-		} else {
+		if ( toBeClosed() ) {
 			closeImpl();
+		} else {
+			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
 		}
 	}
 
 	@Override
-	final protected void releaseImpl()
+	protected final void releaseImpl()
 		throws IOException
 	{
 		if ( lock.isHeldByCurrentThread() ) {

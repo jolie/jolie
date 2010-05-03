@@ -11,7 +11,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
+ *   You should have receicved a copy of the GNU Library General Public     *
  *   License along with this program; if not, write to the                 *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
@@ -496,27 +496,23 @@ public class CommCore
 			CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().mainThread() );
 			try {
-				
 				channel.lock.lock();
-				try {
-					if ( channel.redirectionChannel() == null ) {
-						assert( listener != null );
-						CommMessage message = channel.recv();
-						if ( message != null ) {
-							handleMessage( message );
-						}
-					} else {
-						CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
-						if ( response != null ) {
-							forwardResponse( response );
-						}
+				if ( channel.redirectionChannel() == null ) {
+					assert( listener != null );
+					CommMessage message = channel.recv();
+					if ( message != null ) {
+						handleMessage( message );
 					}
-				} finally {
-					channel.lock.unlock();
+				} else {
+					CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+					if ( response != null ) {
+						forwardResponse( response );
+					}
 				}
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
 			} finally {
+				channel.lock.unlock();
 				thread.setExecutionThread( null );
 			}
 		}
