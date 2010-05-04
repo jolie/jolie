@@ -243,24 +243,47 @@ public class DatabaseService extends JavaService
 		checkConnection();
 		Value resultValue = Value.create();
 		ValueVector resultVector = resultValue.getChildren( "result" );
-		try {
-			synchronized( transactionMutex ) {
+		synchronized( transactionMutex ) {
+			try {
 				connection.setAutoCommit( false );
-				Value currResultValue;
-				for( Value statementValue : request.getChildren( "statement" ) ) {
-					currResultValue = Value.create();
-					Statement stm = connection.createStatement();
+			} catch( SQLException e ) {
+				throw new FaultException( e );
+			}
+			Value currResultValue;
+			Statement stm;
+			for( Value statementValue : request.getChildren( "statement" ) ) {
+				currResultValue = Value.create();
+				stm = null;
+				try {
+					stm = connection.createStatement();
 					if ( stm.execute( statementValue.strValue() ) == true ) {
 						resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 					}
 					resultVector.add( currResultValue );
-					stm.close();
+				} catch( SQLException e ) {
+					throw new FaultException( e );
+				} finally {
+					if ( stm != null ) {
+						try {
+							stm.close();
+						} catch( SQLException e ) {
+							throw new FaultException( e );
+						}
+					}
 				}
-				connection.commit();
-				connection.setAutoCommit( true );
 			}
-		} catch( SQLException e ) {
-			throw new FaultException( e );
+
+			try {
+				connection.commit();
+			} catch( SQLException e ) {
+				throw new FaultException( e );
+			} finally {
+				try {
+					connection.setAutoCommit( true );
+				} catch( SQLException e ) {
+					throw new FaultException( e );
+				}
+			}
 		}
 		return resultValue;
 	}
