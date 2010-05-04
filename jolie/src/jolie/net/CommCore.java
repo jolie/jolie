@@ -504,8 +504,8 @@ public class CommCore
 		{
 			CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().mainThread() );
+			channel.lock.lock();
 			try {
-				channel.lock.lock();
 				if ( channel.redirectionChannel() == null ) {
 					assert( listener != null );
 					CommMessage message = channel.recv();

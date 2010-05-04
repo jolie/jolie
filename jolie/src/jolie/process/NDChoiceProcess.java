@@ -143,9 +143,10 @@ public class NDChoiceProcess implements CorrelatedInputProcess
 				Interpreter.getInstance().logWarning( "Received message TypeMismatch (Input operation " + message.operationName() + "): " + e.getMessage() );
 				try {
 					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
-					channel.release();
 				} catch( IOException ioe ) {
 					Interpreter.getInstance().logSevere( ioe );
+				} finally {
+					choice = null;
 				}
 				throw e;
 			}
