@@ -381,8 +381,11 @@ public class CommCore
 				try {
 					channel.redirectionChannel().send( message );
 				} finally {
-					channel.setRedirectionChannel( null );
-					channel.redirectionChannel().disposeForInput();
+					try {
+						channel.redirectionChannel().disposeForInput();
+					} finally {
+						channel.setRedirectionChannel( null );
+					}
 				}
 			} finally {
 				channel.closeImpl();
