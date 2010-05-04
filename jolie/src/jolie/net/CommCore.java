@@ -377,10 +377,16 @@ public class CommCore
 				message.value(),
 				message.fault()
 			);
-			channel.redirectionChannel().send( message );
-			channel.redirectionChannel().disposeForInput();
-			channel.setRedirectionChannel( null );
-			channel.closeImpl();
+			try {
+				try {
+					channel.redirectionChannel().send( message );
+				} finally {
+					channel.setRedirectionChannel( null );
+					channel.redirectionChannel().disposeForInput();
+				}
+			} finally {
+				channel.closeImpl();
+			}
 		}
 
 		private void handleRedirectionInput( CommMessage message, String[] ss )
