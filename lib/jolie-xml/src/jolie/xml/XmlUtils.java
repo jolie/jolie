@@ -95,10 +95,18 @@ public class XmlUtils
 					name = currElementDecl.getName();
 					Element childElement = null;
 					if ( (vec=value.children().get( name )) != null ) {
-						childElement = doc.createElement( name );
-						element.appendChild( childElement );
-						v = vec.remove( 0 );
-						_valueToDocument( v, childElement, doc, currElementDecl.getType() );
+						int k = 0;
+						while(
+							vec.isEmpty() == false &&
+							(children[i].getMaxOccurs() == XSParticle.UNBOUNDED ||
+								children[i].getMaxOccurs() > k)
+						) {
+							childElement = doc.createElement( name );
+							element.appendChild( childElement );
+							v = vec.remove( 0 );
+							_valueToDocument( v, childElement, doc, currElementDecl.getType() );
+							k++;
+						}
 					} else if ( children[i].getMinOccurs() > 0 ) {
 						// TODO throw some error here
 					}
