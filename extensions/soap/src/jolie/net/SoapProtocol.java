@@ -410,18 +410,23 @@ public class SoapProtocol extends SequentialCommProtocol
 								name = currElementDecl.getName();
 								prefix = ( first ) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
 								SOAPElement childElement = null;
-								if ( prefix == null )
-									childElement = element.addChildElement( name );
-								else
-									childElement = element.addChildElement( name, prefix );
 								if ( (vec=value.children().get( name )) != null ) {
-									v = vec.remove( 0 );
-									valueToTypedSOAP(
-										v,
-										currElementDecl,
-										childElement,
-										envelope,
-										false );
+									int k = 0;
+									while( vec.size() > 0 && (children[i].getMaxOccurs() > k || children[i].getMaxOccurs() == XSParticle.UNBOUNDED ) ) {
+										if ( prefix == null ) {
+											childElement = element.addChildElement( name );
+										} else {
+											childElement = element.addChildElement( name, prefix );
+										}
+										v = vec.remove( 0 );
+										valueToTypedSOAP(
+											v,
+											currElementDecl,
+											childElement,
+											envelope,
+											false );
+										k++;
+									}
 								} else if ( children[i].getMinOccurs() > 0 ) {
 									// TODO improve this error message.
 									throw new SOAPException( "Invalid variable structure: expected " + name );
