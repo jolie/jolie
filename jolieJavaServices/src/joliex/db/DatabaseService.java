@@ -261,6 +261,11 @@ public class DatabaseService extends JavaService
 					}
 					resultVector.add( currResultValue );
 				} catch( SQLException e ) {
+					try {
+						connection.rollback();
+					} catch( SQLException e1 ) {
+						connection = null;
+					}
 					throw new FaultException( e );
 				} finally {
 					if ( stm != null ) {
