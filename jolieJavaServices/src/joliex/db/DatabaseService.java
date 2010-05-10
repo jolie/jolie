@@ -153,14 +153,20 @@ public class DatabaseService extends JavaService
 	{
 		checkConnection();
 		Value resultValue = Value.create();
+		Statement stm = null;
 		try {
 			synchronized( transactionMutex ) {
-				Statement stm = connection.createStatement();
+				stm = connection.createStatement();
 				resultValue.setValue( stm.executeUpdate( query ) );
-				stm.close();
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( e );
+		} finally {
+			if ( stm != null ) {
+				try {
+					stm.close();
+				} catch( SQLException e ) {}
+			}
 		}
 		return resultValue;
 	}
@@ -298,15 +304,21 @@ public class DatabaseService extends JavaService
 	{
 		checkConnection();
 		Value resultValue = Value.create();
+		Statement stm = null;
 		try {
 			synchronized( transactionMutex ) {
-				Statement stm = connection.createStatement();
+				stm = connection.createStatement();
 				ResultSet result = stm.executeQuery( query );
 				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
-				stm.close();
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( "SQLException", e );
+		} finally {
+			if ( stm != null ) {
+				try {
+					stm.close();
+				} catch( SQLException e ) {}
+			}
 		}
 		
 		return resultValue;
