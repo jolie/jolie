@@ -58,9 +58,9 @@ public class ForEachProcess implements Process
 			return;
 		}
 
-		Value v = targetPath.getValue();
-		if ( v.hasChildren() ) {
-			for( String id : targetPath.getValue().children().keySet() ) {
+		Value v = targetPath.getValueOrNull();
+		if ( v != null && v.hasChildren() ) {
+			for( String id : v.children().keySet() ) {
 				keyPath.getValue().setValue( id );
 				process.run();
 			}
