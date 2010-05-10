@@ -137,7 +137,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	private URI uri = null;
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
-	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	private final TransformerFactory transformerFactory;
 	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
 	
 	private boolean received = false;
@@ -154,6 +154,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	{
 		super( configurationPath );
 		this.uri = uri;
+		this.transformerFactory = TransformerFactory.newInstance();
 		this.interpreter = interpreter;
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
 	}
