@@ -495,6 +495,22 @@ public class SoapProtocol extends SequentialCommProtocol
 		return port;
 	}
 
+	private String getOutputMessageRootElementName( String operationName )
+		throws IOException
+	{
+		String elementName = operationName;
+		Port port = getWSDLPort();
+		if ( port != null ) {
+			try {
+				Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
+				Part part = ((Entry<String,Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next()).getValue();
+				elementName = part.getElementName().getLocalPart();
+				
+			} catch( Exception e ) {}
+		}
+		return elementName;
+	}
+
 	private String getOutputMessageNamespace( String operationName )
 		throws IOException
 	{
@@ -582,10 +598,11 @@ public class SoapProtocol extends SequentialCommProtocol
 			} else {
 				XSSchemaSet sSet = getSchemaSet();
 				XSElementDecl elementDecl;
+				String messageRootElementName = getOutputMessageRootElementName( message.operationName() );
 				if ( sSet == null ||
-						(elementDecl=sSet.getElementDecl( messageNamespace, inputId )) == null
+						(elementDecl=sSet.getElementDecl( messageNamespace, messageRootElementName )) == null
 					) {
-					Name operationName = soapEnvelope.createName( inputId );
+					Name operationName = soapEnvelope.createName( messageRootElementName );
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 					valueToSOAPElement( message.value(), opBody, soapEnvelope );
 				} else {
@@ -598,7 +615,7 @@ public class SoapProtocol extends SequentialCommProtocol
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
-							soapEnvelope.createName( inputId, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null )
+							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null )
 						);
 					}
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped );
