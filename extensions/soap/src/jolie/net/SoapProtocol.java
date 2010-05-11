@@ -113,6 +113,7 @@ import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.protocols.SequentialCommProtocol;
+import jolie.net.soap.WSDLCache;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -446,9 +447,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		if ( wsdlDefinition == null && hasParameter( "wsdl" ) ) {
 			String wsdlUrl = getStringParameter( "wsdl" );
 			try {
-				WSDLFactory factory = WSDLFactory.newInstance();
-				WSDLReader reader = factory.newWSDLReader();
-				wsdlDefinition = reader.readWSDL( wsdlUrl );
+				wsdlDefinition = WSDLCache.getInstance().get( wsdlUrl );
 			} catch( WSDLException e ) {
 				throw new IOException( e );
 			}
