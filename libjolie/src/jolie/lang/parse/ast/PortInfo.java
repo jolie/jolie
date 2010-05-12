@@ -27,10 +27,10 @@ import java.util.HashMap;
 import java.util.Map;
 import jolie.lang.parse.ParsingContext;
 
-abstract public class PortInfo extends OLSyntaxNode implements OperationCollector
+public abstract class PortInfo extends OLSyntaxNode implements OperationCollector
 {
-	final private String id;
-	final private Map< String, OperationDeclaration > operationsMap =
+	private final String id;
+	private final Map< String, OperationDeclaration > operationsMap =
 						new HashMap< String, OperationDeclaration > ();
 	
 	public PortInfo( ParsingContext context, String id )
