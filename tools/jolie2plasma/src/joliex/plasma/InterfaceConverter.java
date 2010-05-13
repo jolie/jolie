@@ -42,9 +42,9 @@ import joliex.plasma.impl.InterfaceVisitor.InterfaceNotFound;
  */
 public class InterfaceConverter
 {
-	final private Program program;
-	final private String[] interfaceNames;
-	final private Logger logger;
+	private final Program program;
+	private final String[] interfaceNames;
+	private final Logger logger;
 
 	public InterfaceConverter( Program program, String[] interfaceNames, Logger logger )
 	{
