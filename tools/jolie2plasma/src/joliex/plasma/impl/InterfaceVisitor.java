@@ -94,10 +94,10 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
  */
 public class InterfaceVisitor implements OLVisitor
 {
-	final private Program program;
-	final private List< InterfaceDefinition > interfaceDefinitions =
+	private final Program program;
+	private final List< InterfaceDefinition > interfaceDefinitions =
 		new ArrayList< InterfaceDefinition >();
-	final private Set< String > interfaceNames = new HashSet< String >();
+	private final Set< String > interfaceNames = new HashSet< String >();
 
 	public class InterfaceNotFound extends Exception
 	{
