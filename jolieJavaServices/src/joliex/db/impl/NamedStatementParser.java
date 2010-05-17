@@ -98,7 +98,10 @@ public class NamedStatementParser
 					inSingleQuote = true;
 				} else if ( c == '"' ) {
 					inDoubleQuote = true;
-				} else if ( c == ':' && i+1 < length && Character.isJavaIdentifierPart( sql.charAt( i+1 ) ) ) {
+				} else if (
+					c == ':' && i+1 < length && Character.isJavaIdentifierPart( sql.charAt( i+1 ) )
+					&& ( i == 0 || sql.charAt( i - 1 ) != ':' )
+				) {
 					j = i + 2;
 					while( j < length && Character.isJavaIdentifierPart( sql.charAt( j ) ) ) {
 						j++;
