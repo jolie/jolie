@@ -27,8 +27,8 @@ import jolie.lang.parse.ParsingContext;
 
 public class ForEachStatement extends OLSyntaxNode
 {
-	final private VariablePathNode keyPath, targetPath;
-	final private OLSyntaxNode body;
+	private final VariablePathNode keyPath, targetPath;
+	private final OLSyntaxNode body;
 
 	public ForEachStatement(
 			ParsingContext context,

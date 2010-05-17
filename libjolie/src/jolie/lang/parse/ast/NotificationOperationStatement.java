@@ -27,8 +27,8 @@ import jolie.lang.parse.ParsingContext;
 
 public class NotificationOperationStatement extends OLSyntaxNode
 {
-	final private String id, outputPortId;
-	final private OLSyntaxNode outputExpression;
+	private final String id, outputPortId;
+	private final OLSyntaxNode outputExpression;
 	
 	public NotificationOperationStatement(
 			ParsingContext context,

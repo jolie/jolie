@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class UndefStatement extends OLSyntaxNode
 {
-	final private VariablePathNode variablePath;
+	private final VariablePathNode variablePath;
 
 	public UndefStatement( ParsingContext context, VariablePathNode variablePath )
 	{

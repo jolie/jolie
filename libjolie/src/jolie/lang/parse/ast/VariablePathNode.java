@@ -32,8 +32,8 @@ import jolie.util.Pair;
 
 public class VariablePathNode extends OLSyntaxNode implements Serializable
 {
-	final private List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
-	final private boolean global;
+	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
+	private final boolean global;
 
 	public VariablePathNode( ParsingContext context, boolean global )
 	{

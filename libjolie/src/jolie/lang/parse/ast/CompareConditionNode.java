@@ -28,8 +28,8 @@ import jolie.lang.parse.Scanner;
 
 public class CompareConditionNode extends OLSyntaxNode
 {
-	final private OLSyntaxNode leftExpression, rightExpression;
-	final private Scanner.TokenType opType;
+	private final OLSyntaxNode leftExpression, rightExpression;
+	private final Scanner.TokenType opType;
 
 	public CompareConditionNode( ParsingContext context, OLSyntaxNode leftExpr, OLSyntaxNode rightExpr, Scanner.TokenType opType )
 	{

@@ -27,9 +27,9 @@ import jolie.lang.parse.ParsingContext;
 
 public class EmbeddedServiceNode extends OLSyntaxNode
 {
-	final private String servicePath;
-	final private String portId;
-	final private Constants.EmbeddedServiceType type;
+	private final String servicePath;
+	private final String portId;
+	private final Constants.EmbeddedServiceType type;
 	
 	public EmbeddedServiceNode(
 			ParsingContext context,
