@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -36,6 +37,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
+import joliex.db.impl.NamedStatementParser;
 
 /**
  * @author Fabrizio Montesi
@@ -148,16 +150,16 @@ public class DatabaseService extends JavaService
 		}
 	}
 	
-	public Value update( String query )
+	public Value update( Value request )
 		throws FaultException
 	{
 		checkConnection();
 		Value resultValue = Value.create();
-		Statement stm = null;
+		PreparedStatement stm = null;
 		try {
 			synchronized( transactionMutex ) {
-				stm = connection.createStatement();
-				resultValue.setValue( stm.executeUpdate( query ) );
+				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
+				resultValue.setValue( stm.executeUpdate() );
 			}
 		} catch( SQLException e ) {
 			throw new FaultException( e );
@@ -256,13 +258,13 @@ public class DatabaseService extends JavaService
 				throw new FaultException( e );
 			}
 			Value currResultValue;
-			Statement stm;
+			PreparedStatement stm;
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
 				stm = null;
 				try {
-					stm = connection.createStatement();
-					if ( stm.execute( statementValue.strValue() ) == true ) {
+					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
+					if ( stm.execute() == true ) {
 						resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 					}
 					resultVector.add( currResultValue );
@@ -299,16 +301,16 @@ public class DatabaseService extends JavaService
 		return resultValue;
 	}
 	
-	public Value query( String query )
+	public Value query( Value request )
 		throws FaultException
 	{
 		checkConnection();
 		Value resultValue = Value.create();
-		Statement stm = null;
+		PreparedStatement stm = null;
 		try {
 			synchronized( transactionMutex ) {
-				stm = connection.createStatement();
-				ResultSet result = stm.executeQuery( query );
+				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
+				ResultSet result = stm.executeQuery();
 				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 			}
 		} catch( SQLException e ) {
