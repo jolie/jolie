@@ -34,18 +34,22 @@ type QueryResult:void {
 }
 
 type DatabaseTransactionRequest:void {
-	.statement[1,*]:string
+	.statement[1,*]:string { ? }
 }
 
 type DatabaseTransactionResult:void {
 	.result[0,*]:QueryResult
 }
 
+type QueryRequest:string { ? }
+
+type UpdateRequest:string { ? }
+
 interface DatabaseInterface {
 RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver,
-	query(string)(QueryResult) throws SQLException ConnectionError,
-	update(string)(int) throws SQLException ConnectionError,
+	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
+	update(UpdateRequest)(int) throws SQLException ConnectionError,
 	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError
 }
 
