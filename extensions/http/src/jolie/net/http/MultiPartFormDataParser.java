@@ -25,21 +25,41 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import jolie.net.HttpProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 
 public class MultiPartFormDataParser
 {
-	//final private BufferedReader reader;
-	final private String boundary;
-	final private Value value;
-	final private HttpMessage message;
+	private final String boundary;
+	private final Value value;
+	private final HttpMessage message;
+	private final Map< String, PartProperties > partPropertiesMap = new HashMap< String, PartProperties >();
+
+	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
+	private static final Pattern keyValueSplitPattern = Pattern.compile( "=" );
+
+	public class PartProperties {
+		private String filename = null;
+		private void setFilename( String filename )
+		{
+			this.filename = filename;
+		}
+		public String filename()
+		{
+			return filename;
+		}
+	}
 	
 	public MultiPartFormDataParser( HttpMessage message, Value value )
 		throws IOException
 	{
-		final String[] params = message.getProperty( "content-type" ).split( ";" );
+		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
 		String b = null;
 		try {
 			for( String param : params ) {
@@ -58,7 +78,21 @@ public class MultiPartFormDataParser
 		this.value = value;
 		this.boundary = b;
 		this.message = message;
-		
+	}
+
+	private PartProperties getPartProperties( String partName )
+	{
+		PartProperties ret = partPropertiesMap.get( partName );
+		if ( ret == null ) {
+			ret = new PartProperties();
+			partPropertiesMap.put( partName, ret );
+		}
+		return ret;
+	}
+
+	public Collection< Entry< String, PartProperties > > getPartPropertiesSet()
+	{
+		return partPropertiesMap.entrySet();
 	}
 	
 	private void parsePart( String part, int offset )
@@ -70,21 +104,29 @@ public class MultiPartFormDataParser
 						new BufferedReader(
 							new StringReader( hc[0] )
 						);
-		String line, name = null;
+		String line, name = null, filename = null;
 		String[] params;
 		
 		// Parse part header
 		while( (line=reader.readLine()) != null && !line.isEmpty() ) {
-			params = line.split( ";" );
+			params = parametersSplitPattern.split( line );
 			for( String param : params ) {
 				param = param.trim();
 				if ( param.startsWith( "name" ) ) {
 					try {
-						name = param.split( "=" )[1];
+						name = keyValueSplitPattern.split( param )[1];
 						// Names are surronded by "": cut them.
 						name = name.substring( 1, name.length() - 1 );
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid name specified in multipart form data element" );
+					}
+				} else if ( param.startsWith( "filename" ) ) {
+					try {
+						filename = keyValueSplitPattern.split( param )[1];
+						// Filenames are surronded by "": cut them.
+						filename = filename.substring( 1, filename.length() - 1 );
+					} catch( ArrayIndexOutOfBoundsException e ) {
+						throw new IOException( "Invalid filename specified in multipart form data element" );
 					}
 				}
 				// TODO: parse content-type and use it appropriately
@@ -102,6 +144,10 @@ public class MultiPartFormDataParser
 		}/* else {
 			value.getNewChild( name ).setValue( new ByteArray( new byte[0] ) );
 		}*/
+
+		if ( filename != null ) {
+			getPartProperties( name ).setFilename( filename );
+		}
 	}
 
 	public void parse()
