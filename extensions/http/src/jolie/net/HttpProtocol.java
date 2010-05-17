@@ -82,11 +82,17 @@ public class HttpProtocol extends SequentialCommProtocol
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
 	//private static final byte[] INTERNAL_SERVER_ERROR_HEADER = "HTTP/1.1 500 Internal Server error".getBytes();
 
+
 	private static class Parameters {
 		private static String DEBUG = "debug";
 		private static String COOKIES = "cookies";
 		private static String METHOD = "method";
 		private static String ALIAS = "alias";
+		private static String MULTIPART_HEADERS = "multipartHeaders";
+
+		private static class MultiPartHeaders {
+			private static String FILENAME = "filename";
+		}
 	}
 
 	private String inputId = null;
@@ -95,6 +101,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private final DocumentBuilder docBuilder;
 	private final URI uri;
 	private boolean received = false;
+	private MultiPartFormDataParser multiPartFormDataParser = null;
 	
 	public final static String CRLF = new String( new char[] { 13, 10 } );
 
@@ -147,6 +154,21 @@ public class HttpProtocol extends SequentialCommProtocol
 				}
 			}
 		}
+	}
+
+	public String getMultipartHeaderForPart( String operationName, String partName )
+	{
+		if ( hasOperationSpecificParameter( operationName, Parameters.MULTIPART_HEADERS ) ) {
+			Value v = getOperationSpecificParameterFirstValue( operationName, Parameters.MULTIPART_HEADERS );
+			if ( v.hasChildren( partName ) ) {
+				v = v.getFirstChild( partName );
+				if ( v.hasChildren( Parameters.MultiPartHeaders.FILENAME ) ) {
+					v = v.getFirstChild( Parameters.MultiPartHeaders.FILENAME );
+					return v.strValue();
+				}
+			}
+		}
+		return null;
 	}
 	
 	private final static String BOUNDARY = "----Jol13H77p$$Bound4r1$$";
@@ -570,11 +592,11 @@ public class HttpProtocol extends SequentialCommProtocol
 		}		
 	}
 	
-	private static void parseMultiPartFormData( HttpMessage message, Value value )
+	private void parseMultiPartFormData( HttpMessage message, Value value )
 		throws IOException
 	{
-		MultiPartFormDataParser parser = new MultiPartFormDataParser( message, value );
-		parser.parse();
+		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
+		multiPartFormDataParser.parse();
 	}
 	
 	private static String parseGWTRPC( HttpMessage message, Value value )
@@ -766,11 +788,28 @@ public class HttpProtocol extends SequentialCommProtocol
 			}
 		}
 	}
+
+	private void recv_checkForMultiPartHeaders( DecodedMessage decodedMessage )
+	{
+		if ( multiPartFormDataParser != null ) {
+			String target;
+			for( Entry< String, MultiPartFormDataParser.PartProperties > entry : multiPartFormDataParser.getPartPropertiesSet() ) {
+				if ( entry.getValue().filename() != null ) {
+					target = getMultipartHeaderForPart( decodedMessage.operationName, entry.getKey() );
+					if ( target != null ) {
+						decodedMessage.value.getFirstChild( target ).setValue( entry.getValue().filename() );
+					}
+				}
+			}
+			multiPartFormDataParser = null;
+		}
+	}
 	
 	private void recv_checkForMessageProperties( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
 		recv_checkForCookies( message, decodedMessage );
+		recv_checkForMultiPartHeaders( decodedMessage );// message, decodedMessage );
 		String property;
 		if (
 			(property=message.getProperty( "user-agent" )) != null &&
