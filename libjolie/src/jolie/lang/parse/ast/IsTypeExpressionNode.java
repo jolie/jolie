@@ -34,8 +34,8 @@ public class IsTypeExpressionNode extends OLSyntaxNode
 		REAL
 	}
 	
-	final private VariablePathNode variablePath;
-	final private CheckType type;
+	private final VariablePathNode variablePath;
+	private final CheckType type;
 
 	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath )
 	{

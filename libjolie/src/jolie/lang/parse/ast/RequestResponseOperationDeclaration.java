@@ -30,8 +30,8 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 
 public class RequestResponseOperationDeclaration extends OperationDeclaration
 {
-	final private Map< String, TypeDefinition > faults;
-	final private TypeDefinition requestType, responseType;
+	private final Map< String, TypeDefinition > faults;
+	private final TypeDefinition requestType, responseType;
 
 	public RequestResponseOperationDeclaration(
 			ParsingContext context,

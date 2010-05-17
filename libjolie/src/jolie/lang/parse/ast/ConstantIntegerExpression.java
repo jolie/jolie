@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class ConstantIntegerExpression extends OLSyntaxNode
 {
-	final private int value;
+	private final int value;
 
 	public ConstantIntegerExpression( ParsingContext context, int value )
 	{

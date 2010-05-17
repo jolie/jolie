@@ -34,7 +34,7 @@ import jolie.util.Range;
  * Representation for a type definition.
  * @author Fabrizio Montesi
  */
-abstract public class TypeDefinition extends OLSyntaxNode
+public abstract class TypeDefinition extends OLSyntaxNode
 {
 	private final String id;
 	private final Range cardinality;

@@ -28,8 +28,8 @@ import jolie.lang.parse.ParsingContext;
 
 public class TypeCastExpressionNode extends OLSyntaxNode
 {
-	final private OLSyntaxNode expression;
-	final private NativeType type;
+	private final OLSyntaxNode expression;
+	private final NativeType type;
 
 	public TypeCastExpressionNode( ParsingContext context, NativeType type, OLSyntaxNode expression )
 	{

@@ -34,7 +34,7 @@ import jolie.util.Range;
  */
 public class TypeDefinitionLink extends TypeDefinition
 {
-	final private TypeDefinition linkedType;
+	private final TypeDefinition linkedType;
 
 	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType )
 	{

@@ -32,9 +32,9 @@ import jolie.lang.parse.ParsingContext;
  */
 public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector
 {
-	final private Map<String, OperationDeclaration> operationsMap =
+	private final Map<String, OperationDeclaration> operationsMap =
 		new HashMap<String, OperationDeclaration>();
-	final private String name;
+	private final String name;
 
 	public InterfaceDefinition( ParsingContext context, String name )
 	{

@@ -35,7 +35,7 @@ import jolie.util.Range;
  */
 public class TypeInlineDefinition extends TypeDefinition
 {
-	final private NativeType nativeType;
+	private final NativeType nativeType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 

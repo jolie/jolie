@@ -27,8 +27,8 @@ import jolie.lang.parse.ParsingContext;
 
 public class SynchronizedStatement extends OLSyntaxNode
 {
-	final private String id;
-	final private OLSyntaxNode body;
+	private final String id;
+	private final OLSyntaxNode body;
 
 	public SynchronizedStatement( ParsingContext context, String id, OLSyntaxNode body )
 	{

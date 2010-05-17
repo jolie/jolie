@@ -27,9 +27,9 @@ import jolie.lang.parse.ParsingContext;
 
 public class SpawnStatement extends OLSyntaxNode
 {
-	final private VariablePathNode indexVariablePath;
-	final private VariablePathNode inVariablePath; // may be null
-	final private OLSyntaxNode upperBoundExpression, body;
+	private final VariablePathNode indexVariablePath;
+	private final VariablePathNode inVariablePath; // may be null
+	private final OLSyntaxNode upperBoundExpression, body;
 
 	public SpawnStatement(
 			ParsingContext context,

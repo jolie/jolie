@@ -27,7 +27,7 @@ import jolie.lang.parse.ParsingContext;
 
 public class CompensateStatement extends OLSyntaxNode
 {
-	final private String id;
+	private final String id;
 
 	public CompensateStatement( ParsingContext context, String id )
 	{
