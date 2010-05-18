@@ -764,7 +764,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		Value value = Value.create();
 		
 		try {
-			if ( message.content() != null ) {
+			if ( message.content() != null && message.content().length > 0 ) {
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				/*Schema messageSchema = getRecvMessageValidationSchema();
@@ -846,7 +846,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "InvalidType" ) );
+			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
 		}
 		
 		received = true;
