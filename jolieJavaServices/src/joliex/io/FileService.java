@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2009 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -128,13 +129,17 @@ public class FileService extends JavaService
 		}
 	}
 	
-	private static void readTextIntoValue( InputStream istream, long size, Value value )
+	private static void readTextIntoValue( InputStream istream, long size, Value value, Charset charset )
 		throws IOException
 	{
 		byte[] buffer = new byte[ (int)size ];
 		istream.read( buffer );
 		istream.close();
-		value.setValue( new String( buffer ) );
+		if ( charset == null ) {
+			value.setValue( new String( buffer ) );
+		} else {
+			value.setValue( new String( buffer, charset ) );
+		}
 	}
 	
 	public Value readFile( Value request )
@@ -180,7 +185,12 @@ public class FileService extends JavaService
 				} else if ( "xml".equals( format ) ) {
 					readXMLIntoValue( istream, retValue );
 				} else {
-					readTextIntoValue( istream, size, retValue );
+					Charset charset = null;
+					Value formatValue = request.getFirstChild( "format" );
+					if ( formatValue.hasChildren( "charset" ) ) {
+						charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
+					}
+					readTextIntoValue( istream, size, retValue, charset );
 				}
 			} finally {
 				istream.close();
