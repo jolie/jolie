@@ -24,7 +24,9 @@ include "types/IOException.iol"
 
 type ReadFileRequest:void {
 	.filename:string
-	.format?:string // Can be "base64", "binary", "text" or "xml" (defaults to "text")
+	.format?:string { // Can be "base64", "binary", "text" or "xml" (defaults to "text")
+		.charset?:string
+	}
 }
 
 type WriteFileRequest:void {
