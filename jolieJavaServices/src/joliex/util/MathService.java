@@ -41,7 +41,7 @@ public class MathService extends JavaService
 		return Math.abs( i );
 	}
 
-	public double pow( Value request )
+	public Double pow( Value request )
 	{
 		return Math.pow( request.getFirstChild( "base" ).doubleValue(), request.getFirstChild( "exponent" ).doubleValue() );
 	}
