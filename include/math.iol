@@ -24,11 +24,17 @@ type RoundRequestType:double {
 	.decimals?:int
 }
 
+type PowRequest:void {
+	.base:double
+	.exponent:double
+}
+
 outputPort Math {
 RequestResponse:
 	abs(int)(int),
 	random(void)(double),
-	round(RoundRequestType)(double)
+	round(RoundRequestType)(double),
+	pow(PowRequest)(double)
 }
 
 embedded {
