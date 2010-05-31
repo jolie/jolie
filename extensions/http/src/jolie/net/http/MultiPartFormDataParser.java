@@ -24,6 +24,7 @@ package jolie.net.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import jolie.runtime.Value;
 
 public class MultiPartFormDataParser
 {
+	private final static String URL_DECODER_ENC = "UTF-8";
 	private final String boundary;
 	private final Value value;
 	private final HttpMessage message;
@@ -116,7 +118,7 @@ public class MultiPartFormDataParser
 					try {
 						name = keyValueSplitPattern.split( param )[1];
 						// Names are surronded by "": cut them.
-						name = name.substring( 1, name.length() - 1 );
+						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid name specified in multipart form data element" );
 					}
@@ -124,7 +126,7 @@ public class MultiPartFormDataParser
 					try {
 						filename = keyValueSplitPattern.split( param )[1];
 						// Filenames are surronded by "": cut them.
-						filename = filename.substring( 1, filename.length() - 1 );
+						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid filename specified in multipart form data element" );
 					}
