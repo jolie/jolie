@@ -24,6 +24,7 @@ package jolie.net.http;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ import jolie.lang.parse.Scanner;
 
 public class HttpParser
 {
+	private final static String URL_DECODER_ENC = "UTF-8";
 	private static final String HTTP = "HTTP";
 	private static final String GET = "GET";
 	private static final String POST = "POST";
@@ -162,9 +164,9 @@ public class HttpParser
 		} else {
 			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
 		}
-		
-		message.setRequestPath( scanner.readWord().substring( 1 ) );
-		
+
+		message.setRequestPath( URLDecoder.decode( scanner.readWord().substring( 1 ), URL_DECODER_ENC ) );
+
 		getToken();
 		if ( !token.isKeyword( HTTP ) )
 			throw new IOException( "Invalid HTTP header: expected HTTP version" );
