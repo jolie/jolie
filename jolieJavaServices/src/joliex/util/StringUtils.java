@@ -27,7 +27,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jolie.ExecutionThread;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
