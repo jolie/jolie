@@ -40,6 +40,8 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.Enumeration;
+import java.util.Properties;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -141,6 +143,19 @@ public class FileService extends JavaService
 			value.setValue( new String( buffer, charset ) );
 		}
 	}
+
+	private static void readPropertiesFile( InputStream istream, Value value )
+		throws IOException
+	{
+		Properties properties = new Properties();
+		properties.load( new InputStreamReader( istream ) );
+		Enumeration< String > names = (Enumeration< String >) properties.propertyNames();
+		String name;
+		while( names.hasMoreElements() ) {
+			name = names.nextElement();
+			value.getFirstChild( name ).setValue( properties.getProperty( name ) );
+		}
+	}
 	
 	public Value readFile( Value request )
 		throws FaultException
@@ -184,6 +199,8 @@ public class FileService extends JavaService
 					readBinaryIntoValue( istream, size, retValue );
 				} else if ( "xml".equals( format ) ) {
 					readXMLIntoValue( istream, retValue );
+				} else if ( "properties".equals( format ) ) {
+					readPropertiesFile( istream, retValue );
 				} else {
 					Charset charset = null;
 					Value formatValue = request.getFirstChild( "format" );
