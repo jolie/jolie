@@ -565,6 +565,8 @@ public class Scanner
 							builder.append( '\r' );
 						else if ( ch == '"' )
 							builder.append( '"' );
+						else if ( ch == 'u' )
+							builder.append( 'u' );
 						else
 							throw new IOException( "malformed string: bad \\ usage" );
 						
