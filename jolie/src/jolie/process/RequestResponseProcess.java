@@ -275,10 +275,15 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		try {
 			channel.send( response );
 			log( "sent response for message " + message.id() );
-			//channel.release();
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+		} finally {
+			try {
+				channel.release(); // TODO: what if the channel is in disposeForInput?
+			} catch( IOException e ) {
+				Interpreter.getInstance().logSevere( e );
+			}
 		}
 
 		if ( fault != null ) {

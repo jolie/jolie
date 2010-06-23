@@ -251,11 +251,15 @@ public abstract class CommChannel
 		throws IOException
 	{
 		if ( lock.isHeldByCurrentThread() ) {
-			disposeForInputImpl();
+			if ( toBeClosed() == false ) {
+				disposeForInputImpl();
+			}
 		} else {
 			lock.lock();
 			try {
-				disposeForInputImpl();
+				if ( toBeClosed() == false ) {
+					disposeForInputImpl();
+				}
 			} finally {
 				lock.unlock();
 			}
