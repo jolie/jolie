@@ -56,11 +56,7 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	private void _releaseImpl()
 		throws IOException
 	{
-		if ( toBeClosed() ) {
-			closeImpl();
-		} else {
-			Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
-		}
+		Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this );
 	}
 
 	@Override

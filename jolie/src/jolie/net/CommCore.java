@@ -382,7 +382,11 @@ public class CommCore
 					channel.redirectionChannel().send( message );
 				} finally {
 					try {
-						channel.redirectionChannel().disposeForInput();
+						if ( channel.redirectionChannel().toBeClosed() ) {
+							channel.redirectionChannel().close();
+						} else {
+							channel.redirectionChannel().disposeForInput();
+						}
 					} finally {
 						channel.setRedirectionChannel( null );
 					}
@@ -431,6 +435,7 @@ public class CommCore
 				oChannel.disposeForInput();
 			} catch( IOException e ) {
 				channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+				channel.disposeForInput();
 			}
 		}
 
@@ -452,6 +457,7 @@ public class CommCore
 					oChannel.disposeForInput();
 				} catch( IOException e ) {
 					channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+					channel.disposeForInput();
 				}
 			}
 		}
