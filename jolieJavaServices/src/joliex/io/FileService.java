@@ -101,7 +101,6 @@ public class FileService extends JavaService
 	{
 		byte[] buffer = new byte[ (int)size ];
 		istream.read( buffer );
-		istream.close();
 		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 		value.setValue( encoder.encode( buffer ) );
 	}
@@ -111,7 +110,6 @@ public class FileService extends JavaService
 	{
 		byte[] buffer = new byte[ (int)size ];
 		istream.read( buffer );
-		istream.close();
 		value.setValue( new ByteArray( buffer ) );
 	}
 
