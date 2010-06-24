@@ -55,6 +55,7 @@ import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
@@ -701,6 +702,9 @@ public class CommCore
 											key.cancel();
 											if ( channel.isOpen() ) {
 												key.channel().configureBlocking( true );
+												if ( channel.selectionTimeoutHandler() != null ) {
+													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
+												}
 												scheduleReceive( channel, channel.parentListener() );
 											} else {
 												channel.closeImpl();
@@ -739,12 +743,12 @@ public class CommCore
 			}
 		}
 		
-		public void register( SelectableStreamingCommChannel channel )
+		public boolean register( SelectableStreamingCommChannel channel )
 		{
 			try {
 				if ( channel.inputStream().available() > 0 ) {
 					scheduleReceive( channel, channel.parentListener() );
-					return;
+					return false;
 				}
 
 				synchronized( this ) {
@@ -758,10 +762,13 @@ public class CommCore
 						}
 					}
 				}
+				return true;
 			} catch( ClosedChannelException e ) {
 				interpreter.logWarning( e );
+				return false;
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
+				return false;
 			}
 		}
 
@@ -779,6 +786,15 @@ public class CommCore
 				}
 			}
 		}
+
+		private boolean isSelecting( SelectableStreamingCommChannel channel )
+		{
+			SelectableChannel c = channel.selectableChannel();
+			if ( c == null ) {
+				return false;
+			}
+			return c.keyFor( selector ) != null;
+		}
 	}
 
 	protected boolean isSelecting( SelectableStreamingCommChannel channel )
@@ -790,11 +806,7 @@ public class CommCore
 		}
 		final SelectorThread t = selectorThread;
 		synchronized( t ) {
-			SelectableChannel c = channel.selectableChannel();
-			if ( c == null ) {
-				return false;
-			}
-			return c.keyFor( selectorThread.selector ) != null;
+			return t.isSelecting( channel );
 		}
 	}
 
@@ -804,10 +816,27 @@ public class CommCore
 		selectorThread().unregister( channel );
 	}
 	
-	protected void registerForSelection( SelectableStreamingCommChannel channel )
+	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		selectorThread().register( channel );
+		final TimeoutHandler handler = new TimeoutHandler( interpreter.openInputConnectionTimeout() ) {
+			@Override
+			public void onTimeout()
+			{
+				try {
+					selectorThread().unregister( channel );
+					channel.close();
+				} catch( IOException e ) {
+					interpreter.logSevere( e );
+				}
+			}
+		};
+		channel.setSelectionTimeoutHandler( handler );
+		if ( selectorThread().register( channel ) ) {
+			interpreter.addTimeoutHandler( handler );
+		} else {
+			channel.setSelectionTimeoutHandler( null );
+		}
 	}
 
 	private final Collection< InputProcessExecution<?> > waitingCorrelatedInputs = new LinkedList< InputProcessExecution<?> >();
