@@ -98,10 +98,11 @@ public abstract class InputOperation extends AbstractIdentifiableObject implemen
 			@Override
 			public void onTimeout()
 			{
+				boolean removed;
 				synchronized( this ) {
-					mesgList.remove( pair );
+					removed = mesgList.remove( pair );
 				}
-				if ( interpreter.verbose() ) {
+				if ( removed && interpreter.verbose() ) {
 					interpreter.logInfo( "Message " + message.id() + " discarded for timeout" );
 				}
 			}

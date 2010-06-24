@@ -27,6 +27,8 @@ package jolie.runtime;
 public abstract class TimeoutHandler
 {
 	private final long time;
+	private boolean isCancelled = false;
+
 	public TimeoutHandler( long timeout )
 	{
 		this.time = System.currentTimeMillis() + timeout;

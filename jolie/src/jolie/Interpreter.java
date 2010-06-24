@@ -111,6 +111,7 @@ public class Interpreter
 	private final boolean verbose;
 	private final Timer timer;
 	private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
+	private long openInputConnectionTimeout = 24 * 60 * 60 * 1000; // 1 day
 
 	private final Queue< TimeoutHandler > timeoutHandlerQueue = new PriorityQueue< TimeoutHandler >( 11, new TimeoutHandler.Comparator() );
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
@@ -121,6 +122,11 @@ public class Interpreter
 	public long inputMessageTimeout()
 	{
 		return inputMessageTimeout;
+	}
+
+	public long openInputConnectionTimeout()
+	{
+		return openInputConnectionTimeout;
 	}
 
 	public void schedule( TimerTask task, long delay )
@@ -135,6 +141,13 @@ public class Interpreter
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.add( handler );
 			checkForExpiredTimeoutHandlers();
+		}
+	}
+
+	public void removeTimeoutHandler( TimeoutHandler handler )
+	{
+		synchronized( timeoutHandlerQueue ) {
+			timeoutHandlerQueue.remove( handler );
 		}
 	}
 
