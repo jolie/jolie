@@ -24,7 +24,8 @@ package joliex.util;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Vector;
+import java.util.LinkedList;
+import java.util.List;
 
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -36,7 +37,7 @@ public class ExecService extends JavaService
 	public Value exec( Value request )
 		throws FaultException
 	{
-		Vector< String > command = new Vector< String >();
+		List< String > command = new LinkedList< String >();
 		String[] str = request.strValue().split( " " );
 		for( int i = 0; i < str.length; i++ ) {
 			command.add( str[i] );
