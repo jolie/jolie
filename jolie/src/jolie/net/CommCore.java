@@ -290,11 +290,13 @@ public class CommCore
 	public void addLocalInputPort(
 				String inputPortName,
 				Collection< String > operationNames,
+				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
 		localListener.addOperationNames( operationNames );
+		localListener.addAggregations( aggregationMap );
 		localListener.addRedirections( redirectionMap );
 		listenersMap.put( inputPortName, localListener );
 	}

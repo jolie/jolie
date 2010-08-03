@@ -53,6 +53,11 @@ public class LocalListener extends CommListener
 		this.redirectionMap.putAll( redirectionMap );
 	}
 
+	public void addAggregations( Map< String, AggregatedOperation > aggregationMap )
+	{
+		this.aggregationMap.putAll( aggregationMap );
+	}
+
 	@Override
 	public void shutdown()
 	{}
