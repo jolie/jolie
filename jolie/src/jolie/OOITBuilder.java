@@ -322,10 +322,30 @@ public class OOITBuilder implements OLVisitor
 			}
 			redirectionMap.put( entry.getKey(), oPort );
 		}
+
+		OutputPort outputPort;
+		Map< String, Type > outputPortNotificationTypes;
+		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
+		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
+		for( String outputPortName : n.aggregationList() ) {
+			try {
+				outputPort = interpreter.getOutputPort( outputPortName );
+				outputPortNotificationTypes = notificationTypes.get( outputPortName );
+				outputPortSolicitResponseTypes = solicitResponseTypes.get( outputPortName );
+				for( String operationName : outputPortNotificationTypes.keySet() ) {
+					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.ONE_WAY, outputPort ) );
+				}
+				for( String operationName : outputPortSolicitResponseTypes.keySet() ) {
+					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.REQUEST_RESPONSE, outputPort ) );
+				}
+			} catch( InvalidIdException e ) {
+				error( n.context(), e );
+			}
+		}
 		
 		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			try {
-				interpreter.commCore().addLocalInputPort( n.id(), n.operationsMap().keySet(), redirectionMap );
+				interpreter.commCore().addLocalInputPort( n.id(), n.operationsMap().keySet(), aggregationMap, redirectionMap );
 			} catch( IOException e ) {
 				error( n.context(), e );
 			}
@@ -363,26 +383,6 @@ public class OOITBuilder implements OLVisitor
 		Process assignProtocol = new AssignmentProcess( path, Value.create( n.protocolId() ) );
 		Process[] confChildren = new Process[] { assignLocation, assignProtocol, buildProcess( n.protocolConfiguration() ) };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
-
-		OutputPort outputPort;
-		Map< String, Type > outputPortNotificationTypes;
-		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
-		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
-		for( String outputPortName : n.aggregationList() ) {
-			try {
-				outputPort = interpreter.getOutputPort( outputPortName );
-				outputPortNotificationTypes = notificationTypes.get( outputPortName );
-				outputPortSolicitResponseTypes = solicitResponseTypes.get( outputPortName );
-				for( String operationName : outputPortNotificationTypes.keySet() ) {
-					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.ONE_WAY, outputPort ) );
-				}
-				for( String operationName : outputPortSolicitResponseTypes.keySet() ) {
-					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.REQUEST_RESPONSE, outputPort ) );
-				}
-			} catch( InvalidIdException e ) {
-				error( n.context(), e );
-			}
-		}
 
 		if ( protocolFactory != null ) {
 			try {
