@@ -543,7 +543,6 @@ public class CommCore
 	 */
 	public void scheduleReceive( CommChannel channel, CommListener listener )
 	{
-		System.out.println( "Receiving" );
 		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
 	}
 
