@@ -42,6 +42,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -74,6 +75,8 @@ import org.xml.sax.SAXException;
 @AndJarDeps({"jolie-xml.jar","xsom.jar"})
 public class FileService extends JavaService
 {
+	private final static Pattern fileKeywordPattern = Pattern.compile( "(#+)file\\s+(.*)" );
+
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
@@ -142,16 +145,38 @@ public class FileService extends JavaService
 		}
 	}
 
-	private static void readPropertiesFile( InputStream istream, Value value )
+	private void readPropertiesFile( InputStream istream, Value value )
 		throws IOException
 	{
 		Properties properties = new Properties();
 		properties.load( new InputStreamReader( istream ) );
 		Enumeration< String > names = (Enumeration< String >) properties.propertyNames();
 		String name;
+		String propertyValue;
+		Matcher matcher;
 		while( names.hasMoreElements() ) {
 			name = names.nextElement();
-			value.getFirstChild( name ).setValue( properties.getProperty( name ) );
+			propertyValue = properties.getProperty( name );
+			matcher = fileKeywordPattern.matcher( propertyValue );
+			if ( matcher.matches() ) {
+				if ( matcher.group( 1 ).length() > 1 ) { // The number of #
+					propertyValue = propertyValue.substring( 1 );
+				} else { // It's a #file directive
+					// TODO: this is a bit of a hack. We should have a private
+					// method for performing all the lookups of files into
+					// JAPs, local directories etc. instead of calling readFile
+					// again.
+					Value request = Value.create();
+					request.getFirstChild( "filename" ).setValue( matcher.group( 2 ) );
+					request.getFirstChild( "format" ).setValue( "text" );
+					try {
+						propertyValue = readFile( request ).strValue();
+					} catch( FaultException e ) {
+						throw new IOException( e );
+					}
+				}
+			}
+			value.getFirstChild( name ).setValue( propertyValue );
 		}
 	}
 	
