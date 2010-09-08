@@ -286,7 +286,7 @@ public class SemanticVerifier implements OLVisitor
 			outputPort = outputPorts.get( portName );
 			if ( outputPort == null ) {
 				error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
-			} else {
+			}/* else {
 				for( OperationDeclaration op : outputPort.operations() ) {
 					if ( opSet.contains( op.id() ) ) {
 						error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
@@ -294,7 +294,7 @@ public class SemanticVerifier implements OLVisitor
 						opSet.add( op.id() );
 					}
 				}
-			}
+			}*/
 		}
 
 		insideInputPort = false;
