@@ -746,8 +746,8 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if ( inputPortLocation == null ) {
 			throwException( "expected location URI for " + inputPortName );
-		} else if ( iface.operationsMap().isEmpty() && redirectionMap.isEmpty() ) {
-			throwException( "expected at least one operation, interface or redirection for service " + inputPortName );
+		} else if ( iface.operationsMap().isEmpty() && redirectionMap.isEmpty() && aggregationList.isEmpty() ) {
+			throwException( "expected at least one operation, interface, aggregation or redirection for inputPort " + inputPortName );
 		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
