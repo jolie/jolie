@@ -104,7 +104,7 @@ public class DatabaseService extends JavaService
 			} else if ( "sqlite".equals( driver ) ) {
 				Class.forName( "org.sqlite.JDBC" );
 			} else if ( "sqlserver".equals( driver ) ) {
-				//Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
+				Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
 				separator = ";";
 				databaseName = "databaseName=" + databaseName;
 			} else if ( "as400".equals( driver ) ) {
