@@ -222,7 +222,7 @@ public abstract class AbstractCommChannel extends CommChannel
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
 					try {
-						response = parent.recvImpl();
+						response = parent.recv();
 						if ( response != null ) {
 							if ( response.hasGenericId() ) {
 								handleGenericMessage( response );
