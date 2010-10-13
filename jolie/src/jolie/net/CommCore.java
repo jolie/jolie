@@ -522,6 +522,7 @@ public class CommCore
 						handleMessage( message );
 					}
 				} else {
+					channel.lock.unlock();
 					CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
 					if ( response != null ) {
 						forwardResponse( response );
@@ -530,7 +531,9 @@ public class CommCore
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
 			} finally {
-				channel.lock.unlock();
+				if ( channel.lock.isHeldByCurrentThread() ) {
+					channel.lock.unlock();
+				}
 				thread.setExecutionThread( null );
 			}
 		}
