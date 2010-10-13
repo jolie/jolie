@@ -142,7 +142,9 @@ public class VariablePath implements Expression, Cloneable
 			pair = path[i];
 			keyStr = pair.key().evaluate().strValue();
 			currVector = currValue.children().get( keyStr );
-			if ( currVector == null || currVector.size() < 1 ) {
+			if ( currVector == null ) {
+				return;
+			} else if ( currVector.size() < 1 ) {
 				if ( currVector.isLink() ) {
 					currValue.children().remove( keyStr );
 				}
