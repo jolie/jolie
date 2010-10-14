@@ -275,6 +275,7 @@ public class XmlUtils
 	{
 		Node node;
 		Value childValue;
+		StringBuilder builder = new StringBuilder();
 		for( int i = 0; i < list.getLength(); i++ ) {
 			node = list.item( i );
 			switch( node.getNodeType() ) {
@@ -286,10 +287,14 @@ public class XmlUtils
 				setAttributes( childValue, node );
 				elementsToSubValues( childValue, node.getChildNodes() );
 				break;
+			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:
-				value.setValue( node.getNodeValue() );
+				builder.append( node.getNodeValue() );
 				break;
 			}
+		}
+		if ( builder.length() > 0 ) {
+			value.setValue( builder.toString() );
 		}
 	}
 }
