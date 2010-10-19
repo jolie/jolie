@@ -21,12 +21,12 @@
 
 package jolie.net.http;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 
 public class HttpMessage
@@ -107,7 +107,7 @@ public class HttpMessage
 	private Type type;
 	private byte[] content = null;
 	final private Map< String, String > propMap = new HashMap< String, String > ();
-	final private List< Cookie > setCookies = new Vector< Cookie > ();
+	final private List< Cookie > setCookies = new ArrayList< Cookie > ();
 	
 	final private Map< String, String > cookies = new HashMap< String, String >();
 	
