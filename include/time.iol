@@ -48,6 +48,11 @@ type DateValuesRequestType:string {
 	.format?:string
 }
 
+type DiffDateRequestType:void {
+	.format?:string
+	.date1:string
+	.date2:string
+}
 
 outputPort Time {
 OneWay:
@@ -65,7 +70,8 @@ RequestResponse:
 	/**
 		Returns the current date splitted in three fields: day, month and year
 	*/
-	getCurrentDateValues(void)(DateValuesType)
+	getCurrentDateValues(void)(DateValuesType),
+	getDateDiff(DiffDateRequestType)(int)
 }
 
 embedded {
