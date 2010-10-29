@@ -216,4 +216,30 @@ public class TimeService extends JavaService
 
 		return v;
 	}
+
+	/**
+	 * @author Claudio Guidi
+	 * 10/2010 - Fabrizio Montesi: some optimizations.
+	 */
+	public Value getDateDiff( Value request )
+		throws FaultException
+	{
+		Value v = Value.create();
+		try {
+			String format;
+			if ( request.hasChildren( "format" ) ) {
+				format = "dd/MM/yyyy";
+			} else {
+				format = request.getFirstChild( "format" ).strValue();
+			}
+			SimpleDateFormat sdf = new SimpleDateFormat( format );
+			final Date dt1 = sdf.parse( request.getFirstChild( "date1" ).strValue() );
+			final Date dt2 = sdf.parse( request.getFirstChild( "date2" ).strValue() );
+			Long result = new Long( (dt1.getTime() - dt2.getTime()) / (1000 * 60 * 60 * 24) );
+			v.setValue( result.intValue() );
+		} catch( ParseException pe ) {
+			throw new FaultException( "InvalidDate", pe );
+		}
+		return v;
+	}
 }
