@@ -228,9 +228,9 @@ public class TimeService extends JavaService
 		try {
 			String format;
 			if ( request.hasChildren( "format" ) ) {
-				format = "dd/MM/yyyy";
-			} else {
 				format = request.getFirstChild( "format" ).strValue();
+			} else {
+				format = "dd/MM/yyyy";
 			}
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date dt1 = sdf.parse( request.getFirstChild( "date1" ).strValue() );
