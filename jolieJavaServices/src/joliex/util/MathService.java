@@ -46,6 +46,18 @@ public class MathService extends JavaService
 		return Math.pow( request.getFirstChild( "base" ).doubleValue(), request.getFirstChild( "exponent" ).doubleValue() );
 	}
 
+	public Integer summation( Value request )
+	{
+		int from = request.getFirstChild( "from" ).intValue();
+		int to = request.getFirstChild( "to" ).intValue();
+		int result = 0;
+		while( from <= to ) {
+			result += from;
+			from++;
+		}
+		return result;
+	}
+
 	/**
 	 * @author Claudio Guidi
 	 * @author Fabrizio Montesi
