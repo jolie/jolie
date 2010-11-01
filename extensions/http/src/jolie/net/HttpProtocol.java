@@ -775,6 +775,8 @@ public class HttpProtocol extends CommProtocol
 			requestFormat = "text/x-gwt-rpc";
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value );
+		} else if ( "application/octet-stream".equals( type ) ) {
+			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else {
