@@ -55,7 +55,20 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new XmlRpcProtocol(
+			configurationPath,
+			location,
+			transformer,
+			docBuilderFactory,
+			docBuilder,
+			commCore().interpreter()
+		);
+	}
+
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new XmlRpcProtocol(

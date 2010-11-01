@@ -118,4 +118,26 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 			}
 		}
 	}
+
+	@Override
+	protected void releaseImpl()
+		throws IOException
+	{
+		if ( lock.isHeldByCurrentThread() ) {
+			final CommCore commCore = Interpreter.getInstance().commCore();
+			if ( commCore.isSelecting( this ) == false ) {
+				super.releaseImpl();
+			}
+		} else {
+			lock.lock();
+			try {
+				final CommCore commCore = Interpreter.getInstance().commCore();
+				if ( commCore.isSelecting( this ) == false ) {
+					super.releaseImpl();
+				}
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
 }

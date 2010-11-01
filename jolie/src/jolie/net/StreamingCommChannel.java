@@ -60,7 +60,7 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected final void releaseImpl()
+	protected void releaseImpl()
 		throws IOException
 	{
 		if ( lock.isHeldByCurrentThread() ) {

@@ -433,11 +433,12 @@ public class OLParser extends AbstractParser
 			Constants.ExecutionMode mode = Constants.ExecutionMode.SEQUENTIAL;
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
-			if ( token.is( Scanner.TokenType.SEQUENTIAL ) ) {
+			assertToken( Scanner.TokenType.ID, "expected execution modality" );
+			if ( "sequential".equals( token.content() ) ) {
 				mode = Constants.ExecutionMode.SEQUENTIAL;
-			} else if ( token.is( Scanner.TokenType.CONCURRENT ) ) {
+			} else if ( "concurrent".equals( token.content() ) ) {
 				mode = Constants.ExecutionMode.CONCURRENT;
-			} else if ( token.is( Scanner.TokenType.SINGLE ) ) {
+			} else if ( "single".equals( token.content() ) ) {
 				mode = Constants.ExecutionMode.SINGLE;
 			} else {
 				throwException( "Expected execution mode, found " + token.content() );

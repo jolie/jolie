@@ -81,6 +81,14 @@ public class CommCore
 	private final Map< URI, Map< String, CommChannel > > persistentChannels =
 			new HashMap< URI, Map< String, CommChannel > >();
 
+	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel > protocolChannels )
+	{
+		protocolChannels.remove( protocol );
+		if ( protocolChannels.isEmpty() ) {
+			persistentChannels.remove( location );
+		}
+	}
+
 	public CommChannel getPersistentChannel( URI location, String protocol )
 	{
 		CommChannel ret = null;
@@ -89,26 +97,25 @@ public class CommCore
 			if ( protocolChannels != null ) {
 				ret = protocolChannels.get( protocol );
 				if ( ret != null ) {
-					if ( ret.lock.tryLock() && ret.isOpen() ) {
-						/*
-						 * We are going to return this channel, but first
-						 * check if it supports concurrent use.
-						 * If not, then others should not access this until
-						 * the caller is finished using it.
-						 */
-						if ( ret.isThreadSafe() == false ) {
-							protocolChannels.remove( protocol );
-							if ( protocolChannels.isEmpty() ) {
-								persistentChannels.remove( location );
+					if ( ret.lock.tryLock() ) {
+						if ( ret.isOpen() ) {
+							/*
+							 * We are going to return this channel, but first
+							 * check if it supports concurrent use.
+							 * If not, then others should not access this until
+							 * the caller is finished using it.
+							 */
+							if ( ret.isThreadSafe() == false ) {
+								removePersistentChannel( location, protocol, protocolChannels );
 							}
+							ret.lock.unlock();
+						} else { // Channel is closed
+							removePersistentChannel( location, protocol, protocolChannels );
+							ret.lock.unlock();
+							ret = null;
 						}
-						ret.lock.unlock();
-					} else {
-						// If the channel is closed or busy, remove it and return null
-						protocolChannels.remove( protocol );
-						if ( protocolChannels.isEmpty() ) {
-							persistentChannels.remove( location );
-						}
+					} else { // Channel is busy
+						removePersistentChannel( location, protocol, protocolChannels );
 						ret = null;
 					}
 				}
@@ -248,7 +255,7 @@ public class CommCore
 		return factory;
 	}
 	
-	public CommProtocol createCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
+	public CommProtocol createOutputCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
 		throws IOException
 	{
 		CommProtocolFactory factory = getCommProtocolFactory( protocolId );
@@ -256,7 +263,18 @@ public class CommCore
 			throw new UnsupportedCommProtocolException( protocolId );
 		}
 		
-		return factory.createProtocol( configurationPath, uri );
+		return factory.createOutputProtocol( configurationPath, uri );
+	}
+
+	public CommProtocol createInputCommProtocol( String protocolId, VariablePath configurationPath, URI uri )
+		throws IOException
+	{
+		CommProtocolFactory factory = getCommProtocolFactory( protocolId );
+		if ( factory == null ) {
+			throw new UnsupportedCommProtocolException( protocolId );
+		}
+
+		return factory.createInputProtocol( configurationPath, uri );
 	}
 	
 	private final Map< String, CommListenerFactory > listenerFactories =

@@ -34,7 +34,13 @@ public class SodepProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new SodepProtocol( configurationPath );
+	}
+
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new SodepProtocol( configurationPath );

@@ -76,8 +76,6 @@ public class Scanner
 		NOT_EQUAL,			///< !=
 		NULL_PROCESS,		///< nullProcess
 		WHILE,				///< while
-		CONCURRENT,			///< concurrent
-		SEQUENTIAL,			///< sequential
 		EXECUTION,			///< execution
 		THROW,				///< throw
 		INSTALL,				///< install
@@ -85,7 +83,6 @@ public class Scanner
 		SPAWN,					///< spawn
 		THIS,					///< this
 		COMPENSATE,				///< comp
-		SINGLE,					///< single
 		EXIT,					///< exit
 		INCLUDE,				///< include
 		CONSTANTS,				///< constants
@@ -476,12 +473,6 @@ public class Scanner
 							retval = new Token( TokenType.NULL_PROCESS );
 						} else if ( "while".equals( str ) ) {
 							retval = new Token( TokenType.WHILE );
-						} else if ( "single".equals( str ) ) {
-							retval = new Token( TokenType.SINGLE );
-						} else if ( "concurrent".equals( str ) ) {
-							retval = new Token( TokenType.CONCURRENT );
-						} else if ( "sequential".equals( str ) ) {
-							retval = new Token( TokenType.SEQUENTIAL );
 						} else if ( "execution".equals( str ) ) {
 							retval = new Token( TokenType.EXECUTION );
 						} else if ( "install".equals( str ) ) {

@@ -50,11 +50,20 @@ abstract public class CommProtocolFactory
 	}
 	
 	/**
-	 * Creates a CommProtocol instance
+	 * Creates a CommProtocol instance meant for an input port.
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
 	 * @param location the location the returned CommProtocol must refer to
 	 * @return a CommProtocol instance
 	 */
-	abstract public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	abstract public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException;
+
+	/**
+	 * Creates a CommProtocol instance meant for an output port.
+	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
+	 * @param location the location the returned CommProtocol must refer to
+	 * @return a CommProtocol instance
+	 */
+	abstract public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException;
 }

@@ -59,7 +59,7 @@ import jolie.net.http.HttpUtils;
 import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
-import jolie.net.protocols.SequentialCommProtocol;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -77,7 +77,7 @@ import org.xml.sax.SAXException;
  * HTTP protocol implementation
  * @author Fabrizio Montesi
  */
-public class HttpProtocol extends SequentialCommProtocol
+public class HttpProtocol extends CommProtocol
 {
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
 	//private static final byte[] INTERNAL_SERVER_ERROR_HEADER = "HTTP/1.1 500 Internal Server error".getBytes();
@@ -89,10 +89,15 @@ public class HttpProtocol extends SequentialCommProtocol
 		private static String METHOD = "method";
 		private static String ALIAS = "alias";
 		private static String MULTIPART_HEADERS = "multipartHeaders";
+		private static String CONCURRENT = "concurrent";
 
 		private static class MultiPartHeaders {
 			private static String FILENAME = "filename";
 		}
+	}
+
+	private static class Headers {
+		private static String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
 	}
 
 	private String inputId = null;
@@ -100,7 +105,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private final DocumentBuilderFactory docBuilderFactory;
 	private final DocumentBuilder docBuilder;
 	private final URI uri;
-	private boolean received = false;
+	private final boolean inInputPort;
 	private MultiPartFormDataParser multiPartFormDataParser = null;
 	
 	public final static String CRLF = new String( new char[] { 13, 10 } );
@@ -110,9 +115,15 @@ public class HttpProtocol extends SequentialCommProtocol
 		return "http";
 	}
 
+	public boolean isThreadSafe()
+	{
+		return checkBooleanParameter( Parameters.CONCURRENT );
+	}
+
 	public HttpProtocol(
 		VariablePath configurationPath,
 		URI uri,
+		boolean inInputPort,
 		TransformerFactory transformerFactory,
 		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder
@@ -121,6 +132,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	{
 		super( configurationPath );
 		this.uri = uri;
+		this.inInputPort = inInputPort;
 		this.transformer = transformerFactory.newTransformer();
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
@@ -289,7 +301,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private String send_getFormat()
 	{
 		String format = "xml";
-		if ( received && requestFormat != null ) {
+		if ( inInputPort && requestFormat != null ) {
 			format = requestFormat;
 			requestFormat = null;
 		} else if ( hasParameter( "format" ) ) {
@@ -307,14 +319,14 @@ public class HttpProtocol extends SequentialCommProtocol
 		throws IOException
 	{
 		EncodedContent ret = new EncodedContent();
-		if ( received == false && method == Method.GET ) {
+		if ( inInputPort == false && method == Method.GET ) {
 			// We are building a GET request
 			return ret;
 		}
 
 		if ( "xml".equals( format ) ) {
 			Document doc = docBuilder.newDocument();
-			Element root = doc.createElement( message.operationName() + (( received ) ? "Response" : "") );
+			Element root = doc.createElement( message.operationName() + (( inInputPort ) ? "Response" : "") );
 			doc.appendChild( root );
 			if ( message.isFault() ) {
 				Element faultElement = doc.createElement( message.fault().faultName() );
@@ -482,6 +494,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	}
 	
 	private void send_appendGenericHeaders(
+		CommMessage message,
 		EncodedContent encodedContent,
 		String charset,
 		StringBuilder headerBuilder
@@ -491,6 +504,9 @@ public class HttpProtocol extends SequentialCommProtocol
 		if ( checkBooleanParameter( "keepAlive" ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
+		}
+		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
+			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( CRLF );
 		}
 		
 		if ( encodedContent.content != null ) {
@@ -539,15 +555,14 @@ public class HttpProtocol extends SequentialCommProtocol
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
-		if ( received ) {
+		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
-			received = false;
 		} else {
 			// We're sending a notification or a solicit
 			send_appendRequestHeaders( message, method, headerBuilder, charset );
 		}
-		send_appendGenericHeaders( encodedContent, charset, headerBuilder );
+		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
 		
 		send_logDebugInfo( headerBuilder, encodedContent );
@@ -822,6 +837,7 @@ public class HttpProtocol extends SequentialCommProtocol
 	private static class DecodedMessage {
 		private String operationName = null;
 		private Value value = Value.create();
+		private long id = CommMessage.GENERIC_ID;
 	}
 	
 	public CommMessage recv( InputStream istream, OutputStream ostream )
@@ -850,11 +866,19 @@ public class HttpProtocol extends SequentialCommProtocol
 		if ( message.size() > 0 ) {
 			recv_parseMessage( message, decodedMessage );
 		}
+
+		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
+			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
+			if ( messageId != null ) {
+				try {
+					decodedMessage.id = Long.parseLong( messageId );
+				} catch( NumberFormatException e ) {}
+			}
+		}
 		
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
-			retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", decodedMessage.value, null );
-			received = false;
+			retVal = new CommMessage( decodedMessage.id, inputId, "/", decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
 			if ( message.isGet() ) {
 				recv_parseQueryString( message, decodedMessage.value );
@@ -862,8 +886,7 @@ public class HttpProtocol extends SequentialCommProtocol
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
 			//TODO support resourcePath
-			retVal = new CommMessage( CommMessage.GENERIC_ID, decodedMessage.operationName, "/", decodedMessage.value, null );
-			received = true;
+			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, "/", decodedMessage.value, null );
 		}
 		return retVal;
 	}

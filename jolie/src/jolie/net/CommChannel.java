@@ -204,7 +204,7 @@ public abstract class CommChannel
 		throws IOException
 	{
 		// TODO: get rid of the code duplication
-		if ( lock.isHeldByCurrentThread() ) {
+		/*if ( lock.isHeldByCurrentThread() ) {
 			if ( toBeClosed() ) {
 				isOpen = false;
 				close();
@@ -213,6 +213,25 @@ public abstract class CommChannel
 			}
 		} else {
 			lock.lock();
+			try {
+				if ( toBeClosed() ) {
+					isOpen = false;
+					close();
+				} else {
+					releaseImpl();
+				}
+			} finally {
+				lock.unlock();
+			}
+		}*/
+		if ( lock.isHeldByCurrentThread() ) {
+			if ( toBeClosed() ) {
+				isOpen = false;
+				close();
+			} else {
+				releaseImpl();
+			}
+		} else if ( lock.tryLock() ) {
 			try {
 				if ( toBeClosed() ) {
 					isOpen = false;

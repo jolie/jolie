@@ -149,20 +149,21 @@ public class OutputPort extends AbstractIdentifiableObject
 	 * @return the protocol to be used for communicating with this output port
 	 * @throws java.io.IOException
 	 */
-	public CommProtocol getProtocol( URI location )
+	public synchronized CommProtocol getProtocol( URI location )
 		throws IOException
 	{
 		String protocolId = protocolVariablePath.getValue().strValue();
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
-		return interpreter.commCore().createCommProtocol(
+		return interpreter.commCore().createOutputCommProtocol(
 			protocolId,
 			protocolVariablePath,
 			location
 		);
 	}
 
+	
 	private synchronized CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{

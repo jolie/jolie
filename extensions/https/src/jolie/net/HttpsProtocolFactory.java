@@ -39,13 +39,23 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createCommProtocol( "http", configurationPath, location )
+			commCore().createOutputCommProtocol( "http", configurationPath, location )
+		);
+	}
+
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createInputCommProtocol( "http", configurationPath, location )
 		);
 	}
 }
