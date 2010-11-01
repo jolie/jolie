@@ -29,12 +29,18 @@ type PowRequest:void {
 	.exponent:double
 }
 
+type SummationRequest:void {
+	.from:int
+	.to:int
+}
+
 outputPort Math {
 RequestResponse:
 	abs(int)(int),
 	random(void)(double),
 	round(RoundRequestType)(double),
-	pow(PowRequest)(double)
+	pow(PowRequest)(double),
+	summation(SummationRequest)(int)
 }
 
 embedded {
