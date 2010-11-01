@@ -37,7 +37,17 @@ public class SoapProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		try {
+			return new SoapProtocol( configurationPath, location, commCore().interpreter() );
+		} catch( SOAPException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		try {

@@ -52,13 +52,31 @@ public class HttpProtocolFactory extends CommProtocolFactory
 		transformerFactory = TransformerFactory.newInstance();
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		try {
 			return new HttpProtocol(
 				configurationPath,
 				location,
+				true,
+				transformerFactory,
+				docBuilderFactory,
+				docBuilder
+			);
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		try {
+			return new HttpProtocol(
+				configurationPath,
+				location,
+				false,
 				transformerFactory,
 				docBuilderFactory,
 				docBuilder

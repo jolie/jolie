@@ -39,13 +39,23 @@ public class SodepsProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
-	public CommProtocol createProtocol( VariablePath configurationPath, URI location )
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createCommProtocol( "sodep", configurationPath, location )
+			commCore().createInputCommProtocol( "sodep", configurationPath, location )
+		);
+	}
+
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
+		throws IOException
+	{
+		return new SSLProtocol(
+			configurationPath,
+			location,
+			commCore().createOutputCommProtocol( "sodep", configurationPath, location )
 		);
 	}
 }

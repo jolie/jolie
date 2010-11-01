@@ -182,7 +182,7 @@ public class HttpMessage
 	
 	public String getProperty( String name )
 	{
-		return propMap.get( name );
+		return propMap.get( name.toLowerCase() );
 	}
 	
 	public String getPropertyOrEmptyString( String name )

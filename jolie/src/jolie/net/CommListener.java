@@ -101,7 +101,7 @@ abstract public class CommListener extends JolieThread
 	protected CommProtocol createProtocol()
 		throws IOException
 	{
-		return protocolFactory.createProtocol( protocolConfigurationPath, location );
+		return protocolFactory.createInputProtocol( protocolConfigurationPath, location );
 	}
 	
 	/**
