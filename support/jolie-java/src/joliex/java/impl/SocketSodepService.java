@@ -66,6 +66,12 @@ public class SocketSodepService extends Service
 		ostream = Channels.newOutputStream( socketChannel );
 	}
 
+	public void close()
+		throws IOException
+	{
+		socketChannel.close();
+	}
+
 	protected Runnable createRequestResponseRunnable( CommMessage request, Callback callback )
 	{
 		return new RequestResponseRunnable( this, request, callback );

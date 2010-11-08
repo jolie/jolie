@@ -21,6 +21,7 @@
 
 package joliex.java;
 
+import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
@@ -53,6 +54,9 @@ public abstract class Service
 	{
 		factory.execute( createOneWayRunnable( CommMessage.createOneWayMessage( operationName, resourcePath, requestValue ), callback ) );
 	}
+
+	public abstract void close()
+		throws IOException;
 
 	protected abstract Runnable createOneWayRunnable( CommMessage message, Callback callback );
 	protected abstract Runnable createRequestResponseRunnable( CommMessage request, Callback callback );
