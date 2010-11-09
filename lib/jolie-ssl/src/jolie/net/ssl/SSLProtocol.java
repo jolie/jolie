@@ -70,7 +70,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		ByteBuffer buffer;
 		SSLEngineResult log = null;
 
-		public void emptyBuffer()
+		private void emptyBuffer()
 		{
 			buffer = ByteBuffer.allocate( bufferSize );
 		}
@@ -116,7 +116,7 @@ public class SSLProtocol extends SequentialCommProtocol
 
 	public String name()
 	{
-		return "https";
+		return wrappedProtocol.name() + "s";
 	}
 
 	public SSLProtocol(
