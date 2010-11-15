@@ -45,7 +45,8 @@ public class SodepsProtocolFactory extends CommProtocolFactory
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createInputCommProtocol( "sodep", configurationPath, location )
+			commCore().createInputCommProtocol( "sodep", configurationPath, location ),
+			false
 		);
 	}
 
@@ -55,7 +56,8 @@ public class SodepsProtocolFactory extends CommProtocolFactory
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createOutputCommProtocol( "sodep", configurationPath, location )
+			commCore().createOutputCommProtocol( "sodep", configurationPath, location ),
+			true
 		);
 	}
 }
