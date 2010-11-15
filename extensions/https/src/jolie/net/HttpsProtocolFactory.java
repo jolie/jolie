@@ -45,7 +45,8 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createOutputCommProtocol( "http", configurationPath, location )
+			commCore().createOutputCommProtocol( "http", configurationPath, location ),
+			true
 		);
 	}
 
@@ -55,7 +56,8 @@ public class HttpsProtocolFactory extends CommProtocolFactory
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createInputCommProtocol( "http", configurationPath, location )
+			commCore().createInputCommProtocol( "http", configurationPath, location ),
+			false
 		);
 	}
 }

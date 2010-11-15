@@ -22,9 +22,7 @@
 
 package jolie.net;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,95 +42,6 @@ import jolie.net.protocols.CommProtocol;
  */
 public class SocketCommChannel extends SelectableStreamingCommChannel
 {
-	/*private static class PreBufferedInputStream extends BufferedInputStream
-	{
-		public PreBufferedInputStream( InputStream stream )
-		{
-			super( stream );
-		}
-
-		public synchronized void append( byte b )
-			throws IOException
-		{
-			if ( buf == null ) {
-				throw new IOException( "Stream closed" );
-			}
-			if ( count >= buf.length ) {
-				int newSize = pos * 2;
-				if ( newSize > marklimit ) {
-					newSize = marklimit;
-				}
-				byte newBuffer[] = new byte[ newSize ];
-				System.arraycopy( buf, 0, newBuffer, 0, pos );
-				buf = newBuffer;
-				count = pos; // Is this really necessary?
-			}
-			buf[count] = b;
-			count++;
-		}
-	}*/
-
-	private static class PreBufferedInputStream extends InputStream
-	{
-		private static final int INITIAL_BUFFER_SIZE = 10;
-		private final InputStream istream;
-		private byte[] buffer = new byte[ INITIAL_BUFFER_SIZE ];
-		private int writePos = 0;
-		private int readPos = 0;
-		private int count = 0;
-
-		public PreBufferedInputStream( InputStream istream )
-		{
-			this.istream = istream;
-		}
-
-		public synchronized int read()
-			throws IOException
-		{
-			if ( buffer == null ) {
-				throw new IOException( "Stream closed" );
-			}
-
-			if ( count < 1 ) { // No bytes to read
-				return istream.read();
-			}
-			
-			count--;
-			if ( readPos >= buffer.length ) {
-				readPos = 0;
-			}
-			return buffer[ readPos++ ];
-		}
-
-		private synchronized void append( byte b )
-			throws IOException
-		{
-			if ( buffer == null ) {
-				throw new IOException( "Stream closed" );
-			}
-
-			count++;
-			if ( count >= buffer.length ) { // We need to enlarge the buffer
-				byte[] newBuffer = new byte[ buffer.length * 2 ];
-				System.arraycopy( buffer, 0, newBuffer, 0, buffer.length );
-				buffer = newBuffer;
-			}
-			if ( writePos >= buffer.length ) {
-				writePos = 0;
-			}
-			buffer[ writePos ] = b;
-
-			writePos++;
-		}
-
-		@Override
-		public synchronized void close()
-			throws IOException
-		{
-			buffer = null;
-		}
-	}
-
 	private final SocketChannel socketChannel;
 	private final PreBufferedInputStream istream;
 	private final OutputStream ostream;

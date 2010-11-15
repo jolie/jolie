@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Roberto La Maestra                              *
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -55,14 +55,16 @@ import jolie.runtime.VariablePath;
  */
 public class SSLProtocol extends SequentialCommProtocol
 {
-	private static final int INITIAL_BUFFER_SIZE = 65536;
+	private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate( 0 );
+	private static final int INITIAL_BUFFER_SIZE = 2048;
+
 	protected Status lastSSLStatus = null;
-	private boolean isClient = true;
+	private final boolean isClient;
 	private boolean firstTime;
 	private final CommProtocol wrappedProtocol;
 	private int bufferSize = INITIAL_BUFFER_SIZE;
 	private SSLResult result;
-	private SSLEngine ssl;
+	private SSLEngine sslEngine;
 
 	private class SSLResult
 	{
@@ -70,7 +72,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		ByteBuffer buffer;
 		SSLEngineResult log = null;
 
-		private void emptyBuffer()
+		private void newBuffer()
 		{
 			buffer = ByteBuffer.allocate( bufferSize );
 		}
@@ -86,7 +88,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		public SSLResult( SSLEngineResult log, boolean moreToUnwrap )
 		{
 			this.log = log;
-			emptyBuffer();
+			newBuffer();
 			this.moreToUnwrap = moreToUnwrap;
 			lastSSLStatus = null;
 		}
@@ -94,21 +96,21 @@ public class SSLProtocol extends SequentialCommProtocol
 		public SSLResult( SSLEngineResult log )
 		{
 			this.log = log;
-			emptyBuffer();
+			newBuffer();
 			this.moreToUnwrap = false;
 			lastSSLStatus = null;
 		}
 
 		public SSLResult( boolean moreToUnwrap )
 		{
-			emptyBuffer();
+			newBuffer();
 			this.moreToUnwrap = moreToUnwrap;
 			lastSSLStatus = null;
 		}
 
 		public SSLResult()
 		{
-			emptyBuffer();
+			newBuffer();
 			this.moreToUnwrap = false;
 			lastSSLStatus = null;
 		}
@@ -122,10 +124,12 @@ public class SSLProtocol extends SequentialCommProtocol
 	public SSLProtocol(
 		VariablePath configurationPath,
 		URI uri,
-		CommProtocol wrappedProtocol )
-	{
+		CommProtocol wrappedProtocol,
+		boolean isClient
+	) {
 		super( configurationPath );
 		this.wrappedProtocol = wrappedProtocol;
+		this.isClient = isClient;
 		firstTime = true;
 	}
 
@@ -163,20 +167,17 @@ public class SSLProtocol extends SequentialCommProtocol
 		return buffer;
 	}
 
-	// performs the wrap operation taking care of buffer overflows
+	// Performs the wrap operation taking care of buffer overflows
 	private SSLResult wrap( ByteBuffer source )
+		throws SSLException
 	{
-		result.emptyBuffer();
-		try {
-			result.log = ssl.wrap( source, result.buffer );
-			lastSSLStatus = result.log.getStatus();
-			while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
-				result.enlargeBuffer();
-				result.log = ssl.wrap( source, result.buffer );
-				lastSSLStatus = result.log.getStatus();
-			}
-		} catch ( SSLException e ) {
-			e.printStackTrace();
+		SSLResult result = new SSLResult();
+		result.log = sslEngine.wrap( source, result.buffer );
+		//lastSSLStatus = result.log.getStatus();
+		while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
+			result.enlargeBuffer();
+			result.log = sslEngine.wrap( source, result.buffer );
+			//lastSSLStatus = result.log.getStatus();
 		}
 		result.buffer.flip();
 		return result;
@@ -193,10 +194,10 @@ public class SSLProtocol extends SequentialCommProtocol
 	private SSLResult unwrap( ByteBuffer source, InputStream istream )
 		throws IOException, SSLException
 	{
-		result.emptyBuffer();
+		SSLResult result = new SSLResult();
 		source.rewind();
 		do {
-			result.log = ssl.unwrap( source, result.buffer );
+			result.log = sslEngine.unwrap( source, result.buffer );
 			lastSSLStatus = result.log.getStatus();
 			switch ( result.log.getStatus() ) {
 				case BUFFER_UNDERFLOW:
@@ -208,7 +209,7 @@ public class SSLProtocol extends SequentialCommProtocol
 					result.enlargeBuffer();
 					break;
 			}
-		} while ( (result.log.getStatus() != Status.OK) && (result.log.getStatus() != Status.CLOSED) );
+		} while ( result.log.getStatus() != Status.OK && result.log.getStatus() != Status.CLOSED );
 		if ( result.log.bytesConsumed() < source.limit() ) { // if the buffer still contains data to be processed
 			source.position( result.log.bytesConsumed() );
 			result.moreToUnwrap = true;
@@ -288,8 +289,8 @@ public class SSLProtocol extends SequentialCommProtocol
 
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
-			ssl = context.createSSLEngine();
-			ssl.setUseClientMode( isClient );
+			sslEngine = context.createSSLEngine();
+			sslEngine.setUseClientMode( isClient );
 		} catch ( NoSuchAlgorithmException e ) {
 			throw new IOException( e );
 		} catch ( KeyManagementException e ) {
@@ -306,32 +307,26 @@ public class SSLProtocol extends SequentialCommProtocol
 	private void startHandshake( OutputStream ostream, InputStream istream )
 		throws IOException, SSLException
 	{
-		boolean handshakeRunning = true;
-		result = new SSLResult( false );
-		ByteBuffer inbound = ByteBuffer.allocate( bufferSize );
-
-		if ( ssl == null ) {
-			wrappedProtocol.setChannel( this.channel() );
-		}
-
-		if ( firstTime == true ) {
+		if ( firstTime ) {
 			init();
-			ssl.beginHandshake();
+			sslEngine.beginHandshake();
 			firstTime = false;
 		}
 
+		Runnable runnable;
+		result = new SSLResult( false );
+		//SSLResult result;
+		ByteBuffer clearBuffer = ByteBuffer.allocate( bufferSize );
 		ByteBuffer receivedData = ByteBuffer.allocate( bufferSize );
-		while ( (ssl.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING) && (ssl.getHandshakeStatus() != HandshakeStatus.FINISHED) && (handshakeRunning != false) ) {
-			switch ( ssl.getHandshakeStatus() ) {
+		while ( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING && sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED ) {
+			switch ( sslEngine.getHandshakeStatus() ) {
 				case NEED_TASK:
-					Runnable runnable;
-					while ( (runnable = ssl.getDelegatedTask()) != null ) {
+					while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
 						runnable.run();
 					}
 					break;
 				case NEED_WRAP:
-					inbound.clear();
-					result = wrap( inbound );
+					result = wrap( EMPTY_BYTE_BUFFER );
 					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
 						ostream.write( result.buffer.array(), 0, result.buffer.limit() );
 						ostream.flush();
@@ -341,15 +336,10 @@ public class SSLProtocol extends SequentialCommProtocol
 					if ( result.moreToUnwrap == false ) {
 						receivedData = readFromChannel( istream );
 					} else {
-						receivedData = clearUntilPosition( receivedData );    // drops data already processed
+						receivedData = clearUntilPosition( receivedData ); // drops data already processed
 					}
-					try {
-						result = unwrap( receivedData, istream );
-					} catch ( SSLException e ) {
-						handshakeRunning = false;
-						throw e;
-					}
-					inbound = result.buffer;
+					result = unwrap( receivedData, istream );
+					clearBuffer = result.buffer;
 					break;
 			}
 		}
@@ -378,16 +368,14 @@ public class SSLProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		if ( (ssl != null) && ((ssl.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING) || (ssl.getHandshakeStatus() == HandshakeStatus.FINISHED)) ) {
+		if ( firstTime ) {
+			wrappedProtocol.setChannel( this.channel() );
+		}
+		if ( sslEngine != null && (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING || sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED) ) {
 			ByteArrayOutputStream bostream = new ByteArrayOutputStream();
-
-			// sending request to httpProtocol
 			wrappedProtocol.send( bostream, message, null );
 			sendAux( bostream, ostream );
 		} else { // We need to handshake first
-			if ( ssl == null ) {
-				isClient = true;
-			}
 			startHandshake( ostream, istream );
 			send( ostream, message, istream );
 		}
@@ -397,9 +385,11 @@ public class SSLProtocol extends SequentialCommProtocol
 		throws IOException
 	{
 		// now wrapping the message
-		ByteBuffer inbound = ByteBuffer.wrap( "".getBytes() );
+		ByteBuffer inbound;
 		if ( bostream != null ) {
 			inbound = ByteBuffer.wrap( bostream.toByteArray() );
+		} else {
+			inbound = ByteBuffer.wrap( "".getBytes() );
 		}
 		result = wrap( inbound );
 		if ( result.log.bytesProduced() > 0 ) { //need to send result to client
@@ -411,6 +401,9 @@ public class SSLProtocol extends SequentialCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
+		if ( firstTime ) {
+			wrappedProtocol.setChannel( this.channel() );
+		}
 		byte[] recvBytes = recvAux( istream, ostream );
 		if ( recvBytes != null ) {
 			return wrappedProtocol.recv( new SSLInputStream( recvBytes, this, istream, ostream ), ostream );
@@ -424,7 +417,7 @@ public class SSLProtocol extends SequentialCommProtocol
 	{
 		ByteBuffer recvBuffer = ByteBuffer.allocate( bufferSize );
 		ByteBuffer receivedData = null;
-		if ( (ssl != null) && ((ssl.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING) || (ssl.getHandshakeStatus() == HandshakeStatus.FINISHED)) ) {
+		if ( (sslEngine != null) && ((sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING) || (sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED)) ) {
 			result = new SSLResult( false );
 			byte[] justRead = null;
 			do {
@@ -458,11 +451,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			}
 			return compactToByte( recvBuffer );
 		} else {
-			if ( ssl == null ) {
-				isClient = false;
-			}
 			startHandshake( ostream, istream );
-			return recvAux( istream, ostream ); // TODO after handshaking go again in recv mode
+			return recvAux( istream, ostream );
 		}
 	}
 }
