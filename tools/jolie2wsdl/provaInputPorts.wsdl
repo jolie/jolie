@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="TwiceService" targetNamespace="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+  </wsdl:types>
+  <wsdl:message name="TwiceReqMsgType">
+    <wsdl:part name="num" type="xsd:int"/>
+  </wsdl:message>
+  <wsdl:message name="TwiceRespMsgType">
+    <wsdl:part name="result" type="xsd:int"/>
+  </wsdl:message>
+  <wsdl:portType>
+    <wsdl:operation>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:service name="TwiceService">
+  </wsdl:service>
+</wsdl:definitions>
