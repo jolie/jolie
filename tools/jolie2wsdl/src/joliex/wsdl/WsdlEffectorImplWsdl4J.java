@@ -11,6 +11,7 @@ import com.ibm.wsdl.BindingInputImpl;
 import com.ibm.wsdl.BindingOperationImpl;
 import com.ibm.wsdl.BindingOutputImpl;
 import com.ibm.wsdl.DefinitionImpl;
+import com.ibm.wsdl.FaultImpl;
 import com.ibm.wsdl.InputImpl;
 import com.ibm.wsdl.MessageImpl;
 import com.ibm.wsdl.OutputImpl;
@@ -30,10 +31,12 @@ import java.io.Writer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.wsdl.Binding;
+import javax.wsdl.BindingFault;
 import javax.wsdl.BindingInput;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
+import javax.wsdl.Fault;
 import javax.wsdl.Input;
 import javax.wsdl.Message;
 import javax.wsdl.Operation;
@@ -51,6 +54,7 @@ import javax.wsdl.extensions.schema.Schema;
 import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.wsdl.extensions.soap.SOAPBinding;
 import javax.wsdl.extensions.soap.SOAPBody;
+import javax.wsdl.extensions.soap.SOAPFault;
 import javax.wsdl.extensions.soap.SOAPOperation;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
@@ -74,198 +78,200 @@ public class WsdlEffectorImplWsdl4J {
     static String tns = "http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl";
     static String xsd = "http://www.w3.org/2001/XMLSchema";
     static String soap = "http://schemas.xmlsoap.org/wsdl/soap/";
+    static String wsdl = "http://schemas.xmlsoap.org/wsdl/";
     static String soapOverHttp = "http://schemas.xmlsoap.org/wsdl/soap/http";
     static ExtensionRegistry extensionRegistry;
     private static WSDLFactory wsdlFactory;
     private static Definition def;
-/*
+    /*
     public static Definition init() {
-        try {
-            wsdlFactory = WSDLFactory.newInstance();
-            def = wsdlFactory.newDefinition();
-            extensionRegistry = wsdlFactory.newPopulatedExtensionRegistry();
-            WSDLWriter writer = wsdlFactory.newWSDLWriter();
+    try {
+    wsdlFactory = WSDLFactory.newInstance();
+    def = wsdlFactory.newDefinition();
+    extensionRegistry = wsdlFactory.newPopulatedExtensionRegistry();
+    WSDLWriter writer = wsdlFactory.newWSDLWriter();
 
-            //Veder se prendere def.createBlaBla
-            //TODO ...spostare quete vars
-            String serviceName = "TwiceService";
-            String opName = "twice";
-            QName servDefQN = new QName(serviceName + "QN_TODO_rendereParametrico");
-            def.setQName(servDefQN);
+    //Veder se prendere def.createBlaBla
+    //TODO ...spostare quete vars
+    String serviceName = "TwiceService";
+    String opName = "twice";
+    QName servDefQN = new QName(serviceName + "QN_TODO_rendereParametrico");
+    def.setQName(servDefQN);
 
-            String targetNS = tns;
+    String targetNS = tns;
 
-            def.addNamespace("soap", soap);
-            def.addNamespace("tns", tns);
-            def.addNamespace("xsd", xsd);
-            def.setTargetNamespace(targetNS);
-        } catch (WSDLException ex) {
-            Logger.getLogger(WsdlEffectorImplWsdl4J.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return def;
+    def.addNamespace("soap", soap);
+    def.addNamespace("tns", tns);
+    def.addNamespace("xsd", xsd);
+    def.setTargetNamespace(targetNS);
+    } catch (WSDLException ex) {
+    Logger.getLogger(WsdlEffectorImplWsdl4J.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    return def;
     }
 
     public static void addMessage(String inputPartName, String inputPartType) {
-        Input input = def.createInput();
-        Message inputMessage = def.createMessage();
-        Part inputPart = def.createPart();
-        inputPart.setName(inputPartName);
-        inputPart.setTypeName(new QName("http://www.w3.org/2001/XMLSchema", inputPartType));
-        inputMessage.addPart(inputPart);
-        input.setMessage(inputMessage);
+    Input input = def.createInput();
+    Message inputMessage = def.createMessage();
+    Part inputPart = def.createPart();
+    inputPart.setName(inputPartName);
+    inputPart.setTypeName(new QName("http://www.w3.org/2001/XMLSchema", inputPartType));
+    inputMessage.addPart(inputPart);
+    input.setMessage(inputMessage);
 
-        Output output = def.createOutput();
-        Message outputMessage = def.createMessage();
+    Output output = def.createOutput();
+    Message outputMessage = def.createMessage();
 
-        output.setMessage(outputMessage);
+    output.setMessage(outputMessage);
     }
 
     public static void addPortType(String opName) {
-        Operation operation = def.createOperation();
-        operation.setName(opName);
-        operation.setStyle(OperationType.REQUEST_RESPONSE);
+    Operation operation = def.createOperation();
+    operation.setName(opName);
+    operation.setStyle(OperationType.REQUEST_RESPONSE);
 
-        Input input = def.createInput();
-        Message inputMessage = def.createMessage();
-        Part inputPart = def.createPart();
-        inputPart.setName("string");
-        inputPart.setTypeName(new QName("http://www.w3.org/2001/XMLSchema", "string"));
-        inputMessage.addPart(inputPart);
-        operation.setInput(input);
-        input.setMessage(inputMessage);
-        Output output = def.createOutput();
-        Message outputMessage = def.createMessage();
-        operation.setOutput(output);
-        output.setMessage(outputMessage);
+    Input input = def.createInput();
+    Message inputMessage = def.createMessage();
+    Part inputPart = def.createPart();
+    inputPart.setName("string");
+    inputPart.setTypeName(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+    inputMessage.addPart(inputPart);
+    operation.setInput(input);
+    input.setMessage(inputMessage);
+    Output output = def.createOutput();
+    Message outputMessage = def.createMessage();
+    operation.setOutput(output);
+    output.setMessage(outputMessage);
 
     }
 
     public static void addBinding(PortType pt, Operation wsdlOp) {
-        Binding b = def.createBinding();
-        //def.a
-        b.setUndefined(false);
-        QName binding_QN = new QName("Binding_QN");
-        b.setQName(binding_QN);
-        b.setPortType(pt);
+    Binding b = def.createBinding();
+    //def.a
+    b.setUndefined(false);
+    QName binding_QN = new QName("Binding_QN");
+    b.setQName(binding_QN);
+    b.setPortType(pt);
 
-        BindingOperation bOp = new BindingOperationImpl();
+    BindingOperation bOp = new BindingOperationImpl();
 
-        bOp.setOperation(wsdlOp);
-        //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
-        SOAPOperation soapOperation = new SOAPOperationImpl();
-        soapOperation.setStyle("document");
-        // soapOperation.setStyle("rpc");
-        //QName soapOpQN=new QName("")
+    bOp.setOperation(wsdlOp);
+    //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
+    SOAPOperation soapOperation = new SOAPOperationImpl();
+    soapOperation.setStyle("document");
+    // soapOperation.setStyle("rpc");
+    //QName soapOpQN=new QName("")
 
-        BindingInput bi = new BindingInputImpl();
-        bi.setName("bindingInput_name_str");
-        bOp.setBindingInput(bi);
-        BindingOutput bo = new BindingOutputImpl();
-        bo.setName("bindingOutput_name_str");
-        bOp.setBindingOutput(bo);
-        //bOp.setBindingInput(null)
-        //bOp.setBindingOutput(null)
-        b.addBindingOperation(bOp);
-        def.addBinding(b);
+    BindingInput bi = new BindingInputImpl();
+    bi.setName("bindingInput_name_str");
+    bOp.setBindingInput(bi);
+    BindingOutput bo = new BindingOutputImpl();
+    bo.setName("bindingOutput_name_str");
+    bOp.setBindingOutput(bo);
+    //bOp.setBindingInput(null)
+    //bOp.setBindingOutput(null)
+    b.addBindingOperation(bOp);
+    def.addBinding(b);
     }
 
     public static void addBindingSOAP(PortType pt, Operation wsdlOp) {
-        //TODO
-        Binding b = def.createBinding();
-        //def.a
-        b.setUndefined(false);
-        QName binding_QN = new QName("Binding_QN");
-        b.setQName(binding_QN);
-        b.setPortType(pt);
+    //TODO
+    Binding b = def.createBinding();
+    //def.a
+    b.setUndefined(false);
+    QName binding_QN = new QName("Binding_QN");
+    b.setQName(binding_QN);
+    b.setPortType(pt);
 
-        BindingOperation bOp = new BindingOperationImpl();
+    BindingOperation bOp = new BindingOperationImpl();
 
-        bOp.setOperation(wsdlOp);
-        //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
-        SOAPOperation soapOperation = new SOAPOperationImpl();
-        soapOperation.setStyle("document");
-        // soapOperation.setStyle("rpc");
-        //QName soapOpQN=new QName("")
+    bOp.setOperation(wsdlOp);
+    //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
+    SOAPOperation soapOperation = new SOAPOperationImpl();
+    soapOperation.setStyle("document");
+    // soapOperation.setStyle("rpc");
+    //QName soapOpQN=new QName("")
 
-        BindingInput bi = new BindingInputImpl();
-        bi.setName("bindingInput_name_str");
-        bOp.setBindingInput(bi);
-        BindingOutput bo = new BindingOutputImpl();
-        bo.setName("bindingOutput_name_str");
-        bOp.setBindingOutput(bo);
-        //bOp.setBindingInput(null)
-        //bOp.setBindingOutput(null)
-        b.addBindingOperation(bOp);
-        def.addBinding(b);
+    BindingInput bi = new BindingInputImpl();
+    bi.setName("bindingInput_name_str");
+    bOp.setBindingInput(bi);
+    BindingOutput bo = new BindingOutputImpl();
+    bo.setName("bindingOutput_name_str");
+    bOp.setBindingOutput(bo);
+    //bOp.setBindingInput(null)
+    //bOp.setBindingOutput(null)
+    b.addBindingOperation(bOp);
+    def.addBinding(b);
     }
 
     public static void addService(Port p) {
-        Service s = new ServiceImpl();
-        QName qn0 = new QName("Service_QN");
-        // javax.xml.namespace.QName qn=new QNameUtils().newQName( );
-        s.setQName(qn0);
-        s.addPort(p);
+    Service s = new ServiceImpl();
+    QName qn0 = new QName("Service_QN");
+    // javax.xml.namespace.QName qn=new QNameUtils().newQName( );
+    s.setQName(qn0);
+    s.addPort(p);
     }
-*/
+     */
     /*
     public static void test01() {
-        String serviceName = "order_service";
-        String opName = "create_order";
+    String serviceName = "order_service";
+    String opName = "create_order";
 
-        Definition def = init();
+    Definition def = init();
 
-        // try {
+    // try {
 
-//xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    //xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
 
-        Operation operation = def.createOperation();
-        operation.setName(opName);
-        operation.setStyle(OperationType.REQUEST_RESPONSE);
+    Operation operation = def.createOperation();
+    operation.setName(opName);
+    operation.setStyle(OperationType.REQUEST_RESPONSE);
 
-        Input input = def.createInput();
-        Message inputMessage = def.createMessage();
-        Part inputPart = def.createPart();
-        inputPart.setName("string");
-        inputPart.setTypeName(new QName(xsd, "string"));
-        inputMessage.addPart(inputPart);
-        operation.setInput(input);
-        input.setMessage(inputMessage);
-        Output output = def.createOutput();
+    Input input = def.createInput();
+    Message inputMessage = def.createMessage();
+    Part inputPart = def.createPart();
+    inputPart.setName("string");
+    inputPart.setTypeName(new QName(xsd, "string"));
+    inputMessage.addPart(inputPart);
+    operation.setInput(input);
+    input.setMessage(inputMessage);
+    Output output = def.createOutput();
 
 
-        Message outputMessage = def.createMessage();
-        operation.setOutput(output);
-        output.setMessage(outputMessage);
+    Message outputMessage = def.createMessage();
+    operation.setOutput(output);
+    output.setMessage(outputMessage);
 
-        BindingOperation bindOp = def.createBindingOperation();
-        bindOp.setName(opName);
+    BindingOperation bindOp = def.createBindingOperation();
+    bindOp.setName(opName);
 
-        //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
-        SOAPOperation soapOperation = new SOAPOperationImpl();
-        soapOperation.setStyle("document");
-        // soapOperation.setStyle("rpc");
-        //soapOperation.set
-        soapOperation.setSoapActionURI("");
-        bindOp.addExtensibilityElement(soapOperation);
-        bindOp.setOperation(operation);
+    //SOAPOperation soapOperation = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
+    SOAPOperation soapOperation = new SOAPOperationImpl();
+    soapOperation.setStyle("document");
+    // soapOperation.setStyle("rpc");
+    //soapOperation.set
+    soapOperation.setSoapActionURI("");
+    bindOp.addExtensibilityElement(soapOperation);
+    bindOp.setOperation(operation);
 
-        BindingInput bindingInput = def.createBindingInput();
+    BindingInput bindingInput = def.createBindingInput();
 
-        //SOAPBody inputBody = (SOAPBody) extensionRegistry.createExtension(BindingInput.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "body"));
-        SOAPBody inputBody = new SOAPBodyImpl();
-        inputBody.setUse("literal");
-        //inputBody.setEncodingStyles(null);
-        //inputBody.setUse("encoded");
-        bindingInput.addExtensibilityElement(inputBody);
-        bindOp.setBindingInput(bindingInput);
-        BindingOutput bindingOutput = def.createBindingOutput();
-        bindingOutput.addExtensibilityElement(inputBody);
-        bindOp.setBindingOutput(bindingOutput);
-//        } catch (WSDLException ex) {
-//            Logger.getLogger(WsdlEffectorImplWsdl4J.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+    //SOAPBody inputBody = (SOAPBody) extensionRegistry.createExtension(BindingInput.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "body"));
+    SOAPBody inputBody = new SOAPBodyImpl();
+    inputBody.setUse("literal");
+    //inputBody.setEncodingStyles(null);
+    //inputBody.setUse("encoded");
+    bindingInput.addExtensibilityElement(inputBody);
+    bindOp.setBindingInput(bindingInput);
+    BindingOutput bindingOutput = def.createBindingOutput();
+    bindingOutput.addExtensibilityElement(inputBody);
+    bindOp.setBindingOutput(bindingOutput);
+    //        } catch (WSDLException ex) {
+    //            Logger.getLogger(WsdlEffectorImplWsdl4J.class.getName()).log(Level.SEVERE, null, ex);
+    //        }
     }
-*/
+     */
+
     public static void test00(String fileName) {
         //if (fileName.equals("")) {fileName="./src/test/resources/prova_out.wsdl";}
         Definition rr;
@@ -308,18 +314,34 @@ public class WsdlEffectorImplWsdl4J {
                 //Types types=new TypesImpl();
                 Types types = def.createTypes();
                 //TODO Come aggiungere schema (o riferimento a xsd)  per i tipi?
-                
+
                 sch = new SchemaImpl();
-                /*TODO DeCommentare la seguente parte di codice e vedere perchè non genera l'elemento wsdl:types
+                Schema typesExt = (Schema) extensionRegistry.createExtension(Types.class, new QName(xsd, "schema"));
+                //typesExt.
+                /*TODO DeCommentare la seguente parte di codice e vedere perchè non genera l'elemento wsdl:types*/
                 //TODO Da qui in poi devo solo riempire lo schema con i giusti elementi...;
                 //TODO Come creare elementi da settare nelle istanze della classe SchemaImpl
-                Document document,document02 = null;
+                Document document, document02 = null;
                 Element rootElement = null;
                 DocumentBuilder db = null;
                 try {
-
+                    /*
+                    DOMImplementation DOMImplementation =
+                    builder.getDOMImplementation();
+                    Document manifestAsDOM = DOMImplementation.createDocument(
+                    "http://www.somecompany.com/2005/xyz",
+                    BuildConstants.MANIFEST_ROOT_NODE_NAME,
+                    null);
+                    Element root = manifestAsDOM.getDocumentElement();
+                    root.setPrefix("xyz");
+                    root.setAttribute(
+                    "xmlns: xyz",
+                    "http://www.somecompany.com/2005/xyz");
+                     */
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     System.out.println(" dbf=" + dbf);
+                    //dbf.setFeature(opName, true)
+                    dbf.setNamespaceAware(true);
                     db = dbf.newDocumentBuilder();
                     System.out.println(" db=" + db);
 
@@ -332,20 +354,37 @@ public class WsdlEffectorImplWsdl4J {
                 document = db.newDocument();
                 System.out.println(" document=" + document);
                 //DOMImplementation di=db.getDOMImplementation();
-                 //System.out.println(" di=" + di);
                 //DocumentType dt=DocumentType();
                 //document02=di.createDocument(fileName, serviceName, dt);
 
-                rootElement = document.createElement("schema");
-                Element element = document.createElement("complexType");
-                element.setNodeValue("nodeValue");
-                element.setTextContent("textContent");
+                rootElement = document.createElement("xsd:schema");
+                //rootElement.setAttribute("xs",xsd);
+                //rootElement.setA.setAttributeNS(xsd, "xs", opName);
+                //rootElement.setPrefix("xs");
+                //rootElement = document.createElementNS(xsd,"schema");
+               //TODO Usare (se esiste) un modo migliore per settare il NAMESPACE XMLSchema nei files xsd e assicurarsi un corrispondente settaggio nel wsdl
+                //TODO Usare un modo migliore per settare il targetNameSpace (tns) negli schema e assicurarsi un corrispondente settaggio IN TUTTO il wsdl,
+                //tns:opName    tns:***
 
-                sch.setElement(element);
-                //sch.setElementType(new QName());
-                //Node n = new NodeImpl();
+                Element element = document.createElement("xsd:element");
+                element.setNodeValue("nodeValue");
+                element.setAttribute("name", opName);
+
+                Element elementResp = document.createElement("xsd:element");
+                elementResp.setNodeValue("nodeValue");
+                elementResp.setAttribute("name", opName+"Response");
+
+                //sch.setElementType(new QName(xsd, "xs"));
+                //sch.setElement(element);
+                //http://www.w3.org/2001/03/14-annotated-WSDL-examples.html
+                Element elementFault = document.createElement("xsd:element");
+                elementFault.setNodeValue("nodeValue");
+                elementFault.setAttribute("name", opName+"Fault");
+
                 System.out.println(" document=" + document);
+                element.appendChild(elementResp).appendChild(elementFault);
                 rootElement.appendChild(element);
+                 //rootElement.appendChild(elementResp);
                 //element.setNodeValue("nodeValue");
                 //element.setTextContent("textContent");
                 //element.setAttribute("name", "contact");
@@ -353,22 +392,24 @@ public class WsdlEffectorImplWsdl4J {
                 System.out.println(" element=" + element);
                 sch.setElement(rootElement);
 
-
-                 
-                System.out.println(" sch=" + sch);
-                ExtensibilityElement extElement = sch;
-                System.out.println(" extElement=" + extElement);
                 //Element schemaElement = new Element();
                 //Element schemaElement = ((SchemaImpl) element).getElement();
                 //new   org.w3c.dom.Element();
-                
+
                 //NOTA-BENE Punto di aggancio wsdl:type - schema
-                types.addExtensibilityElement(extElement);
+                //typesExt.setElementType(new QName(xsd,"schema"));
+
+                //DOMResult result = new DOMResult();
+                //transform(schema.getSource(), result);
+                //Document schemaDocument = (Document) rootElement.getNode();
+                //return schemaDocument.getDocumentElement();
+
+                typesExt.setElement(rootElement);
+                types.addExtensibilityElement(typesExt);
 
                 //types.setDocumentationElement(null);
-                 * *
-                 */
-                
+
+
                 System.out.println(" types=" + types);
                 def.setTypes(types);
 //============================= MESSAGE =============================
@@ -429,6 +470,10 @@ public class WsdlEffectorImplWsdl4J {
                 out.setName("outputOutName");
                 out.setMessage(msg_req);
                 wsdlOp.setOutput(out);
+                Fault fault = new FaultImpl();
+                fault.setName("faultName");
+                fault.setMessage(msg_resp);
+                wsdlOp.addFault(fault);
                 /*Input in=new InputImpl();
                 //in.
                 wsdlOp.setInput(in); */
@@ -441,7 +486,7 @@ public class WsdlEffectorImplWsdl4J {
 
                 pt.setQName(pt_QN);
                 def.addPortType(pt);
-                //def.addPortType();
+             
                 //----------------------------------
 
                 Service s = new ServiceImpl();
@@ -474,6 +519,12 @@ public class WsdlEffectorImplWsdl4J {
                 BindingOutput bindingOutput = def.createBindingOutput();
                 bindingOutput.addExtensibilityElement(inputBody);
                 bindOp.setBindingOutput(bindingOutput);
+                /*TODO Aggiungere il Fault
+                BindingFault  bindingFault = def.createBindingFault();
+                //SOAPFault soapFault = (SOAPFault) extensionRegistry.createExtension(Fault.class, new QName(soap, "fault"));
+                bindingFault.addExtensibilityElement(inputBody);
+                bindOp.addBindingFault(bindingFault);
+                 */
                 PortType portType = def.createPortType();
                 portType.setQName(new QName("", serviceName + "PortType"));
                 portType.addOperation(wsdlOp);
@@ -495,38 +546,7 @@ public class WsdlEffectorImplWsdl4J {
                 port.addExtensibilityElement(soapAddress);
                 port.setBinding(bind);
                 def.addBinding(bind);
-                /*
-                BindingOperation bOp = new BindingOperationImpl();
 
-                bOp.setOperation(wsdlOp);
-
-                SOAPOperation soapOperationER = (SOAPOperation) extensionRegistry.createExtension(BindingOperation.class, new QName("http://schemas.xmlsoap.org/wsdl/soap/", "operation"));
-
-                SOAPOperation soapOperation = new SOAPOperationImpl();
-                soapOperation.setStyle("document");
-                // soapOperation.setStyle("document");
-                //QName soapOpQN=new QName("");
-                //soapOperation.setElementType(qn0);
-                soapOperation.setSoapActionURI("");
-                //bOp.addExtensibilityElement(soapOperation);
-                SOAPBinding soapBinding = (SOAPBinding)extensionRegistry.createExtension(Binding.class,
-                new QName(soap,"binding"));
-                SOAPBinding soapOpBind = new SOAPBindingImpl();
-                soapOpBind.setStyle("document"); //"rpc"
-                soapOpBind.setTransportURI("http://schemas.xmlsoap.org/soap/http");
-                
-                BindingInput bi = new BindingInputImpl();
-                bi.setName("bindingInput_name_str");
-                bOp.setBindingInput(bi);
-                BindingOutput bo = new BindingOutputImpl();
-                bo.setName("bindingOutput_name_str");
-                bOp.setBindingOutput(bo);
-                //bOp.setBindingInput(null)
-                //bOp.setBindingOutput(null)
-                b.addBindingOperation(bOp);
-                def.addBinding(b);
-
-                 */
 //========================= SERVICE ===============================
                 //Port p = def.createPort();
 //                port.setName("SOAPPort");

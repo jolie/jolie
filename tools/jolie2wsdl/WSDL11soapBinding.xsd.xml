@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : WSDL11soapBinding.xsd.xml
+    Created on : 17 novembre 2010, 10.55
+    Author     : Francesco
+    Description:
+        Purpose of the document follows.
+-->
+
+<schema xmlns="http://www.w3.org/2000/10/XMLSchema"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        targetNamespace="http://schemas.xmlsoap.org/wsdl/soap/">
+   <element name="binding" type="soap:bindingType"/>
+   <complexType name="bindingType">
+      <attribute name="transport" type="uriReference" use="optional"/>
+      <attribute name="style" type="soap:styleChoice" use="optional"/>
+   </complexType>
+   <simpleType name="styleChoice">
+      <restriction base="string">
+   <enumeration value="rpc"/>
+      <enumeration value="document"/>
+  </restriction>
+   </simpleType>
+   <element name="operation" type="soap:operationType"/>
+   <complexType name="operationType">
+      <attribute name="soapAction" type="uriReference" use="optional"/>
+      <attribute name="style" type="soap:styleChoice" use="optional"/>
+   </complexType>
+   <element name="body" type="soap:bodyType"/>
+   <complexType name="bodyType">
+      <attribute name="encodingStyle" type="uriReference" use="optional"/>
+      <attribute name="parts" type="NMTOKENS" use="optional"/>
+      <attribute name="use" type="soap:useChoice" use="optional"/>
+      <attribute name="namespace" type="uriReference" use="optional"/>
+   </complexType>
+   <simpleType name="useChoice">
+      <restriction base="string">
+   <enumeration value="literal"/>
+      <enumeration value="encoded"/>
+  </restriction>
+   </simpleType>
+   <element name="fault" type="soap:faultType"/>
+   <complexType name="faultType">
+      <complexContent>
+   <restriction base="soap:bodyType">
+   <attribute name="parts" type="NMTOKENS" use="prohibited"/>
+   </restriction>
+  </complexContent>
+  </complexType>
+   <element name="header" type="soap:headerType"/>
+   <complexType name="headerType">
+      <all>
+          <element ref="soap:headerfault"/>
+      </all>
+      <attribute name="message" type="QName" use="required"/>
+      <attribute name="parts" type="NMTOKENS" use="required"/>
+      <attribute name="use" type="soap:useChoice" use="required"/>
+      <attribute name="encodingStyle" type="uriReference" use="optional"/>
+      <attribute name="namespace" type="uriReference" use="optional"/>
+   </complexType>
+   <element name="headerfault" type="soap:headerfaultType"/>
+   <complexType name="headerfaultType">
+      <attribute name="message" type="QName" use="required"/>
+      <attribute name="parts" type="NMTOKENS" use="required"/>
+      <attribute name="use" type="soap:useChoice" use="required"/>
+      <attribute name="encodingStyle" type="uriReference" use="optional"/>
+      <attribute name="namespace" type="uriReference" use="optional"/>
+   </complexType>
+   <element name="address" type="soap:addressType"/>
+   <complexType name="addressType">
+      <attribute name="location" type="uriReference" use="required"/>
+   </complexType>
+</schema>
