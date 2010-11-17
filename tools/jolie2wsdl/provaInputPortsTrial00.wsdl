@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <wsdl:definitions name="TwiceService" targetNamespace="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
   <wsdl:types>
+    <xsd:schema><xsd:element name="twice"><xsd:element name="twiceResponse"><xsd:element name="twiceFault"/></xsd:element></xsd:element></xsd:schema>
   </wsdl:types>
   <wsdl:message name="TwiceServiceResponse">
     <wsdl:part name="parameters" element="twiceResponse"/>
@@ -12,6 +13,7 @@
     <wsdl:operation name="twice">
       <wsdl:input name="inputInName" message="TwiceServiceRequest"/>
       <wsdl:output name="outputOutName" message="TwiceServiceRequest"/>
+      <wsdl:fault name="faultName" message="TwiceServiceResponse"/>
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="TwiceServiceBinding" type="TwiceServicePortType">

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : WSDL11httpBinding.xml
+    Created on : 17 novembre 2010, 10.56
+    Author     : Francesco
+    Description:
+        Purpose of the document follows.
+-->
+
+<schema xmlns="http://www.w3.org/2000/10/XMLSchema"
+        xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+        targetNamespace="http://schemas.xmlsoap.org/wsdl/http/">
+   <element name="address" type="http:addressType"/>
+   <complexType name="addressType">
+      <attribute name="location" type="uriReference" use="required"/>
+   </complexType>
+   <element name="binding" type="http:bindingType"/>
+   <complexType name="bindingType">
+      <attribute name="verb" type="NMTOKEN" use="required"/>
+   </complexType>
+   <element name="operation" type="http:operationType"/>
+   <complexType name="operationType">
+      <attribute name="location" type="uriReference" use="required"/>
+   </complexType>
+   <element name="urlEncoded">
+      <complexType>
+  </complexType>
+   </element>
+   <element name="urlReplacement">
+      <complexType>
+  </complexType>
+   </element>
+</schema>
