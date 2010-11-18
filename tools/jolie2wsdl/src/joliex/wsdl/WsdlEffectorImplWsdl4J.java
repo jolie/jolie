@@ -25,6 +25,7 @@ import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
 import com.ibm.wsdl.extensions.soap.SOAPOperationImpl;
 import com.ibm.wsdl.util.xml.QNameUtils;
 import com.sun.org.apache.xerces.internal.dom.DocumentTypeImpl;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -59,9 +60,13 @@ import javax.wsdl.extensions.soap.SOAPOperation;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.wsdl.xml.WSDLWriter;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
@@ -75,11 +80,17 @@ import org.w3c.dom.Node;
  */
 public class WsdlEffectorImplWsdl4J {
 
-    static String tns = "http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl";
-    static String xsd = "http://www.w3.org/2001/XMLSchema";
-    static String soap = "http://schemas.xmlsoap.org/wsdl/soap/";
-    static String wsdl = "http://schemas.xmlsoap.org/wsdl/";
-    static String soapOverHttp = "http://schemas.xmlsoap.org/wsdl/soap/http";
+    //static final String tns = "http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J";//.wsdl
+    static final String tns = "http://www.italianasoftware.com/";
+    static final String schema = "http://www.w3.org/2001/XMLSchema";
+    static final String soap = "http://schemas.xmlsoap.org/wsdl/soap/";
+    static final String wsdl = "http://schemas.xmlsoap.org/wsdl/";
+    static final String soapOverHttp = "http://schemas.xmlsoap.org/wsdl/soap/http";
+    static final String tns_prefix = "tns";
+    static final String schema_prefix = "xs";
+    static final String soap_prefix = "soap";
+    static final String wsdl_prefix = "wsdl";
+    //static String soapOverHttp_prefix = "http://schemas.xmlsoap.org/wsdl/soap/http";
     static ExtensionRegistry extensionRegistry;
     private static WSDLFactory wsdlFactory;
     private static Definition def;
@@ -102,7 +113,7 @@ public class WsdlEffectorImplWsdl4J {
 
     def.addNamespace("soap", soap);
     def.addNamespace("tns", tns);
-    def.addNamespace("xsd", xsd);
+    def.addNamespace("schema", schema);
     def.setTargetNamespace(targetNS);
     } catch (WSDLException ex) {
     Logger.getLogger(WsdlEffectorImplWsdl4J.class.getName()).log(Level.SEVERE, null, ex);
@@ -231,7 +242,7 @@ public class WsdlEffectorImplWsdl4J {
     Message inputMessage = def.createMessage();
     Part inputPart = def.createPart();
     inputPart.setName("string");
-    inputPart.setTypeName(new QName(xsd, "string"));
+    inputPart.setTypeName(new QName(schema, "string"));
     inputMessage.addPart(inputPart);
     operation.setInput(input);
     input.setMessage(inputMessage);
@@ -276,6 +287,8 @@ public class WsdlEffectorImplWsdl4J {
         //if (fileName.equals("")) {fileName="./src/test/resources/prova_out.wsdl";}
         Definition rr;
         Schema sch;
+        String subTypeNameReq = "num";
+        String subTypeNameResp = "result";
         //Definition def=init();
         {
             Writer fw = null;
@@ -304,19 +317,20 @@ public class WsdlEffectorImplWsdl4J {
 
                 String targetNS = tns;
 
+                def.addNamespace("wsdl", wsdl);
                 def.addNamespace("soap", soap);
                 def.addNamespace("tns", tns);
-                def.addNamespace("xsd", xsd);
+                def.addNamespace("xs", schema);
                 def.setTargetNamespace(targetNS);
 
                 //def.setDocumentBaseURI("http://docBaseURI");
 //============================= TYPES =============================
                 //Types types=new TypesImpl();
                 Types types = def.createTypes();
-                //TODO Come aggiungere schema (o riferimento a xsd)  per i tipi?
+                //TODO Come aggiungere schema (o riferimento a schema)  per i tipi?
 
-                sch = new SchemaImpl();
-                Schema typesExt = (Schema) extensionRegistry.createExtension(Types.class, new QName(xsd, "schema"));
+                //sch = new SchemaImpl();
+                Schema typesExt = (Schema) extensionRegistry.createExtension(Types.class, new QName(schema, "schema"));
                 //typesExt.
                 /*TODO DeCommentare la seguente parte di codice e vedere perchè non genera l'elemento wsdl:types*/
                 //TODO Da qui in poi devo solo riempire lo schema con i giusti elementi...;
@@ -342,62 +356,79 @@ public class WsdlEffectorImplWsdl4J {
                     System.out.println(" dbf=" + dbf);
                     //dbf.setFeature(opName, true)
                     dbf.setNamespaceAware(true);
+                    //dbf.setValidating(true);
                     db = dbf.newDocumentBuilder();
                     System.out.println(" db=" + db);
-
                     //rootElement.setAttribute("caption", caption);
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //FIXME: document è = null
                 document = db.newDocument();
                 System.out.println(" document=" + document);
                 //DOMImplementation di=db.getDOMImplementation();
                 //DocumentType dt=DocumentType();
                 //document02=di.createDocument(fileName, serviceName, dt);
 
-                rootElement = document.createElement("xsd:schema");
-                //rootElement.setAttribute("xs",xsd);
-                //rootElement.setA.setAttributeNS(xsd, "xs", opName);
+                //TODO veridicare le 3 linee seguenti (e le ulteriori linee)
+                rootElement = document.createElement("xs:schema");
+
+                rootElement.setAttribute("xmlns:xs",schema);
+                //rootElement.setAttribute("xmlns:tns",tns);
+                rootElement.setAttribute("targetNamespace",tns);
+                //rootElement.setAttribute("targetNamespace:tns",tns);
+                //rootElement.setAttributeNS(schema, "xmlns", schema);
+
+                //rootElement.setAttributeNS(tns, "targetNamespace", tns);
                 //rootElement.setPrefix("xs");
-                //rootElement = document.createElementNS(xsd,"schema");
-               //TODO Usare (se esiste) un modo migliore per settare il NAMESPACE XMLSchema nei files xsd e assicurarsi un corrispondente settaggio nel wsdl
+                //rootElement = document.createElementNS(schema,"schema");
+                //TODO Usare (se esiste) un modo migliore per settare il NAMESPACE XMLSchema nei files schema e assicurarsi un corrispondente settaggio nel wsdl
                 //TODO Usare un modo migliore per settare il targetNameSpace (tns) negli schema e assicurarsi un corrispondente settaggio IN TUTTO il wsdl,
                 //tns:opName    tns:***
 
-                Element element = document.createElement("xsd:element");
-                element.setNodeValue("nodeValue");
-                element.setAttribute("name", opName);
+                Element elementReq = document.createElement("xs:element");
+                //elementReq.setNodeValue("nodeValue");
+                elementReq.setAttribute("name", opName);
 
-                Element elementResp = document.createElement("xsd:element");
-                elementResp.setNodeValue("nodeValue");
-                elementResp.setAttribute("name", opName+"Response");
+                Element cTypeReq = document.createElement("xs:complexType");
+                //cTypeReq..setAttibute( );
+                 Element sequenceReq = document.createElement("xs:sequence");
+                 cTypeReq.appendChild(sequenceReq);
+                 //sequenceReq.setAttibute( );
+                 sequenceReq.setAttribute("name", subTypeNameReq);
+                elementReq.appendChild(cTypeReq);
+                 
 
-                //sch.setElementType(new QName(xsd, "xs"));
-                //sch.setElement(element);
+                Element elementResp = document.createElement("xs:element");
+                elementResp.setAttribute("name", opName + "Response");
+                Element  cTypeResp = document.createElement("xs:complexType");
+                Element sequenceResp = document.createElement("xs:sequence");
+                 cTypeResp.appendChild(sequenceResp);
+                sequenceResp.setAttribute("name", subTypeNameResp);
+                elementReq.appendChild(cTypeResp);
+                //sch.setElementType(new QName(schema, "xs"));
+                //sch.setElement(elementReq);
                 //http://www.w3.org/2001/03/14-annotated-WSDL-examples.html
-                Element elementFault = document.createElement("xsd:element");
+                Element elementFault = document.createElement("xs:element");
                 elementFault.setNodeValue("nodeValue");
-                elementFault.setAttribute("name", opName+"Fault");
+                elementFault.setAttribute("name", opName + "Fault");
 
                 System.out.println(" document=" + document);
-                element.appendChild(elementResp).appendChild(elementFault);
-                rootElement.appendChild(element);
-                 //rootElement.appendChild(elementResp);
-                //element.setNodeValue("nodeValue");
-                //element.setTextContent("textContent");
-                //element.setAttribute("name", "contact");
+                //elementReq.appendChild(cTypeReq).appendChild(sequenceReq).appendChild(elementResp).appendChild(elementFault);
+                rootElement.appendChild(elementReq).appendChild(elementResp);
+                //rootElement.appendChild(elementResp);
+                //elementReq.setNodeValue("nodeValue");
+                //elementReq.setTextContent("textContent");
+                //elementReq.setAttribute("name", "contact");
 
-                System.out.println(" element=" + element);
-                sch.setElement(rootElement);
+                //System.out.println(" elementReq=" + elementReq);
+                //sch.setElement(rootElement);
 
                 //Element schemaElement = new Element();
-                //Element schemaElement = ((SchemaImpl) element).getElement();
+                //Element schemaElement = ((SchemaImpl) elementReq).getElement();
                 //new   org.w3c.dom.Element();
 
                 //NOTA-BENE Punto di aggancio wsdl:type - schema
-                //typesExt.setElementType(new QName(xsd,"schema"));
+                //typesExt.setElementType(new QName(schema,"schema"));
 
                 //DOMResult result = new DOMResult();
                 //transform(schema.getSource(), result);
@@ -408,7 +439,6 @@ public class WsdlEffectorImplWsdl4J {
                 types.addExtensibilityElement(typesExt);
 
                 //types.setDocumentationElement(null);
-
 
                 System.out.println(" types=" + types);
                 def.setTypes(types);
@@ -425,7 +455,7 @@ public class WsdlEffectorImplWsdl4J {
                 part01a.setElementName(new QName(opName));
                 //----------------
 
-                QName partType01a = new QName(xsd, "string");
+                QName partType01a = new QName(schema, "string");
                 //part01a.setTypeName(partType01a);
                 msg_req.addPart(part01a);
                 def.addMessage(msg_req);
@@ -436,7 +466,7 @@ public class WsdlEffectorImplWsdl4J {
                 msg_resp.setQName(msg_resp_QN);
                 QName qn02a = new QName(opName + "Response");
                 //msg_resp.setQName("");
-                //QName qn02a=new QName("xsd:String");
+                //QName qn02a=new QName("schema:String");
                 Part p02a = new PartImpl();
                 //--------------------
                 //DOCUMENT
@@ -486,7 +516,7 @@ public class WsdlEffectorImplWsdl4J {
 
                 pt.setQName(pt_QN);
                 def.addPortType(pt);
-             
+
                 //----------------------------------
 
                 Service s = new ServiceImpl();
@@ -575,9 +605,37 @@ public class WsdlEffectorImplWsdl4J {
         }
     }
 
+//    public static void validate(String fileName) {
+//        {
+//            try {
+//                WSDLFactory f = WSDLFactory.newInstance();
+//                WSDLReader r = f.newWSDLReader();
+//                Definition def = r.readWSDL(fileName);
+//                System.out.println("Validation done");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+//    public static void validate02(String schName, String document) {
+//        javax.xml.validation.Schema schema = null;
+//        try {
+//            String language = XMLConstants.W3C_XML_SCHEMA_NS_URI;
+//            SchemaFactory factory = SchemaFactory.newInstance(language);
+//            schema = (javax.xml.validation.Schema) factory.newSchema(new File(schName));
+//            Validator validator = schema.newValidator();
+//            DOMSource doc = new DOMSource(document);
+//            validator.validate(doc);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     public static void main(String[] arg) {
         //test00("./src/test/resources/provaInputPortsTrial00.wsdl");
-        test00("./provaInputPortsTrial00.wsdl");
-        //test01();
+        String inputArg = "./provaInputPortsTrial00.wsdl";
+        test00(inputArg);
+        //validate(inputArg);
     }
 }
