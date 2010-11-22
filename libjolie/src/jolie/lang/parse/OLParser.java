@@ -39,13 +39,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
-
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
@@ -198,18 +195,6 @@ public class OLParser extends AbstractParser
 
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
-		}
-	}
-
-	private void parseComment()
-		throws IOException, ParserException
-	{
-		String Comment;
-		getToken();
-		if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-			Comment = token.content();
-			DocumentationComment _commentdoc = new DocumentationComment( getContext(), Comment );
-			program.addChild( _commentdoc );
 		}
 	}
 
