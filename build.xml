@@ -186,6 +186,9 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
