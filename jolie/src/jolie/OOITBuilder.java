@@ -50,6 +50,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -1146,5 +1147,6 @@ public class OOITBuilder implements OLVisitor
 	}
 
 	public void visit( InterfaceDefinition n ) {}
+	public void visit( DocumentationComment n ) {}
 }
 

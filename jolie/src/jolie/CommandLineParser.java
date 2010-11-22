@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -215,6 +215,11 @@ public class CommandLineParser
 	{
 		return verbose;
 	}
+
+	/*protected int checkOption( List< String > argsList, int index )
+	{
+		return index;
+	}*/
 
 	/**
 	 * Constructor
