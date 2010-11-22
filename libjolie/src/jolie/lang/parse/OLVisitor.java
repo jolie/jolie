@@ -81,6 +81,7 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.DocumentationComment;
 
 public interface OLVisitor
 {
@@ -144,4 +145,5 @@ public interface OLVisitor
 	public void visit( TypeInlineDefinition n );
 	public void visit( TypeDefinitionLink n );
 	public void visit( InterfaceDefinition n );
+	public void visit( DocumentationComment n );
 }

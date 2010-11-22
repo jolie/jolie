@@ -22,17 +22,22 @@
 package jolie.lang.parse.ast;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ParsingContext;
 
-public abstract class PortInfo extends OLSyntaxNode implements OperationCollector
+abstract public class PortInfo extends OLSyntaxNode implements OperationCollector ,DocumentedNode
 {
 	private final String id;
 	private final Map< String, OperationDeclaration > operationsMap =
-						new HashMap< String, OperationDeclaration > ();
-	
+		new HashMap< String, OperationDeclaration > ();
+	private List< String > interfacesList = new ArrayList< String >( 0 );
+	private String document;
+
 	public PortInfo( ParsingContext context, String id )
 	{
 		super( context );
@@ -57,5 +62,25 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	public void addOperation( OperationDeclaration decl )
 	{
 		operationsMap.put( decl.id(), decl );
+	}
+
+	public void setDocumentation( String document )
+	{
+		this.document = document;
+	}
+
+	public String getDocumentation()
+	{
+		return this.document;
+	}
+
+	public List< String > getInterfacesList()
+	{
+		return interfacesList;
+	}
+
+	public void setInterfacesList( List< String > interfacesList )
+	{
+		this.interfacesList = interfacesList;
 	}
 }

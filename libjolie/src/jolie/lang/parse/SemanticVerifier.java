@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
@@ -250,7 +251,10 @@ public class SemanticVerifier implements OLVisitor
 	{
 		n.body().accept( this );
 	}
-	
+
+	public void visit (DocumentationComment n)
+	{}
+
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {

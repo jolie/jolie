@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Balint Maschio <bmaschio@italianasoftware.com>       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,60 +21,26 @@
 
 package jolie.lang.parse.ast;
 
-import java.net.URI;
-import java.util.Map;
-
-import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.OLVisitor;
 
-public class InputPortInfo extends PortInfo
+/**
+ *
+ * @author Balint Maschio
+ */
+public class DocumentationComment extends OLSyntaxNode
 {
-	private final URI location;
-	private final String protocolId;
-	private final OLSyntaxNode protocolConfiguration;
-	private final String[] aggregationList;
-	private final Map< String, String > redirectionMap;
+	final private String comment;
 
-	public InputPortInfo(
-		ParsingContext context,
-		String id,
-		URI location,
-		String protocolId,
-		OLSyntaxNode protocolConfiguration,
-		String[] aggregationList,
-		Map< String, String > redirectionMap
-	) {
-		super( context, id );
-		this.location = location;
-		this.protocolId = protocolId;
-		this.protocolConfiguration = protocolConfiguration;
-		this.aggregationList = aggregationList;
-		this.redirectionMap = redirectionMap;
+	public DocumentationComment( ParsingContext context, String InputComment )
+	{
+		super( context );
+		this.comment = InputComment;
 	}
 
-	public String[] aggregationList()
+	public String comment()
 	{
-		return aggregationList;
-	}
-
-	public Map< String, String > redirectionMap()
-	{
-		return redirectionMap;
-	}
-
-	public OLSyntaxNode protocolConfiguration()
-	{
-		return protocolConfiguration;
-	}
-
-	public String protocolId()
-	{
-		return protocolId;
-	}
-
-	public URI location()
-	{
-		return location;
+		return comment;
 	}
 
 	public void accept( OLVisitor visitor )

@@ -78,6 +78,7 @@ public class Scanner
 		WHILE,				///< while
 		EXECUTION,			///< execution
 		THROW,				///< throw
+		DOCUMENTATION_COMMENT,
 		INSTALL,				///< install
 		SCOPE,					///< scope
 		SPAWN,					///< spawn
@@ -634,6 +635,10 @@ public class Scanner
 						if ( ch == '/' ) {
 							readChar();
 							retval = getToken();
+						} else if ( ch == '!' ) {
+							builder = new StringBuilder();
+							readChar();
+							state = 21;
 						}
 					}
 					break;
@@ -691,6 +696,16 @@ public class Scanner
 				case 20: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
 						retval = new Token( TokenType.REAL, builder.toString() );
+					break;
+				case 21: // Documentation comment
+					if ( ch == '*' ) {
+						readChar();
+						stopOneChar = true;
+						if ( ch == '/' ) {
+							readChar();
+							retval = new Token( TokenType.DOCUMENTATION_COMMENT, builder.toString() );
+						}
+					}
 					break;
 				default:
 					retval = new Token( TokenType.ERROR, builder.toString() );
