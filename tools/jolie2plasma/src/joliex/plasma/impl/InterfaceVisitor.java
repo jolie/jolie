@@ -38,6 +38,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -198,4 +199,5 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( VariablePathNode n ) {}
 	public void visit( TypeInlineDefinition n ) {}
 	public void visit( TypeDefinitionLink n ) {}
+	public void visit( DocumentationComment n ) {}
 }
