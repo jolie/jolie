@@ -26,11 +26,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 import jolie.doc.DocumentCreationException;
 import jolie.doc.DocumentCreator;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -66,7 +67,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 	private Set<RequestResponseOperationDeclaration> requestResponce;
 	private Set<OneWayOperationDeclaration> oneWay;
 	private String nameFile;
-	private Vector<String> nameFiles;
+	private List< String > nameFiles;
 	private HashMap<String, String> HyperlinkMap;
 
 	public HTMLDocumentCreator()
@@ -87,7 +88,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 			programVisitor.run();
 			InterfaceDefinition[] interfaceDefinitions =
 				programVisitor.getInterfaceDefinitions();
-			nameFiles = new Vector<String>();
+			nameFiles = new ArrayList< String >();
 			for( InterfaceDefinition i : interfaceDefinitions ) {
 
 				HyperlinkMap.put( i.name(), i.context().sourceName().substring( i.context().sourceName().lastIndexOf( "/" ) + 1, i.context().sourceName().length() ).replace( ".", "_" ) + ".html" );
@@ -329,7 +330,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 					writer.write( node.getDocumentation() + NEWLINE );
 				}
 
-				Vector<String> interfacesList = (Vector<String>) node.getInterfacesList();
+				List< String > interfacesList = node.getInterfacesList();
 				writer.write( "<tr>" );
 				writer.write( "</tr>" );
 				writer.write( "<table border=\"1\">" );
@@ -378,7 +379,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 				if ( node.getDocumentation() != null ) {
 					writer.write( node.getDocumentation() );
 				}
-				Vector<String> interfacesList = (Vector<String>) node.getInterfacesList();
+				List<String> interfacesList = node.getInterfacesList();
 				writer.write( "<tr>" );
 				writer.write( "</tr>" );
 				writer.write( "<table border=\"1\">" );
