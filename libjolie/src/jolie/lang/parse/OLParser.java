@@ -39,11 +39,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
@@ -91,6 +93,7 @@ import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OperationCollector;
+import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -126,6 +129,8 @@ public class OLParser extends AbstractParser
 	private final Map< String, TypeDefinition > definedTypes = createTypeDeclarationMap();
 	
 	private final ClassLoader classLoader;
+	private String comment;
+	private boolean commentIsPreset;
 
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
@@ -169,6 +174,8 @@ public class OLParser extends AbstractParser
 	private void _parse()
 		throws IOException, ParserException
 	{
+            
+                //parseComment();// not very good solution to be reconsider position
 		getToken();
 		Scanner.Token t;
 		do {
@@ -182,9 +189,7 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseTypes();
 			parseInclude();
-			parseInterfaces();
-			parseInclude();
-			parsePorts();
+			parseInterfaceOrPort();
 			parseInclude();
 			parseEmbedded();
 			parseInclude();
@@ -193,6 +198,18 @@ public class OLParser extends AbstractParser
 
 		if ( t.isNot( Scanner.TokenType.EOF ) ) {
 			throwException( "Invalid token encountered" );
+		}
+	}
+
+	private void parseComment()
+		throws IOException, ParserException
+	{
+		String Comment;
+		getToken();
+		if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			Comment = token.content();
+			DocumentationComment _commentdoc = new DocumentationComment( getContext(), Comment );
+			program.addChild( _commentdoc );
 		}
 	}
 
@@ -609,42 +626,71 @@ public class OLParser extends AbstractParser
 		return false;
 	}
 
-	private void parsePorts()
+	private PortInfo parsePort()
+		throws IOException, ParserException
+	{
+		PortInfo portInfo = null;
+		if ( token.isKeyword( "inputPort" ) ) {
+			portInfo = parseInputPortInfo();
+		} else if ( token.isKeyword( "outputPort" ) ) {
+			getToken();
+			assertToken( Scanner.TokenType.ID, "expected output port identifier" );
+			OutputPortInfo p = new OutputPortInfo( getContext(), token.content() );
+			getToken();
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			parseOutputPortInfo( p );
+			program.addChild( p );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			portInfo = p;
+		}
+		return portInfo;
+	}
+
+	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
 		boolean keepRun = true;
-		while ( keepRun ) {
-			if ( token.isKeyword( "inputPort" ) ) {
-				parseInputPortInfo();
+		DocumentedNode node = null;
+		commentIsPreset = false;
+		while( keepRun ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+				commentIsPreset = true;
+				comment = token.content();
+				getToken();
+			} else if ( token.isKeyword( "interface" ) ) {
+				node = parseInterface();
+			} else if ( token.isKeyword( "inputPort" ) ) {
+				node = parsePort();
 			} else if ( token.isKeyword( "outputPort" ) ) {
-				getToken();
-				assertToken( Scanner.TokenType.ID, "expected output port identifier" );
-				OutputPortInfo p = new OutputPortInfo( getContext(), token.content() );
-				getToken();
-				eat( Scanner.TokenType.LCURLY, "expected {" );
-				parseOutputPortInfo( p );
-				program.addChild( p );
-				eat( Scanner.TokenType.RCURLY, "expected }" );
+				node = parsePort();
 			} else {
 				keepRun = false;
+			}
+
+			if ( commentIsPreset && node != null ) {
+				node.setDocumentation( comment );
+				commentIsPreset = false;
+				node = null;
 			}
 		}
 	}
 
-	private void parseInputPortInfo()
+	private InputPortInfo parseInputPortInfo()
 		throws IOException, ParserException
 	{
 		String inputPortName;
 		String protocolId;
 		URI inputPortLocation;
+		List< String > interfacesList = new ArrayList< String >();
 		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
-
+		
 		getToken();
 		assertToken( Scanner.TokenType.ID, "expected inputPort name" );
 		inputPortName = token.content();
 		getToken();
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 		InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + inputPortName );
+		
 		inputPortLocation = null;
 		protocolId = null;
 		Map<String, String> redirectionMap = new HashMap<String, String>();
@@ -674,6 +720,7 @@ public class OLParser extends AbstractParser
 				boolean keepRun = true;
 				while( keepRun ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
+					interfacesList.add( token.content() );
 					InterfaceDefinition i = interfaces.get( token.content() );
 					if ( i == null ) {
 						throwException( "Invalid interface name: " + token.content() );
@@ -686,6 +733,7 @@ public class OLParser extends AbstractParser
 					} else {
 						keepRun = false;
 					}
+
 				}
 			} else if ( token.isKeyword( "Protocol" ) ) {
 				if ( protocolId != null ) {
@@ -753,16 +801,19 @@ public class OLParser extends AbstractParser
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
 		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[ aggregationList.size() ] ), redirectionMap );
+		iport.setInterfacesList( interfacesList );
 		iface.copyTo( iport );
 		program.addChild( iport );
+                return iport;
 	}
 
-	private void parseInterfaces()
+	private InterfaceDefinition parseInterface()
 		throws IOException, ParserException
 	{
 		String name;
-		InterfaceDefinition iface;
-		while ( token.isKeyword( "interface" ) ) {
+		InterfaceDefinition iface=null;
+               
+		if ( token.isKeyword( "interface" ) ) {
 			getToken();
 			assertToken( Scanner.TokenType.ID, "expected interface name" );
 			name = token.content();
@@ -773,7 +824,9 @@ public class OLParser extends AbstractParser
 			interfaces.put( name, iface );
 			program.addChild( iface );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
+		       
 		}
+	  return iface;
 	}
 
 	private void parseOperations( OperationCollector oc )
@@ -794,6 +847,7 @@ public class OLParser extends AbstractParser
 	private void parseOutputPortInfo( OutputPortInfo p )
 		throws IOException, ParserException
 	{
+		List< String > interfacesList = new ArrayList< String >();
 		boolean keepRun = true;
 		while ( keepRun ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
@@ -806,6 +860,7 @@ public class OLParser extends AbstractParser
 				boolean r = true;
 				while( r ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
+					interfacesList.add( token.content() );
 					InterfaceDefinition i = interfaces.get( token.content() );
 					if ( i == null ) {
 						throwException( "Invalid interface name: " + token.content() );
@@ -819,6 +874,7 @@ public class OLParser extends AbstractParser
 						r = false;
 					}
 				}
+				p.setInterfacesList( interfacesList );
 			} else if ( token.isKeyword( "Location" ) ) {
 				if ( p.location() != null ) {
 					throwException( "Location already defined for output port " + p.id() );
@@ -828,8 +884,7 @@ public class OLParser extends AbstractParser
 				eat( Scanner.TokenType.COLON, "expected :" );
 				checkConstant();
 
-				assertToken(
-					Scanner.TokenType.STRING, "expected location string" );
+				assertToken( Scanner.TokenType.STRING, "expected location string" );
 				URI location = null;
 				try {
 					location = new URI( token.content() );
@@ -839,7 +894,6 @@ public class OLParser extends AbstractParser
 
 				p.setLocation( location );
 				getToken();
-
 			} else if ( token.isKeyword( "Protocol" ) ) {
 				if ( p.protocolId() != null ) {
 					throwException( "Protocol already defined for output port " + p.id() );
@@ -861,10 +915,9 @@ public class OLParser extends AbstractParser
 						token ) );
 					// Protocol configuration
 					getToken();
-
 					p.setProtocolConfiguration( parseInVariablePathProcess( false ) );
+					p.setInterfacesList( interfacesList );
 				}
-
 			} else {
 				keepRun = false;
 			}

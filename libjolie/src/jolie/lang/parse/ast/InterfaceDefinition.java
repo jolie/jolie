@@ -23,6 +23,7 @@ package jolie.lang.parse.ast;
 
 import java.util.HashMap;
 import java.util.Map;
+import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ParsingContext;
 
@@ -30,11 +31,12 @@ import jolie.lang.parse.ParsingContext;
  *
  * @author Fabrizio Montesi
  */
-public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector
+public class InterfaceDefinition extends OLSyntaxNode implements OperationCollector, DocumentedNode
 {
 	private final Map<String, OperationDeclaration> operationsMap =
 		new HashMap<String, OperationDeclaration>();
 	private final String name;
+	private String documentation;
 
 	public InterfaceDefinition( ParsingContext context, String name )
 	{
@@ -42,7 +44,7 @@ public class InterfaceDefinition extends OLSyntaxNode implements OperationCollec
 		this.name = name;
 	}
 
-	public Map<String, OperationDeclaration> operationsMap()
+	public Map< String, OperationDeclaration > operationsMap()
 	{
 		return operationsMap;
 	}
@@ -65,5 +67,15 @@ public class InterfaceDefinition extends OLSyntaxNode implements OperationCollec
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+
+	public void setDocumentation( String documentation )
+	{
+		this.documentation = documentation;
+	}
+
+	public String getDocumentation()
+	{
+		return this.documentation;
 	}
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2010 by Balint Maschio <bmaschio@italianasoftware.com>  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,66 +19,14 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse;
 
-import java.net.URI;
-import java.util.Map;
-
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
-
-public class InputPortInfo extends PortInfo
+/**
+ *
+ * @author Balint Maschio
+ */
+public interface DocumentedNode
 {
-	private final URI location;
-	private final String protocolId;
-	private final OLSyntaxNode protocolConfiguration;
-	private final String[] aggregationList;
-	private final Map< String, String > redirectionMap;
-
-	public InputPortInfo(
-		ParsingContext context,
-		String id,
-		URI location,
-		String protocolId,
-		OLSyntaxNode protocolConfiguration,
-		String[] aggregationList,
-		Map< String, String > redirectionMap
-	) {
-		super( context, id );
-		this.location = location;
-		this.protocolId = protocolId;
-		this.protocolConfiguration = protocolConfiguration;
-		this.aggregationList = aggregationList;
-		this.redirectionMap = redirectionMap;
-	}
-
-	public String[] aggregationList()
-	{
-		return aggregationList;
-	}
-
-	public Map< String, String > redirectionMap()
-	{
-		return redirectionMap;
-	}
-
-	public OLSyntaxNode protocolConfiguration()
-	{
-		return protocolConfiguration;
-	}
-
-	public String protocolId()
-	{
-		return protocolId;
-	}
-
-	public URI location()
-	{
-		return location;
-	}
-
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
-	}
+	public void setDocumentation( String documentation );
+	public String getDocumentation();
 }

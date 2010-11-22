@@ -25,6 +25,7 @@ import java.lang.reflect.Array;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
 import jolie.lang.parse.ast.ConstantIntegerExpression;
@@ -689,6 +690,7 @@ public class OLParseTreeOptimizer
 		}
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
 		public void visit( InterfaceDefinition n ) {}
+		public void visit (DocumentationComment n ){}
 	}
 	
 	private Program originalProgram;
