@@ -43,6 +43,12 @@ set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar -jar %joliepath%tools\joliec.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
+		<echo message="Installing Jolie2Java Windows launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2java.bat">@echo off
+set joliepath=${install.dir}\
+set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar -jar %joliepath%tools\jolie2java.jar -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+		</echo>
 		<echo message="Installing JolieDoc (Jolie Documentation tool) Windows launcher script..." />
 		<echo file="${private.install.launcher_dir}/joliedoc.bat">@echo off
 set joliepath=${install.dir}\
@@ -123,6 +129,13 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		</echo>
 		<chmod file="${private.install.launcher_dir}/joliec" perm="a+x"/>
 		
+		<echo message="Installing Jolie2Java Unix launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2java">#!/bin/sh
+JOLIE_HOME=${install.dir}
+java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/tools/jolie2java.jar -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+		</echo>
+		<chmod file="${private.install.launcher_dir}/jolie2java" perm="a+x"/>
+
 		<echo message="Installing JolieDoc (Jolie Documentation Tool) Unix launcher script..." />
 		<echo file="${private.install.launcher_dir}/joliedoc">#!/bin/sh
 JOLIE_HOME=${install.dir}
@@ -168,6 +181,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
@@ -189,6 +203,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
@@ -237,6 +252,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar -jar $JOLIE_HOME/too
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
 				<file file="${project.joliec}/dist/joliec.jar"/>
+				<file file="${project.jolie2java}/dist/jolie2java.jar"/>
 				<file file="${project.joliedoc}/dist/joliedoc.jar"/>
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
 			</resources>
