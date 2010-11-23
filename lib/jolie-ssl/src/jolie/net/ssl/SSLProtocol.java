@@ -335,12 +335,12 @@ public class SSLProtocol extends SequentialCommProtocol
 					break;
 				case NEED_UNWRAP:
 					if ( result.moreToUnwrap == false ) {
-						receivedData = readFromChannel( istream );
+						//receivedData = readFromChannel( istream );
 					} else {
-						receivedData = clearUntilPosition( receivedData ); // drops data already processed
+						//receivedData = clearUntilPosition( receivedData ); // drops data already processed
 					}
-					result = unwrap( receivedData, istream );
-					clearBuffer = result.buffer;
+					//result = unwrap( receivedData, istream );
+					//clearBuffer = result.buffer;
 					break;
 			}
 		}
@@ -418,8 +418,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			// TODO SET FIRST TIME == TRUE
 		}
 		OutputStream sslOutputStream = new SSLOutputStream( this );
-		InputStream sslInputStream = new SSLInputStream( this );
-		wrappedProtocol.send( sslOutputStream, message, sslInputStream );
+		//InputStream sslInputStream = new SSLInputStream( this );
+		//wrappedProtocol.send( sslOutputStream, message, sslInputStream );
 		/*if ( sslEngine != null && (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING || sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED) ) {
 			ByteArrayOutputStream bostream = new ByteArrayOutputStream();
 			wrappedProtocol.send( bostream, message, null );
