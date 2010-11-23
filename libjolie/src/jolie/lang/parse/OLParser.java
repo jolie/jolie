@@ -789,7 +789,7 @@ public class OLParser extends AbstractParser
 		iport.setInterfacesList( interfacesList );
 		iface.copyTo( iport );
 		program.addChild( iport );
-                return iport;
+		return iport;
 	}
 
 	private InterfaceDefinition parseInterface()
