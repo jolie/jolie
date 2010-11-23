@@ -45,6 +45,7 @@ import javax.net.ssl.TrustManagerFactory;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
 import jolie.net.protocols.SequentialCommProtocol;
+import jolie.net.ssl.impl.SSLOutputStream;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
@@ -64,7 +65,10 @@ public class SSLProtocol extends SequentialCommProtocol
 	private final CommProtocol wrappedProtocol;
 	private int bufferSize = INITIAL_BUFFER_SIZE;
 	private SSLResult result;
-	private SSLEngine sslEngine;
+	private SSLEngine sslEngine = null;
+
+	private OutputStream outputStream;
+	private InputStream inputStream;
 
 	private class SSLResult
 	{
@@ -304,6 +308,44 @@ public class SSLProtocol extends SequentialCommProtocol
 		}
 	}
 
+	private void handshake()
+		throws IOException, SSLException
+	{
+		if ( firstTime ) {
+			init();
+			sslEngine.beginHandshake();
+			firstTime = false;
+		}
+
+		Runnable runnable;
+		while ( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING && sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED ) {
+			switch ( sslEngine.getHandshakeStatus() ) {
+				case NEED_TASK:
+					while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
+						runnable.run();
+					}
+					break;
+				case NEED_WRAP:
+
+					result = wrap( EMPTY_BYTE_BUFFER );
+					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
+						outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
+						outputStream.flush();
+					}
+					break;
+				case NEED_UNWRAP:
+					if ( result.moreToUnwrap == false ) {
+						receivedData = readFromChannel( istream );
+					} else {
+						receivedData = clearUntilPosition( receivedData ); // drops data already processed
+					}
+					result = unwrap( receivedData, istream );
+					clearBuffer = result.buffer;
+					break;
+			}
+		}
+	}
+
 	private void startHandshake( OutputStream ostream, InputStream istream )
 		throws IOException, SSLException
 	{
@@ -368,16 +410,37 @@ public class SSLProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
+		outputStream = ostream;
+		inputStream = istream;
+
 		if ( firstTime ) {
 			wrappedProtocol.setChannel( this.channel() );
+			// TODO SET FIRST TIME == TRUE
 		}
-		if ( sslEngine != null && (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING || sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED) ) {
+		OutputStream sslOutputStream = new SSLOutputStream( this );
+		InputStream sslInputStream = new SSLInputStream( this );
+		wrappedProtocol.send( sslOutputStream, message, sslInputStream );
+		/*if ( sslEngine != null && (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING || sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED) ) {
 			ByteArrayOutputStream bostream = new ByteArrayOutputStream();
 			wrappedProtocol.send( bostream, message, null );
 			sendAux( bostream, ostream );
 		} else { // We need to handshake first
 			startHandshake( ostream, istream );
 			send( ostream, message, istream );
+		}*/
+	}
+
+	public void write( int b )
+		throws IOException
+	{
+		if (
+			sslEngine != null &&
+			( sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING
+			|| sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED )
+		) {
+
+		} else {
+			handshake();
 		}
 	}
 
