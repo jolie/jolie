@@ -322,7 +322,6 @@ public class SSLProtocol extends SequentialCommProtocol
 		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 		boolean keepRun = true;
 		boolean closed = false;
-		//ByteBuffer clearBuffer = ByteBuffer.allocate( INITIAL_BUFFER_SIZE );
 
 		int oldPosition = clearInputBuffer.position();
 		clearInputBuffer.position( clearInputBuffer.limit() );
@@ -338,7 +337,6 @@ public class SSLProtocol extends SequentialCommProtocol
 				oldPosition = clearInputBuffer.position();
 				clearInputBuffer.position( clearInputBuffer.limit() );
 				clearInputBuffer.limit( clearInputBuffer.capacity() );
-				//clearBuffer = ByteBuffer.allocate( clearBuffer.capacity() + INITIAL_BUFFER_SIZE );
 				break;
 			case BUFFER_UNDERFLOW:
 				byteOutputStream.write( inputStream.read() );
@@ -346,15 +344,10 @@ public class SSLProtocol extends SequentialCommProtocol
 			case CLOSED:
 				keepRun = false;
 				closed = true;
-				/*if ( result.getHandshakeStatus() == HandshakeStatus.NEED_WRAP ) {
-					// Connection is about to gracefully shut down. Sending message to other peer to gracefully shutdown too.
-					sslEngine.wrap( EMPTY_BYTE_BUFFER, )
-				}*/
 				break;
 			case OK:
 				clearInputBuffer.limit( clearInputBuffer.position() );
 				clearInputBuffer.position( oldPosition );
-				//clearBuffer.flip();
 				if ( forHandshake ) {
 					keepRun = false;
 				} else {
@@ -366,13 +359,6 @@ public class SSLProtocol extends SequentialCommProtocol
 						byteOutputStream = new ByteArrayOutputStream();
 						byteOutputStream.write( cryptBuffer.array() );
 					}
-					//if ( clearInputBuffer.capacity() - clearInputBuffer.limit() < clearBuffer.capacity() )
-
-					/*ByteBuffer tmp = clearInputBuffer.slice();
-					clearInputBuffer = ByteBuffer.allocate( tmp.capacity() + clearBuffer.capacity() );
-					clearInputBuffer.put( tmp );
-					clearInputBuffer.put( clearBuffer );
-					clearInputBuffer.flip();*/
 				}
 				break;
 			}
@@ -386,7 +372,6 @@ public class SSLProtocol extends SequentialCommProtocol
 		throws IOException
 	{
 		handshakeIfNeeded();
-		//ByteBuffer buffer = ByteBuffer.wrap( new byte[] { (byte)b } );
 		SSLResult wrapResult = wrap( b );
 		if ( wrapResult.log.bytesProduced() > 0 ) {
 			outputStream.write( wrapResult.buffer.array(), 0, wrapResult.buffer.limit() );
