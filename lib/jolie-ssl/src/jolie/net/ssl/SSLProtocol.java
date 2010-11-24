@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Roberto La Maestra                              *
- *   Copyright (C) 2009-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -45,7 +44,6 @@ import javax.net.ssl.TrustManagerFactory;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
 import jolie.net.protocols.SequentialCommProtocol;
-import jolie.net.ssl.impl.SSLOutputStream;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
@@ -53,70 +51,77 @@ import jolie.runtime.VariablePath;
  * Commodity class for supporting the implementation
  * of SSL-based protocols through wrapping.
  * @author Fabrizio Montesi
+ * 2010: complete rewrite
  */
 public class SSLProtocol extends SequentialCommProtocol
 {
 	private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate( 0 );
-	private static final int INITIAL_BUFFER_SIZE = 2048;
+	private static final int INITIAL_BUFFER_SIZE = 32768;
 
-	protected Status lastSSLStatus = null;
+	private static final int MAX_SSL_CONTENT_SIZE = 16384;
+
 	private final boolean isClient;
 	private boolean firstTime;
 	private final CommProtocol wrappedProtocol;
-	private int bufferSize = INITIAL_BUFFER_SIZE;
-	private SSLResult result;
 	private SSLEngine sslEngine = null;
 
 	private OutputStream outputStream;
 	private InputStream inputStream;
 
+	private ByteBuffer clearInputBuffer = ByteBuffer.allocate( INITIAL_BUFFER_SIZE );
+
+	private class SSLInputStream extends InputStream
+	{
+		public int read()
+			throws IOException
+		{
+			return SSLProtocol.this.read();
+		}
+	}
+
+	private class SSLOutputStream extends OutputStream
+	{
+		private ByteArrayOutputStream internalStreamBuffer = new ByteArrayOutputStream();
+
+		public void write( int b )
+			throws IOException
+		{
+			internalStreamBuffer.write( b );
+			if ( internalStreamBuffer.size() >= MAX_SSL_CONTENT_SIZE ) {
+				writeCache();
+			}
+			//SSLProtocol.this.write( ByteBuffer.wrap( new byte[] { (byte)b } ) );
+		}
+
+		public void writeCache()
+			throws IOException
+		{
+			SSLProtocol.this.write( ByteBuffer.wrap( internalStreamBuffer.toByteArray() ) );
+			internalStreamBuffer.reset();
+		}
+
+		@Override
+		public void flush()
+			throws IOException
+		{
+			writeCache();
+			SSLProtocol.this.flushOutputStream();
+		}
+	}
+
 	private class SSLResult
 	{
-		boolean moreToUnwrap;
-		ByteBuffer buffer;
-		SSLEngineResult log = null;
-
-		private void newBuffer()
-		{
-			buffer = ByteBuffer.allocate( bufferSize );
-		}
+		private ByteBuffer buffer;
+		private SSLEngineResult log = null;
 
 		public void enlargeBuffer()
 		{
-			if ( buffer.capacity() == bufferSize ) {
-				bufferSize += 1024;
-			}
-			buffer = ByteBuffer.allocate( bufferSize );
+			buffer = ByteBuffer.allocate( buffer.capacity() + INITIAL_BUFFER_SIZE );
 		}
 
-		public SSLResult( SSLEngineResult log, boolean moreToUnwrap )
+		public SSLResult( int capacity )
 		{
-			this.log = log;
-			newBuffer();
-			this.moreToUnwrap = moreToUnwrap;
-			lastSSLStatus = null;
-		}
-
-		public SSLResult( SSLEngineResult log )
-		{
-			this.log = log;
-			newBuffer();
-			this.moreToUnwrap = false;
-			lastSSLStatus = null;
-		}
-
-		public SSLResult( boolean moreToUnwrap )
-		{
-			newBuffer();
-			this.moreToUnwrap = moreToUnwrap;
-			lastSSLStatus = null;
-		}
-
-		public SSLResult()
-		{
-			newBuffer();
-			this.moreToUnwrap = false;
-			lastSSLStatus = null;
+			buffer = ByteBuffer.allocate( capacity );
 		}
 	}
 
@@ -135,104 +140,23 @@ public class SSLProtocol extends SequentialCommProtocol
 		this.wrappedProtocol = wrappedProtocol;
 		this.isClient = isClient;
 		firstTime = true;
+		clearInputBuffer.limit( 0 );
 	}
 
-	// add byte array to buffer eventually enlarging its capacity to handle buffer overflow
-	private ByteBuffer addToBuffer( ByteBuffer source, byte[] bytesToAdd )
-	{
-		int newCapacity;
-		if ( source.limit() == source.capacity() ) { // limit was not set yet
-			source.limit( 0 );
-		} else { // otherwise go to limit
-			source.position( source.limit() );
-		}
-		if ( bytesToAdd.length > source.capacity() - source.limit() ) {
-			// create a larger buffer and copy content of old buffer
-			newCapacity = bytesToAdd.length - (source.capacity() - source.limit()) + 1024;
-			if ( newCapacity + source.capacity() > bufferSize ) {
-				bufferSize += newCapacity;
-			}
-			ByteBuffer tmp = ByteBuffer.allocate( bufferSize );
-			tmp.put( compactToByte( source ) );
-			source = tmp;
-		}
-		source.limit( source.position() + bytesToAdd.length );
-		source.put( bytesToAdd );
-		source.flip();
-		return source;
-	}
-
-	private static ByteBuffer clearUntilPosition( ByteBuffer buffer )
-	{
-		ByteBuffer tmp = buffer.slice();
-		buffer.clear();
-		buffer.put( compactToByte( tmp ) );
-		buffer.flip();
-		return buffer;
-	}
-
-	// Performs the wrap operation taking care of buffer overflows
 	private SSLResult wrap( ByteBuffer source )
-		throws SSLException
+		throws IOException
 	{
-		SSLResult result = new SSLResult();
+		SSLResult result = new SSLResult( source.capacity() );
 		result.log = sslEngine.wrap( source, result.buffer );
-		//lastSSLStatus = result.log.getStatus();
 		while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
 			result.enlargeBuffer();
 			result.log = sslEngine.wrap( source, result.buffer );
-			//lastSSLStatus = result.log.getStatus();
+		}
+		if ( result.log.getStatus() == Status.CLOSED ) {
+			throw new IOException( "Remote party closed SSL connection" );
 		}
 		result.buffer.flip();
 		return result;
-	}
-
-	// performs the unwrap operation taking care of these events:
-	//
-	// - if the source contains more than a request, unwraps the first request, removes it from source and returns moreToUnwrap=true
-	// - (BUFFER UNDERFLOW) retrieves more data from the channel and tries unwrapping again
-	// - (BUFFER OVERFLOW)  inizialize a larger buffer for containing results
-	// return:
-	// moreToUnwrap=true if there is more data to be processed in the source
-	// moreToUnwrap=false if all data in the source has been processed
-	private SSLResult unwrap( ByteBuffer source, InputStream istream )
-		throws IOException, SSLException
-	{
-		SSLResult result = new SSLResult();
-		source.rewind();
-		do {
-			result.log = sslEngine.unwrap( source, result.buffer );
-			lastSSLStatus = result.log.getStatus();
-			switch ( result.log.getStatus() ) {
-				case BUFFER_UNDERFLOW:
-					source.position( source.limit() );
-					byte[] justRead = compactToByte( readFromChannel( istream ) );
-					source = addToBuffer( source, justRead );
-					break;
-				case BUFFER_OVERFLOW:
-					result.enlargeBuffer();
-					break;
-			}
-		} while ( result.log.getStatus() != Status.OK && result.log.getStatus() != Status.CLOSED );
-		if ( result.log.bytesConsumed() < source.limit() ) { // if the buffer still contains data to be processed
-			source.position( result.log.bytesConsumed() );
-			result.moreToUnwrap = true;
-		} else {
-			result.moreToUnwrap = false;
-		}
-		result.buffer.flip();
-		return result;
-	}
-
-	private static byte[] compactToByte( ByteBuffer a )
-	{
-		byte[] ba = new byte[a.limit()];
-		a.rewind();
-		int i;
-		for ( i = 0; i < a.limit(); i++ ) {
-			ba[i] = a.get();
-		}
-		return ba;
 	}
 
 	private String getSSLStringParameter( String parameterName, String defaultValue )
@@ -294,6 +218,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			context.init( kmf.getKeyManagers(), tmf.getTrustManagers(), null );
 
 			sslEngine = context.createSSLEngine();
+			sslEngine.setEnabledProtocols( new String[] { protocol } );
 			sslEngine.setUseClientMode( isClient );
 		} catch ( NoSuchAlgorithmException e ) {
 			throw new IOException( e );
@@ -317,49 +242,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			firstTime = false;
 		}
 
+		SSLResult result;
 		Runnable runnable;
-		while ( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING && sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED ) {
-			switch ( sslEngine.getHandshakeStatus() ) {
-				case NEED_TASK:
-					while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
-						runnable.run();
-					}
-					break;
-				case NEED_WRAP:
-
-					result = wrap( EMPTY_BYTE_BUFFER );
-					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
-						outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
-						outputStream.flush();
-					}
-					break;
-				case NEED_UNWRAP:
-					if ( result.moreToUnwrap == false ) {
-						//receivedData = readFromChannel( istream );
-					} else {
-						//receivedData = clearUntilPosition( receivedData ); // drops data already processed
-					}
-					//result = unwrap( receivedData, istream );
-					//clearBuffer = result.buffer;
-					break;
-			}
-		}
-	}
-
-	private void startHandshake( OutputStream ostream, InputStream istream )
-		throws IOException, SSLException
-	{
-		if ( firstTime ) {
-			init();
-			sslEngine.beginHandshake();
-			firstTime = false;
-		}
-
-		Runnable runnable;
-		result = new SSLResult( false );
-		//SSLResult result;
-		ByteBuffer clearBuffer = ByteBuffer.allocate( bufferSize );
-		ByteBuffer receivedData = ByteBuffer.allocate( bufferSize );
 		while ( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING && sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED ) {
 			switch ( sslEngine.getHandshakeStatus() ) {
 				case NEED_TASK:
@@ -370,41 +254,15 @@ public class SSLProtocol extends SequentialCommProtocol
 				case NEED_WRAP:
 					result = wrap( EMPTY_BYTE_BUFFER );
 					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
-						ostream.write( result.buffer.array(), 0, result.buffer.limit() );
-						ostream.flush();
+						outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
+						outputStream.flush();
 					}
 					break;
 				case NEED_UNWRAP:
-					if ( result.moreToUnwrap == false ) {
-						receivedData = readFromChannel( istream );
-					} else {
-						receivedData = clearUntilPosition( receivedData ); // drops data already processed
-					}
-					result = unwrap( receivedData, istream );
-					clearBuffer = result.buffer;
+					unwrapFromInputStream( true );
 					break;
 			}
 		}
-	}
-
-	private ByteBuffer readFromChannel( InputStream istream )
-		throws IOException
-	{
-		ByteBuffer receivedData = null;
-		byte[] byteBuffer;
-		int bufferLength;
-		// handling buffer_overflow
-		while ( istream.available() > bufferSize ) {
-			bufferSize += 1024;
-		}
-
-		byteBuffer = new byte[bufferSize];
-		bufferLength = istream.read( byteBuffer );
-		if ( bufferLength != -1 ) {
-			receivedData = ByteBuffer.wrap( byteBuffer, 0, bufferLength );
-			receivedData.rewind();
-		}
-		return receivedData;
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -415,108 +273,144 @@ public class SSLProtocol extends SequentialCommProtocol
 
 		if ( firstTime ) {
 			wrappedProtocol.setChannel( this.channel() );
-			// TODO SET FIRST TIME == TRUE
 		}
-		OutputStream sslOutputStream = new SSLOutputStream( this );
-		//InputStream sslInputStream = new SSLInputStream( this );
-		//wrappedProtocol.send( sslOutputStream, message, sslInputStream );
-		/*if ( sslEngine != null && (sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING || sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED) ) {
-			ByteArrayOutputStream bostream = new ByteArrayOutputStream();
-			wrappedProtocol.send( bostream, message, null );
-			sendAux( bostream, ostream );
-		} else { // We need to handshake first
-			startHandshake( ostream, istream );
-			send( ostream, message, istream );
-		}*/
+
+		SSLOutputStream sslOutputStream = new SSLOutputStream();
+		InputStream sslInputStream = new SSLInputStream();
+		wrappedProtocol.send( sslOutputStream, message, sslInputStream );
+		sslOutputStream.writeCache();
 	}
 
-	public void write( int b )
+	private int read()
 		throws IOException
 	{
-		if (
-			sslEngine != null &&
-			( sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING
-			|| sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED )
-		) {
+		handshakeIfNeeded();
 
-		} else {
+		if ( clearInputBuffer.position() < clearInputBuffer.limit() ) {
+			return clearInputBuffer.get();
+		}
+
+		unwrapFromInputStream( false );
+		return clearInputBuffer.get();
+	}
+
+	private void handshakeIfNeeded()
+		throws IOException
+	{
+		if ( sslEngine == null ||
+			( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING &&
+			sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED )
+		) {
 			handshake();
 		}
 	}
 
-	private void sendAux( ByteArrayOutputStream bostream, OutputStream ostream )
+	private void enlargeClearInputBuffer()
+	{
+		// TODO: Maybe we should also check if some compacting would suffice.
+		ByteBuffer tmp = ByteBuffer.allocate( clearInputBuffer.capacity() + INITIAL_BUFFER_SIZE );
+		tmp.put( clearInputBuffer );
+		tmp.flip();
+		clearInputBuffer = tmp;
+	}
+
+	private void unwrapFromInputStream( boolean forHandshake )
 		throws IOException
 	{
-		// now wrapping the message
-		ByteBuffer inbound;
-		if ( bostream != null ) {
-			inbound = ByteBuffer.wrap( bostream.toByteArray() );
-		} else {
-			inbound = ByteBuffer.wrap( "".getBytes() );
+		SSLEngineResult result;
+		ByteBuffer cryptBuffer;
+		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+		boolean keepRun = true;
+		boolean closed = false;
+		//ByteBuffer clearBuffer = ByteBuffer.allocate( INITIAL_BUFFER_SIZE );
+
+		int oldPosition = clearInputBuffer.position();
+		clearInputBuffer.position( clearInputBuffer.limit() );
+		clearInputBuffer.limit( clearInputBuffer.capacity() );
+
+		byteOutputStream.write( inputStream.read() );
+		while( keepRun ) {
+			cryptBuffer = ByteBuffer.wrap( byteOutputStream.toByteArray() );
+			result = sslEngine.unwrap( cryptBuffer, clearInputBuffer );
+			switch( result.getStatus() ) {
+			case BUFFER_OVERFLOW:
+				enlargeClearInputBuffer();
+				oldPosition = clearInputBuffer.position();
+				clearInputBuffer.position( clearInputBuffer.limit() );
+				clearInputBuffer.limit( clearInputBuffer.capacity() );
+				//clearBuffer = ByteBuffer.allocate( clearBuffer.capacity() + INITIAL_BUFFER_SIZE );
+				break;
+			case BUFFER_UNDERFLOW:
+				byteOutputStream.write( inputStream.read() );
+				break;
+			case CLOSED:
+				keepRun = false;
+				closed = true;
+				/*if ( result.getHandshakeStatus() == HandshakeStatus.NEED_WRAP ) {
+					// Connection is about to gracefully shut down. Sending message to other peer to gracefully shutdown too.
+					sslEngine.wrap( EMPTY_BYTE_BUFFER, )
+				}*/
+				break;
+			case OK:
+				clearInputBuffer.limit( clearInputBuffer.position() );
+				clearInputBuffer.position( oldPosition );
+				//clearBuffer.flip();
+				if ( forHandshake ) {
+					keepRun = false;
+				} else {
+					if ( cryptBuffer.position() >= cryptBuffer.limit() ) {
+						// If we are here, it means that there are no more packets to receive
+						keepRun = false;
+					} else {
+						cryptBuffer = cryptBuffer.slice();
+						byteOutputStream = new ByteArrayOutputStream();
+						byteOutputStream.write( cryptBuffer.array() );
+					}
+					//if ( clearInputBuffer.capacity() - clearInputBuffer.limit() < clearBuffer.capacity() )
+
+					/*ByteBuffer tmp = clearInputBuffer.slice();
+					clearInputBuffer = ByteBuffer.allocate( tmp.capacity() + clearBuffer.capacity() );
+					clearInputBuffer.put( tmp );
+					clearInputBuffer.put( clearBuffer );
+					clearInputBuffer.flip();*/
+				}
+				break;
+			}
 		}
-		result = wrap( inbound );
-		if ( result.log.bytesProduced() > 0 ) { //need to send result to client
-			ostream.write( result.buffer.array(), 0, result.buffer.limit() );
-			ostream.flush();
+		if ( closed ) {
+			throw new IOException( "Other party closed the SSL connection" );
 		}
+	}
+
+	private void write( ByteBuffer b )
+		throws IOException
+	{
+		handshakeIfNeeded();
+		//ByteBuffer buffer = ByteBuffer.wrap( new byte[] { (byte)b } );
+		SSLResult wrapResult = wrap( b );
+		if ( wrapResult.log.bytesProduced() > 0 ) {
+			outputStream.write( wrapResult.buffer.array(), 0, wrapResult.buffer.limit() );
+			//outputStream.flush();
+		}
+	}
+
+	private void flushOutputStream()
+		throws IOException
+	{
+		outputStream.flush();
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
+		outputStream = ostream;
+		inputStream = istream;
+
 		if ( firstTime ) {
 			wrappedProtocol.setChannel( this.channel() );
 		}
-		byte[] recvBytes = recvAux( istream, ostream );
-		if ( recvBytes != null ) {
-			return wrappedProtocol.recv( new SSLInputStream( recvBytes, this, istream, ostream ), ostream );
-		} else {
-			return null;
-		}
-	}
 
-	public byte[] recvAux( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
-		ByteBuffer recvBuffer = ByteBuffer.allocate( bufferSize );
-		ByteBuffer receivedData = null;
-		if ( (sslEngine != null) && ((sslEngine.getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING) || (sslEngine.getHandshakeStatus() == HandshakeStatus.FINISHED)) ) {
-			result = new SSLResult( false );
-			byte[] justRead = null;
-			do {
-				if ( result.moreToUnwrap == false ) {
-					receivedData = readFromChannel( istream );
-				} else {
-					receivedData = clearUntilPosition( receivedData ); // drops data already processed
-				}
-				if ( receivedData == null ) {
-					return null;
-				}
-				try {
-					result = unwrap( receivedData, istream );
-					if ( result.buffer.limit() >= 0 ) {
-						// merges the received data with the previous ones
-						justRead = compactToByte( result.buffer );
-						recvBuffer = addToBuffer( recvBuffer, justRead );
-					}
-				} catch ( SSLException e ) {
-					result.moreToUnwrap = false;
-					throw e;
-				}
-			} while ( result.moreToUnwrap == true );
-
-			if ( lastSSLStatus == Status.CLOSED && result.log.getHandshakeStatus() == HandshakeStatus.NEED_WRAP ) {
-				// Connection is about to gracefully shut down. Sending message to other peer to gracefully shutdown too.
-				sendAux( null, ostream );
-			}
-			if ( recvBuffer.limit() == 0 ) {
-				return null;
-			}
-			return compactToByte( recvBuffer );
-		} else {
-			startHandshake( ostream, istream );
-			return recvAux( istream, ostream );
-		}
+		return wrappedProtocol.recv( new SSLInputStream(), new SSLOutputStream() );
 	}
 }
 
