@@ -320,7 +320,7 @@ public class HTMLDocumentCreator implements DocumentCreator
             
                 if (typeDefinition.hasSubTypes()){
                 Set <Map.Entry<String,TypeDefinition>> supportSet= typeDefinition.subTypes();
-                
+                System.out.print(typeDefinition.nativeType().id()+"/n");
                 for (Iterator i = supportSet.iterator();i.hasNext();)
                 {
                    Map.Entry me=(Map.Entry)i.next();
