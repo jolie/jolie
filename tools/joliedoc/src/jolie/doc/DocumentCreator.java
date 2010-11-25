@@ -31,4 +31,6 @@ public interface DocumentCreator
 {
 	public void createDocument( Program program, String nameFile )
 		throws DocumentCreationException;
+     
+
 }

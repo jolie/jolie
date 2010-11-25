@@ -21,6 +21,7 @@
 
 package jolie.doc.impl.html;
 
+import com.sun.jmx.remote.util.OrderClassLoaders;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -29,7 +30,10 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import jolie.doc.DocumentCreationException;
@@ -47,6 +51,7 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import sun.jdbc.odbc.OdbcDef;
 
 public class HTMLDocumentCreator implements DocumentCreator
 {
@@ -69,6 +74,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 	private String nameFile;
 	private List< String > nameFiles;
 	private HashMap<String, String> HyperlinkMap;
+        private Set<TypeDefinition> types;
 
 	public HTMLDocumentCreator()
 	{
@@ -76,7 +82,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 		requestResponce = new HashSet<RequestResponseOperationDeclaration>();
 		oneWay = new HashSet<OneWayOperationDeclaration>();
 		HyperlinkMap = new HashMap<String, String>();
-
+                types= new LinkedHashSet<TypeDefinition>();
 	}
 
 	public void createDocument( Program program, String nameFile )
@@ -88,6 +94,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 			programVisitor.run();
 			InterfaceDefinition[] interfaceDefinitions =
 				programVisitor.getInterfaceDefinitions();
+
 			nameFiles = new ArrayList< String >();
 			for( InterfaceDefinition i : interfaceDefinitions ) {
 
@@ -98,7 +105,7 @@ public class HTMLDocumentCreator implements DocumentCreator
 			}
 
 			InputPortInfo[] inputPortDefinitions =
-				programVisitor.inputPortDefinitions();
+				programVisitor.getInputPortInfo();
 
 			for( InputPortInfo i : inputPortDefinitions ) {
 				// i.context().sourceName().
@@ -264,14 +271,16 @@ public class HTMLDocumentCreator implements DocumentCreator
 
 						}
 
-						//System.out.print("this the name of the operation :  "+((RequestResponseOperationDeclaration) operation).id()+"\n");
-						//System.out.print(((RequestResponseOperationDeclaration) operation).requestType().id()+"  il file e :"+supportHyperLinkFileName+"\n");
+						populateTypesSet(((RequestResponseOperationDeclaration)operation).requestType());
+						Integer index=0;
+                                                 for (Iterator i = types.iterator();i.hasNext();)
+                                                  {
+                                                    TypeDefinition support= (TypeDefinition)i.next();
+                                                     System.out.print(index.toString()+" "+support.id()+"\n");
+                                                     index++;
+                                                  }
 
-
-
-
-						//writer.write( "<td>"+"<a href=\""+supportHyperLinkFileName+"\""+"target=\""+((RequestResponseOperationDeclaration) operation).requestType().id()+"\">"+((RequestResponseOperationDeclaration) operation).requestType().id()+"</a><br />"+ "</td>");
-						supportFileName = (((RequestResponseOperationDeclaration) operation).responseType().context().sourceName());
+                                                supportFileName = (((RequestResponseOperationDeclaration) operation).responseType().context().sourceName());
 						supportHyperLinkFileName = (supportFileName.substring( supportFileName.lastIndexOf( "/" ) + 1, supportFileName.length() ).replace( ".", "_" ));
 						System.out.print( ((RequestResponseOperationDeclaration) operation).responseType().id() + "  il file e :" + supportHyperLinkFileName + "\n" );
 						//System.in.read();
@@ -303,7 +312,29 @@ public class HTMLDocumentCreator implements DocumentCreator
 
 
 	}
+        private  void populateTypesSet(TypeDefinition typeDefinition){
 
+          if (!(types.contains(typeDefinition))){
+            System.out.print("\n"+"add type "+ typeDefinition.id()+"\n");
+            types.add(typeDefinition);
+            
+                if (typeDefinition.hasSubTypes()){
+                Set <Map.Entry<String,TypeDefinition>> supportSet= typeDefinition.subTypes();
+                
+                for (Iterator i = supportSet.iterator();i.hasNext();)
+                {
+                   Map.Entry me=(Map.Entry)i.next();
+
+                   System.out.print("element of the list "+me.getKey()+"\n");
+                   populateTypesSet((TypeDefinition)me.getValue());
+                
+                }
+              }
+
+          }
+          
+         
+        }
 	private void convertOutputPortDefinitions( OutputPortInfo node, Writer writer )
 		throws DocumentCreationException
 	{

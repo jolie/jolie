@@ -86,14 +86,15 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import support.GeneralProgramVisitor;
 
 /**
  *
  * @author Balint Maschio
  */
-public class ProgramVisitor implements OLVisitor
+public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 {
-	final private Program program;
+	//final private Program program;
 	final private List<InterfaceDefinition> interfaceDefinitions =
 		new ArrayList<InterfaceDefinition>();
 	final private List<OutputPortInfo> outportPortDefinitions =
@@ -105,13 +106,13 @@ public class ProgramVisitor implements OLVisitor
 
 	public ProgramVisitor( Program program )
 	{
-		this.program = program;
+		super(program);
 
 	}
 
 	public void run()
 	{
-		program.accept( this );
+		super.program.accept( this );
 
 	}
 
@@ -134,7 +135,7 @@ public class ProgramVisitor implements OLVisitor
 
 	}
 
-	public InputPortInfo[] inputPortDefinitions()
+	public InputPortInfo[] getInputPortInfo()
 	{
 
 		return inputPortDefinitions.toArray( new InputPortInfo[]{} );
