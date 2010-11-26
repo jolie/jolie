@@ -1,6 +1,8 @@
 package support;
 
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,54 +60,18 @@ private void PopulateTypesSet(){
 
   for ( Iterator i=oneWayOperationsSet.iterator();i.hasNext();)
   {
-       OneWayOperationDeclaration oneWayOperation= (OneWayOperationDeclaration) i.next();
-            boolean addFlag = true;
+            OneWayOperationDeclaration operation = (OneWayOperationDeclaration) i.next();
+            ScanTypes(operation.requestType());
+  }
+  for ( Iterator i=requestResponseOperationsSet.iterator();i.hasNext();)
+       {
+                  RequestResponseOperationDeclaration operation = (RequestResponseOperationDeclaration) i.next();
+                  ScanTypes(operation.requestType());
+                  ScanTypes(operation.responseType());
+      
+       }
 
-               for (Map<String,TypeDefinition> supportMap:typeMap)
-               {
-                     if ((supportMap.containsKey(oneWayOperation.requestType().context().sourceName())&&(supportMap.containsValue(oneWayOperation.requestType()))))
-                     {
-                       addFlag=false;
-
-                     }
-                }
-         if (addFlag)
-         {
-             nameFile= oneWayOperation.requestType().context().sourceName();
-             supportType=oneWayOperation.requestType();
-
-             Map<String,TypeDefinition> addingMap= new HashMap<String, TypeDefinition>();
-             addingMap.put(nameFile, supportType);
-             typeMap.add(addingMap);
-          }
-      }
-
-        /// request response
-  /*  for ( Iterator i=requestResponseOperationsSet.iterator();i.hasNext();)
-  {
-       OneWayOperationDeclaration requestResponseOperation= (OneWayOperationDeclaration) i.next();
-            boolean addFlag = true;
-
-               for (Map<String,TypeDefinition> supportMap:typeMap)
-               {
-                     if ((supportMap.containsKey(oneWayOperation.requestType().context().sourceName())&&(supportMap.containsValue(oneWayOperation.requestType()))))
-                     {
-                       addFlag=false;
-
-                     }
-                }
-         if (addFlag)
-         {
-             nameFile= oneWayOperation.requestType().context().sourceName();
-             supportType=oneWayOperation.requestType();
-             Map<String,TypeDefinition> addingMap= new HashMap<String, TypeDefinition>();
-             addingMap.put(nameFile, supportType);
-             typeMap.add(addingMap);
-          }
-      }
-
-
-  */
+ 
 }
 private void ScanTypes( TypeDefinition typeDefinition)
  {
@@ -121,18 +87,64 @@ private void ScanTypes( TypeDefinition typeDefinition)
                        break;
                      }
                 }
+          if (addFlag){
+             String nameFile= ((TypeDefinitionLink)typeDefinition).linkedType().context().sourceName();
+             TypeDefinition supportType=((TypeDefinitionLink)typeDefinition).linkedType();
 
+             Map<String,TypeDefinition> addingMap= new HashMap<String, TypeDefinition>();
+             addingMap.put(nameFile, supportType);
+             typeMap.add(addingMap);
+             if (supportType.hasSubTypes())
+             {
+              ScanTypes(supportType);
+                  Set <Map.Entry<String,TypeDefinition>> supportSet= supportType.subTypes();
+
+                for (Iterator i = supportSet.iterator();i.hasNext();)
+                {
+                   Map.Entry me=(Map.Entry)i.next();
+
+                   System.out.print("element of the list "+me.getKey()+"\n");
+                   ScanTypes((TypeDefinition)me.getValue());
+
+                }
+             }
+
+          }
 
     }else{
 
+          for (Map<String,TypeDefinition> supportMap:typeMap)
+               {
+                     if ((supportMap.containsKey(typeDefinition.context().sourceName()))&&(supportMap.containsValue(typeDefinition)))
+                     {
+                       addFlag=false;
+                       break;
+                     }
+                }
+          if (addFlag){
+             String nameFile= typeDefinition.context().sourceName();
+             TypeDefinition supportType=typeDefinition;
 
+             Map<String,TypeDefinition> addingMap= new HashMap<String, TypeDefinition>();
+             addingMap.put(nameFile, supportType);
+             typeMap.add(addingMap);
+             if (supportType.hasSubTypes())
+             {
+              ScanTypes(supportType);
+                  Set <Map.Entry<String,TypeDefinition>> supportSet= supportType.subTypes();
 
+                for (Iterator i = supportSet.iterator();i.hasNext();)
+                {
+                   Map.Entry me=(Map.Entry)i.next();
+
+                   if (((TypeDefinition)me.getValue()).hasSubTypes()){
+                            ScanTypes((TypeDefinition)me.getValue());
+                   }
+
+                }
+             }
+          }
     }
-
-
-
-
-
 }
 private void PopulateOperationsSet(){
         Entry<String, OperationDeclaration> operation;
@@ -174,14 +186,34 @@ interfacesArray=program.getInterfaceDefinitions();
 }
 
 private void PopulateFilesList(){
+
     for (InterfaceDefinition idef: interfacesArray)
     {
      if (!(filesNameList.contains( idef.context().sourceName()))){
         // filesNameList.add(idef.);
      }
-
     }
+     for (OutputPortInfo outInfo: outputPortArray)
+    {
+     if (!(filesNameList.contains( outInfo.context().sourceName()))){
+        // filesNameList.add(idef.);
+     }
+    }
+     for (InputPortInfo inInfo: inputPortArray)
+    {
+     if (!(filesNameList.contains( inInfo.context().sourceName()))){
+          filesNameList.add(inInfo.context().sourceName());
+     }
+    }
+        Set<Entry<String, TypeDefinition>> suppotSet;
+    for (Map<String, TypeDefinition> typeM: typeMap)
+    {
+         suppotSet=typeM.entrySet();
 
+     if (!(filesNameList.contains( suppotSet.iterator().next().getKey()))){
+         filesNameList.add(suppotSet.iterator().next().getKey());
+     }
+    }
 
 }
 protected List<Map<String,TypeDefinition>> GetTypesSet(){
@@ -207,10 +239,11 @@ protected List<String> GetFilesNameList(){
     return filesNameList;
 }
 abstract public void ConvertDocument();
-abstract public void ConvertInterface();
-abstract public void ConvertOutputPorts();
-abstract public void ConvertInputPorts();
-abstract public void ConvertOperations();
-abstract public void ConvertTypes();
+abstract public void ConvertInterface(InterfaceDefinition interfaceDefinition,Writer writer)throws IOException ;;
+abstract public void ConvertOutputPorts(OutputPortInfo outputPortInfo,Writer writer)throws IOException ;;
+abstract public void ConvertInputPorts(InputPortInfo inputPortInfo ,Writer writer)throws IOException ;;
+abstract public void ConvertOperations(OperationDeclaration operationDeclaration,Writer writer)throws IOException;
+abstract public void ConvertTypes(TypeDefinition typesDefinition ,Writer writer) throws IOException ;
+
 
 }

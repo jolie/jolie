@@ -158,11 +158,6 @@ public class HTMLDocumentCreator implements DocumentCreator
 				writer.write( "</ul>" );
 
 
-
-
-
-
-				//InterfaceDefinition[] interfaceDefinitions =
 				//	programVisitor.getInterfaceDefinitions();
 				boolean interfacesExist = false;
 				for( InterfaceDefinition i : interfaceDefinitions ) {
