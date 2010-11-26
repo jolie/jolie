@@ -319,7 +319,7 @@ public class HTMLDocumentCreator implements DocumentCreator
             types.add(typeDefinition);
                 System.out.print("this is the native type "+typeDefinition.nativeType().id()+"\n");
                 System.out.print("has subtypes "+typeDefinition.hasSubTypes()+"\n");
-                System.out.print("has Linked type "+typeDefinition.+"\n");
+               // System.out.print("has Linked type "+typeDefinition.+"\n");
                 if (typeDefinition.hasSubTypes()){
                 Set <Map.Entry<String,TypeDefinition>> supportSet= typeDefinition.subTypes();
                 
