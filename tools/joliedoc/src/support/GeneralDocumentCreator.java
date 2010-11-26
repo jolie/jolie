@@ -16,6 +16,7 @@ import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
 
 /*
  * To change this template, choose Tools | Templates
@@ -105,6 +106,29 @@ private void PopulateTypesSet(){
 
 
   */
+}
+private void ScanTypes( TypeDefinition typeDefinition)
+ {
+        boolean addFlag;
+        addFlag=true;
+    if (typeDefinition instanceof TypeDefinitionLink){
+
+       for (Map<String,TypeDefinition> supportMap:typeMap)
+               {
+                     if ((supportMap.containsKey(((TypeDefinitionLink)typeDefinition).linkedType().context().sourceName())&&(supportMap.containsValue(((TypeDefinitionLink)typeDefinition).linkedType()))))
+                     {
+                       addFlag=false;
+                       break();
+                     }
+                }
+
+
+    }else (typeDefinition)
+
+
+
+
+
 }
 private void PopulateOperationsSet(){
         Entry<String, OperationDeclaration> operation;
