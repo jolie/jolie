@@ -118,12 +118,16 @@ private void ScanTypes( TypeDefinition typeDefinition)
                      if ((supportMap.containsKey(((TypeDefinitionLink)typeDefinition).linkedType().context().sourceName())&&(supportMap.containsValue(((TypeDefinitionLink)typeDefinition).linkedType()))))
                      {
                        addFlag=false;
-                       break();
+                       break;
                      }
                 }
 
 
-    }else (typeDefinition)
+    }else{
+
+
+
+    }
 
 
 
