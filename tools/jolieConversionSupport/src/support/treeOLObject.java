@@ -29,9 +29,16 @@ public void SetLinkedObject(OLSyntaxNode olSyntaxNode){
         treeOLObject supportObjet= new treeOLObject(olSyntaxNode,this);
         linkList.add(supportObjet);
    }
-public OLSyntaxNode GetLinkedObject(int i){
-return linkList.get(i).olSyntaxNode;
+public treeOLObject GetLinkedObject(int i){
+return linkList.get(i);
 }
+public OLSyntaxNode GetOLSyntaxNode()
+{
+
+  return olSyntaxNode;
+}
+
+
 
 public int GetLinkedObjetSize(){
 
