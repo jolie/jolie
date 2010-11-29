@@ -53,10 +53,14 @@ public abstract class GeneralDocumentCreator
 		PopulatePortsLists();
 		PopulateOperationsSet();
 		PopulateTypesSet();
+                PopulateOlTree();
 
 
 	}
+        protected List<treeOLObject> GetOlTree(){
+        return olTree;
 
+        }
 	private void PopulateTypesSet()
 	{
 		List<TypeDefinition> supportTypeDefList;
