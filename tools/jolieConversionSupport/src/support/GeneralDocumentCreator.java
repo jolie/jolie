@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,16 +35,18 @@ public abstract class GeneralDocumentCreator
 	private InterfaceDefinition[] interfacesArray;
 	private Set<RequestResponseOperationDeclaration> requestResponseOperationsSet;
 	private Set<OneWayOperationDeclaration> oneWayOperationsSet;
+        private HashMap<String,InterfaceDefinition> interfaceMap;
 	private List<Map<String, TypeDefinition>> typeMap;
 	private List<String> filesNameList;
 	private GeneralProgramVisitor program;
-
+        private List<treeOLObject> olTree;
 	public GeneralDocumentCreator( GeneralProgramVisitor program )
 	{
 		oneWayOperationsSet = new HashSet<OneWayOperationDeclaration>();
 		requestResponseOperationsSet = new HashSet<RequestResponseOperationDeclaration>();
 		typeMap = new Vector<Map<String, TypeDefinition>>();
 		filesNameList = new Vector<String>();
+                interfaceMap= new HashMap<String, InterfaceDefinition>();
 		this.program = program;
 		this.program.run();
 		PopulateInterfaceLists();
@@ -73,7 +76,180 @@ public abstract class GeneralDocumentCreator
 
 
 	}
+        private void PopulateOlTree(){
+           olTree= new LinkedList<treeOLObject>();
 
+        InterfaceDefinition supportInterface;
+        Map<String, OperationDeclaration> supportMap;
+        Iterator<Entry<String, OperationDeclaration>> iMapOp;
+        OneWayOperationDeclaration operationOneWay;
+        RequestResponseOperationDeclaration operationRequestResponse;
+
+       // OneWayOperationDeclaration operation;
+           for (OutputPortInfo OutInfo:outputPortArray){
+            treeOLObject portSupportOLTreeObject = new treeOLObject(OutInfo, null);
+               for (String interfaceName:OutInfo.getInterfacesList())
+               {
+
+                  portSupportOLTreeObject.SetLinkedObject(interfaceMap.get(interfaceName));
+
+               }
+               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
+               {
+                supportInterface= ((InterfaceDefinition)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetOLSyntaxNode()));
+                supportMap=supportInterface.operationsMap();
+                for (iMapOp=supportMap.entrySet().iterator();iMapOp.hasNext();)
+                {
+                   portSupportOLTreeObject.GetLinkedObject(counterInterfaces).SetLinkedObject(iMapOp.next().getValue());
+                }
+                for (int counterOperation=0; counterOperation< portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize();counterOperation++)
+                {
+                      if (portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode() instanceof OneWayOperationDeclaration)
+                      {
+                            operationOneWay=(OneWayOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
+                            portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationOneWay.requestType());
+                            ScanTypesOlTree(operationOneWay.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+
+
+                      }else
+                      {
+
+                        operationRequestResponse=(RequestResponseOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
+                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.requestType());
+                        ScanTypesOlTree(operationRequestResponse.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+
+                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.responseType());
+                        ScanTypesOlTree(operationRequestResponse.responseType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(1));
+
+                      }
+
+
+                }
+
+               }
+
+         olTree.add(portSupportOLTreeObject);
+
+           }
+
+           for (InputPortInfo inInfo:inputPortArray){
+            treeOLObject portSupportOLTreeObject = new treeOLObject(inInfo, null);
+               for (String interfaceName:inInfo.getInterfacesList())
+               {
+
+                  portSupportOLTreeObject.SetLinkedObject(interfaceMap.get(interfaceName));
+
+               }
+               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
+               {
+                supportInterface= ((InterfaceDefinition)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetOLSyntaxNode()));
+                supportMap=supportInterface.operationsMap();
+                for (iMapOp=supportMap.entrySet().iterator();iMapOp.hasNext();)
+                {
+                   portSupportOLTreeObject.GetLinkedObject(counterInterfaces).SetLinkedObject(iMapOp.next().getValue());
+                }
+                for (int counterOperation=0; counterOperation< portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize();counterOperation++)
+                {
+                      if (portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode() instanceof OneWayOperationDeclaration)
+                      {
+                            operationOneWay=(OneWayOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
+                            portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationOneWay.requestType());
+                            ScanTypesOlTree(operationOneWay.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+
+
+                      }else
+                      {
+
+                        operationRequestResponse=(RequestResponseOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
+                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.requestType());
+                        ScanTypesOlTree(operationRequestResponse.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+
+                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.responseType());
+                        ScanTypesOlTree(operationRequestResponse.responseType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(1));
+
+                      }
+
+
+                }
+
+               }
+
+
+
+           }
+        }
+
+        private void ScanTypesOlTree( TypeDefinition typeDefinition,treeOLObject olObjetTree )
+	{
+		boolean addFlag;
+		addFlag = true;
+		if ( typeDefinition instanceof TypeDefinitionLink ) {
+
+			for( Map<String, TypeDefinition> supportMap : typeMap ) {
+				if ( (supportMap.containsKey( ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName() ) && (supportMap.containsValue( ((TypeDefinitionLink) typeDefinition).linkedType() ))) ) {
+					addFlag = false;
+					break;
+				}
+			}
+			if ( addFlag ) {
+				String nameFile = ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName();
+				TypeDefinition supportType = ((TypeDefinitionLink) typeDefinition).linkedType();
+
+				//Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
+				//addingMap.put( nameFile, supportType );
+				//typeMap.add( addingMap );
+                                olObjetTree.SetLinkedObject(supportType);
+
+				if ( supportType.hasSubTypes() ) {
+					ScanTypes( supportType );
+					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+
+					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
+						Map.Entry me = (Map.Entry) i.next();
+
+						System.out.print( "element of the list " + me.getKey() + "\n" );
+
+                                                ScanTypesOlTree( (TypeDefinition) me.getValue(),olObjetTree.GetLinkedObject(0) );
+
+					}
+				}
+
+			}
+
+		} else {
+
+			for( Map<String, TypeDefinition> supportMap : typeMap ) {
+				if ( (supportMap.containsKey( typeDefinition.context().sourceName() )) && (supportMap.containsValue( typeDefinition )) ) {
+					addFlag = false;
+					break;
+				}
+			}
+			if ( addFlag ) {
+				String nameFile = typeDefinition.context().sourceName();
+				TypeDefinition supportType = typeDefinition;
+
+				//Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
+				//addingMap.put( nameFile, supportType );
+				//typeMap.add( addingMap );
+                                olObjetTree.SetLinkedObject(supportType);
+				if ( supportType.hasSubTypes() ) {
+					ScanTypes( supportType );
+					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+
+					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
+						Map.Entry me = (Map.Entry) i.next();
+
+						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+							//ScanTypes( (TypeDefinition) me.getValue() );
+						ScanTypesOlTree( (TypeDefinition) me.getValue(),olObjetTree.GetLinkedObject(0) );
+
+                                                }
+
+					}
+				}
+			}
+		}
+	}
 	private void ScanTypes( TypeDefinition typeDefinition )
 	{
 		boolean addFlag;
@@ -178,6 +354,13 @@ public abstract class GeneralDocumentCreator
 	{
 
 		interfacesArray = program.getInterfaceDefinitions();
+                for (InterfaceDefinition idef:interfacesArray)
+                {
+
+                  interfaceMap.put(idef.name(), idef);
+
+
+                }
 
 	}
 
