@@ -37,33 +37,37 @@ public abstract class GeneralDocumentCreator
 	private InterfaceDefinition[] interfacesArray;
 	private Set<RequestResponseOperationDeclaration> requestResponseOperationsSet;
 	private Set<OneWayOperationDeclaration> oneWayOperationsSet;
-        private HashMap<String,InterfaceDefinition> interfaceMap;
+	private HashMap<String, InterfaceDefinition> interfaceMap;
 	private List<Map<String, TypeDefinition>> typeMap;
 	private List<String> filesNameList;
 	private GeneralProgramVisitor program;
-        private List<treeOLObject> olTree;
+	private List<treeOLObject> olTree;
+
 	public GeneralDocumentCreator( GeneralProgramVisitor program )
 	{
 		oneWayOperationsSet = new HashSet<OneWayOperationDeclaration>();
 		requestResponseOperationsSet = new HashSet<RequestResponseOperationDeclaration>();
 		typeMap = new Vector<Map<String, TypeDefinition>>();
 		filesNameList = new Vector<String>();
-                interfaceMap= new HashMap<String, InterfaceDefinition>();
+		interfaceMap = new HashMap<String, InterfaceDefinition>();
 		this.program = program;
-		this.program.run();
+		//this.program.run();
 		PopulateInterfaceLists();
 		PopulatePortsLists();
 		PopulateOperationsSet();
 		PopulateTypesSet();
-                PopulateFilesList();
-                PopulateOlTree();
+		PopulateFilesList();
+		PopulateOlTree();
 
 
 	}
-        protected List<treeOLObject> GetOlTree(){
-        return olTree;
 
-        }
+	protected List<treeOLObject> GetOlTree()
+	{
+		return olTree;
+
+	}
+
 	private void PopulateTypesSet()
 	{
 		List<TypeDefinition> supportTypeDefList;
@@ -83,169 +87,157 @@ public abstract class GeneralDocumentCreator
 
 
 	}
-        private void PopulateOlTree(){
-           olTree= new LinkedList<treeOLObject>();
 
-        InterfaceDefinition supportInterface;
-        Map<String, OperationDeclaration> supportMap;
-        Iterator<Entry<String, OperationDeclaration>> iMapOp;
-        OneWayOperationDeclaration operationOneWay;
-        RequestResponseOperationDeclaration operationRequestResponse;
+	private void PopulateOlTree()
+	{
+		olTree = new LinkedList<treeOLObject>();
 
-       // OneWayOperationDeclaration operation;
-           for (OutputPortInfo OutInfo:outputPortArray){
-            treeOLObject portSupportOLTreeObject = new treeOLObject(OutInfo, null);
-           int counterIn=0;
-               for (String interfaceName:OutInfo.getInterfacesList())
-               {
-                  if (interfaceMap.containsKey(interfaceName)){
-                  portSupportOLTreeObject.SetLinkedObject(interfaceMap.get(interfaceName));
-                  System.out.print("added object " + interfaceName+"\n");
-                  counterIn++;
-                  }
-               }
-               System.out.print("numero di int: "+counterIn +"\n");
-               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
-               {
-                supportInterface= ((InterfaceDefinition)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetOLSyntaxNode()));
-                supportMap=supportInterface.operationsMap();
-                int con=0;
-                for (iMapOp=supportMap.entrySet().iterator();iMapOp.hasNext();)
-                {
-                   portSupportOLTreeObject.GetLinkedObject(counterInterfaces).SetLinkedObject(iMapOp.next().getValue());
-                   con++;
+		InterfaceDefinition supportInterface;
+		Map<String, OperationDeclaration> supportMap;
+		Iterator<Entry<String, OperationDeclaration>> iMapOp;
+		OneWayOperationDeclaration operationOneWay;
+		RequestResponseOperationDeclaration operationRequestResponse;
 
-                }
-                System.out.print("numero di op: "+con +"\n");
-                }
-               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
-               {
-                           // System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
-                   for (int counterOperation=0; counterOperation< portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObjetSize();counterOperation++)
-                {
-                      if (portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode() instanceof OneWayOperationDeclaration)
-                      {
-                            operationOneWay=(OneWayOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
-                            portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationOneWay.requestType());
-                            ScanTypesOlTree(operationOneWay.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+		// OneWayOperationDeclaration operation;
+		for( OutputPortInfo OutInfo : outputPortArray ) {
+			treeOLObject portSupportOLTreeObject = new treeOLObject( OutInfo, null );
+			int counterIn = 0;
+			for( String interfaceName : OutInfo.getInterfacesList() ) {
+				if ( interfaceMap.containsKey( interfaceName ) ) {
+					portSupportOLTreeObject.SetLinkedObject( interfaceMap.get( interfaceName ) );
+					System.out.print( "added object " + interfaceName + "\n" );
+					counterIn++;
+				}
+			}
+			System.out.print( "numero di int: " + counterIn + "\n" );
+			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
+				supportInterface = ((InterfaceDefinition) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetOLSyntaxNode()));
+				supportMap = supportInterface.operationsMap();
+				int con = 0;
+				for( iMapOp = supportMap.entrySet().iterator(); iMapOp.hasNext(); ) {
+					portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).SetLinkedObject( iMapOp.next().getValue() );
+					con++;
+
+				}
+				System.out.print( "numero di op: " + con + "\n" );
+			}
+			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
+				// System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
+				for( int counterOperation = 0; counterOperation < portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObjetSize(); counterOperation++ ) {
+					if ( portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode() instanceof OneWayOperationDeclaration ) {
+						operationOneWay = (OneWayOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationOneWay.requestType() );
+						ScanTypesOlTree( operationOneWay.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
 
 
-                      }else
-                      {
-                                            System.out.print( "Here line 134 : "+counterOperation+"\n");
+					} else {
+						System.out.print( "Here line 134 : " + counterOperation + "\n" );
 
-                        operationRequestResponse=(RequestResponseOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
-
-
-                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.requestType());
-                       // System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
-
-                        System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
-
-                        //treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
-                        ScanTypesOlTree(operationRequestResponse.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
-                        System.out.print( "sono a linea:138\n" );
-                        System.out.print(  counterInterfaces +" " + counterOperation+"\n" );
-                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.responseType());
-                        ScanTypesOlTree(operationRequestResponse.responseType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(1));
-                        System.out.print( "sono a linea:145\n" );
-                      }
+						operationRequestResponse = (RequestResponseOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
 
 
-                }
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.requestType() );
+						// System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
 
-               }
+						System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
 
-         olTree.add(portSupportOLTreeObject);
+						//treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
+						ScanTypesOlTree( operationRequestResponse.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
+						System.out.print( "sono a linea:138\n" );
+						System.out.print( counterInterfaces + " " + counterOperation + "\n" );
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.responseType() );
+						ScanTypesOlTree( operationRequestResponse.responseType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 1 ) );
+						System.out.print( "sono a linea:145\n" );
+					}
 
-           }
+
+				}
+
+			}
+
+			olTree.add( portSupportOLTreeObject );
+
+		}
 /////Input Port
-            for (OutputPortInfo inputInfo:outputPortArray){
-            treeOLObject portSupportOLTreeObject = new treeOLObject(inputInfo, null);
-           int counterIn=0;
-               for (String interfaceName:inputInfo.getInterfacesList())
-               {
-                  if (interfaceMap.containsKey(interfaceName)){
-                  portSupportOLTreeObject.SetLinkedObject(interfaceMap.get(interfaceName));
-                  System.out.print("added object " + interfaceName+"\n");
-                  counterIn++;
-                  }
-               }
-               System.out.print("numero di int: "+counterIn +"\n");
-               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
-               {
-                supportInterface= ((InterfaceDefinition)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetOLSyntaxNode()));
-                supportMap=supportInterface.operationsMap();
-                int con=0;
-                for (iMapOp=supportMap.entrySet().iterator();iMapOp.hasNext();)
-                {
-                   portSupportOLTreeObject.GetLinkedObject(counterInterfaces).SetLinkedObject(iMapOp.next().getValue());
-                   con++;
+		for( InputPortInfo inputInfo : inputPortArray ) {
+			treeOLObject portSupportOLTreeObject = new treeOLObject( inputInfo, null );
+			int counterIn = 0;
+			for( String interfaceName : inputInfo.getInterfacesList() ) {
+				if ( interfaceMap.containsKey( interfaceName ) ) {
+					portSupportOLTreeObject.SetLinkedObject( interfaceMap.get( interfaceName ) );
+					System.out.print( "added object " + interfaceName + "\n" );
+					counterIn++;
+				}
+			}
+			System.out.print( "numero di int: " + counterIn + "\n" );
+			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
+				supportInterface = ((InterfaceDefinition) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetOLSyntaxNode()));
+				supportMap = supportInterface.operationsMap();
+				int con = 0;
+				for( iMapOp = supportMap.entrySet().iterator(); iMapOp.hasNext(); ) {
+					portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).SetLinkedObject( iMapOp.next().getValue() );
+					con++;
 
-                }
-                System.out.print("numero di op: "+con +"\n");
-                }
-               for (int counterInterfaces=0;counterInterfaces<portSupportOLTreeObject.GetLinkedObjetSize();counterInterfaces++)
-               {
-                           // System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
-                   for (int counterOperation=0; counterOperation< portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObjetSize();counterOperation++)
-                {
-                      if (portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode() instanceof OneWayOperationDeclaration)
-                      {
-                            operationOneWay=(OneWayOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
-                            portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationOneWay.requestType());
-                            ScanTypesOlTree(operationOneWay.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
+				}
+				System.out.print( "numero di op: " + con + "\n" );
+			}
+			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
+				// System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
+				for( int counterOperation = 0; counterOperation < portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObjetSize(); counterOperation++ ) {
+					if ( portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode() instanceof OneWayOperationDeclaration ) {
+						operationOneWay = (OneWayOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationOneWay.requestType() );
+						ScanTypesOlTree( operationOneWay.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
 
 
-                      }else
-                      {
-                                            System.out.print( "Here line 134 : "+counterOperation+"\n");
+					} else {
+						System.out.print( "Here line 134 : " + counterOperation + "\n" );
 
-                        operationRequestResponse=(RequestResponseOperationDeclaration)(portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetOLSyntaxNode());
-
-
-                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.requestType());
-                       // System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
-
-                        System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
-
-                        //treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
-                        ScanTypesOlTree(operationRequestResponse.requestType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(0));
-                        System.out.print( "sono a linea:138\n" );
-                        System.out.print(  counterInterfaces +" " + counterOperation+"\n" );
-                        portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).SetLinkedObject(operationRequestResponse.responseType());
-                        ScanTypesOlTree(operationRequestResponse.responseType(),portSupportOLTreeObject.GetLinkedObject(counterInterfaces).GetLinkedObject(counterOperation).GetLinkedObject(1));
-                        System.out.print( "sono a linea:145\n" );
-                      }
+						operationRequestResponse = (RequestResponseOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
 
 
-                }
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.requestType() );
+						// System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
 
-               }
+						System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
 
-         olTree.add(portSupportOLTreeObject);
+						//treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
+						ScanTypesOlTree( operationRequestResponse.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
+						System.out.print( "sono a linea:138\n" );
+						System.out.print( counterInterfaces + " " + counterOperation + "\n" );
+						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.responseType() );
+						ScanTypesOlTree( operationRequestResponse.responseType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 1 ) );
+						System.out.print( "sono a linea:145\n" );
+					}
 
-           }
-          
-        }
 
-        private void ScanTypesOlTree( TypeDefinition typeDefinition,treeOLObject olObjetTree )
+				}
+
+			}
+
+			olTree.add( portSupportOLTreeObject );
+
+		}
+
+	}
+
+	private void ScanTypesOlTree( TypeDefinition typeDefinition, treeOLObject olObjetTree )
 	{
 		boolean addFlag;
 		addFlag = true;
-                
+
 		if ( typeDefinition instanceof TypeDefinitionLink ) {
 
-			
+
 			if ( addFlag ) {
 				String nameFile = ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName();
 				TypeDefinition supportType = ((TypeDefinitionLink) typeDefinition).linkedType();
-                                System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
+				System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
 				//Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
 				//addingMap.put( nameFile, supportType );
 				//typeMap.add( addingMap );
 
-                                olObjetTree.SetLinkedObject(supportType);
+				olObjetTree.SetLinkedObject( supportType );
 
 				if ( supportType.hasSubTypes() ) {
 					ScanTypes( supportType );
@@ -254,42 +246,46 @@ public abstract class GeneralDocumentCreator
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
 
-						
-                                              if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
-                                                 System.out.print( "element of the list Oltree  dentro al loop " + me.getKey() + "\n" );
-                                                ScanTypesOlTree( (TypeDefinition) me.getValue(),olObjetTree.GetLinkedObject(0));
-                                                 }
+
+						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+							System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
+							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
+						}
 					}
 				}
 
 			}
 
 		} else {
-			
-				String nameFile = typeDefinition.context().sourceName();
-				TypeDefinition supportType = typeDefinition;
-                                  System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
-				
-                                olObjetTree.SetLinkedObject(supportType);
-				if ( supportType.hasSubTypes() ) {
-					ScanTypes( supportType );
-					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
 
-					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
-						Map.Entry me = (Map.Entry) i.next();
+			String nameFile = typeDefinition.context().sourceName();
+			TypeDefinition supportType = typeDefinition;
+			System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
 
-						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
-                                                System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
-                        
-                                                ScanTypesOlTree( (TypeDefinition) me.getValue(),olObjetTree.GetLinkedObject(0) );
 
-                                                }
+			if ( supportType.hasSubTypes() ) {
 
+				ScanTypes( supportType );
+				Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+				Iterator i = supportSet.iterator();
+				while( i.hasNext() ) {
+					Map.Entry me = (Map.Entry) i.next();
+
+					if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+						System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
+						olObjetTree.SetLinkedObject((TypeDefinition) me.getValue() );
+						ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
+
+					}else{
+					olObjetTree.SetLinkedObject((TypeDefinition) me.getValue() );
 					}
-				
+
+				}
+
 			}
 		}
 	}
+
 	private void ScanTypes( TypeDefinition typeDefinition )
 	{
 		boolean addFlag;
@@ -394,13 +390,12 @@ public abstract class GeneralDocumentCreator
 	{
 
 		interfacesArray = program.getInterfaceDefinitions();
-                for (InterfaceDefinition idef:interfacesArray)
-                {
+		for( InterfaceDefinition idef : interfacesArray ) {
 
-                  interfaceMap.put(idef.name(), idef);
+			interfaceMap.put( idef.name(), idef );
 
 
-                }
+		}
 
 	}
 
