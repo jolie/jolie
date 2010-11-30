@@ -34,22 +34,28 @@ import jolie.util.Range;
  */
 public class TypeDefinitionLink extends TypeDefinition
 {
-	private final TypeDefinition linkedType;
+	private TypeDefinition linkedType;
+	private final String linkedTypeName;
 
-	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType )
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, String linkedTypeName )
 	{
 		super( context, id, cardinality );
+		this.linkedTypeName = linkedTypeName;
+	}
+
+	public String linkedTypeName()
+	{
+		return linkedTypeName;
+	}
+
+	public void setLinkedType( TypeDefinition linkedType )
+	{
 		this.linkedType = linkedType;
 	}
 
 	public TypeDefinition linkedType()
 	{
 		return linkedType;
-	}
-
-	public boolean isValid()
-	{
-		return ( linkedType != null );
 	}
 
 	public boolean untypedSubTypes()
