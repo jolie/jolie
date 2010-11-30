@@ -23,6 +23,7 @@ package jolie.lang.parse;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -121,6 +122,9 @@ public class SemanticVerifier implements OLVisitor
 	private final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
+
+	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
+
 	//private TypeDefinition rootType; // the type representing the whole session state
 
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
@@ -175,16 +179,27 @@ public class SemanticVerifier implements OLVisitor
 			logger.severe( message );
 		}
 	}
-	
+
+	private void resolveLazyLinks()
+	{
+		for( TypeDefinitionLink l : definedTypeLinks ) {
+			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
+			if ( l.linkedType() == null ) {
+				error( l, "type " + l.id() + "points to an undefined type (" + l.linkedTypeName() + ")" );
+			}
+		}
+	}
+
 	public boolean validate()
 	{
 		program.accept( this );
-
+		resolveLazyLinks();
+		
 		if ( mainDefined == false ) {
 			error( null, "Main procedure not defined" );
 		}
 		
-		if ( !valid  ) {
+		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
 			return false;
 		}
@@ -224,9 +239,6 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( TypeDefinitionLink n )
 	{
 		checkCardinality( n );
-		if ( n.isValid() == false ) {
-			error( n, "type " + n.id() + " points to an undefined type" );
-		}
 		if ( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
 			TypeDefinition type = definedTypes.get( n.id() );
@@ -235,6 +247,7 @@ public class SemanticVerifier implements OLVisitor
 			}
 			definedTypes.put( n.id(), n );
 		}
+		definedTypeLinks.add( n );
 	}
 
 	private void checkCardinality( TypeDefinition type )
@@ -320,7 +333,7 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( OneWayOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() );
+			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
 		}
 		if ( insideInputPort ) { // Input operation
 			if ( oneWayOperations.containsKey( n.id() ) ) {
@@ -337,10 +350,10 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( RequestResponseOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() );
+			error( n, "unknown type: " + n.requestType().id() + " for operation " + n.id() );
 		}
 		if ( definedTypes.get( n.responseType().id() ) == null ) {
-			error( n, "unknown type: " + n.requestType().id() );
+			error( n, "unknown type: " + n.responseType().id() + " for operation " + n.id() );
 		}
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
 			if ( definedTypes.containsKey( fault.getValue().id() ) == false ) {

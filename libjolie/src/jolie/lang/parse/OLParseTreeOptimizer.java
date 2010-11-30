@@ -690,7 +690,7 @@ public class OLParseTreeOptimizer
 		}
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
 		public void visit( InterfaceDefinition n ) {}
-		public void visit (DocumentationComment n ){}
+		public void visit( DocumentationComment n ){}
 	}
 	
 	private Program originalProgram;

@@ -171,8 +171,6 @@ public class OLParser extends AbstractParser
 	private void _parse()
 		throws IOException, ParserException
 	{
-            
-                //parseComment();// not very good solution to be reconsider position
 		getToken();
 		Scanner.Token t;
 		do {
@@ -206,14 +204,12 @@ public class OLParser extends AbstractParser
 
 		while( token.isKeyword( "type" ) ) {
 			getToken();
-
 			typeName = token.content();
 			eat( Scanner.TokenType.ID, "expected type name" );
 			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-
 			NativeType nativeType = readNativeType();
 			if ( nativeType == null ) { // It's a user-defined type
-				currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, definedTypes.get( token.content() ) );
+				currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 				getToken();
 			} else {
 				currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
@@ -279,8 +275,7 @@ public class OLParser extends AbstractParser
 		NativeType nativeType = readNativeType();
 
 		if ( nativeType == null ) { // It's a user-defined type
-			TypeDefinitionLink linkedSubType;
-			linkedSubType = new TypeDefinitionLink( getContext(), id, cardinality, definedTypes.get( token.content() ) );
+			TypeDefinitionLink linkedSubType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
 			getToken();
 			return linkedSubType;
 		} else {
