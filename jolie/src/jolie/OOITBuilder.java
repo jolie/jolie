@@ -189,6 +189,7 @@ public class OOITBuilder implements OLVisitor
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
 	private final Map< String, Boolean > isConstantMap;
+	private final List< Type.TypeLink > typeLinks = new LinkedList< Type.TypeLink >();
 
 	/**
 	 * Constructor.
@@ -223,13 +224,26 @@ public class OOITBuilder implements OLVisitor
 	 * The Program passed to the constructor gets visited and the Interpreter 
 	 * passed to the constructor is set with the necessary references
 	 * to the interpretation tree.
-	 * @return true if the build process is successfull, false otherwise
+	 * @return true if the build process is successful, false otherwise
 	 */
 	public boolean build()
 	{
 		visit( program );
+		resolveTypeLinks();
 		
 		return valid;
+	}
+
+	private void resolveTypeLinks()
+	{
+		Type type;
+		for( Type.TypeLink link : typeLinks ) {
+			type = types.get( link.linkedTypeName() );
+			link.setLinkedType( type );
+			if ( type == null ) {
+				error( program.context(), "type link to " + link.linkedTypeName() + " cannot be resolved" );
+			}
+		}
 	}
 	
 	public void visit( ExecutionInfo n )
@@ -425,7 +439,7 @@ public class OOITBuilder implements OLVisitor
 		insideType = true;
 
 		if ( n.untypedSubTypes() ) {
-			currType = new Type( n.nativeType(), n.cardinality(), true, null );
+			currType = Type.create( n.nativeType(), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
 			if ( n.subTypes() != null ) {
@@ -433,7 +447,7 @@ public class OOITBuilder implements OLVisitor
 					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
-			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
+			currType = Type.create( n.nativeType(), n.cardinality(), false, subTypes );
 		}
 
 		insideType = backupInsideType;
@@ -445,7 +459,14 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( TypeDefinitionLink n )
 	{
-		if ( n.untypedSubTypes() ) {
+		Type.TypeLink link = Type.createLink( n.linkedTypeName(), n.cardinality() );
+		currType = link;
+		typeLinks.add( link );
+
+		if ( insideType == false && insideOperationDeclaration == false ) {
+			types.put( n.id(), currType );
+		}
+		/*if ( n.untypedSubTypes() ) {
 			currType = new Type( n.nativeType(), n.cardinality(), true, null );
 		} else {
 			Map< String, Type > subTypes = new HashMap< String, Type >();
@@ -455,7 +476,7 @@ public class OOITBuilder implements OLVisitor
 				}
 			}
 			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
-		}
+		}*/
 	}
 
 	public void visit( Program p )

@@ -29,18 +29,14 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
 
-/**
- *
- * @author Fabrizio Montesi
- */
-public class Type
+class TypeImpl extends Type
 {
 	private final Range cardinality;
 	private final NativeType nativeType;
 	private final Set< Entry< String, Type > > subTypeSet;
 	private final Set< String > subTypeKeySet;
 
-	public Type(
+	public TypeImpl(
 		NativeType nativeType,
 		Range cardinality,
 		boolean undefinedSubTypes,
@@ -57,13 +53,12 @@ public class Type
 		}
 	}
 
-	public void check( Value value )
-		throws TypeCheckingException
+	protected Range cardinality()
 	{
-		check( value, new StringBuilder( "#Message" ) );
+		return cardinality;
 	}
 
-	private void check( Value value, StringBuilder pathBuilder )
+	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
 		if ( checkNativeType( value, nativeType ) == false ) {
@@ -90,15 +85,15 @@ public class Type
 		pathBuilder.append( typeName );
 
 		boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && type.cardinality.min() > 0 ) {
+		if ( hasChildren == false && type.cardinality().min() > 0 ) {
 			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if ( hasChildren ) {
 			ValueVector vector = value.getChildren( typeName );
 			int size = vector.size();
-			if ( type.cardinality.min() > size || type.cardinality.max() < size ) {
+			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
 				throw new TypeCheckingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
-					type.cardinality.min() + "," + type.cardinality.max() + "], found " + size
+					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
 				);
 			}
 
@@ -125,5 +120,70 @@ public class Type
 		}
 
 		return false;
+	}
+}
+
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public abstract class Type
+{
+	public static Type create(
+		NativeType nativeType,
+		Range cardinality,
+		boolean undefinedSubTypes,
+		Map< String, Type > subTypes
+	) {
+		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes );
+	}
+
+	public static TypeLink createLink( String linkedTypeName, Range cardinality )
+	{
+		return new TypeLink( linkedTypeName, cardinality );
+	}
+
+	public void check( Value value )
+		throws TypeCheckingException
+	{
+		check( value, new StringBuilder( "#Message" ) );
+	}
+
+	protected abstract Range cardinality();
+	protected abstract void check( Value value, StringBuilder pathBuilder )
+		throws TypeCheckingException;
+
+	public static class TypeLink extends Type
+	{
+		private final String linkedTypeName;
+		private final Range cardinality;
+		private Type linkedType;
+
+		public TypeLink( String linkedTypeName, Range cardinality )
+		{
+			this.linkedTypeName = linkedTypeName;
+			this.cardinality = cardinality;
+		}
+
+		public String linkedTypeName()
+		{
+			return linkedTypeName;
+		}
+
+		public void setLinkedType( Type linkedType )
+		{
+			this.linkedType = linkedType;
+		}
+
+		protected Range cardinality()
+		{
+			return cardinality;
+		}
+
+		protected void check( Value value, StringBuilder pathBuilder )
+			throws TypeCheckingException
+		{
+			linkedType.check( value, pathBuilder );
+		}
 	}
 }
