@@ -116,6 +116,8 @@ public class SemanticVerifier implements OLVisitor
 	private final Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
 						new HashMap< String, RequestResponseOperationDeclaration >();
 
+	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap< TypeDefinition, List< TypeDefinition > >();
+
 	private boolean insideInputPort = false;
 	private boolean mainDefined = false;
 	
@@ -148,6 +150,16 @@ public class SemanticVerifier implements OLVisitor
 		} else {
 			isConstantMap.put( varName, true );
 		}
+	}
+
+	private void addTypeEqualnessCheck( TypeDefinition key, TypeDefinition type )
+	{
+		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
+		if ( toBeEqualList == null ) {
+			toBeEqualList = new LinkedList< TypeDefinition >();
+			typesToBeEqual.put( key, toBeEqualList );
+		}
+		toBeEqualList.add( type );
 	}
 
 	private void encounteredAssignment( VariablePathNode path )
@@ -190,10 +202,22 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	private void checkToBeEqualTypes()
+	{
+		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
+			for( TypeDefinition type : entry.getValue() ) {
+				if ( entry.getKey().equals( type ) == false ) {
+					error( type, "type " + type.id() + " has already been defined with a different structure" );
+				}
+			}
+		}
+	}
+
 	public boolean validate()
 	{
 		program.accept( this );
 		resolveLazyLinks();
+		checkToBeEqualTypes();
 		
 		if ( mainDefined == false ) {
 			error( null, "Main procedure not defined" );
@@ -216,8 +240,8 @@ public class SemanticVerifier implements OLVisitor
 		if ( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
 			TypeDefinition type = definedTypes.get( n.id() );
-			if ( type != null && type.equals( n ) == false ) {
-				error( n, "type " + n.id() + " has already been defined with a different structure" );
+			if ( type != null ) {
+				addTypeEqualnessCheck( type, n );
 			}
 		}
 
@@ -242,8 +266,8 @@ public class SemanticVerifier implements OLVisitor
 		if ( isTopLevelType ) {
 			// Check if the type has already been defined with a different structure
 			TypeDefinition type = definedTypes.get( n.id() );
-			if ( type != null && type.equals( n ) == false ) {
-				error( n, "type " + n.id() + " has already been defined with a different structure" );
+			if ( type != null ) {
+				addTypeEqualnessCheck( type, n );
 			}
 			definedTypes.put( n.id(), n );
 		}
