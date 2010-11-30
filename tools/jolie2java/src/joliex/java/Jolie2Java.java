@@ -35,6 +35,7 @@ import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.Program;
+import joliex.java.impl.ProgramVisitor;
 
 /**
  *
@@ -59,20 +60,21 @@ public class Jolie2Java
 				Jolie2Java.class.getClassLoader()
 			);
 			Program program = parser.parse();
-
-			new InterfaceConverter(
+                        ProgramVisitor visitor= new ProgramVisitor(program);
+                        visitor.run();
+			/*new InterfaceConverter(
 				program,
 				Arrays.copyOfRange( args, 0, args.length ),
 				Logger.getLogger( "jolie2java" )
-			).convert( writer );
+			).convert( writer );*/
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
 			e.printStackTrace();
-		} catch( InterfaceVisitor.InterfaceNotFound e ) {
+		}/* catch( InterfaceVisitor.InterfaceNotFound e ) {
 			e.printStackTrace();
-		}
+		}*/
     }
 }
