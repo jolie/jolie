@@ -26,14 +26,17 @@ public treeOLObject(OLSyntaxNode olSyntaxNode, treeOLObject fatherObject){
         this.fatherObject=fatherObject;
 }
 public void SetLinkedObject(OLSyntaxNode olSyntaxNode){
-    System.out.print(olSyntaxNode.getClass().toString()+"\n");
+    //System.out.print(olSyntaxNode.getClass().toString()+"\n");
     treeOLObject supportObjet= new treeOLObject(olSyntaxNode,this);
+    //System.out.print("fine del creatore\n");
+    //System.out.print(linkList.size()+"\n");
     linkList.add(supportObjet);
-    System.out.print(linkList.size()+"\n");
+    //System.out.print(linkList.size()+"\n");
 
    }
 public treeOLObject GetLinkedObject(int i){
-return linkList.get(i);
+   //System.out.print("the size is "+this.linkList.size()+" the index request is " +i +"\n");
+    return linkList.get(i);
 }
 public OLSyntaxNode GetOLSyntaxNode()
 {
