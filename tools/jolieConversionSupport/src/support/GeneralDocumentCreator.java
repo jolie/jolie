@@ -250,7 +250,11 @@ public abstract class GeneralDocumentCreator
 						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
 							System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
 							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
-						}
+						}else{
+
+                                                        olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue());
+
+                                                }
 					}
 				}
 
