@@ -33,6 +33,7 @@ import jolie.CommandLineParser;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 
 /**
@@ -58,7 +59,7 @@ public class Jolie2Plasma
 				Jolie2Plasma.class.getClassLoader()
 			);
 			Program program = parser.parse();
-
+			new SemanticVerifier( program ).validate();
 			new InterfaceConverter(
 				program,
 				Arrays.copyOfRange( args, 1, args.length ),
