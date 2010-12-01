@@ -305,20 +305,20 @@ public abstract class GeneralDocumentCreator
 			if ( addFlag ) {
 				String nameFile = ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName();
 				TypeDefinition supportType = ((TypeDefinitionLink) typeDefinition).linkedType();
-
-				Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
-				addingMap.put( nameFile, supportType );
-				typeMap.add( addingMap );
+                                Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
+                                addingMap.put( nameFile, supportType );
+                                typeMap.add( addingMap );
+				
 				if ( supportType.hasSubTypes() ) {
-					ScanTypes( supportType );
+					//ScanTypes( supportType );
 					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
-
-						//System.out.print( "element of the list " + me.getKey() + "\n" );
-						ScanTypes( (TypeDefinition) me.getValue() );
-
+                                                if (((TypeDefinition) me.getValue()).hasSubTypes()){
+                                                
+                                                ScanTypes( (TypeDefinition) me.getValue() );
+                                                }
 					}
 				}
 
@@ -336,18 +336,19 @@ public abstract class GeneralDocumentCreator
 				String nameFile = typeDefinition.context().sourceName();
 				TypeDefinition supportType = typeDefinition;
 
-				Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
-				addingMap.put( nameFile, supportType );
-				typeMap.add( addingMap );
+				
 				if ( supportType.hasSubTypes() ) {
-					ScanTypes( supportType );
+					//ScanTypes( supportType );
 					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
 
 						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
-							ScanTypes( (TypeDefinition) me.getValue() );
+							Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
+                                                        addingMap.put( nameFile, supportType );
+                                                        typeMap.add( addingMap );
+                                                        ScanTypes( (TypeDefinition) me.getValue() );
 						}
 
 					}
