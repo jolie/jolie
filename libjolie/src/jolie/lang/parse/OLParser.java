@@ -202,6 +202,8 @@ public class OLParser extends AbstractParser
 		String typeName;
 		TypeDefinition currentType;
 
+		program.addChild( TypeDefinitionUndefined.getInstance() );
+
 		while( token.isKeyword( "type" ) ) {
 			getToken();
 			typeName = token.content();
