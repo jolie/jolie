@@ -23,12 +23,13 @@
 package jolie.doc;
 
 import java.io.IOException;
-import jolie.doc.impl.html.HTMLDocumentCreator;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.doc.impl.html.HtmlDocumentCreatorNew;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 
 public class JolieDoc
@@ -44,8 +45,16 @@ public class JolieDoc
 				JolieDoc.class.getClassLoader()
 			);
 			Program program = parser.parse();
-			HTMLDocumentCreator document = new HTMLDocumentCreator();
-			document.createDocument( program, cmdParser.programFilepath() );
+			SemanticVerifier semantic = new SemanticVerifier(program);
+                        if (semantic.validate()){
+                                ProgramVisitor programVisitor= new ProgramVisitor(program);
+                                programVisitor.run();
+                                HtmlDocumentCreatorNew document= new HtmlDocumentCreatorNew(programVisitor);
+                                document.ConvertDocument();
+                        }
+                        /*
+                        HTMLDocumentCreator document = new HTMLDocumentCreator();
+			document.createDocument( program, cmdParser.programFilepath() );*/
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 			System.out.println( "Syntax is: jolieDoc [jolie options] <jolie filename> <output filename> [interface name list]" );
@@ -53,8 +62,8 @@ public class JolieDoc
 			e.printStackTrace();
 		} catch( ParserException e ) {
 			System.out.println( e.getMessage() );
-		} catch( DocumentCreationException e ) {
-			e.printStackTrace();
+		/*} catch( DocumentCreationException e ) {
+			e.printStackTrace();*/
 		}
 	}
 }
