@@ -21,20 +21,18 @@
 
 package joliex.java;
 
-import joliex.java.impl.InterfaceConverter;
-import joliex.java.impl.InterfaceVisitor;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import joliex.java.Jolie2JavaCommandLineParser.formatExeption;
+import joliex.java.impl.JavaDocumentCreator;
 import joliex.java.impl.ProgramVisitor;
 
 /**
@@ -46,13 +44,21 @@ public class Jolie2Java
     public static void main( String[] args )
 	{
 		try {
-			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Java.class.getClassLoader() );
+			/*CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Java.class.getClassLoader() );
 			args = cmdParser.arguments();
 			if ( args.length < 1 ) {
 				throw new CommandLineException( "Syntax is: jolie2java [jolie options] <jolie filename> [interface name list]" );
 			}
 
-			Writer writer = new BufferedWriter( new OutputStreamWriter( System.out ) );
+			//Writer writer = new BufferedWriter( new OutputStreamWriter( System.out ) );
+
+			OLParser parser = new OLParser(
+				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
+				cmdParser.includePaths(),
+				Jolie2Java.class.getClassLoader()
+			);*/
+                       Jolie2JavaCommandLineParser cmdParser = new Jolie2JavaCommandLineParser( args, Jolie2Java.class.getClassLoader() );
+			args = cmdParser.arguments();
 
 			OLParser parser = new OLParser(
 				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
@@ -60,14 +66,39 @@ public class Jolie2Java
 				Jolie2Java.class.getClassLoader()
 			);
 			Program program = parser.parse();
+                        SemanticVerifier semantic = new SemanticVerifier(program);
+                        if (semantic.validate()){
+			//Program program = parser.parse();
                         ProgramVisitor visitor= new ProgramVisitor(program);
                         visitor.run();
-			/*new InterfaceConverter(
-				program,
-				Arrays.copyOfRange( args, 0, args.length ),
-				Logger.getLogger( "jolie2java" )
-			).convert( writer );*/
-		} catch( CommandLineException e ) {
+                        String format = cmdParser.GetFormat();
+                        if (format.equals("java")){
+                        
+                         JavaDocumentCreator documentJava = new JavaDocumentCreator(visitor);
+                        documentJava.ConvertDocument();
+                        
+                        }else if (format.equals("gwt"))
+                        {
+                          JavaDocumentCreator documentJava = new JavaDocumentCreator(visitor);
+                          documentJava.ConvertDocument();
+                        
+                        }else{
+                        
+                        System.out.print("type not yet implemented");
+                        
+                        
+                        }
+                        
+                        }
+            /*new InterfaceConverter(
+            program,
+            Arrays.copyOfRange( args, 0, args.length ),
+            Logger.getLogger( "jolie2java" )
+            ).convert( writer );*/
+
+	} catch (formatExeption ex) {
+            Logger.getLogger(Jolie2Java.class.getName()).log(Level.SEVERE, null, ex);
+        } catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException e ) {
 			e.printStackTrace();
