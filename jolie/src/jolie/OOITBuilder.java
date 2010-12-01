@@ -189,7 +189,7 @@ public class OOITBuilder implements OLVisitor
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
 	private final Map< String, Boolean > isConstantMap;
-	private final List< Type.TypeLink > typeLinks = new LinkedList< Type.TypeLink >();
+	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
 
 	/**
 	 * Constructor.
@@ -237,11 +237,11 @@ public class OOITBuilder implements OLVisitor
 	private void resolveTypeLinks()
 	{
 		Type type;
-		for( Type.TypeLink link : typeLinks ) {
-			type = types.get( link.linkedTypeName() );
-			link.setLinkedType( type );
+		for( Pair< Type.TypeLink, TypeDefinition > pair : typeLinks ) {
+			type = types.get( pair.key().linkedTypeName() );
+			pair.key().setLinkedType( type );
 			if ( type == null ) {
-				error( program.context(), "type link to " + link.linkedTypeName() + " cannot be resolved" );
+				error( pair.value().context(), "type link to " + pair.key().linkedTypeName() + " cannot be resolved" );
 			}
 		}
 	}
@@ -461,7 +461,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		Type.TypeLink link = Type.createLink( n.linkedTypeName(), n.cardinality() );
 		currType = link;
-		typeLinks.add( link );
+		typeLinks.add( new Pair< Type.TypeLink, TypeDefinition >( link, n ) );
 
 		if ( insideType == false && insideOperationDeclaration == false ) {
 			types.put( n.id(), currType );
