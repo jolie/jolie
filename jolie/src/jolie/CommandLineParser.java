@@ -515,22 +515,14 @@ public class CommandLineParser
 		}
 		return olStream;
 	}
-        protected int getToken(String token){
-
-             for (int counterArgs=0; counterArgs<arguments.length;counterArgs++)
-             {
-
-               System.out.print(arguments[counterArgs]+"\n");
-              if (arguments[counterArgs].equals(token))
-              {
-                  
-                  return counterArgs;
-
-              }
-
-
-
-             }
-             return -1;
-          }
+	
+	protected int getArgumentIndex( String token )
+	{
+		for( int i = 0; i < arguments.length; i++ ) {
+			if ( arguments[i].equals( token ) ) {
+				return i;
+			}
+		}
+		return -1;
+	}
 }
