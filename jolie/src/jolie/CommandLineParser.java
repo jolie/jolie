@@ -37,7 +37,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -217,11 +216,6 @@ public class CommandLineParser
 		return verbose;
 	}
 
-	/*protected int checkOption( List< String > argsList, int index )
-	{
-		return index;
-	}*/
-
 	/**
 	 * Constructor
 	 * @param args the command line arguments
@@ -229,6 +223,12 @@ public class CommandLineParser
 	 * @throws jolie.CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 */
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader )
+		throws CommandLineException, IOException
+	{
+		this( args, parentClassLoader, ArgumentHandler.DEFAULT_ARGUMENT_HANDLER );
+	}
+
+	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler )
 		throws CommandLineException, IOException
 	{
 		List< String > argsList = new ArrayList< String >( args.length );
@@ -326,11 +326,20 @@ public class CommandLineParser
 					programArgumentsList.add( argsList.get( i ) );
 				}
 			} else {
-				for( ; i < argsList.size(); i++ ) {
-					programArgumentsList.add( argsList.get( i ) );
+				if ( olFilepath == null ) { // It's an unrecognized argument
+					int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
+					if ( newIndex == i ) {
+						// The handler didn't change the index.
+						// We abort so to avoid infinite looping.
+						throw new CommandLineException( "Unrecognized command line option: " + argsList.get( i ) );
+					}
+					i = newIndex;
+				} else { // They are command line arguments for the Jolie program
+					for( ; i < argsList.size(); i++ ) {
+						programArgumentsList.add( argsList.get( i ) );
+					}
 				}
-			}/* else
-				throw new CommandLineException( "Unrecognized command line token: " + argsList.get( i ) );*/
+			}
 		}
 
 		verbose = bVerbose;
@@ -403,6 +412,7 @@ public class CommandLineParser
 		return jolieClassLoader;
 	}
 
+	// TODO: What do optionArgs represent?
 	public String[] optionArgs()
 	{
 		return optionArgs;
@@ -515,14 +525,31 @@ public class CommandLineParser
 		}
 		return olStream;
 	}
-	
-	protected int getArgumentIndex( String token )
+
+	/**
+	 * A handler for unrecognized arguments, meant to be implemented
+	 * by classes that wants to extend the behaviour of {@link jolie.CommandLineParser}.
+	 * @author Fabrizio Montesi
+	 */
+	public interface ArgumentHandler
 	{
-		for( int i = 0; i < arguments.length; i++ ) {
-			if ( arguments[i].equals( token ) ) {
-				return i;
-			}
-		}
-		return -1;
+		/**
+		 * Called when {@link CommandLineParser} cannot recognize a command line argument.
+		 * @param argumentsList the argument list.
+		 * @param index the index at which the unrecognized argument has been found in the list.
+		 * @return the new index at which the {@link CommandLineParser} should continue parsing the arguments.
+		 * @throws CommandLineException if the argument is invalid or not recognized.
+		 */
+		public int onUnrecognizedArgument( List< String > argumentsList, int index )
+			throws CommandLineException;
+
+		public static ArgumentHandler DEFAULT_ARGUMENT_HANDLER =
+			new ArgumentHandler() {
+				public int onUnrecognizedArgument( List< String > argumentsList, int index )
+					throws CommandLineException
+				{
+					throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
+				}
+			};
 	}
 }
