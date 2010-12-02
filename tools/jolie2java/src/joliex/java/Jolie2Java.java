@@ -25,14 +25,14 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
-import jolie.CommandLineParser;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import joliex.java.Jolie2JavaCommandLineParser.formatExeption;
+
 import joliex.java.impl.JavaDocumentCreator;
+import joliex.java.impl.JavaGWTDocumentCreator;
 import joliex.java.impl.ProgramVisitor;
 
 /**
@@ -71,7 +71,10 @@ public class Jolie2Java
 			//Program program = parser.parse();
                         ProgramVisitor visitor= new ProgramVisitor(program);
                         visitor.run();
+                        
+                        System.out.print(args.toString());
                         String format = cmdParser.GetFormat();
+                        System.out.print(format);
                         if (format.equals("java")){
                         
                          JavaDocumentCreator documentJava = new JavaDocumentCreator(visitor);
@@ -79,7 +82,7 @@ public class Jolie2Java
                         
                         }else if (format.equals("gwt"))
                         {
-                          JavaDocumentCreator documentJava = new JavaDocumentCreator(visitor);
+                          JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(visitor);
                           documentJava.ConvertDocument();
                         
                         }else{
@@ -97,7 +100,7 @@ public class Jolie2Java
             ).convert( writer );*/
 
 	} catch (formatExeption ex) {
-            Logger.getLogger(Jolie2Java.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.print(ex.getMessage());
         } catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException e ) {

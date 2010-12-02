@@ -125,7 +125,7 @@ public class JavaDocumentCreator extends GeneralDocumentCreator{
 					}
 
 				}
-
+                             stringBuilder.append("import jolie.runtime.Value;\n");
                              stringBuilder.append("\n");
 			}
 		
@@ -162,7 +162,7 @@ public class JavaDocumentCreator extends GeneralDocumentCreator{
                                         }
 
 				}
-
+                             stringBuilder.append("private Value v \n");
                              stringBuilder.append("\n");
 			}
 
