@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -514,4 +515,22 @@ public class CommandLineParser
 		}
 		return olStream;
 	}
+        protected int getToken(String token){
+
+             for (int counterArgs=0; counterArgs<arguments.length;counterArgs++)
+             {
+
+               System.out.print(arguments[counterArgs]+"\n");
+              if (arguments[counterArgs].equals(token))
+              {
+                  
+                  return counterArgs;
+
+              }
+
+
+
+             }
+             return -1;
+          }
 }
