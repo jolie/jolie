@@ -24,9 +24,9 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     }
  public String GetFormat() throws formatExeption{
 
-       if (this.getToken("--format")!=-1){
+       if (this.getArgumentIndex("--format")!=-1){
             String[] args = arguments();
-         return(args[this.getToken("--format")+1]);
+         return(args[this.getArgumentIndex("--format")+1]);
 
        }else
        {
