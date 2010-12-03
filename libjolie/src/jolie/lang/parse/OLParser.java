@@ -663,7 +663,7 @@ public class OLParser extends AbstractParser
 		String inputPortName;
 		String protocolId;
 		URI inputPortLocation;
-		List< String > interfacesList = new ArrayList< String >();
+		List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
 		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
 		
 		getToken();
@@ -702,12 +702,12 @@ public class OLParser extends AbstractParser
 				boolean keepRun = true;
 				while( keepRun ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
-					interfacesList.add( token.content() );
 					InterfaceDefinition i = interfaces.get( token.content() );
 					if ( i == null ) {
 						throwException( "Invalid interface name: " + token.content() );
 					}
 					i.copyTo( iface );
+					interfaceList.add( i );
 					getToken();
 					
 					if ( token.is( Scanner.TokenType.COMMA ) ) {
@@ -783,7 +783,9 @@ public class OLParser extends AbstractParser
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
 		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[ aggregationList.size() ] ), redirectionMap );
-		iport.setInterfacesList( interfacesList );
+		for( InterfaceDefinition i : interfaceList ) {
+			iport.addInterface( i );
+		}
 		iface.copyTo( iport );
 		program.addChild( iport );
 		return iport;
@@ -829,7 +831,6 @@ public class OLParser extends AbstractParser
 	private void parseOutputPortInfo( OutputPortInfo p )
 		throws IOException, ParserException
 	{
-		List< String > interfacesList = new ArrayList< String >();
 		boolean keepRun = true;
 		while ( keepRun ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
@@ -842,12 +843,12 @@ public class OLParser extends AbstractParser
 				boolean r = true;
 				while( r ) {
 					assertToken( Scanner.TokenType.ID, "expected interface name" );
-					interfacesList.add( token.content() );
 					InterfaceDefinition i = interfaces.get( token.content() );
 					if ( i == null ) {
 						throwException( "Invalid interface name: " + token.content() );
 					}
 					i.copyTo( p );
+					p.addInterface( i );
 					getToken();
 					
 					if ( token.is( Scanner.TokenType.COMMA ) ) {
@@ -856,7 +857,6 @@ public class OLParser extends AbstractParser
 						r = false;
 					}
 				}
-				p.setInterfacesList( interfacesList );
 			} else if ( token.isKeyword( "Location" ) ) {
 				if ( p.location() != null ) {
 					throwException( "Location already defined for output port " + p.id() );
@@ -898,7 +898,6 @@ public class OLParser extends AbstractParser
 					// Protocol configuration
 					getToken();
 					p.setProtocolConfiguration( parseInVariablePathProcess( false ) );
-					p.setInterfacesList( interfacesList );
 				}
 			} else {
 				keepRun = false;
