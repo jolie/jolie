@@ -1,12 +1,18 @@
 //include "provaInputPorts.iol"
 
-
-type TwiceReqMsgType:void {
-.num:int
+type BalintType:void{
+.b:int
 }
 
+type TwiceReqMsgType:void {
+.num:void{
+.in:double
+}
+}
+
+
 type TwiceRespMsgType:void {
-.result:int
+.result:BalintType
 }
 
 interface MyMathInterface {
