@@ -2,7 +2,7 @@ package joliex.wsdl;
 
 
 
-import joliex.wsdl.Jolie2wsdlVisitor;
+import joliex.wsdl.alternative.baseversion.Jolie2wsdlVisitor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;

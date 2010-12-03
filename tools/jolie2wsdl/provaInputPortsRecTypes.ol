@@ -1,8 +1,15 @@
 //include "provaInputPorts.iol"
 
+type BalintType:void {
+.balint:string
+}
+type FranzType:void {
+.franz:string
+}
 
 type TwiceReqMsgType:void {
 .num:int
+.c2:BalintType
 }
 
 type TwiceRespMsgType:void {
