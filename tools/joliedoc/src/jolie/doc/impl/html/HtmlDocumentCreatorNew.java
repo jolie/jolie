@@ -202,14 +202,14 @@ private String nameFile;
 				if ( outputPortInfo.getDocumentation() != null ) {
 					writer.write( outputPortInfo.getDocumentation() );
 				}
-				List<String> interfacesList = outputPortInfo.getInterfacesList();
+				List<InterfaceDefinition> interfacesList = outputPortInfo.getInterfaceList();
 				writer.write( "<tr>" );
 				writer.write( "</tr>" );
 				writer.write( "<table border=\"1\">" );
 				writer.write( "<tr>" );
 				writer.write( "<th>InterfaceName</th>" );
 				writer.write( "</tr>" );
-				for( int counterInterfaces = 0; counterInterfaces < outputPortInfo.getInterfacesList().size(); counterInterfaces++ ) {
+				for( int counterInterfaces = 0; counterInterfaces < interfacesList.size() ; counterInterfaces++ ) {
 
 
 
@@ -245,14 +245,14 @@ private String nameFile;
 				if ( inputPortInfo.getDocumentation() != null ) {
 					writer.write( inputPortInfo.getDocumentation() );
 				}
-				List<String> interfacesListLocal = inputPortInfo.getInterfacesList();
+				List<InterfaceDefinition> interfacesListLocal = inputPortInfo.getInterfaceList();
 				writer.write( "<tr>" );
 				writer.write( "</tr>" );
 				writer.write( "<table border=\"1\">" );
 				writer.write( "<tr>" );
 				writer.write( "<th>InterfaceName</th>" );
 				writer.write( "</tr>" );
-				for( int counterInterfaces = 0; counterInterfaces < inputPortInfo.getInterfacesList().size(); counterInterfaces++ ) {
+				for( int counterInterfaces = 0; counterInterfaces < interfacesListLocal.size(); counterInterfaces++ ) {
 					writer.write( "<tr>" );
 					writer.write( "<td>" + "<A href=\"" + HyperlinkMap.get( interfacesListLocal.get(counterInterfaces) ) + "\">" + interfacesListLocal.get( counterInterfaces ) + " </A></td>" );
 					writer.write( "</tr>" + "<BR>");
