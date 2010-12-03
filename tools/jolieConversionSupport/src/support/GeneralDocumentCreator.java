@@ -102,12 +102,14 @@ public abstract class GeneralDocumentCreator
 		for( OutputPortInfo OutInfo : outputPortArray ) {
 			treeOLObject portSupportOLTreeObject = new treeOLObject( OutInfo, null );
 			int counterIn = 0;
-			for( String interfaceName : OutInfo.getInterfacesList() ) {
-				if ( interfaceMap.containsKey( interfaceName ) ) {
-					portSupportOLTreeObject.SetLinkedObject( interfaceMap.get( interfaceName ) );
-					System.out.print( "added object " + interfaceName + "\n" );
-					counterIn++;
-				}
+			List<InterfaceDefinition> interfaceList = OutInfo.getInterfaceList();
+			Iterator iteratorInterfaceList = interfaceList.iterator();
+			while( iteratorInterfaceList.hasNext() ) {
+
+
+				portSupportOLTreeObject.SetLinkedObject( (InterfaceDefinition) iteratorInterfaceList.next() );
+
+
 			}
 			System.out.print( "numero di int: " + counterIn + "\n" );
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
@@ -131,23 +133,16 @@ public abstract class GeneralDocumentCreator
 
 
 					} else {
-						System.out.print( "Here line 134 : " + counterOperation + "\n" );
+
 
 						operationRequestResponse = (RequestResponseOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
 
 
 						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.requestType() );
-						// System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
-
-						System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
-
-						//treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
 						ScanTypesOlTree( operationRequestResponse.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
-						System.out.print( "sono a linea:138\n" );
-						System.out.print( counterInterfaces + " " + counterOperation + "\n" );
 						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.responseType() );
 						ScanTypesOlTree( operationRequestResponse.responseType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 1 ) );
-						System.out.print( "sono a linea:145\n" );
+
 					}
 
 
@@ -162,12 +157,12 @@ public abstract class GeneralDocumentCreator
 		for( InputPortInfo inputInfo : inputPortArray ) {
 			treeOLObject portSupportOLTreeObject = new treeOLObject( inputInfo, null );
 			int counterIn = 0;
-			for( String interfaceName : inputInfo.getInterfacesList() ) {
-				if ( interfaceMap.containsKey( interfaceName ) ) {
-					portSupportOLTreeObject.SetLinkedObject( interfaceMap.get( interfaceName ) );
-					System.out.print( "added object " + interfaceName + "\n" );
-					counterIn++;
-				}
+			List<InterfaceDefinition> interfaceList = inputInfo.getInterfaceList();
+			Iterator iteratorInterfaceList = interfaceList.iterator();
+			while( iteratorInterfaceList.hasNext() ) {
+			
+					portSupportOLTreeObject.SetLinkedObject( (InterfaceDefinition)iteratorInterfaceList.next());
+					
 			}
 			System.out.print( "numero di int: " + counterIn + "\n" );
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
@@ -250,11 +245,11 @@ public abstract class GeneralDocumentCreator
 						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
 							System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
 							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
-						}else{
+						} else {
 
-                                                        olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue());
+							olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 
-                                                }
+						}
 					}
 				}
 
@@ -277,11 +272,11 @@ public abstract class GeneralDocumentCreator
 
 					if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
 						System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
-						olObjetTree.SetLinkedObject((TypeDefinition) me.getValue() );
+						olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 						ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 
-					}else{
-					olObjetTree.SetLinkedObject((TypeDefinition) me.getValue() );
+					} else {
+						olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 					}
 
 				}
@@ -305,20 +300,20 @@ public abstract class GeneralDocumentCreator
 			if ( addFlag ) {
 				String nameFile = ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName();
 				TypeDefinition supportType = ((TypeDefinitionLink) typeDefinition).linkedType();
-                                Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
-                                addingMap.put( nameFile, supportType );
-                                typeMap.add( addingMap );
-				
+				Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
+				addingMap.put( nameFile, supportType );
+				typeMap.add( addingMap );
+
 				if ( supportType.hasSubTypes() ) {
 					//ScanTypes( supportType );
 					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
-                                                if (((TypeDefinition) me.getValue()).hasSubTypes()){
-                                                
-                                                ScanTypes( (TypeDefinition) me.getValue() );
-                                                }
+						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+
+							ScanTypes( (TypeDefinition) me.getValue() );
+						}
 					}
 				}
 
@@ -336,7 +331,7 @@ public abstract class GeneralDocumentCreator
 				String nameFile = typeDefinition.context().sourceName();
 				TypeDefinition supportType = typeDefinition;
 
-				
+
 				if ( supportType.hasSubTypes() ) {
 					//ScanTypes( supportType );
 					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
@@ -346,9 +341,9 @@ public abstract class GeneralDocumentCreator
 
 						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
 							Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
-                                                        addingMap.put( nameFile, supportType );
-                                                        typeMap.add( addingMap );
-                                                        ScanTypes( (TypeDefinition) me.getValue() );
+							addingMap.put( nameFile, supportType );
+							typeMap.add( addingMap );
+							ScanTypes( (TypeDefinition) me.getValue() );
 						}
 
 					}
