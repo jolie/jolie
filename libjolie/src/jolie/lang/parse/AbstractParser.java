@@ -27,8 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-/** Skeleton implementation of a JOLIE Scanner based parser.
- * Notice that the parsing process is not re-entrant.
+/** Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}.
+ * Note that the parsing process is not re-entrant.
  * @author Fabrizio Montesi
  * @see Scanner
  */
