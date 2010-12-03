@@ -43,6 +43,13 @@ public class TypeDefinitionLink extends TypeDefinition
 		this.linkedTypeName = linkedTypeName;
 	}
 
+	public TypeDefinitionLink( ParsingContext context, String id, Range cardinality, TypeDefinition linkedType )
+	{
+		super( context, id, cardinality );
+		this.linkedTypeName = linkedType.id();
+		this.linkedType = linkedType;
+	}
+
 	public String linkedTypeName()
 	{
 		return linkedTypeName;
