@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="hardwiredServiceName" targetNamespace="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:tns="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+  <wsdl:types>
+    
+  </wsdl:types>
+  <wsdl:message name="TwiceReqMsgType">
+    <wsdl:part name="parameters" element="twice"/>
+  </wsdl:message>
+  <wsdl:message name="TwiceRespMsgType">
+    <wsdl:part name="parameters" element="twiceResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="MyMathInterfacePortType">
+    <wsdl:operation name="MyMathInterfacePortType">
+      <wsdl:input name="inputInName"/>
+      <wsdl:output name="outputOutName"/>
+      <wsdl:fault name="faultName"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="twiceBinding" type="MyMathInterfacePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/wsdl/soap/http/"/>
+    <wsdl:operation name="twice">
+      <soap:operation soapAction="twice" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="serviceName">
+    <wsdl:port name="serviceNamePort">
+      <soap:address location="socket://localhost:8000"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

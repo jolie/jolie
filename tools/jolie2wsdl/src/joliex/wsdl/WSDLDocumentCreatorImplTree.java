@@ -66,6 +66,8 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.runtime.RequestResponseOperation;
 import joliex.wsdl.validation.Wsdl11EffectorImplWsdl4Jtypes;
 import org.w3c.dom.Document;
@@ -142,6 +144,7 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 			initWsdl( "hardwiredServiceName" );
 			Document doc = null;
 			Document document = Wsdl11EffectorImplWsdl4Jtypes.createDocument();
+			System.out.println( " document="+document );
 			//Wsdl11EffectorImplWsdl4Jtypes.
 			//FIXME NOTA-BENE Il Doc è null
 			//Document doc = initSchemaDocument();
@@ -183,11 +186,11 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 									for( int k = 0; k < t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObjetSize(); k++ ) {
 										//in quest aversione subTypeRec internamente costruisce il document
 										subTypeRec( t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ) );
-										
+
 										//TODO setSchemaDocIntoWSDLTypes(doc.getDocumentElement());
 									}
 								}
-							} else {  // REQUEST-RESPONSE
+							} else {  // REQUEST-RESPONSE-OP
 								if ( t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetOLSyntaxNode() instanceof RequestResponseOperationDeclaration ) {
 									//-------------- OPERATION
 									RequestResponseOperationDeclaration twop = (RequestResponseOperationDeclaration) t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetOLSyntaxNode();
@@ -204,8 +207,8 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 									addResponseMessage( twop.id(), respName );//NOTA-BENE opNameResponse
 									addService( "serviceName", "myBindingName", SOAPAddres.toString() );
 									//setHardwiredSchemaDocIntoWSDLTypes( opName, subTypeNameReq, subTypeNameReqType, subTypeNameResp, subTypeNameRespType );
-									
-									 //doc = initSchemaDocument();
+
+									//doc = initSchemaDocument();
 									String opName = twop.id();
 									//Attenzione: SUB TYPES qui
 
@@ -217,45 +220,23 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 											//TODO fare cast a LINNKEDTYPE
 
 											List<TypeDefinition> td_list = new ArrayList<TypeDefinition>();
-											if ( t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetOLSyntaxNode() instanceof TypeDefinition ) {
-												td_list.add( k, (TypeDefinition) t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetOLSyntaxNode() );
-												System.out.println( " td_list.get( k)=" + td_list.get( k ) );
+											if ( (t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetOLSyntaxNode() instanceof TypeDefinition) ) {
 
-												Element elementReq = null;
-												Element elementResp = null;
-												if ( (td_list.get( k )).hasSubTypes() ) {
-													if ( k == 0 ) {
-														//FIXME Sistemare Cardinality!
+												for( int l = 0; l < t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetLinkedObjetSize(); l++ ) {
 
-														elementReq = Wsdl11EffectorImplWsdl4Jtypes.addComplexTypeElementToDoc( document, reqName, td_list.get( k ).id(), "int" /*td_list.get( k ).getSubType( td_list.get( k ).id() ).id()*/, String.valueOf( 1 ), String.valueOf( 1 ) );
-														System.out.println( " elementReq=" + elementReq );
-													}
-													if ( k == 1 ) {
-														//FIXME Sistemare Cardinality!
-														elementResp = Wsdl11EffectorImplWsdl4Jtypes.addComplexTypeElementToDoc( document, respName, td_list.get( k ).id(), "int", String.valueOf( 1 ), String.valueOf( 1 ) );
-														System.out.println( " elementResp" + elementResp );
-													}
-												} else { /**/ }
-												//Element[] el_arr={ elementReq, elementResp};
-												//Element elementFault = Wsdl11EffectorImplWsdl4Jtypes.addSimpleTypeElementToDoc( document, opName + "Fault", "respFault", "string" );
-												rootElement = Wsdl11EffectorImplWsdl4Jtypes.appendElementToDoc( document, opName, elementReq );
-												rootElement = Wsdl11EffectorImplWsdl4Jtypes.appendElementToElementViaDoc( document, opName, rootElement, elementResp );
-											} else {
-												//if  ( t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetOLSyntaxNode() instanceof TypeDefinitionLink){}
-												subTypeRec( document, t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ) );
+													subTypeRec( document, t_o.GetLinkedObject( i ).GetLinkedObject( j ).GetLinkedObject( k ).GetLinkedObject( l ) );
+												}
 											}
-
-											System.out.println( " k=" + k );
 										}
 									}
 								}
-							}
-						}
-					}
-				} else {
-					if ( t_o.GetOLSyntaxNode() instanceof InputPortInfo ) {
-						//TODO Fare outputPort
-						OutputPortInfo ips = (OutputPortInfo) t_o.GetOLSyntaxNode();
+							}//Req REsp OP
+						}//Operations
+                    //TODO OUTPUTPORTS
+//					if ( t_o.GetOLSyntaxNode() instanceof InputPortInfo ) {
+//						//TODO Fare outputPort
+//						OutputPortInfo ips = (OutputPortInfo) t_o.GetOLSyntaxNode();
+//					}
 					}
 				}
 			}
@@ -331,18 +312,18 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 		Element rootElement = null;
 		DocumentBuilder db = null;
 		//try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			//dbf.setFeature(opName, true)
-			dbf.setNamespaceAware( true );
-			dbf.setValidating(true);
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		//dbf.setFeature(opName, true)
+		dbf.setNamespaceAware( true );
+		dbf.setValidating( true );
 		try {
 			db = dbf.newDocumentBuilder();
 			//rootElement.setAttribute("caption", caption);
 		} catch( ParserConfigurationException ex ) {
 			Logger.getLogger( WSDLDocumentCreatorImplTree.class.getName() ).log( Level.SEVERE, null, ex );
 		}
-			//rootElement.setAttribute("caption", caption);
-		
+		//rootElement.setAttribute("caption", caption);
+
 		document = db.newDocument();
 
 		rootElement = document.createElement( "xs:schema" );
@@ -350,7 +331,7 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 		//rootElement.setAttribute("xmlns:tns",tns);
 		rootElement.setAttribute( "targetNamespace", NameSpacesEnum.TNS.getNameSpaceURI() );
 		System.out.println( " initSchemaDocument:document=" + document );
-		
+
 		return document;
 	}
 
@@ -507,19 +488,31 @@ public class WSDLDocumentCreatorImplTree extends GeneralDocumentCreator
 	private Element subTypeRec( Document doc, treeOLObject t )
 	{
 		//OLD Document doc = createDOMdocument();
-		//System.out.println( " doc=" + doc);
+		System.out.println( " doc=" + doc);
 		if ( t.GetLinkedObjetSize() == 0 ) {
 			//isNative
-//				if (t.GetOLSyntaxNode() istanceof ) {
-//					
+//				if (t.GetOLSyntaxNode() istanceof ) {//					
 //				}
-			//System.out.println( " NativeType=" + t.GetOLSyntaxNode() );
+			System.out.println( " SIZE=0" );
+			System.out.println( " subTypeRec:LeafType=" + ((TypeDefinition) t.GetOLSyntaxNode()).id()+": "+((TypeDefinition) t.GetOLSyntaxNode()).nativeType().id() );
 			//doc = addNativeTypeToDoc( doc, "nomeDelCampoDelTipo", "int" );
-		} else {
-			//isTypeLink
-			//System.out.println( " Type=" + t.GetOLSyntaxNode() );
-			for( int k = 0; k < t.GetLinkedObject( 0 ).GetLinkedObjetSize(); k++ ) {
-				subTypeRec( t.GetLinkedObject( k ) );
+		} else {//RICORSIONE
+			if ( t.GetOLSyntaxNode() instanceof TypeDefinitionLink ) {
+				TypeDefinitionLink tdl = (TypeDefinitionLink) t.GetOLSyntaxNode();
+				System.out.println( " subTypeRec:NESTEDType=" +tdl.id() );
+
+			} else {
+				if ( t.GetOLSyntaxNode() instanceof TypeInlineDefinition ) {
+					TypeInlineDefinition tin = (TypeInlineDefinition) t.GetOLSyntaxNode();
+					System.out.println( " subTypeRec:NESTEDType=" +tin.id() );
+				} else {
+					System.out.println( " type cast non previsto" );
+				}
+			}
+			
+			for( int k = 0; k < t.GetLinkedObjetSize(); k++ ) {
+				System.out.println( " calling subTyprRec " );
+				subTypeRec( doc,t.GetLinkedObject( k ) );
 				//TODO addComplexType();
 			}
 		}

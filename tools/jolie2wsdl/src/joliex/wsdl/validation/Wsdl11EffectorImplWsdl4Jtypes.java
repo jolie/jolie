@@ -878,8 +878,7 @@ public class Wsdl11EffectorImplWsdl4Jtypes
 			System.err.println( ex.getMessage() );
 		}		
 		//document.
-		return
-		 document;
+		return document;
 	}
 
 	private static Element appendElementsToDoc( Document document, String opName, Element elementReq, Element elementResp, Element elementFault )
@@ -916,7 +915,7 @@ public class Wsdl11EffectorImplWsdl4Jtypes
 		return rootElement;
 	}
 
-	public static Element appendElementToElementViaDoc( Document document, String opName, Element inputElement, Element elementToAppend )
+	public static Element appendElementToElement( Document document, String opName, Element inputElement, Element elementToAppend )
 	{
 		System.out.println( " document=" + document );
 		//elementReq.appendChild(cTypeReq).appendChild(sequenceReq).appendChild(elementResp).appendChild(elementFault);
@@ -1098,7 +1097,7 @@ public class Wsdl11EffectorImplWsdl4Jtypes
 //        }
 //    }
 
-	private static void printNode(Node node, String indent) {
+	public static void printNode(Node node, String indent) {
         switch (node.getNodeType()) {
             case Node.DOCUMENT_NODE:
                 System.out.println("<xml version=\"1.0\">\n");
@@ -1151,8 +1150,8 @@ public class Wsdl11EffectorImplWsdl4Jtypes
 		Element elementResp = addComplexTypeElementToDoc( document, opName + "Response", "respName", "int", String.valueOf( 1 ), String.valueOf( 1 ) );
 		Element elementFault = addSimpleTypeElementToDoc( document, opName + "Fault", "respFault", "string" );
 		Element rootElement = appendElementToDoc( document, opName, elementReq );
-		rootElement = appendElementToElementViaDoc( document, opName, rootElement, elementResp );
-		rootElement = appendElementToElementViaDoc( document, opName, rootElement, elementFault );
+		rootElement = appendElementToElement( document, opName, rootElement, elementResp );
+		rootElement = appendElementToElement( document, opName, rootElement, elementFault );
 		test02_types( provaTypes, rootElement );
 		//validate(inputArg);
 	}
