@@ -35,7 +35,7 @@ abstract public class PortInfo extends OLSyntaxNode implements OperationCollecto
 	private final String id;
 	private final Map< String, OperationDeclaration > operationsMap =
 		new HashMap< String, OperationDeclaration > ();
-	private List< String > interfacesList = new ArrayList< String >( 0 );
+	private List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
 	private String document;
 
 	public PortInfo( ParsingContext context, String id )
@@ -74,13 +74,13 @@ abstract public class PortInfo extends OLSyntaxNode implements OperationCollecto
 		return this.document;
 	}
 
-	public List< String > getInterfacesList()
+	public List< InterfaceDefinition > getInterfaceList()
 	{
-		return interfacesList;
+		return interfaceList;
 	}
 
-	public void setInterfacesList( List< String > interfacesList )
+	public void addInterface( InterfaceDefinition iface )
 	{
-		this.interfacesList = interfacesList;
+		interfaceList.add( iface );
 	}
 }
