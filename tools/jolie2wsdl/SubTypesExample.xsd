@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema
+targetNamespace="http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl"
+xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="twice">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="1" minOccurs="1" name="num" type="xs:int"/>
+			</xs:sequence>
+		</xs:complexType>
+		<xs:element name="twiceResponse">
+			<xs:complexType>
+				<xs:sequence>
+					<xs:element maxOccurs="1" minOccurs="1" name="result" type="xs:int"/>
+				</xs:sequence>
+			</xs:complexType>
+			<xs:element name="twiceFault">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="fault" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:element>
+	</xs:element>
+</xs:schema>

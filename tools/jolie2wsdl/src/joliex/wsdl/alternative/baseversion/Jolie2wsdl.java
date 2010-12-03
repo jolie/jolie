@@ -18,7 +18,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-package joliex.wsdl;
+package joliex.wsdl.alternative.baseversion;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -54,6 +54,7 @@ public class Jolie2wsdl {
                     new String[]{"."},
                     Thread.currentThread().getContextClassLoader());
             Program program = olParser.parse();
+			
             System.out.println(" ============= STAMPA del PROGRAM verificato =============");
             System.out.println(" parsedProgram=" + program);
             List<OLSyntaxNode> nodes = program.children();

@@ -18,13 +18,15 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-package joliex.wsdl;
+package joliex.wsdl.alternative.baseversion;
 
 import com.ibm.wsdl.DefinitionImpl;
 import com.ibm.wsdl.MessageImpl;
 import com.ibm.wsdl.TypesImpl;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
@@ -39,6 +41,7 @@ import javax.wsdl.PortType;
 import javax.wsdl.Service;
 import javax.wsdl.Types;
 import javax.wsdl.WSDLException;
+import javax.wsdl.extensions.ExtensionRegistry;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLWriter;
 import javax.xml.namespace.QName;
@@ -56,6 +59,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -107,15 +111,25 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import joliex.wsdl.Wsdl11EffectorImplWsdl4J;
 
 public class Jolie2wsdlVisitor implements OLVisitor {
+
+	final private List<InterfaceDefinition> interfaceDefinitions =
+		new ArrayList<InterfaceDefinition>();
+	final private List<OutputPortInfo> outportPortDefinitions =
+		new ArrayList<OutputPortInfo>();
+	final private List<InputPortInfo> inputPortDefinitions =
+		new ArrayList<InputPortInfo>();
+
+
 
     static String tns = "http://www.italianasoftware.com/wsdl/FirstServiceByWSDL4J.wsdl";
     static String xsd = "http://www.w3.org/2001/XMLSchema";
     static String soap = "http://schemas.xmlsoap.org/wsdl/soap/";
-    private Program program;
-    private Definition wsdlDef = new DefinitionImpl();
-
+    private Program program= null;
+    private Definition wsdlDef = null;
+    private ExtensionRegistry extensionRegistry=null;
     //TODO Aggiungere eventuali buffer o mappe per entità da riusare durante la visita
 
     public Jolie2wsdlVisitor(Program program) {
@@ -136,12 +150,14 @@ public class Jolie2wsdlVisitor implements OLVisitor {
 
     public void init() {
         try {
-            WSDLFactory f = WSDLFactory.newInstance();
+            WSDLFactory wsdlFactory = WSDLFactory.newInstance();
             //WSDLReader r = f.newWSDLReader();
             //r.readWSDL("");
             //WSDLWriter ww = f.newWSDLWriter();
             //fw = new FileWriter(fileName);
-            wsdlDef = new DefinitionImpl();
+            //wsdlDef = new DefinitionImpl();
+			wsdlDef =wsdlFactory.newDefinition();
+			 extensionRegistry = wsdlFactory.newPopulatedExtensionRegistry();
             //TODO Prelevarlo dal nome del file.ol (vedi convenzioni); Utilizzarlo come var isntaza
             String serviceName = "TwiceService";
             //String tns = "urn:xmltoday-delayed-quotes";
@@ -184,6 +200,9 @@ public class Jolie2wsdlVisitor implements OLVisitor {
     public void visit(OneWayOperationDeclaration decl) {
         System.out.println("OneWayOperationDeclaration ReqType=" + decl.requestType());
         System.out.println("OneWayOperationDeclaration id=" + decl.id());
+		Operation operation = wsdlDef.createOperation();
+        operation.setName(decl.id());
+        operation.setStyle(OperationType.REQUEST_RESPONSE);
     }
 
     @Override
@@ -205,6 +224,8 @@ public class Jolie2wsdlVisitor implements OLVisitor {
         operation.setName(decl.id());
         operation.setStyle(OperationType.REQUEST_RESPONSE);
         //decl.accept(this);
+		wsdlDef=Wsdl11EffectorImplWsdl4J.addRequestMessage(wsdlDef,reqT.id(),decl.id());
+		wsdlDef=Wsdl11EffectorImplWsdl4J.addResponseMessage(wsdlDef,resT.id(),decl.id());
     }
 
     @Override
@@ -416,7 +437,6 @@ public class Jolie2wsdlVisitor implements OLVisitor {
         //System.out.println(" InputPortInfo location=" + n.location());
         PortType pt = wsdlDef.createPortType();
 
-
         Iterator<OperationDeclaration> it = opDecls.iterator();
         while (it.hasNext()) {
             OperationDeclaration opDecl = it.next();
@@ -585,19 +605,17 @@ public class Jolie2wsdlVisitor implements OLVisitor {
         Types t = new TypesImpl();
         //Element el=new Element();
         //t.setDocumentationElement(el)
-
         //t.addExtensibilityElement(null);
         //t.setExtensionAttribute(msg_req_QN, t);
         //TODO
         wsdlDef.createTypes();
         wsdlDef.setTypes(t);
-
         //accept(this)
     }
 
     @Override
     public void visit(TypeDefinitionLink tdl) {
-        throw new UnsupportedOperationException("Not supported yet.");
+         System.out.println("TypeInlineDefinition  tdl=" + tdl);
     }
 
     @Override
@@ -605,7 +623,6 @@ public class Jolie2wsdlVisitor implements OLVisitor {
         System.out.println("InterfaceDefinition name=" + id.name());
         System.out.println("InterfaceDefinition name=" + id.operationsMap());
         //TODO   for  id.operationsMap()
-
     }
 
     /**
@@ -614,4 +631,9 @@ public class Jolie2wsdlVisitor implements OLVisitor {
     public Definition getWsdlDef() {
         return wsdlDef;
     }
+
+	public void visit( DocumentationComment n )
+	{
+		throw new UnsupportedOperationException( "Not supported yet." );
+	}
 }
