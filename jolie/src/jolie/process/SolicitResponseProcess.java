@@ -108,6 +108,7 @@ public class SolicitResponseProcess implements Process
 				log( "sending request " + message.id() );
 			}
 			channel.send( message );
+			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			if ( verbose ) {
 				log( "request " + message.id() + " sent" );
 			}
