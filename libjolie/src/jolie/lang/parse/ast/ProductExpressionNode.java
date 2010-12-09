@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
 

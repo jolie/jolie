@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2010 (C) by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,20 +19,33 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.context;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import java.net.URI;
 
-public class CurrentHandlerStatement extends OLSyntaxNode
+/**
+ * A very simple {@code ParsingContext} based upon an URI.
+ * @author Fabrizio Montesi
+ */
+public class URIParsingContext extends AbstractParsingContext
 {
-	public CurrentHandlerStatement( ParsingContext context )
+	private final URI uri;
+
+	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0 );
+
+	public URIParsingContext( URI uri, int line )
 	{
-		super( context );
+		super( line );
+		this.uri = uri;
 	}
-	
-	public void accept( OLVisitor visitor )
+
+	public URI source()
 	{
-		visitor.visit( this );
+		return uri;
+	}
+
+	public String sourceName()
+	{
+		return uri.getPath();
 	}
 }

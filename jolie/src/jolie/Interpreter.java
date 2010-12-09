@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -875,7 +877,7 @@ public class Interpreter
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
 			} else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ), includePaths, classLoader );
+				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), new URI( "file:" + cmdParser.programFilepath() ) ), includePaths, classLoader );
 				olParser.putConstants( cmdParser.definedConstants() );
 				program = olParser.parse();
 				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
@@ -888,6 +890,8 @@ public class Interpreter
 
 			return (new OOITBuilder( this, program, semanticVerifier.isConstantMap() )).build();
 		} catch( IOException e ) {
+			throw new InterpreterException( e );
+		} catch( URISyntaxException e ) {
 			throw new InterpreterException( e );
 		} catch( ParserException e ) {
 			throw new InterpreterException( e );

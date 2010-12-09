@@ -25,7 +25,7 @@ import java.net.URI;
 import java.util.Map;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class InputPortInfo extends PortInfo
 {

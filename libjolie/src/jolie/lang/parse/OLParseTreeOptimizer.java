@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.parse.context.ParsingContext;
 import java.lang.reflect.Array;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -104,9 +105,9 @@ public class OLParseTreeOptimizer
 		private final Program program;
 		private OLSyntaxNode currNode;
 		
-		public OptimizerVisitor()
+		public OptimizerVisitor( ParsingContext context )
 		{
-			program = new Program( new ParsingContext() );
+			program = new Program( context );
 		}
 		
 		public Program optimize( Program p )
@@ -204,12 +205,14 @@ public class OLParseTreeOptimizer
 				/*
 				 * If we ended up with an empty composition, return nullProcess
 				 */
-				if ( tmp.children().size() == 0 )
-					currNode = new NullProcessStatement( new ParsingContext() );
-				else
+				if ( tmp.children().size() == 0 ) {
+					currNode = new NullProcessStatement( stm.context() );
+				} else {
 					currNode = tmp;
-			} else
+				}
+			} else {
 				stm.children().get( 0 ).accept( this );
+			}
 		}
 		
 		public void visit( SequenceStatement stm )
@@ -237,12 +240,14 @@ public class OLParseTreeOptimizer
 				/*
 				 * If we ended up with an empty composition, return nullProcess
 				 */
-				if ( tmp.children().size() == 0 )
-					currNode = new NullProcessStatement( new ParsingContext() );
-				else
+				if ( tmp.children().size() == 0 ) {
+					currNode = new NullProcessStatement( stm.context() );
+				} else {
 					currNode = tmp;
-			} else
+				}
+			} else {
 				stm.children().get( 0 ).accept( this );
+			}
 		}
 
 		public void visit( NDChoiceStatement stm )
@@ -702,6 +707,6 @@ public class OLParseTreeOptimizer
 
 	public Program optimize()
 	{
-		return (new OptimizerVisitor()).optimize( originalProgram );
+		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
 	}
 }

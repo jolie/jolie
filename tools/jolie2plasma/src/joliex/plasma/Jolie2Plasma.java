@@ -26,15 +26,14 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 
 /**
  *
@@ -53,13 +52,11 @@ public class Jolie2Plasma
 
 			Writer writer = new BufferedWriter( new FileWriter( args[0] ) );
 
-			OLParser parser = new OLParser(
-				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
-				cmdParser.includePaths(),
-				Jolie2Plasma.class.getClassLoader()
+			Program program = ParsingUtils.parseProgram(
+				cmdParser.programStream(),
+				URI.create( "file:" + cmdParser.programFilepath() ),
+				cmdParser.includePaths(), Jolie2Plasma.class.getClassLoader(), cmdParser.definedConstants()
 			);
-			Program program = parser.parse();
-			new SemanticVerifier( program ).validate();
 			new InterfaceConverter(
 				program,
 				Arrays.copyOfRange( args, 1, args.length ),

@@ -19,18 +19,16 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.doc;
 
 import java.io.IOException;
+import java.net.URI;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.doc.impl.html.HtmlDocumentCreatorNew;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 
 public class JolieDoc
 {
@@ -39,21 +37,16 @@ public class JolieDoc
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, JolieDoc.class.getClassLoader() );
 			args = cmdParser.arguments();
-			OLParser parser = new OLParser(
-				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
-				cmdParser.includePaths(),
-				JolieDoc.class.getClassLoader()
-			);
-			Program program = parser.parse();
-			SemanticVerifier semantic = new SemanticVerifier(program);
-                        if (semantic.validate()){
-                                ProgramVisitor programVisitor= new ProgramVisitor(program);
-                                programVisitor.run();
-                                HtmlDocumentCreatorNew document= new HtmlDocumentCreatorNew(programVisitor);
-                                document.ConvertDocument();
-                        }
-                        /*
-                        HTMLDocumentCreator document = new HTMLDocumentCreator();
+			Program program = ParsingUtils.parseProgram(
+				cmdParser.programStream(),
+				URI.create( "file:" + cmdParser.programFilepath() ),
+				cmdParser.includePaths(), JolieDoc.class.getClassLoader(), cmdParser.definedConstants() );
+			ProgramVisitor programVisitor = new ProgramVisitor( program );
+			programVisitor.run();
+			HtmlDocumentCreatorNew document = new HtmlDocumentCreatorNew( programVisitor );
+			document.ConvertDocument();
+			/*
+			HTMLDocumentCreator document = new HTMLDocumentCreator();
 			document.createDocument( program, cmdParser.programFilepath() );*/
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
@@ -62,7 +55,7 @@ public class JolieDoc
 			e.printStackTrace();
 		} catch( ParserException e ) {
 			System.out.println( e.getMessage() );
-		/*} catch( DocumentCreationException e ) {
+			/*} catch( DocumentCreationException e ) {
 			e.printStackTrace();*/
 		}
 	}

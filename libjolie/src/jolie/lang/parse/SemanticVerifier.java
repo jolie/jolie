@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.parse.context.ParsingContext;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -123,7 +124,7 @@ public class SemanticVerifier implements OLVisitor
 	
 	private final Logger logger = Logger.getLogger( "JOLIE" );
 	
-	private final Map< String, TypeDefinition > definedTypes = OLParser.createTypeDeclarationMap();
+	private final Map< String, TypeDefinition > definedTypes;
 
 	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
 
@@ -135,6 +136,7 @@ public class SemanticVerifier implements OLVisitor
 	public SemanticVerifier( Program program )
 	{
 		this.program = program;
+		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
 		/*rootType = new TypeInlineDefinition(
 			new ParsingContext(),
 			"#RootType",

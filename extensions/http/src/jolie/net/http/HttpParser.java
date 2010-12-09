@@ -24,6 +24,7 @@ package jolie.net.http;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.Vector;
@@ -59,7 +60,7 @@ public class HttpParser
 	public HttpParser( InputStream istream )
 		throws IOException
 	{
-		scanner = new HttpScanner( istream, "network" );
+		scanner = new HttpScanner( istream, URI.create( "urn:network" ) );
 	}
 	
 	private void tokenAssert( Scanner.TokenType type )

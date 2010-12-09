@@ -4,19 +4,20 @@ package joliex.wsdl;
 
 import joliex.wsdl.alternative.baseversion.Jolie2wsdlVisitor;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -55,8 +56,11 @@ public class Jolie2wsdlTest
         try {
             String inputFileName = "./provaInputPorts.ol"; //args[0]
             olStream = new FileInputStream(inputFileName);
-            OLParser olParser = new OLParser(new Scanner(olStream, inputFileName), new String[]{"."}, Thread.currentThread().getContextClassLoader());
-            Program program = olParser.parse();
+			Program program = ParsingUtils.parseProgram(
+				olStream,
+				URI.create( "file:" + inputFileName ),
+				new String[] { "." }, Thread.currentThread().getContextClassLoader(), new HashMap< String, Scanner.Token >()
+			);
             System.out.println(" ============= STAMPA del PROGRAM verificato =============");
             System.out.println(" parsedProgram=" + program);
             List<OLSyntaxNode> nodes = program.children();

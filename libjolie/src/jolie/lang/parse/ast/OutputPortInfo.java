@@ -24,7 +24,7 @@ package jolie.lang.parse.ast;
 import java.net.URI;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class OutputPortInfo extends PortInfo
 {	

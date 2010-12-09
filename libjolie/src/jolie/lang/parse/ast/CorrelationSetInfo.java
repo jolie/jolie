@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 public class CorrelationSetInfo extends OLSyntaxNode
 {

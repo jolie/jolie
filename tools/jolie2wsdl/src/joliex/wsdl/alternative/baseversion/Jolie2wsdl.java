@@ -21,11 +21,12 @@
 package joliex.wsdl.alternative.baseversion;
 
 import java.awt.Desktop;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,12 +35,12 @@ import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLWriter;
 import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 
 public class Jolie2wsdl {
 
@@ -49,11 +50,11 @@ public class Jolie2wsdl {
         }
         try {
             InputStream olStream = new FileInputStream(args[0]);
-            OLParser olParser = new OLParser(
-                    new Scanner(olStream, args[0]),
-                    new String[]{"."},
-                    Thread.currentThread().getContextClassLoader());
-            Program program = olParser.parse();
+			Program program = ParsingUtils.parseProgram(
+				olStream,
+				URI.create( "file:" + args[0] ),
+				new String[] { "." }, Thread.currentThread().getContextClassLoader(), new HashMap< String, Scanner.Token >()
+			);
 			
             System.out.println(" ============= STAMPA del PROGRAM verificato =============");
             System.out.println(" parsedProgram=" + program);
