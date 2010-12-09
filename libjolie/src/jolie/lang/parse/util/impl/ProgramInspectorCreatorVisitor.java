@@ -158,6 +158,18 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
 
+	public void visit( TypeDefinitionLink n )
+	{
+		List< TypeDefinition > list = types.get( n.context().source() );
+		if ( list == null ) {
+			list = new LinkedList< TypeDefinition >();
+			types.put( n.context().source(), list );
+		}
+		list.add( n );
+
+		encounteredNode( n );
+	}
+
 	public void visit( InputPortInfo n )
 	{
 		List< InputPortInfo > list = inputPorts.get( n.context().source() );
@@ -236,6 +248,5 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	public void visit( EmbeddedServiceNode n ) {}
 	public void visit( InstallFixedVariableExpressionNode n ) {}
 	public void visit( VariablePathNode n ) {}
-	public void visit( TypeDefinitionLink n ) {}
 	public void visit( DocumentationComment n ) {}
 }
