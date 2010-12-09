@@ -32,7 +32,9 @@ import jolie.lang.Constants;
 public class Range implements Serializable
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
-	
+	private static final int HASH_INIT_VALUE = 7;
+	private static final int HASH_FACTOR = 47;
+
 	private final int min;
 	private final int max;
 
@@ -65,9 +67,9 @@ public class Range implements Serializable
 	@Override
 	public int hashCode()
 	{
-		int hash = 7;
-		hash = 47 * hash + this.min;
-		hash = 47 * hash + this.max;
+		int hash = HASH_INIT_VALUE;
+		hash = HASH_FACTOR * hash + this.min;
+		hash = HASH_FACTOR * hash + this.max;
 		return hash;
 	}
 
