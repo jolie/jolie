@@ -247,7 +247,7 @@ public abstract class GeneralDocumentCreator
 							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 						} else {
 
-							olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
+							//olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 
 						}
 					}
@@ -276,7 +276,7 @@ public abstract class GeneralDocumentCreator
 						ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 
 					} else {
-						olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
+						//olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 					}
 
 				}
