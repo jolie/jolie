@@ -189,21 +189,25 @@ public class CommandLineParser
 	private void parseCommandLineConstant( String input )
 		throws IOException
 	{
-		Scanner scanner = new Scanner( new ByteArrayInputStream( input.getBytes() ), "Command line" );
-		Scanner.Token token = scanner.getToken();
-		if ( token.is( Scanner.TokenType.ID ) ) {
-			String id = token.content();
-			token = scanner.getToken();
-			if ( token.isNot( Scanner.TokenType.ASSIGN ) ) {
-				throw new IOException( "expected = after constant identifier " + id + ", found token type " + token.type() );
+		try {
+			Scanner scanner = new Scanner( new ByteArrayInputStream( input.getBytes() ), new URI( "urn:CommandLine" ) );
+			Scanner.Token token = scanner.getToken();
+			if ( token.is( Scanner.TokenType.ID ) ) {
+				String id = token.content();
+				token = scanner.getToken();
+				if ( token.isNot( Scanner.TokenType.ASSIGN ) ) {
+					throw new IOException( "expected = after constant identifier " + id + ", found token type " + token.type() );
+				}
+				token = scanner.getToken();
+				if ( token.isValidConstant() == false ) {
+					throw new IOException( "expected constant value for constant identifier " + id + ", found token type " + token.type() );
+				}
+				constants.put( id, token );
+			} else {
+				throw new IOException( "expected constant identifier, found token type " + token.type() );
 			}
-			token = scanner.getToken();
-			if ( token.isValidConstant() == false ) {
-				throw new IOException( "expected constant value for constant identifier " + id + ", found token type " + token.type() );
-			}
-			constants.put( id, token );
-		} else {
-			throw new IOException( "expected constant identifier, found token type " + token.type() );
+		} catch( URISyntaxException e ) {
+			throw new IOException( e );
 		}
 	}
 

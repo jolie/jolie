@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,35 +20,37 @@
  ***************************************************************************/
 
 
-package jolie.lang.parse;
+package jolie.lang.parse.context;
 
 import java.io.Serializable;
+import java.net.URI;
 
-public class ParsingContext implements Serializable
+/**
+ * A {@code ParsingContext} allows for the retrieval of information
+ * regarding the context in which an {@link jolie.lang.parse.ast.OLSyntaxNode}
+ * was parsed.
+ * @author Fabrizio Montesi
+ * @see jolie.lang.parse.ast.OLSyntaxNode
+ */
+public interface ParsingContext extends Serializable
 {
-	private int line = 0;
-	private String sourceName = "";
-	
-	public ParsingContext()
-	{}
-	
-	public void setSourceName( String sourceName )
-	{
-		this.sourceName = sourceName;
-	}
-	
-	public String sourceName()
-	{
-		return sourceName;
-	}
-	
-	public void setLine( int line )
-	{
-		this.line = line;
-	}
-	
-	public int line()
-	{
-		return line;
-	}
+	/**
+	 * Returns an URI for the source from which the node has been read.
+	 * @return an URI for the source from which the node has been read.
+	 */
+	public URI source();
+
+	/**
+	 * Returns the simple name of the source from which the node has been read.
+	 * This could be, e.g., the simple name of a file (instead of its complete
+	 * absolute path).
+	 * @return the simple name of the source from which the node has been read
+	 */
+	public String sourceName();
+
+	/**
+	 * Returns the line at which the node has been read.
+	 * @return the line at which the node has been read
+	 */
+	public int line();
 }

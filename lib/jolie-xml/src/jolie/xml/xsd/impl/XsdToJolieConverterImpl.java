@@ -39,10 +39,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Range;
 import jolie.xml.xsd.XsdToJolieConverter;
 import jolie.xml.xsd.XsdUtils;
@@ -55,7 +56,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 {
 	private final Logger logger;
 	private final List< TypeDefinition > jolieTypes = new ArrayList< TypeDefinition >();
-	private final static ParsingContext parsingContext = new ParsingContext();
+	private final static ParsingContext parsingContext = URIParsingContext.DEFAULT;
 	private final boolean strict;
 	private final XSSchemaSet schemaSet;
 	private final Map< String, TypeDefinition > complexTypes = new HashMap< String, TypeDefinition >();

@@ -23,7 +23,7 @@ package jolie.lang.parse.ast;
 
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 public class TypeCastExpressionNode extends OLSyntaxNode

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Range;
 
 /**

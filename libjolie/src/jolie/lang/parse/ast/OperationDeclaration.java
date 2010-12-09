@@ -21,7 +21,7 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 
 
 abstract public class OperationDeclaration extends OLSyntaxNode

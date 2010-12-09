@@ -23,6 +23,7 @@ package jolie.lang.parse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 /**
  * Scanner implementation for the JOLIE language parser.
@@ -238,7 +239,7 @@ public class Scanner
 	protected int currByte;
 	protected int state;					// current state
 	private int line;						// current line
-	private final String sourceName;				// source name
+	private final URI source;				// source name
 
 	/**
 	 * Constructor
@@ -246,11 +247,11 @@ public class Scanner
 	 * @param sourceName an arbitrary name
 	 * @throws java.io.IOException if the input reading initialization fails
 	 */
-	public Scanner( InputStream stream, String sourceName )
+	public Scanner( InputStream stream, URI source )
 		throws IOException
 	{
 		this.stream = stream;
-		this.sourceName = sourceName;
+		this.source = source;
 		line = 1;
 		readChar();
 	}
@@ -303,9 +304,14 @@ public class Scanner
 		return line;
 	}
 	
+	public URI source()
+	{
+		return source;
+	}
+
 	public String sourceName()
 	{
-		return sourceName;
+		return source.getPath();
 	}
 	
 	public void eatSeparators()

@@ -7,13 +7,12 @@ package joliex.wsdl;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
-import jolie.lang.parse.OLParser;
+import java.net.URI;
+import java.util.HashMap;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 
 /**
  *
@@ -39,19 +38,15 @@ public class Jolie2wsdlImplSupport
 			document.createDocument( program, cmdParser.programFilepath() );
 			 */
 			InputStream olStream = new FileInputStream( args0 );
-			OLParser olParser = new OLParser(
-				new Scanner( olStream, args0 ),
-				new String[]{"."},
-				Thread.currentThread().getContextClassLoader() );
-			Program program = olParser.parse();
-			//System.out.println(" program="+program );
-			SemanticVerifier semantic = new SemanticVerifier( program );
-			if ( semantic.validate() ) {
+			Program program = ParsingUtils.parseProgram(
+				olStream,
+				URI.create( "file:" + args0 ),
+				new String[] { "." }, Thread.currentThread().getContextClassLoader(), new HashMap< String, Scanner.Token >()
+			);
 				ProgramVisitor programVisitor = new ProgramVisitor( program );
 				programVisitor.run();
 				WSDLDocumentCreatorImplTree document = new WSDLDocumentCreatorImplTree( programVisitor );
 				document.ConvertDocument();
-			}
 		} //			catch( CommandLineException e ) {
 		//			System.out.println( e.getMessage() );
 		//			System.out.println( "Syntax is: jolie2wsdl [jolie options] <jolie filename> <output filename>" );

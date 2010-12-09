@@ -21,10 +21,12 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.parse.context.ParsingContext;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.parse.context.URIParsingContext;
 
 
 /** Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}.
@@ -82,10 +84,7 @@ public abstract class AbstractParser
 	
 	public ParsingContext getContext()
 	{
-		ParsingContext context = new ParsingContext();
-		context.setLine( scanner.line() );
-		context.setSourceName( scanner.sourceName() );
-		return context;
+		return new URIParsingContext( scanner.source(), scanner.line() );
 	}
 
 	/**

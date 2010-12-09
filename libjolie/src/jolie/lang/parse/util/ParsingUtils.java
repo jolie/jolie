@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010 by Fabrizio Montesi                           *
+ *   Copyright 2010 (C) by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,54 +19,59 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.compiler;
+package jolie.lang.parse.util;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.net.URI;
-import jolie.CommandLineException;
-import jolie.CommandLineParser;
+import java.util.Map;
+import jolie.lang.parse.OLParseTreeOptimizer;
+import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.util.ParsingUtils;
 
 /**
- *
+ * Utility class for accessing the functionalities of the JOLIE parsing
+ * library without having to worry about correctly instantiating all
+ * the related objects (parser, scanner, etc.).
  * @author Fabrizio Montesi
  */
-public class Compiler
+public class ParsingUtils
 {
-	private final ClassLoader classLoader;
-	private final CommandLineParser cmdParser;
-	
-	public Compiler( String[] args )
-		throws CommandLineException, IOException
-	{
-		cmdParser = new CommandLineParser( args, this.getClass().getClassLoader() );
-		classLoader = this.getClass().getClassLoader();
-	}
-	
-	public void compile( OutputStream ostream )
+	private ParsingUtils()
+	{}
+
+	public static Program parseProgram(
+		InputStream inputStream,
+		URI source,
+		String[] includePaths,
+		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants
+	)
 		throws IOException, ParserException
 	{
-		Program program = ParsingUtils.parseProgram(
-			cmdParser.programStream(),
-			URI.create( "file:" + cmdParser.programFilepath() ),
-			cmdParser.includePaths(), classLoader, cmdParser.definedConstants()
-		);
-		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
-		ObjectOutputStream oos = new ObjectOutputStream( ostream );
-		oos.writeObject( program );
-		ostream.flush();
-		ostream.close();
-		//gzipstream.close();
+		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
+		olParser.putConstants( definedConstants );
+		Program program = olParser.parse();
+		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+		program = optimizer.optimize();
+		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
+		if ( !semanticVerifier.validate() ) {
+			throw new IOException( "Input file semantically invalid" );
+		}
+		return program;
 	}
-	
-	public void compile()
-		throws IOException, ParserException
+
+	/**
+	 * Creates a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}.
+	 * @param program the {@link jolie.lang.parse.ast.Program} to inspect
+	 * @return a {@link ProgramInspector} for the specified {@link jolie.lang.parse.ast.Program}
+	 * @see ProgramInspector
+	 */
+	public static ProgramInspector createInspector( Program program )
 	{
-		compile( new FileOutputStream( cmdParser.programFilepath() + "c" ) );
+		return null;
 	}
 }

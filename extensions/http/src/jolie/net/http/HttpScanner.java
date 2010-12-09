@@ -23,15 +23,16 @@ package jolie.net.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 import jolie.lang.parse.Scanner;
 
 public class HttpScanner extends Scanner
 {
-	public HttpScanner( InputStream stream, String sourceName )
+	public HttpScanner( InputStream stream, URI source )
 		throws IOException
 	{
-		super( stream, sourceName );
+		super( stream, source );
 	}
 
 	@Override

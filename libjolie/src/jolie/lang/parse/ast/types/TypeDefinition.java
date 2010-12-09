@@ -25,7 +25,7 @@ package jolie.lang.parse.ast.types;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
 import jolie.util.Range;

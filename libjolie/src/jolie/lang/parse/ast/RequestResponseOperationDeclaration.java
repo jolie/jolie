@@ -24,7 +24,7 @@ package jolie.lang.parse.ast;
 
 import java.util.Map;
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ParsingContext;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 
 

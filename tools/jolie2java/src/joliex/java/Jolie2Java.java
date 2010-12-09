@@ -18,16 +18,14 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package joliex.java;
 
 import java.io.IOException;
+import java.net.URI;
 import jolie.CommandLineException;
-import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
-import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.ParsingUtils;
 
 import joliex.java.impl.JavaDocumentCreator;
 import joliex.java.impl.JavaGWTDocumentCreator;
@@ -40,77 +38,71 @@ import joliex.java.impl.ProgramVisitor;
  */
 public class Jolie2Java
 {
-    public static void main( String[] args )
+	public static void main( String[] args )
 	{
 		try {
 			/*CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Java.class.getClassLoader() );
 			args = cmdParser.arguments();
 			if ( args.length < 1 ) {
-				throw new CommandLineException( "Syntax is: jolie2java [jolie options] <jolie filename> [interface name list]" );
+			throw new CommandLineException( "Syntax is: jolie2java [jolie options] <jolie filename> [interface name list]" );
 			}
 
 			//Writer writer = new BufferedWriter( new OutputStreamWriter( System.out ) );
 
 			OLParser parser = new OLParser(
-				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
-				cmdParser.includePaths(),
-				Jolie2Java.class.getClassLoader()
+			new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
+			cmdParser.includePaths(),
+			Jolie2Java.class.getClassLoader()
 			);*/
-                       Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+			Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 			args = cmdParser.arguments();
 
-			OLParser parser = new OLParser(
-				new Scanner( cmdParser.programStream(), cmdParser.programFilepath() ),
-				cmdParser.includePaths(),
-				Jolie2Java.class.getClassLoader()
+			Program program = ParsingUtils.parseProgram(
+				cmdParser.programStream(),
+				URI.create( "file:" + cmdParser.programFilepath() ),
+				cmdParser.includePaths(), Jolie2Java.class.getClassLoader(), cmdParser.definedConstants()
 			);
-			Program program = parser.parse();
-                        SemanticVerifier semantic = new SemanticVerifier(program);
-                        if (semantic.validate()){
 			//Program program = parser.parse();
-                        ProgramVisitor visitor= new ProgramVisitor(program);
-                        visitor.run();
-                        
-                        System.out.print(args.toString());
-                        String format = cmdParser.GetFormat();
-                        System.out.print(format);
-                        if (format.equals("java")){
-                        
-                         JavaDocumentCreator documentJava = new JavaDocumentCreator(visitor);
-                        documentJava.ConvertDocument();
+			ProgramVisitor visitor = new ProgramVisitor( program );
+			visitor.run();
 
-                        
-                        }else if (format.equals("gwt"))
-                        {
-                          JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(visitor);
-                          documentJava.ConvertDocument();
-						  JavaGWTWebInterfaceCreator WebInterface= new JavaGWTWebInterfaceCreator( visitor );
-						  WebInterface.ConvertDocument();
-                        
-                        }else{
-                        
-                        System.out.print("type not yet implemented");
-                        
-                        
-                        }
-                        
-                        }
-            /*new InterfaceConverter(
-            program,
-            Arrays.copyOfRange( args, 0, args.length ),
-            Logger.getLogger( "jolie2java" )
-            ).convert( writer );*/
+			System.out.print( args.toString() );
+			String format = cmdParser.GetFormat();
+			System.out.print( format );
+			if ( format.equals( "java" ) ) {
 
-	} catch (formatExeption ex) {
-            System.out.print(ex.getMessage());
-     } catch( CommandLineException e ) {
-			System.out.println( e.getMessage());
+				JavaDocumentCreator documentJava = new JavaDocumentCreator( visitor );
+				documentJava.ConvertDocument();
+
+
+			} else if ( format.equals( "gwt" ) ) {
+				JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator( visitor );
+				documentJava.ConvertDocument();
+				JavaGWTWebInterfaceCreator WebInterface = new JavaGWTWebInterfaceCreator( visitor );
+				WebInterface.ConvertDocument();
+
+			} else {
+
+				System.out.print( "type not yet implemented" );
+
+
+			}
+			/*new InterfaceConverter(
+			program,
+			Arrays.copyOfRange( args, 0, args.length ),
+			Logger.getLogger( "jolie2java" )
+			).convert( writer );*/
+
+		} catch( formatExeption ex ) {
+			System.out.print( ex.getMessage() );
+		} catch( CommandLineException e ) {
+			System.out.println( e.getMessage() );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
 			e.printStackTrace();
 		}/* catch( InterfaceVisitor.InterfaceNotFound e ) {
-			e.printStackTrace();
+		e.printStackTrace();
 		}*/
-    }
+	}
 }

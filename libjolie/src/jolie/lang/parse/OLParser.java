@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.parse.context.ParsingContext;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -106,6 +107,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -115,7 +117,7 @@ import jolie.util.Range;
  */
 public class OLParser extends AbstractParser
 {
-	private final Program program = new Program( new ParsingContext() );
+	private final Program program;
 	private final Map< String, Scanner.Token > constantsMap =
 		new HashMap< String, Scanner.Token >();
 	private boolean insideInstallFunction = false;
@@ -123,7 +125,7 @@ public class OLParser extends AbstractParser
 	private final Map< String, InterfaceDefinition > interfaces =
 		new HashMap< String, InterfaceDefinition >();
 
-	private final Map< String, TypeDefinition > definedTypes = createTypeDeclarationMap();
+	private final Map< String, TypeDefinition > definedTypes;
 	
 	private final ClassLoader classLoader;
 	private String comment;
@@ -132,8 +134,11 @@ public class OLParser extends AbstractParser
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
+		ParsingContext context = new URIParsingContext( scanner.source(), 0 );
+		this.program = new Program( context );
 		this.includePaths = includePaths;
 		this.classLoader = classLoader;
+		this.definedTypes = createTypeDeclarationMap( context );
 	}
 
 	public void putConstants( Map< String, Scanner.Token > constantsToPut )
@@ -141,13 +146,13 @@ public class OLParser extends AbstractParser
 		constantsMap.putAll( constantsToPut );
 	}
 
-	static public Map< String, TypeDefinition > createTypeDeclarationMap()
+	public static Map< String, TypeDefinition > createTypeDeclarationMap( ParsingContext context )
 	{
 		Map< String, TypeDefinition > definedTypes = new HashMap< String, TypeDefinition >();
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
-			definedTypes.put( type.id(), new TypeInlineDefinition( new ParsingContext(), type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+			definedTypes.put( type.id(), new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 		
@@ -575,7 +580,11 @@ public class OLParser extends AbstractParser
 			}
 
 			origIncludePaths = includePaths;
-			setScanner( new Scanner( includeFile.getInputStream(), includeStr ) );
+			try {
+				setScanner( new Scanner( includeFile.getInputStream(), new URI( "file:" + includeStr ) ) );
+			} catch( URISyntaxException e ) {
+				throw new IOException( e );
+			}
 
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
@@ -810,7 +819,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		       
 		}
-	  return iface;
+		return iface;
 	}
 
 	private void parseOperations( OperationCollector oc )
