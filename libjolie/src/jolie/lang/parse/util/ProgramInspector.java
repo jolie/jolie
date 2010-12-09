@@ -40,7 +40,7 @@ public interface ProgramInspector
 	 * Returns an array with all the sources parsed for generating the program.
 	 * @return an array with all the sources parsed for generating the program
 	 */
-	public URI[] getURIs();
+	public URI[] getSources();
 
 	/**
 	 * Returns an array of all the interfaces defined in the program.
