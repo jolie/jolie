@@ -31,6 +31,7 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
 
 /**
  * Utility class for accessing the functionalities of the JOLIE parsing
@@ -72,6 +73,6 @@ public class ParsingUtils
 	 */
 	public static ProgramInspector createInspector( Program program )
 	{
-		return null;
+		return new ProgramInspectorCreatorVisitor( program ).createInspector();
 	}
 }
