@@ -1,4 +1,4 @@
-package support;
+package jolie.doc.support;
 
 
 import jolie.lang.parse.ast.InputPortInfo;

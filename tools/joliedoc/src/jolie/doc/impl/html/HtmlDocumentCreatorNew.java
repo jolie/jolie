@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jolie.doc.support.GeneralDocumentCreator;
+import jolie.doc.support.GeneralProgramVisitor;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -25,8 +27,7 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import support.GeneralDocumentCreator;
-import support.GeneralProgramVisitor;
+
 
 /**
  *

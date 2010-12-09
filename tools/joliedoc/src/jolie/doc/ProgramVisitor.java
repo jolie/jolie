@@ -23,6 +23,7 @@ package jolie.doc;
 
 import java.util.ArrayList;
 import java.util.List;
+import jolie.doc.support.GeneralProgramVisitor;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
@@ -86,7 +87,7 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import support.GeneralProgramVisitor;
+
 
 /**
  *

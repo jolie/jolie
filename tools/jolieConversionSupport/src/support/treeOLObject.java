@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package support;
+package jolie.doc.support;
 
 import java.util.LinkedList;
 import java.util.List;
