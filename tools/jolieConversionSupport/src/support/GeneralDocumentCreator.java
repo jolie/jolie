@@ -1,4 +1,4 @@
-package support;
+package jolie.doc.support;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -111,7 +111,7 @@ public abstract class GeneralDocumentCreator
 
 
 			}
-			System.out.print( "numero di int: " + counterIn + "\n" );
+			//System.out.print( "numero di int: " + counterIn + "\n" );
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
 				supportInterface = ((InterfaceDefinition) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetOLSyntaxNode()));
 				supportMap = supportInterface.operationsMap();
@@ -121,7 +121,7 @@ public abstract class GeneralDocumentCreator
 					con++;
 
 				}
-				System.out.print( "numero di op: " + con + "\n" );
+				//System.out.print( "numero di op: " + con + "\n" );
 			}
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
 				// System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
@@ -164,7 +164,7 @@ public abstract class GeneralDocumentCreator
 					portSupportOLTreeObject.SetLinkedObject( (InterfaceDefinition)iteratorInterfaceList.next());
 					
 			}
-			System.out.print( "numero di int: " + counterIn + "\n" );
+		//	System.out.print( "numero di int: " + counterIn + "\n" );
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
 				supportInterface = ((InterfaceDefinition) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetOLSyntaxNode()));
 				supportMap = supportInterface.operationsMap();
@@ -174,7 +174,7 @@ public abstract class GeneralDocumentCreator
 					con++;
 
 				}
-				System.out.print( "numero di op: " + con + "\n" );
+	//			System.out.print( "numero di op: " + con + "\n" );
 			}
 			for( int counterInterfaces = 0; counterInterfaces < portSupportOLTreeObject.GetLinkedObjetSize(); counterInterfaces++ ) {
 				// System.out.print(portSupportOLTreeObject.GetLinkedObject(counterOperation).GetLinkedObjetSize()+"\n");
@@ -186,7 +186,7 @@ public abstract class GeneralDocumentCreator
 
 
 					} else {
-						System.out.print( "Here line 134 : " + counterOperation + "\n" );
+					//	System.out.print( "Here line 134 : " + counterOperation + "\n" );
 
 						operationRequestResponse = (RequestResponseOperationDeclaration) (portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetOLSyntaxNode());
 
@@ -194,15 +194,15 @@ public abstract class GeneralDocumentCreator
 						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.requestType() );
 						// System.out.print( "Operation.id " + operationRequestResponse.id() + "Cou"\n" );
 
-						System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
+						//System.out.print( "Here line 134 : " + operationRequestResponse.requestType().id() + "\n" );
 
 						//treeOLObject SupportOlObject= new treeOLObject(operationRequestResponse.requestType(),null);
 						ScanTypesOlTree( operationRequestResponse.requestType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 0 ) );
-						System.out.print( "sono a linea:138\n" );
-						System.out.print( counterInterfaces + " " + counterOperation + "\n" );
+						//System.out.print( "sono a linea:138\n" );
+						//System.out.print( counterInterfaces + " " + counterOperation + "\n" );
 						portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).SetLinkedObject( operationRequestResponse.responseType() );
 						ScanTypesOlTree( operationRequestResponse.responseType(), portSupportOLTreeObject.GetLinkedObject( counterInterfaces ).GetLinkedObject( counterOperation ).GetLinkedObject( 1 ) );
-						System.out.print( "sono a linea:145\n" );
+						//System.out.print( "sono a linea:145\n" );
 					}
 
 
@@ -227,7 +227,7 @@ public abstract class GeneralDocumentCreator
 			if ( addFlag ) {
 				String nameFile = ((TypeDefinitionLink) typeDefinition).linkedType().context().sourceName();
 				TypeDefinition supportType = ((TypeDefinitionLink) typeDefinition).linkedType();
-				System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
+				//System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
 				//Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
 				//addingMap.put( nameFile, supportType );
 				//typeMap.add( addingMap );
@@ -243,7 +243,7 @@ public abstract class GeneralDocumentCreator
 
 
 						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
-							System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
+							//System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
 							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 						} else {
 
@@ -259,7 +259,7 @@ public abstract class GeneralDocumentCreator
 
 			String nameFile = typeDefinition.context().sourceName();
 			TypeDefinition supportType = typeDefinition;
-			System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
+			//System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
 
 
 			if ( supportType.hasSubTypes() ) {
@@ -271,7 +271,7 @@ public abstract class GeneralDocumentCreator
 					Map.Entry me = (Map.Entry) i.next();
 
 					if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
-						System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
+						//System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
 						olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 						ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 
