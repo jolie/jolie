@@ -693,8 +693,14 @@ public class OLParseTreeOptimizer
 					optimizeNode( n.expression() )
 				);
 		}
+
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
-		public void visit( InterfaceDefinition n ) {}
+		
+		public void visit( InterfaceDefinition n )
+		{
+			program.addChild( n );
+		}
+
 		public void visit( DocumentationComment n ){}
 	}
 	
