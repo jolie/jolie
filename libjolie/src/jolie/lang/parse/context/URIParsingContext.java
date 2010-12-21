@@ -46,6 +46,6 @@ public class URIParsingContext extends AbstractParsingContext
 
 	public String sourceName()
 	{
-		return uri.getPath();
+		return uri.getSchemeSpecificPart();
 	}
 }

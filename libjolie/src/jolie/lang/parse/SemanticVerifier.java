@@ -476,14 +476,15 @@ public class SemanticVerifier implements OLVisitor
 			encounteredAssignment( n.inputVarPath() );
 		}
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
-		if ( p == null )
+		if ( p == null ) {
 			error( n, n.outputPortId() + " is not a valid output port" );
-		else {
+		} else {
 			OperationDeclaration decl = p.operationsMap().get( n.id() );
-			if ( decl == null )
+			if ( decl == null ) {
 				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
-			else if ( !( decl instanceof RequestResponseOperationDeclaration ) )
+			} else if ( !(decl instanceof RequestResponseOperationDeclaration) ) {
 				error( n, "Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
+			}
 		}
 
 		if ( isInCorrelationSet( n.inputVarPath() ) ) {
