@@ -1769,7 +1769,7 @@ public class OLParser extends AbstractParser
 			}
 
 			stm = new SolicitResponseOperationStatement(
-				getContext(),
+				context,
 				id,
 				outputPortId,
 				outputExpression,

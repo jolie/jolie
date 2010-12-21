@@ -311,7 +311,7 @@ public class Scanner
 
 	public String sourceName()
 	{
-		return source.getPath();
+		return source.getSchemeSpecificPart();
 	}
 	
 	public void eatSeparators()
