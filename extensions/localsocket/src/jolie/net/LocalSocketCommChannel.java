@@ -30,35 +30,9 @@ import jolie.net.protocols.CommProtocol;
 
 public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
 {
-	private static class PreCachedInputStream extends InputStream
-	{
-		private int cachePosition = 0;
-		private int[] cache;
-		final private InputStream istream;
-		private PreCachedInputStream( int[] cache, InputStream istream )
-		{
-			this.cache = cache;
-			this.istream = istream;
-		}
-		
-		public int read()
-			throws IOException
-		{
-			int ret = -1;
-			if ( cache == null ) {
-				ret = istream.read();
-			} else if ( cachePosition < cache.length ) {
-				ret = cache[ cachePosition ];
-				if ( ++cachePosition >= cache.length ) {
-					cache = null; // Free memory
-				}
-			}
-			return ret;
-		}
-	}
-	
-	final private UnixSocket socket;
-	private InputStream istream;
+	private final UnixSocket socket;
+	private PreBufferedInputStream bufferedInputStream;
+	private final InputStream socketInputStream;
 	
 	public LocalSocketCommChannel( UnixSocket socket, URI location, CommProtocol protocol )
 		throws IOException
@@ -66,7 +40,8 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		super( location, protocol );
 		
 		this.socket = socket;
-		this.istream = socket.getInputStream();
+		this.socketInputStream = socket.getInputStream();
+		this.bufferedInputStream = new PreBufferedInputStream( socketInputStream );
 		
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
@@ -74,18 +49,13 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		protocol().send( socket.getOutputStream(), message, socket.getInputStream() );
+		protocol().send( socket.getOutputStream(), message, bufferedInputStream );
 	}
 	
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		CommMessage ret = null;
-		ret = protocol().recv( istream, socket.getOutputStream() );
-		if ( istream instanceof PreCachedInputStream ) {
-			istream = socket.getInputStream();
-		}
-		return ret;
+		return protocol().recv( bufferedInputStream, socket.getOutputStream() );
 	}
 	
 	protected void closeImpl()
@@ -95,18 +65,16 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 	}
 	
 	public synchronized boolean isReady()
+		throws IOException
 	{
 		boolean ret = false;
-		try {
-			int[] cache = new int[1];
-			InputStream is = socket.getInputStream();
-			if ( (cache[0]=is.read()) != -1 ) {
-				istream = new PreCachedInputStream( cache, is );
-				ret = true;
-			}
-		} catch( IOException e ) {
-			e.printStackTrace();
+		byte[] r = new byte[1];
+
+		if ( socketInputStream.read( r ) > 0 ) {
+			bufferedInputStream.append( r[0] );
+			ret = true;
 		}
+
 		return ret;
 	}
 	
