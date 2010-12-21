@@ -652,7 +652,7 @@ public abstract class Value implements Expression, Cloneable
 			r = ((Double)o).intValue();
 		} else if ( o instanceof String ) {
 			try {
-				r = Integer.parseInt( (String)o );
+				r = Integer.parseInt( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
 				r = ((String)o).length();
 			}
@@ -672,7 +672,7 @@ public abstract class Value implements Expression, Cloneable
 			r = ((Double)o).doubleValue();
 		} else if ( o instanceof String ) {
 			try {
-				r = Double.parseDouble( (String)o );
+				r = Double.parseDouble( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
 				r = ((String)o).length();
 			}
