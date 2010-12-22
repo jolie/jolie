@@ -68,6 +68,7 @@ public class HtmlDocumentCreatorNew
 				if ( (supportURI.getPath().contains( directorySOA ) && (supportURI.getScheme().equals( "file" ))) ) {
 
 					outputPortInfoList = inspector.getOutputPorts( supportURI );
+					inputPortInfoList= inspector.getInputPorts( supportURI );
 					interfacesList = inspector.getInterfaces( supportURI );
 					typesList = inspector.getTypes( supportURI );
 					nameFile = ((supportURI.getPath().substring( supportURI.getPath().lastIndexOf( "/" ) + 1 )));
@@ -79,9 +80,9 @@ public class HtmlDocumentCreatorNew
 					} catch( IOException ex ) {
 						Logger.getLogger( HtmlDocumentCreatorNew.class.getName() ).log( Level.SEVERE, null, ex );
 					}
-					for( OutputPortInfo output : outputPortInfoList ) {
+					for( InputPortInfo input : inputPortInfoList ) {
 						try {
-							ConvertOutputPorts( output, writer );
+							ConvertInputPorts( input, writer );
 						} catch( IOException ex ) {
 							Logger.getLogger( HtmlDocumentCreatorNew.class.getName() ).log( Level.SEVERE, null, ex );
 						}
@@ -120,10 +121,12 @@ public class HtmlDocumentCreatorNew
 				if ( supportURI.getSchemeSpecificPart() != null ) {
 					//here all the processing for the Olsyntax node
 					outputPortInfoList = inspector.getOutputPorts( supportURI );
+					inputPortInfoList= inspector.getInputPorts( supportURI );
 					interfacesList = inspector.getInterfaces( supportURI );
 					typesList = inspector.getTypes( supportURI );
 					nameFile = supportURI.getSchemeSpecificPart();
-					String nameFileBuffer = (supportURI.getSchemeSpecificPart().replace( ".", "_" )) + ".html";
+
+					String nameFileBuffer =((nameFile.substring( nameFile.lastIndexOf( "/")+1)).replace( ".", "_" ))+".html"; //(supportURI.getSchemeSpecificPart().substring( supportURI.getSchemeSpecificPart().i).replace( ".", "_" )) + ".html";
 
 					//System.out.print( nameFile + "\n" );
 					try {
@@ -131,9 +134,9 @@ public class HtmlDocumentCreatorNew
 					} catch( IOException ex ) {
 						Logger.getLogger( HtmlDocumentCreatorNew.class.getName() ).log( Level.SEVERE, null, ex );
 					}
-					for( OutputPortInfo output : outputPortInfoList ) {
+					for( InputPortInfo input : inputPortInfoList ) {
 						try {
-							ConvertOutputPorts( output, writer );
+							ConvertInputPorts( input, writer );
 						} catch( IOException ex ) {
 							Logger.getLogger( HtmlDocumentCreatorNew.class.getName() ).log( Level.SEVERE, null, ex );
 						}
@@ -188,7 +191,9 @@ public class HtmlDocumentCreatorNew
 		writer.write( "<H3>" + "Interface definition " + interfaceDefinition.name() + "</H3>" );
 		writer.write( "<a name=\"" + interfaceDefinition.name() + "\"></a>" );
 		if ( !(interfaceDefinition.getDocumentation() == null) ) {
+			writer.write("<BR>");
 			writer.write( interfaceDefinition.getDocumentation() );
+			writer.write("<BR>");
 		}
 		OperationDeclaration operation;
 		writer.write( "<table border=\"1\">" );
@@ -206,7 +211,7 @@ public class HtmlDocumentCreatorNew
 
 			writer.write( "<tr>" );
 			writer.write( "<td>" + operation.id() + "</td>" );
-			//writer.write( "<td>" + "<a href=\"#Code\"> Code </a><br />" + "</td>" + NEWLINE );
+			
 
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
 
@@ -335,19 +340,26 @@ public class HtmlDocumentCreatorNew
 		if ( inputPortInfo.getDocumentation() != null ) {
 			writer.write( inputPortInfo.getDocumentation() );
 		}
-		List<InterfaceDefinition> interfacesListLocal = inputPortInfo.getInterfaceList();
+		List<InterfaceDefinition> interfacesList = inputPortInfo.getInterfaceList();
 		writer.write( "<tr>" );
 		writer.write( "</tr>" );
 		writer.write( "<table border=\"1\">" );
 		writer.write( "<tr>" );
 		writer.write( "<th>InterfaceName</th>" );
 		writer.write( "</tr>" );
-		for( int counterInterfaces = 0; counterInterfaces < interfacesListLocal.size(); counterInterfaces++ ) {
-			writer.write( "<tr>" );
-			writer.write( "<td>" + "<A href=\"" + HyperlinkMap.get( interfacesListLocal.get( counterInterfaces ) ) + "\">" + interfacesListLocal.get( counterInterfaces ) + " </A></td>" );
-			writer.write( "</tr>" + "<BR>" );
-		}
 
+		for( InterfaceDefinition interfaceDefintion : interfacesList ) {
+
+			String interfaceSourceName = interfaceDefintion.context().sourceName().substring( interfaceDefintion.context().sourceName().lastIndexOf( "/" ) + 1 );
+			if ( interfaceSourceName.equals( nameFile ) ) {
+				writer.write( "<tr>" );
+				writer.write( "<td>" + "<A href=\"" + interfaceDefintion.name() + "\">" + interfaceDefintion.name() + " </A></td>" );
+				writer.write( "</tr>" + "<BR>" );
+			}
+
+		}
+		
+      writer.write( "</table>" );
 	}
 
 	public void ConvertOperations( OperationDeclaration operationDeclaration, Writer writer )
