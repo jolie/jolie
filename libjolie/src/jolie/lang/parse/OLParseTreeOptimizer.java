@@ -157,6 +157,7 @@ public class OLParseTreeOptimizer
 								p.redirectionMap()
 						);
 				iport.operationsMap().putAll( p.operationsMap() );
+				iport.getInterfaceList().addAll( p.getInterfaceList() );
 				program.addChild( iport );
 			} else {
 				program.addChild( p );
