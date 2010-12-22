@@ -23,11 +23,13 @@ package joliex.java;
 import java.io.IOException;
 import java.net.URI;
 import jolie.CommandLineException;
+import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
-
+import jolie.lang.parse.util.ProgramInspector;
 import joliex.java.impl.JavaDocumentCreator;
+
 import joliex.java.impl.JavaGWTDocumentCreator;
 import joliex.java.impl.JavaGWTWebInterfaceCreator;
 import joliex.java.impl.ProgramVisitor;
@@ -54,7 +56,7 @@ public class Jolie2Java
 			cmdParser.includePaths(),
 			Jolie2Java.class.getClassLoader()
 			);*/
-			Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
+			CommandLineParser cmdParser =  new CommandLineParser( args, Jolie2Java.class.getClassLoader() );
 			args = cmdParser.arguments();
 
 			Program program = ParsingUtils.parseProgram(
@@ -63,20 +65,22 @@ public class Jolie2Java
 				cmdParser.includePaths(), Jolie2Java.class.getClassLoader(), cmdParser.definedConstants()
 			);
 			//Program program = parser.parse();
+			ProgramInspector inspector=ParsingUtils.createInspector( program );
 			ProgramVisitor visitor = new ProgramVisitor( program );
 			visitor.run();
 
 			System.out.print( args.toString() );
-			String format = cmdParser.GetFormat();
+			String format = "java";
 			System.out.print( format );
 			if ( format.equals( "java" ) ) {
-
-				JavaDocumentCreator documentJava = new JavaDocumentCreator( visitor );
+                String namespace="testjolie2java";
+				JavaDocumentCreator documentJava = new JavaDocumentCreator( inspector,namespace );
 				documentJava.ConvertDocument();
 
 
 			} else if ( format.equals( "gwt" ) ) {
-				JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator( visitor );
+				String namespace="org.yournamehere.client";
+				JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator( inspector, namespace );
 				documentJava.ConvertDocument();
 				JavaGWTWebInterfaceCreator WebInterface = new JavaGWTWebInterfaceCreator( visitor );
 				WebInterface.ConvertDocument();
@@ -93,8 +97,7 @@ public class Jolie2Java
 			Logger.getLogger( "jolie2java" )
 			).convert( writer );*/
 
-		} catch( formatExeption ex ) {
-			System.out.print( ex.getMessage() );
+	
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
 		} catch( IOException e ) {
