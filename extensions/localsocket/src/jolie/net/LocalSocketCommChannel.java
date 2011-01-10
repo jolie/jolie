@@ -24,6 +24,7 @@ package jolie.net;
 import cx.ath.matthew.unix.UnixSocket;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
@@ -31,8 +32,9 @@ import jolie.net.protocols.CommProtocol;
 public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
 {
 	private final UnixSocket socket;
-	private PreBufferedInputStream bufferedInputStream;
+	private final PreBufferedInputStream bufferedInputStream;
 	private final InputStream socketInputStream;
+	private final OutputStream socketOutputStream;
 	
 	public LocalSocketCommChannel( UnixSocket socket, URI location, CommProtocol protocol )
 		throws IOException
@@ -41,6 +43,7 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		
 		this.socket = socket;
 		this.socketInputStream = socket.getInputStream();
+		this.socketOutputStream = socket.getOutputStream();
 		this.bufferedInputStream = new PreBufferedInputStream( socketInputStream );
 		
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
@@ -49,13 +52,14 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
-		protocol().send( socket.getOutputStream(), message, bufferedInputStream );
+		protocol().send( socketOutputStream, message, bufferedInputStream );
+		socketOutputStream.flush();
 	}
 	
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		return protocol().recv( bufferedInputStream, socket.getOutputStream() );
+		return protocol().recv( bufferedInputStream, socketOutputStream );
 	}
 	
 	protected void closeImpl()
@@ -63,16 +67,20 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 	{
 		socket.close();
 	}
-	
+
 	public synchronized boolean isReady()
 		throws IOException
 	{
 		boolean ret = false;
-		byte[] r = new byte[1];
 
-		if ( socketInputStream.read( r ) > 0 ) {
-			bufferedInputStream.append( r[0] );
+		if ( bufferedInputStream.hasCachedData() ) {
 			ret = true;
+		} else {
+			byte[] r = new byte[1];
+			if ( socketInputStream.read( r ) > 0 ) {
+				bufferedInputStream.append( r[0] );
+				ret = true;
+			}
 		}
 
 		return ret;
