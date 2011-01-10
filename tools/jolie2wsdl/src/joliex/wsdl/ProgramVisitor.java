@@ -1,3 +1,5 @@
+package joliex.wsdl;
+
 /***************************************************************************
  *   Copyright (C) 2010 by Balint Maschio <bmaschio@italianasoftware.com>  *
  *                                                                         *
@@ -19,7 +21,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.wsdl;
+
 
 import java.util.ArrayList;
 import java.util.List;
