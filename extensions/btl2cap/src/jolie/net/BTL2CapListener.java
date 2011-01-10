@@ -22,44 +22,32 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.channels.ClosedByInterruptException;
-import java.util.Collection;
-import java.util.Map;
 
 import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.L2CAPConnectionNotifier;
 import javax.microedition.io.Connector;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 public class BTL2CapListener extends CommListener
 {
 	private final L2CAPConnectionNotifier connectionNotifier;
 	public BTL2CapListener(
 				Interpreter interpreter,
-				URI location,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				InputPort inputPort
 			)
 		throws IOException
 	{
 		super(
 			interpreter,
-			location,
 			protocolFactory,
-			protocolConfigurationPath,
-			operationNames,
-			aggregationMap,
-			redirectionMap
+			inputPort
 		);
 		connectionNotifier =
-				(L2CAPConnectionNotifier)Connector.open( location.toString() );
+				(L2CAPConnectionNotifier)Connector.open( inputPort().location().toString() );
 	}
 	
 	@Override
@@ -71,10 +59,10 @@ public class BTL2CapListener extends CommListener
 			while ( (clientConnection = connectionNotifier.acceptAndOpen()) != null ) {
 				channel = new BTL2CapCommChannel(
 							clientConnection,
-							location(),
+							inputPort().location(),
 							createProtocol() );
-				channel.setParentListener( this );
-				interpreter().commCore().scheduleReceive( channel, this );
+				channel.setParentInputPort( inputPort() );
+				interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection
 			}
 		} catch( ClosedByInterruptException ce ) {

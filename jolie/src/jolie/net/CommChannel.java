@@ -24,6 +24,9 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.ports.Port;
 
 /**
  * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
@@ -45,7 +48,8 @@ public abstract class CommChannel
 	protected final ReentrantLock lock = new ReentrantLock( true );
 	
 	private boolean toBeClosed = true;
-	private CommListener listener = null;
+	private InputPort inputPort = null;
+	private OutputPort outputPort = null;
 	private boolean isOpen = true;
 
 	private long redirectionMessageId = 0L;
@@ -101,21 +105,48 @@ public abstract class CommChannel
 	}
 
 	/**
-	 * Sets the parent <code>CommListener</code> of this channel.
-	 * @param listener the parent <code>CommListener</code> to set
+	 * Sets the parent {@link InputPort} of this channel.
+	 * @param listener the parent {@link InputPort} of this channel.
 	 */
-	public void setParentListener( CommListener listener )
+	public void setParentInputPort( InputPort inputPort )
 	{
-		this.listener = listener;
+		this.inputPort = inputPort;
 	}
 
 	/**
-	 * Returns the parent <code>CommListener</code> of this channel.
-	 * @return the parent <code>CommListener</code> of this channel
+	 * Returns the parent {@link InputPort} of this channel.
+	 * @return the parent {@link InputPort} of this channel.
 	 */
-	public CommListener parentListener()
+	public InputPort parentInputPort()
 	{
-		return listener;
+		return inputPort;
+	}
+
+	/**
+	 * Sets the parent {@link OutputPort} of this channel.
+	 * @param listener the parent {@link OutputPort} of this channel.
+	 */
+	public void setParentOutputPort( OutputPort outputPort )
+	{
+		this.outputPort = outputPort;
+	}
+
+	/**
+	 * Returns the parent {@link OutputPort} of this channel.
+	 * @return the parent {@link OutputPort} of this channel.
+	 */
+	public OutputPort parentOutputPort()
+	{
+		return outputPort;
+	}
+
+	/**
+	 * Returns the parent {@link Port} of this channel.
+	 * @return the parent {@link Port} of this channel.
+	 */
+	public Port parentPort()
+	{
+		return ( inputPort == null ) ? outputPort : inputPort;
 	}
 
 	/**

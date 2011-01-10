@@ -21,14 +21,20 @@
 
 package jolie.net;
 
-import java.util.Collection;
+import java.net.URI;
 import java.util.HashMap;
-import java.util.HashSet;
+import jolie.net.ports.OutputPort;
 import java.util.Map;
 
 import jolie.Interpreter;
+import jolie.lang.Constants;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AggregatedOperation;
+import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
  * <code>LocalListener</code> is used internally by the interpreter for receiving
@@ -40,22 +46,32 @@ public class LocalListener extends CommListener
 {
 	public LocalListener( Interpreter interpreter )
 	{
-		super( interpreter, new HashSet< String >(), new HashMap< String, AggregatedOperation >(), new HashMap< String, OutputPort >() );
+		super( interpreter, new InputPort(
+				URI.create( Constants.LOCAL_LOCATION_KEYWORD ),
+				new VariablePathBuilder( true ).toVariablePath(),
+				new Interface(
+					new HashMap< String, OneWayTypeDescription >(),
+					new HashMap< String, RequestResponseTypeDescription >()
+				),
+				new HashMap< String, AggregatedOperation >(),
+				new HashMap< String, OutputPort >()
+			)
+		);
 	}
 	
-	public void addOperationNames( Collection< String > operationNames )
+	public void mergeInterface( Interface iface )
 	{
-		this.operationNames.addAll( operationNames );
+		inputPort().getInterface().merge( iface );
 	}
 	
 	public void addRedirections( Map< String, OutputPort > redirectionMap )
 	{
-		this.redirectionMap.putAll( redirectionMap );
+		inputPort().redirectionMap().putAll( redirectionMap );
 	}
 
 	public void addAggregations( Map< String, AggregatedOperation > aggregationMap )
 	{
-		this.aggregationMap.putAll( aggregationMap );
+		inputPort().aggregationMap().putAll( aggregationMap );
 	}
 
 	@Override

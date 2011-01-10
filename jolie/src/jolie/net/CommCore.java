@@ -22,6 +22,7 @@
 
 package jolie.net;
 
+import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,6 +49,8 @@ import jolie.JolieThread;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.InputProcessExecution;
 import jolie.process.Process;
@@ -307,13 +310,13 @@ public class CommCore
 	
 	public void addLocalInputPort(
 				String inputPortName,
-				Collection< String > operationNames,
+				Interface iface,
 				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
 		throws IOException
 	{
-		localListener.addOperationNames( operationNames );
+		localListener.mergeInterface( iface );
 		localListener.addAggregations( aggregationMap );
 		localListener.addRedirections( redirectionMap );
 		listenersMap.put( inputPortName, localListener );
@@ -340,7 +343,7 @@ public class CommCore
 				CommProtocolFactory protocolFactory,
 				VariablePath protocolConfigurationPath,
 				Process protocolConfigurationProcess,
-				Collection< String > operationNames,
+				Interface iface,
 				Map< String, AggregatedOperation > aggregationMap,
 				Map< String, OutputPort > redirectionMap
 			)
@@ -357,12 +360,14 @@ public class CommCore
 
 		listener = factory.createListener(
 			interpreter,
-			uri,
 			protocolFactory,
-			protocolConfigurationPath,
-			operationNames,
-			aggregationMap,
-			redirectionMap
+			new InputPort(
+				uri,
+				protocolConfigurationPath,
+				iface,
+				aggregationMap,
+				redirectionMap
+			)
 		);
 		listenersMap.put( inputPortName, listener );
 	}
@@ -380,12 +385,12 @@ public class CommCore
 
 	private class CommChannelHandlerRunnable implements Runnable {
 		private final CommChannel channel;
-		private final CommListener listener;
+		private final InputPort port;
 		
-		public CommChannelHandlerRunnable( CommChannel channel, CommListener listener )
+		public CommChannelHandlerRunnable( CommChannel channel, InputPort port )
 		{
 			this.channel = channel;
-			this.listener = listener;
+			this.port = port;
 		}
 		
 		private void forwardResponse( CommMessage message )
@@ -432,14 +437,14 @@ public class CommCore
 				}
 				rPath = builder.toString();
 			}
-			OutputPort port = listener.redirectionMap().get( ss[1] );
-			if ( port == null ) {
+			OutputPort oPort = port.redirectionMap().get( ss[1] );
+			if ( oPort == null ) {
 				String error = "Discarded a message for resource " + ss[1] +
 						", not specified in the appropriate redirection table.";
 				interpreter.logWarning( error );
 				throw new IOException( error );
 			}
-			CommChannel oChannel = port.getNewCommChannel();
+			CommChannel oChannel = oPort.getNewCommChannel();
 			CommMessage rMessage =
 						new CommMessage(
 								message.id(),
@@ -506,10 +511,10 @@ public class CommCore
 				if ( ss.length > 1 ) {
 					handleRedirectionInput( message, ss );
 				} else {
-					if ( listener.canHandleInputOperationDirectly( message.operationName() ) ) {
+					if ( port.canHandleInputOperationDirectly( message.operationName() ) ) {
 						handleDirectMessage( message );
 					} else {
-						AggregatedOperation operation = listener.getAggregatedOperation( message.operationName() );
+						AggregatedOperation operation = port.getAggregatedOperation( message.operationName() );
 						if ( operation == null ) {
 							interpreter.logWarning(
 								"Received a message for operation " + message.operationName() +
@@ -534,7 +539,7 @@ public class CommCore
 			channel.lock.lock();
 			try {
 				if ( channel.redirectionChannel() == null ) {
-					assert( listener != null );
+					assert( port != null );
 					CommMessage message = channel.recv();
 					if ( message != null ) {
 						handleMessage( message );
@@ -560,11 +565,11 @@ public class CommCore
 	/**
 	 * Schedules the receiving of a message on this <code>CommCore</code> instance.
 	 * @param channel the <code>CommChannel</code> to use for receiving the message
-	 * @param listener the <code>CommListener</code> responsible for the message receiving
+	 * @param port the <code>Port</code> responsible for the message receiving
 	 */
-	public void scheduleReceive( CommChannel channel, CommListener listener )
+	public void scheduleReceive( CommChannel channel, InputPort port )
 	{
-		executorService.execute( new CommChannelHandlerRunnable( channel, listener ) );
+		executorService.execute( new CommChannelHandlerRunnable( channel, port ) );
 	}
 
 	protected void startCommChannelHandler( Runnable r )
@@ -631,7 +636,7 @@ public class CommCore
 						try {
 							if ( ((PollableCommChannel)channel).isReady() ) {
 								it.remove();
-								scheduleReceive( channel, channel.parentListener() );
+								scheduleReceive( channel, channel.parentInputPort() );
 							}
 						} catch( IOException e ) {
 							e.printStackTrace();
@@ -728,7 +733,7 @@ public class CommCore
 												if ( channel.selectionTimeoutHandler() != null ) {
 													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
 												}
-												scheduleReceive( channel, channel.parentListener() );
+												scheduleReceive( channel, channel.parentInputPort() );
 											} else {
 												channel.closeImpl();
 											}
@@ -770,7 +775,7 @@ public class CommCore
 		{
 			try {
 				if ( channel.inputStream().available() > 0 ) {
-					scheduleReceive( channel, channel.parentListener() );
+					scheduleReceive( channel, channel.parentInputPort() );
 					return false;
 				}
 

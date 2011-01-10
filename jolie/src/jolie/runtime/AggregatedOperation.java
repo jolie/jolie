@@ -22,7 +22,7 @@
 package jolie.runtime;
 
 import jolie.lang.Constants;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 
 /**
  * An AggregatedOperation instance contains information about an operation that is aggregate by an input port.

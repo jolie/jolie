@@ -28,7 +28,7 @@ import java.rmi.registry.Registry;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 
 public class RMICommChannelFactory extends CommChannelFactory
 {

@@ -22,21 +22,16 @@
 package joliex.rmi;
 
 import java.io.IOException;
-import java.net.URI;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Collection;
-import java.util.Map;
 import jolie.net.CommListener;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.runtime.VariablePath;
-import jolie.net.OutputPort;
-import jolie.runtime.AggregatedOperation;
+import jolie.net.ports.InputPort;
 
 public class RMIListener extends CommListener
 {
@@ -46,28 +41,24 @@ public class RMIListener extends CommListener
 
 	public RMIListener(
 				Interpreter interpreter,
-				URI location,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				InputPort inputPort
 			)
 		throws IOException
 	{
-		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
+		super( interpreter, protocolFactory, inputPort );
 
 		JolieRemote jolieRemote = new JolieRemoteImpl( interpreter, this );
 		jolieRemoteStub = (JolieRemote) UnicastRemoteObject.exportObject( jolieRemote );
-		registry = LocateRegistry.getRegistry( location.getHost(), location.getPort() );
-		entryName = location.getPath();
+		registry = LocateRegistry.getRegistry( inputPort.location().getHost(), inputPort.location().getPort() );
+		entryName = inputPort.location().getPath();
 		try {
 			registry.bind( entryName, jolieRemoteStub );
 		} catch( AlreadyBoundException e ) {
 			throw new IOException( e );
 		} catch( RemoteException e ) {
 			if ( e instanceof java.rmi.ConnectException ) {
-				registry = LocateRegistry.createRegistry( location.getPort() );
+				registry = LocateRegistry.createRegistry( inputPort.location().getPort() );
 				try {
 					registry.bind( entryName, jolieRemoteStub );
 				} catch( AlreadyBoundException ae ) {

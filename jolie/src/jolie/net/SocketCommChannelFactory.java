@@ -21,6 +21,7 @@
 
 package jolie.net;
 
+import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;

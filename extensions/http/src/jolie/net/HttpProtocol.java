@@ -790,7 +790,7 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.operationName = message.requestPath().split( "\\?" )[0];
 		}
 
-		if ( !channel().parentListener().canHandleInputOperation( decodedMessage.operationName ) ) {
+		if ( !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getStringParameter( "default" );
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;

@@ -110,8 +110,13 @@ import javax.xml.validation.SchemaFactory;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCastingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -137,7 +142,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
 	private final TransformerFactory transformerFactory;
-	private Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
+	private final Map< String, String > namespacePrefixMap = new HashMap< String, String > ();
 	
 	private boolean received = false;
 	
@@ -850,6 +855,35 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 		
 		received = true;
+
+		if ( "/".equals( retVal.resourcePath() )
+			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
+			try {
+				// The message is for this service
+				Interface iface = channel().parentPort().getInterface();
+				OneWayTypeDescription oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+				if ( oneWayTypeDescription != null && message.isResponse() == false ) {
+					// We are receiving a One-Way message
+					oneWayTypeDescription.requestType().cast( retVal.value() );
+				} else {
+					RequestResponseTypeDescription rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+					if ( retVal.isFault() ) {
+						Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
+						if ( faultType != null ) {
+							faultType.cast( retVal.value() );
+						}
+					} else {
+						if ( message.isResponse() ) {
+							rrTypeDescription.responseType().cast( retVal.value() );
+						} else {
+							rrTypeDescription.requestType().cast( retVal.value() );
+						}
+					}
+				}
+			} catch( TypeCastingException e ) {
+				// TODO: do something here?
+			}
+		}
 		
 		return retVal;
 	}

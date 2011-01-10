@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -58,6 +58,44 @@ class TypeImpl extends Type
 		return cardinality;
 	}
 
+	protected Value cast( Value value, StringBuilder pathBuilder )
+		throws TypeCastingException
+	{
+		castNativeType( value, pathBuilder );
+		if ( subTypeSet != null ) {
+			for( Entry< String, Type > entry : subTypeSet ) {
+				castSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
+			}
+		}
+		
+		return value;
+	}
+
+	private void castSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
+		throws TypeCastingException
+	{
+		pathBuilder.append( '.' );
+		pathBuilder.append( typeName );
+
+		boolean hasChildren = value.hasChildren( typeName );
+		if ( hasChildren == false && type.cardinality().min() > 0 ) {
+			throw new TypeCastingException( "Undefined required child node: " + pathBuilder.toString() );
+		} else if ( hasChildren ) {
+			ValueVector vector = value.getChildren( typeName );
+			int size = vector.size();
+			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
+				throw new TypeCastingException(
+					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
+					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
+				);
+			}
+
+			for( Value v : vector ) {
+				type.cast( v, pathBuilder );
+			}
+		}
+	}
+
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
@@ -75,6 +113,11 @@ class TypeImpl extends Type
 					throw new TypeCheckingException( "Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
 			}
+		} else if ( value.hasChildren() ) {
+			throw new TypeCheckingException(
+				"Unexpected child node: " + pathBuilder.toString() + "." +
+				value.children().keySet().iterator().next()
+			);
 		}
 	}
 
@@ -99,6 +142,37 @@ class TypeImpl extends Type
 
 			for( Value v : vector ) {
 				type.check( v, pathBuilder );
+			}
+		}
+	}
+
+	private void castNativeType( Value value, StringBuilder pathBuilder )
+		throws TypeCastingException
+	{
+		if ( checkNativeType( value, nativeType ) == false ) {
+			// ANY is not handled, because checkNativeType returns true for it anyway
+			if ( nativeType == NativeType.DOUBLE ) {
+				value.setValue( value.doubleValue() );
+			} else if ( nativeType == NativeType.INT ) {
+				value.setValue( value.intValue() );
+			} else if ( nativeType == NativeType.STRING ) {
+				value.setValue( value.strValue() );
+			} else if ( nativeType == NativeType.VOID ) {
+				if ( value.valueObject() != null ) {
+					throw new TypeCastingException(
+						"Expected " + NativeType.VOID.id() + ", found " +
+						value.valueObject().getClass().getSimpleName() +
+						": " + pathBuilder.toString()
+					);
+				}
+			} else if ( nativeType == NativeType.RAW ) {
+				value.setValue( value.byteArrayValue() );
+			} else {
+				throw new TypeCastingException(
+					"Expected " + nativeType.id() + ", found " +
+					value.valueObject().getClass().getSimpleName() +
+					": " + pathBuilder.toString()
+				);
 			}
 		}
 	}
@@ -129,6 +203,9 @@ class TypeImpl extends Type
  */
 public abstract class Type
 {
+	public static final Type UNDEFINED =
+		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null );
+
 	public static Type create(
 		NativeType nativeType,
 		Range cardinality,
@@ -149,9 +226,17 @@ public abstract class Type
 		check( value, new StringBuilder( "#Message" ) );
 	}
 
+	public Value cast( Value value )
+		throws TypeCastingException
+	{
+		return cast( value, new StringBuilder( "#Message" ) );
+	}
+
 	protected abstract Range cardinality();
 	protected abstract void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException;
+	protected abstract Value cast( Value value, StringBuilder pathBuilder )
+		throws TypeCastingException;
 
 	public static class TypeLink extends Type
 	{
@@ -184,6 +269,12 @@ public abstract class Type
 			throws TypeCheckingException
 		{
 			linkedType.check( value, pathBuilder );
+		}
+
+		protected Value cast( Value value, StringBuilder pathBuilder )
+			throws TypeCastingException
+		{
+			return linkedType.cast( value, pathBuilder );
 		}
 	}
 }

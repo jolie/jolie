@@ -165,8 +165,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public void checkMessageType( CommMessage message )
 		throws TypeCheckingException
 	{
-		if ( operation.requestType() != null ) {
-			operation.requestType().check( message.value() );
+		if ( operation.typeDescription().requestType() != null ) {
+			operation.typeDescription().requestType().check( message.value() );
 		}
 	}
 	
@@ -208,8 +208,8 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	private CommMessage createFaultMessage( CommMessage request, FaultException f )
 		throws TypeCheckingException
 	{
-		if ( operation.faults().containsKey( f.faultName() ) ) {
-			Type faultType = operation.faults().get( f.faultName() );
+		if ( operation.typeDescription().faults().containsKey( f.faultName() ) ) {
+			Type faultType = operation.typeDescription().faults().get( f.faultName() );
 			if ( faultType != null ) {
 				faultType.check( f.value() );
 			}
@@ -253,9 +253,9 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 						message,
 						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 					);
-				if ( operation.responseType() != null ) {
+				if ( operation.typeDescription().responseType() != null ) {
 					try {
-						operation.responseType().check( response.value() );
+						operation.typeDescription().responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
 						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
 						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );

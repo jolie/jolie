@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi                                *
+ *   Copyright (C) 2009-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,9 +29,9 @@ import java.util.Map;
  */
 public class RequestResponseTypeDescription
 {
-	private Type requestType;
-	private Type responseType;
-	private Map<String, Type> faultTypes;
+	private final Type requestType;
+	private final Type responseType;
+	private final Map< String, Type > faultTypes;
 
 	public RequestResponseTypeDescription( Type requestType, Type responseType, Map<String, Type> faultTypes )
 	{
@@ -53,5 +53,10 @@ public class RequestResponseTypeDescription
 	public Type getFaultType( String faultName )
 	{
 		return faultTypes.get( faultName );
+	}
+
+	public Map< String, Type > faults()
+	{
+		return faultTypes;
 	}
 }

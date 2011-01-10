@@ -59,7 +59,7 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommCore;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
 import jolie.runtime.embedding.EmbeddedServiceLoader;

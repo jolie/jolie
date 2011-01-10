@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,39 +22,22 @@
 
 package jolie.runtime;
 
-import java.util.Map;
-import jolie.runtime.typing.Type;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 
 public class RequestResponseOperation extends InputOperation
 {
-	private final Type requestType;
-	private final Type responseType;
-	private final Map< String, Type > faults;
+	private RequestResponseTypeDescription typeDescription;
 
 	public RequestResponseOperation(
 		String id,
-		Type requestType,
-		Type responseType,
-		Map< String, Type > faults
+		RequestResponseTypeDescription typeDescription
 	) {
 		super( id );
-		this.requestType = requestType;
-		this.responseType = responseType;
-		this.faults = faults;
+		this.typeDescription = typeDescription;
 	}
 
-	public Type requestType()
+	public RequestResponseTypeDescription typeDescription()
 	{
-		return requestType;
-	}
-
-	public Type responseType()
-	{
-		return responseType;
-	}
-	
-	public Map< String, Type > faults()
-	{
-		return faults;
+		return typeDescription;
 	}
 }

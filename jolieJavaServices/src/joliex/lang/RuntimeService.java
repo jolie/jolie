@@ -30,7 +30,7 @@ import jolie.Interpreter;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
@@ -110,7 +110,7 @@ public class RuntimeService extends JavaService
 		String opName = request.getChildren( "outputPortName" ).first().strValue();
 		try {
 			OutputPort port = interpreter.getOutputPort( opName );
-			listener.redirectionMap().put( resourceName, port );
+			listener.inputPort().redirectionMap().put( resourceName, port );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "RuntimeException", e );
 		}
@@ -127,7 +127,7 @@ public class RuntimeService extends JavaService
 			throw new FaultException( "RuntimeException", "Unknown inputPort: " + serviceName );
 		
 		String resourceName = request.getChildren( "resourceName" ).first().strValue();
-		listener.redirectionMap().remove( resourceName );
+		listener.inputPort().redirectionMap().remove( resourceName );
 	}
 
 	public Value getRedirection( Value request )
@@ -142,7 +142,7 @@ public class RuntimeService extends JavaService
 		}
 		
 		String resourceName = request.getChildren( "resourceName" ).first().strValue();
-		OutputPort p = listener.redirectionMap().get( resourceName );
+		OutputPort p = listener.inputPort().redirectionMap().get( resourceName );
 		if ( p == null ) {
 			ret = Value.create();
 		} else {

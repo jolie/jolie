@@ -20,6 +20,7 @@
  ***************************************************************************/
 package jolie.net;
 
+import jolie.net.ports.OutputPort;
 import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
 import java.io.IOException;

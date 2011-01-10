@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2006-2011 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.net.ports;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,6 +37,7 @@ import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.Interpreter;
+import jolie.net.CommChannel;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.SequentialProcess;
 import jolie.runtime.Expression;
@@ -49,13 +50,14 @@ import jolie.util.LocationParser;
  *
  * @author Fabrizio Montesi
  */
-public class OutputPort extends AbstractIdentifiableObject
+public class OutputPort extends AbstractIdentifiableObject implements Port
 {
 	private final Interpreter interpreter;
 	private final Process configurationProcess;
 	private Expression locationExpression;
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
+	private final Interface iface;
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -81,20 +83,26 @@ public class OutputPort extends AbstractIdentifiableObject
 
 		this.configurationProcess = null;
 		this.isConstant = false;
+
+		this.iface = Interface.UNDEFINED;
 	}
 	
-	// To be called by OOITBuilder
+	/**
+	 * To be called by OOITBuilder
+	 */
 	public OutputPort(
 			Interpreter interpreter,
 			String id,
 			String protocolId,
 			Process protocolConfigurationProcess,
 			URI locationURI,
+			Interface iface,
 			boolean isConstant
 	) {
 		super( id );
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
+		this.iface = iface;
 
 		this.protocolVariablePath =
 					new VariablePathBuilder( false )
@@ -123,11 +131,21 @@ public class OutputPort extends AbstractIdentifiableObject
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
 	}
 
+	public Interface getInterface()
+	{
+		return iface;
+	}
+
 	public void optimizeLocation()
 	{
 		if ( isConstant ) {
 			locationExpression = locationVariablePath.getValue();
 		}
+	}
+
+	public VariablePath protocolConfigurationPath()
+	{
+		return protocolVariablePath;
 	}
 
 	/**
@@ -136,21 +154,8 @@ public class OutputPort extends AbstractIdentifiableObject
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommProtocol getProtocol()
+	public synchronized CommProtocol getProtocol()
 		throws IOException, URISyntaxException
-	{
-		return getProtocol( new URI( locationExpression.evaluate().strValue() ) );
-	}
-
-	/**
-	 * Gets the protocol to be used for communicating with this output port,
-	 * configuring it using the passed location URI.
-	 * @param location the location to use for configuring the returned protocol
-	 * @return the protocol to be used for communicating with this output port
-	 * @throws java.io.IOException
-	 */
-	public synchronized CommProtocol getProtocol( URI location )
-		throws IOException
 	{
 		String protocolId = protocolVariablePath.getValue().strValue();
 		if ( protocolId.isEmpty() ) {
@@ -159,7 +164,7 @@ public class OutputPort extends AbstractIdentifiableObject
 		return interpreter.commCore().createOutputCommProtocol(
 			protocolId,
 			protocolVariablePath,
-			location
+			new URI( locationExpression.evaluate().strValue() )
 		);
 	}
 
@@ -187,9 +192,11 @@ public class OutputPort extends AbstractIdentifiableObject
 				if ( ret == null ) {
 					ret = interpreter.commCore().createCommChannel( uri, this );
 				}
+
 			}
 		}
 
+		ret.setParentOutputPort( this );
 		return ret;
 	}
 

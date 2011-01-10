@@ -22,15 +22,10 @@
 package jolie.net.ext;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.CommListener;
-import jolie.net.OutputPort;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 /**
  * A factory for delegating the creation of communication listeners to extensions.
@@ -38,14 +33,14 @@ import jolie.runtime.VariablePath;
  */
 public abstract class CommListenerFactory
 {
-	final private CommCore commCore;
+	private final CommCore commCore;
 
 	protected CommListenerFactory( CommCore commCore )
 	{
 		this.commCore = commCore;
 	}
 
-	final protected CommCore commCore()
+	protected final CommCore commCore()
 	{
 		return commCore;
 	}
@@ -64,12 +59,8 @@ public abstract class CommListenerFactory
 	 */
 	abstract public CommListener createListener(
 									Interpreter interpreter,
-									URI location,
 									CommProtocolFactory protocolFactory,
-									VariablePath protocolConfigurationPath,
-									Collection< String > operationNames,
-									Map< String, AggregatedOperation > aggregationMap,
-									Map< String, OutputPort > redirectionMap
+									InputPort inputPort
 								)
 		throws IOException;
 }
