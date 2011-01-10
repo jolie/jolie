@@ -39,6 +39,11 @@ public class PreBufferedInputStream extends InputStream
 		this.istream = istream;
 	}
 
+	public synchronized boolean hasCachedData()
+	{
+		return count > 0;
+	}
+
 	public synchronized int read()
 		throws IOException
 	{
@@ -54,6 +59,7 @@ public class PreBufferedInputStream extends InputStream
 		if ( readPos >= buffer.length ) {
 			readPos = 0;
 		}
+
 		return buffer[ readPos++ ];
 	}
 
