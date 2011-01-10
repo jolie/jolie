@@ -105,7 +105,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	protected void sendImpl( CommMessage message )
 	{
-		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener );
+		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
 	public CommMessage recvResponseFor( CommMessage request )

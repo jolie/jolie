@@ -29,7 +29,7 @@ import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;

@@ -22,14 +22,10 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 /**
  * A factory for <code>SocketListener</code>.
@@ -45,15 +41,11 @@ public class SocketListenerFactory extends CommListenerFactory
 
 	public CommListener createListener(
 					Interpreter interpreter,
-					URI location,
 					CommProtocolFactory protocolFactory,
-					VariablePath protocolConfigurationPath,
-					Collection< String > operationNames,
-					Map< String, AggregatedOperation > aggregationMap,
-					Map< String, OutputPort > redirectionMap
+					InputPort inputPort
 				)
 		throws IOException
 	{
-		return new SocketListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
+		return new SocketListener( interpreter, protocolFactory, inputPort );
 	}
 }

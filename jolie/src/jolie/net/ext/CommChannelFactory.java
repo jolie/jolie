@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 
 /**
  * A factory for delegating the creation of output communication channels to extensions.

@@ -24,7 +24,7 @@ package jolie.process;
 import java.util.Collection;
 import java.util.List;
 import jolie.Interpreter;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;

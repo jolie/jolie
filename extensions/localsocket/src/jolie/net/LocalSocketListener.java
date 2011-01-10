@@ -26,15 +26,11 @@ import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.channels.ClosedByInterruptException;
-import java.util.Collection;
-import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 public class LocalSocketListener extends CommListener
 {
@@ -42,18 +38,14 @@ public class LocalSocketListener extends CommListener
 	final private UnixSocketAddress socketAddress;
 	public LocalSocketListener(
 				Interpreter interpreter,
-				URI location,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				InputPort inputPort
 			)
 		throws IOException
 	{
-		super( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
+		super( interpreter, protocolFactory, inputPort );
 
-		socketAddress = new UnixSocketAddress( location.getPath(), location.getScheme().equals( "abs" ) );
+		socketAddress = new UnixSocketAddress( inputPort.location().getPath(), inputPort.location().getScheme().equals( "abs" ) );
 		serverSocket = new UnixServerSocket( socketAddress );
 	}
 	
@@ -74,11 +66,11 @@ public class LocalSocketListener extends CommListener
 			while ( (socket = serverSocket.accept()) != null ) {
 				channel = new LocalSocketCommChannel(
 								socket,
-								location(),
+								inputPort().location(),
 								createProtocol()
 							);
-				channel.setParentListener( this );
-				interpreter().commCore().scheduleReceive( channel, this );
+				channel.setParentInputPort( inputPort() );
+				interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection
 			}
 			serverSocket.close();

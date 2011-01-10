@@ -21,17 +21,12 @@
 package joliex.rmi;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Map;
 import jolie.Interpreter;
 import jolie.net.CommCore;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.net.OutputPort;
 import jolie.net.CommListener;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 public class RMIListenerFactory extends CommListenerFactory
 {
@@ -42,15 +37,11 @@ public class RMIListenerFactory extends CommListenerFactory
 
 	public CommListener createListener(
 							Interpreter interpreter,
-							URI location,
 							CommProtocolFactory protocolFactory,
-							VariablePath protocolConfigurationPath,
-							Collection< String > operationNames,
-							Map< String, AggregatedOperation > aggregationMap,
-							Map< String, OutputPort > redirectionMap
+							InputPort inputPort
 						)
 		throws IOException
 	{
-		return new RMIListener( interpreter, location, protocolFactory, protocolConfigurationPath, operationNames, aggregationMap, redirectionMap );
+		return new RMIListener( interpreter, protocolFactory, inputPort );
 	}
 }

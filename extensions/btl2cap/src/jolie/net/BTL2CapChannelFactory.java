@@ -20,6 +20,7 @@
  ***************************************************************************/
 package jolie.net;
 
+import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -29,11 +29,11 @@ import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
-import jolie.runtime.typing.Type;
+import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 
 public class NotificationProcess implements Process
@@ -41,19 +41,19 @@ public class NotificationProcess implements Process
 	private final String operationId;
 	private final OutputPort outputPort;
 	private final Expression outputExpression; // may be null
-	private final Type outputType; // may be null
+	private final OneWayTypeDescription oneWayDescription; // may be null
 
 	public NotificationProcess(
 			String operationId,
 			OutputPort outputPort,
 			Expression outputExpression,
-			Type outputType
+			OneWayTypeDescription outputType
 			)
 	{
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
-		this.outputType = outputType;
+		this.oneWayDescription = outputType;
 	}
 	
 	public Process clone( TransformationReason reason )
@@ -62,7 +62,7 @@ public class NotificationProcess implements Process
 					operationId,
 					outputPort,
 					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
-					outputType
+					oneWayDescription
 				);
 	}
 
@@ -85,8 +85,8 @@ public class NotificationProcess implements Process
 				( outputExpression == null ) ?
 						CommMessage.createOneWayMessage( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE ) :
 						CommMessage.createOneWayMessage( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
-			if ( outputType != null ) {
-				outputType.check( message.value() );
+			if ( oneWayDescription != null ) {
+				oneWayDescription.requestType().check( message.value() );
 			}
 			CommChannel channel = outputPort.getCommChannel();
 			if ( verbose ) {

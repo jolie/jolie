@@ -103,8 +103,9 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.net.OutputPort;
+import jolie.net.ports.OutputPort;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ports.Interface;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
@@ -173,6 +174,7 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.util.Pair;
@@ -188,6 +190,7 @@ public class OOITBuilder implements OLVisitor
 	private boolean valid = true;
 	private final Interpreter interpreter;
 	private String currentOutputPort = null;
+	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > isConstantMap;
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
 
@@ -281,23 +284,38 @@ public class OOITBuilder implements OLVisitor
 		if ( (isConstant = isConstantMap.get( n.id() )) == null ) {
 			isConstant = false;
 		}
-		interpreter.register( n.id(), new OutputPort(
-						interpreter,
-						n.id(),
-						n.protocolId(),
-						protocolConfigurationProcess,
-						n.location(),
-						isConstant
-					)
-				);
 
 		currentOutputPort = n.id();
-		notificationTypes.put( currentOutputPort, new HashMap< String, Type >() );
+		notificationTypes.put( currentOutputPort, new HashMap< String, OneWayTypeDescription >() );
 		solicitResponseTypes.put( currentOutputPort, new HashMap< String, RequestResponseTypeDescription >() );
 		for( OperationDeclaration decl : n.operations() ) {
 			decl.accept( this );
 		}
 		currentOutputPort = null;
+
+		interpreter.register( n.id(), new OutputPort(
+				interpreter,
+				n.id(),
+				n.protocolId(),
+				protocolConfigurationProcess,
+				n.location(),
+				getOutputPortInterface( n.id() ),
+				isConstant
+			)
+		);
+	}
+
+	private Interface getOutputPortInterface( String outputPortName )
+	{
+		Map< String, OneWayTypeDescription > oneWayMap = notificationTypes.get( outputPortName );
+		if ( oneWayMap == null ) {
+			oneWayMap = new HashMap< String, OneWayTypeDescription >();
+		}
+		Map< String, RequestResponseTypeDescription > rrMap = solicitResponseTypes.get( outputPortName );
+		if ( rrMap == null ) {
+			rrMap = new HashMap< String, RequestResponseTypeDescription >();
+		}
+		return new Interface( oneWayMap, rrMap );
 	}
 	
 	public void visit( EmbeddedServiceNode n )
@@ -322,6 +340,10 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( InputPortInfo n )
 	{
+		currentPortInterface = new Interface(
+			new HashMap< String, OneWayTypeDescription >(),
+			new HashMap< String, RequestResponseTypeDescription >()
+		);
 		for( OperationDeclaration op : n.operations() ) {
 			op.accept( this );
 		}
@@ -339,7 +361,7 @@ public class OOITBuilder implements OLVisitor
 		}
 
 		OutputPort outputPort;
-		Map< String, Type > outputPortNotificationTypes;
+		Map< String, OneWayTypeDescription > outputPortNotificationTypes;
 		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
 		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
 		for( String outputPortName : n.aggregationList() ) {
@@ -360,7 +382,7 @@ public class OOITBuilder implements OLVisitor
 		
 		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			try {
-				interpreter.commCore().addLocalInputPort( n.id(), n.operationsMap().keySet(), aggregationMap, redirectionMap );
+				interpreter.commCore().addLocalInputPort( n.id(), currentPortInterface, aggregationMap, redirectionMap );
 			} catch( IOException e ) {
 				error( n.context(), e );
 			}
@@ -407,7 +429,7 @@ public class OOITBuilder implements OLVisitor
 					protocolFactory,
 					protocolConfigurationPath,
 					protocolConfigurationSequence,
-					new HashSet< String >( n.operationsMap().keySet() ),
+					currentPortInterface,
 					aggregationMap,
 					redirectionMap
 				);
@@ -417,6 +439,7 @@ public class OOITBuilder implements OLVisitor
 		} else {
 			error( n.context(), "Communication protocol extension for protocol " + pId + " not found." );
 		}
+		currentPortInterface = null;
 	}
 
 	private Process currProcess;
@@ -428,8 +451,8 @@ public class OOITBuilder implements OLVisitor
 	
 	final private Map< String, Type > types = new HashMap< String, Type >();
 
-	final private Map< String, Map< String, Type > > notificationTypes =
-		new HashMap< String, Map< String, Type > >(); // Maps output ports to their OW operation types
+	final private Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
+		new HashMap< String, Map< String, OneWayTypeDescription > >(); // Maps output ports to their OW operation types
 	final private Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
 		new HashMap< String, Map< String, RequestResponseTypeDescription > >(); // Maps output ports to their RR operation types
 
@@ -491,38 +514,48 @@ public class OOITBuilder implements OLVisitor
 	{
 		boolean backup = insideOperationDeclaration;
 		insideOperationDeclaration = true;
+		OneWayTypeDescription typeDescription = null;
 		if ( currentOutputPort == null ) {
 			// Register if not already present
+			typeDescription = new OneWayTypeDescription( types.get( decl.requestType().id() ) );
 			try {
 				interpreter.getOneWayOperation( decl.id() );
 			} catch( InvalidIdException e ) {
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
 			}
 		} else {
-			notificationTypes.get( currentOutputPort ).put( decl.id(), buildType( decl.requestType() ) );
+			typeDescription = new OneWayTypeDescription( buildType( decl.requestType() ) );
+			notificationTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
 		}
+
+		if ( currentPortInterface != null ) {
+			currentPortInterface.oneWayOperations().put( decl.id(), typeDescription );
+		}
+
 		insideOperationDeclaration = backup;
 	}
 
 	public void visit( RequestResponseOperationDeclaration decl )
 	{
+		RequestResponseTypeDescription typeDescription = null;
 		if ( currentOutputPort == null ) {
 			// Register if not already present
 			try {
-				interpreter.getRequestResponseOperation( decl.id() );
+				RequestResponseOperation op = interpreter.getRequestResponseOperation( decl.id() );
+				typeDescription = op.typeDescription();
 			} catch( InvalidIdException e ) {
 				Map< String, Type > faults = new HashMap< String, Type >();
 				for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
 					faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
 				}
+				typeDescription = new RequestResponseTypeDescription(
+					types.get( decl.requestType().id() ),
+					types.get( decl.responseType().id() ),
+					faults
+				);
 				interpreter.register(
 					decl.id(),
-					new RequestResponseOperation(
-						decl.id(),
-						types.get( decl.requestType().id() ),
-						types.get( decl.responseType().id() ),
-						faults
-					)
+					new RequestResponseOperation( decl.id(), typeDescription )
 				);
 			}
 		} else {
@@ -533,8 +566,12 @@ public class OOITBuilder implements OLVisitor
 			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
 				faultTypes.put( entry.getKey(), types.get( entry.getValue().id() ) );
 			}
-			RequestResponseTypeDescription desc = new RequestResponseTypeDescription( requestType, responseType, faultTypes );
-			solicitResponseTypes.get( currentOutputPort ).put( decl.id(), desc );
+			typeDescription = new RequestResponseTypeDescription( requestType, responseType, faultTypes );
+			solicitResponseTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
+		}
+
+		if ( currentPortInterface != null ) {
+			currentPortInterface.requestResponseOperations().put( decl.id(), typeDescription );
 		}
 	}
 

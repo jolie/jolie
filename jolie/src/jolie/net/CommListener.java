@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2006-2011 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,16 +23,12 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.JolieThread;
 import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
 
 /**
  * Base class for a communication input listener. A <code>CommListener</code>
@@ -41,17 +37,12 @@ import jolie.runtime.VariablePath;
  * an input receiving loop. See {@link SocketListener <code>SocketListener</code>} as an example.
  * @author Fabrizio Montesi
  */
-abstract public class CommListener extends JolieThread
+public abstract class CommListener extends JolieThread
 {
 	private static int index = 0;
 
 	private final CommProtocolFactory protocolFactory;
-	protected final Collection< String > operationNames;
-	protected final Map< String, AggregatedOperation > aggregationMap;
-	protected final Map< String, OutputPort > redirectionMap;
-
-	private final VariablePath protocolConfigurationPath;
-	private final URI location;
+	private final InputPort inputPort;
 
 	/**
 	 * Constructor
@@ -65,86 +56,35 @@ abstract public class CommListener extends JolieThread
 	 */
 	public CommListener(
 				Interpreter interpreter,
-				URI location,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				InputPort inputPort
 			)
 	{
 		super( interpreter, interpreter.commCore().threadGroup(), "CommListener-" + index++ );
 		this.protocolFactory = protocolFactory;
-		this.operationNames = operationNames;
-		this.aggregationMap = aggregationMap;
-		this.redirectionMap = redirectionMap;
-		this.protocolConfigurationPath = protocolConfigurationPath;
-		this.location = location;
+		this.inputPort = inputPort;
 	}
 	
-	protected CommListener(
-				Interpreter interpreter,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
-			)
+	protected CommListener(	Interpreter interpreter, InputPort inputPort )
 	{
 		super( interpreter );
 		this.protocolFactory = null;
-		this.operationNames = operationNames;
-		this.aggregationMap = aggregationMap;
-		this.redirectionMap = redirectionMap;
-		this.protocolConfigurationPath = null;
-		this.location = null;
+		this.inputPort = inputPort;
 	}
 
 	protected CommProtocol createProtocol()
 		throws IOException
 	{
-		return protocolFactory.createInputProtocol( protocolConfigurationPath, location );
-	}
-	
-	/**
-	 * Returns the redirection map of this listener.
-	 * @return the redirection map of this listener
-	 */
-	public Map< String, OutputPort > redirectionMap()
-	{
-		return redirectionMap;
-	}
-
-	protected URI location()
-	{
-		return location;
-	}
-	
-	/**
-	 * Returns <code>true</code> if this listener can handle a message for operation operationName (either directly or through aggregation), false otherwise.
-	 * @param operation the <code>InputOperation</code> name to check for
-	 * @return <code>true</code> if this CommListener can handle a message for the given operationName, <code>false</code> otherwise
-	 */
-	public boolean canHandleInputOperation( String operationName )
-	{
-		if ( operationNames.contains( operationName ) ) {
-			return true;
-		} else {
-			return aggregationMap.containsKey( operationName );
-		}
+		return protocolFactory.createInputProtocol( inputPort.protocolConfigurationPath(), inputPort.location() );
 	}
 
 	/**
-	 * Returns <code>true</code> if this listener can handle a message for operation operationName directly (i.e. without recurring to aggregated output ports), <code>false</code> otherwise.
-	 * @param operation the input operation name to check for
-	 * @return <code>true</code> if this listener can handle a message for the given operationName directly, <code>false</code> otherwise.
+	 * Returns the {@link InputPort} associated to this listener.
+	 * @return the input port associated to this listener.
 	 */
-	public boolean canHandleInputOperationDirectly( String operationName )
+	public InputPort inputPort()
 	{
-		return operationNames.contains( operationName );
-	}
-
-	public AggregatedOperation getAggregatedOperation( String operationName )
-	{
-		return aggregationMap.get( operationName );
+		return inputPort;
 	}
 
 	/**

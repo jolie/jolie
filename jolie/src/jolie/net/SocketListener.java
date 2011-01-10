@@ -24,18 +24,14 @@ package jolie.net;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.URI;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Collection;
-import java.util.Map;
 
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
-import jolie.runtime.AggregatedOperation;
-import jolie.runtime.VariablePath;
+import jolie.net.ports.InputPort;
 
 /**
  * A communication listener using sockets as backend.
@@ -47,31 +43,23 @@ public class SocketListener extends CommListener
 
 	public SocketListener(
 				Interpreter interpreter,
-				URI location,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Collection< String > operationNames,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				InputPort inputPort
 			)
 		throws IOException
 	{
 		super(
 			interpreter,
-			location,
 			protocolFactory,
-			protocolConfigurationPath,
-			operationNames,
-			aggregationMap,
-			redirectionMap
+			inputPort
 		);
 		
 		serverChannel = ServerSocketChannel.open();
 		ServerSocket socket = serverChannel.socket();
 		try {
-			socket.bind( new InetSocketAddress( location.getPort() ) );
+			socket.bind( new InetSocketAddress( inputPort.location().getPort() ) );
 		} catch( IOException e ) {
-			IOException exception = new IOException( e.getMessage() + " [with location: " + location.toString() + "]" );
+			IOException exception = new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
 			exception.setStackTrace( e.getStackTrace() );
 			throw exception;
 		}
@@ -95,10 +83,10 @@ public class SocketListener extends CommListener
 			while ( (socketChannel = serverChannel.accept()) != null ) {
 				channel = new SocketCommChannel(
 							socketChannel,
-							location(),
+							inputPort().location(),
 							createProtocol() );
-				channel.setParentListener( this );
-				interpreter().commCore().scheduleReceive( channel, this );
+				channel.setParentInputPort( inputPort() );
+				interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection
 			}
 		} catch( ClosedByInterruptException e ) {
