@@ -49,6 +49,23 @@ import jolie.runtime.ValueVector;
  */
 public class XmlUtils
 {
+	private static final String JOLIE_TYPE_ATTRIBUTE = "_jolie_type";
+
+	/**
+	 * Transforms a jolie.Value object to an XML Document instance preserving types.
+	 * @see Document
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document
+	 * @param document the XML document receiving the transformation
+	 * @author Claudio Guidi 7/1/2011
+	 */
+	public static void valueToStorageDocument( Value value, String rootNodeName, Document document )
+	{
+		Element root = document.createElement( rootNodeName );
+		document.appendChild( root );
+		_valueToStorageDocument( value, root, document );
+	}
+
 	/**
 	 * Transforms a jolie.Value object to an XML Document instance.
 	 * @see Document
@@ -77,6 +94,7 @@ public class XmlUtils
 		document.appendChild( root );
 		_valueToDocument( value, root, document, type );
 	}
+
 
 	private static void _valueToDocument( Value value, Element element, Document doc, XSModelGroup modelGroup )
 	{
@@ -209,6 +227,52 @@ public class XmlUtils
 		}
 	}
 
+	/*
+	 * author Claudio Guidi
+	 * 7/1/2011
+	 */
+	private static void _valueToStorageDocument(
+		Value value,
+		Element element,
+		Document doc
+	) {
+		// Supports only string, int and double
+		if ( value.isString() ) {
+			element.appendChild( doc.createTextNode( value.strValue() ) );
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "string" );
+		} else if ( value.isInt() ) {
+			element.appendChild( doc.createTextNode( new Integer( value.intValue() ).toString() ) );
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "int" );
+		} else if ( value.isDouble() ) {
+			element.appendChild( doc.createTextNode( new Double( value.doubleValue() ).toString() ) );
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "double" );
+		} else {
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "void" );
+		}
+
+		// adding other attributes
+		Map<String, ValueVector> attrs = getAttributesOrNull( value );
+		if ( attrs != null ) {
+			for( Entry<String, ValueVector> attrEntry : attrs.entrySet() ) {
+				element.setAttribute(
+					attrEntry.getKey(),
+					attrEntry.getValue().first().strValue() );
+			}
+		}
+
+		// adding subelements
+		Element currentElement;
+		for( Entry<String, ValueVector> entry : value.children().entrySet() ) {
+			if ( !entry.getKey().startsWith( "@" ) ) {
+				for( Value val : entry.getValue() ) {
+					currentElement = doc.createElement( entry.getKey() );
+					element.appendChild( currentElement );
+					_valueToStorageDocument( val, currentElement, doc );
+				}
+			}
+		}
+	}
+
 	public static Map< String, ValueVector > getAttributesOrNull( Value value )
 	{
 		Map< String, ValueVector > ret = null;
@@ -236,6 +300,20 @@ public class XmlUtils
 		elementsToSubValues(
 			value,
 			document.getDocumentElement().getChildNodes()
+		);
+	}
+
+	/*
+	 * author: Claudio Guidi
+	 * 7/1/2011
+	 */
+	public static void storageDocumentToValue( Document document, Value value )
+	{
+		String type = setAttributesForStoring( value, document.getDocumentElement() );
+		elementsToSubValuesForStoring(
+			value,
+			document.getDocumentElement().getChildNodes(),
+			type
 		);
 	}
 	
@@ -270,7 +348,69 @@ public class XmlUtils
 			}
 		}
 	}
-	
+
+	/*
+	 * author Claudio Guidi
+	 * 7/1/2011
+	 * @return the type of the JOLIE_TYPE
+	 */
+	private static String setAttributesForStoring( Value value, Node node )
+	{
+		NamedNodeMap map = node.getAttributes();
+		String type = "";
+		if ( map != null ) {
+			Node attr;
+			for( int i = 0; i < map.getLength(); i++ ) {
+				attr = map.item( i );
+				if ( !attr.getNodeName().equals( JOLIE_TYPE_ATTRIBUTE ) ) {  // do not consider attribute type
+					getAttribute( value, (attr.getLocalName() == null) ? attr.getNodeName() : attr.getLocalName() ).setValue( attr.getNodeValue() );
+				} else {
+					type = attr.getNodeValue();
+				}
+			}
+		}
+		return type;
+	}
+
+	/*
+	 * author Claudio Guidi
+	 * 7/1/2011
+	 */
+	private static void elementsToSubValuesForStoring( Value value, NodeList list, String type )
+	{
+		Node node;
+		Value childValue;
+		StringBuilder builder = new StringBuilder();
+		for( int i = 0; i < list.getLength(); i++ ) {
+			node = list.item( i );
+			switch( node.getNodeType() ) {
+				case Node.ATTRIBUTE_NODE:
+					if ( !node.getNodeName().equals( JOLIE_TYPE_ATTRIBUTE ) ) {
+						getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
+					}
+					break;
+				case Node.ELEMENT_NODE:
+					childValue = value.getNewChild( (node.getLocalName() == null) ? node.getNodeName() : node.getLocalName() );
+					String subElType = setAttributesForStoring( childValue, node );
+					elementsToSubValuesForStoring( childValue, node.getChildNodes(), subElType );
+					break;
+				case Node.CDATA_SECTION_NODE:
+				case Node.TEXT_NODE:
+					builder.append( node.getNodeValue() );
+					break;
+			}
+		}
+		if ( builder.length() > 0 ) {
+			if ( type.equals( "string" ) ) {
+				value.setValue( builder.toString() );
+			} else if ( type.equals( "int" ) ) {
+				value.setValue( new Integer( builder.toString() ) );
+			} else if ( type.equals( "double" ) ) {
+				value.setValue( new Double( builder.toString() ) );
+			}
+		}
+	}
+
 	private static void elementsToSubValues( Value value, NodeList list )
 	{
 		Node node;
