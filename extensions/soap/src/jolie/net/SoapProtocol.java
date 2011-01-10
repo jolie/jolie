@@ -496,7 +496,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	private String getOutputMessageRootElementName( String operationName )
 		throws IOException
 	{
-		String elementName = operationName;
+		String elementName = operationName + (( received ) ? "Response" : "");
 		Port port = getWSDLPort();
 		if ( port != null ) {
 			try {
