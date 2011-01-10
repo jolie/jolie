@@ -227,7 +227,7 @@ public abstract class JavaService
 				isRequestResponse = true;
 			}
 			exceptions = method.getExceptionTypes();
-			if ( isRequestResponse && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
+			if ( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
 				operations.put(
 					method.getName(),
 					new JavaOperation( Constants.OperationType.REQUEST_RESPONSE, method, parameterConstructor, null )
@@ -299,15 +299,16 @@ public abstract class JavaService
 					ret = CommMessage.createResponse( message, (Value)javaOperation.returnValueConstructor.invoke( null, retObject ) );
 				}
 			} catch( InvocationTargetException e ) {
+				FaultException fault;
 				if ( e.getCause() instanceof FaultException ) {
-					ret = CommMessage.createFaultResponse(
-								message,
-								(FaultException)e.getCause()
-						);
+					fault = (FaultException)e.getCause();
 				} else {
-					// This should never happen, as we filtered this out in the constructor.
-					interpreter.logSevere( e );
+					fault = new FaultException( e.getCause() );
 				}
+				ret = CommMessage.createFaultResponse(
+					message,
+					fault
+				);
 			}
 		}
 		return ret;
