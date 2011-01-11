@@ -320,7 +320,7 @@ public class HtmlDocumentCreatorNew
 		throws IOException
 	{
 
-
+        String location = inputPortInfo.location() == null ? "" : inputPortInfo.location().toString();
 		writer.write( "<H3>" + "Documentation for Port " + inputPortInfo.id() + "</H3>" );
 
 		writer.write( "<table border=\"1\">" );
@@ -332,8 +332,8 @@ public class HtmlDocumentCreatorNew
 		writer.write( "</tr>" );
 		writer.write( "<tr>" );
 		writer.write( "<td>" + inputPortInfo.id() + "</td>" );
-		writer.write( "<td>" + inputPortInfo.id() + "</td>" );
-		writer.write( "<td>" + inputPortInfo.id() + "</td>" );
+		writer.write( "<td>" + location + "</td>" );
+		writer.write( "<td>" + inputPortInfo.protocolId() + "</td>" );
 		//writer.write( "<td>" + "<a href=\"#Code\"> CodePort </a><br />" + "</td>" + "<BR>" );
 		writer.write( "</tr>" );
 
@@ -351,11 +351,19 @@ public class HtmlDocumentCreatorNew
 		for( InterfaceDefinition interfaceDefintion : interfacesList ) {
 
 			String interfaceSourceName = interfaceDefintion.context().sourceName().substring( interfaceDefintion.context().sourceName().lastIndexOf( "/" ) + 1 );
-			if ( interfaceSourceName.equals( nameFile ) ) {
+			String interfaceHtmlFileName=interfaceSourceName.replace( ".", "_")+".html";
+			if (interfaceSourceName.endsWith( this.nameFile)){
 				writer.write( "<tr>" );
 				writer.write( "<td>" + "<A href=\"" + interfaceDefintion.name() + "\">" + interfaceDefintion.name() + " </A></td>" );
 				writer.write( "</tr>" + "<BR>" );
+			}else
+			{
+			writer.write( "<tr>" );
+			writer.write( "<td>" + "<a href=\"" + interfaceHtmlFileName+ "\"" + "target=\"" + interfaceDefintion.name() + "\">" + interfaceDefintion.name() + "</a><br />" + "</td>" );
+		    writer.write( "</tr>" + "<BR>" );
+
 			}
+			
 
 		}
 		
@@ -374,7 +382,7 @@ public class HtmlDocumentCreatorNew
 
 		if ( typesDefinition.hasSubTypes() ) {
 
-			writer.write( "<H3>" + "Type " + typesDefinition.id() + "</H3>" );
+			writer.write( "<H3 id=\""+ typesDefinition.id() +"\">"+"Type " + typesDefinition.id() + "</H3>" );
 			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a>" );
 			writer.write( "\n" );
 			writeType( typesDefinition, false, writer, 0 );
@@ -407,7 +415,7 @@ public class HtmlDocumentCreatorNew
 			//here goese the check
 			link.linkedType().context().sourceName();
 			System.out.print( link.linkedType().context().source().getRawSchemeSpecificPart() );
-			String supportLinkedTypeFileName = link.linkedType().context().source().getSchemeSpecificPart();
+			String supportLinkedTypeFileName = link.linkedType().context().source().getSchemeSpecificPart().substring(link.linkedType().context().source().getSchemeSpecificPart().lastIndexOf( "/")+1 );
 			if ( supportLinkedTypeFileName.equals( this.nameFile ) ) {
 				builder.append( "<a href=\"#" + link.linkedType().id() + "\">" + link.linkedType().id() + "</a>" );
 			} else {
