@@ -132,6 +132,22 @@ public class FileService extends JavaService
 		}
 	}
 	
+	private void readXMLIntoValueForStoring( InputStream istream, Value value )
+		throws IOException
+	{
+		try {
+			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+			InputSource src = new InputSource( new InputStreamReader( istream ) );
+			Document doc = builder.parse( src );
+			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
+			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( SAXException e ) {
+			throw new IOException( e );
+		}
+	}
+	
 	private static void readTextIntoValue( InputStream istream, long size, Value value, Charset charset )
 		throws IOException
 	{
@@ -222,6 +238,8 @@ public class FileService extends JavaService
 					readBinaryIntoValue( istream, size, retValue );
 				} else if ( "xml".equals( format ) ) {
 					readXMLIntoValue( istream, retValue );
+				} else if ( "xml_store".equals( format ) ) {
+					readXMLIntoValueForStoring( istream, retValue );
 				} else if ( "properties".equals( format ) ) {
 					readPropertiesFile( istream, retValue );
 				} else {
@@ -325,6 +343,34 @@ public class FileService extends JavaService
 		}
 	}
 
+	private void writeStorageXML( File file, Value value )
+		throws IOException
+	{
+		if ( value.children().isEmpty() ) {
+			return; // TODO: perhaps we should erase the content of the file before returning.
+		}
+		String rootName = value.children().keySet().iterator().next();
+		try {
+			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+			jolie.xml.XmlUtils.valueToStorageDocument(
+				value.getFirstChild( rootName ),
+				rootName,
+				doc
+			);
+			Transformer transformer = transformerFactory.newTransformer();
+			transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			Writer writer = new FileWriter( file, false );
+			StreamResult result = new StreamResult( writer );
+			transformer.transform( new DOMSource( doc ), result );
+		} catch( ParserConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
+		} catch( TransformerException e ) {
+			throw new IOException( e );
+		}
+	}
+
 	private static void writeBinary( File file, Value value, boolean append )
 		throws IOException
 	{
@@ -366,6 +412,8 @@ public class FileService extends JavaService
 					schemaFilename = request.getFirstChild( "format" ).getFirstChild( "schema" ).strValue();
 				}
 				writeXML( file, content, append, schemaFilename );
+			} else if ( "xml_store".equals( format ) ) {
+				writeStorageXML( file, content );
 			} else if ( format.isEmpty() ) {
 				if ( content.isByteArray() ) {
 					writeBinary( file, content, append );
