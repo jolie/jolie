@@ -128,7 +128,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<chmod file="${private.install.launcher_dir}/jolie2plasma" perm="a+x"/>
 
 		<echo message="Installing Jolie2Wsdl Unix launcher script..." />
-		<echo file="${private.install.launcher_dir}/jolie2plasma">#!/bin/sh
+		<echo file="${private.install.launcher_dir}/jolie2wsdl">#!/bin/sh
 JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2wsdl.jar joliex.wsdl.Jolie2Wsdl -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
