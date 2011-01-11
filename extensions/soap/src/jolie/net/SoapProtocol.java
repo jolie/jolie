@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -506,9 +506,15 @@ public class SoapProtocol extends SequentialCommProtocol
 		if ( port != null ) {
 			try {
 				Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
-				Part part = ((Entry<String,Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next()).getValue();
+				Part part = null;
+				if ( received ) {
+					// We are sending a response
+					part = ((Entry<String,Part>) operation.getOutput().getMessage().getParts().entrySet().iterator().next()).getValue();
+				} else {
+					// We are sending a request
+					part = ((Entry<String,Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next()).getValue();
+				}
 				elementName = part.getElementName().getLocalPart();
-				
 			} catch( Exception e ) {}
 		}
 		return elementName;
