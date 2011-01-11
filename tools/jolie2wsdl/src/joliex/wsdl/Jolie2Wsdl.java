@@ -21,17 +21,17 @@ import jolie.lang.parse.util.ProgramInspector;
  *
  * @author Francesco Bullini and Claudio Guidi
  */
-public class Jolie2wsdl
+public class Jolie2Wsdl
 {
 	public static void main( String[] args )
 	{
 		try {
-			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2wsdl.class.getClassLoader() );
+			CommandLineParser cmdParser = new CommandLineParser( args, Jolie2Wsdl.class.getClassLoader() );
 			args = cmdParser.arguments();
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), Jolie2wsdl.class.getClassLoader(), cmdParser.definedConstants() );
+				cmdParser.includePaths(), Jolie2Wsdl.class.getClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector=ParsingUtils.createInspector( program );
 	
 			WSDLDocCreator document= new WSDLDocCreator( inspector, program.context().source());
@@ -57,7 +57,7 @@ public class Jolie2wsdl
                         }
 		} 
 		catch( CommandLineException ex ) {
-			Logger.getLogger( Jolie2wsdl.class.getName() ).log( Level.SEVERE, null, ex );
+			Logger.getLogger( Jolie2Wsdl.class.getName() ).log( Level.SEVERE, null, ex );
 		}		catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
