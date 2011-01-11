@@ -113,11 +113,6 @@ class TypeImpl extends Type
 					throw new TypeCheckingException( "Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
 			}
-		} else if ( value.hasChildren() ) {
-			throw new TypeCheckingException(
-				"Unexpected child node: " + pathBuilder.toString() + "." +
-				value.children().keySet().iterator().next()
-			);
 		}
 	}
 
