@@ -1,10 +1,25 @@
+/***************************************************************************
+ *   Copyright (C) 2006-09-10 by Claudio Guidi and Francesco Bullini
+ * <cguidi@italianasoftware.com> <fbullini@italianasoftware.com>    *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
 package joliex.wsdl;
-
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 
 import com.ibm.wsdl.PortTypeImpl;
 import com.ibm.wsdl.ServiceImpl;
@@ -74,6 +89,7 @@ public class WSDLDocCreator
         private int MAX_CARD = 2147483647;
         private String tns;
         private String tns_schema;
+        private String tns_schema_prefix = "sch";
 
 	static ExtensionRegistry extensionRegistry;
 	private static WSDLFactory wsdlFactory;
@@ -234,126 +250,125 @@ public class WSDLDocCreator
             }
         }
 
-        private Element createSubType( TypeDefinition type ) {
-            if ( type instanceof TypeInlineDefinition ) {
-                return createTypeDefinition( ( TypeInlineDefinition ) type, false, "" ); //typename is not relevant because it is not a root type
-            } else {
-                return createTypeDefinitionLink( ( TypeDefinitionLink ) type, false, "" ); //typename is not relevant because it is not a root type
+
+        private void addRootType( TypeDefinition type ) throws Exception
+        {
+            if ( type instanceof TypeDefinitionLink ) {
+                throw( new Exception("ERROR, type " + type.id() +":conversion not allowed when the types defined as operation messages are linked type!"));
             }
+            if ( !rootTypes.contains( type.id()) ) {
+                schemaRootElement.appendChild( createTypeDefinition( ( TypeInlineDefinition ) type,  false ));
+            }
+            rootTypes.add( type.id() );
         }
 
-        private Element createTypeDefinition( TypeInlineDefinition type, boolean root, String tName ) {
-            
-            Element newEl = schemaDocument.createElement( "xs:element" );
-            String typename = type.id();
-            if ( root == false ) {
-                // set cardinality only if it is not a root element
-                newEl.setAttribute( "minOccurs", new Integer( type.cardinality().min()).toString()  );
-                String maxOccurs = "unbounded";
-                if ( type.cardinality().max() < MAX_CARD  ) {
-                 maxOccurs = new Integer( type.cardinality().max() ).toString();
-                }
-                newEl.setAttribute( "maxOccurs", maxOccurs );
-            } else {
-                // the name of the root type must be the same of the operation (contained into the parameter typename) in order to be conformant to SOAP protocol
-                typename = tName;
+        private Element createTypeDefinition( TypeInlineDefinition type, boolean inMessage )  throws Exception
+        {
+            if ( type.nativeType() != NativeType.VOID ) {
+                throw( new Exception("ERROR, type " + type.id() +": conversion not allowed when the types defined as operation messages have native type different from void!" ));
             }
-            newEl.setAttribute( "name", typename );
-            String schemaType = getSchemaNativeType( type.nativeType() );
-            if ( !schemaType.isEmpty() ) {
-                newEl.setAttribute( "type", schemaType  );
+
+            Element newEl = schemaDocument.createElement( "xs:complexType" );
+            if ( inMessage == false ) {
+                String typename = type.id();
+                newEl.setAttribute( "name", typename );
             }
+            Element sequence = schemaDocument.createElement("xs:sequence");
+        
             // adding subtypes
             if ( type.hasSubTypes() ) {
-                Element cpx = schemaDocument.createElement("xs:complexType");
-                Element all = schemaDocument.createElement("xs:sequence");
                 Iterator it = type.subTypes().iterator();
                 while ( it.hasNext() ) {
-                    all.appendChild( createSubType( ((Entry<String,TypeDefinition>) it.next()).getValue() ) );
+                    TypeDefinition curType = ((Entry<String,TypeDefinition>) it.next()).getValue();
+                    Element subEl = schemaDocument.createElement("xs:element");
+                    subEl.setAttribute("name", curType.id() );
+                    subEl.setAttribute( "minOccurs", new Integer( curType.cardinality().min()).toString()  );
+                    String maxOccurs = "unbounded";
+                    if ( curType.cardinality().max() < MAX_CARD  ) {
+                         maxOccurs = new Integer( curType.cardinality().max() ).toString();
+                    }
+                    subEl.setAttribute( "maxOccurs", maxOccurs );
+                    if ( curType instanceof TypeInlineDefinition ) {
+                         if ( curType.hasSubTypes( ) ) { 
+                             if ( curType.nativeType() != NativeType.VOID  ) {
+                                  throw( new Exception("ERROR, type " + curType.id() +": conversion not allowed when the types defined as operation messages have native type different from void!" ));
+                             } else {
+                                  subEl.appendChild( createTypeDefinition( ( TypeInlineDefinition ) curType, true ));
+                             }
+                         } else {
+                             subEl.setAttribute("type", getSchemaNativeType( curType.nativeType() ));
+                         }
+                    } else {
+                        subEl.setAttribute("type",  tns_schema_prefix + ":" + (( TypeDefinitionLink ) curType ).linkedTypeName());
+                        addRootType( ((TypeDefinitionLink) curType ).linkedType() );
+                    }
+                    sequence.appendChild( subEl );
                 }
-                cpx.appendChild( all );
-                newEl.appendChild( cpx );
             }
-            return newEl;
-        }
-
-         private Element createTypeDefinitionLink( TypeDefinitionLink type, boolean root, String tName ) {
-
-            Element newEl = schemaDocument.createElement( "xs:element" );
-            String typename = type.id();
-            if ( root == false ) {
-                // set cardinality only if it is not a root element
-                newEl.setAttribute( "minOccurs", new Integer( type.cardinality().min()).toString()  );
-                String maxOccurs = "unbounded";
-                if ( type.cardinality().max() < MAX_CARD  ) {
-                    maxOccurs = new Integer( type.cardinality().max() ).toString();
-                }
-                newEl.setAttribute( "maxOccurs", maxOccurs );
-            } else {
-                // the name of the root type must be the same of the operation (contained into the parameter typename) in order to be conformant to SOAP protocol
-                typename = tName;
-            }
-            if ( !rootTypes.contains( type.linkedTypeName() )) {
-                // add linked type to root if it does not contain them
-                 if ( type.linkedType() instanceof TypeInlineDefinition ) {
-                    schemaRootElement.appendChild( createTypeDefinition( ( TypeInlineDefinition ) type.linkedType(), true, type.linkedTypeName() ));
-                } else if ( type.linkedType() instanceof TypeDefinitionLink ) {
-                    schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) type.linkedType(), true, type.linkedTypeName() ));
-                }
-                rootTypes.add( type.linkedTypeName() ); 
-            }
-	    newEl.setAttribute( "name", typename );
-            String schemaType = "tns:" + type.linkedTypeName();
-            newEl.setAttribute( "type", schemaType  );
-            
+            newEl.appendChild( sequence );
             return newEl;
         }
 
         
-        private void addRootType( TypeDefinition rootType, String typename ) {
-
+        private void addMessageType( TypeDefinition rootType, String typename ) throws Exception
+        {
+            // when converting from Jolie type of messages must have root type = "void"
+            // no type link are allowed for conversion
+            // message types define elements
             if ( !rootTypes.contains( rootType.id() )) {
+                Element newEl = schemaDocument.createElement("xs:element");
+                newEl.setAttribute("name", typename );
                 if ( rootType instanceof TypeInlineDefinition ) {
-                    schemaRootElement.appendChild( createTypeDefinition( ( TypeInlineDefinition ) rootType, true, typename  ));
+                    newEl.appendChild( createTypeDefinition( ( TypeInlineDefinition ) rootType, true ));
+                    rootTypes.add( typename );
+                    schemaRootElement.appendChild( newEl );
+                    if ( rootType.nativeType() != NativeType.VOID ) {
+                         throw( new Exception("ERROR, type " + rootType.id() +": conversion not allowed when the types defined as operation messages have native type different from void!"));
+                    }
                 } else if ( rootType instanceof TypeDefinitionLink ) {
-                    schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true, typename ));
+                    throw( new Exception("ERROR, type " + rootType.id() +":conversion not allowed when the types defined as operation messages are linked type!"));
+                    // newEl.appendChild( lookForLinkedType( (TypeDefinitionLink ) rootType, typename ));
+                    //schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true, typename ));
                 }
-                rootTypes.add( typename );
             }
 
         }
 
 	private Message addRequestMessage( Definition localDef, OperationDeclaration op )
 	{
+
 		Message inputMessage = localDef.createMessage();
 		inputMessage.setUndefined( false );
 
                 Part inputPart = localDef.createPart();
 		inputPart.setName( "body" );
+                try {
+                     // adding wsdl_types related to this message
+                    if ( op instanceof OneWayOperationDeclaration ) {
+                        OneWayOperationDeclaration op_ow = ( OneWayOperationDeclaration ) op;
 
-                 // adding wsdl_types related to this message
-                if ( op instanceof OneWayOperationDeclaration ) {
-                    OneWayOperationDeclaration op_ow = ( OneWayOperationDeclaration ) op;
+                         // set the message name as the name of the jolie request message type
+                        inputMessage.setQName( new QName( tns, op_ow.requestType().id() ) );
+                        addMessageType( op_ow.requestType(), op_ow.id() );
 
-                     // set the message name as the name of the jolie request message type
-                    inputMessage.setQName( new QName( tns, op_ow.requestType().id() ) );
-                    addRootType( op_ow.requestType(), op_ow.id() );
-                   
-                } else {
-                    RequestResponseOperationDeclaration op_rr = ( RequestResponseOperationDeclaration ) op;
-                     // set the message name as the name of the jolie request message type
-                    inputMessage.setQName( new QName( tns, op_rr.requestType().id() ) );
-                    addRootType( op_rr.requestType(), op_rr.id() );
-                   
+                    } else {
+                        RequestResponseOperationDeclaration op_rr = ( RequestResponseOperationDeclaration ) op;
+                         // set the message name as the name of the jolie request message type
+                        inputMessage.setQName( new QName( tns, op_rr.requestType().id() ) );
+                        addMessageType( op_rr.requestType(), op_rr.id() );
+
+                    }
+                    // set the input part as the operation name
+                    inputPart.setElementName( new QName( tns_schema, op.id()  ) );
+
+                    inputMessage.addPart( inputPart );
+                    inputMessage.setUndefined( false );
+
+                    localDef.addMessage( inputMessage );
+                } catch( Exception e ) {
+                    e.printStackTrace();
                 }
-                // set the input part as the operation name
-		inputPart.setElementName( new QName( tns_schema, op.id()  ) );
-		
-		inputMessage.addPart( inputPart );
-		inputMessage.setUndefined( false );
-
-		localDef.addMessage( inputMessage );
-		return inputMessage;
+                 return inputMessage;
 	}
 
 	private Message addResponseMessage( Definition localDef, OperationDeclaration op )
@@ -366,21 +381,22 @@ public class WSDLDocCreator
 		outputPart.setName( "body" );
 
                 // adding wsdl_types related to this message
-   
-                RequestResponseOperationDeclaration op_rr = ( RequestResponseOperationDeclaration ) op;
-                String outputPartName = op_rr.id() + "Response";
-                  // set the message name as the name of the jolie response message type
-                outputMessage.setQName(  new QName( tns, op_rr.responseType().id()) );
-                addRootType( op_rr.responseType(), outputPartName );
-                
-		outputPart.setElementName( new QName( tns_schema,  outputPartName ) );
+                try {
+                    RequestResponseOperationDeclaration op_rr = ( RequestResponseOperationDeclaration ) op;
+                    String outputPartName = op_rr.id() + "Response";
+                      // set the message name as the name of the jolie response message type
+                    outputMessage.setQName(  new QName( tns, op_rr.responseType().id()) );
+                    addMessageType( op_rr.responseType(), outputPartName );
 
-		outputMessage.addPart( outputPart );
-		outputMessage.setUndefined( false );
+                    outputPart.setElementName( new QName( tns_schema,  outputPartName ) );
 
-		localDef.addMessage( outputMessage );
+                    outputMessage.addPart( outputPart );
+                    outputMessage.setUndefined( false );
 
-		
+                    localDef.addMessage( outputMessage );
+                } catch( Exception e ) {
+                    e.printStackTrace();
+                }
 		return outputMessage;
 
 	}
@@ -398,15 +414,20 @@ public class WSDLDocCreator
 		faultPart.setName( "body" );
 
                 String faultPartName = tp.id();
-                 // adding wsdl_types related to this message
-                addRootType( tp, faultPartName );
-               
-		faultPart.setElementName( new QName( tns_schema, faultPartName ) );
-		faultMessage.addPart( faultPart );
-                faultMessage.setUndefined( false );
 
-               
-		localDef.addMessage( faultMessage );
+                try {
+                     // adding wsdl_types related to this message
+                    addMessageType( tp, faultPartName );
+
+                    faultPart.setElementName( new QName( tns_schema, faultPartName ) );
+                    faultMessage.addPart( faultPart );
+                    faultMessage.setUndefined( false );
+
+
+                    localDef.addMessage( faultMessage );
+                } catch( Exception e ) {
+                    e.printStackTrace();
+                }
 		return faultMessage;
 
 	}
@@ -597,6 +618,7 @@ public class WSDLDocCreator
 		Element rootElement = document.createElement("xs:schema");
                 rootElement.setAttribute( "xmlns:xs", NameSpacesEnum.XML_SCH.getNameSpaceURI() );
 		rootElement.setAttribute( "targetNamespace", tns_schema );
+                rootElement.setAttribute( "xmlns:" + tns_schema_prefix, tns_schema);
 		document.appendChild( rootElement );
 		return rootElement;
 
