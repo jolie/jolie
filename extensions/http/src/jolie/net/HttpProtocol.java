@@ -359,9 +359,9 @@ public class HttpProtocol extends CommProtocol
 			StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
-					builder.append( "--" + BOUNDARY + CRLF );
-					builder.append( "Content-Disposition: form-data; name=\"" + entry.getKey() + '\"' + CRLF + CRLF );
-					builder.append( entry.getValue().first().strValue() + CRLF );
+					builder.append( "--" ).append( BOUNDARY ).append( CRLF );
+					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' ).append( CRLF ).append( CRLF );
+					builder.append( entry.getValue().first().strValue() ).append( CRLF );
 				}
 			}
 			builder.append( "--" + BOUNDARY + "--" );
@@ -374,7 +374,9 @@ public class HttpProtocol extends CommProtocol
 			StringBuilder builder = new StringBuilder();
 			while( it.hasNext() ) {
 				entry = it.next();
-				builder.append( entry.getKey() + "=" + URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
+				builder.append( entry.getKey() )
+					.append( "=" )
+					.append( URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
 				if ( it.hasNext() ) {
 					builder.append( '&' );
 				}
@@ -459,7 +461,7 @@ public class HttpProtocol extends CommProtocol
 				v.getFirstChild( "password" ).strValue();
 			sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 			userpass = encoder.encode( userpass.getBytes() );
-			headerBuilder.append( "Authorization: Basic " + userpass + CRLF );
+			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( CRLF );
 		}
 	}
 
