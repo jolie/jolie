@@ -28,7 +28,6 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser
 			if ( "--format".equals( argumentsList.get( index ) ) ) {
 				index++;
 				format = argumentsList.get( index );
-				index++;
 			} else {
 				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
 			}
