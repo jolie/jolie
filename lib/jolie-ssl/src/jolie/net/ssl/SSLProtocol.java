@@ -170,6 +170,17 @@ public class SSLProtocol extends SequentialCommProtocol
 		return defaultValue;
 	}
 
+	private int getSSLIntegerParameter( String parameterName, int defaultValue )
+	{
+		if ( hasParameter( "ssl" ) ) {
+			Value sslParams = getParameterFirstValue( "ssl" );
+			if ( sslParams.hasChildren( parameterName ) ) {
+				return sslParams.getFirstChild( parameterName ).intValue();
+			}
+		}
+		return defaultValue;
+	}
+
 	private void init()
 		throws IOException
 	{
@@ -220,6 +231,13 @@ public class SSLProtocol extends SequentialCommProtocol
 			sslEngine = context.createSSLEngine();
 			sslEngine.setEnabledProtocols( new String[] { protocol } );
 			sslEngine.setUseClientMode( isClient );
+			if ( isClient == false ) {
+				if ( getSSLIntegerParameter( "wantClientAuth", 1 ) > 0 ) {
+					sslEngine.setWantClientAuth( true );
+				} else {
+					sslEngine.setWantClientAuth( false );
+				}
+			}
 		} catch ( NoSuchAlgorithmException e ) {
 			throw new IOException( e );
 		} catch ( KeyManagementException e ) {
