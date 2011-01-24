@@ -208,7 +208,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
 			for( TypeDefinition type : entry.getValue() ) {
-				if ( entry.getKey().equals( type ) == false ) {
+				if ( entry.getKey().isEquivalentTo( type ) == false ) {
 					error( type, "type " + type.id() + " has already been defined with a different structure" );
 				}
 			}
@@ -364,7 +364,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInputPort ) { // Input operation
 			if ( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
-				if ( n.requestType().equals( other.requestType() ) == false ) {
+				if ( n.requestType().isEquivalentTo( other.requestType() ) == false ) {
 					error( n, "input operations sharing the same name cannot declare different types (One-Way operation " + n.id() + ")" );
 				}
 			} else {
@@ -399,11 +399,11 @@ public class SemanticVerifier implements OLVisitor
 	
 	private void checkEqualness( RequestResponseOperationDeclaration n, RequestResponseOperationDeclaration other )
 	{
-		if ( n.requestType().equals( other.requestType() ) == false ) {
+		if ( n.requestType().isEquivalentTo( other.requestType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different request types (Request-Response operation " + n.id() + ")" );
 		}
 
-		if ( n.responseType().equals( other.responseType() ) == false ) {
+		if ( n.responseType().isEquivalentTo( other.responseType() ) == false ) {
 			error( n, "input operations sharing the same name cannot declare different response types (Request-Response operation " + n.id() + ")" );
 		}
 
@@ -413,7 +413,7 @@ public class SemanticVerifier implements OLVisitor
 
 		for( Entry< String, TypeDefinition > fault : n.faults().entrySet() ) {
 			if ( fault.getValue() != null ) {
-				if ( !other.faults().containsKey( fault.getKey() ) || !other.faults().get( fault.getKey() ).equals( fault.getValue() ) ) {
+				if ( !other.faults().containsKey( fault.getKey() ) || !other.faults().get( fault.getKey() ).isEquivalentTo( fault.getValue() ) ) {
 					error( n, "input operations sharing the same name cannot declared different fault types (Request-Response operation " + n.id() );
 				}
 			}

@@ -84,7 +84,7 @@ public abstract class TypeDefinition extends OLSyntaxNode
 				}
 
 				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
-					if ( entry.getValue().equals( right.getSubType( entry.getKey() ) ) == false ) {
+					if ( entry.getValue().isEquivalentTo( right.getSubType( entry.getKey() ) ) == false ) {
 						return false;
 					}
 				}
@@ -100,17 +100,15 @@ public abstract class TypeDefinition extends OLSyntaxNode
 	 * Checks if this TypeDeclaration is equivalent to otherType.
 	 * @author Fabrizio Montesi
 	 */
+	public boolean isEquivalentTo( TypeDefinition other )
+	{
+		return checkTypeEqualness( this, other );
+	}
+
 	@Override
 	public boolean equals( Object other )
 	{
-		if ( this == other ) {
-			return true;
-		}
-
-		if ( other instanceof TypeDefinition ) {
-			return checkTypeEqualness( this, (TypeDefinition)other );
-		}
-		return false;
+		return this == other;
 	}
 
 	@Override
