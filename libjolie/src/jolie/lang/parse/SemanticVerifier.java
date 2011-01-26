@@ -118,6 +118,11 @@ public class SemanticVerifier implements OLVisitor
 						new HashMap< String, RequestResponseOperationDeclaration >();
 
 	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap< TypeDefinition, List< TypeDefinition > >();
+	private final Map< OneWayOperationDeclaration, List< OneWayOperationDeclaration > > owToBeEqual =
+		new HashMap< OneWayOperationDeclaration, List< OneWayOperationDeclaration > >();
+	private final Map< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > rrToBeEqual =
+		new HashMap< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > >();
+
 
 	private boolean insideInputPort = false;
 	private boolean mainDefined = false;
@@ -162,6 +167,26 @@ public class SemanticVerifier implements OLVisitor
 			typesToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( type );
+	}
+
+	private void addOneWayEqualnessCheck( OneWayOperationDeclaration key, OneWayOperationDeclaration oneWay )
+	{
+		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
+		if ( toBeEqualList == null ) {
+			toBeEqualList = new LinkedList< OneWayOperationDeclaration >();
+			owToBeEqual.put( key, toBeEqualList );
+		}
+		toBeEqualList.add( oneWay );
+	}
+
+	private void addRequestResponseEqualnessCheck( RequestResponseOperationDeclaration key, RequestResponseOperationDeclaration requestResponse )
+	{
+		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
+		if ( toBeEqualList == null ) {
+			toBeEqualList = new LinkedList< RequestResponseOperationDeclaration >();
+			rrToBeEqual.put( key, toBeEqualList );
+		}
+		toBeEqualList.add( requestResponse );
 	}
 
 	private void encounteredAssignment( VariablePathNode path )
@@ -211,6 +236,18 @@ public class SemanticVerifier implements OLVisitor
 				if ( entry.getKey().isEquivalentTo( type ) == false ) {
 					error( type, "type " + type.id() + " has already been defined with a different structure" );
 				}
+			}
+		}
+
+		for( Entry< OneWayOperationDeclaration, List< OneWayOperationDeclaration > > entry : owToBeEqual.entrySet() ) {
+			for( OneWayOperationDeclaration ow : entry.getValue() ) {
+				checkEqualness( entry.getKey(), ow );
+			}
+		}
+
+		for( Entry< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > entry : rrToBeEqual.entrySet() ) {
+			for( RequestResponseOperationDeclaration rr : entry.getValue() ) {
+				checkEqualness( entry.getKey(), rr );
 			}
 		}
 	}
@@ -364,9 +401,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInputPort ) { // Input operation
 			if ( oneWayOperations.containsKey( n.id() ) ) {
 				OneWayOperationDeclaration other = oneWayOperations.get( n.id() );
-				if ( n.requestType().isEquivalentTo( other.requestType() ) == false ) {
-					error( n, "input operations sharing the same name cannot declare different types (One-Way operation " + n.id() + ")" );
-				}
+				addOneWayEqualnessCheck( n, other );
 			} else {
 				oneWayOperations.put( n.id(), n );
 			}
@@ -390,10 +425,17 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInputPort ) { // Input operation
 			if ( requestResponseOperations.containsKey( n.id() ) ) {
 				RequestResponseOperationDeclaration other = requestResponseOperations.get( n.id() );
-				checkEqualness( n, other );
+				addRequestResponseEqualnessCheck( n, other );
 			} else {
 				requestResponseOperations.put( n.id(), n );
 			}
+		}
+	}
+
+	private void checkEqualness( OneWayOperationDeclaration n, OneWayOperationDeclaration other )
+	{
+		if ( n.requestType().isEquivalentTo( other.requestType() ) == false ) {
+			error( n, "input operations sharing the same name cannot declare different request types (One-Way operation " + n.id() + ")" );
 		}
 	}
 	
