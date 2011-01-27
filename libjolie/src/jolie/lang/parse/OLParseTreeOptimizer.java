@@ -253,7 +253,7 @@ public class OLParseTreeOptimizer
 
 		public void visit( NDChoiceStatement stm )
 		{
-			//if ( stm.children().size() > 1 ) {
+			if ( stm.children().size() > 0 ) {
 				NDChoiceStatement tmp = new NDChoiceStatement( stm.context() );
 				for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 					pair.key().accept( this );
@@ -262,6 +262,9 @@ public class OLParseTreeOptimizer
 					tmp.addChild( new Pair< OLSyntaxNode, OLSyntaxNode >( n, currNode ) );
 				}
 				currNode = tmp;
+			} else {
+				currNode = new NullProcessStatement( stm.context() );
+			}
 			//} else {
 				/*
 				 * ( [ I ] A ) === I ;; A
