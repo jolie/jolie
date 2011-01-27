@@ -206,7 +206,7 @@ public class OLParseTreeOptimizer
 				/*
 				 * If we ended up with an empty composition, return nullProcess
 				 */
-				if ( tmp.children().size() == 0 ) {
+				if ( tmp.children().isEmpty() ) {
 					currNode = new NullProcessStatement( stm.context() );
 				} else {
 					currNode = tmp;
@@ -241,7 +241,7 @@ public class OLParseTreeOptimizer
 				/*
 				 * If we ended up with an empty composition, return nullProcess
 				 */
-				if ( tmp.children().size() == 0 ) {
+				if ( tmp.children().isEmpty() ) {
 					currNode = new NullProcessStatement( stm.context() );
 				} else {
 					currNode = tmp;
