@@ -211,8 +211,10 @@ public class OLParseTreeOptimizer
 				} else {
 					currNode = tmp;
 				}
-			} else {
+			} else if ( stm.children().isEmpty() == false ) {
 				stm.children().get( 0 ).accept( this );
+			} else {
+				currNode = new NullProcessStatement( stm.context() );
 			}
 		}
 		
@@ -246,8 +248,10 @@ public class OLParseTreeOptimizer
 				} else {
 					currNode = tmp;
 				}
-			} else {
+			} else if ( stm.children().isEmpty() == false ) {
 				stm.children().get( 0 ).accept( this );
+			} else {
+				currNode = new NullProcessStatement( stm.context() );
 			}
 		}
 
