@@ -165,9 +165,7 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 	public void checkMessageType( CommMessage message )
 		throws TypeCheckingException
 	{
-		if ( operation.typeDescription().requestType() != null ) {
-			operation.typeDescription().requestType().check( message.value() );
-		}
+		operation.typeDescription().requestType().check( message.value() );
 	}
 	
 	public Process clone( TransformationReason reason )

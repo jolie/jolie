@@ -127,9 +127,7 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 	public void checkMessageType( CommMessage message )
 		throws TypeCheckingException
 	{
-		if ( operation.requestType() != null ) {
-			operation.requestType().check( message.value() );
-		}
+		operation.requestType().check( message.value() );
 	}
 	
 	public Process clone( TransformationReason reason )

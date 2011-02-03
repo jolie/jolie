@@ -817,7 +817,6 @@ public class OLParser extends AbstractParser
 			interfaces.put( name, iface );
 			program.addChild( iface );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
-		       
 		}
 		return iface;
 	}
@@ -929,6 +928,7 @@ public class OLParser extends AbstractParser
 				opId = token.content();
 				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
 				getToken();
+				opDecl.setRequestType( TypeDefinitionUndefined.getInstance() );
 
 				if ( token.is( Scanner.TokenType.LPAREN ) ) { // Type declaration
 					getToken(); //eat (
@@ -999,11 +999,11 @@ public class OLParser extends AbstractParser
 					}
 				}
 
-				if ( requestTypeName != null && definedTypes.containsKey( requestTypeName ) == false ) {
+				if ( definedTypes.containsKey( requestTypeName ) == false ) {
 					throwException( "invalid type: " + requestTypeName );
 				}
 
-				if ( responseTypeName != null && definedTypes.containsKey( responseTypeName ) == false ) {
+				if ( definedTypes.containsKey( responseTypeName ) == false ) {
 					throwException( "invalid type: " + requestTypeName );
 				}
 

@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.NativeType;
+import jolie.lang.parse.OLParser;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.Scanner;
@@ -203,8 +204,12 @@ public class OOITBuilder implements OLVisitor
 	public OOITBuilder( Interpreter interpreter, Program program, Map< String, Boolean > isConstantMap )
 	{
 		this.interpreter = interpreter;
-		this.program = program;
+		this.program = new Program( program.context() );
 		this.isConstantMap = isConstantMap;
+
+		Map< String, TypeDefinition > builtInTypes = OLParser.createTypeDeclarationMap( program.context() );
+		this.program.children().addAll( builtInTypes.values() );
+		this.program.children().addAll( program.children() );
 	}
 	
 	private void error( ParsingContext context, String message )
