@@ -33,12 +33,16 @@ type QueryResult:void {
 	.row[0,*]:void { ? }
 }
 
+type TransactionQueryResult:int {
+	.row[0,*]:void { ? }
+}
+
 type DatabaseTransactionRequest:void {
 	.statement[1,*]:string { ? }
 }
 
 type DatabaseTransactionResult:void {
-	.result[0,*]:QueryResult
+	.result[0,*]:TransactionQueryResult
 }
 
 type QueryRequest:string { ? }
