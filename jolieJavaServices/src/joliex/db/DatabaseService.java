@@ -266,11 +266,10 @@ public class DatabaseService extends JavaService
 					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
 					if ( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
-						if ( updateCount == - 1 ) {
+						if ( updateCount == -1 ) {
 							resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
-						} else {
-							currResultValue.setValue( updateCount );
 						}
+						currResultValue.setValue( updateCount );
 					}
 					resultVector.add( currResultValue );
 				} catch( SQLException e ) {
