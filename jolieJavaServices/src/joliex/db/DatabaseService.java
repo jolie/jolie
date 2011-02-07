@@ -258,13 +258,19 @@ public class DatabaseService extends JavaService
 			}
 			Value currResultValue;
 			PreparedStatement stm;
+			int updateCount;
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
 				stm = null;
 				try {
 					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
 					if ( stm.execute() == true ) {
-						resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
+						updateCount = stm.getUpdateCount();
+						if ( updateCount == - 1 ) {
+							resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
+						} else {
+							currResultValue.setValue( updateCount );
+						}
 					}
 					resultVector.add( currResultValue );
 				} catch( SQLException e ) {
