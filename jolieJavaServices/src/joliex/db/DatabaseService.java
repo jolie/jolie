@@ -263,14 +263,15 @@ public class DatabaseService extends JavaService
 				currResultValue = Value.create();
 				stm = null;
 				try {
+					updateCount = -1;
 					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
 					if ( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
 						if ( updateCount == -1 ) {
 							resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 						}
-						currResultValue.setValue( updateCount );
 					}
+					currResultValue.setValue( updateCount );
 					resultVector.add( currResultValue );
 				} catch( SQLException e ) {
 					try {
