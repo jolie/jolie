@@ -40,7 +40,7 @@ public class JolieAdapter
 
 	public JolieAdapter( JavaService javaService, String resourcePath )
 	{
-		this.javaService = javaService;
+		 this.javaService = javaService;
 		this.resourcePath = resourcePath;
 	}
 
