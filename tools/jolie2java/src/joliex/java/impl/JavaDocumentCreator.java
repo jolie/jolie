@@ -68,6 +68,7 @@ public class JavaDocumentCreator
 			Writer writer;
 			try {
 				writer = new BufferedWriter( new FileWriter( nameFile ) );
+				System.out.print( nameFile+"\n");
 				ConvertTypes( typeDefinition, writer );
 				counterSubClass = 0;
 				while( counterSubClass < subclass.size() ) {
@@ -171,7 +172,7 @@ public class JavaDocumentCreator
 
 
 		if ( supportType.hasSubTypes() ) {
-
+            subtypePresent=true;
 
 			Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
 			Iterator i = supportSet.iterator();
@@ -196,7 +197,7 @@ public class JavaDocumentCreator
 
 
 			}
-			Integer po;
+			
 			if ( addListImport ) {
 				stringBuilder.append( "import java.util.List;\n" );
 				stringBuilder.append( "import java.util.LinkedList;\n" );
@@ -295,7 +296,7 @@ public class JavaDocumentCreator
 
 			}
 			stringBuilder.append( "private Value v ;\n" );
-			stringBuilder.append( "private Value vReturn ;\n" );
+			stringBuilder.append( "private Value vReturn= Value.create() ;\n" );
 			stringBuilder.append( "\n" );
 		}
 
@@ -408,7 +409,7 @@ public class JavaDocumentCreator
 
 
 						stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
-						stringBuilder.append( "\t\t" + ((TypeDefinitionLink) me.getValue()).linkedType().id() + " support" ).append( nameVariable ).append( "=new Double(v.getChildren(\"" ).append( nameVariable ).append( "\").get(counter" ).append( nameVariable ).append( ");\n" );
+						stringBuilder.append( "\t\t" + ((TypeDefinitionLink) me.getValue()).linkedType().id() + " support" ).append( nameVariable ).append( "=new "+((TypeDefinitionLink) me.getValue()).linkedType().id() +"(v.getChildren(\"" ).append( nameVariable ).append( "\").get(counter" ).append( nameVariable ).append( "));\n" );
 						stringBuilder.append( "\t\t" + nameVariable + ".add(support" + nameVariable + ");\n" );
 						stringBuilder.append( "\t}\n" );
 						//stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
@@ -537,13 +538,16 @@ public class JavaDocumentCreator
 					Integer minIndex = new Integer( ((TypeDefinitionLink) me.getValue()).cardinality().min() );
 					if ( ((TypeDefinitionLink) me.getValue()).cardinality().max() > 1 ) {
 
-						stringBuilder.append( "public " + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + " set" + nameVariableOp + "Value(int index){\n" );
+						stringBuilder.append( "public " + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + " get" + nameVariableOp + "Value(int index){\n" );
 						stringBuilder.append( "\n\treturn " + nameVariable + ".get(index);\n" );
 						stringBuilder.append( "}\n" );
 
+                        stringBuilder.append( "public " +"int"+ " get" + nameVariableOp + "Size(){\n" );
+						stringBuilder.append( "\n\treturn " + nameVariable + ".size();\n" );
+						stringBuilder.append( "}\n" );
 
 
-						stringBuilder.append( "public " + "void add" + nameVariableOp + "Value(" + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + "value ){\n" );
+						stringBuilder.append( "public " + "void add" + nameVariableOp + "Value(" + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + " value ){\n" );
 						//stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
 						stringBuilder.append( "\n\t\t" + nameVariable + ".add(value);\n" );
 						//stringBuilder.append( "\t}\n" );
@@ -582,9 +586,13 @@ public class JavaDocumentCreator
 
 
 
-							stringBuilder.append( "public " + "int" + " get" + nameVariableOp + "Value(int index){\n" );
-							stringBuilder.append( "\treturn " + nameVariable + ".get(index).intValue();\n" );
+							stringBuilder.append( "public " +"int"+ " get" + nameVariableOp + "Size(){\n" );
+							stringBuilder.append( "\n\treturn " + nameVariable + ".size();\n" );
 							stringBuilder.append( "}\n" );
+
+							stringBuilder.append( "public " +"int "+ "get" + nameVariableOp + "size(){\n" );
+						    stringBuilder.append( "\n\treturn " + nameVariable + ".size();\n" );
+						    stringBuilder.append( "}\n" );
 
 							stringBuilder.append( "public " + "void add" + nameVariableOp + "Value(int value ){\n" );
 							//stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
@@ -601,6 +609,11 @@ public class JavaDocumentCreator
 
 						} else if ( typeName.equals( "double" ) ) {
 							//stringBuilder.append(nameVariable +"= new LinkedList<Double>();"+ "\n" );
+							stringBuilder.append( "public " +"int"+ " get" + nameVariableOp + "Size(){\n" );
+							stringBuilder.append( "\n\treturn " + nameVariable + ".size();\n" );
+							stringBuilder.append( "}\n" );
+
+
 							stringBuilder.append( "public " + "double" + " get" + nameVariableOp + "Value(int index){\n" );
 							stringBuilder.append( "\treturn " + nameVariable + ".get(index).doubleValue();\n" );
 							stringBuilder.append( "}\n" );
@@ -620,6 +633,10 @@ public class JavaDocumentCreator
 
 
 						} else if ( typeName.equals( "string" ) ) {
+
+							stringBuilder.append( "public " +"int"+ " get" + nameVariableOp + "Size(){\n" );
+							stringBuilder.append( "\n\treturn " + nameVariable + ".size();\n" );
+							stringBuilder.append( "}\n" );
 
 							stringBuilder.append( "public " + "String" + " get" + nameVariableOp + "Value(int index){\n" );
 							stringBuilder.append( "\n\treturn " + nameVariable + ".get(index);\n" );
@@ -705,25 +722,18 @@ public class JavaDocumentCreator
 				nameVariable = ((TypeDefinitionLink) me.getValue()).id();
 
 				if ( ((TypeDefinitionLink) me.getValue()).cardinality().max() > 1 ) {
-//					stringBuilder.append( "if (v.hasChildren(" + nameVariable + "))" + "{\n" );
-//					stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
-//					stringBuilder.append( "\t\tv.getChildren(\"" + nameVariable + "\")" + ".set(counter" + nameVariable + ",new Value(" + nameVariable + ".get(counter" + nameVariable + ").getValue()));\n" );
-//					stringBuilder.append( "\t}\n}else{\n" );
+//					
 					stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + nameVariable + ".size();counter" + nameVariable + "++){\n" );
-					stringBuilder.append( "\t\tvReturn.getNewChild(\"" + nameVariable + "\").deepCopy(" + nameVariable + ".get(counter" + nameVariable + ").getValue()));\n" );
-					stringBuilder.append( "\t}" );
-					stringBuilder.append( "\n}\n" );
+					stringBuilder.append( "\t\tvReturn.getNewChild(\"" + nameVariable + "\").deepCopy(" + nameVariable + ".get(counter" + nameVariable + ").getValue());\n" );
+					stringBuilder.append( "\t}\n" );
+					
 
 
 					//a.intValue();
 
 
 				} else {
-//					stringBuilder.append( "if (v.hasChildren(\"" + nameVariable + "\"))" + "{\n" );
-//					//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
-//					stringBuilder.append( "v.getFirstChild(\"" + nameVariable + "\")" + ".deepCopy(" + nameVariable + ".getValue());\n" );
-//					stringBuilder.append( "\t}else{\n" );
-					//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
+//					
 					stringBuilder.append( "vReturn.getNewChild(\"" + nameVariable + "\")" + ".deepCopy(" + nameVariable + ".getValue());\n" );
 					//stringBuilder.append("\t}");
 //					stringBuilder.append( "}\n" );
@@ -789,12 +799,7 @@ public class JavaDocumentCreator
 						//stringBuilder.append("\t}");
 						//stringBuilder.append( "}\n" );
 					} else if ( typeName.equals( "double" ) ) {
-						//stringBuilder.append(nameVariable +"= new LinkedList<Double>();"+ "\n" );
-//						stringBuilder.append( "if (v.hasChildren(\"" + nameVariable + "\"))" + "{\n" );
-//						//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
-//						stringBuilder.append( "v.getChild(\"" + nameVariable + "\")" + ".deepCopy(new Value(" + nameVariable + ".doubleValue())));\n" );
-//						stringBuilder.append( "\t}else{\n" );
-						//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
+						
 						stringBuilder.append( "vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + nameVariable + ");\n" );
 //						//stringBuilder.append("\t}");
 //						stringBuilder.append( "}\n" );
@@ -802,14 +807,8 @@ public class JavaDocumentCreator
 
 					} else if ( typeName.equals( "string" ) ) {
 
-//						stringBuilder.append( "if (v.hasChildren(\"" + nameVariable + "\"))" + "{\n" );
-//						//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
-//						stringBuilder.append( "v.getChild(\"" + nameVariable + "\")" + ".deepCopy(new Value(" + nameVariable + "));\n" );
-//						stringBuilder.append( "\t}else{\n" );
-						//stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
+//						
 						stringBuilder.append( "vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + nameVariable + ");\n" );
-						//stringBuilder.append("\t}");
-//						stringBuilder.append( "}\n" );
 
 
 
