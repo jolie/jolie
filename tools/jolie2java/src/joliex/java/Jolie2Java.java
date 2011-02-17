@@ -58,7 +58,7 @@ public class Jolie2Java
 			);*/
 			CommandLineParser cmdParser = Jolie2JavaCommandLineParser.create( args, Jolie2Java.class.getClassLoader() );
 			args = cmdParser.arguments();
-
+//            cmdParser.
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
