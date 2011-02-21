@@ -203,8 +203,7 @@ public class DatabaseService extends JavaService
                                         
 					if ( dec == null ) {
 						fieldValue.setValue( 0 );
-					} else {
-                                                 System.out.println("DECIMAL value="+result);
+					} else {                                                
 						if ( dec.scale() <= 0 ) {
 							// May lose information.
 							// Pay some attention to this when Long becomes supported by JOLIE.
