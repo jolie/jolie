@@ -197,6 +197,24 @@ public class DatabaseService extends JavaService
 				case java.sql.Types.DOUBLE:
 					fieldValue.setValue( result.getDouble( i ) );
 					break;
+                                case java.sql.Types.DECIMAL:{
+
+					BigDecimal dec = result.getBigDecimal( i );
+                                        
+					if ( dec == null ) {
+						fieldValue.setValue( 0 );
+					} else {
+                                                 System.out.println("DECIMAL value="+result);
+						if ( dec.scale() <= 0 ) {
+							// May lose information.
+							// Pay some attention to this when Long becomes supported by JOLIE.
+							fieldValue.setValue( dec.intValue() );
+						} else if ( dec.scale() > 0 ) {
+							fieldValue.setValue( dec.doubleValue() );
+						}
+					}
+                                        }
+					break;
 				case java.sql.Types.FLOAT:
 					fieldValue.setValue( result.getFloat( i ) );
 					break;
@@ -216,8 +234,9 @@ public class DatabaseService extends JavaService
 					}
 					fieldValue.setValue( s );
 					break;
-				case java.sql.Types.NUMERIC:
+				case java.sql.Types.NUMERIC:{
 					BigDecimal dec = result.getBigDecimal( i );
+                                        
 					if ( dec == null ) {
 						fieldValue.setValue( 0 );
 					} else {
@@ -229,6 +248,7 @@ public class DatabaseService extends JavaService
 							fieldValue.setValue( dec.doubleValue() );
 						}
 					}
+                                }
 					break;
 				case java.sql.Types.VARCHAR:
 				default:
