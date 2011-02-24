@@ -23,6 +23,7 @@ include "../AbstractTestUnit.iol"
 
 include "private/cset_server.iol"
 include "runtime.iol"
+include "console.iol"
 
 outputPort Server {
 Interfaces: ServerInterface

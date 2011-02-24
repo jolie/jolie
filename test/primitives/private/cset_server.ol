@@ -26,8 +26,8 @@ include "runtime.iol"
 execution { concurrent }
 
 cset {
-	firstName: request.person.firstName person.firstName,
-	lastName: request.person.lastName person.lastName
+	firstName: StartMessage.person.firstName Person.firstName,
+	lastName: StartMessage.person.lastName Person.lastName
 }
 
 inputPort ServerInput {
