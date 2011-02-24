@@ -57,9 +57,11 @@ import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
 
 /** 
@@ -497,6 +499,10 @@ public class CommCore
 				try {
 					operation.requestType().check( message.value() );
 					interpreter.correlationEngine().onMessageReceive( message, channel );
+					if ( operation instanceof OneWayOperation ) {
+						// We need to send the acknowledgement
+						channel.send( CommMessage.createEmptyResponse( message ) );
+					}
 				} catch( TypeCheckingException e ) {
 					interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 					try {
@@ -504,6 +510,9 @@ public class CommCore
 					} catch( IOException ioe ) {
 						Interpreter.getInstance().logSevere( ioe );
 					}
+				} catch( CorrelationError e ) {
+					interpreter.logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
+					channel.send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
 				}
 			} catch( InvalidIdException e ) {
 				interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );

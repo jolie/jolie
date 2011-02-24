@@ -66,33 +66,7 @@ public class OneWayProcess implements InputOperationProcess
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
 
-		return new Process() {
-			public void run()
-				throws FaultException, ExitingException
-			{
-				try {
-					sessionMessage.channel().send( CommMessage.createEmptyResponse( sessionMessage.message() ) );
-				} catch( IOException e ) {
-					throw new FaultException( e );
-				} finally {
-					try {
-						sessionMessage.channel().release();
-					} catch( IOException e ) {
-						Interpreter.getInstance().logSevere( e );
-					}
-				}
-			}
-
-			public Process clone( TransformationReason reason )
-			{
-				return this;
-			}
-
-			public boolean isKillable()
-			{
-				return false;
-			}
-		};
+		return NullProcess.getInstance();
 	}
 
 	public void run()
