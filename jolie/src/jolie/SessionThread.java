@@ -153,7 +153,6 @@ public class SessionThread extends ExecutionThread
 	private final Deque< SessionMessage > messages = new LinkedList< SessionMessage >();
 	private final Map< String, Deque< SessionMessageFuture > > messageWaiters =
 		new HashMap< String, Deque< SessionMessageFuture > >();
-	private Runnable guard = null;
 
 	private final static VariablePath typeMismatchPath;
 	private final static VariablePath ioExceptionPath;
@@ -220,11 +219,6 @@ public class SessionThread extends ExecutionThread
 			}
 		) );
 		return instList;
-	}
-
-	public void setGuard( Runnable runnable )
-	{
-		guard = runnable;
 	}
 
 	private SessionThread( Process process, ExecutionThread parent, jolie.State state )
@@ -396,10 +390,6 @@ public class SessionThread extends ExecutionThread
 
 	public void run()
 	{
-		if ( guard != null ) {
-			guard.run();
-			guard = null;
-		}
 		try {
 			try {
 				process().run();

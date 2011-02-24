@@ -674,7 +674,7 @@ public class Interpreter
 	}
 	
 	private SessionThread initExecutionThread;
-	private SessionThread mainSession;
+	private SessionThread mainSession = null;
 	
 	/**
 	 * Returns the SessionThread of the Interpreter that started the program execution.
@@ -999,8 +999,33 @@ public class Interpreter
 			newSession.addSessionListener( correlationEngine );
 			newSession.start();
 		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
-			//runSequentialSession( starter, message, channel );
-			// TODO
+			State state = initExecutionThread.state().clone();
+			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+				starter.body
+			} );
+			final SessionThread currentMainSession = mainSession;
+			mainSession = new SessionThread(
+				sequence, state, initExecutionThread
+			);
+			correlationEngine.onSessionStart( mainSession, starter, message );
+			mainSession.addSessionListener( correlationEngine );
+			if ( currentMainSession == null ) {
+				mainSession.start();
+			} else {
+				final SessionThread futureSession = mainSession;
+				execute( new Runnable() {
+					public void run()
+					{
+						try {
+							currentMainSession.join();
+						} catch( InterruptedException e ) {
+							logSevere( e );
+						}
+						futureSession.start();
+					}
+				});
+			}
 		}
 
 		return true;
