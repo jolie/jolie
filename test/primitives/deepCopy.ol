@@ -21,6 +21,10 @@
 
 include "../AbstractTestUnit.iol"
 
+include "string_utils.iol"
+include "runtime.iol"
+include "console.iol"
+
 define doTest
 {
 	a[0] = 1;
