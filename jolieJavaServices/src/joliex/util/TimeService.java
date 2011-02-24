@@ -59,7 +59,7 @@ public class TimeService extends JavaService
 		{
 			try {
 				Thread.sleep( waitTime );
-				parent.sendMessage( CommMessage.createOneWayMessage( callbackOperation, "/", callbackValue ) );
+				parent.sendMessage( CommMessage.createRequest( callbackOperation, "/", callbackValue ) );
 			} catch( InterruptedException e ) {}
 		}
 	}
