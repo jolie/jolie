@@ -22,12 +22,16 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
+import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.util.Pair;
 import jolie.util.Range;
 
 /**
@@ -60,6 +64,31 @@ public abstract class TypeDefinition extends OLSyntaxNode
 	public Range cardinality()
 	{
 		return cardinality;
+	}
+
+	public boolean containsPath( VariablePathNode variablePath )
+	{
+		return containsPath( variablePath.path().iterator() );
+	}
+
+	private boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
+	{
+		if ( it.hasNext() == false ) {
+			return nativeType() != NativeType.VOID;
+		}
+
+		if ( untypedSubTypes() ) {
+			return true;
+		}
+
+		Pair< OLSyntaxNode, OLSyntaxNode > pair = it.next();
+		String nodeName = ((ConstantStringExpression)pair.key()).value();
+		if ( hasSubType( nodeName ) ) {
+			TypeDefinition subType = getSubType( nodeName );
+			return subType.containsPath( it );
+		}
+
+		return false;
 	}
 
 	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right )

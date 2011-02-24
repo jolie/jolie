@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,14 +19,13 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+include "ui.iol"
 
-/**
- * A correlated input process is a session spawning process.
- * @author Fabrizio Montesi
- * @TODO: This is really poorly named. Revamp the whole Correlated* set of classes ASAP!
- */
-public interface CorrelatedInputProcess extends Process
-{
-	public void setCorrelatedProcess( CorrelatedProcess process );
+outputPort SwingUI {
+Interfaces: UserInterface
+}
+
+embedded {
+Java:
+	"joliex.ui.SwingService" in SwingUI
 }

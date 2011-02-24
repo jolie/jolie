@@ -47,9 +47,12 @@ public class ScopeProcess implements Process
 		{
 			ethread.pushScope( parent.id );
 			runScope( parent.process );
-			ethread.popScope( shouldMerge );
-			if ( shouldMerge && fault != null )
+			if ( autoPop ) {
+				ethread.popScope( shouldMerge );
+			}
+			if ( shouldMerge && fault != null ) {
 				throw fault;
+			}
 		}
 		
 		private void runScope( Process p )
@@ -84,18 +87,25 @@ public class ScopeProcess implements Process
 		}
 	}
 	
-	final private String id;
-	final private Process process;
+	private final String id;
+	private final Process process;
+	private final boolean autoPop;
 	
-	public ScopeProcess( String id, Process process )
+	public ScopeProcess( String id, Process process, boolean autoPop )
 	{
 		this.id = id;
 		this.process = process;
+		this.autoPop = autoPop;
+	}
+
+	public ScopeProcess( String id, Process process )
+	{
+		this( id, process, true );
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new ScopeProcess( id, process.clone( reason ) );
+		return new ScopeProcess( id, process.clone( reason ), autoPop );
 	}
 	
 	public void run()

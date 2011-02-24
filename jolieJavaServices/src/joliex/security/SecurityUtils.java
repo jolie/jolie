@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,6 +22,7 @@
 package joliex.security;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -37,5 +38,10 @@ public class SecurityUtils extends JavaService
 		byte[] bb = new byte[ request.getFirstChild( "size" ).intValue() ];
 		random.nextBytes( bb );
 		return new ByteArray( bb );
+	}
+
+	public String createSecureToken()
+	{
+		return UUID.randomUUID().toString();
 	}
 }

@@ -21,9 +21,11 @@
 
 package jolie.process;
 
-import jolie.runtime.VariablePath;
+import jolie.net.SessionMessage;
+import jolie.runtime.InputOperation;
 
-public interface InputOperationProcess extends InputProcess
+public interface InputOperationProcess extends Process
 {
-	public VariablePath inputVarPath();
+	public InputOperation inputOperation();
+	public Process receiveMessage( SessionMessage sessionMessage, jolie.State state );
 }

@@ -22,6 +22,7 @@
 package jolie;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import jolie.runtime.InternalLink;
 import jolie.runtime.Value;
@@ -35,7 +36,7 @@ import jolie.runtime.Value;
 public class State implements Cloneable
 {
 	private final Value root;
-	private final HashMap< String, InternalLink > linksMap =
+	private final Map< String, InternalLink > linksMap =
 				new HashMap< String, InternalLink >();
 	
 	private State( Value root )

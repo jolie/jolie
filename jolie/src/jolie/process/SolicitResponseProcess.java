@@ -41,12 +41,12 @@ import jolie.runtime.typing.TypeCheckingException;
 
 public class SolicitResponseProcess implements Process
 {
-	final private String operationId;
-	final private OutputPort outputPort;
-	final private VariablePath inputVarPath; // may be null
-	final private Expression outputExpression; // may be null
-	final private Process installProcess; // may be null
-	final private RequestResponseTypeDescription types;
+	private final String operationId;
+	private final OutputPort outputPort;
+	private final VariablePath inputVarPath; // may be null
+	private final Expression outputExpression; // may be null
+	private final Process installProcess; // may be null
+	private final RequestResponseTypeDescription types;
 
 	public SolicitResponseProcess(
 			String operationId,

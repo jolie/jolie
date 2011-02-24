@@ -21,21 +21,19 @@
 
 package jolie;
 
-import java.util.ArrayList;
 import jolie.lang.Constants;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.Future;
 
 import jolie.net.CommChannelHandler;
-import jolie.net.CommMessage;
+import jolie.net.SessionMessage;
 import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
-import jolie.runtime.Value;
+import jolie.runtime.InputOperation;
 import jolie.runtime.VariablePath;
-import jolie.util.Pair;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -228,7 +226,7 @@ abstract public class ExecutionThread extends JolieThread
 	}
 	
 	@Override
-	abstract public void run();
+	public abstract void run();
 	
 	/**
 	 * Returns the compensator of the current executing scope.
@@ -387,57 +385,21 @@ abstract public class ExecutionThread extends JolieThread
 	 * @return the State this ExecutionThread refers to
 	 * @see jolie.State
 	 */
-	abstract public jolie.State state();
-	
+	public abstract jolie.State state();
+
 	/**
-	 * Checks if message correlates (i.e. can be received) by this ExecutionThread.
-	 * @param recvPath the VariablePath this message would be received in
-	 * @param message the message to correlate
-	 * @return true if the message correlates correctly to this thread, false otherwise
+	 * Requests a message from the currently executing session.
+	 * @param operation the operation on which the process wants to receive the message
+	 * @return a {@link Future} that will return the received message.
 	 */
-	public synchronized boolean checkCorrelation( VariablePath recvPath, CommMessage message )
-	{
-		if ( recvPath == null || interpreter().correlationSet().isEmpty() ) {
-			return true;
-		}
+	public abstract Future< SessionMessage > requestMessage( InputOperation operation );
 
-		VariablePath messagePath;
-		Value messageValue;
-		Value correlationValue;
-
-		List< Pair< VariablePath, Value > > toBeSet = new ArrayList< Pair< VariablePath, Value > >( interpreter().correlationSet().size() );
-		for( List< VariablePath > corrList : interpreter().correlationSet() ) {
-			correlationValue = corrList.get( 0 ).getValueOrNull();
-			if ( correlationValue == null ) {
-				correlationValue = Value.UNDEFINED_VALUE;
-			}
-
-			for( VariablePath corrPath : corrList ) {
-				if ( (messagePath=recvPath.containedSubPath( corrPath )) != null ) {
-					messageValue = messagePath.getValueOrNull( message.value() );
-					if ( messageValue == null ) {
-						messageValue = Value.UNDEFINED_VALUE;
-					}
-					if ( correlationValue.isDefined() ) {
-						if ( messageValue.equals( correlationValue ) == false ) {
-							return false;
-						}
-					} else {
-						if ( messageValue.isDefined() ) {
-							correlationValue = messageValue;
-						}
-					}
-				}
-			}
-			toBeSet.add( new Pair< VariablePath, Value >( corrList.get( 0 ), correlationValue ) );
-		}
-
-		for( Pair< VariablePath, Value > pair : toBeSet ) {
-			pair.key().getValue().assignValue( pair.value() );
-		}
-
-		return true;
-	}
+	/**
+	 * Requests a message from the currently executing session.
+	 * @param operations the map of possible operations on which the process wants to receive the message
+	 * @return a {@link Future} that will return the received message.
+	 */
+	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations );
 	
 	protected Process process()
 	{

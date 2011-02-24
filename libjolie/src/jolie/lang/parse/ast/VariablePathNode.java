@@ -32,19 +32,48 @@ import jolie.util.Pair;
 
 public class VariablePathNode extends OLSyntaxNode implements Serializable
 {
-	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
-	private final boolean global;
+	public static enum Type {
+		NORMAL,
+		GLOBAL,
+		CSET
+	}
 
-	public VariablePathNode( ParsingContext context, boolean global )
+	private final List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
+	private final Type type;
+
+	public VariablePathNode( ParsingContext context, Type type )
 	{
 		super( context );
 		path = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
-		this.global = global;
+		this.type = type;
+	}
+
+	public Type type()
+	{
+		return type;
 	}
 	
 	public boolean isGlobal()
 	{
-		return global;
+		return type == Type.GLOBAL;
+	}
+
+	public boolean isCSet()
+	{
+		return type == Type.CSET;
+	}
+
+	public boolean isStatic()
+	{
+		for( Pair< OLSyntaxNode, OLSyntaxNode > node : path ) {
+			if ( node.key() instanceof ConstantStringExpression == false ) {
+				return false;
+			}
+			if ( node.value() instanceof ConstantIntegerExpression == false ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static void levelPaths( VariablePathNode leftPath, VariablePathNode rightPath )

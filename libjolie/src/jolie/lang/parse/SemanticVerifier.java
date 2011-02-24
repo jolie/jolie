@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
+import jolie.lang.Constants.ExecutionMode;
 
 import jolie.lang.Constants.OperandType;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -41,6 +42,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
@@ -96,6 +98,7 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Pair;
 
 /**
@@ -107,7 +110,8 @@ public class SemanticVerifier implements OLVisitor
 {
 	private final Program program;
 	private boolean valid = true;
-	
+
+	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
 	private final Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
 	private final Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
 	
@@ -122,12 +126,13 @@ public class SemanticVerifier implements OLVisitor
 		new HashMap< OneWayOperationDeclaration, List< OneWayOperationDeclaration > >();
 	private final Map< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > rrToBeEqual =
 		new HashMap< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > >();
-
+	private final List< CorrelationSetInfo > correlationSets = new LinkedList< CorrelationSetInfo >();
 
 	private boolean insideInputPort = false;
+	private boolean insideInit = false;
 	private boolean mainDefined = false;
 	
-	private final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
 
@@ -136,7 +141,6 @@ public class SemanticVerifier implements OLVisitor
 	//private TypeDefinition rootType; // the type representing the whole session state
 
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
-	private final Set< String > correlationSet = new HashSet< String >();
 	
 	public SemanticVerifier( Program program )
 	{
@@ -252,11 +256,35 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	private void checkCorrelationSets()
+	{
+		for( CorrelationSetInfo cset : correlationSets ) {
+			for( CorrelationSetInfo.CorrelationVariableInfo csetVar : cset.variables() ) {
+				for( CorrelationAliasInfo alias : csetVar.aliases() ) {
+					checkCorrelationAlias( alias );
+				}
+			}
+		}
+	}
+
+	private void checkCorrelationAlias( CorrelationAliasInfo alias )
+	{
+		TypeDefinition type = definedTypes.get( alias.guardName() );
+		if ( type == null ) {
+			error( alias.variablePath(), "type " + alias.guardName() + " is undefined" );
+		}
+
+		if ( type.containsPath( alias.variablePath() ) == false ) {
+			error( alias.variablePath(), "type " + alias.guardName() + " does not contain the specified path" );
+		}
+	}
+
 	public boolean validate()
 	{
 		program.accept( this );
 		resolveLazyLinks();
 		checkToBeEqualTypes();
+		checkCorrelationSets();
 		
 		if ( mainDefined == false ) {
 			error( null, "Main procedure not defined" );
@@ -328,7 +356,7 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
-	public void visit (DocumentationComment n)
+	public void visit( DocumentationComment n )
 	{}
 
 	public void visit( Program n )
@@ -339,7 +367,11 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	public void visit( VariablePathNode n )
-	{}
+	{
+		if ( insideInit && n.isCSet() ) {
+			error( n, "Correlation variable access is forbidden in init procedures" );
+		}
+	}
 
 	public void visit( InputPortInfo n )
 	{
@@ -472,8 +504,32 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( "main".equals( n.id() ) ) {
 			mainDefined = true;
+			if ( ( n.body() instanceof NDChoiceStatement
+				|| n.body() instanceof RequestResponseOperationStatement
+				|| n.body() instanceof OneWayOperationStatement
+				) == false
+			) {
+				// The main body is not an input
+				if ( n.body() instanceof SequenceStatement ) {
+					OLSyntaxNode first = ((SequenceStatement)n.body()).children().get( 0 );
+					if ( (first instanceof RequestResponseOperationStatement
+						|| first instanceof OneWayOperationStatement) == false
+					) {
+						// The main body is not even a sequence starting with an input
+						if ( executionInfo.mode() != ExecutionMode.SINGLE ) {
+							error( n.body(),
+								"The first statement of the main procedure must be an input if the execution mode is not single"
+							);
+						}
+					}
+				}
+			}
+		}
+		if ( n.id().equals( "init" ) ) {
+			insideInit = true;
 		}
 		n.body().accept( this );
+		insideInit = false;
 	}
 		
 	public void visit( ParallelStatement stm )
@@ -492,7 +548,21 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( NDChoiceStatement stm )
 	{
+		Set< String > operations = new HashSet< String >();
+		String name = null;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
+			if ( pair.key() instanceof OneWayOperationStatement ) {
+				name = ((OneWayOperationStatement)pair.key()).id();
+			} else if ( pair.key() instanceof RequestResponseOperationStatement ) {
+				name = ((RequestResponseOperationStatement)pair.key()).id();
+			} else {
+				error( pair.key(), "Input choices can contain only One-Way or Request-Response guards" );
+			}
+			if ( operations.contains( name ) ) {
+				error( pair.key(), "Input choices can not have duplicate input guards (input statement for operation " + name + ")" );
+			} else {
+				operations.add( name );
+			}
 			pair.key().accept( this );
 			pair.value().accept( this );
 		}
@@ -529,9 +599,9 @@ public class SemanticVerifier implements OLVisitor
 			}
 		}
 
-		if ( isInCorrelationSet( n.inputVarPath() ) ) {
+		/*if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Receiving a message in a correlation variable is forbidden" );
-		}
+		}*/
 	}
 	
 	public void visit( ThrowStatement n )
@@ -556,11 +626,10 @@ public class SemanticVerifier implements OLVisitor
 	public void visit( OneWayOperationStatement n )
 	{
 		verify( n.inputVarPath() );
-		if ( isInCorrelationSet( n.inputVarPath() ) ) {
-			error( n, "Receiving a message in a correlation variable is forbidden" );
-		}
-
 		if ( n.inputVarPath() != null ) {
+			if ( n.inputVarPath().isCSet() ) {
+				error( n, "Receiving a message in a correlation variable is forbidden" );
+			}
 			encounteredAssignment( n.inputVarPath() );
 		}
 	}
@@ -570,10 +639,10 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.inputVarPath() );
 		verify( n.process() );
 		if ( n.inputVarPath() != null ) {
+			if ( n.inputVarPath().isCSet() ) {
+				error( n, "Receiving a message in a correlation variable is forbidden" );
+			}
 			encounteredAssignment( n.inputVarPath() );
-		}
-		if ( isInCorrelationSet( n.inputVarPath() ) ) {
-			error( n, "Receiving a message in a correlation variable is forbidden" );
 		}
 	}
 
@@ -606,7 +675,7 @@ public class SemanticVerifier implements OLVisitor
 		n.leftPath().accept( this );
 		n.rightPath().accept( this );
 
-		if ( isInCorrelationSet( n.rightPath() ) ) {
+		if ( n.rightPath().isCSet() ) {
 			error( n, "Making an alias to a correlation variable is forbidden" );
 		}
 	}
@@ -616,7 +685,7 @@ public class SemanticVerifier implements OLVisitor
 		encounteredAssignment( n.leftPath() );
 		n.leftPath().accept( this );
 		n.rightPath().accept( this );
-		if ( isInCorrelationSet( n.leftPath() ) ) {
+		if ( n.leftPath().isCSet() ) {
 			error( n, "Deep copy on a correlation variable is forbidden" );
 		}
 	}
@@ -700,13 +769,43 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( ExitStatement n ) {}
 
-	public void visit( ExecutionInfo n ) {}
+	public void visit( ExecutionInfo n )
+	{
+		executionInfo = n;
+	}
 
 	public void visit( CorrelationSetInfo n )
 	{
-		VariablePathNode varPath;
+		// TODO: check for duplicate correlation variables in the same cset.
+
+		VariablePathNode path;
+		for( CorrelationSetInfo.CorrelationVariableInfo csetVar : n.variables() ) {
+			path = csetVar.correlationVariablePath();
+			if ( path.isGlobal() ) {
+				error( path, "Correlation variables can not be global" );
+			} else if ( path.isCSet() ) {
+				error( path, "Correlation variables can not be in the csets structure" );
+			} else {
+				if ( path.isStatic() == false ) {
+					error( path, "correlation variable paths can not make use of dynamic evaluation" );
+				}
+			}
+			for( CorrelationAliasInfo alias : csetVar.aliases() ) {
+				if ( alias.variablePath().isGlobal() ) {
+					error( alias.variablePath(), "Correlation variables can not be global" );
+				} else if ( path.isCSet() ) {
+					error( alias.variablePath(), "Correlation variables can not be in the csets structure" );
+				} else {
+					if ( alias.variablePath().isStatic() == false ) {
+						error( alias.variablePath(), "correlation variable paths can not make use of dynamic evaluation" );
+					}
+				}
+			}
+		}
+		correlationSets.add( n );
+		/*VariablePathNode varPath;
 		List< Pair< OLSyntaxNode, OLSyntaxNode > > path;
-		for( List< VariablePathNode > list : n.cset() ) {
+		for( List< VariablePathNode > list : n.variables() ) {
 			varPath = list.get( 0 );
 			if ( varPath.isGlobal() ) {
 				error( list.get( 0 ), "Correlation variables can not be global" );
@@ -719,7 +818,7 @@ public class SemanticVerifier implements OLVisitor
 			} else {
 				correlationSet.add( ((ConstantStringExpression)path.get( 0 ).key()).value() );
 			}
-		}
+		}*/
 	}
 
 	public void visit( RunStatement n )
@@ -756,21 +855,11 @@ public class SemanticVerifier implements OLVisitor
 		n.variablePath().accept( this );
 	}
 
-	private boolean isInCorrelationSet( VariablePathNode n )
-	{
-		if ( n != null && n.isGlobal() == false ) {
-			if ( correlationSet.contains( ((ConstantStringExpression)n.path().get( 0 ).key() ).value() ) ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public void visit( UndefStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
-		if ( isInCorrelationSet( n.variablePath() ) ) {
+		if ( n.variablePath().isCSet() ) {
 			error( n, "Undefining a correlation variable is forbidden" );
 		}
 	}

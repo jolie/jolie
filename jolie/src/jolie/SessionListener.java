@@ -34,12 +34,12 @@ public interface SessionListener
 	 * Received when a session successfully ends its execution.
 	 * @param session the executed session
 	 */
-	public void sessionExecuted( SessionThread session );
+	public void onSessionExecuted( SessionThread session );
 
 	/**
 	 * Received when a session raises a fault.
 	 * @param session the session raising a fault
 	 * @param fault the fault raised by the session
 	 */
-	public void sessionError( SessionThread session, FaultException fault );
+	public void onSessionError( SessionThread session, FaultException fault );
 }

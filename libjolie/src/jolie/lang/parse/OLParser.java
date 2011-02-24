@@ -35,11 +35,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -50,6 +48,8 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
@@ -102,6 +102,7 @@ import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.ast.VariablePathNode.Type;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -185,7 +186,7 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseExecution();
 			parseInclude();
-			parseCorrelationSet();
+			parseCorrelationSets();
 			parseInclude();
 			parseTypes();
 			parseInclude();
@@ -400,24 +401,31 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private void parseCorrelationSet()
+	private void parseCorrelationSets()
 		throws IOException, ParserException
 	{
-		if ( token.isKeyword( "cset" ) ) {
+		while( token.isKeyword( "cset" ) ) {
 			getToken();
+			/*assertToken( Scanner.TokenType.ID, "expected correlation set name" );
+			String csetName = token.content();
+			getToken();*/
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			Set<List<VariablePathNode>> cset = new HashSet<List<VariablePathNode>>();
-			List<VariablePathNode> list;
+			List< CorrelationVariableInfo > variables = new ArrayList< CorrelationVariableInfo >();
+			List< CorrelationAliasInfo > aliases;
+			VariablePathNode correlationVariablePath;
+			String typeName;
 			while ( token.is( Scanner.TokenType.ID ) ) {
-				list = new LinkedList<VariablePathNode>();
-				list.add( parseVariablePath() );
-				if ( token.is( Scanner.TokenType.COLON ) ) {
+				aliases = new LinkedList< CorrelationAliasInfo >();
+				correlationVariablePath = parseVariablePath();
+				eat( Scanner.TokenType.COLON, "expected correlation variable alias list" );
+				assertToken( Scanner.TokenType.ID, "expected correlation variable alias" );
+				while ( token.is( Scanner.TokenType.ID ) ) {
+					typeName = token.content();
 					getToken();
-					while ( token.is( Scanner.TokenType.ID ) ) {
-						list.add( parseVariablePath() );
-					}
+					eat( Scanner.TokenType.DOT, "expected . after message type name in correlation alias" );
+					aliases.add( new CorrelationAliasInfo( typeName, parseVariablePath() ) );
 				}
-				cset.add( list );
+				variables.add( new CorrelationVariableInfo( correlationVariablePath, aliases ) );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
 				} else {
@@ -425,7 +433,7 @@ public class OLParser extends AbstractParser
 				}
 			}
 
-			program.addChild( new CorrelationSetInfo( getContext(), cset ) );
+			program.addChild( new CorrelationSetInfo( getContext(), variables ) );
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
@@ -1552,19 +1560,25 @@ public class OLParser extends AbstractParser
 	private VariablePathNode _parseVariablePath( String varId )
 		throws IOException, ParserException
 	{
-		OLSyntaxNode expr = null;
+		OLSyntaxNode expr;
 		VariablePathNode path = null;
 
 		if ( varId.equals( Constants.GLOBAL ) ) {
-			path = new VariablePathNode( getContext(), true );
+			path = new VariablePathNode( getContext(), Type.GLOBAL );
+		} else if ( varId.equals( Constants.CSETS ) ) {
+			path = new VariablePathNode( getContext(), Type.CSET );
+			path.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
+				new ConstantStringExpression( getContext(), varId ), new ConstantIntegerExpression( getContext(), 0 ) ) );
 		} else {
-			path = new VariablePathNode( getContext(), false );
+			path = new VariablePathNode( getContext(), Type.NORMAL );
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
 				expr =
 					parseExpression();
 				eat(
 					Scanner.TokenType.RSQUARE, "expected ]" );
+			} else {
+				expr = new ConstantIntegerExpression( getContext(), 0 );
 			}
 
 			path.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
@@ -1594,7 +1608,7 @@ public class OLParser extends AbstractParser
 				eat(
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
-				expr = null;
+				expr = new ConstantIntegerExpression( getContext(), 0 );
 			}
 
 			path.append(
@@ -1639,9 +1653,9 @@ public class OLParser extends AbstractParser
 
 		while ( token.is( Scanner.TokenType.LSQUARE ) ) {
 			getToken(); // Eat [
-			if ( token.is( Scanner.TokenType.LINKIN ) ) {
+			/*if ( token.is( Scanner.TokenType.LINKIN ) ) {
 				inputGuard = parseLinkInStatement();
-			} else if ( token.is( Scanner.TokenType.ID ) ) {
+			} else */if ( token.is( Scanner.TokenType.ID ) ) {
 				String id = token.content();
 				getToken();
 

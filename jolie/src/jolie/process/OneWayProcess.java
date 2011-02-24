@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,113 +21,32 @@
 
 package jolie.process;
 
-
+import java.io.IOException;
+import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
-import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
-import jolie.runtime.InputHandler;
+import jolie.runtime.InputOperation;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.VariablePath;
-import jolie.runtime.typing.TypeCheckingException;
 
-public class OneWayProcess implements CorrelatedInputProcess, InputOperationProcess
+public class OneWayProcess implements InputOperationProcess
 {
-	private class Execution extends AbstractInputProcessExecution< OneWayProcess >
-	{
-		protected CommMessage message = null;
-		protected CommChannel channel = null;
-		
-		public Execution( OneWayProcess parent )
-		{
-			super( parent );
-		}
-		
-		public Process clone( TransformationReason reason )
-		{
-			return new Execution( parent );
-		}
+	private final OneWayOperation operation;
+	private final VariablePath varPath;
 
-		public void interpreterExit()
-		{
-			synchronized( this ) {
-				this.notify();
-			}
-		}
-
-		protected void runImpl()
-			throws FaultException, ExitingException
-		{
-			try {
-				operation.signForMessage( this );
-				synchronized( this ) {
-					if ( message == null && !Interpreter.getInstance().exiting() ) {
-						ExecutionThread ethread = ExecutionThread.currentThread();
-						ethread.setCanBeInterrupted( true );
-						this.wait();
-						ethread.setCanBeInterrupted( false );
-					}
-				}
-
-				if ( message == null ) { // If message == null, we are exiting
-					throw new ExitingException();
-				} else {
-					parent.runBehaviour( channel, message );
-				}
-			} catch( InterruptedException ie ) {
-				parent.operation.cancelWaiting( this );
-			}
-		}
-
-		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
-		{
-			try {
-				checkMessageType( message );
-			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logWarning( "Received message TypeMismatch (One-Way input operation " + operation.id() + "): " + e.getMessage() );
-				return false;
-			}
-			
-			if ( parent.correlatedProcess != null ) {
-				if ( Interpreter.getInstance().exiting() ) {
-					this.notify();
-					// Do not trigger session spawning if we're exiting
-					return false;
-				}
-				parent.correlatedProcess.inputReceived();
-			}
-
-			this.channel = channel;
-			this.message = message;
-			this.notify();
-			return true;
-		}
-		
-		public boolean isKillable()
-		{
-			return true;
-		}
-	}
-	
-	final protected OneWayOperation operation;
-	final protected VariablePath varPath;
-	protected CorrelatedProcess correlatedProcess = null;
-
-	public OneWayProcess(
-			OneWayOperation operation,
-			VariablePath varPath
-			)
+	public OneWayProcess( OneWayOperation operation, VariablePath varPath )
 	{
 		this.operation = operation;
 		this.varPath = varPath;
 	}
 
-	public void checkMessageType( CommMessage message )
-		throws TypeCheckingException
+	public InputOperation inputOperation()
 	{
-		operation.requestType().check( message.value() );
+		return operation;
 	}
 	
 	public Process clone( TransformationReason reason )
@@ -135,29 +54,62 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		return new OneWayProcess( operation, varPath );
 	}
 	
-	public void setCorrelatedProcess( CorrelatedProcess process )
-	{
-		this.correlatedProcess = process;
-	}
-	
 	public VariablePath inputVarPath()
 	{
 		return varPath;
 	}
 
+	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
+	{		
+		log( "received message " + sessionMessage.message().id() );
+		if ( varPath != null ) {
+			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
+		}
+
+		return new Process() {
+			public void run()
+				throws FaultException, ExitingException
+			{
+				try {
+					sessionMessage.channel().send( CommMessage.createEmptyResponse( sessionMessage.message() ) );
+				} catch( IOException e ) {
+					throw new FaultException( e );
+				} finally {
+					try {
+						sessionMessage.channel().release();
+					} catch( IOException e ) {
+						Interpreter.getInstance().logSevere( e );
+					}
+				}
+			}
+
+			public Process clone( TransformationReason reason )
+			{
+				return this;
+			}
+
+			public boolean isKillable()
+			{
+				return false;
+			}
+		};
+	}
+
 	public void run()
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		ExecutionThread ethread = ExecutionThread.currentThread();
+		if ( ethread.isKilled() ) {
 			return;
 		}
 
-		(new Execution( this )).run();
-	}
-	
-	public InputHandler getInputHandler()
-	{
-		return operation;
+		Future< SessionMessage > f = ethread.requestMessage( operation );
+		try {
+			SessionMessage m = f.get();
+			receiveMessage( m, ethread.state() ).run();
+		} catch( Exception e ) {
+			Interpreter.getInstance().logSevere( e );
+		}
 	}
 
 	private void log( String message )
@@ -165,23 +117,6 @@ public class OneWayProcess implements CorrelatedInputProcess, InputOperationProc
 		if ( Interpreter.getInstance().verbose() ) {
 			Interpreter.getInstance().logInfo( "[OneWay operation " + operation.id() + "]: " + message );
 		}
-	}
-	
-	public void runBehaviour( CommChannel channel, CommMessage message )
-	{
-		log( "received message " + message.id() );
-
-		if ( varPath != null ) {
-			varPath.getValue().refCopy( message.value() );
-		}
-
-		/*try {
-			if ( channel != null ) {
-				channel.release();
-			}
-		} catch( IOException e ) {
-			Interpreter.getInstance().logSevere( e );
-		}*/
 	}
 	
 	public boolean isKillable()

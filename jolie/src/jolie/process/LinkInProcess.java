@@ -27,32 +27,24 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
-import jolie.runtime.InputHandler;
 import jolie.runtime.InternalLink;
 
-public class LinkInProcess implements InputProcess
+public class LinkInProcess implements Process
 {
-	private class Execution extends AbstractInputProcessExecution< LinkInProcess >
+	public static class Execution
 	{
-		protected CommMessage message = null;
+		private CommMessage message = null;
+		private final LinkInProcess parent;
 		
 		public Execution( LinkInProcess parent )
 		{
-			super( parent );
-		}
-		
-		public Process clone( TransformationReason reason )
-		{
-			return new Execution( parent );
+			this.parent = parent;
 		}
 
-		public void interpreterExit()
-		{}
-
-		protected void runImpl()
+		private void run()
 			throws FaultException
 		{
-			InternalLink link = InternalLink.getById( linkId );
+			InternalLink link = InternalLink.getById( parent.linkId );
 			try {
 				link.signForMessage( this );
 				synchronized( this ) {
@@ -81,7 +73,7 @@ public class LinkInProcess implements InputProcess
 		}
 	}
 	
-	final private String linkId;
+	private final String linkId;
 	
 	public LinkInProcess( String link )
 	{
@@ -92,18 +84,7 @@ public class LinkInProcess implements InputProcess
 	{
 		return new LinkInProcess( linkId );
 	}
-	
-	public InputHandler getInputHandler()
-	{
-		return InternalLink.getById( linkId  );
-	}
 
-	public void checkMessageType( CommMessage message )
-	{}
-
-	public void runBehaviour( CommChannel channel, CommMessage message )
-	{}
-	
 	public void run()
 		throws FaultException, ExitingException
 	{

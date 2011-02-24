@@ -109,6 +109,7 @@ public final class Constants
 	public static final String fileSeparator = System.getProperty( "file.separator" );
 	public static final String pathSeparator = System.getProperty( "path.separator" );
 	public static final String GLOBAL = "global";
+	public static final String CSETS = "csets";
 	public static final Charset defaultCharset;
 
 	static {

@@ -79,7 +79,7 @@ public class NotificationProcess implements Process
 		}
 
 		boolean verbose = Interpreter.getInstance().verbose();
-
+		CommChannel channel = null;
 		try {
 			CommMessage message =
 				( outputExpression == null ) ?
@@ -88,7 +88,7 @@ public class NotificationProcess implements Process
 			if ( oneWayDescription != null ) {
 				oneWayDescription.requestType().check( message.value() );
 			}
-			CommChannel channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel();
 			if ( verbose ) {
 				log( "sending request " + message.id() );
 			}
@@ -96,13 +96,37 @@ public class NotificationProcess implements Process
 			if ( verbose ) {
 				log( "request " + message.id() + " sent" );
 			}
-			channel.release();
+			CommMessage response = null;
+			do {
+				response = channel.recvResponseFor( message );
+			} while( response == null );
+			if ( verbose ) {
+				log( "received response for request " + response.id() );
+			}
+			if ( response.isFault() ) {
+				if ( response.fault().faultName().equals( "CorrelationError" )
+					|| response.fault().faultName().equals( "IOException" )
+					|| response.fault().faultName().equals( "TypeMismatch" )
+					) {
+					throw response.fault();
+				} else {
+					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
+				}
+			}
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+		} finally {
+			if ( channel != null ) {
+				try {
+					channel.release();
+				} catch( IOException e ) {
+					Interpreter.getInstance().logWarning( e );
+				}
+			}
 		}
 	}
 	
