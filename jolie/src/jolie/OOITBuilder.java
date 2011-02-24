@@ -917,7 +917,11 @@ public class OOITBuilder implements OLVisitor
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
-			pair.value().accept( this );
+			if ( pair.value() != null ) {
+				pair.value().accept( this );
+			} else {
+				currExpression = null;
+			}
 			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
 		}
 		

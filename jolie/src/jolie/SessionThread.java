@@ -342,11 +342,12 @@ public class SessionThread extends ExecutionThread
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
+				SessionMessageFuture currFuture;
 				while( keepRun && !messages.isEmpty() ) {
 					message = messages.peekFirst();
-					future = getMessageWaiter( message.message().operationName() );
-					if ( future != null ) { // We found a waiter for the unlocked message
-						future.setResult( message );
+					currFuture = getMessageWaiter( message.message().operationName() );
+					if ( currFuture != null ) { // We found a waiter for the unlocked message
+						currFuture.setResult( message );
 						messages.removeFirst();
 					} else {
 						keepRun = false;

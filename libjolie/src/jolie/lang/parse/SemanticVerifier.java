@@ -797,7 +797,7 @@ public class SemanticVerifier implements OLVisitor
 					error( alias.variablePath(), "Correlation variables can not be in the csets structure" );
 				} else {
 					if ( alias.variablePath().isStatic() == false ) {
-						error( alias.variablePath(), "correlation variable paths can not make use of dynamic evaluation" );
+						error( alias.variablePath(), "correlation variable path aliases can not make use of dynamic evaluation" );
 					}
 				}
 			}

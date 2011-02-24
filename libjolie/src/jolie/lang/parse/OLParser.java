@@ -1578,7 +1578,7 @@ public class OLParser extends AbstractParser
 				eat(
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
-				expr = new ConstantIntegerExpression( getContext(), 0 );
+				expr = null;
 			}
 
 			path.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
@@ -1608,7 +1608,7 @@ public class OLParser extends AbstractParser
 				eat(
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
-				expr = new ConstantIntegerExpression( getContext(), 0 );
+				expr = null;
 			}
 
 			path.append(

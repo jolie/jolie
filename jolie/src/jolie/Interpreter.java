@@ -674,6 +674,7 @@ public class Interpreter
 	}
 	
 	private SessionThread initExecutionThread;
+	private SessionThread mainSession;
 	
 	/**
 	 * Returns the SessionThread of the Interpreter that started the program execution.
@@ -805,6 +806,13 @@ public class Interpreter
 			initExecutionThread.start();
 			try {
 				initExecutionThread.join();
+				if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+					try {
+						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+						correlationEngine.onSingleExecutionSessionStart( mainSession );
+						mainSession.addSessionListener( correlationEngine );
+					} catch( InvalidIdException e ) { assert false; }
+				}
 			} catch( InterruptedException e ) {
 				//logSevere( e );
 				throw new InterpreterException( e );
@@ -816,14 +824,11 @@ public class Interpreter
 	{
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			try {
-				SessionThread mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
 				mainSession.start();
-				try {
-					mainSession.join();
-				} catch( InterruptedException e ) {
-					logSevere( e );
-				}
-			} catch( InvalidIdException e ) { assert false; }
+				mainSession.join();
+			} catch( InterruptedException e ) {
+				logSevere( e );
+			}
 		} else {
 			exitingLock.lock();
 			try {

@@ -69,7 +69,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 			if ( node.key() instanceof ConstantStringExpression == false ) {
 				return false;
 			}
-			if ( node.value() instanceof ConstantIntegerExpression == false ) {
+			if ( node.value() != null && node.value() instanceof ConstantIntegerExpression == false ) {
 				return false;
 			}
 		}
