@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2006-2011 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,7 +21,6 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.Collection;
 import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
@@ -29,17 +28,59 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class CorrelationSetInfo extends OLSyntaxNode
 {
-	private final Collection< List< VariablePathNode > > cset;
+	public static class CorrelationAliasInfo {
+		private final String guardName;
+		private final VariablePathNode variablePath;
+
+		public CorrelationAliasInfo( String guardName, VariablePathNode variablePath )
+		{
+			this.guardName = guardName;
+			this.variablePath = variablePath;
+		}
+
+		public String guardName()
+		{
+			return guardName;
+		}
+
+		public VariablePathNode variablePath()
+		{
+			return variablePath;
+		}
+	}
+
+	public static class CorrelationVariableInfo {
+		private final VariablePathNode correlationVariablePath;
+		private final List< CorrelationAliasInfo > aliases;
+
+		public CorrelationVariableInfo( VariablePathNode correlationVariablePath, List< CorrelationAliasInfo > aliases )
+		{
+			this.correlationVariablePath = correlationVariablePath;
+			this.aliases = aliases;
+		}
+
+		public List< CorrelationAliasInfo > aliases()
+		{
+			return aliases;
+		}
+
+		public VariablePathNode correlationVariablePath()
+		{
+			return correlationVariablePath;
+		}
+	}
+
+	private final List< CorrelationVariableInfo > variables;
 	
-	public CorrelationSetInfo( ParsingContext context, Collection< List< VariablePathNode > > cset )
+	public CorrelationSetInfo( ParsingContext context, List< CorrelationVariableInfo > variables )
 	{
 		super( context );
-		this.cset = cset;
+		this.variables = variables;
 	}
 	
-	public Collection< List< VariablePathNode > > cset()
+	public List< CorrelationVariableInfo > variables()
 	{
-		return cset;
+		return variables;
 	}
 	
 	public void accept( OLVisitor visitor )

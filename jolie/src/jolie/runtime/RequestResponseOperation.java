@@ -23,6 +23,7 @@
 package jolie.runtime;
 
 import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
 
 public class RequestResponseOperation extends InputOperation
 {
@@ -39,5 +40,10 @@ public class RequestResponseOperation extends InputOperation
 	public RequestResponseTypeDescription typeDescription()
 	{
 		return typeDescription;
+	}
+
+	public Type requestType()
+	{
+		return typeDescription.requestType();
 	}
 }

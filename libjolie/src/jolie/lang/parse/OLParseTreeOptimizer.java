@@ -350,7 +350,7 @@ public class OLParseTreeOptimizer
 
 		public void visit( VariablePathNode n )
 		{
-			VariablePathNode varPath = new VariablePathNode( n.context(), n.isGlobal() );
+			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
 				varPath.append( new Pair< OLSyntaxNode, OLSyntaxNode >( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,121 +22,30 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.Expression;
 import jolie.runtime.FaultException;
-import jolie.runtime.InputHandler;
+import jolie.runtime.InputOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
 
-public class RequestResponseProcess implements CorrelatedInputProcess, InputOperationProcess
+public class RequestResponseProcess implements InputOperationProcess
 {
-	private class Execution  extends AbstractInputProcessExecution< RequestResponseProcess >
-	{
-		private CommMessage message;
-		private CommChannel channel;
-		
-		public Execution( RequestResponseProcess parent )
-		{
-			super( parent );
-		}
-		
-		public Process clone( TransformationReason reason )
-		{
-			return new Execution( parent );
-		}
-
-		public void interpreterExit()
-		{
-			synchronized( this ) {
-				this.notify();
-			}
-		}
-		
-		protected void runImpl()
-			throws FaultException, ExitingException
-		{
-			try {
-				parent.operation.signForMessage( this );
-				synchronized( this ) {
-					if ( message == null && !Interpreter.getInstance().exiting() ) {
-						ExecutionThread ethread = ExecutionThread.currentThread();
-						ethread.setCanBeInterrupted( true );
-						this.wait();
-						ethread.setCanBeInterrupted( false );
-					}
-				}
-
-				if ( message == null ) { // If message == null, we are exiting
-					throw new ExitingException();
-				} else {
-					parent.runBehaviour( channel, message );
-				}
-			} catch( InterruptedException e ) {
-				parent.operation.cancelWaiting( this );
-			}
-		}
-		
-		public boolean isKillable()
-		{
-			return true;
-		}
-		
-		public VariablePath inputVarPath()
-		{
-			return parent.inputVarPath;
-		}
-		
-		// TODO: is synchronized really needed here?
-		public synchronized boolean recvMessage( CommChannel channel, CommMessage message )
-			throws TypeCheckingException
-		{
-			try {
-				checkMessageType( message );
-			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logWarning( "Received message TypeMismatch (Request-Response input operation " + operation.id() + "): " + e.getMessage() );
-				try {
-					channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
-					//channel.release();
-				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
-				}
-				throw e;
-			}
-			
-			if ( parent.correlatedProcess != null ) {
-				if ( Interpreter.getInstance().exiting() ) {
-					this.notify();
-					// Do not trigger session spawning if we're exiting
-					return false;
-				} else {
-					parent.correlatedProcess.inputReceived();
-				}
-			}
-
-			this.channel = channel;
-			this.message = message;
-			this.notify();
-
-			return true;
-		}	
-	}
-
-	
-	final protected RequestResponseOperation operation;
-	final protected VariablePath inputVarPath; // may be null
-	final protected Expression outputExpression; // may be null
-	final protected Process process;
-	protected CorrelatedProcess correlatedProcess = null;
+	private final RequestResponseOperation operation;
+	private final VariablePath inputVarPath; // may be null
+	private final Expression outputExpression; // may be null
+	private final Process process;
 	
 	public RequestResponseProcess(
 			RequestResponseOperation operation,
@@ -148,6 +57,11 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputExpression = outputExpression;
+	}
+
+	public InputOperation inputOperation()
+	{
+		return operation;
 	}
 
 	private void log( String message )
@@ -162,12 +76,6 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		return true;
 	}
 
-	public void checkMessageType( CommMessage message )
-		throws TypeCheckingException
-	{
-		operation.typeDescription().requestType().check( message.value() );
-	}
-	
 	public Process clone( TransformationReason reason )
 	{
 		return new RequestResponseProcess(
@@ -178,31 +86,54 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 				);
 	}
 	
-	public void setCorrelatedProcess( CorrelatedProcess process )
+	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
-		this.correlatedProcess = process;
+		log( "received message " + sessionMessage.message().id() );
+		if ( inputVarPath != null ) {
+			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
+		}
+
+		return new Process() {
+			public void run()
+				throws FaultException, ExitingException
+			{
+				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
+			}
+
+			public Process clone( TransformationReason reason )
+			{
+				return this;
+			}
+
+			public boolean isKillable()
+			{
+				return false;
+			}
+		};
 	}
-	
+
 	public void run()
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		ExecutionThread ethread = ExecutionThread.currentThread();
+		if ( ethread.isKilled() ) {
 			return;
 		}
 
-		(new Execution( this )).run();
+		Future< SessionMessage > f = ethread.requestMessage( operation );
+		try {
+			SessionMessage m = f.get();
+			receiveMessage( m, ethread.state() ).run();
+		} catch( Exception e ) {
+			Interpreter.getInstance().logSevere( e );
+		}
 	}
 	
 	public VariablePath inputVarPath()
 	{
 		return inputVarPath;
 	}
-	
-	public InputHandler getInputHandler()
-	{
-		return operation;
-	}
-	
+
 	private CommMessage createFaultMessage( CommMessage request, FaultException f )
 		throws TypeCheckingException
 	{
@@ -220,15 +151,9 @@ public class RequestResponseProcess implements CorrelatedInputProcess, InputOper
 		return CommMessage.createFaultResponse( request, f );
 	}
 	
-	public void runBehaviour( CommChannel channel, CommMessage message )
+	private void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
-		log( "received message " + message.id() );
-
-		if ( inputVarPath != null ) {
-			inputVarPath.setValue( message.value() );
-		}
-
 		FaultException typeMismatch = null;
 
 		FaultException fault = null;

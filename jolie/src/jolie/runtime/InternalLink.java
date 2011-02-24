@@ -26,21 +26,19 @@ package jolie.runtime;
 import java.util.LinkedList;
 import java.util.List;
 import jolie.ExecutionThread;
-import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.process.InputProcessExecution;
-import jolie.runtime.typing.TypeCheckingException;
+import jolie.process.LinkInProcess;
 
 
 /** Internal synchronization link for parallel processes.
  * 
  * @author Fabrizio Montesi
  */
-public class InternalLink extends AbstractIdentifiableObject implements InputHandler
+public class InternalLink extends AbstractIdentifiableObject
 {
-	private final List< InputProcessExecution > procsList =
-					new LinkedList< InputProcessExecution > ();
+	private final List< LinkInProcess.Execution > procsList =
+					new LinkedList< LinkInProcess.Execution > ();
 	private int signals = 0;
 	private final CommMessage linkMessage;
 	
@@ -53,32 +51,24 @@ public class InternalLink extends AbstractIdentifiableObject implements InputHan
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
 	{
 		for( int i = 0; i < procsList.size(); i++ ) {
-			try {
-				if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
-					procsList.remove( i );
-					return;
-				}
-			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logSevere( e );
+			if ( procsList.get( i ).recvMessage( null, linkMessage ) ) {
+				procsList.remove( i );
+				return;
 			}
 		}
 		signals++;
 	}
 
-	public synchronized void signForMessage( InputProcessExecution process )
+	public synchronized void signForMessage( LinkInProcess.Execution process )
 	{
-		try {
-			if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
-				signals--;
-			} else {
-				procsList.add( process );
-			}
-		} catch( TypeCheckingException e ) {
-			Interpreter.getInstance().logSevere( e );
+		if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
+			signals--;
+		} else {
+			procsList.add( process );
 		}
 	}
 	
-	public synchronized void cancelWaiting( InputProcessExecution process ) 
+	public synchronized void cancelWaiting( LinkInProcess.Execution process )
 	{
 		procsList.remove( process );
 	}

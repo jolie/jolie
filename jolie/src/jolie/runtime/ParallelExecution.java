@@ -24,7 +24,10 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.Future;
 import jolie.ExecutionThread;
+import jolie.net.SessionMessage;
 import jolie.process.Process;
 
 public class ParallelExecution
@@ -39,6 +42,16 @@ public class ParallelExecution
 		public jolie.State state()
 		{
 			return parent.state();
+		}
+
+		public Future< SessionMessage > requestMessage( InputOperation operation )
+		{
+			return parent.requestMessage( operation );
+		}
+
+		public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations )
+		{
+			return parent.requestMessage( operations );
 		}
 
 		@Override

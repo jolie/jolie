@@ -4,6 +4,7 @@
 <language name="Jolie" version="1.0alpha1" kateversion="2.5" section="Scripts" extensions="*.ol;*.iol" author="Fabrizio Montesi" license="LGPLv2.1" casesensitive="true" priority="5" mimetype="application/jolie">
 	<highlighting>
 		<list name="keywords">
+			<item> csets </item>
 			<item> type </item>
 			<item> raw </item>
 			<item> any </item>

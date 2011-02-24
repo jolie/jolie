@@ -46,6 +46,7 @@ import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import jolie.jap.JapURLConnection;
 import jolie.lang.parse.Scanner;
+import jolie.runtime.correlation.CorrelationEngine;
 
 /**
  * A parser for JOLIE's command line arguments,
@@ -59,6 +60,7 @@ public class CommandLineParser
 
 	private final int connectionsLimit;
 	private final int connectionsCache;
+	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
 	private final String[] optionArgs;
 	private final URL[] libURLs;
@@ -180,6 +182,8 @@ public class CommandLineParser
 		helpBuilder.append(
 				getOptionString( "--conncache [number]", "Set the maximum number of cached persistent output connections" ) );
 		helpBuilder.append(
+				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
+		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
@@ -221,6 +225,16 @@ public class CommandLineParser
 	}
 
 	/**
+	 * Returns the type of correlation algorithm that has been specified.
+	 * @return the type of correlation algorithm that has been specified.
+	 * @see CorrelationAlgorithm
+	 */
+	public CorrelationEngine.Type correlationAlgorithmType()
+	{
+		return correlationAlgorithmType;
+	}
+
+	/**
 	 * Constructor
 	 * @param args the command line arguments
 	 * @param classLoader the ClassLoader to use for finding resources
@@ -239,6 +253,7 @@ public class CommandLineParser
 		for( int i = 0; i < args.length; i++ ) {
 			argsList.add( args[ i ] );
 		}
+		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
 		boolean bVerbose = false;
 		List< String > programArgumentsList = new ArrayList< String >();
@@ -298,6 +313,11 @@ public class CommandLineParser
 				i++;
 				cCache = Integer.parseInt( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
+			} else if ( "--correlationAlgorithm".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				csetAlgorithmName = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
 			} else if ( "--verbose".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bVerbose = true;
@@ -348,6 +368,10 @@ public class CommandLineParser
 
 		verbose = bVerbose;
 
+		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
+		if ( correlationAlgorithmType == null ) {
+			throw new CommandLineException( "Unrecognized correlation algorithm: " + csetAlgorithmName );
+		}
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		

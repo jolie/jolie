@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -9,7 +9,7 @@
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public Lictypemense for more details.                     *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU Library General Public     *
  *   License along with this program; if not, write to the                 *
@@ -23,16 +23,17 @@ package jolie;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
-
+import java.util.Set;
 import jolie.lang.Constants;
+import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLParser;
@@ -47,6 +48,7 @@ import jolie.lang.parse.ast.ConstantIntegerExpression;
 import jolie.lang.parse.ast.ConstantRealExpression;
 import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
@@ -110,8 +112,6 @@ import jolie.net.ports.Interface;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
-import jolie.process.CorrelatedInputProcess;
-import jolie.process.CorrelatedProcess;
 import jolie.process.CurrentHandlerProcess;
 import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
@@ -119,11 +119,11 @@ import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
 import jolie.process.IfProcess;
-import jolie.process.InputProcess;
+import jolie.process.InputOperationProcess;
 import jolie.process.InstallProcess;
 import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
-import jolie.process.MainDefinitionProcess;
+import jolie.process.InitDefinitionProcess;
 import jolie.process.MakePointerProcess;
 import jolie.process.NDChoiceProcess;
 import jolie.process.NotificationProcess;
@@ -175,9 +175,13 @@ import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.correlation.CorrelationSet;
+import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.util.ArrayListMultiMap;
+import jolie.util.MultiMap;
 import jolie.util.Pair;
 
 /**
@@ -194,6 +198,9 @@ public class OOITBuilder implements OLVisitor
 	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > isConstantMap;
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
+	private final List< CorrelationSetInfo > correlationSetInfoList = new LinkedList< CorrelationSetInfo >();
+	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
+	private boolean registerSessionStarters = false;
 
 	/**
 	 * Constructor.
@@ -237,9 +244,23 @@ public class OOITBuilder implements OLVisitor
 	public boolean build()
 	{
 		visit( program );
+		checkForInit();
 		resolveTypeLinks();
+		buildCorrelationSets();
 		
 		return valid;
+	}
+
+	private void checkForInit()
+	{
+		try {
+			interpreter.getDefinition( "init" );
+		} catch( InvalidIdException e ) {
+			interpreter.register( "init",
+			new InitDefinitionProcess(
+				new ScopeProcess( "main", new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false )
+			));
+		}
 	}
 
 	private void resolveTypeLinks()
@@ -253,9 +274,50 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 	}
+
+	private void buildCorrelationSets()
+	{
+		Interpreter.SessionStarter starter;
+		Collection< String > operations;
+		VariablePath sessionVariablePath;
+		VariablePath messageVariablePath;
+		CorrelationSet currCorrelationSet;
+		Set< Interpreter.SessionStarter > starters = new HashSet< Interpreter.SessionStarter >();
+		List< VariablePath > correlationVariablePaths;
+		for( CorrelationSetInfo csetInfo : correlationSetInfoList ) {
+			correlationVariablePaths = new ArrayList< VariablePath >();
+			MultiMap< String, CorrelationPair > correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
+				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
+				correlationVariablePaths.add( sessionVariablePath );
+				csetVariableInfo.correlationVariablePath();
+				for( CorrelationSetInfo.CorrelationAliasInfo aliasInfo : csetVariableInfo.aliases() ) {
+					operations = inputTypeNameMap.get( aliasInfo.guardName() );
+					messageVariablePath = buildVariablePath( aliasInfo.variablePath() );
+					for( String operationName : operations ) {
+						correlationMap.put(
+							operationName,
+							new CorrelationPair( sessionVariablePath, messageVariablePath )
+						);
+						starter = interpreter.getSessionStarter( operationName );
+						if ( starter != null && starter.correlationInitializer() == null ) {
+							starters.add( starter );
+						}
+					}
+				}
+			}
+			currCorrelationSet = new CorrelationSet( correlationVariablePaths, correlationMap );
+			interpreter.addCorrelationSet( currCorrelationSet );
+			for( Interpreter.SessionStarter initStarter : starters ) {
+				initStarter.setCorrelationInitializer( currCorrelationSet );
+			}
+			starters.clear();
+		}
+	}
 	
 	public void visit( ExecutionInfo n )
 	{
+		executionMode = n.mode();
 		interpreter.setExecutionMode( n.mode() );
 	}
 
@@ -264,17 +326,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( CorrelationSetInfo n )
 	{
-		Set< List< VariablePath > > cset = new HashSet< List< VariablePath > > ();
-		List< VariablePath > paths;
-		for( List< VariablePathNode > list : n.cset() ) {
-			paths = new LinkedList< VariablePath > ();
-			for( VariablePathNode path : list ) {
-				paths.add( buildVariablePath( path ) );
-			}
-			cset.add( paths );
-		}
-
-		interpreter.setCorrelationSet( cset );
+		correlationSetInfoList.add( n );
 	}
 
 	public void visit( OutputPortInfo n )
@@ -450,15 +502,17 @@ public class OOITBuilder implements OLVisitor
 	private Process currProcess;
 	private Expression currExpression;
 	private Condition currCondition;
-	private boolean canSpawnSession = false;
 	private Type currType;
 	boolean insideType = false;
 	
-	final private Map< String, Type > types = new HashMap< String, Type >();
+	private final Map< String, Type > types = new HashMap< String, Type >();
 
-	final private Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
+	private final MultiMap< String, String > inputTypeNameMap =
+		new ArrayListMultiMap< String, String >(); // Maps type names to the input operations that use them
+
+	private final Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
 		new HashMap< String, Map< String, OneWayTypeDescription > >(); // Maps output ports to their OW operation types
-	final private Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
+	private final Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
 		new HashMap< String, Map< String, RequestResponseTypeDescription > >(); // Maps output ports to their RR operation types
 
 	public void visit( TypeInlineDefinition n )
@@ -527,6 +581,7 @@ public class OOITBuilder implements OLVisitor
 				interpreter.getOneWayOperation( decl.id() );
 			} catch( InvalidIdException e ) {
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
+				inputTypeNameMap.put( decl.requestType().id(), decl.id() );
 			}
 		} else {
 			typeDescription = new OneWayTypeDescription( buildType( decl.requestType() ) );
@@ -562,6 +617,7 @@ public class OOITBuilder implements OLVisitor
 					decl.id(),
 					new RequestResponseOperation( decl.id(), typeDescription )
 				);
+				inputTypeNameMap.put( decl.requestType().id(), decl.id() );
 			}
 		} else {
 			Type requestType, responseType;
@@ -579,43 +635,31 @@ public class OOITBuilder implements OLVisitor
 			currentPortInterface.requestResponseOperations().put( decl.id(), typeDescription );
 		}
 	}
-
-	// TODO use this in every session spawner creation
-	private CorrelatedProcess makeSessionSpawner( CorrelatedInputProcess process )
-	{
-		CorrelatedProcess ret = new CorrelatedProcess( interpreter, process );
-		process.setCorrelatedProcess( ret );
-		return ret;
-	}
 	
 	public void visit( DefinitionNode n )
 	{
 		DefinitionProcess def;
 		
 		if ( "main".equals( n.id() ) ) {
-			canSpawnSession = true;
-			n.body().accept( this );
-			canSpawnSession = false;
-			if ( currProcess instanceof CorrelatedInputProcess ) {
-				currProcess = makeSessionSpawner( (CorrelatedInputProcess)currProcess );
+			if ( executionMode == ExecutionMode.SINGLE ) {
+				// We are a single-session service, so we will not spawn sessions
+				registerSessionStarters = false;
+				buildProcess( n.body() );
+			} else {
+				registerSessionStarters = true;
+				buildProcess( n.body() );
+				registerSessionStarters = false;
 			}
-			
-			List< Process > mainChildren = new LinkedList< Process >();
-			try {
-				mainChildren.add( new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ) );
-				mainChildren.add( interpreter.getDefinition( "init" ) );
-			} catch( InvalidIdException e ) {}
-			mainChildren.add( currProcess );
-			currProcess = new SequentialProcess( mainChildren.toArray( new Process[0] ) );
-			
-			currProcess = new ScopeProcess(
-				"main",
-				currProcess
-			);
-			def = new MainDefinitionProcess( currProcess );
-		} else {
-			n.body().accept( this );
 			def = new DefinitionProcess( currProcess );
+		} else if ( "init".equals( n.id() ) ) {
+			Process[] initChildren = {
+				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
+				buildProcess( n.body() )
+			};
+
+			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
+		} else {
+			def = new DefinitionProcess( buildProcess( n.body() ) );
 		}
 
 		interpreter.register( n.id(), def );
@@ -640,94 +684,87 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( SequenceStatement n )
 	{
+		boolean origRegisterSessionStarters = registerSessionStarters;
+		registerSessionStarters = false;
+
 		List< Process > children = new LinkedList< Process >();
-		Iterator< OLSyntaxNode > it = n.children().iterator();
-		OLSyntaxNode node;
-		boolean origSpawnSession;
-		while( it.hasNext() ) {
-			node = it.next();
-			node.accept( this );
-			if ( currProcess instanceof CorrelatedInputProcess && canSpawnSession ) {
-				/**
-				 * Do not use multiple CorrelatedInputProcess
-				 * in the same sequence!
-				 */
-				origSpawnSession = canSpawnSession;
-				canSpawnSession = false;
-				List< Process > sequenceChildren = new LinkedList< Process >();
-				CorrelatedInputProcess c = ((CorrelatedInputProcess)currProcess);
-				sequenceChildren.add( currProcess );
-				while( it.hasNext() ) {
-					node = it.next();
-					node.accept( this );
-					sequenceChildren.add( currProcess );
-				}
-				CorrelatedProcess corrProc = new CorrelatedProcess( interpreter, new SequentialProcess( sequenceChildren.toArray( new Process[0] ) ) );
-				c.setCorrelatedProcess( corrProc );
-				currProcess = corrProc;
-				canSpawnSession = origSpawnSession;
-			}
-			children.add( currProcess );
-			if ( !it.hasNext() ) // Dirty trick, remove this
-				break;
+		for( OLSyntaxNode child : n.children() ) {
+			children.add( buildProcess( child ) );
 		}
 		currProcess = new SequentialProcess( children.toArray( new Process[0] ) );
+
+		if ( origRegisterSessionStarters && children.get( 0 ) instanceof InputOperationProcess ) {
+			// We must register this sequence as a starter guarded by the first input process
+			InputOperationProcess first = (InputOperationProcess) children.remove( 0 );
+			registerSessionStarter(
+				first,
+				new SequentialProcess( children.toArray( new Process[0] ) )
+			);
+		}
+
+		registerSessionStarters = origRegisterSessionStarters;
+	}
+
+	private void registerSessionStarter( InputOperationProcess guard, Process body )
+	{
+		interpreter.registerSessionStarter( guard, body );
 	}
 
 	public void visit( NDChoiceStatement n )
 	{
-		boolean origSpawnSession = canSpawnSession;
-		canSpawnSession = false;
-		
-		CorrelatedProcess corrProc = null;
-		List< Pair< InputProcess, Process > > branches =
-					new LinkedList< Pair< InputProcess, Process > >();
-		
-		Process guard;
+		boolean origRegisterSessionStarters = registerSessionStarters;
+		registerSessionStarters = false;
+
+		List< Pair< InputOperationProcess, Process > > branches =
+					new LinkedList< Pair< InputOperationProcess, Process > >();
+		InputOperationProcess guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
-			guard = currProcess;
-			if ( guard instanceof CorrelatedInputProcess ) {
-				((CorrelatedInputProcess) guard).setCorrelatedProcess( corrProc );
-			}
-			pair.value().accept( this );
 			try {
+				guard = (InputOperationProcess) currProcess;
+				pair.value().accept( this );
 				branches.add(
-					new Pair< InputProcess, Process >( (InputProcess)guard, currProcess )
+					new Pair< InputOperationProcess, Process >( guard, currProcess )
 				);
+				if ( origRegisterSessionStarters ) {
+					registerSessionStarter( guard, currProcess );
+				}
 			} catch( Exception e ) {
 				e.printStackTrace();
 			}
 		}
 		
-		NDChoiceProcess proc = new NDChoiceProcess( branches.toArray( new Pair[0] ) );
+		currProcess = new NDChoiceProcess( branches.toArray( new Pair[0] ) );
 		
-		canSpawnSession = origSpawnSession;
-		if( canSpawnSession ) {
-			corrProc = new CorrelatedProcess( interpreter, proc );
-			proc.setCorrelatedProcess( corrProc );
-		}
-
-		currProcess = ( corrProc == null ) ? proc : corrProc;
+		registerSessionStarters = origRegisterSessionStarters;
 	}
 		
 	public void visit( OneWayOperationStatement n )
 	{
+		boolean origRegisterSessionStarters = registerSessionStarters;
+		registerSessionStarters = false;
+
 		try {
-			currProcess =
+			InputOperationProcess inputProcess;
+			currProcess = inputProcess =
 				new OneWayProcess(
 						interpreter.getOneWayOperation( n.id() ),
 						buildVariablePath( n.inputVarPath() )
 						);
+			if ( origRegisterSessionStarters ) {
+				registerSessionStarter( inputProcess, NullProcess.getInstance() );
+			}
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
 		}
+
+		registerSessionStarters = origRegisterSessionStarters;
 	}
 
 	public void visit( RequestResponseOperationStatement n )
 	{
-		boolean origSpawnSession = canSpawnSession;
-		canSpawnSession = false;
+		boolean origRegisterSessionStarters = registerSessionStarters;
+		registerSessionStarters = false;
 		
 		Expression outputExpression = null;
 		if ( n.outputExpression() != null ) {
@@ -735,19 +772,22 @@ public class OOITBuilder implements OLVisitor
 			outputExpression = currExpression;
 		}
 		try {
-			n.process().accept( this );
-			currProcess =
+			InputOperationProcess inputProcess;
+			currProcess = inputProcess =
 				new RequestResponseProcess(
 						interpreter.getRequestResponseOperation( n.id() ),
 						buildVariablePath( n.inputVarPath() ),
 						outputExpression,
-						currProcess
+						buildProcess( n.process() )
 						);
+			if ( origRegisterSessionStarters ) {
+				registerSessionStarter( inputProcess, NullProcess.getInstance() );
+			}
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
 		}
 
-		canSpawnSession = origSpawnSession;
+		registerSessionStarters = origRegisterSessionStarters;
 	}
 		
 	public void visit( NotificationOperationStatement n )
@@ -853,6 +893,17 @@ public class OOITBuilder implements OLVisitor
 		currProcess = p;
 		currExpression = p;
 	}
+
+	private VariablePath buildCorrelationVariablePath( VariablePathNode path )
+	{
+		VariablePathNode csetVarPathNode = new VariablePathNode( path.context(), VariablePathNode.Type.CSET );
+		csetVarPathNode.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
+			new ConstantStringExpression( path.context(), Constants.CSETS ),
+			new ConstantIntegerExpression( path.context(), 0 )
+		));
+		csetVarPathNode.path().addAll( path.path() );
+		return buildVariablePath( csetVarPathNode );
+	}
 	
 	private VariablePath buildVariablePath( VariablePathNode path )
 	{
@@ -866,9 +917,7 @@ public class OOITBuilder implements OLVisitor
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
-			currExpression = null;
-			if ( pair.value() != null )
-				pair.value().accept( this );
+			pair.value().accept( this );
 			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
 		}
 		

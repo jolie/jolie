@@ -30,15 +30,15 @@ import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -58,10 +58,14 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
+import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.CommMessage;
+import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
-import jolie.process.CorrelatedProcess;
 import jolie.process.DefinitionProcess;
+import jolie.process.InputOperationProcess;
+import jolie.process.SequentialProcess;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -71,7 +75,8 @@ import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
+import jolie.runtime.correlation.CorrelationEngine;
+import jolie.runtime.correlation.CorrelationSet;
 
 /**
  * The Jolie interpreter engine.
@@ -81,12 +86,50 @@ import jolie.runtime.VariablePath;
  */
 public class Interpreter
 {
+	public static class SessionStarter
+	{
+		private final InputOperationProcess guard;
+		private final jolie.process.Process body;
+		private CorrelationSet correlationInitializer = null;
+
+		public SessionStarter( InputOperationProcess guard, jolie.process.Process body )
+		{
+			this.guard = guard;
+			this.body = body;
+		}
+
+		public InputOperationProcess guard()
+		{
+			return guard;
+		}
+
+		public jolie.process.Process body()
+		{
+			return body;
+		}
+
+		public void setCorrelationInitializer( CorrelationSet cset )
+		{
+			correlationInitializer = cset;
+		}
+
+		public CorrelationSet correlationInitializer()
+		{
+			return correlationInitializer;
+		}
+	}
+
+
 	private CommCore commCore;
 	private CommandLineParser cmdParser;
-	
+
+	private Map< String, SessionStarter > sessionStarters = new HashMap< String, SessionStarter >();
 	private boolean exiting = false;
-	private final Collection< List< VariablePath > > correlationSet =
-				new HashSet< List< VariablePath > > ();
+	private final Lock exitingLock;
+	private final Condition exitingCondition;
+	private final CorrelationEngine correlationEngine;
+	private final List< CorrelationSet > correlationSets =
+				new ArrayList< CorrelationSet > ();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
@@ -102,9 +145,6 @@ public class Interpreter
 	
 	private final HashMap< String, Object > locksMap =
 				new HashMap< String, Object >();
-	
-	private final Set< CorrelatedProcess > sessionSpawners =
-				new HashSet< CorrelatedProcess >();
 	
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
@@ -129,6 +169,11 @@ public class Interpreter
 	public long openInputConnectionTimeout()
 	{
 		return openInputConnectionTimeout;
+	}
+
+	public CorrelationEngine correlationEngine()
+	{
+		return correlationEngine;
 	}
 
 	public void schedule( TimerTask task, long delay )
@@ -189,27 +234,13 @@ public class Interpreter
 	}
 
 	/**
-	 * Registers a session spawner on this <code>Interpreter</code>.
-	 * This must be done for all session spawners in order to ensure correct
-	 * execution termination.
-	 * @param process the session spawner to register
+	 * Registers a session starter on this <code>Interpreter</code>.
+	 * @param guard the input guard for this session starter
+	 * @param process the body of this session starter
 	 */
-	public void registerSessionSpawner( CorrelatedProcess process )
+	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body )
 	{
-		synchronized( sessionSpawners ) {
-			sessionSpawners.add( process );
-		}
-	}
-
-	/**
-	 * Unregisters a session spawner.
-	 * @param process the session spawner to unregister
-	 */
-	public void unregisterSessionSpawner( CorrelatedProcess process )
-	{
-		synchronized( sessionSpawners ) {
-			sessionSpawners.remove( process );
-		}
+		sessionStarters.put( guard.inputOperation().id(), new SessionStarter( guard, body ) );
 	}
 	
 	private JolieClassLoader classLoader;
@@ -380,13 +411,13 @@ public class Interpreter
 				exiting = true;
 			}
 		}
-
-		commCore.shutdown();
-		synchronized( sessionSpawners ) {
-			for( CorrelatedProcess p : sessionSpawners ) {
-				p.interpreterExit();
-			}
+		exitingLock.lock();
+		try {
+			exitingCondition.signalAll();
+		} finally {
+			exitingLock.unlock();
 		}
+		commCore.shutdown();
 		timer.cancel();
 	}
 
@@ -483,22 +514,21 @@ public class Interpreter
 	}
 
 	/**
-	 * Sets the correlation set of this interpreter.
-	 * @param set the correlation set to set
+	 * Adds a correlation set to this interpreter.
+	 * @param set the correlation set to add
 	 */
-	public void setCorrelationSet( Set< List< VariablePath > > set )
+	public void addCorrelationSet( CorrelationSet set )
 	{
-		correlationSet.clear();
-		correlationSet.addAll( set );
+		correlationSets.add( set );
 	}
 	
 	/**
-	 * Returns the correlation set of this Interpreter.
-	 * @return the correlation set of this Interpreter
+	 * Returns the correlation sets of this Interpreter.
+	 * @return the correlation sets of this Interpreter
 	 */
-	public Collection< List< VariablePath > > correlationSet()
+	public List< CorrelationSet > correlationSets()
 	{
-		return correlationSet;
+		return correlationSets;
 	}
 	
 	/**
@@ -560,6 +590,7 @@ public class Interpreter
 		optionArgs = cmdParser.optionArgs();
 		programFilename = new File( cmdParser.programFilepath() ).getName();
 		arguments = cmdParser.arguments();
+		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
 		includePaths = cmdParser.includePaths();
 
@@ -571,6 +602,8 @@ public class Interpreter
 
 		verbose = cmdParser.verbose();
 		timer = new Timer( programFilename + "-Timer" );
+		exitingLock = new ReentrantLock();
+		exitingCondition = exitingLock.newCondition();
 
 		if ( cmdParser.programDirectory() == null ) {
 			this.programDirectory = programDirectory;
@@ -626,6 +659,11 @@ public class Interpreter
 		return l;
 	}
 
+	public SessionStarter getSessionStarter( String operationName )
+	{
+		return sessionStarters.get( operationName );
+	}
+
 	/**
 	 * Returns the {@code global} value of this Interpreter.
 	 * @return the {@code global} value of this Interpreter
@@ -635,7 +673,7 @@ public class Interpreter
 		return globalValue;
 	}
 	
-	private SessionThread mainExec;
+	private SessionThread initExecutionThread;
 	
 	/**
 	 * Returns the SessionThread of the Interpreter that started the program execution.
@@ -643,7 +681,7 @@ public class Interpreter
 	 */
 	public SessionThread mainThread()
 	{
-		return mainExec;
+		return initExecutionThread;
 	}
 	
 	private static class InterpreterStartFuture implements Future< Exception >
@@ -736,39 +774,65 @@ public class Interpreter
 		throws InterpreterException, IOException
 	{
 		/**
-		 * Order is important. CommCore needs the OOIT to be initialized.
+		 * Order is important.
+		 * 1 - CommCore needs the OOIT to be initialized.
+		 * 2 - initExec must be instantiated before we can receive communications.
 		 */
 		if ( buildOOIT() == false ) {
 			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
 		}
-		commCore.init();
+		sessionStarters = Collections.unmodifiableMap( sessionStarters );
+		try {
+			initExecutionThread = new SessionThread( this, getDefinition( "init" ) );
+
+			commCore.init();
+
+			// Initialize program arguments in the args variabile.
+			ValueVector jArgs = ValueVector.create();
+			for( String s : arguments ) {
+				jArgs.add( Value.create( s ) );
+			}
+			initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
+			initExecutionThread.addSessionListener( new SessionListener() {
+				public void onSessionExecuted( SessionThread session )
+				{}
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
+					exit();
+				}
+			});
+
+			initExecutionThread.start();
+			try {
+				initExecutionThread.join();
+			} catch( InterruptedException e ) {
+				//logSevere( e );
+				throw new InterpreterException( e );
+			}
+		} catch( InvalidIdException e ) { assert false; }
 	}
 	
-	private void runMain()
+	private void runCode()
 	{
-		DefinitionProcess main = null;
-		try {
-			main = getDefinition( "main" );
-		} catch ( InvalidIdException e ) {
-			// As the parser checks this for us, execution should never reach this point.
-			assert false;
-		}
-		
-		mainExec = new SessionThread( this, main );
-		
-		// Initialize program arguments in the args variabile.
-		ValueVector jArgs = ValueVector.create();
-		
-		for( String s : arguments ) {
-			jArgs.add( Value.create( s ) );
-		}
-		mainExec.state().root().getChildren( "args" ).deepCopy( jArgs );
-		
-		mainExec.start();
-		try {
-			mainExec.join();
-		} catch( InterruptedException e ) {
-			logSevere( e );
+		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+			try {
+				SessionThread mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+				mainSession.start();
+				try {
+					mainSession.join();
+				} catch( InterruptedException e ) {
+					logSevere( e );
+				}
+			} catch( InvalidIdException e ) { assert false; }
+		} else {
+			exitingLock.lock();
+			try {
+				exitingCondition.await();
+			} catch( InterruptedException e ) {
+				logSevere( e );
+			} finally {
+				exitingLock.unlock();
+			}
 		}
 	}
 	
@@ -785,7 +849,7 @@ public class Interpreter
 		throws InterpreterException, IOException
 	{
 		init();
-		runMain();
+		runCode();
 	}
 
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -825,7 +889,7 @@ public class Interpreter
 			} catch( Exception e ) {
 				future.setResult( e );
 			}
-			runMain();
+			runCode();
 			//commCore.shutdown();
 			exit();
 			free();
@@ -840,12 +904,10 @@ public class Interpreter
 			definitions.clear();
 			inputOperations.clear();
 			locksMap.clear();
-			mainExec = null;
-			synchronized( sessionSpawners ) {
-				sessionSpawners.clear();
-			}
+			initExecutionThread = null;
+			sessionStarters = new HashMap< String, SessionStarter >();
 			outputPorts.clear();
-			correlationSet.clear();
+			correlationSets.clear();
 			globalValue.erase();
 			embeddedServiceLoaders.clear();
 			classLoader = null;
@@ -900,5 +962,42 @@ public class Interpreter
 		} finally {
 			cmdParser = null; // Free memory
 		}
+	}
+
+	public boolean startSession( CommMessage message, CommChannel channel )
+	{
+		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+			return false;
+		}
+
+		SessionStarter starter = sessionStarters.get( message.operationName() );
+		if ( starter == null ) {
+			return false;
+		}
+
+		try {
+			initExecutionThread.join();
+		} catch( InterruptedException e ) {
+			return false;
+		}
+
+		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
+			State state = initExecutionThread.state().clone();
+			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+				starter.body
+			} );
+			SessionThread newSession = new SessionThread(
+				sequence, state, initExecutionThread
+			);
+			correlationEngine.onSessionStart( newSession, starter, message );
+			newSession.addSessionListener( correlationEngine );
+			newSession.start();
+		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
+			//runSequentialSession( starter, message, channel );
+			// TODO
+		}
+
+		return true;
 	}
 }

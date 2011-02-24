@@ -11,7 +11,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  *                                                                         *
- *   You should have receicved a copy of the GNU Library General Public     *
+ *   You should have received a copy of the GNU Library General Public     *
  *   License along with this program; if not, write to the                 *
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
@@ -52,7 +52,6 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
-import jolie.process.InputProcessExecution;
 import jolie.process.Process;
 import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
@@ -61,6 +60,7 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.TypeCheckingException;
 
 /** 
  * Handles the communications mechanisms for an Interpreter instance.
@@ -494,11 +494,21 @@ public class CommCore
 			try {
 				InputOperation operation =
 					interpreter.getInputOperation( message.operationName() );
-				operation.recvMessage( channel, message );
-				channel.disposeForInput();
+				try {
+					operation.requestType().check( message.value() );
+					interpreter.correlationEngine().onMessageReceive( message, channel );
+				} catch( TypeCheckingException e ) {
+					interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
+					try {
+						channel.send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					} catch( IOException ioe ) {
+						Interpreter.getInstance().logSevere( ioe );
+					}
+				}
 			} catch( InvalidIdException e ) {
 				interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
 				channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+			} finally {
 				channel.disposeForInput();
 			}
 		}
@@ -570,6 +580,15 @@ public class CommCore
 	public void scheduleReceive( CommChannel channel, InputPort port )
 	{
 		executorService.execute( new CommChannelHandlerRunnable( channel, port ) );
+	}
+
+	/**
+	 * Runs an asynchronous task in this CommCore internal thread pool.
+	 * @param r the Runnable object to execute
+	 */
+	public void execute( Runnable r )
+	{
+		executorService.execute( r );
 	}
 
 	protected void startCommChannelHandler( Runnable r )
@@ -867,28 +886,6 @@ public class CommCore
 		}
 	}
 
-	private final Collection< InputProcessExecution<?> > waitingCorrelatedInputs = new LinkedList< InputProcessExecution<?> >();
-
-	/**
-	 * Registers a waiting session spawner. This is necessary for operating graceful shutdowns.
-	 * @param input the session spawner to register
-	 */
-	public synchronized void addWaitingCorrelatedInput( InputProcessExecution<?> input )
-	{
-		if ( active ) {
-			waitingCorrelatedInputs.add( input );
-		}
-	}
-
-	/**
-	 * Unregisters a waiting session spawner.
-	 * @param input the session spawner to unregister
-	 */
-	public synchronized void removeWaitingCorrelatedInput( InputProcessExecution<?> input )
-	{
-		waitingCorrelatedInputs.remove( input );
-	}
-
 	/** Shutdowns the communication core, interrupting every communication-related thread. */
 	public synchronized void shutdown()
 	{
@@ -901,9 +898,6 @@ public class CommCore
 			}
 			executorService.shutdown();
 			threadGroup.interrupt();
-			for( InputProcessExecution input : waitingCorrelatedInputs ) {
-				input.interpreterExit();
-			}
 			active = false;
 		}
 	}
