@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import jolie.Interpreter;
 import jolie.SessionThread;
+import jolie.lang.Constants.ExecutionMode;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
@@ -84,7 +85,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 
 	private boolean correlate( SessionThread session, CommMessage message )
 	{
-		if ( interpreter().correlationSets().isEmpty() ) {
+		if ( interpreter().correlationSets().isEmpty() && interpreter().executionMode() == ExecutionMode.SINGLE ) {
 			return true;
 		}
 
