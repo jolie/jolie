@@ -148,18 +148,6 @@ public class CommMessage implements Serializable
 	}
 
 	/**
-	 * Creates a one-way message.
-	 * @param operationName the name of the operation this message is meant for
-	 * @param resourcePath the resource path of this message
-	 * @param value the message data
-	 * @return a one-way message as per specified by the parameters
-	 */
-	public static CommMessage createOneWayMessage( String operationName, String resourcePath, Value value )
-	{
-		return new CommMessage( GENERIC_ID, operationName, resourcePath, Value.createDeepCopy( value ), null );
-	}
-
-	/**
 	 * Constructor
 	 * @param id the identifier for this message
 	 * @param operationName the operation name for this message
