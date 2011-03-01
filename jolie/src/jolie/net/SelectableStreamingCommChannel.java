@@ -68,7 +68,7 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	abstract public SelectableChannel selectableChannel();
 
 	@Override
-	public void send( CommMessage message )
+	public final void send( CommMessage message )
 		throws IOException
 	{
 		if ( lock.isHeldByCurrentThread() ) {
