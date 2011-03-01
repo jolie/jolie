@@ -21,6 +21,8 @@
 
 package joliex.db;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -144,7 +146,7 @@ public class DatabaseService extends JavaService
 						);
 				}
 			} catch( SQLException e ) {
-				throw new FaultException( e );
+				throw createFaultException( e );
 			}
 		}
 	}
@@ -161,7 +163,7 @@ public class DatabaseService extends JavaService
 				resultValue.setValue( stm.executeUpdate() );
 			}
 		} catch( SQLException e ) {
-			throw new FaultException( e );
+			throw createFaultException( e );
 		} finally {
 			if ( stm != null ) {
 				try {
@@ -273,7 +275,7 @@ public class DatabaseService extends JavaService
 			try {
 				connection.setAutoCommit( false );
 			} catch( SQLException e ) {
-				throw new FaultException( e );
+				throw createFaultException( e );
 			}
 			Value currResultValue;
 			PreparedStatement stm;
@@ -298,13 +300,13 @@ public class DatabaseService extends JavaService
 					} catch( SQLException e1 ) {
 						connection = null;
 					}
-					throw new FaultException( e );
+					throw createFaultException( e );
 				} finally {
 					if ( stm != null ) {
 						try {
 							stm.close();
 						} catch( SQLException e ) {
-							throw new FaultException( e );
+							throw createFaultException( e );
 						}
 					}
 				}
@@ -313,16 +315,26 @@ public class DatabaseService extends JavaService
 			try {
 				connection.commit();
 			} catch( SQLException e ) {
-				throw new FaultException( e );
+				throw createFaultException( e );
 			} finally {
 				try {
 					connection.setAutoCommit( true );
 				} catch( SQLException e ) {
-					throw new FaultException( e );
+					throw createFaultException( e );
 				}
 			}
 		}
 		return resultValue;
+	}
+
+	private static FaultException createFaultException( SQLException e )
+	{
+		Value v = Value.create();
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		e.printStackTrace( new PrintStream( bs ) );
+		v.getNewChild( "stackTrace" ).setValue( bs.toString() );
+		v.getNewChild( "errorCode" ).setValue( e.getErrorCode() );
+		return new FaultException( "SQLException", v );
 	}
 	
 	public Value query( Value request )
@@ -338,7 +350,7 @@ public class DatabaseService extends JavaService
 				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 			}
 		} catch( SQLException e ) {
-			throw new FaultException( "SQLException", e );
+			throw createFaultException( e );
 		} finally {
 			if ( stm != null ) {
 				try {
