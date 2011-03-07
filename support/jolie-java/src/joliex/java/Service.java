@@ -52,7 +52,7 @@ public abstract class Service
 
 	public void callOneWay( String operationName, Value requestValue, Callback callback )
 	{
-		factory.execute( createOneWayRunnable( CommMessage.createOneWayMessage( operationName, resourcePath, requestValue ), callback ) );
+		factory.execute( createOneWayRunnable( CommMessage.createRequest( operationName, resourcePath, requestValue ), callback ) );
 	}
 
 	public abstract void close()
