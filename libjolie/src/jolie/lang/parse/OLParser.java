@@ -1012,7 +1012,7 @@ public class OLParser extends AbstractParser
 				}
 
 				if ( definedTypes.containsKey( responseTypeName ) == false ) {
-					throwException( "invalid type: " + requestTypeName );
+					throwException( "invalid type: " + responseTypeName );
 				}
 
 				RequestResponseOperationDeclaration opRR =
