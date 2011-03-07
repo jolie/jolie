@@ -73,7 +73,7 @@ public class MetaServiceChannel implements Cloneable
 			channel = metaService.createCommChannel();
 		}*/
 		channel.send(
-			CommMessage.createOneWayMessage( operationName, resourceName, value )
+			CommMessage.createRequest( operationName, resourceName, value )
 		);
 	}
 	
