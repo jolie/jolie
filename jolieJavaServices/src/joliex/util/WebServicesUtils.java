@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2010-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -50,6 +50,8 @@ public class WebServicesUtils extends JavaService
 			throw new FaultException( "IOException", e );
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
+		} catch( Exception e ) {
+			e.printStackTrace();
 		}
 		return writer.toString();
 	}
