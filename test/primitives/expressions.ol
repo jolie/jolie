@@ -27,6 +27,15 @@ define doTest
 		throw( TestFailed, "string concatenation does not match correct result" )
 	} else if ( 17 != 2 + 3 * 5 ) {
 		throw( TestFailed, "arithmetic expression does not match correct result" )
+	};
+
+	x = 1;
+	x += 8; // x = 9
+	x -= 7; // x = 2
+	x *= 4; // x = 8
+	x /= 2; // x = 4
+	if ( x != 4 ) {
+		throw( TestFailed, "compact inline arithmetic operators do not work correctly" )
 	}
 }
 
