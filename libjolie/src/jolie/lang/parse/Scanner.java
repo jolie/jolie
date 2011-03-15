@@ -398,12 +398,8 @@ public class Scanner
 						state = 4;
 					} else if ( ch == '+' ) {
 						state = 5;
-					} else if ( ch == '-' ) {
-						state = 22;
 					} else if ( ch == '*' ) {
 						state = 23;
-					} else if ( ch == '%' ) {
-						state = 24;
 					} else if ( ch == '=' ) {
 						state = 6;
 					} else if ( ch == '|' ) {
@@ -443,6 +439,8 @@ public class Scanner
 							retval = new Token( TokenType.COMMA );
 						} else if ( ch == ';' ) {
 							retval = new Token( TokenType.SEQUENCE );
+						} else if ( ch == '%' ) {
+							retval = new Token( TokenType.PERCENT_SIGN );
 						//else if ( ch == '.' )
 							//retval = new Token( TokenType.DOT );
 						} else if ( ch == '#' ) {
@@ -589,28 +587,12 @@ public class Scanner
 						retval = new Token( TokenType.PLUS );
 					}
 					break;
-				case 22:	// MINUS or MINUS_ASSIGN
-					if ( ch == '=' ) {
-						retval = new Token( TokenType.MINUS_ASSIGN );
-						readChar();
-					} else {
-						retval = new Token( TokenType.MINUS );
-					}
-					break;
 				case 23:	// MULTIPLY or MULTIPLY_ASSIGN
 					if ( ch == '=' ) {
 						retval = new Token( TokenType.MULTIPLY_ASSIGN );
 						readChar();
 					} else {
 						retval = new Token( TokenType.ASTERISK );
-					}
-					break;
-				case 24:	// DIVIDE or DIVIDE_ASSIGN
-					if ( ch == '=' ) {
-						retval = new Token( TokenType.DIVIDE_ASSIGN );
-						readChar();
-					} else {
-						retval = new Token( TokenType.PERCENT_SIGN );
 					}
 					break;
 				case 6:	// ASSIGN OR EQUAL
@@ -665,6 +647,9 @@ public class Scanner
 						state = 13;
 					} else if ( ch == '/' )  {
 						state = 15;
+					} else if( ch == '=' )  {
+						retval = new Token( TokenType.DIVIDE_ASSIGN );
+						readChar();
 					} else
 						retval = new Token( TokenType.DIVIDE );
 					break;
@@ -690,6 +675,9 @@ public class Scanner
 						readChar();
 					} else if ( ch == '>' ) {
 						retval = new Token( TokenType.POINTS_TO );
+						readChar();
+					} else if ( ch == '=' ) {
+						retval = new Token( TokenType.MINUS_ASSIGN );
 						readChar();
 					} else if ( ch == '.' ) {
 						builder.append( ch );
