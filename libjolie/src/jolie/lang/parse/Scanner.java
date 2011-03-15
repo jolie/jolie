@@ -54,6 +54,10 @@ public class Scanner
 		DIVIDE,				///< /
 		ASSIGN,				///< =
 		PLUS,				///< +
+		ADD_ASSIGN,			///< +=
+		MINUS_ASSIGN,		///< -=
+		MULTIPLY_ASSIGN,	///< *=
+		DIVIDE_ASSIGN,		///< %=
 		SEQUENCE,			///< ;
 		IF,					///< if
 		ELSE,				///< else
@@ -394,6 +398,12 @@ public class Scanner
 						state = 4;
 					} else if ( ch == '+' ) {
 						state = 5;
+					} else if ( ch == '-' ) {
+						state = 22;
+					} else if ( ch == '*' ) {
+						state = 23;
+					} else if ( ch == '%' ) {
+						state = 24;
 					} else if ( ch == '=' ) {
 						state = 6;
 					} else if ( ch == '|' ) {
@@ -425,8 +435,6 @@ public class Scanner
 							retval = new Token( TokenType.LCURLY );
 						} else if ( ch == '}' ) {
 							retval = new Token( TokenType.RCURLY );
-						} else if ( ch == '*' ) {
-							retval = new Token( TokenType.ASTERISK );
 						} else if ( ch == '@' ) {
 							retval = new Token( TokenType.AT );
 						} else if ( ch == ':' ) {
@@ -441,8 +449,6 @@ public class Scanner
 							retval = new Token( TokenType.HASH );
 						} else if ( ch == '^' ) {
 							retval = new Token( TokenType.CARET );
-						} else if ( ch == '%' ) {
-							retval = new Token( TokenType.PERCENT_SIGN );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
 						}
@@ -573,11 +579,39 @@ public class Scanner
 					}
 					break;		
 				case 5:	// PLUS OR CHOICE
-					if ( ch == '+' ) {
+					if ( ch == '=' ) {
+						retval = new Token( TokenType.ADD_ASSIGN );
+						readChar();
+					} else if ( ch == '+' ) {
 						retval = new Token( TokenType.CHOICE );
 						readChar();
-					} else
+					} else {
 						retval = new Token( TokenType.PLUS );
+					}
+					break;
+				case 22:	// MINUS or MINUS_ASSIGN
+					if ( ch == '=' ) {
+						retval = new Token( TokenType.MINUS_ASSIGN );
+						readChar();
+					} else {
+						retval = new Token( TokenType.MINUS );
+					}
+					break;
+				case 23:	// MULTIPLY or MULTIPLY_ASSIGN
+					if ( ch == '=' ) {
+						retval = new Token( TokenType.MULTIPLY_ASSIGN );
+						readChar();
+					} else {
+						retval = new Token( TokenType.ASTERISK );
+					}
+					break;
+				case 24:	// DIVIDE or DIVIDE_ASSIGN
+					if ( ch == '=' ) {
+						retval = new Token( TokenType.DIVIDE_ASSIGN );
+						readChar();
+					} else {
+						retval = new Token( TokenType.PERCENT_SIGN );
+					}
 					break;
 				case 6:	// ASSIGN OR EQUAL
 					if ( ch == '=' ) {

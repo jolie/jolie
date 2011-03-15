@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
 
 import jolie.lang.Constants.OperandType;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
@@ -84,7 +85,10 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
@@ -141,7 +145,7 @@ public class SemanticVerifier implements OLVisitor
 	//private TypeDefinition rootType; // the type representing the whole session state
 
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
-	
+
 	public SemanticVerifier( Program program )
 	{
 		this.program = program;
@@ -655,6 +659,34 @@ public class SemanticVerifier implements OLVisitor
 	}
 		
 	public void visit( AssignStatement n )
+	{
+		encounteredAssignment( n.variablePath() );
+		n.variablePath().accept( this );
+		n.expression().accept( this );
+	}
+
+	public void visit( AddAssignStatement n )
+	{
+		encounteredAssignment( n.variablePath() );
+		n.variablePath().accept( this );
+		n.expression().accept( this );
+	}
+
+	public void visit( SubtractAssignStatement n )
+	{
+		encounteredAssignment( n.variablePath() );
+		n.variablePath().accept( this );
+		n.expression().accept( this );
+	}
+
+	public void visit( MultiplyAssignStatement n )
+	{
+		encounteredAssignment( n.variablePath() );
+		n.variablePath().accept( this );
+		n.expression().accept( this );
+	}
+
+	public void visit( DivideAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );

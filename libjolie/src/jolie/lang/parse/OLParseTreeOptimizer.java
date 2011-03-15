@@ -24,6 +24,7 @@ package jolie.lang.parse;
 import jolie.lang.parse.context.ParsingContext;
 import java.lang.reflect.Array;
 import jolie.lang.Constants;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
@@ -72,8 +73,11 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -488,7 +492,39 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.expression() )
 			);
 		}
-		
+
+		public void visit( AddAssignStatement n )
+		{
+			currNode = new AddAssignStatement(
+				n.context(),
+				optimizePath( n.variablePath() ),
+				optimizeNode( n.expression() ) );
+		}
+
+		public void visit( SubtractAssignStatement n )
+		{
+			currNode = new SubtractAssignStatement(
+				n.context(),
+				optimizePath( n.variablePath() ),
+				optimizeNode( n.expression() ) );
+		}
+
+		public void visit( MultiplyAssignStatement n )
+		{
+			currNode = new MultiplyAssignStatement(
+				n.context(),
+				optimizePath( n.variablePath() ),
+				optimizeNode( n.expression() ) );
+		}
+
+		public void visit( DivideAssignStatement n )
+		{
+			currNode = new DivideAssignStatement(
+				n.context(),
+				optimizePath( n.variablePath() ),
+				optimizeNode( n.expression() ) );
+		}
+
 		public void visit( DeepCopyStatement n )
 		{
 			currNode = new DeepCopyStatement(

@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -68,6 +69,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.SpawnStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
@@ -82,6 +84,8 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 
 public interface OLVisitor
 {
@@ -99,6 +103,10 @@ public interface OLVisitor
 	public void visit( LinkInStatement n );
 	public void visit( LinkOutStatement n );
 	public void visit( AssignStatement n );
+	public void visit( AddAssignStatement n );
+	public void visit( SubtractAssignStatement n );
+	public void visit( MultiplyAssignStatement n );
+	public void visit( DivideAssignStatement n );
 	public void visit( IfStatement n );
 	public void visit( DefinitionCallStatement n );
 	public void visit( WhileStatement n );

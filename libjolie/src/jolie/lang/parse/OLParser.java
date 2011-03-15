@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -54,6 +55,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -90,6 +92,8 @@ import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.OperationCollector;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
@@ -1204,7 +1208,7 @@ public class OLParser extends AbstractParser
 			String id = token.content();
 			getToken();
 
-			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.CHOICE ) ) {
+			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.CHOICE ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
@@ -1522,6 +1526,22 @@ public class OLParser extends AbstractParser
 			getToken();
 			retVal =
 				new AssignStatement( getContext(), path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.ADD_ASSIGN ) ) {
+			getToken();
+			retVal =
+				new AddAssignStatement( getContext(), path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.MINUS_ASSIGN ) ) {
+			getToken();
+			retVal =
+				new SubtractAssignStatement( getContext(), path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) ) {
+			getToken();
+			retVal =
+				new MultiplyAssignStatement( getContext(), path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.DIVIDE_ASSIGN ) ) {
+			getToken();
+			retVal =
+				new DivideAssignStatement( getContext(), path, parseExpression() );
 		} else if ( token.is( Scanner.TokenType.CHOICE ) ) {
 			getToken();
 			retVal =
