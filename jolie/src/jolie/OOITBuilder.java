@@ -40,6 +40,7 @@ import jolie.lang.parse.OLParser;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -53,6 +54,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
@@ -69,6 +71,8 @@ import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
@@ -109,12 +113,14 @@ import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.net.ports.OutputPort;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.Interface;
+import jolie.process.AddAssignmentProcess;
 import jolie.process.AssignmentProcess;
 import jolie.process.CallProcess;
 import jolie.process.CompensateProcess;
 import jolie.process.CurrentHandlerProcess;
 import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
+import jolie.process.DivideAssignmentProcess;
 import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
@@ -125,6 +131,8 @@ import jolie.process.LinkInProcess;
 import jolie.process.LinkOutProcess;
 import jolie.process.InitDefinitionProcess;
 import jolie.process.MakePointerProcess;
+import jolie.process.SubtractAssignmentProcess;
+import jolie.process.MultiplyAssignmentProcess;
 import jolie.process.NDChoiceProcess;
 import jolie.process.NotificationProcess;
 import jolie.process.NullProcess;
@@ -890,6 +898,54 @@ public class OOITBuilder implements OLVisitor
 				buildVariablePath( n.variablePath() ),
 				currExpression
 				);
+		currProcess = p;
+		currExpression = p;
+	}
+
+	public void visit( AddAssignStatement n )
+	{
+		n.expression().accept( this );
+
+		AddAssignmentProcess p =
+			new AddAssignmentProcess(
+			buildVariablePath( n.variablePath() ),
+			currExpression );
+		currProcess = p;
+		currExpression = p;
+	}
+
+	public void visit( SubtractAssignStatement n )
+	{
+		n.expression().accept( this );
+
+		SubtractAssignmentProcess p =
+			new SubtractAssignmentProcess(
+			buildVariablePath( n.variablePath() ),
+			currExpression );
+		currProcess = p;
+		currExpression = p;
+	}
+
+	public void visit( MultiplyAssignStatement n )
+	{
+		n.expression().accept( this );
+
+		MultiplyAssignmentProcess p =
+			new MultiplyAssignmentProcess(
+			buildVariablePath( n.variablePath() ),
+			currExpression );
+		currProcess = p;
+		currExpression = p;
+	}
+
+	public void visit( DivideAssignStatement n )
+	{
+		n.expression().accept( this );
+
+		DivideAssignmentProcess p =
+			new DivideAssignmentProcess(
+			buildVariablePath( n.variablePath() ),
+			currExpression );
 		currProcess = p;
 		currExpression = p;
 	}

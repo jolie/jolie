@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
@@ -41,6 +42,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
@@ -56,6 +58,8 @@ import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
@@ -249,4 +253,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	public void visit( InstallFixedVariableExpressionNode n ) {}
 	public void visit( VariablePathNode n ) {}
 	public void visit( DocumentationComment n ) {}
+	public void visit( AddAssignStatement n ) {}
+	public void visit( SubtractAssignStatement n ) {}
+	public void visit( MultiplyAssignStatement n ) {}
+	public void visit( DivideAssignStatement n ) {}
 }

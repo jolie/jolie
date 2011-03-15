@@ -24,6 +24,7 @@ package joliex.java.impl;
 import java.util.ArrayList;
 import java.util.List;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
@@ -37,6 +38,7 @@ import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
+import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
@@ -51,6 +53,7 @@ import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
+import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
 import jolie.lang.parse.ast.NotConditionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
@@ -75,6 +78,7 @@ import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
+import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
@@ -397,4 +401,9 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	public void visit( DocumentationComment n )
 	{
 	}
+	
+	public void visit( AddAssignStatement n ) {}
+	public void visit( SubtractAssignStatement n ) {}
+	public void visit( MultiplyAssignStatement n ) {}
+	public void visit( DivideAssignStatement n ) {}
 }
