@@ -615,7 +615,13 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( sSet == null ||
 						(elementDecl=sSet.getElementDecl( messageNamespace, messageRootElementName )) == null
 					) {
-					Name operationName = soapEnvelope.createName( messageRootElementName );
+					Name operationName = null;
+					if ( messageNamespace.isEmpty() ) {
+						operationName = soapEnvelope.createName( messageRootElementName );
+					} else {
+						operationName = soapEnvelope.createName( messageRootElementName, messageNamespace, messageNamespace );
+					}
+
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 					valueToSOAPElement( message.value(), opBody, soapEnvelope );
 				} else {
