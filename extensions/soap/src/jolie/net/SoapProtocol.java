@@ -536,7 +536,7 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( parts.size() > 0 ) {
 					Part part = parts.entrySet().iterator().next().getValue();
 					if ( part.getElementName() == null ) {
-						operation.getOutput().getMessage().getQName().getNamespaceURI();
+						messageNamespace = operation.getOutput().getMessage().getQName().getNamespaceURI();
 					} else {
 						messageNamespace = part.getElementName().getNamespaceURI();
 					}
