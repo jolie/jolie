@@ -533,9 +533,11 @@ public class SoapProtocol extends SequentialCommProtocol
 			Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
 			if ( operation != null ) {
 				Map< String, Part > parts = operation.getOutput().getMessage().getParts();
-				if ( parts.size() == 1 ) {
+				if ( parts.size() > 0 ) {
 					Part part = parts.entrySet().iterator().next().getValue();
-					messageNamespace = part.getElementName().getNamespaceURI();
+					if ( part != null ) {
+						messageNamespace = part.getElementName().getNamespaceURI();
+					}
 				}
 			}
 		}
