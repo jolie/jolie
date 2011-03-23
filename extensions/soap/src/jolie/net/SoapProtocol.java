@@ -616,11 +616,12 @@ public class SoapProtocol extends SequentialCommProtocol
 						(elementDecl=sSet.getElementDecl( messageNamespace, messageRootElementName )) == null
 					) {
 					Name operationName = null;
+					soapEnvelope.addNamespaceDeclaration( "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI );
+					soapEnvelope.addNamespaceDeclaration( "xsd", XMLConstants.W3C_XML_SCHEMA_NS_URI );
 					if ( messageNamespace.isEmpty() ) {
 						operationName = soapEnvelope.createName( messageRootElementName );
 					} else {
 						soapEnvelope.addNamespaceDeclaration( "jolieMessage", messageNamespace );
-						soapEnvelope.addNamespaceDeclaration( "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI );
 						operationName = soapEnvelope.createName( messageRootElementName, "jolieMessage", messageNamespace );
 					}
 
