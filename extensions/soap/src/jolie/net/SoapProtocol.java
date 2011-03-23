@@ -85,6 +85,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.wsdl.BindingOperation;
+import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
 import javax.wsdl.Operation;
 import javax.wsdl.Part;
@@ -559,7 +560,31 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 		return ( parameters == null ) ? null : parameters.toArray( new String[0] );
 	}
-	
+
+	private void setOutputEncodingStyle( SOAPEnvelope soapEnvelope, String operationName )
+		throws IOException, SOAPException
+	{
+		Port port = getWSDLPort();
+		if ( port != null ) {
+			BindingOperation bindingOperation = port.getBinding().getBindingOperation( operationName, null, null );
+			if ( bindingOperation == null ) {
+				return;
+			}
+			BindingOutput output = bindingOperation.getBindingOutput();
+			if ( output == null ) {
+				return;
+			}
+			for( ExtensibilityElement element : (List< ExtensibilityElement >)output.getExtensibilityElements() ) {
+				if ( element instanceof javax.wsdl.extensions.soap.SOAPBody ) {
+					List< String > list = ((javax.wsdl.extensions.soap.SOAPBody)element).getEncodingStyles();
+					if ( list != null && list.isEmpty() == false ) {
+						soapEnvelope.setEncodingStyle( list.get( 0 ) );
+					}
+				}
+			}
+		}
+	}
+
 	
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
@@ -575,6 +600,7 @@ public class SoapProtocol extends SequentialCommProtocol
 
 			SOAPMessage soapMessage = messageFactory.createMessage();
 			SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
+			setOutputEncodingStyle( soapEnvelope, message.operationName() );
 			SOAPBody soapBody = soapEnvelope.getBody();
 
 			if ( checkBooleanParameter( "wsAddressing" ) ) {
