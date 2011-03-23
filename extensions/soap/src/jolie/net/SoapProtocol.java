@@ -270,7 +270,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			} else if ( value.isDouble() ) {
 				type = "double";
 			}
-			element.addAttribute( soapEnvelope.createName( "type" ), "xsd:" + type );
+			element.addAttribute( soapEnvelope.createName( "type", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
 		}
 
@@ -619,7 +619,7 @@ public class SoapProtocol extends SequentialCommProtocol
 					if ( messageNamespace.isEmpty() ) {
 						operationName = soapEnvelope.createName( messageRootElementName );
 					} else {
-						operationName = soapEnvelope.createName( messageRootElementName, messageNamespace, messageNamespace );
+						operationName = soapEnvelope.createName( messageRootElementName, "jolieMessage", messageNamespace );
 					}
 
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
