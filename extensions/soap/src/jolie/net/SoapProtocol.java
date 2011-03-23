@@ -579,6 +579,7 @@ public class SoapProtocol extends SequentialCommProtocol
 					List< String > list = ((javax.wsdl.extensions.soap.SOAPBody)element).getEncodingStyles();
 					if ( list != null && list.isEmpty() == false ) {
 						soapEnvelope.setEncodingStyle( list.get( 0 ) );
+						soapEnvelope.addNamespaceDeclaration( "enc", list.get( 0 ) );
 					}
 				}
 			}
