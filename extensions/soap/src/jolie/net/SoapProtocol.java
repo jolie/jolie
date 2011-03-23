@@ -545,6 +545,20 @@ public class SoapProtocol extends SequentialCommProtocol
 		}
 		return messageNamespace;
 	}
+
+	private String[] getParameterOrder( String operationName )
+		throws IOException
+	{
+		List< String > parameters = null;
+		Port port = getWSDLPort();
+		if ( port != null ) {
+			Operation operation = port.getBinding().getPortType().getOperation( operationName, null, null );
+			if ( operation != null ) {
+				parameters = operation.getParameterOrdering();
+			}
+		}
+		return ( parameters == null ) ? null : parameters.toArray( new String[0] );
+	}
 	
 	
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -626,7 +640,14 @@ public class SoapProtocol extends SequentialCommProtocol
 					}
 
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
-					valueToSOAPElement( message.value(), opBody, soapEnvelope );
+					String[] parameters = getParameterOrder( message.operationName() );
+					if ( parameters == null ) {
+						valueToSOAPElement( message.value(), opBody, soapEnvelope );
+					} else {
+						for( String parameterName : parameters ) {
+							valueToSOAPElement( message.value().getFirstChild( parameterName ), opBody.addChildElement( parameterName ), soapEnvelope );
+						}
+					}
 				} else {
 					initNamespacePrefixes( soapEnvelope );					
 					boolean wrapped = true;
