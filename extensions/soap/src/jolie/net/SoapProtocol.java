@@ -619,6 +619,8 @@ public class SoapProtocol extends SequentialCommProtocol
 					if ( messageNamespace.isEmpty() ) {
 						operationName = soapEnvelope.createName( messageRootElementName );
 					} else {
+						soapEnvelope.addNamespaceDeclaration( "jolieMessage", messageNamespace );
+						soapEnvelope.addNamespaceDeclaration( "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI );
 						operationName = soapEnvelope.createName( messageRootElementName, "jolieMessage", messageNamespace );
 					}
 
