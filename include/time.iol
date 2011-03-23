@@ -48,6 +48,14 @@ type DateValuesRequestType:string {
 	.format?:string
 }
 
+type CurrentDateTimeRequestType:void {
+	/**
+		Date format.
+		If not specified, it defaults to "dd/MM/yyyy"
+	*/
+	.format?:string
+}
+
 type DiffDateRequestType:void {
 	.format?:string
 	.date1:string
@@ -58,7 +66,7 @@ outputPort Time {
 OneWay:
 	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
 RequestResponse:
-	getCurrentDateTime, sleep,
+	getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
 	/**
 		Converts an input string into a date expressed by means of
