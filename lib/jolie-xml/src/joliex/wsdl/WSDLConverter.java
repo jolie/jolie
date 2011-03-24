@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.wsdl.Binding;
+import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Fault;
 import javax.wsdl.Message;
@@ -49,6 +50,7 @@ import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.http.HTTPAddress;
 import javax.wsdl.extensions.soap.SOAPAddress;
+import javax.wsdl.extensions.soap.SOAPBinding;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -80,6 +82,12 @@ import org.xml.sax.SAXParseException;
  */
 public class WSDLConverter
 {
+	private enum Style {
+		DOCUMENT,
+		RPC;
+	}
+
+
 	private final Writer writer;
 	private final Definition definition;
 	private int indentationLevel = 0;
@@ -436,37 +444,46 @@ public class WSDLConverter
 		}
 		Binding binding = port.getBinding();
 		PortType portType = binding.getPortType();
-		convertPortType( portType );
+		convertPortType( portType, binding );
 		outputPorts.put( name, new OutputPort(
 			name, location, protocol, portType.getQName().getLocalPart(), comment
 		) );
 	}
 
-	private void convertPortType( PortType portType )
+	private void convertPortType( PortType portType, Binding binding )
 		throws IOException
 	{
 		String comment = "";
 		if ( portType.getDocumentationElement() != null ) {
 			comment = portType.getDocumentationElement().getNodeValue();
 		}
+		
+		Style style = Style.DOCUMENT;
+		for( ExtensibilityElement element : (List<ExtensibilityElement>)binding.getExtensibilityElements() ) {
+			if ( element instanceof SOAPBinding ) {
+				if ( "rpc".equals(((SOAPBinding)element).getStyle()) ) {
+					style = Style.RPC;
+				}
+			}
+		}
 		Interface iface = new Interface( portType.getQName().getLocalPart(), comment );
 		List< Operation > operations = portType.getOperations();
 		for( Operation operation : operations ) {
 			if ( operation.getOutput() == null ) {
-				iface.addOneWayOperation( convertOperation( operation ) );
+				iface.addOneWayOperation( convertOperation( operation, style ) );
 			} else {
-				iface.addRequestResponseOperation( convertOperation( operation ) );
+				iface.addRequestResponseOperation( convertOperation( operation, style ) );
 			}
 		}
 		interfaces.put( iface.name(), iface );
 	}
 
-	private String convertOperationMessage( Message message, String operationName )
+	private String convertOperationMessage( Message message, String operationName, Style style )
 		throws IOException
 	{
 		String typeName = "";
 		Map< String, Part > parts = message.getParts();
-		if ( parts.size() > 1 ) {
+		if ( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
 			TypeInlineDefinition requestType = new TypeInlineDefinition( URIParsingContext.DEFAULT, typeName, NativeType.VOID, jolie.lang.Constants.RANGE_ONE_TO_ONE );
 			for( Entry< String, Part > entry : parts.entrySet() ) {
@@ -510,7 +527,7 @@ public class WSDLConverter
 		return typeName;
 	}
 
-	private joliex.wsdl.impl.Operation convertOperation( Operation operation )
+	private joliex.wsdl.impl.Operation convertOperation( Operation operation, Style style )
 		throws IOException
 	{
 		String comment = "";
@@ -518,8 +535,8 @@ public class WSDLConverter
 			operation.getDocumentationElement().getNodeValue();
 		}
 
-		String requestTypeName = convertOperationMessage( operation.getInput().getMessage(), operation.getName() );
-		String responseTypeName = convertOperationMessage( operation.getOutput().getMessage(), operation.getName() );
+		String requestTypeName = convertOperationMessage( operation.getInput().getMessage(), operation.getName(), style );
+		String responseTypeName = convertOperationMessage( operation.getOutput().getMessage(), operation.getName(), style );
 
 		Map< String, Part > parts;
 		List< Pair< String, String > > faultList = new ArrayList< Pair< String, String > >();
