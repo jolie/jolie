@@ -691,6 +691,11 @@ public class SoapProtocol extends SequentialCommProtocol
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped );
 				}
 			}
+
+			if ( soapEnvelope.getHeader().hasChildNodes() == false ) {
+				// Some service implementations do not like empty headers
+				soapEnvelope.getHeader().detachNode();
+			}
 			
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			soapMessage.writeTo( tmpStream );
