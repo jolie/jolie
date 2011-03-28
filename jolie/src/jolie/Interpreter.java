@@ -417,6 +417,7 @@ public class Interpreter
 		} finally {
 			exitingLock.unlock();
 		}
+		executorService.shutdown();
 		commCore.shutdown();
 		timer.cancel();
 	}
