@@ -23,5 +23,6 @@ interface UserInterface {
 OneWay:
 	showMessageDialog(string)
 RequestResponse:
-	showYesNoQuestionDialog(string)(int)
+	showYesNoQuestionDialog(string)(int),
+	showInputDialog(string)(string)
 }
