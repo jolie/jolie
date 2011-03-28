@@ -95,7 +95,7 @@ print_help()
 	echo -e "\tlocalsocket:/tmp/metaservice_socket (for a local socket)"
 
 	echo -e "\nExamples of valid protocls are:"
-	echo -e "\tsodep (a fast and open-source binary protocol)"
+	echo -e "\tsodep (a fast and open source binary protocol)"
 	echo -e "\tsoap (the SOAP protocol, the standard used by Web Services)"
 
 	echo -e "\nExample of valid invocations:"
@@ -192,6 +192,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
@@ -216,6 +217,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
@@ -257,6 +259,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
 				<file file="${project.sodep}/dist/sodep.jar"/>
+				<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
