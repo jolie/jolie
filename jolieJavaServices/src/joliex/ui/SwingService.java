@@ -38,4 +38,9 @@ public class SwingService extends JavaService
 			JOptionPane.QUESTION_MESSAGE, null, null, null
 		);
 	}
+
+	public String showInputDialog( String message )
+	{
+		return JOptionPane.showInputDialog( message );
+	}
 }
