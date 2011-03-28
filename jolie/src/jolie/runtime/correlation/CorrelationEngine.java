@@ -84,7 +84,7 @@ public abstract class CorrelationEngine implements SessionListener
 	{
 		Value messageValue;
 		CorrelationSet correlationSet = starter.correlationInitializer();
-		if ( correlationSet == null ) {
+		if ( correlationSet == null ) { // TODO check this w.r.t. the type system
 			return;
 		}
 		for( CorrelationPair pair : starter.correlationInitializer().getOperationCorrelationPairs( starter.guard().inputOperation().id() ) ) {
