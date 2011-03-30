@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-X-JOLIE-ProtocolExtension: sodep:jolie.net.JsonRpcProtocolFactory
+X-JOLIE-ProtocolExtension: jsonrpc:jolie.net.JsonRpcProtocolFactory
