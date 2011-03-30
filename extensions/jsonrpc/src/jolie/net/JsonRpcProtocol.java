@@ -43,11 +43,12 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
+		throw new UnsupportedOperationException( "Operation not supported" );
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		return null;
+		throw new UnsupportedOperationException( "Operation not supported" );
 	}
 }
