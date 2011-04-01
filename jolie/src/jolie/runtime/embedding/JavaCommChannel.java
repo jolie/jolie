@@ -78,11 +78,9 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	{
 		try {
 			CommMessage response = javaService.callOperation( message );
-			if ( response != null ) {
-				synchronized( messages ) {
-					messages.put( message.id(), response );
-					messages.notifyAll();
-				}
+			synchronized( messages ) {
+				messages.put( message.id(), response );
+				messages.notifyAll();
 			}
 		} catch( IllegalAccessException e ) {
 			throw new IOException( e );
