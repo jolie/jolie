@@ -678,10 +678,10 @@ public class Interpreter
 	private SessionThread mainSession = null;
 	
 	/**
-	 * Returns the SessionThread of the Interpreter that started the program execution.
-	 * @return the SessionThread of the Interpreter that started the program execution
+	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
+	 * @return the {@link SessionThread} of the Interpreter that started the program execution
 	 */
-	public SessionThread mainThread()
+	public SessionThread initThread()
 	{
 		return initExecutionThread;
 	}

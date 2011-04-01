@@ -21,13 +21,13 @@
 
 package jolie.runtime.correlation;
 
-import java.io.IOException;
 import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
+import jolie.lang.Constants.ExecutionMode;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.runtime.FaultException;
+import jolie.net.SessionMessage;
 import jolie.runtime.Value;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.correlation.impl.SimpleCorrelationEngine;

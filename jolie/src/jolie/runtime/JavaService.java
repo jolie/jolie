@@ -290,6 +290,7 @@ public abstract class JavaService
 					}
 				}
 			} );
+			ret = CommMessage.createEmptyResponse( message );
 		} else { // Request-Response
 			try {
 				retObject = javaOperation.method.invoke( this, args );

@@ -554,7 +554,7 @@ public class CommCore
 		public void run()
 		{
 			CommChannelHandler thread = CommChannelHandler.currentThread();
-			thread.setExecutionThread( interpreter().mainThread() );
+			thread.setExecutionThread( interpreter().initThread() );
 			channel.lock.lock();
 			try {
 				if ( channel.redirectionChannel() == null ) {
