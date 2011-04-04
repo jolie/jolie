@@ -167,11 +167,10 @@ public class TimeService extends JavaService
 	{
 		return (int)System.currentTimeMillis();
 	}
-//String s=dateTimeFormat.format( new Date() );
-	public String getCurrentDateTime(Value request)
+	
+	public String getCurrentDateTime( Value request )
 	{
-                String out_str=null;
-		//Value v = Value.create();
+		String result = null;
 		try {
 			String format;
 			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
@@ -180,22 +179,12 @@ public class TimeService extends JavaService
 				format = request.getFirstChild( "format" ).strValue();
 			}
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
-			GregorianCalendar cal = new GregorianCalendar();
-                        final Date now=new Date();
-                        out_str=sdf.format(now);
-			//final Date dt = sdf.parse( request.strValue() );
-			//cal.setTimeInMillis( now.getTime() );
-			//out_str= cal.getDisplayName(field, style, Locale.FRENCH)
-                        //out_str= cal.getDisplayName(field, style, Locale.FRENCH);
-			
-//		} catch( ParseException pe ) {
-//			throw new FaultException( "InvalidDate", pe );
-//		}
-                } catch( Exception e ) {
-			//throw new FaultException( "InvalidDate", e );
-                    e.printStackTrace();//TODO FaultException
+			final Date now = new Date();
+			result = sdf.format( now );
+		} catch( Exception e ) {
+			e.printStackTrace(); // TODO FaultException
 		}
-		return out_str;
+		return result;
 	}
 
 	/**
