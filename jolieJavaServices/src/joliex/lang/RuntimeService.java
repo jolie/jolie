@@ -69,7 +69,7 @@ public class RuntimeService extends JavaService
 					name
 				);
 		Value l;
-		Value r = interpreter.mainThread().state().root();
+		Value r = interpreter.initThread().state().root();
 		l =	r.getFirstChild( name ).getFirstChild( Constants.LOCATION_NODE_NAME );
 		if ( locationValue.isChannel() ) {
 			l.setValue( locationValue.channelValue() );
