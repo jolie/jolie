@@ -29,7 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
