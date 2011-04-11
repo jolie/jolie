@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.Map;
@@ -289,7 +290,7 @@ public class HttpProtocol extends CommProtocol
 		headerBuilder.append( result );
 	}
 	
-	private String send_getCharset()
+	private String getCharset()
 	{
 		String charset = "UTF-8";
 		if ( hasParameter( "charset" ) ) {
@@ -553,7 +554,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		Method method = send_getRequestMethod( message );
-		String charset = send_getCharset();
+		String charset = getCharset();
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
@@ -597,7 +598,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private static void parseForm( HttpMessage message, Value value )
+	private static void parseForm( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
 		String line = new String( message.content(), "UTF8" );
@@ -605,7 +606,7 @@ public class HttpProtocol extends CommProtocol
 		s = line.split( "&" );
 		for( int i = 0; i < s.length; i++ ) {
 			pair = s[i].split( "=", 2 );
-			value.getChildren( pair[0] ).first().setValue( pair[1] );
+			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], charset ) );
 		}		
 	}
 	
@@ -757,7 +758,7 @@ public class HttpProtocol extends CommProtocol
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 	
-	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage )
+	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String charset )
 		throws IOException
 	{
 		requestFormat = null;
@@ -769,7 +770,7 @@ public class HttpProtocol extends CommProtocol
 		if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
-			parseForm( message, decodedMessage.value );
+			parseForm( message, decodedMessage.value, charset );
 		} else if ( "text/xml".equals( type ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
@@ -859,6 +860,8 @@ public class HttpProtocol extends CommProtocol
 			return null;
 		}
 
+		String charset = getCharset();
+
 		if ( hasParameter( "keepAlive" ) ) {
 			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
 		} else {
@@ -868,7 +871,7 @@ public class HttpProtocol extends CommProtocol
 			recv_logDebugInfo( message );
 		}
 		if ( message.size() > 0 ) {
-			recv_parseMessage( message, decodedMessage );
+			recv_parseMessage( message, decodedMessage, charset );
 		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
