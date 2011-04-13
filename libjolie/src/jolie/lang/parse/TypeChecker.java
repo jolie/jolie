@@ -22,7 +22,11 @@
 package jolie.lang.parse;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -124,6 +128,8 @@ public class TypeChecker implements OLVisitor
 		private final VariablePathSet< FlaggedVariablePathNode > providedCorrPaths;
 		private final VariablePathSet< VariablePathNode > neededVarPaths;
 		private final VariablePathSet< VariablePathNode > providedVarPaths;
+		private final Set< String > sessionOperations;
+		private String startingOperation = null;
 
 		private final VariablePathSet< VariablePathNode > invalidatedVarPaths;
 
@@ -134,6 +140,25 @@ public class TypeChecker implements OLVisitor
 			neededVarPaths = new VariablePathSet();
 			providedVarPaths = new VariablePathSet();
 			invalidatedVarPaths = new VariablePathSet();
+			sessionOperations = new HashSet< String >();
+		}
+
+		public void registerOperationInput( String operation, boolean isStartingOperation )
+		{
+			if ( isStartingOperation ) {
+				startingOperation = operation;
+			} else {
+				sessionOperations.add( operation );
+			}
+		}
+
+		public void registerOperations( TypingResult other )
+		{
+			if ( this.startingOperation == null ) {
+				this.startingOperation = other.startingOperation;
+			}
+
+			sessionOperations.addAll( other.sessionOperations );
 		}
 
 		public void provide( VariablePathNode path, boolean isFresh )
@@ -387,6 +412,7 @@ public class TypeChecker implements OLVisitor
 			typingResult.provideAll( right.providedVarPaths );
 			typingResult.needAll( right );
 			typingResult.invalidateAll( right );
+			typingResult.registerOperations( right );
 		}
 	}
 
@@ -426,6 +452,7 @@ public class TypeChecker implements OLVisitor
 			}
 
 			typingResult.invalidateAll( right );
+			typingResult.registerOperations( right );
 		}
 	}
 
@@ -435,6 +462,8 @@ public class TypeChecker implements OLVisitor
 			return;
 		}
 
+		List< TypingResult > branchTypings = new LinkedList< TypingResult >();
+
 		boolean origSessionStarter = sessionStarter;
 
 		SequenceStatement seq;
@@ -442,6 +471,7 @@ public class TypeChecker implements OLVisitor
 		seq.addChild( n.children().get( 0 ).key() );
 		seq.addChild( n.children().get( 0 ).value() );
 		typingResult = check( seq );
+		branchTypings.add( typingResult );
 
 		TypingResult right;
 		for( int i = 1; i < n.children().size(); i++ ) {
@@ -450,9 +480,10 @@ public class TypeChecker implements OLVisitor
 			seq.addChild( n.children().get( i ).key() );
 			seq.addChild( n.children().get( i ).value() );
 			right = check( seq );
+			branchTypings.add( right );
 			typingResult.needAll( right );
 			typingResult.invalidateAll( right );
-			if ( !sessionStarter ) {
+			if ( !origSessionStarter ) {
 				for( VariablePathNode path : typingResult.providedCorrPaths ) {
 					if ( !right.providedCorrPaths.contains( path ) ) {
 						error( path, "Correlation variables must be initialized in every branch." );
@@ -463,6 +494,7 @@ public class TypeChecker implements OLVisitor
 						error( path, "Correlation variables must be initialized in every branch." );
 					}
 				}
+				typingResult.registerOperations( right );
 			}
 			for( VariablePathNode path : right.providedVarPaths ) {
 				if ( !typingResult.providedVarPaths.contains( path ) ) {
@@ -470,6 +502,16 @@ public class TypeChecker implements OLVisitor
 				}
 			}
 			sessionStarter = false;
+		}
+
+		if ( origSessionStarter ) {
+			for( TypingResult top : branchTypings ) {
+				for( TypingResult branch : branchTypings ) {
+					if ( top != branch && branch.sessionOperations.contains( top.startingOperation ) ) {
+						error( program, "Operation " + top.startingOperation + " can not be used both as a starter and in the body of another session branch." );
+					}
+				}
+			}
 		}
 
 		sessionStarter = false;
@@ -480,6 +522,8 @@ public class TypeChecker implements OLVisitor
 		if ( executionMode == ExecutionMode.SINGLE ) {
 			return;
 		}
+
+		typingResult.registerOperationInput( n.id(), sessionStarter );
 
 		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Input operations can not receive on a correlation variable" );
@@ -516,6 +560,8 @@ public class TypeChecker implements OLVisitor
 			return;
 		}
 
+		typingResult.registerOperationInput( n.id(), sessionStarter );
+
 		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
 			error( n, "Input operations can not receive on a correlation variable" );
 		}
@@ -548,6 +594,7 @@ public class TypeChecker implements OLVisitor
 		TypingResult internalProcessTyping = check( n.process() );
 		typingResult.needAll( internalProcessTyping );
 		typingResult.provideAll( internalProcessTyping );
+		typingResult.registerOperations( internalProcessTyping );
 	}
 
 	public void visit( NotificationOperationStatement n )
@@ -625,6 +672,7 @@ public class TypeChecker implements OLVisitor
 		for( int i = 1; i < n.children().size(); i++ ) {
 			right = check( n.children().get( i ).value() );
 			typingResult.needAll( right );
+			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
 				if ( !right.providedCorrPaths.contains( path ) ) {
@@ -646,6 +694,7 @@ public class TypeChecker implements OLVisitor
 		if ( n.elseProcess() != null ) {
 			right = check( n.elseProcess() );
 			typingResult.needAll( right );
+			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
 				if ( !right.providedCorrPaths.contains( path ) ) {
