@@ -94,8 +94,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		List< CorrelationPair > pairs;
 		CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
 		if ( cset == null ) {
-			// This should never happen!
-			assert false;
+			// It must be a session starter.
 			return false;
 		}
 		pairs = cset.getOperationCorrelationPairs( message.operationName() );
