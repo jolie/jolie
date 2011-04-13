@@ -100,6 +100,7 @@ public class MultiPartFormDataParser
 	private void parsePart( String part, int offset )
 		throws IOException
 	{
+                boolean content_type;
 		// Split header from content
 		String[] hc = part.split( HttpProtocol.CRLF + HttpProtocol.CRLF );
 		BufferedReader reader =
@@ -110,9 +111,11 @@ public class MultiPartFormDataParser
 		String[] params;
 		
 		// Parse part header
+                content_type = false;
 		while( (line=reader.readLine()) != null && !line.isEmpty() ) {
 			params = parametersSplitPattern.split( line );
 			for( String param : params ) {
+                                System.out.println( param );
 				param = param.trim();
 				if ( param.startsWith( "name" ) ) {
 					try {
@@ -130,8 +133,11 @@ public class MultiPartFormDataParser
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid filename specified in multipart form data element" );
 					}
-				}
-				// TODO: parse content-type and use it appropriately
+				} else if ( param.startsWith("Content-Type") ) {
+                                    // TODO: parse content-type better, now it checks only if it exists or not
+                                    content_type = true;
+                                }
+				
 			}
 		}
 		if ( name == null ) {
@@ -142,7 +148,11 @@ public class MultiPartFormDataParser
 		
 		Value child = value.getNewChild( name );
 		if ( hc.length > 1 ) {
-			child.setValue( new ByteArray( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
+                        if ( content_type == true ) {
+                            child.setValue( new ByteArray( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
+                        } else {
+                            child.setValue( new String( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
+                        }
 		}/* else {
 			value.getNewChild( name ).setValue( new ByteArray( new byte[0] ) );
 		}*/
