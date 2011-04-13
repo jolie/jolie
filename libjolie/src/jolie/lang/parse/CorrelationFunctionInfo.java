@@ -19,68 +19,73 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime.correlation;
+package jolie.lang.parse;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import jolie.runtime.VariablePath;
+import java.util.Map;
+import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public class CorrelationSet
+public class CorrelationFunctionInfo
 {
-	public static class CorrelationPair
+	public static class CorrelationPairInfo
 	{
-		private final VariablePath sessionPath;
-		private final VariablePath messagePath;
+		private final VariablePathNode sessionPath;
+		private final VariablePathNode messagePath;
 
-		public CorrelationPair( VariablePath sessionPath, VariablePath messagePath )
+		public CorrelationPairInfo( VariablePathNode sessionPath, VariablePathNode messagePath )
 		{
 			this.sessionPath = sessionPath;
 			this.messagePath = messagePath;
 		}
 
-		public VariablePath sessionPath()
+		public VariablePathNode sessionPath()
 		{
 			return sessionPath;
 		}
 
-		public VariablePath messagePath()
+		public VariablePathNode messagePath()
 		{
 			return messagePath;
 		}
 	}
 
-	// Maps operation names to their correlation pairs.
-	private final MultiMap< String, CorrelationPair > correlationMap;
-	private final List< VariablePath > correlationVariablePaths;
+	private final List< CorrelationSetInfo > correlationSets = new ArrayList< CorrelationSetInfo >();
+	private final Map< String, CorrelationSetInfo > operationCorrelationSetMap = new HashMap< String, CorrelationSetInfo >();
+	private final MultiMap< String, CorrelationPairInfo > correlationPairs = new ArrayListMultiMap< String, CorrelationPairInfo >();
+	private final MultiMap< CorrelationSetInfo, String > correlationSetOperations = new ArrayListMultiMap< CorrelationSetInfo, String >();
 
-	public CorrelationSet( List< VariablePath > correlationVariablePaths, MultiMap< String, CorrelationPair > correlationMap )
+	public List< CorrelationSetInfo > correlationSets()
 	{
-		this.correlationMap = correlationMap;
-		this.correlationVariablePaths = correlationVariablePaths;
+		return correlationSets;
 	}
 
-	/**
-	 * Returns the list of {@link CorrelationPair} defined for the operation.
-	 * @param operationName the operation name the list is defined for.
-	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such list is defined.
-	 */
-	public List< CorrelationPair > getOperationCorrelationPairs( String operationName )
+	public Collection< CorrelationPairInfo > getOperationCorrelationPairs( String operationName )
 	{
-		return (List< CorrelationPair >)correlationMap.get( operationName );
+		return correlationPairs.get( operationName );
 	}
 
-	public List< VariablePath > correlationVariablePaths()
+	public void putCorrelationPair( String operationName, CorrelationPairInfo pair )
 	{
-		return correlationVariablePaths;
+		correlationPairs.put( operationName, pair );
 	}
 
-	public Set< String > correlatingOperations()
+	public Map< String, CorrelationSetInfo > operationCorrelationSetMap()
 	{
-		return correlationMap.keySet();
+		return operationCorrelationSetMap;
+	}
+
+	public MultiMap< CorrelationSetInfo, String > correlationSetOperations()
+	{
+		return correlationSetOperations;
 	}
 }

@@ -71,6 +71,7 @@ public class CommandLineParser
 	private final boolean verbose;
 	private final JolieClassLoader jolieClassLoader;
 	private final boolean isProgramCompiled;
+	private final boolean typeCheck;
 	private File programDirectory = null;
 	
 	/**
@@ -184,6 +185,8 @@ public class CommandLineParser
 		helpBuilder.append(
 				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
+				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: true)" ) );
+		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
@@ -256,6 +259,7 @@ public class CommandLineParser
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
 		boolean bVerbose = false;
+		boolean bTypeCheck = true;
 		List< String > programArgumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
@@ -318,6 +322,16 @@ public class CommandLineParser
 				i++;
 				csetAlgorithmName = argsList.get( i );
 				optionsList.add( argsList.get( i ) );
+			} else if ( "--typecheck".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				String typeCheckStr = argsList.get( i );
+				optionsList.add( argsList.get( i ) );
+				if ( "false".equals( typeCheckStr ) ) {
+					bTypeCheck = false;
+				} else if ( "true".equals( typeCheckStr ) ) {
+					bTypeCheck = true;
+				}
 			} else if ( "--verbose".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bVerbose = true;
@@ -367,6 +381,7 @@ public class CommandLineParser
 		}
 
 		verbose = bVerbose;
+		typeCheck = bTypeCheck;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if ( correlationAlgorithmType == null ) {
@@ -433,6 +448,11 @@ public class CommandLineParser
 	public File programDirectory()
 	{
 		return programDirectory;
+	}
+
+	public boolean typeCheck()
+	{
+		return typeCheck;
 	}
 
 	public JolieClassLoader jolieClassLoader()

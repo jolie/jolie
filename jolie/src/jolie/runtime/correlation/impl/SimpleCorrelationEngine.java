@@ -91,44 +91,31 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 
 		Value sessionValue;
 		Value messageValue;
-		CorrelationPair cpair;
-		int i;
 		List< CorrelationPair > pairs;
-		boolean matches = true;
-		for( CorrelationSet cset : interpreter().correlationSets() ) {
-			pairs = cset.getOperationCorrelationPairs( message.operationName() );
-			if ( pairs == null || pairs.size() != cset.correlationVariablePaths().size() ) {
-				// If the size is not equal it means that the message cannot fully satisfy the cset
-				// TODO: this check should not be made at runtime but be statically enforced
-				matches = false;
+		CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
+		if ( cset == null ) {
+			// This should never happen!
+			assert false;
+			return false;
+		}
+		pairs = cset.getOperationCorrelationPairs( message.operationName() );
+		for( CorrelationPair cpair : pairs ) {
+			sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
+			if ( sessionValue == null ) {
+				return false;
 			} else {
-				for( i = 0; i < pairs.size() && matches; i++ ) {
-					cpair = pairs.get( i );
-					sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
-					if ( sessionValue == null ) {
-						matches = false;
-					} else {
-						messageValue = cpair.messagePath().getValueOrNull( message.value() );
-						if ( messageValue == null ) {
-							matches = false;
-						} else {
-							// TODO: Value.equals is type insensitive, fix this with an additional check.
-							matches = sessionValue.isDefined() && sessionValue.equals( messageValue );
-						}
+				messageValue = cpair.messagePath().getValueOrNull( message.value() );
+				if ( messageValue == null ) {
+					return false;
+				} else {
+					// TODO: Value.equals is type insensitive, fix this with an additional check.
+					if ( !sessionValue.isDefined() || !messageValue.isDefined() || !sessionValue.equals( messageValue ) ) {
+						return false;
 					}
 				}
 			}
-
-			if ( matches ) {
-				// The correlation set matched.
-				return true;
-			} else {
-				// The correlation set did not match, let us try another one.
-				matches = true;
-			}
 		}
 
-		// We could not find any correlation set matching.
-		return false;
+		return true;
 	}
 }
