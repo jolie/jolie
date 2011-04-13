@@ -24,6 +24,7 @@ package jolie.lang.parse.ast;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.Constants;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
@@ -112,5 +113,109 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+
+	public boolean isEquivalentTo( VariablePathNode right )
+	{
+		return checkVariablePathNodeEquivalence( this, right );
+	}
+
+	private static boolean checkVariablePathNodeEquivalence( VariablePathNode left, VariablePathNode right )
+	{
+		if ( left.path.size() != right.path.size() ) {
+			return false;
+		}
+
+		if ( left.type != right.type ) {
+			return false;
+		}
+
+		Pair< OLSyntaxNode, OLSyntaxNode > leftPair, rightPair;
+		for( int i = 0; i < left.path.size(); i++ ) {
+			leftPair = left.path.get( i );
+			rightPair = right.path.get( i );
+			if ( checkNodeKeyEquivalence( leftPair.key(), rightPair.key() ) == false ||
+				checkNodeIndexEquivalence( leftPair.value(), rightPair.value() ) == false
+			) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean checkNodeKeyEquivalence( OLSyntaxNode left, OLSyntaxNode right )
+	{
+		if ( left.equals( right ) ) {
+			return true;
+		}
+
+		if ( left instanceof ConstantStringExpression && right instanceof ConstantStringExpression ) {
+			return ((ConstantStringExpression)left).value().equals( ((ConstantStringExpression)right).value() );
+		}
+
+		return false;
+	}
+
+	private static boolean checkNodeIndexEquivalence( OLSyntaxNode left, OLSyntaxNode right )
+	{
+		if ( left == right ) { // Used for null values and same objects
+			return true;
+		}
+
+		if ( left == null && right instanceof ConstantIntegerExpression ) {
+			return ((ConstantIntegerExpression)right).value() == 0;
+		}
+
+		if ( right == null && left instanceof ConstantIntegerExpression ) {
+			return ((ConstantIntegerExpression)left).value() == 0;
+		}
+
+		if ( left != null && right != null ) {
+			if ( left.equals( right ) ) {
+				return true;
+			}
+			
+			if ( left instanceof ConstantIntegerExpression && right instanceof ConstantIntegerExpression ) {
+				return ((ConstantIntegerExpression)left).value() == ((ConstantIntegerExpression)right).value();
+			}
+		}
+
+		return false;
+	}
+
+	public String toPrettyString()
+	{
+		StringBuilder builder = new StringBuilder();
+		Pair< OLSyntaxNode, OLSyntaxNode > node;
+		if ( isGlobal() ) {
+			builder.append( Constants.GLOBAL ).append( '.' );
+		}
+		for( int i = 0; i < path.size(); i++ ) {
+			node = path.get( i );
+			if ( node.key() instanceof ConstantStringExpression ) {
+				builder.append( ((ConstantStringExpression)node.key()).value() );
+			} else {
+				builder.append( "<Expression>" );
+			}
+			if ( node.value() != null ) {
+				if ( node.value() instanceof ConstantIntegerExpression ) {
+					ConstantIntegerExpression expr = (ConstantIntegerExpression) node.value();
+					if ( expr.value() != 0 ) {
+						builder.append( '[' )
+							.append( node.value() )
+							.append( ']' );
+					}
+				} else {
+					builder.append( '[' )
+							.append( "<Expression>" )
+							.append( ']' );
+				}
+			}
+			
+			if ( i < path.size() - 1 ) {
+				builder.append( '.' );
+			}
+		}
+		return builder.toString();
 	}
 }

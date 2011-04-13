@@ -57,6 +57,7 @@ import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
+import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
@@ -130,6 +131,7 @@ public class Interpreter
 	private final CorrelationEngine correlationEngine;
 	private final List< CorrelationSet > correlationSets =
 				new ArrayList< CorrelationSet > ();
+	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap< String, CorrelationSet >();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
@@ -521,6 +523,14 @@ public class Interpreter
 	public void addCorrelationSet( CorrelationSet set )
 	{
 		correlationSets.add( set );
+		for( String operation : set.correlatingOperations() ) {
+			operationCorrelationSetMap.put( operation, set );
+		}
+	}
+
+	public CorrelationSet getCorrelationSetForOperation( String operationName )
+	{
+		return operationCorrelationSetMap.get( operationName );
 	}
 	
 	/**
@@ -956,7 +966,22 @@ public class Interpreter
 				throw new InterpreterException( "Exiting" );
 			}
 
-			return (new OOITBuilder( this, program, semanticVerifier.isConstantMap() )).build();
+			if ( cmdParser.typeCheck() ) {
+				TypeChecker typeChecker = new TypeChecker(
+					program,
+					semanticVerifier.executionMode(),
+					semanticVerifier.correlationFunctionInfo()
+				);
+				if ( !typeChecker.check() ) {
+					throw new InterpreterException( "Exiting" );
+				}
+			}
+
+			return (new OOITBuilder(
+				this,
+				program,
+				semanticVerifier.isConstantMap(),
+				semanticVerifier.correlationFunctionInfo() )).build();
 		} catch( IOException e ) {
 			throw new InterpreterException( e );
 		} catch( URISyntaxException e ) {

@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -64,5 +65,10 @@ public abstract class MultiMap< K, V >
 	public void clear()
 	{
 		map.clear();
+	}
+
+	public Set< K > keySet()
+	{
+		return map.keySet();
 	}
 }

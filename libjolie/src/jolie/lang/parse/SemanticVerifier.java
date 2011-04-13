@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import java.util.Collection;
 import jolie.lang.parse.context.ParsingContext;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
 
 import jolie.lang.Constants.OperandType;
+import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
@@ -103,6 +105,8 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.util.ArrayListMultiMap;
+import jolie.util.MultiMap;
 import jolie.util.Pair;
 
 /**
@@ -135,15 +139,17 @@ public class SemanticVerifier implements OLVisitor
 	private boolean insideInputPort = false;
 	private boolean insideInit = false;
 	private boolean mainDefined = false;
-	
+	private CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
+	private final MultiMap< String, String > inputTypeNameMap =
+		new ArrayListMultiMap< String, String >(); // Maps type names to the input operations that use them
+
+	private ExecutionMode executionMode = ExecutionMode.SINGLE;
+
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-
 	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
-
 	//private TypeDefinition rootType; // the type representing the whole session state
-
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
 
 	public SemanticVerifier( Program program )
@@ -156,6 +162,16 @@ public class SemanticVerifier implements OLVisitor
 			NativeType.VOID,
 			jolie.lang.Constants.RANGE_ONE_TO_ONE
 		);*/
+	}
+
+	public CorrelationFunctionInfo correlationFunctionInfo()
+	{
+		return correlationFunctionInfo;
+	}
+
+	public ExecutionMode executionMode()
+	{
+		return executionMode;
 	}
 
 	private void encounteredAssignment( String varName )
@@ -262,11 +278,49 @@ public class SemanticVerifier implements OLVisitor
 
 	private void checkCorrelationSets()
 	{
+		Collection< String > operations;
+		Set< String > correlatingOperations = new HashSet< String >();
+		Set< String > currCorrelatingOperations = new HashSet< String >();
 		for( CorrelationSetInfo cset : correlationSets ) {
+			correlationFunctionInfo.correlationSets().add( cset );
+			currCorrelatingOperations.clear();
 			for( CorrelationSetInfo.CorrelationVariableInfo csetVar : cset.variables() ) {
 				for( CorrelationAliasInfo alias : csetVar.aliases() ) {
 					checkCorrelationAlias( alias );
+					
+					operations = inputTypeNameMap.get( alias.guardName() );
+					for( String operationName : operations ) {
+						currCorrelatingOperations.add( operationName );
+						correlationFunctionInfo.putCorrelationPair(
+							operationName,
+							new CorrelationPairInfo(
+								csetVar.correlationVariablePath(),
+								alias.variablePath()
+							)
+						);
+					}
 				}
+			}
+			for( String operationName : currCorrelatingOperations ) {
+				if ( correlatingOperations.contains( operationName ) ) {
+					error( cset, "Operation " + operationName +
+						" is specified on more than one correlation set. Each operation can correlate using only one correlation set."
+					);
+				} else {
+					correlatingOperations.add( operationName );
+					correlationFunctionInfo.operationCorrelationSetMap().put( operationName, cset );
+					correlationFunctionInfo.correlationSetOperations().put( cset, operationName );
+				}
+			}
+		}
+
+		Collection< CorrelationPairInfo > pairs;
+		for( Map.Entry< String, CorrelationSetInfo > entry : correlationFunctionInfo.operationCorrelationSetMap().entrySet() ) {
+			pairs = correlationFunctionInfo.getOperationCorrelationPairs( entry.getKey() );
+			if ( pairs.size() != entry.getValue().variables().size() ) {
+				error( entry.getValue(), "Operation " + entry.getKey() +
+						" has not an alias specified for every variable in the correlation set."
+					);
 			}
 		}
 	}
@@ -375,6 +429,10 @@ public class SemanticVerifier implements OLVisitor
 		if ( insideInit && n.isCSet() ) {
 			error( n, "Correlation variable access is forbidden in init procedures" );
 		}
+
+		if ( n.isCSet() && !n.isStatic() ) {
+			error( n, "Correlation paths must be statically defined" );
+		}
 	}
 
 	public void visit( InputPortInfo n )
@@ -440,6 +498,7 @@ public class SemanticVerifier implements OLVisitor
 				addOneWayEqualnessCheck( n, other );
 			} else {
 				oneWayOperations.put( n.id(), n );
+				inputTypeNameMap.put( n.requestType().id(), n.id() );
 			}
 		}
 	}
@@ -464,6 +523,7 @@ public class SemanticVerifier implements OLVisitor
 				addRequestResponseEqualnessCheck( n, other );
 			} else {
 				requestResponseOperations.put( n.id(), n );
+				inputTypeNameMap.put( n.requestType().id(), n.id() );
 			}
 		}
 	}
@@ -803,12 +863,13 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( ExecutionInfo n )
 	{
+		executionMode = n.mode();
 		executionInfo = n;
 	}
 
 	public void visit( CorrelationSetInfo n )
 	{
-		// TODO: check for duplicate correlation variables in the same cset.
+		VariablePathSet pathSet = new VariablePathSet();
 
 		VariablePathNode path;
 		for( CorrelationSetInfo.CorrelationVariableInfo csetVar : n.variables() ) {
@@ -822,6 +883,13 @@ public class SemanticVerifier implements OLVisitor
 					error( path, "correlation variable paths can not make use of dynamic evaluation" );
 				}
 			}
+
+			if ( pathSet.contains( path ) ) {
+				error( path, "Duplicate correlation variable" );
+			} else {
+				pathSet.add( path );
+			}
+
 			for( CorrelationAliasInfo alias : csetVar.aliases() ) {
 				if ( alias.variablePath().isGlobal() ) {
 					error( alias.variablePath(), "Correlation variables can not be global" );

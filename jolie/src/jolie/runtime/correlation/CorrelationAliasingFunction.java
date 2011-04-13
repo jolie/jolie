@@ -21,66 +21,11 @@
 
 package jolie.runtime.correlation;
 
-import java.util.List;
-import java.util.Set;
-import jolie.runtime.VariablePath;
-import jolie.util.MultiMap;
-
 /**
  *
  * @author Fabrizio Montesi
  */
-public class CorrelationSet
+public class CorrelationAliasingFunction
 {
-	public static class CorrelationPair
-	{
-		private final VariablePath sessionPath;
-		private final VariablePath messagePath;
-
-		public CorrelationPair( VariablePath sessionPath, VariablePath messagePath )
-		{
-			this.sessionPath = sessionPath;
-			this.messagePath = messagePath;
-		}
-
-		public VariablePath sessionPath()
-		{
-			return sessionPath;
-		}
-
-		public VariablePath messagePath()
-		{
-			return messagePath;
-		}
-	}
-
-	// Maps operation names to their correlation pairs.
-	private final MultiMap< String, CorrelationPair > correlationMap;
-	private final List< VariablePath > correlationVariablePaths;
-
-	public CorrelationSet( List< VariablePath > correlationVariablePaths, MultiMap< String, CorrelationPair > correlationMap )
-	{
-		this.correlationMap = correlationMap;
-		this.correlationVariablePaths = correlationVariablePaths;
-	}
-
-	/**
-	 * Returns the list of {@link CorrelationPair} defined for the operation.
-	 * @param operationName the operation name the list is defined for.
-	 * @return the list of {@link CorrelationPair} defined for the operation, or {@code null} if no such list is defined.
-	 */
-	public List< CorrelationPair > getOperationCorrelationPairs( String operationName )
-	{
-		return (List< CorrelationPair >)correlationMap.get( operationName );
-	}
-
-	public List< VariablePath > correlationVariablePaths()
-	{
-		return correlationVariablePaths;
-	}
-
-	public Set< String > correlatingOperations()
-	{
-		return correlationMap.keySet();
-	}
+	//public CorrelationSet
 }

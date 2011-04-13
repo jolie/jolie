@@ -36,6 +36,8 @@ import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.NativeType;
+import jolie.lang.parse.CorrelationFunctionInfo;
+import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
@@ -207,6 +209,7 @@ public class OOITBuilder implements OLVisitor
 	private final Map< String, Boolean > isConstantMap;
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
 	private final List< CorrelationSetInfo > correlationSetInfoList = new LinkedList< CorrelationSetInfo >();
+	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private boolean registerSessionStarters = false;
 
@@ -216,11 +219,16 @@ public class OOITBuilder implements OLVisitor
 	 * @param program the Program to generate the interpretation tree from
 	 * @see Program
 	 */
-	public OOITBuilder( Interpreter interpreter, Program program, Map< String, Boolean > isConstantMap )
-	{
+	public OOITBuilder(
+		Interpreter interpreter,
+		Program program,
+		Map< String, Boolean > isConstantMap,
+		CorrelationFunctionInfo correlationFunctionInfo
+	) {
 		this.interpreter = interpreter;
 		this.program = new Program( program.context() );
 		this.isConstantMap = isConstantMap;
+		this.correlationFunctionInfo = correlationFunctionInfo;
 
 		Map< String, TypeDefinition > builtInTypes = OLParser.createTypeDeclarationMap( program.context() );
 		this.program.children().addAll( builtInTypes.values() );
@@ -292,13 +300,47 @@ public class OOITBuilder implements OLVisitor
 		CorrelationSet currCorrelationSet;
 		Set< Interpreter.SessionStarter > starters = new HashSet< Interpreter.SessionStarter >();
 		List< VariablePath > correlationVariablePaths;
-		for( CorrelationSetInfo csetInfo : correlationSetInfoList ) {
+		MultiMap< String, CorrelationPair > correlationMap;
+
+		for( CorrelationSetInfo csetInfo : correlationFunctionInfo.correlationSets() ) {
 			correlationVariablePaths = new ArrayList< VariablePath >();
-			MultiMap< String, CorrelationPair > correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+			correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+
 			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
 				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
 				correlationVariablePaths.add( sessionVariablePath );
-				csetVariableInfo.correlationVariablePath();
+			}
+			operations = correlationFunctionInfo.correlationSetOperations().get( csetInfo );
+			for( String operationName : operations ) {
+				for( CorrelationPairInfo pairInfo : correlationFunctionInfo.getOperationCorrelationPairs( operationName ) ) {
+					sessionVariablePath = buildCorrelationVariablePath( pairInfo.sessionPath() );
+					messageVariablePath = buildVariablePath( pairInfo.messagePath() );
+					correlationMap.put(
+						operationName,
+						new CorrelationPair( sessionVariablePath, messageVariablePath )
+					);
+					starter = interpreter.getSessionStarter( operationName );
+					if ( starter != null && starter.correlationInitializer() == null ) {
+						starters.add( starter );
+					}
+				}
+			}
+
+			currCorrelationSet = new CorrelationSet( correlationVariablePaths, correlationMap );
+			interpreter.addCorrelationSet( currCorrelationSet );
+			for( Interpreter.SessionStarter initStarter : starters ) {
+				initStarter.setCorrelationInitializer( currCorrelationSet );
+			}
+			starters.clear();
+		}		
+		
+		/*for( CorrelationSetInfo csetInfo : correlationSetInfoList ) {
+			correlationVariablePaths = new ArrayList< VariablePath >();
+			correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+			
+			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
+				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
+				correlationVariablePaths.add( sessionVariablePath );
 				for( CorrelationSetInfo.CorrelationAliasInfo aliasInfo : csetVariableInfo.aliases() ) {
 					operations = inputTypeNameMap.get( aliasInfo.guardName() );
 					messageVariablePath = buildVariablePath( aliasInfo.variablePath() );
@@ -320,7 +362,7 @@ public class OOITBuilder implements OLVisitor
 				initStarter.setCorrelationInitializer( currCorrelationSet );
 			}
 			starters.clear();
-		}
+		}*/
 	}
 	
 	public void visit( ExecutionInfo n )
@@ -514,10 +556,6 @@ public class OOITBuilder implements OLVisitor
 	boolean insideType = false;
 	
 	private final Map< String, Type > types = new HashMap< String, Type >();
-
-	private final MultiMap< String, String > inputTypeNameMap =
-		new ArrayListMultiMap< String, String >(); // Maps type names to the input operations that use them
-
 	private final Map< String, Map< String, OneWayTypeDescription > > notificationTypes =
 		new HashMap< String, Map< String, OneWayTypeDescription > >(); // Maps output ports to their OW operation types
 	private final Map< String, Map< String, RequestResponseTypeDescription > > solicitResponseTypes =
@@ -589,7 +627,6 @@ public class OOITBuilder implements OLVisitor
 				interpreter.getOneWayOperation( decl.id() );
 			} catch( InvalidIdException e ) {
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
-				inputTypeNameMap.put( decl.requestType().id(), decl.id() );
 			}
 		} else {
 			typeDescription = new OneWayTypeDescription( buildType( decl.requestType() ) );
@@ -625,7 +662,6 @@ public class OOITBuilder implements OLVisitor
 					decl.id(),
 					new RequestResponseOperation( decl.id(), typeDescription )
 				);
-				inputTypeNameMap.put( decl.requestType().id(), decl.id() );
 			}
 		} else {
 			Type requestType, responseType;
