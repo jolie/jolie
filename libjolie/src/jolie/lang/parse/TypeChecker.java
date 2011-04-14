@@ -243,6 +243,19 @@ public class TypeChecker implements OLVisitor
 			invalidatedVarPaths.add( path );
 			providedVarPaths.remove( path );
 		}
+
+		public void removeUnsharedProvided( TypingResult other )
+		{
+			List< VariablePathNode > toBeRemoved = new LinkedList< VariablePathNode >();
+			for( VariablePathNode path : providedVarPaths ) {
+				if ( !other.providedVarPaths.contains( path ) ) {
+					toBeRemoved.add( path );
+				}
+			}
+			for( VariablePathNode path : toBeRemoved ) {
+				providedVarPaths.remove( path );
+			}
+		}
 	}
 
 	private final Program program;
@@ -250,6 +263,7 @@ public class TypeChecker implements OLVisitor
 	private final ExecutionMode executionMode;
 
 	private TypingResult typingResult;
+	private TypingResult entryTyping;
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
 	private final Map< String, TypingResult > definitionTyping = new HashMap< String, TypingResult >();
@@ -273,9 +287,17 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	private boolean isDefinedBefore( VariablePathNode path )
+	{
+		if ( entryTyping.providedVarPaths.contains( path ) || entryTyping.providedCorrPaths.contains( path ) ) {
+			return true;
+		}
+		return false;
+	}
+
 	public boolean check()
 	{
-		check( program );
+		check( program, new TypingResult() );
 		typingResult = definitionTyping.get( "main" );
 		if ( typingResult == null ) {
 			error( program, "Can not find the main entry point" );
@@ -355,8 +377,9 @@ public class TypeChecker implements OLVisitor
 		typingResult.invalidateAll( right );
 	}
 
-	private TypingResult check( OLSyntaxNode n )
+	private TypingResult check( OLSyntaxNode n, TypingResult entryTyping )
 	{
+		this.entryTyping = entryTyping;
 		TypingResult backup = typingResult;
 		typingResult = new TypingResult();
 		n.accept( this );
@@ -368,7 +391,7 @@ public class TypeChecker implements OLVisitor
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
-			check( node );
+			check( node, new TypingResult() );
 		}
 	}
 
@@ -380,10 +403,15 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( DefinitionNode n )
 	{
+		TypingResult entry = null;
 		if ( n.id().equals( "main" ) ) {
 			sessionStarter = true;
+			entry = definitionTyping.get( "init" );
 		}
-		definitionTyping.put( n.id(), check( n.body() ) );
+		if ( entry == null ) {
+			entry = new TypingResult();
+		}
+		definitionTyping.put( n.id(), check( n.body(), entry ) );
 		
 		if ( n.id().equals( "init" ) ) {
 			for( VariablePathNode path : typingResult.providedCorrPaths ) {
@@ -397,11 +425,11 @@ public class TypeChecker implements OLVisitor
 		if ( n.children().isEmpty() ) {
 			return;
 		}
-
-		typingResult = check( n.children().get( 0 ) );
+		TypingResult entry = entryTyping;
+		typingResult = check( n.children().get( 0 ), entry );
 		TypingResult right;
 		for( int i = 1; i < n.children().size(); i++ ) {
-			right = check( n.children().get( i ) );
+			right = check( n.children().get( i ), entry );
 			for( VariablePathNode path : right.providedCorrPaths ) {
 				if ( typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables can not be defined more than one time." );
@@ -421,11 +449,12 @@ public class TypeChecker implements OLVisitor
 		if ( n.children().isEmpty() ) {
 			return;
 		}
-		
-		typingResult = check( n.children().get( 0 ) );
+
+		typingResult.provideAll( entryTyping );
+		typingResult = check( n.children().get( 0 ), typingResult );
 		TypingResult right;
 		for( int i = 1; i < n.children().size(); i++ ) {
-			right = check( n.children().get( i ) );
+			right = check( n.children().get( i ), typingResult );
 			for( VariablePathNode path : right.providedCorrPaths ) {
 				if ( typingResult.providedCorrPaths.contains( path ) ) {
 					error( path, "Correlation variables can not be defined more than one time." );
@@ -466,11 +495,12 @@ public class TypeChecker implements OLVisitor
 
 		boolean origSessionStarter = sessionStarter;
 
+		TypingResult entry = entryTyping;
 		SequenceStatement seq;
 		seq = new SequenceStatement( n.context() );
 		seq.addChild( n.children().get( 0 ).key() );
 		seq.addChild( n.children().get( 0 ).value() );
-		typingResult = check( seq );
+		typingResult = check( seq, entry );
 		branchTypings.add( typingResult );
 
 		TypingResult right;
@@ -479,7 +509,7 @@ public class TypeChecker implements OLVisitor
 			seq = new SequenceStatement( n.context() );
 			seq.addChild( n.children().get( i ).key() );
 			seq.addChild( n.children().get( i ).value() );
-			right = check( seq );
+			right = check( seq, entry );
 			branchTypings.add( right );
 			typingResult.needAll( right );
 			typingResult.invalidateAll( right );
@@ -496,11 +526,7 @@ public class TypeChecker implements OLVisitor
 				}
 				typingResult.registerOperations( right );
 			}
-			for( VariablePathNode path : right.providedVarPaths ) {
-				if ( !typingResult.providedVarPaths.contains( path ) ) {
-					typingResult.providedVarPaths.remove( path );
-				}
-			}
+			typingResult.removeUnsharedProvided( right );
 			sessionStarter = false;
 		}
 
@@ -591,7 +617,7 @@ public class TypeChecker implements OLVisitor
 
 		sessionStarter = false;
 
-		TypingResult internalProcessTyping = check( n.process() );
+		TypingResult internalProcessTyping = check( n.process(), entryTyping );
 		typingResult.needAll( internalProcessTyping );
 		typingResult.provideAll( internalProcessTyping );
 		typingResult.registerOperations( internalProcessTyping );
@@ -636,16 +662,16 @@ public class TypeChecker implements OLVisitor
 				typingResult.provide( n.variablePath() );
 			} else if ( n.expression() instanceof PreIncrementStatement ) {
 				typingResult.provide( n.variablePath() );
-			} else if ( n.variablePath().isCSet() ) {
-				error( n, "Correlation variables must either be initialised with createSecureToken@SecurityUtils or with a constant." );
-			}
-				/* else if ( n.expression() instanceof VariableExpressionNode ) {
+			} else if ( n.expression() instanceof VariableExpressionNode ) {
 				VariablePathNode rightPath = ((VariableExpressionNode)n.expression()).variablePath();
-				if ( rightPath.isStatic() ) {
-					typingResult.need( rightPath );
+				if ( rightPath.isStatic() && isDefinedBefore( rightPath ) ) {
 					typingResult.provide( n.variablePath() );
-				}				
-			}*/
+				} else if ( n.variablePath().isCSet() ) {
+					error( n, "Variable " + rightPath.toPrettyString() + " may be undefined before being used for defining correlation variable " + n.variablePath().toPrettyString() );
+				}
+			} else if ( n.variablePath().isCSet() ) {
+				error( n, "Correlation variables must either be initialised with createSecureToken@SecurityUtils, a variable or a constant." );
+			}
 		}
 	}
 
@@ -667,10 +693,11 @@ public class TypeChecker implements OLVisitor
 			return;
 		}
 
-		typingResult = check( n.children().get( 0 ).value() );
+		TypingResult entry = entryTyping;
+		typingResult = check( n.children().get( 0 ).value(), entry );
 		TypingResult right;
 		for( int i = 1; i < n.children().size(); i++ ) {
-			right = check( n.children().get( i ).value() );
+			right = check( n.children().get( i ).value(), entry );
 			typingResult.needAll( right );
 			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
@@ -684,15 +711,11 @@ public class TypeChecker implements OLVisitor
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
-			for( VariablePathNode path : right.providedVarPaths ) {
-				if ( !typingResult.providedVarPaths.contains( path ) ) {
-					typingResult.providedVarPaths.remove( path );
-				}
-			}
+			typingResult.removeUnsharedProvided( right );
 		}
 
 		if ( n.elseProcess() != null ) {
-			right = check( n.elseProcess() );
+			right = check( n.elseProcess(), entry );
 			typingResult.needAll( right );
 			typingResult.registerOperations( right );
 			typingResult.invalidateAll( right );
@@ -706,11 +729,7 @@ public class TypeChecker implements OLVisitor
 					error( path, "Correlation variables must be initialized in every if-then-else branch." );
 				}
 			}
-			for( VariablePathNode path : right.providedVarPaths ) {
-				if ( !typingResult.providedVarPaths.contains( path ) ) {
-					typingResult.providedVarPaths.remove( path );
-				}
-			}
+			typingResult.removeUnsharedProvided( right );
 		}
 	}
 
@@ -725,10 +744,11 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( WhileStatement n )
 	{
-		typingResult = check( n.body() );
+		typingResult = check( n.body(), entryTyping );
 		if ( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
+		typingResult.providedVarPaths.clear();
 	}
 
 	public void visit( OrConditionNode n )
@@ -769,7 +789,7 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( Scope n )
 	{
-		typingResult = check( n.body() );
+		typingResult = check( n.body(), entryTyping );
 	}
 
 	public void visit( InstallStatement n )
@@ -835,18 +855,20 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( ForStatement n )
 	{
-		typingResult = check( n.body() );
+		typingResult = check( n.body(), entryTyping );
 		if ( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
+		typingResult.providedVarPaths.clear();
 	}
 
 	public void visit( ForEachStatement n )
 	{
-		typingResult = check( n.body() );
+		typingResult = check( n.body(), entryTyping );
 		if ( !typingResult.providedCorrPaths.isEmpty() ) {
 			error( n, "Initialising correlation variables in while loops is forbidden." );
 		}
+		typingResult.providedVarPaths.clear();
 	}
 
 	public void visit( SpawnStatement n )
@@ -860,7 +882,7 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( SynchronizedStatement n )
 	{
-		typingResult = check( n.body() );
+		typingResult = check( n.body(), entryTyping );
 	}
 
 	public void visit( CurrentHandlerStatement n )
