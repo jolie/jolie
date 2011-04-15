@@ -1,0 +1,21 @@
+include "common/locations.iol"
+include "admin.iol"
+
+embedded {
+Jolie:
+	"frontend/frontend.ol",
+	"leonardo/leonardo.ol www/"
+}
+
+inputPort JHomeAdminInput {
+Location: Location_JHomeAdmin
+Protocol: sodep
+Interfaces: JHomeAdminInterface
+}
+
+main
+{
+	shutdown()() {
+		nullProcess
+	}
+}
