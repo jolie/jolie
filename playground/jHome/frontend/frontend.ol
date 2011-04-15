@@ -1,5 +1,6 @@
 include "frontend.iol"
 include "console.iol"
+include "string_utils.iol"
 
 execution { concurrent }
 
@@ -10,7 +11,8 @@ Interfaces: JHomeFrontendInterface
 
 main
 {
-	getPageTitle()( "My jHome page" ) {
-		println@Console( "Called" )()
+	getPageTitle( request )( "Hello " + request.hello ) {
+		valueToPrettyString@StringUtils( request )( response );
+		println@Console( response )()
 	}
 }

@@ -1,4 +1,4 @@
 interface JHomeFrontendInterface {
 RequestResponse:
-	getPageTitle(void)(string)
+	getPageTitle(undefined)(string)
 }
