@@ -8,6 +8,6 @@ $(document).ready(function(){
 	$.ajax({
 		url: 'getPageTitle',
 		dataType: 'json',
-		success: function(response) { $("#title").html( response ) }
+		success: function(response) { $("#title").html( response.$ ) }
 	});
 });
