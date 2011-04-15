@@ -19,17 +19,24 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+package jolie.net.http.json;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Map;
 import java.util.Map.Entry;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.ParseException;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public class JsonTransformer
+public class JsonUtils
 {
 	private final static String ROOT_SIGN = "$";
 
@@ -84,5 +91,67 @@ public class JsonTransformer
 		} else {
 			return '"' + value.strValue() + '"';
 		}
+	}
+
+	public static void parseJsonIntoValue( Reader reader, Value value )
+		throws IOException
+	{
+		try {
+			jsonObjectToValue( (JSONObject)JSONValue.parseWithException( reader ), value );
+		} catch( ParseException e ) {
+			throw new IOException( e );
+		} catch( ClassCastException e ) {
+			throw new IOException( e );
+		}
+	}
+
+	private static void jsonObjectToValue( JSONObject obj, Value value )
+	{
+		Map< String, Object > map = (Map< String, Object >)obj;
+		ValueVector vec;
+		for( Entry< String, Object > entry : map.entrySet() ) {
+			if ( entry.getKey().equals( ROOT_SIGN ) ) {
+				if ( entry.getValue() instanceof String ) {
+					value.setValue( (String) entry.getValue() );
+				} else if ( entry.getValue() instanceof Double ) {
+					value.setValue( (Double)entry.getValue() );
+				} else if ( entry.getValue() instanceof Integer ) {
+					value.setValue( (Integer)entry.getValue() );
+				} else if ( entry.getValue() instanceof Boolean ){
+					Boolean b = (Boolean)entry.getValue();
+					if ( b ) {
+						value.setValue( 1 );
+					} else {
+						value.setValue( 0 );
+					}
+				} else {
+					value.setValue( entry.getValue().toString() );
+				}
+			} else {
+				vec = jsonObjectToValueVector( entry.getValue() );
+				value.children().put( entry.getKey(), vec );
+			}
+		}
+	}
+
+	private static ValueVector jsonObjectToValueVector( Object obj )
+	{
+		ValueVector vec = ValueVector.create();
+		Value val;
+		if ( obj instanceof JSONObject ) {
+			val = Value.create();
+			jsonObjectToValue( (JSONObject)obj, val );
+			vec.add( val );
+		} else if ( obj instanceof JSONArray ) {
+			JSONArray array = (JSONArray) obj;
+			for ( Object element : array ) {
+				if ( element instanceof JSONObject ) {
+					val = Value.create();
+					jsonObjectToValue( (JSONObject)element, val );
+					vec.add( val );
+				}
+			}
+		}
+		return vec;
 	}
 }

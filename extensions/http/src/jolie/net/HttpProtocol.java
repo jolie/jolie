@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -57,7 +58,7 @@ import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
-import jolie.net.http.JsonTransformer;
+import jolie.net.http.json.JsonUtils;
 import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
@@ -404,7 +405,7 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "json".equals( format ) ) {
 			ret.contentType = "application/json";
 			StringBuilder jsonStringBuilder = new StringBuilder();
-			JsonTransformer.valueToJsonString( message.value(), jsonStringBuilder );
+			JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		}
 		return ret;
@@ -603,6 +604,12 @@ public class HttpProtocol extends CommProtocol
 			throw new IOException( saxe );
 		}
 	}
+
+	private static void parseJson( HttpMessage message, Value value )
+		throws IOException
+	{
+		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ) ), value );
+	}
 	
 	private static void parseForm( HttpMessage message, Value value, String charset )
 		throws IOException
@@ -788,6 +795,8 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
+		} else if ( "json".equals( format ) || "application/json".equals( type ) ) {
+			parseJson( message, decodedMessage.value );
 		} else {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		}
