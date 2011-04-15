@@ -93,7 +93,7 @@ public class JsonUtils
 		if ( value.isInt() || value.isDouble() ) {
 			return value.strValue();
 		} else {
-			return '"' + URLEncoder.encode( value.strValue(), "UTF8" ) + '"';
+			return '"' + value.strValue() + '"';
 		}
 	}
 
