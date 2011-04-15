@@ -23,6 +23,7 @@ package jolie.net.http.json;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
 import jolie.runtime.Value;
@@ -41,6 +42,7 @@ public class JsonUtils
 	private final static String ROOT_SIGN = "$";
 
 	public static void valueToJsonString( Value value, StringBuilder builder )
+		throws IOException
 	{
 		builder.append( '{' );
 		if ( value.isDefined() ) {
@@ -62,6 +64,7 @@ public class JsonUtils
 	}
 
 	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder )
+		throws IOException
 	{
 		if ( vector.size() > 1 ) {
 			builder.append( '[' );
@@ -85,11 +88,12 @@ public class JsonUtils
 	}
 
 	private static String nativeValueToJsonString( Value value )
+		throws IOException
 	{
 		if ( value.isInt() || value.isDouble() ) {
 			return value.strValue();
 		} else {
-			return '"' + value.strValue() + '"';
+			return '"' + URLEncoder.encode( value.strValue(), "UTF8" ) + '"';
 		}
 	}
 
