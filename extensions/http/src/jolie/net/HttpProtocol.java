@@ -57,6 +57,7 @@ import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.JsonTransformer;
 import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
@@ -400,10 +401,15 @@ public class HttpProtocol extends CommProtocol
 			} catch( SerializationException e ) {
 				throw new IOException( e );
 			}
+		} else if ( "json".equals( format ) ) {
+			ret.contentType = "application/json";
+			StringBuilder jsonStringBuilder = new StringBuilder();
+			JsonTransformer.valueToJsonString( message.value(), jsonStringBuilder );
+			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		}
 		return ret;
 	}
-	
+
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
 	{
 		String redirect = getStringParameter( "redirect" );
