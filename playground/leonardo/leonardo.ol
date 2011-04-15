@@ -1,6 +1,7 @@
 include "console.iol"
 include "file.iol"
 include "string_utils.iol"
+include "../frontend/frontend.iol"
 
 include "config.iol"
 
@@ -9,6 +10,10 @@ execution { concurrent }
 interface HTTPInterface {
 RequestResponse:
 	default(undefined)(undefined)
+}
+
+outputPort Frontend {
+Interfaces: JHomeFrontendInterface
 }
 
 inputPort HTTPInput {
@@ -21,12 +26,19 @@ Protocol: http {
 
 	.default = "default"
 }
-Location: Location_HTTPInput
+Location: Location_Leonardo
 Interfaces: HTTPInterface
+Aggregates: Frontend
+}
+
+embedded {
+Jolie:
+	"../frontend/frontend.ol" in Frontend
 }
 
 init
 {
+	format = "json";
 	documentRootDirectory = args[0]
 }
 
