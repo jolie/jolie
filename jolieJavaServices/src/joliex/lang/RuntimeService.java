@@ -175,6 +175,19 @@ public class RuntimeService extends JavaService
 	}
 
 	@RequestResponse
+	public void loadLibrary( String libraryPath )
+		throws FaultException
+	{
+		try {
+			interpreter.getClassLoader().addJarResource( libraryPath );
+		} catch( IOException e ) {
+			throw new FaultException( "IOException", e );
+		} catch( IllegalArgumentException e ) {
+			throw new FaultException( "IOException", e );
+		}
+	}
+
+	@RequestResponse
 	public void callExit( Value request )
 	{
 		Object o = request.valueObject();
