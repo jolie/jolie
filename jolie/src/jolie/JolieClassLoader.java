@@ -318,7 +318,7 @@ public class JolieClassLoader extends URLClassLoader
 	 * @throws java.net.MalformedURLException
 	 * @throws java.io.IOException if the Jar file could not be found or if jarName does not refer to a Jar file
 	 */
-	private void addJarResource( String jarName )
+	public void addJarResource( String jarName )
 		throws MalformedURLException, IOException
 	{
 		URL url = findResource( jarName );
