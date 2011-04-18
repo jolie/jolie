@@ -26,6 +26,7 @@ type ConnectionInfo:void {
 	.database:string
 	.username:string
 	.password:string
+	.attributes?:string
 	.checkConnection?:int
 }
 
