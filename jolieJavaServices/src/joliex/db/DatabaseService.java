@@ -94,7 +94,9 @@ public class DatabaseService extends JavaService
 		String databaseName = request.getChildren( "database" ).first().strValue();
 		username = request.getChildren( "username" ).first().strValue();
 		password = request.getChildren( "password" ).first().strValue();
+		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
+		boolean isDerbyEmbedded = false;
 		try {
 			if ( "postgresql".equals( driver ) ) {
 				Class.forName( "org.postgresql.Driver" );
@@ -110,16 +112,29 @@ public class DatabaseService extends JavaService
 				databaseName = "databaseName=" + databaseName;
 			} else if ( "as400".equals( driver ) ) {
 				Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
+			} else if ( "derby_embedded".equals( driver ) ) {
+				Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
+				isDerbyEmbedded = true;
+				driver = "derby";
 			} else {
 				throw new FaultException( "InvalidDriver", "Uknown driver: " + driver );
 			}
 
-			connectionString = "jdbc:"+ driver + "://" + host + ( port.equals( "" ) ? "" : ":" + port ) + separator + databaseName;
-			connection = DriverManager.getConnection(
+			if ( isDerbyEmbedded ) {
+				connectionString = "jdbc:" + driver + ":" + databaseName;
+				if ( !attributes.isEmpty() ) {
+					connectionString += ";" + attributes;
+				}
+				connection = DriverManager.getConnection( connectionString );
+			} else {
+				connectionString = "jdbc:" + driver + "://" + host + ( port.equals( "" ) ? "" : ":" + port ) + separator + databaseName;
+				connection = DriverManager.getConnection(
 						connectionString,
 						username,
 						password
 					);
+			}
+			
 			if ( connection == null ) {
 				throw new FaultException( "ConnectionError" );
 			}
