@@ -1,6 +1,7 @@
 include "frontend.iol"
 include "console.iol"
 include "string_utils.iol"
+include "database.iol"
 
 execution { concurrent }
 
@@ -9,20 +10,7 @@ Location: "local"
 Interfaces: JHomeFrontendInterface
 }
 
-init
-{
-	scope( JHomeDatabaseConnectionScope ) {
-		with( connectionInfo ) {
-			.host = "";
-			.driver = "derby_embedded";
-			.port = 0;
-			.database = "../db/jhome";
-			.username = "";
-			.password = ""
-		};
-		connect@Database( connectionInfo )()
-	}
-}
+include "../common/jhome_db_connect.iol"
 
 main
 {
