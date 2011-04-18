@@ -33,7 +33,7 @@ Aggregates: Frontend
 
 embedded {
 Jolie:
-	"../frontend/frontend.ol" in Frontend
+	"-l ../lib/derby.jar ../frontend/frontend.ol" in Frontend
 }
 
 init
