@@ -9,6 +9,21 @@ Location: "local"
 Interfaces: JHomeFrontendInterface
 }
 
+init
+{
+	scope( JHomeDatabaseConnectionScope ) {
+		with( connectionInfo ) {
+			.host = "";
+			.driver = "derby_embedded";
+			.port = 0;
+			.database = "../db/jhome";
+			.username = "";
+			.password = ""
+		};
+		connect@Database( connectionInfo )()
+	}
+}
+
 main
 {
 	getPageTitle( request )( "Hello " + request.hello ) {
