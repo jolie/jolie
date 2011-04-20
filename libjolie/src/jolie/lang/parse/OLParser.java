@@ -133,9 +133,7 @@ public class OLParser extends AbstractParser
 	private final Map< String, TypeDefinition > definedTypes;
 	
 	private final ClassLoader classLoader;
-	private String comment;
-	private boolean commentIsPreset;
-
+        
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
@@ -652,29 +650,40 @@ public class OLParser extends AbstractParser
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
+                String comment = "";
 		boolean keepRun = true;
 		DocumentedNode node = null;
-		commentIsPreset = false;
+		boolean commentsPreset = false;
 		while( keepRun ) {
 			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentIsPreset = true;
+				commentsPreset = true;
 				comment = token.content();
 				getToken();
 			} else if ( token.isKeyword( "interface" ) ) {
 				node = parseInterface();
+                                if ( commentsPreset && node != null ) {
+                                    node.setDocumentation( comment );
+                                    commentsPreset = false;
+                                    node = null;
+                                }
 			} else if ( token.isKeyword( "inputPort" ) ) {
 				node = parsePort();
+                                if ( commentsPreset && node != null ) {
+                                    node.setDocumentation( comment );
+                                    commentsPreset = false;
+                                    node = null;
+                                }
 			} else if ( token.isKeyword( "outputPort" ) ) {
 				node = parsePort();
+                                if ( commentsPreset && node != null ) {
+                                    node.setDocumentation( comment );
+                                    commentsPreset = false;
+                                    node = null;
+                                }
 			} else {
 				keepRun = false;
 			}
 
-			if ( commentIsPreset && node != null ) {
-				node.setDocumentation( comment );
-				commentIsPreset = false;
-				node = null;
-			}
 		}
 	}
 
@@ -933,10 +942,16 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
+                boolean commentsPreset = false;
+                String comment = "";
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.ID ) ) {
+                        if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+				commentsPreset = true;
+				comment = token.content();
+				getToken();
+                        } else if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
 				getToken();
@@ -951,6 +966,11 @@ public class OLParser extends AbstractParser
 					getToken(); // eat the type name
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
+
+                                if ( commentsPreset ) {
+                                    opDecl.setDocumentation(  comment );
+                                    commentsPreset = false;
+                                }
 
 				oc.addOperation( opDecl );
 
@@ -972,11 +992,16 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
+                String comment = "";
 		String opId;
-
+		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.ID ) ) {
+                        if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+				commentsPreset = true;
+				comment = token.content();
+				getToken();
+                        } else if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
 				String requestTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
@@ -1027,6 +1052,12 @@ public class OLParser extends AbstractParser
 						definedTypes.get( responseTypeName ),
 						faultTypesMap
 					);
+                                
+                                // adding documentation
+                                if ( commentsPreset  ) {
+                                    opRR.setDocumentation( comment );
+                                    commentsPreset = false;
+                                }
 
 				oc.addOperation( opRR );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
