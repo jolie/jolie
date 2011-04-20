@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
-import jolie.doc.impl.html.HtmlDocumentCreatorSimple;
+import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
@@ -45,9 +45,8 @@ public class JolieDoc
 			
 			
 			ProgramInspector inspector=ParsingUtils.createInspector( program );
-			
-		    System.out.print("the directory of the program is : "+cmdParser.programFilepath()+"\n");
-			HtmlDocumentCreatorSimple document = new HtmlDocumentCreatorSimple( inspector,program.context().source() );
+
+			HtmlDocumentCreator document = new HtmlDocumentCreator( inspector, program.context().source() );
 			document.ConvertDocument();
 			/*
 			HTMLDocumentCreator document = new HTMLDocumentCreator();
