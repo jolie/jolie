@@ -62,4 +62,8 @@ public enum NativeType
 	{
 		return idMap.get( id );
 	}
+
+        public static boolean isNative( String id ) {
+            return idMap.containsKey(id);
+        }
 }
