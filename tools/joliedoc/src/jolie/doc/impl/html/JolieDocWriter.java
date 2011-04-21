@@ -23,7 +23,6 @@ package jolie.doc.impl.html;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 import jolie.lang.Constants;
@@ -112,6 +111,7 @@ public class JolieDocWriter {
                     " th { font-size:16px;font-family:Sans-serif; color:black; }" +
                     ".native { font-weight:bold; color:#990000; }" +
                     ".opdoc { font-family: Sans-serif; }" +
+                    ".operation-title { background-color: #EEEEEE; width:600px; height:20px; }" +
                     "</style></head>");
         }
         
@@ -194,7 +194,7 @@ public class JolieDocWriter {
                         operation = entry.getValue(); 
 
 			writer.write( "<tr>" );
-			writer.write( "<td>" + operation.id() + "</td>" );
+			writer.write( "<td><a href=\"#" + operation.id() + "\">" + operation.id() + "</a></td>" );
 
 
 			if ( operation instanceof RequestResponseOperationDeclaration ) {
@@ -239,7 +239,7 @@ public class JolieDocWriter {
             for ( InterfaceDefinition interfaceDefinition:interfaceDefintionVector ) {
                  for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
                          OperationDeclaration operation = entry.getValue();
-			 writer.write( "<a name=\"" + operation.id() + "\"></a><H3>" + operation.id() + "</H3>" );
+			 writer.write( "<br><div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><H3>" + operation.id() + "</H3></div><br>" );
 			 if ( operation instanceof RequestResponseOperationDeclaration ) {
                             RequestResponseOperationDeclaration rrOperation = (RequestResponseOperationDeclaration) operation;
                             writer.write( operation.id() + "( <a href=\"#" + rrOperation.requestType().id() + "\">" + rrOperation.requestType().id()
