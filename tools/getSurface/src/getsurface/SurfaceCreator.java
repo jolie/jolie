@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -91,14 +92,6 @@ public class SurfaceCreator {
 
     }
 
-    private boolean isNativeType ( String type ) {
-        if ( type.equals("any") ||  type.equals("string") ||  type.equals("double") ||  type.equals("int") ||  type.equals("void")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     private void addOperation( InterfaceDefinition interfaceDefinition ) {
         for ( OperationDeclaration op: interfaceDefinition.operationsMap().values() ) {
             if ( op instanceof RequestResponseOperationDeclaration ) {
@@ -173,7 +166,7 @@ public class SurfaceCreator {
 
     private String getType( TypeDefinition type ) {
         String ret = "";
-        if ( !types_vector.contains( type.id() ) && !isNativeType( type.id() )) {
+        if ( !types_vector.contains( type.id() ) && !NativeType.isNative( type.id() )) {
             System.out.print("type " + type.id() +":" );
             if ( type instanceof TypeDefinitionLink ) {
                 System.out.println( ((TypeDefinitionLink) type).linkedTypeName() );
