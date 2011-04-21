@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -49,11 +50,13 @@ public class HtmlDocumentCreator
 	private URI directorySourceFile;
 	private String directorySOA;
 	private JolieDocWriter jolieDocWriter;
+        private ArrayList<String> types;
 
 	public HtmlDocumentCreator( ProgramInspector inspector, URI directorySourceFile )
 	{
 		this.inspector = inspector;
 		this.directorySourceFile = directorySourceFile;
+                types = new ArrayList<String>();
 	}
 
 	public void ConvertDocument()
@@ -116,8 +119,14 @@ public class HtmlDocumentCreator
                 if ( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
                        TypeDefinition requestType = ((RequestResponseOperationDeclaration) operationDeclaration).requestType();
                        TypeDefinition responseType = ((RequestResponseOperationDeclaration) operationDeclaration).responseType();
-                        jolieDocWriter.addType( requestType );
-                        jolieDocWriter.addType( responseType );
+                       if ( !types.contains( requestType.id() ))  {
+                            jolieDocWriter.addType( requestType );
+                            types.add( requestType.id() );
+                       }
+                       if ( !types.contains( responseType.id() ))  {
+                            jolieDocWriter.addType( responseType );
+                            types.add( responseType.id() );
+                       }
                         if ( requestType.hasSubTypes() ) {
                                 addSubTypes( requestType );
                         }
@@ -127,7 +136,10 @@ public class HtmlDocumentCreator
                         }
                         for( Entry< String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operationDeclaration).faults().entrySet() ) {
                                 if ( !fault.getValue().id().equals("undefined") ) {
-                                    jolieDocWriter.addType( fault.getValue() );
+                                    if ( !types.contains( fault.getValue().id() )) {
+                                        jolieDocWriter.addType( fault.getValue() );
+                                        types.add( fault.getValue().id() );
+                                    }
                                     if ( fault.getValue().hasSubTypes() ) {
                                         addSubTypes( fault.getValue() );
                                     }
@@ -151,8 +163,11 @@ public class HtmlDocumentCreator
                 if ( type.hasSubTypes() ) {
                     for ( Entry<String, TypeDefinition> entry : type.subTypes() ) {
                         if ( entry.getValue() instanceof TypeDefinitionLink ) {
-                                jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
-                                addSubTypes( ((TypeDefinitionLink) entry.getValue() ).linkedType() );
+                                if ( !types.contains( ((TypeDefinitionLink) entry.getValue()).linkedType().id() )) {
+                                    types.add(  ((TypeDefinitionLink) entry.getValue() ).linkedType().id() );
+                                    jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
+                                    addSubTypes( ((TypeDefinitionLink) entry.getValue() ).linkedType() );
+                                }
                         } 
                     }
                 }
