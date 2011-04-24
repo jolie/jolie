@@ -28,12 +28,12 @@ Protocol: http {
 }
 Location: Location_Leonardo
 Interfaces: HTTPInterface
-Aggregates: Frontend
+//Aggregates: Frontend
 }
 
 embedded {
 Jolie:
-	"-l ../lib/derby.jar ../frontend/frontend.ol" in Frontend
+	"../frontend/frontend.ol" in Frontend
 }
 
 init
@@ -49,22 +49,38 @@ main
 		scope( s ) {
 			install( FileNotFound => println@Console( "File not found: " + file.filename )() );
 
-			s = request.operation;
-			s.regex = "\\?";
-			split@StringUtils( s )( s );
-			file.filename = documentRootDirectory + s.result[0];
-
-			getMimeType@File( file.filename )( mime );
-			mime.regex = "/";
-			split@StringUtils( mime )( s );
-			if ( s.result[0] == "text" ) {
-				file.format = "text";
-				format = "html"
-			} else {
-				file.format = format = "binary"
+			if ( request.operation == "" ) {
+				request.operation = "pages/home"
 			};
+			s = request.operation;
+			s.regex = "/";
+			s.limit = 2;
+			split@StringUtils( s )( s );
+			if ( s.result[0] == "pages" ) { // It's a dynamic jHome page
+				file.format = "text";
+				format = "html";
+				scope( s ) {
+					install( PageNotFound => response = "404 - Page not found" );
+					getPage@Frontend( s.result[1] )( response )
+				}
+			} else { // It's a static file
+				undef( s );
+				s = request.operation;
+				s.regex = "\\?";
+				split@StringUtils( s )( s );
+				file.filename = documentRootDirectory + s.result[0];
+				getMimeType@File( file.filename )( mime );
+				mime.regex = "/";
+				split@StringUtils( mime )( s );
+				if ( s.result[0] == "text" ) {
+					file.format = "text";
+					format = "html"
+				} else {
+					file.format = format = "binary"
+				};
 
-			readFile@File( file )( response )
+				readFile@File( file )( response )
+			}
 		}
 	} ] { nullProcess }
 }

@@ -1,6 +1,6 @@
 include "../common/locations.iol"
 
 constants {
-	DebugHttp = 1,
-	DebugHttpContent = 1
+	DebugHttp = 0,
+	DebugHttpContent = 0
 }
