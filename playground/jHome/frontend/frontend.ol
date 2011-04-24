@@ -62,6 +62,7 @@ W.class_id = C.id and W.page_id = :page_id";
 $(function() {
 	jHome." + result.row[i].NAME + "( " + result.row[i].ID + ", $('#" + result.row[i].DIV_NAME + "') );
 });
+jHome." + result.row[i].NAME + "( " + result.row[i].ID + ", $('#" + result.row[i].DIV_NAME + "') );
 </script>"
 			};
 			content += global.footer
