@@ -3,6 +3,7 @@ include "admin.iol"
 
 embedded {
 Jolie:
+	"database/database.ol",
 	"frontend/frontend.ol",
 	"leonardo/leonardo.ol www/"
 }

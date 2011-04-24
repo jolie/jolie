@@ -1,4 +1,4 @@
 interface JHomeFrontendInterface {
 RequestResponse:
-	getPageTitle(undefined)(string)
+	getPage(string)(string) throws PageNotFound
 }
