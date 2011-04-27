@@ -1,4 +1,5 @@
 interface JHomeFrontendInterface {
 RequestResponse:
-	getPage(string)(string) throws PageNotFound
+	getPage(string)(string) throws PageNotFound,
+	getWidgetProperties(int)(undefined)
 }

@@ -28,7 +28,7 @@ Protocol: http {
 }
 Location: Location_Leonardo
 Interfaces: HTTPInterface
-//Aggregates: Frontend
+Aggregates: Frontend
 }
 
 embedded {
