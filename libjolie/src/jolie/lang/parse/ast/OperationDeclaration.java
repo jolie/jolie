@@ -21,12 +21,14 @@
 
 package jolie.lang.parse.ast;
 
+import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-abstract public class OperationDeclaration extends OLSyntaxNode
+abstract public class OperationDeclaration extends OLSyntaxNode implements DocumentedNode
 {
 	private final String id;
+        private String document;
 
 	public OperationDeclaration( ParsingContext context, String id )
 	{
@@ -37,5 +39,15 @@ abstract public class OperationDeclaration extends OLSyntaxNode
 	public String id()
 	{
 		return id;
+	}
+
+        public void setDocumentation( String document )
+	{
+		this.document = document;
+	}
+
+	public String getDocumentation()
+	{
+		return this.document;
 	}
 }
