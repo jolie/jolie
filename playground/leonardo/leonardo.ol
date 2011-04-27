@@ -7,9 +7,20 @@ include "config.iol"
 
 execution { concurrent }
 
+type SumRequest:void {
+.x:int
+.y:int
+}
+
+outputPort Client {
+OneWay: alert(string)
+}
+
 interface HTTPInterface {
 RequestResponse:
 	default(undefined)(undefined)
+
+, sum(SumRequest)(int)
 }
 
 outputPort Frontend {
@@ -66,5 +77,9 @@ main
 
 			readFile@File( file )( response )
 		}
+	} ] { nullProcess }
+
+	[ sum( request )( response ) {
+		response = request.x + request.y
 	} ] { nullProcess }
 }
