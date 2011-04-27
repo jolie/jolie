@@ -290,6 +290,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<copy file="${libs.libmatthew.unix}" tofile="dist/lib/unix.jar"/>
 		<copy file="${libs.relaxngDatatype}" tofile="dist/lib/relaxngDatatype.jar"/>
 		<copy file="${libs.ini4j}" tofile="dist/lib/ini4j.jar"/>
+		<copy file="${libs.json}" tofile="dist/lib/json_simple.jar"/>
 		<copy file="${libs.servletapi5}" tofile="dist/lib/servletapi5.jar"/>
 		<copy file="${libs.wsdl4j}" tofile="dist/lib/wsdl4j.jar"/>
 		<copy file="${libs.smack}" tofile="dist/lib/smack.jar"/>
