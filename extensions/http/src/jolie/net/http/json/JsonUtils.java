@@ -156,6 +156,26 @@ public class JsonUtils
 					vec.add( val );
 				}
 			}
+		} else {
+			val = Value.create();
+			if ( obj instanceof String ) {
+				val.setValue( (String) obj );
+			} else if ( obj instanceof Double ) {
+				val.setValue( (Double) obj );
+			} else if ( obj instanceof Integer ) {
+				val.setValue( (Integer) obj );
+			} else if ( obj instanceof Long ) {
+				val.setValue( ((Long) obj).intValue() );
+			} else if ( obj instanceof Boolean ) {
+				Boolean b = (Boolean) obj;
+				if ( b ) {
+					val.setValue( 1 );
+				} else {
+					val.setValue( 0 );
+				}
+			} else {
+				val.setValue( obj.toString() );
+			}
 		}
 		return vec;
 	}
