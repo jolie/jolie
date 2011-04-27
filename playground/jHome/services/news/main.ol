@@ -1,4 +1,5 @@
 include "news.iol"
+include "console.iol"
 
 execution { concurrent }
 
