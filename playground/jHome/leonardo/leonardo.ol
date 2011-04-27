@@ -16,6 +16,13 @@ outputPort Frontend {
 Interfaces: JHomeFrontendInterface
 }
 
+embedded {
+Jolie:
+	"../frontend/frontend.ol" in Frontend
+}
+
+include "../services/news/embed.iol"
+
 inputPort HTTPInput {
 Protocol: http {
 	.keepAlive = 0; // Do not keep connections open
@@ -29,11 +36,7 @@ Protocol: http {
 Location: Location_Leonardo
 Interfaces: HTTPInterface
 Aggregates: Frontend
-}
-
-embedded {
-Jolie:
-	"../frontend/frontend.ol" in Frontend
+Redirects: News => News
 }
 
 init

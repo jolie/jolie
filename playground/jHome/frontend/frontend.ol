@@ -75,7 +75,7 @@ $(function() {
 		q.widget_id = id;
 		query@Database( q )( result );
 		for( i = 0, i < #result.row, i++ ) {
-			response.(result.row[i].name) = result.row[i].value
+			response.(result.row[i].NAME) = result.row[i].VALUE
 		}
 	} ] { nullProcess }
 }
