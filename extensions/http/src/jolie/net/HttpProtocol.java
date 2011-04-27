@@ -813,7 +813,7 @@ public class HttpProtocol extends CommProtocol
 			if ( m.find() ) {
 				int resourceStart = m.end();
 				if ( m.find() ) {
-					decodedMessage.resourcePath = requestPath.substring( resourceStart, m.start() );
+					decodedMessage.resourcePath = requestPath.substring( resourceStart - 1, m.start() );
 					decodedMessage.operationName = requestPath.substring( m.end(), requestPath.length() );
 				}
 			}
