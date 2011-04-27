@@ -23,7 +23,6 @@ package jolie.net.http.json;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
 import jolie.runtime.Value;
@@ -121,6 +120,8 @@ public class JsonUtils
 					value.setValue( (Double)entry.getValue() );
 				} else if ( entry.getValue() instanceof Integer ) {
 					value.setValue( (Integer)entry.getValue() );
+				} else if ( entry.getValue() instanceof Long ) {
+					value.setValue( ((Long)entry.getValue()).intValue() );
 				} else if ( entry.getValue() instanceof Boolean ){
 					Boolean b = (Boolean)entry.getValue();
 					if ( b ) {
