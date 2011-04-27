@@ -30,7 +30,7 @@ init
 
 main
 {
-	getPage( pageName )( content ) {
+	[ getPage( pageName )( content ) {
 		q = "select P.id as page_id, L.name as layout_name from
 pages as P, layouts as L
 where
@@ -49,7 +49,7 @@ W.class_id = C.id and W.page_id = :page_id group by C.name";
 			q.page_id = result.row.PAGE_ID;
 			query@Database( q )( result );
 			for( i = 0, i < #result.row, i++ ) {
-				content += "<script type=\"text/javascript\" src=\"../../widgets/" + result.row[i].NAME + ".js\" />"
+				content += "<script type=\"text/javascript\" src=\"../../widgets/" + result.row[i].NAME + ".js\"></script>"
 			};
 			content += "</head><body>";
 			content += body;
@@ -60,14 +60,22 @@ W.class_id = C.id and W.page_id = :page_id";
 			for( i = 0, i < #result.row, i++ ) {
 				content += "<script type=\"text/javascript\">
 $(function() {
-	jHome." + result.row[i].NAME + "( " + result.row[i].ID + ", $('#" + result.row[i].DIV_NAME + "') );
+	jHome.widgets." + result.row[i].NAME + "( " + result.row[i].ID + ", $('#" + result.row[i].DIV_NAME + "') );
 });
-jHome." + result.row[i].NAME + "( " + result.row[i].ID + ", $('#" + result.row[i].DIV_NAME + "') );
 </script>"
 			};
 			content += global.footer
 		} else {
 			throw( PageNotFound )
 		}
-	}
+	} ] { nullProcess }
+
+	[ getWidgetProperties( id )( response ) {
+		q = "select name, value from widget_properties where widget_id = :widget_id";
+		q.widget_id = id;
+		query@Database( q )( result );
+		for( i = 0, i < #result.row, i++ ) {
+			response.(result.row[i].name) = result.row[i].value
+		}
+	} ] { nullProcess }
 }
