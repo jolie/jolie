@@ -67,6 +67,7 @@ import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
+import jolie.util.LocationParser;
 
 import jolie.xml.XmlUtils;
 import joliex.gwt.client.JolieService;
@@ -779,6 +780,7 @@ public class HttpProtocol extends CommProtocol
 		if ( hasParameter( "format" ) ) {
 			format = getStringParameter( "format" );
 		}
+
 		String type = message.getProperty( "content-type" ).split( ";" )[0];
 		if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content() ) );
@@ -805,7 +807,16 @@ public class HttpProtocol extends CommProtocol
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
-			decodedMessage.operationName = message.requestPath().split( "\\?" )[0];
+			String requestPath = message.requestPath().split( "\\?" )[0];
+			decodedMessage.operationName = requestPath;
+			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
+			if ( m.find() ) {
+				int resourceStart = m.end();
+				if ( m.find() ) {
+					decodedMessage.resourcePath = requestPath.substring( resourceStart, m.start() );
+					decodedMessage.operationName = requestPath.substring( m.end(), requestPath.length() );
+				}
+			}
 		}
 
 		if ( !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
@@ -857,6 +868,7 @@ public class HttpProtocol extends CommProtocol
 	private static class DecodedMessage {
 		private String operationName = null;
 		private Value value = Value.create();
+		private String resourcePath = "/";
 		private long id = CommMessage.GENERIC_ID;
 	}
 	
@@ -900,15 +912,14 @@ public class HttpProtocol extends CommProtocol
 		
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
-			retVal = new CommMessage( decodedMessage.id, inputId, "/", decodedMessage.value, null );
+			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
 			if ( message.isGet() ) {
 				recv_parseQueryString( message, decodedMessage.value );
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
-			//TODO support resourcePath
-			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, "/", decodedMessage.value, null );
+			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
 		return retVal;
 	}
