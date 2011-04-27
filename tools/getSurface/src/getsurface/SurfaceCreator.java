@@ -166,7 +166,7 @@ public class SurfaceCreator {
 
     private String getType( TypeDefinition type ) {
         String ret = "";
-        if ( !types_vector.contains( type.id() ) && !NativeType.isNative( type.id() )) {
+        if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )) {
             System.out.print("type " + type.id() +":" );
             if ( type instanceof TypeDefinitionLink ) {
                 System.out.println( ((TypeDefinitionLink) type).linkedTypeName() );

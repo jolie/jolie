@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -25,10 +25,10 @@ import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-abstract public class OperationDeclaration extends OLSyntaxNode implements DocumentedNode
+public abstract class OperationDeclaration extends OLSyntaxNode implements DocumentedNode
 {
 	private final String id;
-        private String document;
+	private String document;
 
 	public OperationDeclaration( ParsingContext context, String id )
 	{
@@ -41,7 +41,7 @@ abstract public class OperationDeclaration extends OLSyntaxNode implements Docum
 		return id;
 	}
 
-        public void setDocumentation( String document )
+	public void setDocumentation( String document )
 	{
 		this.document = document;
 	}

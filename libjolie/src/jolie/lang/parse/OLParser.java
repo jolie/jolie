@@ -650,7 +650,7 @@ public class OLParser extends AbstractParser
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-                String comment = "";
+		String comment = "";
 		boolean keepRun = true;
 		DocumentedNode node = null;
 		boolean commentsPreset = false;
@@ -661,29 +661,28 @@ public class OLParser extends AbstractParser
 				getToken();
 			} else if ( token.isKeyword( "interface" ) ) {
 				node = parseInterface();
-                                if ( commentsPreset && node != null ) {
-                                    node.setDocumentation( comment );
-                                    commentsPreset = false;
-                                    node = null;
-                                }
+				if ( commentsPreset && node != null ) {
+					node.setDocumentation( comment );
+					commentsPreset = false;
+					node = null;
+				}
 			} else if ( token.isKeyword( "inputPort" ) ) {
 				node = parsePort();
-                                if ( commentsPreset && node != null ) {
-                                    node.setDocumentation( comment );
-                                    commentsPreset = false;
-                                    node = null;
-                                }
+				if ( commentsPreset && node != null ) {
+					node.setDocumentation( comment );
+					commentsPreset = false;
+					node = null;
+				}
 			} else if ( token.isKeyword( "outputPort" ) ) {
 				node = parsePort();
-                                if ( commentsPreset && node != null ) {
-                                    node.setDocumentation( comment );
-                                    commentsPreset = false;
-                                    node = null;
-                                }
+				if ( commentsPreset && node != null ) {
+					node.setDocumentation( comment );
+					commentsPreset = false;
+					node = null;
+				}
 			} else {
 				keepRun = false;
 			}
-
 		}
 	}
 
@@ -942,21 +941,20 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
-                boolean commentsPreset = false;
-                String comment = "";
+		boolean commentsPreset = false;
+		String comment = "";
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-                        if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
-                        } else if ( token.is( Scanner.TokenType.ID ) ) {
+			} else if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
 				getToken();
 				opDecl.setRequestType( TypeDefinitionUndefined.getInstance() );
-
 				if ( token.is( Scanner.TokenType.LPAREN ) ) { // Type declaration
 					getToken(); //eat (
 					if ( definedTypes.containsKey( token.content() ) == false ) {
@@ -967,10 +965,10 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-                                if ( commentsPreset ) {
-                                    opDecl.setDocumentation(  comment );
-                                    commentsPreset = false;
-                                }
+				if ( commentsPreset ) {
+					opDecl.setDocumentation( comment );
+					commentsPreset = false;
+				}
 
 				oc.addOperation( opDecl );
 
@@ -992,16 +990,16 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
-                String comment = "";
+		String comment = "";
 		String opId;
 		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-                        if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
-                        } else if ( token.is( Scanner.TokenType.ID ) ) {
+			} else if ( token.is( Scanner.TokenType.ID ) ) {
 				opId = token.content();
 				getToken();
 				String requestTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
@@ -1052,12 +1050,12 @@ public class OLParser extends AbstractParser
 						definedTypes.get( responseTypeName ),
 						faultTypesMap
 					);
-                                
-                                // adding documentation
-                                if ( commentsPreset  ) {
-                                    opRR.setDocumentation( comment );
-                                    commentsPreset = false;
-                                }
+
+				// adding documentation
+				if ( commentsPreset ) {
+					opRR.setDocumentation( comment );
+					commentsPreset = false;
+				}
 
 				oc.addOperation( opRR );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
