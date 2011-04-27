@@ -1,26 +1,14 @@
 include "console.iol"
 include "file.iol"
 include "string_utils.iol"
-include "../frontend/frontend.iol"
 
 include "config.iol"
 
 execution { concurrent }
 
-type SumRequest:void {
-.x:int
-.y:int
-}
-
-outputPort Client {
-OneWay: alert(string)
-}
-
 interface HTTPInterface {
 RequestResponse:
 	default(undefined)(undefined)
-
-, sum(SumRequest)(int)
 }
 
 outputPort Frontend {
@@ -39,17 +27,10 @@ Protocol: http {
 }
 Location: Location_Leonardo
 Interfaces: HTTPInterface
-Aggregates: Frontend
-}
-
-embedded {
-Jolie:
-	"../frontend/frontend.ol" in Frontend
 }
 
 init
 {
-	format = "json";
 	documentRootDirectory = args[0]
 }
 
@@ -77,9 +58,5 @@ main
 
 			readFile@File( file )( response )
 		}
-	} ] { nullProcess }
-
-	[ sum( request )( response ) {
-		response = request.x + request.y
 	} ] { nullProcess }
 }
