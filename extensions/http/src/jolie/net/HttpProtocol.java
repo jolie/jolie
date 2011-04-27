@@ -819,7 +819,7 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 
-		if ( !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
+		if ( decodedMessage.resourcePath.equals( "/" ) && !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getStringParameter( "default" );
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;
