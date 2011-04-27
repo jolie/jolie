@@ -182,7 +182,6 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 			inputPorts.put( n.context().source(), list );
 		}
 		list.add( n );
-
 		encounteredNode( n );
 	}
 
