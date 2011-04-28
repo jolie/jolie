@@ -259,6 +259,7 @@ public class TypeChecker implements OLVisitor
 	}
 
 	private final Program program;
+	private boolean insideInit = false;
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private final ExecutionMode executionMode;
 
@@ -403,10 +404,13 @@ public class TypeChecker implements OLVisitor
 
 	public void visit( DefinitionNode n )
 	{
+		insideInit = false;
 		TypingResult entry = null;
 		if ( n.id().equals( "main" ) ) {
 			sessionStarter = true;
 			entry = definitionTyping.get( "init" );
+		} else if ( n.id().equals( "init" ) ) {
+			insideInit = true;
 		}
 		if ( entry == null ) {
 			entry = new TypingResult();
@@ -556,7 +560,7 @@ public class TypeChecker implements OLVisitor
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if ( !sessionStarter ) {
+		if ( !sessionStarter && !insideInit ) {
 			if ( cset == null || cset.variables().isEmpty() ) {
 				error( n, "No correlation set defined for operation " + n.id() );
 			}
@@ -593,7 +597,7 @@ public class TypeChecker implements OLVisitor
 		}
 
 		CorrelationSetInfo cset = correlationFunctionInfo.operationCorrelationSetMap().get( n.id() );
-		if ( !sessionStarter ) {
+		if ( !sessionStarter && !insideInit ) {
 			if ( cset == null || cset.variables().isEmpty() ) {
 				error( n, "No correlation set defined for operation " + n.id() );
 			}
