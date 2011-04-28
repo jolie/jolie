@@ -77,6 +77,7 @@ import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
+import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 
 /**
@@ -87,6 +88,47 @@ import jolie.runtime.correlation.CorrelationSet;
  */
 public class Interpreter
 {
+	private class InitSessionThread extends SessionThread
+	{
+		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
+		{
+			super( interpreter, process );
+		}
+		
+		@Override
+		public boolean isInitialisingThread()
+		{
+			return true;
+		}
+		
+		@Override
+		public void run()
+		{
+			super.run();
+			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+				try {
+					mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+					correlationEngine.onSingleExecutionSessionStart( mainSession );
+					mainSession.addSessionListener( correlationEngine );
+				} catch( InvalidIdException e ) {
+					assert false;
+				}
+			}
+			for( SessionMessage message : messages ) {
+				try {
+					correlationEngine.onMessageReceive( message.message(), message.channel() );
+				} catch( CorrelationError e ) {
+					logWarning( e );
+					try {
+						message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+					} catch( IOException ioe ) {
+						logSevere( ioe );
+					}
+				}
+			}
+		}
+	}
+	
 	public static class SessionStarter
 	{
 		private final InputOperationProcess guard;
@@ -684,7 +726,7 @@ public class Interpreter
 		return globalValue;
 	}
 	
-	private SessionThread initExecutionThread;
+	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
 	
 	/**
@@ -795,7 +837,7 @@ public class Interpreter
 		}
 		sessionStarters = Collections.unmodifiableMap( sessionStarters );
 		try {
-			initExecutionThread = new SessionThread( this, getDefinition( "init" ) );
+			initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
 
 			commCore.init();
 
@@ -814,25 +856,20 @@ public class Interpreter
 				}
 			});
 
+			correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
+			initExecutionThread.addSessionListener( correlationEngine );
 			initExecutionThread.start();
-			try {
-				initExecutionThread.join();
-				if ( executionMode == Constants.ExecutionMode.SINGLE ) {
-					try {
-						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
-						correlationEngine.onSingleExecutionSessionStart( mainSession );
-						mainSession.addSessionListener( correlationEngine );
-					} catch( InvalidIdException e ) { assert false; }
-				}
-			} catch( InterruptedException e ) {
-				//logSevere( e );
-				throw new InterpreterException( e );
-			}
 		} catch( InvalidIdException e ) { assert false; }
 	}
 	
 	private void runCode()
 	{
+		try {
+			initExecutionThread.join();
+		} catch( InterruptedException e ) {
+			logSevere( e );
+		}
+
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			try {
 				mainSession.start();

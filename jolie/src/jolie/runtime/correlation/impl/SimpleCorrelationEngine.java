@@ -85,7 +85,11 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 
 	private boolean correlate( SessionThread session, CommMessage message )
 	{
-		if ( interpreter().correlationSets().isEmpty() && interpreter().executionMode() == ExecutionMode.SINGLE ) {
+		if ( (interpreter().correlationSets().isEmpty()
+			&& interpreter().executionMode() == ExecutionMode.SINGLE)
+			||
+			session.isInitialisingThread()
+		) {
 			return true;
 		}
 

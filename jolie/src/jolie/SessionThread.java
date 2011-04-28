@@ -150,7 +150,7 @@ public class SessionThread extends ExecutionThread
 
 	private final jolie.State state;
 	private final List< SessionListener > listeners = new LinkedList< SessionListener >();
-	private final Deque< SessionMessage > messages = new LinkedList< SessionMessage >();
+	protected final Deque< SessionMessage > messages = new LinkedList< SessionMessage >();
 	private final Map< String, Deque< SessionMessageFuture > > messageWaiters =
 		new HashMap< String, Deque< SessionMessageFuture > >();
 
@@ -234,6 +234,11 @@ public class SessionThread extends ExecutionThread
 		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
 		}
+	}
+	
+	public boolean isInitialisingThread()
+	{
+		return false;
 	}
 
 	/**
