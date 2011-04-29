@@ -23,6 +23,7 @@ package joliex.util;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,6 +49,9 @@ public class ExecService extends JavaService
 		}
 
 		ProcessBuilder builder = new ProcessBuilder( command );
+		if ( request.hasChildren( "workingDirectory" ) ) {
+			builder.directory( new File( request.getFirstChild( "workingDirectory" ).strValue() ) );
+		}
 		try {
 			Value response = Value.create();
 			Process p = builder.start();
