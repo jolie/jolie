@@ -597,6 +597,10 @@ public class SemanticVerifier implements OLVisitor
 							);
 						}
 					}
+				} else {
+					error( n.body(),
+						"The first statement of the main procedure must be an input if the execution mode is not single"
+					);
 				}
 			}
 		}
