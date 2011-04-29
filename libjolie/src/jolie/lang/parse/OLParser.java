@@ -171,7 +171,9 @@ public class OLParser extends AbstractParser
 			program.addChild( new DefinitionNode( getContext(), "init", initSequence ) );
 		}
 
-		program.addChild( main );
+		if ( main != null ) {
+			program.addChild( main );
+		}
 
 		return program;
 	}

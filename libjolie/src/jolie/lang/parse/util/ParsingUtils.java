@@ -49,6 +49,28 @@ public class ParsingUtils
 		URI source,
 		String[] includePaths,
 		ClassLoader classLoader,
+		Map< String, Scanner.Token > definedConstants,
+		SemanticVerifier.Configuration configuration
+	)
+		throws IOException, ParserException
+	{
+		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
+		olParser.putConstants( definedConstants );
+		Program program = olParser.parse();
+		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+		program = optimizer.optimize();
+		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
+		if ( !semanticVerifier.validate() ) {
+			throw new IOException( "Input file semantically invalid" );
+		}
+		return program;
+	}
+	
+	public static Program parseProgram(
+		InputStream inputStream,
+		URI source,
+		String[] includePaths,
+		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants
 	)
 		throws IOException, ParserException
