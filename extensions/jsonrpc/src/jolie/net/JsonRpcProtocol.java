@@ -33,6 +33,12 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
+/**
+ * 
+ * @author Fabrizio Montesi
+ * @author Károly Szántó
+ * @author Giannakis Manthios
+ */
 public class JsonRpcProtocol extends ConcurrentCommProtocol
 {
 	private final boolean inInputPort;
