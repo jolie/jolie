@@ -56,7 +56,7 @@ type ListResponse:void {
 	.result[0,*]:string
 }
 
-outputPort File {
+interface FileInterface {
 RequestResponse:
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(void) IOException(IOExceptionType),
 	writeFile(WriteFileRequest)(void) throws FileNotFound(void) IOException(IOExceptionType),
@@ -69,6 +69,10 @@ RequestResponse:
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(void),
 	setMimeTypeFile(string)(void) throws IOException(void)
+}
+
+outputPort File {
+Interfaces: FileInterface
 }
 
 embedded {
