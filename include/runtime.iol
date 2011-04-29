@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -54,6 +54,10 @@ type SendMessageRequest:void {
 	.message:undefined
 }
 
+type GetIncludePathResponse:void {
+	.path*:string
+}
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
@@ -62,6 +66,8 @@ RequestResponse:
 	getRedirection(GetRedirectionRequest)(any),
 	setRedirection(SetRedirectionRequest)(void) throws RuntimeException(RuntimeExceptionType),
 	removeRedirection(GetRedirectionRequest)(void) throws RuntimeException(RuntimeExceptionType),
+
+	getIncludePaths(void)(GetIncludePathResponse),
 
 	setOutputPort(SetOutputPortRequest)(void),
 	removeOutputPort(string)(void),
