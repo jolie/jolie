@@ -63,6 +63,8 @@ RequestResponse:
 	delete(DeleteRequest)(int) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
+	mkdir(string)(int),
+	exists(string)(int),
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(void),
