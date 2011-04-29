@@ -337,13 +337,13 @@ public class CommandLineParser
 				bVerbose = true;
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
-			} else if ( argsList.get( i ).endsWith( ".ol" ) ) {
-				if ( olFilepath == null ) {
-					olFilepath = argsList.get( i );
-				} else {
-					programArgumentsList.add( argsList.get( i ) );
-				}
-			} else if ( argsList.get( i ).endsWith( ".olc" ) ) {
+			} else if (
+				argsList.get( i ).endsWith( ".ol" )
+				||
+				argsList.get( i ).endsWith( ".iol" )
+				||
+				argsList.get( i ).endsWith( ".olc" )
+			) {
 				if ( olFilepath == null ) {
 					olFilepath = argsList.get( i );
 				} else {
