@@ -37,12 +37,12 @@ public class JsonRpcProtocolFactory extends CommProtocolFactory
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new JsonRpcProtocol( configurationPath );
+		return new JsonRpcProtocol( configurationPath, false );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new JsonRpcProtocol( configurationPath );
+		return new JsonRpcProtocol( configurationPath, true );
 	}
 }
