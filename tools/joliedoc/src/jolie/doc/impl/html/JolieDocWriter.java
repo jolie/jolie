@@ -53,15 +53,12 @@ public class JolieDocWriter
 
 	public JolieDocWriter( Writer writer )
 	{
-
-
 		this.writer = writer;
 		typeDefinitionLinkVector = new Vector<TypeDefinitionLink>();
 		typeDefintionLinkNameVector = new Vector<String>();
 		typeDefinitonVector = new Vector<TypeDefinition>();
 		typeDefintionNameVector = new Vector<String>();
 		interfaceDefintionVector = new Vector<InterfaceDefinition>();
-
 	}
 
 	public void addPort( PortInfo port )
@@ -156,7 +153,7 @@ public class JolieDocWriter
 		writer.write( "<tr>" );
 		writer.write( "<th>Port Name</th>" );
 		writer.write( "<th>Location</th>" );
-		writer.write( "<th>Protocol ID</th>" );
+		writer.write( "<th>Protocol</th>" );
 		//JolieDocWriter.write( "<th>Code</th>" );
 		writer.write( "</tr>" );
 		writer.write( "<tr>" );
@@ -170,7 +167,7 @@ public class JolieDocWriter
 
 		// generating interface list
 		writer.write( "<br>" );
-		writer.write( "<H2>" + "List of the available interfaces</H2>" );
+		writer.write( "<h2>" + "List of the available interfaces</h2>" );
 		writer.write( "<ul>" );
 
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
@@ -181,7 +178,7 @@ public class JolieDocWriter
 
 		// interface tables
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
-			writer.write( "<H2>" + "Interface " + interfaceDefinition.name() + "</H2>" );
+			writer.write( "<h2>" + "Interface " + interfaceDefinition.name() + "</h2>" );
 			writer.write( "<a name=\"" + interfaceDefinition.name() + "\"></a>" );
 			if ( !(interfaceDefinition.getDocumentation() == null) ) {
 				writer.write( interfaceDefinition.getDocumentation().trim().replace( "\n", "<br>" ) );
@@ -200,19 +197,14 @@ public class JolieDocWriter
 			// scanning operations into the interface
 			for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
 				operation = entry.getValue();
-
 				writer.write( "<tr>" );
 				writer.write( "<td><a href=\"#" + operation.id() + "\">" + operation.id() + "</a></td>" );
-
-
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
-
 					if ( ((RequestResponseOperationDeclaration) operation).requestType().hasSubTypes() ) {
 						writer.write( "<td>" + "<a href=\"#" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "\">" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "</a><br />" + "</td>" );
 					} else {
 						writer.write( "<td>" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "<br />" + "</td>" );
 					}
-
 
 					if ( ((RequestResponseOperationDeclaration) operation).responseType().hasSubTypes() ) {
 						writer.write( "<td>" + "<a href=\"#" + ((RequestResponseOperationDeclaration) operation).responseType().id() + "\">" + ((RequestResponseOperationDeclaration) operation).responseType().id() + "</a><br />" + "</td>" );
@@ -243,11 +235,11 @@ public class JolieDocWriter
 		writer.write( "<hr>" );
 
 		// Operation details
-		writer.write( "<H2>Operation list</H2>" );
+		writer.write( "<h2>Operation list</h2>" );
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
 			for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
 				OperationDeclaration operation = entry.getValue();
-				writer.write( "<br><div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><H3>" + operation.id() + "</H3></div><br>" );
+				writer.write( "<br><div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><h3>" + operation.id() + "</h3></div><br>" );
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
 					RequestResponseOperationDeclaration rrOperation = (RequestResponseOperationDeclaration) operation;
 					writer.write( operation.id() + "( <a href=\"#" + rrOperation.requestType().id() + "\">" + rrOperation.requestType().id()
@@ -277,18 +269,18 @@ public class JolieDocWriter
 		}
 
 		writer.write( "<hr>" );
-		writer.write( "<H2>Message type list</H2>" );
+		writer.write( "<h2>Message type list</h2>" );
 
 		// scanning type list
 		for( TypeDefinition typesDefinition : typeDefinitonVector ) {
-			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><H3>" + typesDefinition.id() + "</H3>" );
+			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3>" + typesDefinition.id() + "</h3>" );
 			writer.write( writeType( typesDefinition, false, 0 ) );
 		}
 
 		writer.write( "<hr>" );
-		writer.write( "<H2>Type list</H2>" );
+		writer.write( "<h2>Type list</h2>" );
 		for( TypeDefinitionLink typesDefinitionLink : typeDefinitionLinkVector ) {
-			writer.write( "<H3 id=\"" + typesDefinitionLink.linkedTypeName() + "\">" + typesDefinitionLink.linkedTypeName() + "</H3>" );
+			writer.write( "<h3 id=\"" + typesDefinitionLink.linkedTypeName() + "\">" + typesDefinitionLink.linkedTypeName() + "</h3>" );
 			writer.write( "<a name=\"" + typesDefinitionLink.linkedTypeName() + "\"></a>" );
 			writer.write( writeType( typesDefinitionLink.linkedType(), false, 0 ) );
 		}
