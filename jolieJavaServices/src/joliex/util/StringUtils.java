@@ -25,6 +25,7 @@ package joliex.util;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.runtime.JavaService;
@@ -37,6 +38,22 @@ public class StringUtils extends JavaService
 	public Integer length( String request )
 	{
 		return request.length();
+	}
+	
+	public Value sort( Value request )
+	{
+		String[] list = new String[ request.getChildren( "item" ).size() ];
+		int i = 0;
+		for( Value v : request.getChildren( "item" ) ) {
+			list[ i++ ] = v.strValue();
+		}
+		Arrays.sort( list );
+		Value ret = Value.create();
+		ValueVector items = ret.getChildren( "item" );
+		for( String s : list ) {
+			items.add( Value.create( s ) );
+		}
+		return ret;
 	}
 
 	public static class ReplaceAllRequest implements ValueConverter
