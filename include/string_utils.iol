@@ -66,6 +66,10 @@ type SubStringRequest:string {
 	.end:int
 }
 
+type StringItemList:void {
+	.item*:string
+}
+
 interface StringUtilsInterface {
 RequestResponse:
 	substring(SubStringRequest)(string),
@@ -74,7 +78,8 @@ RequestResponse:
 	rightPad(PadRequest)(string),
 	length(string)(int),
 	match(MatchRequest)(MatchResult),
-	replaceAll(ReplaceAllRequest)(string), 
+	replaceAll(ReplaceAllRequest)(string),
+	sort(StringItemList)(StringItemList),
 	split(SplitRequest)(SplitResult),
 	splitByLength(SplitByLengthRequest)(SplitResult),
 	trim(string)(string),
