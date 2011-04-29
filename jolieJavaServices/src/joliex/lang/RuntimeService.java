@@ -151,6 +151,16 @@ public class RuntimeService extends JavaService
 		return ret;
 	}
 	
+	public Value getIncludePaths()
+	{
+		Value ret = Value.create();
+		String[] includePaths = interpreter.includePaths();
+		for( String path : includePaths ) {
+			ret.getNewChild( "path" ).setValue( path );
+		}
+		return ret;
+	}
+	
 	public Value loadEmbeddedService( Value request )
 		throws FaultException
 	{
