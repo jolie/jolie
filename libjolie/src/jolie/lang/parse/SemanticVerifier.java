@@ -116,8 +116,13 @@ import jolie.util.Pair;
  */
 public class SemanticVerifier implements OLVisitor
 {
+	public static class Configuration {
+		public boolean checkForMain = true;
+	}
+	
 	private final Program program;
 	private boolean valid = true;
+	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
 	private final Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
@@ -152,16 +157,22 @@ public class SemanticVerifier implements OLVisitor
 	//private TypeDefinition rootType; // the type representing the whole session state
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
 
-	public SemanticVerifier( Program program )
+	public SemanticVerifier( Program program, Configuration configuration )
 	{
 		this.program = program;
 		this.definedTypes = OLParser.createTypeDeclarationMap( program.context() );
+		this.configuration = configuration;
 		/*rootType = new TypeInlineDefinition(
 			new ParsingContext(),
 			"#RootType",
 			NativeType.VOID,
 			jolie.lang.Constants.RANGE_ONE_TO_ONE
 		);*/
+	}
+	
+	public SemanticVerifier( Program program )
+	{
+		this( program, new Configuration() );
 	}
 
 	public CorrelationFunctionInfo correlationFunctionInfo()
@@ -344,7 +355,7 @@ public class SemanticVerifier implements OLVisitor
 		checkToBeEqualTypes();
 		checkCorrelationSets();
 		
-		if ( mainDefined == false ) {
+		if ( configuration.checkForMain && mainDefined == false ) {
 			error( null, "Main procedure not defined" );
 		}
 		

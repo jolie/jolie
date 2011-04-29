@@ -27,6 +27,7 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -38,11 +39,14 @@ public class JolieDoc
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, JolieDoc.class.getClassLoader() );
 			args = cmdParser.arguments();
+			SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
+			configuration.checkForMain = false;
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), JolieDoc.class.getClassLoader(), cmdParser.definedConstants() );
-			
+				cmdParser.includePaths(), JolieDoc.class.getClassLoader(), cmdParser.definedConstants(),
+				configuration
+			);			
 			
 			ProgramInspector inspector=ParsingUtils.createInspector( program );
 
