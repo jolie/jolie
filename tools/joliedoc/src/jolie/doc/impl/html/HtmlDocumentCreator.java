@@ -50,127 +50,126 @@ public class HtmlDocumentCreator
 	private URI directorySourceFile;
 	private String directorySOA;
 	private JolieDocWriter jolieDocWriter;
-        private ArrayList<String> types;
+	private ArrayList<String> types;
 
 	public HtmlDocumentCreator( ProgramInspector inspector, URI directorySourceFile )
 	{
 		this.inspector = inspector;
 		this.directorySourceFile = directorySourceFile;
-                types = new ArrayList<String>();
+		types = new ArrayList<String>();
 	}
 
 	public void ConvertDocument()
 		throws IOException
 	{
-		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0,directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/") + 1 );
+		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/" ) + 1 );
 
-                // scanning inputPorts. For each inputPort will be generated an html file
-                
+		// scanning inputPorts. For each inputPort will be generated an html file
+
 		InputPortInfo[] inputPorts = inspector.getInputPorts( directorySourceFile );
-                boolean inputPortExist = false;
+		boolean inputPortExist = false;
 		for( InputPortInfo inputPort : inputPorts ) {
-                        inputPortExist = true;
-                        writer = new BufferedWriter( new FileWriter( directorySOA +  inputPort.id() + ".html" ) );
-                        jolieDocWriter = new JolieDocWriter( writer );
+			inputPortExist = true;
+			writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
+			jolieDocWriter = new JolieDocWriter( writer );
 			jolieDocWriter.addPort( inputPort );
 			List<InterfaceDefinition> interfacesList = inputPort.getInterfaceList();
 			for( InterfaceDefinition interfaceDefintion : interfacesList ) {
 				jolieDocWriter.addInterface( interfaceDefintion );
-                                addOperations( interfaceDefintion );
+				addOperations( interfaceDefintion );
 			}
 
-                        // scanning aggregation
-                        OutputPortInfo[] outputPortList = inspector.getOutputPorts(  directorySourceFile );
-                        // extracts interfaces from aggregated outputPorts
-                        for ( int x = 0; x < inputPort.aggregationList().length; x++ ) {
-                            int i = 0;
-                            while ( !inputPort.aggregationList()[x].equals( outputPortList[i].id()) ) {
-                                i++;
-                            }
-                            for ( InterfaceDefinition interfaceDefinition:outputPortList[i].getInterfaceList() ) {
-                               jolieDocWriter.addInterface( interfaceDefinition );
-                              addOperations( interfaceDefinition );
-                            }
-                        }
-                         jolieDocWriter.write();
-                         System.out.println("Generated joliedoc " + directorySOA +  inputPort.id() + ".html" ) ;
-		}
-                if ( !inputPortExist ) {
-                    System.out.println("JolieDoc: no inputPort found, generated joliedocs for outputPorts.");
-                    OutputPortInfo[] outputPortList = inspector.getOutputPorts(  directorySourceFile );
-                    for( OutputPortInfo outputPort : outputPortList ) {
-                        writer = new BufferedWriter( new FileWriter( directorySOA +  outputPort.id() + ".html" ) );
-                        jolieDocWriter = new JolieDocWriter( writer );
-			jolieDocWriter.addPort( outputPort );
-			List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
-			for( InterfaceDefinition interfaceDefintion : interfacesList ) {
-				jolieDocWriter.addInterface( interfaceDefintion );
-                                addOperations( interfaceDefintion );
+			// scanning aggregation
+			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
+			// extracts interfaces from aggregated outputPorts
+			for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
+				int i = 0;
+				while( !inputPort.aggregationList()[x].equals( outputPortList[i].id() ) ) {
+					i++;
+				}
+				for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
+					jolieDocWriter.addInterface( interfaceDefinition );
+					addOperations( interfaceDefinition );
+				}
 			}
-                        jolieDocWriter.write();
-                        System.out.println("Generated joliedoc " + directorySOA +  outputPort.id() + ".html" ) ;
-                    }
-                }
+			jolieDocWriter.write();
+			System.out.println( "Generated joliedoc " + directorySOA + inputPort.id() + ".html" );
+		}
+		if ( !inputPortExist ) {
+			System.out.println( "JolieDoc: no inputPort found, generated joliedocs for outputPorts." );
+			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
+			for( OutputPortInfo outputPort : outputPortList ) {
+				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );
+				jolieDocWriter = new JolieDocWriter( writer );
+				jolieDocWriter.addPort( outputPort );
+				List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
+				for( InterfaceDefinition interfaceDefintion : interfacesList ) {
+					jolieDocWriter.addInterface( interfaceDefintion );
+					addOperations( interfaceDefintion );
+				}
+				jolieDocWriter.write();
+				System.out.println( "Generated joliedoc " + directorySOA + outputPort.id() + ".html" );
+			}
+		}
 	}
 
-        private void addOperations( InterfaceDefinition interfaceDefinition )  throws IOException {
-            for ( Entry<String, OperationDeclaration> operation : interfaceDefinition.operationsMap().entrySet() ) {
-                OperationDeclaration operationDeclaration = operation.getValue();
-                if ( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
-                       TypeDefinition requestType = ((RequestResponseOperationDeclaration) operationDeclaration).requestType();
-                       TypeDefinition responseType = ((RequestResponseOperationDeclaration) operationDeclaration).responseType();
-                       if ( !types.contains( requestType.id() ))  {
-                            jolieDocWriter.addType( requestType );
-                            types.add( requestType.id() );
-                       }
-                       if ( !types.contains( responseType.id() ))  {
-                            jolieDocWriter.addType( responseType );
-                            types.add( responseType.id() );
-                       }
-                        if ( requestType.hasSubTypes() ) {
-                                addSubTypes( requestType );
-                        }
-                        if ( responseType.hasSubTypes() ) {
-                                addSubTypes( responseType );
+	private void addOperations( InterfaceDefinition interfaceDefinition )
+		throws IOException
+	{
+		for( Entry<String, OperationDeclaration> operation : interfaceDefinition.operationsMap().entrySet() ) {
+			OperationDeclaration operationDeclaration = operation.getValue();
+			if ( operationDeclaration instanceof RequestResponseOperationDeclaration ) {
+				TypeDefinition requestType = ((RequestResponseOperationDeclaration) operationDeclaration).requestType();
+				TypeDefinition responseType = ((RequestResponseOperationDeclaration) operationDeclaration).responseType();
+				if ( !types.contains( requestType.id() ) ) {
+					jolieDocWriter.addType( requestType );
+					types.add( requestType.id() );
+				}
+				if ( !types.contains( responseType.id() ) ) {
+					jolieDocWriter.addType( responseType );
+					types.add( responseType.id() );
+				}
+				if ( requestType.hasSubTypes() ) {
+					addSubTypes( requestType );
+				}
+				if ( responseType.hasSubTypes() ) {
+					addSubTypes( responseType );
+				}
+				for( Entry< String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operationDeclaration).faults().entrySet() ) {
+					if ( !fault.getValue().id().equals( "undefined" ) ) {
+						if ( !types.contains( fault.getValue().id() ) ) {
+							jolieDocWriter.addType( fault.getValue() );
+							types.add( fault.getValue().id() );
+						}
+						if ( fault.getValue().hasSubTypes() ) {
+							addSubTypes( fault.getValue() );
+						}
+					}
+				}
+			} else {
+				TypeDefinition requestType = ((OneWayOperationDeclaration) operationDeclaration).requestType();
+				jolieDocWriter.addType( requestType );
+				if ( requestType.hasSubTypes() ) {
+					addSubTypes( requestType );
+				}
+			}
+		}
+	}
 
-                        }
-                        for( Entry< String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operationDeclaration).faults().entrySet() ) {
-                                if ( !fault.getValue().id().equals("undefined") ) {
-                                    if ( !types.contains( fault.getValue().id() )) {
-                                        jolieDocWriter.addType( fault.getValue() );
-                                        types.add( fault.getValue().id() );
-                                    }
-                                    if ( fault.getValue().hasSubTypes() ) {
-                                        addSubTypes( fault.getValue() );
-                                    }
-                                }
-                        }
-                } else {
-                     TypeDefinition requestType = ( (OneWayOperationDeclaration ) operationDeclaration).requestType();
-                     jolieDocWriter.addType( requestType );
-                     if ( requestType.hasSubTypes() ) {
-                             addSubTypes( requestType );
-                     }
-                }
-            }
-        }
-        
-	
 	private void addSubTypes( TypeDefinition type )
 		throws IOException
 	{
-              
-                if ( type.hasSubTypes() ) {
-                    for ( Entry<String, TypeDefinition> entry : type.subTypes() ) {
-                        if ( entry.getValue() instanceof TypeDefinitionLink ) {
-                                if ( !types.contains( ((TypeDefinitionLink) entry.getValue()).linkedType().id() )) {
-                                    types.add(  ((TypeDefinitionLink) entry.getValue() ).linkedType().id() );
-                                    jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
-                                    addSubTypes( ((TypeDefinitionLink) entry.getValue() ).linkedType() );
-                                }
-                        } 
-                    }
-                }
-	}
 
+		if ( type.hasSubTypes() ) {
+			for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+				if ( entry.getValue() instanceof TypeDefinitionLink ) {
+					if ( !types.contains( ((TypeDefinitionLink) entry.getValue()).linkedType().id() ) ) {
+						types.add( ((TypeDefinitionLink) entry.getValue()).linkedType().id() );
+						jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
+						addSubTypes( ((TypeDefinitionLink) entry.getValue()).linkedType() );
+					}
+				}
+			}
+		}
+	}
 }

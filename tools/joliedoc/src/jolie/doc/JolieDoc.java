@@ -57,7 +57,7 @@ public class JolieDoc
 			document.createDocument( program, cmdParser.programFilepath() );*/
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-			System.out.println( "Syntax is: jolieDoc [jolie options] <jolie filename> <output filename> [interface name list]" );
+			System.out.println( "Syntax is: joliedoc [jolie options] <jolie filename> [interface name list]" );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
