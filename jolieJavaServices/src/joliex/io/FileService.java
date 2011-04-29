@@ -40,6 +40,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -480,6 +481,22 @@ public class FileService extends JavaService
 			}
 		}
 		return response;
+	}
+	
+	public Value sort( Value request )
+	{
+		String[] list = new String[ request.getChildren( "item" ).size() ];
+		int i = 0;
+		for( Value v : request.getChildren( "item" ) ) {
+			list[ i++ ] = v.strValue();
+		}
+		Arrays.sort( list );
+		Value ret = Value.create();
+		ValueVector items = ret.getChildren( "item" );
+		for( String s : list ) {
+			items.add( Value.create( s ) );
+		}
+		return ret;
 	}
 	
 	private static class ListFilter implements FilenameFilter
