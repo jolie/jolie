@@ -579,28 +579,29 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( "main".equals( n.id() ) ) {
 			mainDefined = true;
-			if ( ( n.body() instanceof NDChoiceStatement
-				|| n.body() instanceof RequestResponseOperationStatement
-				|| n.body() instanceof OneWayOperationStatement
-				) == false
-			) {
-				// The main body is not an input
-				if ( n.body() instanceof SequenceStatement ) {
-					OLSyntaxNode first = ((SequenceStatement)n.body()).children().get( 0 );
-					if ( (first instanceof RequestResponseOperationStatement
-						|| first instanceof OneWayOperationStatement) == false
-					) {
-						// The main body is not even a sequence starting with an input
-						if ( executionInfo.mode() != ExecutionMode.SINGLE ) {
+			if ( executionInfo.mode() != ExecutionMode.SINGLE ) {
+				if ( ( n.body() instanceof NDChoiceStatement
+					|| n.body() instanceof RequestResponseOperationStatement
+					|| n.body() instanceof OneWayOperationStatement
+					) == false
+				) {
+					// The main body is not an input
+					if ( n.body() instanceof SequenceStatement ) {
+						OLSyntaxNode first = ((SequenceStatement)n.body()).children().get( 0 );
+						if ( (first instanceof RequestResponseOperationStatement
+							|| first instanceof OneWayOperationStatement) == false
+						) {
+							// The main body is not even a sequence starting with an input
 							error( n.body(),
 								"The first statement of the main procedure must be an input if the execution mode is not single"
 							);
 						}
+					} else {
+						// The main body is not even a sequence
+						error( n.body(),
+							"The first statement of the main procedure must be an input if the execution mode is not single"
+						);
 					}
-				} else {
-					error( n.body(),
-						"The first statement of the main procedure must be an input if the execution mode is not single"
-					);
 				}
 			}
 		}
