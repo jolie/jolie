@@ -22,7 +22,6 @@
 package jolie.net.ports;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.Map;
 import jolie.runtime.AggregatedOperation;
 import jolie.runtime.VariablePath;
