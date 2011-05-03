@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
+import jolie.runtime.typing.TypeCastingException;
 
 class ValueLink extends Value implements Cloneable
 {
@@ -596,24 +597,44 @@ public abstract class Value implements Expression, Cloneable
 		}
 		return (CommChannel)valueObject();
 	}
+	
+	public String strValue()
+	{
+		try {
+			return strValueStrict();
+		} catch( TypeCastingException e ) {
+			return "";
+		}
+	}
 
-	public final synchronized String strValue()
+	public final synchronized String strValueStrict()
+		throws TypeCastingException
 	{
 		Object o = valueObject();
 		if ( o == null ) {
-			return "";
+			throw new TypeCastingException();
 		} else if ( o instanceof String ) {
 			return (String)o;
 		}
 		return o.toString();
 	}
+	
+	public ByteArray byteArrayValue()
+	{
+		try {
+			return byteArrayValueStrict();
+		} catch( TypeCastingException e ) {
+			return new ByteArray( new byte[0] );
+		}
+	}
 
-	public final synchronized ByteArray byteArrayValue()
+	public final synchronized ByteArray byteArrayValueStrict()
+		throws TypeCastingException
 	{
 		ByteArray r = null;
 		Object o = valueObject();
 		if ( o == null ) {
-			r = new ByteArray( new byte[0] );
+			throw new TypeCastingException();
 		} else if ( o instanceof ByteArray ) {
 			r = (ByteArray)o;
 		} else if ( o instanceof Integer ) {
@@ -623,7 +644,7 @@ public abstract class Value implements Expression, Cloneable
 				new DataOutputStream( bbstream ).writeInt( (Integer)o );
 				r = new ByteArray( bbstream.toByteArray() );
 			} catch( IOException e ) {
-				r = new ByteArray( new byte[0] );
+				throw new TypeCastingException();
 			}
 		} else if ( o instanceof String ) {
 			r = new ByteArray( ((String)o).getBytes() );
@@ -634,18 +655,28 @@ public abstract class Value implements Expression, Cloneable
 				new DataOutputStream( bbstream ).writeDouble( (Double)o );
 				r = new ByteArray( bbstream.toByteArray() );
 			} catch( IOException e ) {
-				r = new ByteArray( new byte[0] );
+				throw new TypeCastingException();
 			}
 		}
 		return r;
 	}
 	
-	public final synchronized int intValue()
+	public int intValue()
+	{
+		try {
+			return intValueStrict();
+		} catch( TypeCastingException e ) {
+			return 0;
+		}
+	}
+	
+	public final synchronized int intValueStrict()
+		throws TypeCastingException
 	{
 		int r = 0;
 		Object o = valueObject();
 		if ( o == null ) {
-			return 0;
+			throw new TypeCastingException();
 		} else if ( o instanceof Integer ) {
 			r = ((Integer)o).intValue();
 		} else if ( o instanceof Double ) {
@@ -654,13 +685,23 @@ public abstract class Value implements Expression, Cloneable
 			try {
 				r = Integer.parseInt( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
-				r = ((String)o).length();
+				throw new TypeCastingException();
 			}
 		}
 		return r;
 	}
 	
-	public final synchronized double doubleValue()
+	public double doubleValue()
+	{
+		try {
+			return doubleValueStrict();
+		} catch( TypeCastingException e ) {
+			return 0.0;
+		}
+	}
+	
+	public final synchronized double doubleValueStrict()
+		throws TypeCastingException
 	{
 		double r = 0;
 		Object o = valueObject();
@@ -674,7 +715,7 @@ public abstract class Value implements Expression, Cloneable
 			try {
 				r = Double.parseDouble( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
-				r = ((String)o).length();
+				throw new TypeCastingException();
 			}
 		}
 		return r;
