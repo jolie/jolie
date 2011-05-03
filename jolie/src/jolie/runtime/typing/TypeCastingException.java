@@ -31,6 +31,11 @@ public class TypeCastingException extends Exception
 {
 	public final static long serialVersionUID = Constants.serialVersionUID();
 
+	public TypeCastingException()
+	{
+		super();
+	}
+	
 	public TypeCastingException( String message )
 	{
 		super( message );

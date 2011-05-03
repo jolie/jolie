@@ -147,11 +147,23 @@ class TypeImpl extends Type
 		if ( checkNativeType( value, nativeType ) == false ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
 			if ( nativeType == NativeType.DOUBLE ) {
-				value.setValue( value.doubleValue() );
+				try {
+					value.setValue( value.doubleValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
 			} else if ( nativeType == NativeType.INT ) {
-				value.setValue( value.intValue() );
+				try {
+					value.setValue( value.intValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
 			} else if ( nativeType == NativeType.STRING ) {
-				value.setValue( value.strValue() );
+				try {
+					value.setValue( value.strValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
 			} else if ( nativeType == NativeType.VOID ) {
 				if ( value.valueObject() != null ) {
 					throw new TypeCastingException(
@@ -161,7 +173,11 @@ class TypeImpl extends Type
 					);
 				}
 			} else if ( nativeType == NativeType.RAW ) {
-				value.setValue( value.byteArrayValue() );
+				try {
+					value.setValue( value.byteArrayValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
 			} else {
 				throw new TypeCastingException(
 					"Expected " + nativeType.id() + ", found " +
