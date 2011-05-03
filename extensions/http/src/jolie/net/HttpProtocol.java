@@ -62,11 +62,16 @@ import jolie.net.http.json.JsonUtils;
 import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCastingException;
 import jolie.util.LocationParser;
 
 import jolie.xml.XmlUtils;
@@ -921,6 +926,36 @@ public class HttpProtocol extends CommProtocol
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
+		
+		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
+			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
+			try {
+				// The message is for this service
+				Interface iface = channel().parentPort().getInterface();
+				OneWayTypeDescription oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+				if ( oneWayTypeDescription != null && message.isResponse() == false ) {
+					// We are receiving a One-Way message
+					oneWayTypeDescription.requestType().cast( retVal.value() );
+				} else {
+					RequestResponseTypeDescription rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+					if ( retVal.isFault() ) {
+						Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
+						if ( faultType != null ) {
+							faultType.cast( retVal.value() );
+						}
+					} else {
+						if ( message.isResponse() ) {
+							rrTypeDescription.responseType().cast( retVal.value() );
+						} else {
+							rrTypeDescription.requestType().cast( retVal.value() );
+						}
+					}
+				}
+			} catch( TypeCastingException e ) {
+				// TODO: do something here?
+			}
+		}
+		
 		return retVal;
 	}
 }
