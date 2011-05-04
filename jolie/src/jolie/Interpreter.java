@@ -22,9 +22,9 @@
 package jolie;
 
 import java.io.ByteArrayOutputStream;
-import jolie.lang.Constants;
 import java.io.File;
 import java.io.FileNotFoundException;
+import jolie.lang.Constants;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -44,6 +44,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,7 +53,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 import jolie.lang.parse.OLParseTreeOptimizer;
-
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
@@ -61,13 +61,13 @@ import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -79,6 +79,7 @@ import jolie.runtime.ValueVector;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
 
 /**
  * The Jolie interpreter engine.
@@ -114,18 +115,52 @@ public class Interpreter
 					assert false;
 				}
 			}
-			for( SessionMessage message : messages ) {
-				try {
-					correlationEngine.onMessageReceive( message.message(), message.channel() );
-				} catch( CorrelationError e ) {
-					logWarning( e );
-					try {
-						message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
-					} catch( IOException ioe ) {
-						logSevere( ioe );
+			
+			/*
+			 * We need to relay the messages we did not consume during the init procedure.
+			 * We do this asynchronously, because calling correlationEngine.onMessageReceive
+			 * will trigger a join() on this thread, leading to a deadlock if we
+			 * were to call that directly from here.
+			 */
+			execute( new Runnable() {
+				public void run()
+				{
+					for( SessionMessage message : messages ) {
+						try {
+							correlationEngine.onMessageReceive( message.message(), message.channel() );
+						} catch( CorrelationError e ) {
+							logWarning( e );
+							try {
+								message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+							} catch( IOException ioe ) {
+								logSevere( ioe );
+							}
+						}
 					}
 				}
+			});
+		}
+	}
+	
+	private static class JolieExecutionThreadFactory implements ThreadFactory {
+		private final Interpreter interpreter;
+
+		private static class JolieExecutionThread extends JolieThread
+		{
+			public JolieExecutionThread( Interpreter interpreter, Runnable r )
+			{
+				super( interpreter, r );
 			}
+		}
+		
+		public JolieExecutionThreadFactory( Interpreter interpreter )
+		{
+			this.interpreter = interpreter;
+		}
+		
+		public Thread newThread( Runnable r )
+		{
+			return new JolieExecutionThread( interpreter, r );
 		}
 	}
 	
@@ -905,7 +940,7 @@ public class Interpreter
 		runCode();
 	}
 
-	private final ExecutorService executorService = Executors.newCachedThreadPool();
+	private final ExecutorService executorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
