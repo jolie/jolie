@@ -302,7 +302,7 @@ public class HttpProtocol extends CommProtocol
 					currStrValue = value.getFirstChild( currKey ).strValue();
 				}
 			}
-			
+
 			result.replace(
 				m.start() + offset, m.end() + offset,
 				currStrValue
