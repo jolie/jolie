@@ -288,7 +288,11 @@ public class HttpProtocol extends CommProtocol
 
 		while( m.find() ) {
 			currKey = alias.substring( m.start() + 2, m.end() - 1 );
-			currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+			if ( "$".equals( currKey ) ) {
+				currStrValue = URLEncoder.encode( value.strValue(), charset );
+			} else {
+				currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+			}
 			result.replace(
 				m.start() + offset, m.end() + offset,
 				currStrValue
