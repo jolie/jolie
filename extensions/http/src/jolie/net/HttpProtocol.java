@@ -284,15 +284,25 @@ public class HttpProtocol extends CommProtocol
 		String currStrValue;
 		String currKey;
 		StringBuilder result = new StringBuilder( alias );
-		Matcher m = Pattern.compile( "%\\{[^\\}]*\\}" ).matcher( alias );
+		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-			currKey = alias.substring( m.start() + 2, m.end() - 1 );
-			if ( "$".equals( currKey ) ) {
-				currStrValue = URLEncoder.encode( value.strValue(), charset );
-			} else {
-				currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+			if ( m.group( 1 ) == null ) { // We have to use URLEncoder
+				currKey = alias.substring( m.start() + 2, m.end() - 1 );
+				if ( "$".equals( currKey ) ) {
+					currStrValue = URLEncoder.encode( value.strValue(), charset );
+				} else {
+					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+				}
+			} else { // We have to insert the string raw
+				currKey = alias.substring( m.start() + 3, m.end() - 1 );
+				if ( "$".equals( currKey ) ) {
+					currStrValue = value.strValue();
+				} else {
+					currStrValue = value.getFirstChild( currKey ).strValue();
+				}
 			}
+			
 			result.replace(
 				m.start() + offset, m.end() + offset,
 				currStrValue
