@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package joliex.mail;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +27,7 @@ import java.io.OutputStream;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.mail.Address;
 import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -40,15 +40,16 @@ import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
 
-@AndJarDeps({"mailapi.jar","smtp.jar"})
+@AndJarDeps( {"mailapi.jar", "smtp.jar"} )
 public class SMTPService extends JavaService
 {
 	private class SimpleAuthenticator extends Authenticator
 	{
 		private final String username, password;
-		
+
 		public SimpleAuthenticator( String username, String password )
 		{
 			this.username = username;
@@ -61,11 +62,14 @@ public class SMTPService extends JavaService
 			return new PasswordAuthentication( username, password );
 		}
 	}
-	
+
 	@RequestResponse
 	public void sendMail( Value request )
 		throws FaultException
 	{
+		/*
+		 * Host & Authentication
+		 */
 		Authenticator authenticator = null;
 		Properties props = new Properties();
 		props.put( "mail.smtp.host", request.getFirstChild( "host" ).strValue() );
@@ -81,8 +85,10 @@ public class SMTPService extends JavaService
 		Message msg = new MimeMessage( session );
 
 		try {
+			/*
+			 * Recipents (To, Cc, Bcc)
+			 */
 			msg.setFrom( new InternetAddress( request.getFirstChild( "from" ).strValue() ) );
-
 			for( Value v : request.getChildren( "to" ) ) {
 				msg.addRecipient( Message.RecipientType.TO, new InternetAddress( v.strValue() ) );
 			}
@@ -93,30 +99,60 @@ public class SMTPService extends JavaService
 				msg.addRecipient( Message.RecipientType.BCC, new InternetAddress( v.strValue() ) );
 			}
 
+			/*
+			 * Subject
+			 */
 			msg.setSubject( request.getFirstChild( "subject" ).strValue() );
-			final String content = request.getFirstChild( "content" ).strValue();
-			DataHandler dh = new DataHandler( new DataSource() {
-				public InputStream getInputStream() throws IOException
+
+			/*
+			 * Content
+			 */
+			final String contentText = request.getFirstChild( "content" ).strValue();
+			String type = "text/plain";
+			if ( request.hasChildren( "contentType" ) ) {
+				type = request.getFirstChild( "contentType" ).strValue();
+			}
+			final String contentType = type;
+			DataHandler dh = new DataHandler( new DataSource()
+			{
+				public InputStream getInputStream()
+					throws IOException
 				{
-					return new ByteArrayInputStream( content.getBytes() );
+					return new ByteArrayInputStream( contentText.getBytes() );
 				}
 
-				public OutputStream getOutputStream() throws IOException
+				public OutputStream getOutputStream()
+					throws IOException
 				{
 					throw new IOException( "Operation not supported" );
 				}
 
 				public String getContentType()
 				{
-					return "text/plain";
+					return contentType;
 				}
 
 				public String getName()
 				{
-					return "mail_content";
+					return "mail content";
 				}
 			} );
 			msg.setDataHandler( dh );
+
+			/*
+			 * Reply To
+			 */
+			ValueVector replyTo = request.getChildren( "replyTo" );
+			int nAddr = replyTo.size();
+			Address[] replyAddr = new Address[ nAddr ];
+			for( int i = 0; i < nAddr; i++ ) {
+				replyAddr[ i ] = new InternetAddress( replyTo.get( i ).strValue() );
+			}
+			msg.setReplyTo( replyAddr );
+
+			/*
+			 * Send
+			 */
 			Transport.send( msg );
 		} catch( MessagingException e ) {
 			throw new FaultException( "SMTPFault", e );
