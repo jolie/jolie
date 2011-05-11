@@ -23,17 +23,32 @@
 include "types/JavaException.iol"
 
 type SendMailRequest:void {
+	/* Host & Authentication */
 	.host:string
 	.authenticate?:void {
 		.username:string
 		.password:string
 	}
+
 	.from:string
+	.replyTo[0,*]:string
+
+	/* Recipients */
 	.to[1,*]:string
 	.cc[0,*]:string
 	.bcc[0,*]:string
+
+	/* Subject */
 	.subject:string
+
+	/* Content */
 	.content:string
+
+	/* Content type
+	 * can be "text/plain", "text/html", ..  [MIME tags]
+	 * defaults to "text/plain"
+	 */
+	.contentType?:string
 }
 
 interface SMTPInterface {
