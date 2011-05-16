@@ -34,6 +34,7 @@ type WriteFileRequest:void {
 	.content:undefined
 	.format?:string { // Can be "binary", "text" or "xml" (defaults to "text")
 		.schema*:string
+		.indent?: int	// if greater than 0, indentation is applied to file
 	}
 	.append?:int // Default: 0
 }
