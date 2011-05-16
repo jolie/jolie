@@ -341,11 +341,11 @@ public class FileService extends JavaService
 				);
 			}
 			Transformer transformer = transformerFactory.newTransformer();
-                        if ( indent ) {
-                            transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-                        } else {
-                            transformer.setOutputProperty( OutputKeys.INDENT, "no" );
-                        }
+			if ( indent ) {
+				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
 			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
@@ -426,11 +426,11 @@ public class FileService extends JavaService
 				if ( request.getFirstChild( "format" ).hasChildren( "schema" ) ) {
 					schemaFilename = request.getFirstChild( "format" ).getFirstChild( "schema" ).strValue();
 				}
-                                boolean indent = false;
-                                if ( request.getFirstChild( "format" ).hasChildren( "indent" ) ) {
+				boolean indent = false;
+				if ( request.getFirstChild( "format" ).hasChildren( "indent" ) ) {
 					if ( request.getFirstChild( "format" ).getFirstChild( "indent" ).intValue() > 0 ) {
-                                            indent = true;
-                                        }
+						indent = true;
+					}
 				}
 				writeXML( file, content, append, schemaFilename, indent );
 			} else if ( "xml_store".equals( format ) ) {
