@@ -54,6 +54,10 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			JavaService service = (JavaService)obj;
 			service.setInterpreter( Interpreter.getInstance() );
 			setChannel(	new JavaCommChannel( service ) );
+			
+			if ( interpreter.verbose() ) {
+				interpreter.logInfo( "Loaded Java service: " + c.getCanonicalName() );
+			}
 		} catch( InstantiationException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( IllegalAccessException e ) {
