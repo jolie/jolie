@@ -51,6 +51,20 @@ set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
 java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2java.jar;%joliepath%lib\jolie-gwt.jar joliex.java.Jolie2Java -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 
+		<echo message="Installing Jolie2Surface Windows launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2surface.bat">@echo off
+set joliepath=${install.dir}\
+set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2surface.jar joliex.surface.GetSurface -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+		</echo>
+
+		<echo message="Installing Jolie2Dummy Windows launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2dummy.bat">@echo off
+set joliepath=${install.dir}\
+set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+		</echo>
+
 		<echo message="Installing Jolie2Wsdl Windows launcher script..." />
 		<echo file="${private.install.launcher_dir}/jolie2wsdl.bat">@echo off
 set joliepath=${install.dir}\
@@ -160,6 +174,20 @@ JOLIE_HOME=${install.dir}
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliedoc.jar jolie.doc.JolieDoc -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${private.install.launcher_dir}/joliedoc" perm="a+x"/>
+
+		<echo message="Installing Jolie2Dummy (Jolie Dummy Service Generator Tool) Unix launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2dummy">#!/bin/sh
+JOLIE_HOME=${install.dir}
+java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+		</echo>
+		<chmod file="${private.install.launcher_dir}/jolie2dummy" perm="a+x"/>
+		
+		<echo message="Installing Jolie2Surface (Jolie Surface Extractor Tool) Unix launcher script..." />
+		<echo file="${private.install.launcher_dir}/jolie2surface">#!/bin/sh
+JOLIE_HOME=${install.dir}
+java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2surface.jar joliex.surface.GetSurface -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+		</echo>
+		<chmod file="${private.install.launcher_dir}/jolie2surface" perm="a+x"/>
 	</target>
 
 	<target name="install" depends="-init,-delete-old-dir">
@@ -199,6 +227,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie2surface}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2wsdl}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
@@ -223,6 +253,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie2surface}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2wsdl}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
@@ -274,6 +306,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<copy todir="dist/tools" flatten="true">
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
+				<file file="${project.jolie2surface}/dist/jolie2surface.jar"/>
+				<file file="${project.jolie2dummy}/dist/jolie2dummy.jar"/>
 				<file file="${project.jolie2wsdl}/dist/jolie2wsdl.jar"/>
 				<file file="${project.joliec}/dist/joliec.jar"/>
 				<file file="${project.jolie2java}/dist/jolie2java.jar"/>
