@@ -35,7 +35,6 @@ public class SurfaceCreator {
     private ArrayList<String> types_vector;
     private ArrayList<TypeDefinition> aux_types_vector;
     private int MAX_CARD = 2147483647;
-    private boolean aux_flag = false;
 
     public SurfaceCreator( ProgramInspector inspector, URI originalFile )
 	{
@@ -146,7 +145,7 @@ public class SurfaceCreator {
          ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
          if ( type instanceof TypeDefinitionLink ) {
                 ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
-                if ( aux_flag == false ) { aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() ); }
+                if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) { aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() ); }
                 
             } else {
                 ret = ret + type.nativeType().id();
@@ -170,7 +169,7 @@ public class SurfaceCreator {
             System.out.print("type " + type.id() +":" );
             if ( type instanceof TypeDefinitionLink ) {
                 System.out.println( ((TypeDefinitionLink) type).linkedTypeName() );
-                if ( aux_flag == false ) { aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() ); }
+                if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() )) { aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() ); }
             } else {
                 System.out.print( type.nativeType().id() );
                 if ( ((TypeInlineDefinition) type).hasSubTypes() ) {
@@ -219,10 +218,14 @@ public class SurfaceCreator {
         }
 
         // add auxiliary types
-        aux_flag = true;
-        Iterator it = aux_types_vector.iterator();
-        while ( it.hasNext() ) {
-            printType( getType( (TypeDefinition) it.next() ));
+        while ( !aux_types_vector.isEmpty() ) {
+            ArrayList<TypeDefinition> aux_types_temp_vector = new ArrayList<TypeDefinition>();
+            aux_types_temp_vector.addAll( aux_types_vector );
+            aux_types_vector.clear();
+            Iterator it = aux_types_temp_vector.iterator();
+            while ( it.hasNext() ) {
+                printType( getType( (TypeDefinition) it.next() ));
+            }
         }
 
         System.out.println();
