@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by F. Bullini <fbullini@italianasoftware.com>      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,8 +18,10 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package joliex.scheduler;
 
+import joliex.scheduler.impl.JolieSchedulerDefaultJob;
 import static org.quartz.CronScheduleBuilder.*;
 //import static org.quartz.DateBuilder.*:
 import java.util.Date;
@@ -143,7 +145,7 @@ public class SchedulerService extends JavaService
 			scheduler.start();
 //-----------------------------------------
 			// define the job and tie it to our HelloJob class
-			JobDetail job = org.quartz.JobBuilder.newJob( JolieDefaultJob.class ).withIdentity( "job1", "group1" ).build();
+			JobDetail job = org.quartz.JobBuilder.newJob( JolieSchedulerDefaultJob.class ).withIdentity( "job1", "group1" ).build();
 			job.getJobDataMap().put( "operation", callbackOperation );
 			job.getJobDataMap().put( "javaSchedulerService", this );
 			//job.getJobDataMap().put("operation", callbackOperation);
@@ -158,7 +160,7 @@ public class SchedulerService extends JavaService
 				System.out.println( "previusly scheduled " + trigger + " has state=" + scheduler.getTriggerState( trigger.getKey() ) );
 				scheduler.unscheduleJob( trigger.getKey() );
 			}
-			;
+			
 			//scheduler.getTriggerKeys(null)
 			scheduler.scheduleJob( job, trigger );
 			System.out.println( "just scheduled " + trigger + " has state=" + scheduler.getTriggerState( trigger.getKey() ) );
@@ -218,7 +220,7 @@ public class SchedulerService extends JavaService
 			scheduler.start();
 //-----------------------------------------
 			// define the job and tie it to our HelloJob class
-			JobDetail job = org.quartz.JobBuilder.newJob( JolieDefaultJob.class ).withIdentity( "job1", "group1" ).build();
+			JobDetail job = org.quartz.JobBuilder.newJob( JolieSchedulerDefaultJob.class ).withIdentity( "job1", "group1" ).build();
 			job.getJobDataMap().put( "operation", callbackOperation );
 			job.getJobDataMap().put( "javaSchedulerService", this );
 			//job.getJobDataMap().put("operation", callbackOperation);
@@ -232,7 +234,7 @@ public class SchedulerService extends JavaService
 				System.out.println( "previusly scheduled trigger " + trigger + " has state=" + scheduler.getTriggerState( trigger.getKey() ) );
 				scheduler.unscheduleJob( trigger.getKey() );
 			}
-			;
+			
 			//scheduler.getTriggerKeys(null)
 			scheduler.scheduleJob( job, trigger );
 			System.out.println( "just scheduled trigger " + trigger + " has state=" + scheduler.getTriggerState( trigger.getKey() ) );
