@@ -56,7 +56,7 @@ type DailyScheduleReq:void {
 * Configure the schedule in chron style string
 */
 /*
-type ChronScheduleReq:void {
+type CronScheduleReq:void {
 
 	.operation?:string   //if not specified, it defaults to timeout
 	.chron_config:string //example "0 42 10 * * ?" ogni giorno alle 10:42
@@ -69,7 +69,7 @@ type ChronScheduleReq:void {
 outputPort SchedulerPort {
 OneWay:
 	setSchedule( ScheduleReq ),
-	//,setScheduleByChronFormat( ChronScheduleReq )
+	//,setScheduleByCronFormat( ChronScheduleReq )
 	setDailySchedule( DailyScheduleReq )
 }
 
