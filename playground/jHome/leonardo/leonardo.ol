@@ -2,6 +2,7 @@ include "console.iol"
 include "file.iol"
 include "string_utils.iol"
 include "../frontend/frontend.iol"
+include "../backend/backend.iol"
 
 include "config.iol"
 
@@ -15,10 +16,14 @@ RequestResponse:
 outputPort Frontend {
 Interfaces: JHomeFrontendInterface
 }
+outputPort Backend {
+Interfaces: JHomeBackendInterface
+}
 
 embedded {
 Jolie:
-	"../frontend/frontend.ol" in Frontend
+	"../frontend/frontend.ol" in Frontend,
+	"../backend/backend.ol" in Backend
 }
 
 include "../services/news/embed.iol"
@@ -35,7 +40,7 @@ Protocol: http {
 }
 Location: Location_Leonardo
 Interfaces: HTTPInterface
-Aggregates: Frontend
+Aggregates: Frontend, Backend
 Redirects: News => News
 }
 
@@ -62,10 +67,17 @@ main
 			if ( s.result[0] == "pages" ) { // It's a dynamic jHome page
 				file.format = "text";
 				format = "html";
-				scope( s ) {
+				scope( s1 ) {
 					install( PageNotFound => response = "404 - Page not found" );
 					getPage@Frontend( s.result[1] )( response )
 				}
+			} else if(s.result[0] == "admin") {
+				file.format = "text";
+				format = "html";
+				scope( s2 ) {
+					install( PageTemplateNotFound => response = "500 - Page template not found" );
+					getPageTemplate@Backend( s.result[1] )( response )
+				}				
 			} else { // It's a static file
 				undef( s );
 				s = request.operation;

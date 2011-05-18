@@ -5,6 +5,7 @@ embedded {
 Jolie:
 	"database/database.ol",
 	"frontend/frontend.ol",
+	"backend/backend.ol",
 	"leonardo/leonardo.ol www/"
 }
 
