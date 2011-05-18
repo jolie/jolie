@@ -71,7 +71,7 @@ main
 					install( PageNotFound => response = "404 - Page not found" );
 					getPage@Frontend( s.result[1] )( response )
 				}
-			} else if(s.result[0] == "admin") {
+			} else if ( s.result[0] == "admin" ) {
 				file.format = "text";
 				format = "html";
 				scope( s2 ) {
