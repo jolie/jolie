@@ -300,7 +300,7 @@ public class JolieDocWriter
 		StringBuilder builder = new StringBuilder();
 		if ( subType ) {
 			for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
-				builder.append( "&nbsp" );
+				builder.append( "&nbsp;" );
 			}
 			builder.append( "." + type.id() + getCardinalityString( type ) );
 		} else {
@@ -322,7 +322,7 @@ public class JolieDocWriter
 					builder.append( writeType( entry.getValue(), true, indetationLevel + 4 ) + "<br>" );
 				}
 				for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
-					builder.append( "&nbsp" );
+					builder.append( "&nbsp;" );
 				}
 				;
 				builder.append( "}" );
