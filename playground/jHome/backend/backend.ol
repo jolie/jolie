@@ -23,12 +23,32 @@ init
 <link rel=\"stylesheet\" href=\"../../css/text.css\" />
 <script type=\"text/javascript\" src=\"../../lib/jquery/jquery-1.4.2.js\"></script>
 <script type=\"text/javascript\" src=\"../../lib/jhome/jhome.js\"></script>
+<script type=\"text/javascript\" src=\"../../lib/jquery/jquery-ui-1.8.13.custom.min.js\"></script>
 <style>
 div {border: 1px solid #CCC;}
 </style>";
 //</head>";
 	global.footer = "</body></html>";
-
+	global.palette = "<div class=\"ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable\">
+	  <div class=\"ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix\">
+	      <span id=\"ui-dialog-title-dialog\" class=\"ui-dialog-title\">Available widgets</span>
+	      <a class=\"ui-dialog-titlebar-close ui-corner-all\" href=\"#\"><span class=\"ui-icon ui-icon-closethick\">close</span></a>
+	  </div>
+	  <div id=\"palette\" title=\"Available widgets\">
+	  <p>Widget list</p>
+	  <ul>
+	  <li>Widget 1</li>
+	  <li>Widget 2</li>
+	  <li>...</li>
+	  </ul>
+	  </div>
+	</div>
+	<script type=\"text/javascript\">
+	$(function() {
+		$( \"#palette\" ).dialog();
+	});
+	</script>";
+  
 	install( SQLException => println@Console( main.SQLException.stackTrace )() )
 }
 
@@ -49,6 +69,9 @@ P.name = :name and L.id = P.layout_id";
 			undef( q );
 			content += "</head><body>";
 			content += body;
+			// add palette dialog
+			content += global.palette;
+			// add widgets' placeholders
 			content += "<script type=\"text/javascript\">";
 			q = "select C.name, W.ID, W.div_name from
 widgets as W, widget_classes as C where
