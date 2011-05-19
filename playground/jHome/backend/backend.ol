@@ -22,7 +22,10 @@ init
 <link rel=\"stylesheet\" href=\"../../css/reset.css\" />
 <link rel=\"stylesheet\" href=\"../../css/text.css\" />
 <script type=\"text/javascript\" src=\"../../lib/jquery/jquery-1.4.2.js\"></script>
-<script type=\"text/javascript\" src=\"../../lib/jhome/jhome.js\"></script>";
+<script type=\"text/javascript\" src=\"../../lib/jhome/jhome.js\"></script>
+<style>
+div {border: 1px solid #CCC;}
+</style>";
 //</head>";
 	global.footer = "</body></html>";
 
@@ -46,14 +49,17 @@ P.name = :name and L.id = P.layout_id";
 			undef( q );
 			content += "</head><body>";
 			content += body;
+			content += "<script type=\"text/javascript\">";
 			q = "select C.name, W.ID, W.div_name from
 widgets as W, widget_classes as C where
 W.class_id = C.id and W.page_id = :page_id";
 			q.page_id = result.row.PAGE_ID;
 			query@Database( q )( result );
 			for( i = 0, i < #result.row, i++ ) {
-				content += "Widget: " + result.row[i].NAME + " -> Div: " + result.row[i].DIV_NAME + "<br/>"
-			};						
+				//content += "Widget: " + result.row[i].NAME + " -> Div: " + result.row[i].DIV_NAME + "<br/>"
+				content += "$(\"#" + result.row[i].DIV_NAME + "\").html(\"This div contains <b>" +  result.row[i].NAME + "</b> widget.\");"
+			};		
+			content += "</script>";
 			content += global.footer
 		} else {
 			throw( PageTemplateNotFound )
