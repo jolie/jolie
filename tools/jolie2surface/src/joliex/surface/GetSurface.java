@@ -54,8 +54,7 @@ public class GetSurface
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
-
-			document.ConvertDocument( args[3] );
+			document.ConvertDocument( cmdParser.arguments()[0] );
 
 		} catch( CommandLineException ex ) {
 			Logger.getLogger( GetSurface.class.getName() ).log( Level.SEVERE, null, ex );
