@@ -230,12 +230,13 @@ public abstract class AbstractCommChannel extends CommChannel
 								handleMessage( response );
 							}
 						}
+						if ( parent.waiters.isEmpty() ) {
+							sleep();
+						}
 					} catch( IOException e ) {
 						throwIOExceptionFault( e );
 						keepRun = false;
-					}
-					if ( parent.waiters.isEmpty() ) {
-						sleep();
+						parent.responseReceiver = null;
 					}
 				}
 			}
