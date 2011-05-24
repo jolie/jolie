@@ -754,7 +754,7 @@ public class HttpProtocol extends CommProtocol
 			queryString = kv[1];
 			String[] params = queryString.split( "&" );
 			for( String param : params ) {
-				kv = param.split( "=" );
+				kv = param.split( "=", 2 );
 				if ( kv.length > 1 ) {
 					value.getFirstChild( kv[0] ).setValue( kv[1] );
 				}
