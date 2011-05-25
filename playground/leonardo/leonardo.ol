@@ -11,10 +11,6 @@ RequestResponse:
 	default(undefined)(undefined)
 }
 
-outputPort Frontend {
-Interfaces: JHomeFrontendInterface
-}
-
 inputPort HTTPInput {
 Protocol: http {
 	.keepAlive = 0; // Do not keep connections open
