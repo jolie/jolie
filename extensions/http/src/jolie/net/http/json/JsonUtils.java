@@ -176,6 +176,7 @@ public class JsonUtils
 			} else {
 				val.setValue( obj.toString() );
 			}
+			vec.add(  val );
 		}
 		return vec;
 	}
