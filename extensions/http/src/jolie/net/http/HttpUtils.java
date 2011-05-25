@@ -30,7 +30,7 @@ import jolie.net.CommChannel;
 public class HttpUtils
 {
 	// Checks if the message requests the channel to be closed or kept open
-	static public void recv_checkForChannelClosing( HttpMessage message, CommChannel channel )
+	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel )
 	{
 		if ( channel != null ) {
 			HttpMessage.Version version = message.version();

@@ -814,9 +814,11 @@ public class HttpProtocol extends CommProtocol
 			parseMultiPartFormData( message, decodedMessage.value );
 		} else if ( "application/octet-stream".equals( type ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
+		} else if ( "application/json".equals( type ) ) {
+			parseJson( message, decodedMessage.value );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
-		} else if ( "json".equals( format ) || "application/json".equals( type ) ) {
+		} else if ( "json".equals( format ) ) {
 			parseJson( message, decodedMessage.value );
 		} else {
 			decodedMessage.value.setValue( new String( message.content() ) );
@@ -908,11 +910,12 @@ public class HttpProtocol extends CommProtocol
 
 		String charset = getCharset();
 
-		if ( hasParameter( "keepAlive" ) ) {
-			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
-		} else {
+		if ( message.getProperty( "connection" ) != null ) {
 			HttpUtils.recv_checkForChannelClosing( message, channel() );
+		} else if ( hasParameter( "keepAlive" ) ) {
+			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
 		}
+				
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message );
 		}
@@ -928,7 +931,7 @@ public class HttpProtocol extends CommProtocol
 				} catch( NumberFormatException e ) {}
 			}
 		}
-		
+
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
@@ -940,7 +943,7 @@ public class HttpProtocol extends CommProtocol
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
-		
+
 		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
 			try {
@@ -969,7 +972,7 @@ public class HttpProtocol extends CommProtocol
 				// TODO: do something here?
 			}
 		}
-		
+
 		return retVal;
 	}
 }
