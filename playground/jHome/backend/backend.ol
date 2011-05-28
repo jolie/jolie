@@ -21,31 +21,29 @@ init
 <link rel=\"stylesheet\" href=\"../../css/960.css\" />
 <link rel=\"stylesheet\" href=\"../../css/reset.css\" />
 <link rel=\"stylesheet\" href=\"../../css/text.css\" />
+<link rel=\"stylesheet\" href=\"../../css/jquery-ui.css\" />
 <script type=\"text/javascript\" src=\"../../lib/jquery/jquery-1.4.2.js\"></script>
 <script type=\"text/javascript\" src=\"../../lib/jhome/jhome.js\"></script>
 <script type=\"text/javascript\" src=\"../../lib/jquery/jquery-ui-1.8.13.custom.min.js\"></script>
 <style>
-div {border: 1px solid #CCC;}
+div { border: 1px solid #CCC; }
 </style>";
 //</head>";
 	global.footer = "</body></html>";
-	global.palette = "<div class=\"ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable\">
-	  <div class=\"ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix\">
-	      <span id=\"ui-dialog-title-dialog\" class=\"ui-dialog-title\">Available widgets</span>
-	      <a class=\"ui-dialog-titlebar-close ui-corner-all\" href=\"#\"><span class=\"ui-icon ui-icon-closethick\">close</span></a>
-	  </div>
+	global.palette = "
 	  <div id=\"palette\" title=\"Available widgets\">
 	  <p>Widget list</p>
 	  <ul>
 	  <li>Widget 1</li>
 	  <li>Widget 2</li>
-	  <li>...</li>
+	  <li><div id=\"draggable\">Drag me as I was a widget...</div></li>
 	  </ul>
 	  </div>
 	</div>
 	<script type=\"text/javascript\">
 	$(function() {
-		$( \"#palette\" ).dialog();
+		//$( \"#palette\" ).dialog();
+		$( \"#draggable\" ).draggable({ revert: \"valid\" });
 	});
 	</script>";
   
@@ -67,10 +65,12 @@ P.name = :name and L.id = P.layout_id";
 			readFile@File( f )( body );
 			content = global.header;
 			undef( q );
-			content += "</head><body>";
+			content += "</head><body>
+			<table><tr><td>";
 			content += body;
+			content += "</td><td>";
 			// add palette dialog
-			content += global.palette;
+			content += global.palette + "</td></tr></table>";
 			// add widgets' placeholders
 			content += "<script type=\"text/javascript\">";
 			q = "select C.name, W.ID, W.div_name from
@@ -80,7 +80,18 @@ W.class_id = C.id and W.page_id = :page_id";
 			query@Database( q )( result );
 			for( i = 0, i < #result.row, i++ ) {
 				//content += "Widget: " + result.row[i].NAME + " -> Div: " + result.row[i].DIV_NAME + "<br/>"
-				content += "$(\"#" + result.row[i].DIV_NAME + "\").html(\"This div contains <b>" +  result.row[i].NAME + "</b> widget.\");"
+				content += "$(\"#" + result.row[i].DIV_NAME + "\").html(\"This div contains <b>" +  result.row[i].NAME + "</b> widget.\");";
+				content += "
+					$( \"#" + result.row[i].DIV_NAME + "\" ).droppable({
+						activeClass: \"ui-state-hover\",
+						hoverClass: \"ui-state-active\",
+						drop: function( event, ui ) {
+							$( this )
+								.addClass( \"ui-state-highlight\" )
+								.find( \"p\" )
+									.html( \"Dropped!\" );
+						}
+					});"
 			};		
 			content += "</script>";
 			content += global.footer
