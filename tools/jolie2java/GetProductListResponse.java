@@ -1,46 +1,35 @@
-package testjolie2java.types;
-import testjolie2java.types.ProductItem;
+package ebdjolieconnection.types;
 import java.util.List;
 import java.util.LinkedList;
 import jolie.runtime.Value;
 
 public class GetProductListResponse {
-private List< ProductItem> item;
+private ProductList _product_list;
 private Value v ;
 private Value vReturn= Value.create() ;
 
 public GetProductListResponse(Value v){
 
 this.v=v;
-item= new LinkedList<ProductItem>();
-	for(int counteritem=0;counteritem<v.getChildren("item").size();counteritem++){
-		ProductItem supportitem=new ProductItem(v.getChildren("item").get(counteritem));
-		item.add(supportitem);
-	}
+if (v.hasChildren("product_list")){
+_product_list=new ProductList( v.getFirstChild("product_list"));
+}
 }
 public GetProductListResponse(){
 
-item= new LinkedList<ProductItem>();
 }
-public ProductItem getItemValue(int index){
+public ProductList getProduct_list(){
 
-	return item.get(index);
+	return _product_list;
 }
-public int getItemSize(){
+public void setProduct_list(ProductList value ){
 
-	return item.size();
-}
-public void addItemValue(ProductItem value ){
-
-		item.add(value);
-}
-public void removeItemValue( int index ){
-		item.remove(index);
+	_product_list=value;
 }
 public Value getValue(){
-	for(int counteritem=0;counteritem<item.size();counteritem++){
-		vReturn.getNewChild("item").deepCopy(item.get(counteritem).getValue());
-	}
+if((_product_list!=null)){
+vReturn.getNewChild("product_list").deepCopy(_product_list.getValue());
+}
 return vReturn ;
 }
- }
+}
