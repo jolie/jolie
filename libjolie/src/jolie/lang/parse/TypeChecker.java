@@ -52,6 +52,7 @@ import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -341,7 +342,7 @@ public class TypeChecker implements OLVisitor
 				}
 			}
 			if ( !isCorrelationSetFresh ) {
-				error( cset, "Every correlation set must have at least one fresh value (maybe you are not using createSecureToken@SecurityUtils?)." );
+				error( cset, "Every correlation set must have at least one fresh value (maybe you are not using new?)." );
 			}
 		}
 	}
@@ -633,15 +634,12 @@ public class TypeChecker implements OLVisitor
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
-			boolean isFresh = false;
-
-			// TODO: Make this more flexible
-			if ( n.outputPortId().equals( "SecurityUtils" ) && n.id().equals( "createSecureToken" ) ) {
-				isFresh = true;
-			}
-			typingResult.provide( n.inputVarPath(), isFresh );
+			error( n, "Solicit-response statements can not receive on a correlation variable" );
 		}
 	}
+	
+	public void visit( FreshValueExpressionNode n )
+	{}
 
 	public void visit( LinkInStatement n )
 	{}
@@ -673,6 +671,8 @@ public class TypeChecker implements OLVisitor
 				} else if ( n.variablePath().isCSet() ) {
 					error( n, "Variable " + rightPath.toPrettyString() + " may be undefined before being used for defining correlation variable " + n.variablePath().toPrettyString() );
 				}
+			} else if ( n.expression() instanceof FreshValueExpressionNode ) {
+				typingResult.provide( n.variablePath(), true );
 			} else if ( n.variablePath().isCSet() ) {
 				error( n, "Correlation variables must either be initialised with createSecureToken@SecurityUtils, a variable or a constant." );
 			}

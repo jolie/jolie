@@ -74,6 +74,7 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
+import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
@@ -718,6 +719,11 @@ public class OLParseTreeOptimizer
 				n.context(),
 				optimizePath( n.variablePath() )
 			);
+		}
+		
+		public void visit( FreshValueExpressionNode n )
+		{
+			currNode = n;
 		}
 
 		public void visit( IsTypeExpressionNode n )

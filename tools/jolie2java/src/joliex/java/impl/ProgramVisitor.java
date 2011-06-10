@@ -45,6 +45,7 @@ import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -218,6 +219,8 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	public void visit( DefinitionCallStatement n )
 	{
 	}
+	
+	public void visit( FreshValueExpressionNode n ) {}
 
 	public void visit( WhileStatement n )
 	{
