@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,44 +19,21 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.lang.parse.ast;
 
-import jolie.lang.Constants;
-import jolie.process.TransformationReason;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.context.ParsingContext;
 
-public class ProductExpression implements Expression
+
+public class FreshValueExpressionNode extends OLSyntaxNode
 {
-	private final Operand[] children;
-	
-	public ProductExpression( Operand[] children )
+	public FreshValueExpressionNode( ParsingContext context )
 	{
-		this.children = children;
+		super( context );
 	}
-	
-	public Expression cloneExpression( TransformationReason reason )
+
+	public void accept( OLVisitor visitor )
 	{
-		Operand[] cc = new Operand[ children.length ];
-		
-		int i = 0;
-		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
-		}
-		return new ProductExpression( cc );
-	}
-	
-	public Value evaluate()
-	{
-		Value val = Value.create( children[0].expression().evaluate() );
-		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
-				val.multiply( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
-				val.divide( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
-				val.modulo( children[i].expression().evaluate() );
-			}
-		}
-		
-		return val;
+		visitor.visit( this );
 	}
 }

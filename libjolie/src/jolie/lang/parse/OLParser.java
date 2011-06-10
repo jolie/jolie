@@ -62,6 +62,7 @@ import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
@@ -2011,7 +2012,15 @@ public class OLParser extends AbstractParser
 
 		checkConstant();
 
-		if ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.DOT ) ) {
+		if ( token.is( Scanner.TokenType.ID ) ) {
+			path = parseVariablePath();
+			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
+			freshValuePath.append( new Pair< OLSyntaxNode, OLSyntaxNode >( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
+			if ( path.isEquivalentTo( freshValuePath ) ) {
+				retVal = new FreshValueExpressionNode( path.context() );
+				return retVal;
+			}
+		} else if ( token.is( Scanner.TokenType.DOT ) ) {
 			path = parseVariablePath();
 		} else if ( insideInstallFunction && token.is( Scanner.TokenType.CARET ) ) {
 			getToken();

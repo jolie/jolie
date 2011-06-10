@@ -84,6 +84,7 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.DocumentationComment;
+import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 
@@ -154,4 +155,5 @@ public interface OLVisitor
 	public void visit( TypeDefinitionLink n );
 	public void visit( InterfaceDefinition n );
 	public void visit( DocumentationComment n );
+	public void visit( FreshValueExpressionNode n );
 }

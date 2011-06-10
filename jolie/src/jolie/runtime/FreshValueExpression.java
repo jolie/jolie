@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,42 +21,30 @@
 
 package jolie.runtime;
 
-import jolie.lang.Constants;
+import java.util.UUID;
 import jolie.process.TransformationReason;
 
-public class ProductExpression implements Expression
+public class FreshValueExpression implements Expression
 {
-	private final Operand[] children;
+	private FreshValueExpression() {}
 	
-	public ProductExpression( Operand[] children )
-	{
-		this.children = children;
+	private static class LazyHolder {
+		private LazyHolder() {}
+		static final FreshValueExpression instance = new FreshValueExpression();
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		Operand[] cc = new Operand[ children.length ];
-		
-		int i = 0;
-		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
-		}
-		return new ProductExpression( cc );
+		return this;
+	}
+	
+	public static FreshValueExpression getInstance()
+	{
+		return FreshValueExpression.LazyHolder.instance;
 	}
 	
 	public Value evaluate()
 	{
-		Value val = Value.create( children[0].expression().evaluate() );
-		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
-				val.multiply( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
-				val.divide( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
-				val.modulo( children[i].expression().evaluate() );
-			}
-		}
-		
-		return val;
+		return Value.create( UUID.randomUUID().toString() );
 	}
 }
