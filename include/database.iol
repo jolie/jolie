@@ -55,6 +55,10 @@ RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver,
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
+	/**!
+	 * It checks the connection, it returns ConnectionError if connection is down
+	*/
+	checkConnection( void )( void ) throws ConnectionError,
 	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError
 }
 
