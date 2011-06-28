@@ -145,7 +145,7 @@ public class DatabaseService extends JavaService
 		}
 	}
 
-	private void checkConnection()
+	private void _checkConnection()
 		throws FaultException
 	{
 		if ( connection == null ) {
@@ -165,11 +165,25 @@ public class DatabaseService extends JavaService
 			}
 		}
 	}
-	
+
+	@RequestResponse
+	public void checkConnection()
+		throws FaultException
+	{
+		try {
+			if ( connection == null || !connection.isValid( 0 ) ) {
+				throw new FaultException( "ConnectionError" );
+			}
+		} catch( SQLException e ) {
+			throw new FaultException( "ConnectionError" );
+		}
+	}
+
+	@RequestResponse
 	public Value update( Value request )
 		throws FaultException
 	{
-		checkConnection();
+		_checkConnection();
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
 		try {
@@ -280,10 +294,11 @@ public class DatabaseService extends JavaService
 		}
 	}
 
+	@RequestResponse
 	public Value executeTransaction( Value request )
 		throws FaultException
 	{
-		checkConnection();
+		_checkConnection();
 		Value resultValue = Value.create();
 		ValueVector resultVector = resultValue.getChildren( "result" );
 		synchronized( transactionMutex ) {
@@ -351,11 +366,12 @@ public class DatabaseService extends JavaService
 		v.getNewChild( "errorCode" ).setValue( e.getErrorCode() );
 		return new FaultException( "SQLException", v );
 	}
-	
+
+	@RequestResponse
 	public Value query( Value request )
 		throws FaultException
 	{
-		checkConnection();
+		_checkConnection();
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
 		try {
