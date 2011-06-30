@@ -42,6 +42,7 @@ public class XsdUtils
 		xsdToNativeTypeMap.put( "time", NativeType.STRING );
 		xsdToNativeTypeMap.put( "boolean", NativeType.STRING );
 		xsdToNativeTypeMap.put( "int", NativeType.INT );
+		xsdToNativeTypeMap.put( "integer", NativeType.INT );
 		xsdToNativeTypeMap.put( "decimal", NativeType.DOUBLE );
 		xsdToNativeTypeMap.put( "anyType", NativeType.ANY );
 	}
