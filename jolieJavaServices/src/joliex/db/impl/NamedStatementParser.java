@@ -22,8 +22,11 @@
 package joliex.db.impl;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,8 +67,20 @@ public class NamedStatementParser
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
 			} else {
-				for( Integer index : entry.getValue() ) {
-					statement.setString( index, v.strValue() );
+				if ( v.getFirstChild( "Date" ).isDefined() ) {
+					Value date = v.getFirstChild( "Date" );
+					for( Integer index : entry.getValue() ) {
+						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+						try {
+							statement.setDate( index, new Date( dateFormat.parse(  date.strValue() ).getTime() ) );
+						} catch( ParseException e ) {
+							e.printStackTrace();
+						}
+					}
+				} else {
+					for( Integer index : entry.getValue() ) {
+						statement.setString( index, v.strValue() );
+					}
 				}
 			}
 		}
