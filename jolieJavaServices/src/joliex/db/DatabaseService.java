@@ -157,16 +157,16 @@ public class DatabaseService extends JavaService
 				if ( "postgresql".equals( driver ) ) {
 					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
 					// only for postgres
-					if ( !connection.isClosed() ) {
-
+				
+					if ( connection.isClosed() ) {
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
 							password
 							);
+					}
 				} else {
 					if ( !connection.isValid( 0 ) ) {
-				
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
@@ -174,7 +174,6 @@ public class DatabaseService extends JavaService
 							);
 					}
 				}
-			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
 		}
@@ -186,10 +185,19 @@ public class DatabaseService extends JavaService
 		throws FaultException
 	{
 		try {
-
-			if ( connection == null || !connection.isValid( 0 ) ) {
-				throw new FaultException( "ConnectionError" );
-			}
+				if ( "postgresql".equals( driver ) ) {
+					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
+					// only for postgre
+					
+					if ( connection == null || connection.isClosed() ) {
+						throw new FaultException( "ConnectionError" );
+					}
+				} else {
+						
+						if ( connection == null || !connection.isValid( 0 ) ) {
+							throw new FaultException( "ConnectionError" );
+						}
+				}
 		} catch( SQLException e ) {
 			throw new FaultException( "ConnectionError" );
 		}
