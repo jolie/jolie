@@ -163,9 +163,9 @@ public class TimeService extends JavaService
 		}
 	}
 
-	public Integer currentTimeMillis()
+	public String getCurrentTimeMillis()
 	{
-		return (int)System.currentTimeMillis();
+		return new Long( System.currentTimeMillis()).toString();
 	}
 	
 	public String getCurrentDateTime( Value request )
