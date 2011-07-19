@@ -243,7 +243,7 @@ public class SurfaceCreator
 				printType( getType( rr_vector.get( x ).requestType() ) );
 				printType( getType( rr_vector.get( x ).responseType() ) );
 				for( Entry<String, TypeDefinition> fault : rr_vector.get( x ).faults().entrySet() ) {
-					if ( !fault.getKey().equals( "undefined" ) ) {
+					if ( !fault.getValue().id().equals( "undefined" ) ) {
 						System.out.println( getType( fault.getValue() ) );
 					}
 				}
