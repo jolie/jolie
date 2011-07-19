@@ -59,6 +59,7 @@ public class DatabaseService extends JavaService
 	private String connectionString = null;
 	private String username = null;
 	private String password = null;
+	private String driver = null;
 	private boolean mustCheckConnection = false;
 
 	private final Object transactionMutex = new Object();
@@ -88,7 +89,7 @@ public class DatabaseService extends JavaService
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
-		String driver = request.getChildren( "driver" ).first().strValue();
+		driver = request.getChildren( "driver" ).first().strValue();
 		String host = request.getChildren( "host" ).first().strValue();
 		String port = request.getChildren( "port" ).first().strValue();
 		String databaseName = request.getChildren( "database" ).first().strValue();
@@ -153,16 +154,30 @@ public class DatabaseService extends JavaService
 		}
 		if ( mustCheckConnection ) {
 			try {
-				if ( !connection.isValid( 0 ) ) {
-					connection = DriverManager.getConnection(
+				if ( "postgresql".equals( driver ) ) {
+					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
+					// only for postgres
+					if ( !connection.isClosed() ) {
+
+						connection = DriverManager.getConnection(
 							connectionString,
 							username,
 							password
-						);
+							);
+				} else {
+					if ( !connection.isValid( 0 ) ) {
+				
+						connection = DriverManager.getConnection(
+							connectionString,
+							username,
+							password
+							);
+					}
 				}
-			} catch( SQLException e ) {
-				throw createFaultException( e );
 			}
+		} catch( SQLException e ) {
+			throw createFaultException( e );
+		}
 		}
 	}
 
@@ -171,6 +186,7 @@ public class DatabaseService extends JavaService
 		throws FaultException
 	{
 		try {
+
 			if ( connection == null || !connection.isValid( 0 ) ) {
 				throw new FaultException( "ConnectionError" );
 			}
