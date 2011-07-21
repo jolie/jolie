@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package joliex.db;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +30,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
@@ -45,14 +48,14 @@ import joliex.db.impl.NamedStatementParser;
  * 2008 - Marco Montesi: connection string fix for Microsoft SQL Server
  * 2009 - Claudio Guidi: added support for SQLite
  */
-@CanUseJars({
-	"derby.jar",			// Java DB - Embedded
-	"derbyclient.jar",		// Java DB - Client
-	"jdbc-mysql.jar",		// MySQL
-	"jdbc-postgresql.jar",	// PostgreSQL
-	"jdbc-sqlserver.jar",	// Microsoft SQLServer
-	"jdbc-sqlite.jar"		// SQLite
-})
+@CanUseJars( {
+	"derby.jar", // Java DB - Embedded
+	"derbyclient.jar", // Java DB - Client
+	"jdbc-mysql.jar", // MySQL
+	"jdbc-postgresql.jar", // PostgreSQL
+	"jdbc-sqlserver.jar", // Microsoft SQLServer
+	"jdbc-sqlite.jar" // SQLite
+} )
 public class DatabaseService extends JavaService
 {
 	private Connection connection = null;
@@ -61,8 +64,8 @@ public class DatabaseService extends JavaService
 	private String password = null;
 	private String driver = null;
 	private boolean mustCheckConnection = false;
-
 	private final Object transactionMutex = new Object();
+	private final String templateField = "__template";
 
 	@Override
 	protected void finalize()
@@ -70,7 +73,8 @@ public class DatabaseService extends JavaService
 		if ( connection != null ) {
 			try {
 				connection.close();
-			} catch( SQLException e ) {}
+			} catch( SQLException e ) {
+			}
 		}
 	}
 
@@ -84,7 +88,8 @@ public class DatabaseService extends JavaService
 				username = null;
 				password = null;
 				connection.close();
-			} catch( SQLException e ) {}
+			} catch( SQLException e ) {
+			}
 		}
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
@@ -128,14 +133,13 @@ public class DatabaseService extends JavaService
 				}
 				connection = DriverManager.getConnection( connectionString );
 			} else {
-				connectionString = "jdbc:" + driver + "://" + host + ( port.equals( "" ) ? "" : ":" + port ) + separator + databaseName;
+				connectionString = "jdbc:" + driver + "://" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
 				connection = DriverManager.getConnection(
-						connectionString,
-						username,
-						password
-					);
+					connectionString,
+					username,
+					password );
 			}
-			
+
 			if ( connection == null ) {
 				throw new FaultException( "ConnectionError" );
 			}
@@ -157,26 +161,24 @@ public class DatabaseService extends JavaService
 				if ( "postgresql".equals( driver ) ) {
 					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
 					// only for postgres
-				
+
 					if ( connection.isClosed() ) {
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
-							password
-							);
+							password );
 					}
 				} else {
 					if ( !connection.isValid( 0 ) ) {
 						connection = DriverManager.getConnection(
 							connectionString,
 							username,
-							password
-							);
+							password );
 					}
 				}
-		} catch( SQLException e ) {
-			throw createFaultException( e );
-		}
+			} catch( SQLException e ) {
+				throw createFaultException( e );
+			}
 		}
 	}
 
@@ -185,19 +187,19 @@ public class DatabaseService extends JavaService
 		throws FaultException
 	{
 		try {
-				if ( "postgresql".equals( driver ) ) {
-					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
-					// only for postgre
-					
-					if ( connection == null || connection.isClosed() ) {
-						throw new FaultException( "ConnectionError" );
-					}
-				} else {
-						
-						if ( connection == null || !connection.isValid( 0 ) ) {
-							throw new FaultException( "ConnectionError" );
-						}
+			if ( "postgresql".equals( driver ) ) {
+				// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
+				// only for postgre
+
+				if ( connection == null || connection.isClosed() ) {
+					throw new FaultException( "ConnectionError" );
 				}
+			} else {
+
+				if ( connection == null || !connection.isValid( 0 ) ) {
+					throw new FaultException( "ConnectionError" );
+				}
+			}
 		} catch( SQLException e ) {
 			throw new FaultException( "ConnectionError" );
 		}
@@ -221,10 +223,90 @@ public class DatabaseService extends JavaService
 			if ( stm != null ) {
 				try {
 					stm.close();
-				} catch( SQLException e ) {}
+				} catch( SQLException e ) {
+				}
 			}
 		}
 		return resultValue;
+	}
+
+	private static void setValue( Value fieldValue, ResultSet result, int columnType, int index )
+		throws SQLException
+	{
+		switch( columnType ) {
+			case java.sql.Types.INTEGER:
+			case java.sql.Types.SMALLINT:
+			case java.sql.Types.TINYINT:
+				fieldValue.setValue( result.getInt( index ) );
+				break;
+			case java.sql.Types.BIGINT:
+				// TODO: to be changed when getting support for Long in Jolie.
+				fieldValue.setValue( result.getInt( index ) );
+				break;
+			case java.sql.Types.DOUBLE:
+				fieldValue.setValue( result.getDouble( index ) );
+				break;
+			case java.sql.Types.DECIMAL: {
+
+				BigDecimal dec = result.getBigDecimal( index );
+
+				if ( dec == null ) {
+					fieldValue.setValue( 0 );
+				} else {
+					if ( dec.scale() <= 0 ) {
+						// May lose information.
+						// Pay some attention to this when Long becomes supported by JOLIE.
+						fieldValue.setValue( dec.intValue() );
+					} else if ( dec.scale() > 0 ) {
+						fieldValue.setValue( dec.doubleValue() );
+					}
+				}
+			}
+			break;
+			case java.sql.Types.FLOAT:
+				fieldValue.setValue( result.getFloat( index ) );
+				break;
+			case java.sql.Types.BLOB:
+				//fieldValue.setStrValue( result.getBlob( i ).toString() );
+				break;
+			case java.sql.Types.CLOB:
+				Clob clob = result.getClob( index );
+				fieldValue.setValue( clob.getSubString( 0L, (int) clob.length() ) );
+				break;
+			case java.sql.Types.NVARCHAR:
+			case java.sql.Types.NCHAR:
+			case java.sql.Types.LONGNVARCHAR:
+				String s = result.getNString( index );
+				if ( s == null ) {
+					s = "";
+				}
+				fieldValue.setValue( s );
+				break;
+			case java.sql.Types.NUMERIC: {
+				BigDecimal dec = result.getBigDecimal( index );
+
+				if ( dec == null ) {
+					fieldValue.setValue( 0 );
+				} else {
+					if ( dec.scale() <= 0 ) {
+						// May lose information.
+						// Pay some attention to this when Long becomes supported by JOLIE.
+						fieldValue.setValue( dec.intValue() );
+					} else if ( dec.scale() > 0 ) {
+						fieldValue.setValue( dec.doubleValue() );
+					}
+				}
+			}
+			break;
+			case java.sql.Types.VARCHAR:
+			default:
+				String str = result.getString( index );
+				if ( str == null ) {
+					str = "";
+				}
+				fieldValue.setValue( str );
+				break;
+		}
 	}
 
 	private static void resultSetToValueVector( ResultSet result, ValueVector vector )
@@ -239,80 +321,33 @@ public class DatabaseService extends JavaService
 			rowValue = vector.get( rowIndex );
 			for( i = 1; i <= cols; i++ ) {
 				fieldValue = rowValue.getFirstChild( metadata.getColumnLabel( i ) );
-				switch( metadata.getColumnType( i ) ) {
-				case java.sql.Types.INTEGER:
-				case java.sql.Types.SMALLINT:
-				case java.sql.Types.TINYINT:
-					fieldValue.setValue( result.getInt( i ) );
-					break;
-				case java.sql.Types.BIGINT:
-					// TODO: to be changed when getting support for Long in Jolie.
-					fieldValue.setValue( result.getInt( i ) );
-					break;
-				case java.sql.Types.DOUBLE:
-					fieldValue.setValue( result.getDouble( i ) );
-					break;
-                                case java.sql.Types.DECIMAL:{
+				setValue( fieldValue, result, metadata.getColumnType( i ), i );
+			}
+			rowIndex++;
+		}
+	}
 
-					BigDecimal dec = result.getBigDecimal( i );
-                                        
-					if ( dec == null ) {
-						fieldValue.setValue( 0 );
-					} else {                                                
-						if ( dec.scale() <= 0 ) {
-							// May lose information.
-							// Pay some attention to this when Long becomes supported by JOLIE.
-							fieldValue.setValue( dec.intValue() );
-						} else if ( dec.scale() > 0 ) {
-							fieldValue.setValue( dec.doubleValue() );
-						}
-					}
-                                        }
-					break;
-				case java.sql.Types.FLOAT:
-					fieldValue.setValue( result.getFloat( i ) );
-					break;
-				case java.sql.Types.BLOB:
-					//fieldValue.setStrValue( result.getBlob( i ).toString() );
-					break;
-				case java.sql.Types.CLOB:
-					Clob clob = result.getClob( i );
-					fieldValue.setValue( clob.getSubString( 0L, (int)clob.length() ) );
-					break;
-				case java.sql.Types.NVARCHAR:
-				case java.sql.Types.NCHAR:
-				case java.sql.Types.LONGNVARCHAR:
-					String s = result.getNString( i );
-					if ( s == null ) {
-						s = "";
-					}
-					fieldValue.setValue( s );
-					break;
-				case java.sql.Types.NUMERIC:{
-					BigDecimal dec = result.getBigDecimal( i );
-                                        
-					if ( dec == null ) {
-						fieldValue.setValue( 0 );
-					} else {
-						if ( dec.scale() <= 0 ) {
-							// May lose information.
-							// Pay some attention to this when Long becomes supported by JOLIE.
-							fieldValue.setValue( dec.intValue() );
-						} else if ( dec.scale() > 0 ) {
-							fieldValue.setValue( dec.doubleValue() );
-						}
-					}
-                                }
-					break;
-				case java.sql.Types.VARCHAR:
-				default:
-					String str = result.getString( i );
-					if ( str == null ) {
-						str = "";
-					}
-					fieldValue.setValue( str );
-					break;
+	private static void resultSetToValueVectorWithTemplate( ResultSet result, ValueVector vector, Value template )
+		throws SQLException
+	{
+		Value rowValue = vector.get( 0 );
+		ResultSetMetaData metadata = result.getMetaData();
+		int cols = metadata.getColumnCount();
+		int i;
+		int rowIndex = 0;
+		while( result.next() ) {
+			rowValue = vector.get( rowIndex );
+			for( i = 1; i <= cols; i++ ) {
+				ValueVector v = template.children().get( metadata.getColumnLabel( i ) );	// extract the value for the correspondant column
+				Value cursor = rowValue.getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
+				Value temp_cursor = v.get( 0 ).getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
+				while( temp_cursor.hasChildren() ) {
+					Set<String> keyset = temp_cursor.children().keySet();
+					temp_cursor = temp_cursor.getFirstChild( keyset.iterator().next() );
+					cursor = cursor.getFirstChild( keyset.iterator().next() );
 				}
+				Value fieldValue = cursor;
+				setValue( fieldValue, result, metadata.getColumnType( i ), i );
 			}
 			rowIndex++;
 		}
@@ -328,39 +363,75 @@ public class DatabaseService extends JavaService
 		synchronized( transactionMutex ) {
 			try {
 				connection.setAutoCommit( false );
+
+
 			} catch( SQLException e ) {
 				throw createFaultException( e );
+
+
 			}
 			Value currResultValue;
 			PreparedStatement stm;
+
+
 			int updateCount;
+
+
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
 				stm = null;
+
+
 				try {
 					updateCount = -1;
 					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
+
+
 					if ( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
+
+
 						if ( updateCount == -1 ) {
-							resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
+							if ( statementValue.hasChildren( templateField ) ) {
+								resultSetToValueVectorWithTemplate( stm.getResultSet(), currResultValue.getChildren( "row" ), statementValue.getFirstChild( templateField ) );
+
+
+							} else {
+								resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
+
+
+							}
+
+
 						}
 					}
 					currResultValue.setValue( updateCount );
 					resultVector.add( currResultValue );
+
+
 				} catch( SQLException e ) {
 					try {
 						connection.rollback();
+
+
 					} catch( SQLException e1 ) {
 						connection = null;
+
+
 					}
 					throw createFaultException( e );
+
+
 				} finally {
 					if ( stm != null ) {
 						try {
 							stm.close();
+
+
 						} catch( SQLException e ) {
 							throw createFaultException( e );
+
+
 						}
 					}
 				}
@@ -368,27 +439,41 @@ public class DatabaseService extends JavaService
 
 			try {
 				connection.commit();
+
+
 			} catch( SQLException e ) {
 				throw createFaultException( e );
+
+
 			} finally {
 				try {
 					connection.setAutoCommit( true );
+
+
 				} catch( SQLException e ) {
 					throw createFaultException( e );
+
+
 				}
 			}
 		}
 		return resultValue;
+
+
 	}
 
-	private static FaultException createFaultException( SQLException e )
+	static FaultException createFaultException( SQLException e )
 	{
 		Value v = Value.create();
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		e.printStackTrace( new PrintStream( bs ) );
 		v.getNewChild( "stackTrace" ).setValue( bs.toString() );
 		v.getNewChild( "errorCode" ).setValue( e.getErrorCode() );
+
+
 		return new FaultException( "SQLException", v );
+
+
 	}
 
 	@RequestResponse
@@ -398,22 +483,40 @@ public class DatabaseService extends JavaService
 		_checkConnection();
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
+
+
 		try {
 			synchronized( transactionMutex ) {
 				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
 				ResultSet result = stm.executeQuery();
-				resultSetToValueVector( result, resultValue.getChildren( "row" ) );
+
+
+				if ( request.hasChildren( templateField ) ) {
+					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ), request.getFirstChild( templateField ) );
+
+
+				} else {
+					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
+
+
+				}
 			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
+
+
 		} finally {
 			if ( stm != null ) {
 				try {
 					stm.close();
-				} catch( SQLException e ) {}
+
+
+				} catch( SQLException e ) {
+				}
 			}
 		}
-		
+
 		return resultValue;
+
 	}
 }
