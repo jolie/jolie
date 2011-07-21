@@ -53,6 +53,35 @@ type UpdateRequest:string { ? }
 interface DatabaseInterface {
 RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver,
+	
+	/**!
+	field __template allows for the definition of a specifi output template.
+	How does it work?
+	Let us suppose to have a table with the following column:
+	| col1 | col2 | col3 | col 4 |
+	If __template is not used the output will be rows with the follwing format:
+	rowù
+	 |-col1
+	 |-col2
+	 |-col3
+	 |-col4
+	Now let us suppose we would like to have the following structure for each row:
+	row
+	  |-mycol1			contains content of col1
+	      |-mycol2			contains content of col2	
+		  |-mycol3		contains content of col3
+	  |-mycol4			contains content of col4
+
+	In order to achieve this, use field __template as it follows:
+	  with( query_request.__template ) {
+	    .col1.mycol1 = 1		set any kind of value, here we choose 1
+	    .col2.mycol1.mycol2 = 1
+	    .col3.mycol1.mycol2.mycol3 = 1
+	    .col4.mycol4 = 1
+	  }
+	It is worth noting that the first element of each subnode of __template is the name of the 
+	db query output table column 
+	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
 	/**!
