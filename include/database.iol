@@ -55,12 +55,13 @@ RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver,
 	
 	/**!
-	field __template allows for the definition of a specifi output template.
-	How does it work?
-	Let us suppose to have a table with the following column:
-	| col1 | col2 | col3 | col 4 |
-	If __template is not used the output will be rows with the follwing format:
-	rowù
+	Queries the database.
+
+	Field __template allows for the definition of a specific output template.
+	Assume, e.g., to have a table with the following columns:
+	| col1 | col2 | col3 | col4 |
+	If __template is not used the output will be rows with the following format:
+	row
 	 |-col1
 	 |-col2
 	 |-col3
@@ -72,21 +73,20 @@ RequestResponse:
 		  |-mycol3		contains content of col3
 	  |-mycol4			contains content of col4
 
-	In order to achieve this, use field __template as it follows:
+	In order to achieve this, we can use field __template as it follows:
 	  with( query_request.__template ) {
 	    .col1.mycol1 = 1		set any kind of value, here we choose 1
 	    .col2.mycol1.mycol2 = 1
 	    .col3.mycol1.mycol2.mycol3 = 1
 	    .col4.mycol4 = 1
 	  }
-	It is worth noting that the first element of each subnode of __template is the name of the 
-	db query output table column 
+	where each subnode of __template has the name of a table column.
 	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
 	/**!
-	 * It checks the connection, it returns ConnectionError if connection is down
-	*/
+	 * Checks the connection with the database. Throws ConnectionError if the connection is not functioning properly.
+	 */
 	checkConnection( void )( void ) throws ConnectionError,
 	executeTransaction(DatabaseTransactionRequest)(DatabaseTransactionResult) throws SQLException ConnectionError
 }
