@@ -60,7 +60,7 @@ RequestResponse:
 	Field _template allows for the definition of a specific output template.
 	Assume, e.g., to have a table with the following columns:
 	| col1 | col2 | col3 | col4 |
-	If __template is not used the output will be rows with the following format:
+	If _template is not used the output will be rows with the following format:
 	row
 	 |-col1
 	 |-col2
@@ -73,8 +73,8 @@ RequestResponse:
 		  |-mycol3		contains content of col3
 	  |-mycol4			contains content of col4
 
-	In order to achieve this, we can use field __template as it follows:
-	  with( query_request.__template ) {
+	In order to achieve this, we can use field _template as it follows:
+	  with( query_request._template ) {
 	    .col1.mycol1 = 1		set any kind of value, here we choose 1
 	    .col2.mycol1.mycol2 = 1
 	    .col3.mycol1.mycol2.mycol3 = 1
