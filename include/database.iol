@@ -75,12 +75,12 @@ RequestResponse:
 
 	In order to achieve this, we can use field _template as it follows:
 	  with( query_request._template ) {
-	    .col1.mycol1 = 1		set any kind of value, here we choose 1
-	    .col2.mycol1.mycol2 = 1
-	    .col3.mycol1.mycol2.mycol3 = 1
-	    .col4.mycol4 = 1
+	    .mycol1 = "col1";
+	    .mycol1.mycol2 = "col2";
+	    .mycol1.mycol2.mycol3 = "col3";
+	    .mycol4 = "col4"
 	  }
-	where each subnode of _template has the name of a table column.
+	Note that _template does not currently support vectors.
 	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
