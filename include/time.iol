@@ -80,6 +80,10 @@ RequestResponse:
 	*/
 	getCurrentDateValues(void)(DateValuesType),
 	getDateDiff(DiffDateRequestType)(int),
+
+	/**!
+	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
+	*/
 	getCurrentTimeMillis( void )( string )
 }
 
