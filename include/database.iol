@@ -57,7 +57,7 @@ RequestResponse:
 	/**!
 	Queries the database.
 
-	Field __template allows for the definition of a specific output template.
+	Field _template allows for the definition of a specific output template.
 	Assume, e.g., to have a table with the following columns:
 	| col1 | col2 | col3 | col4 |
 	If __template is not used the output will be rows with the following format:
@@ -80,7 +80,7 @@ RequestResponse:
 	    .col3.mycol1.mycol2.mycol3 = 1
 	    .col4.mycol4 = 1
 	  }
-	where each subnode of __template has the name of a table column.
+	where each subnode of _template has the name of a table column.
 	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
