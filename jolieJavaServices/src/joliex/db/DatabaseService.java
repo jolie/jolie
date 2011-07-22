@@ -30,7 +30,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
@@ -246,9 +248,7 @@ public class DatabaseService extends JavaService
 				fieldValue.setValue( result.getDouble( index ) );
 				break;
 			case java.sql.Types.DECIMAL: {
-
 				BigDecimal dec = result.getBigDecimal( index );
-
 				if ( dec == null ) {
 					fieldValue.setValue( 0 );
 				} else {
@@ -325,29 +325,46 @@ public class DatabaseService extends JavaService
 			rowIndex++;
 		}
 	}
+	
+	private static void _rowToValueWithTemplate(
+		Value resultValue, ResultSet result,
+		ResultSetMetaData metadata, Map< String, Integer > colIndexes,
+		Value template
+	)
+		throws SQLException
+	{
+		Value templateNode;
+		Value resultChild;
+		int colIndex;
+		for( Entry< String, ValueVector > child : template.children().entrySet() ) {
+			templateNode = template.getFirstChild( child.getKey() );
+			resultChild = resultValue.getFirstChild( child.getKey() );
+			if ( templateNode.isString() ) {
+				colIndex = colIndexes.get( templateNode.strValue() );
+				setValue( resultChild, result, metadata.getColumnType( colIndex ), colIndex );
+			}
+			
+			_rowToValueWithTemplate( resultChild, result, metadata, colIndexes, templateNode );
+		}
+	}
+	
 
 	private static void resultSetToValueVectorWithTemplate( ResultSet result, ValueVector vector, Value template )
 		throws SQLException
 	{
-		Value rowValue = vector.get( 0 );
+		Value rowValue;
 		ResultSetMetaData metadata = result.getMetaData();
+		Map< String, Integer > colIndexes = new HashMap< String, Integer >();
 		int cols = metadata.getColumnCount();
-		int i;
+		for( int i = 0; i < cols; i++ ) {
+			colIndexes.put( metadata.getColumnName( i ), i );
+		}
+		
 		int rowIndex = 0;
 		while( result.next() ) {
 			rowValue = vector.get( rowIndex );
-			for( i = 1; i <= cols; i++ ) {
-				ValueVector v = template.children().get( metadata.getColumnLabel( i ) ); // extract the value for the corresponding column
-				Value cursor = rowValue.getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
-				Value temp_cursor = v.get( 0 ).getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
-				while( temp_cursor.hasChildren() ) {
-					Set<String> keyset = temp_cursor.children().keySet();
-					temp_cursor = temp_cursor.getFirstChild( keyset.iterator().next() );
-					cursor = cursor.getFirstChild( keyset.iterator().next() );
-				}
-				Value fieldValue = cursor;
-				setValue( fieldValue, result, metadata.getColumnType( i ), i );
-			}
+			_rowToValueWithTemplate( rowValue, result, metadata, colIndexes, template );
+			
 			rowIndex++;
 		}
 	}
