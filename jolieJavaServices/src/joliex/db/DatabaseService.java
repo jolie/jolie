@@ -62,7 +62,7 @@ public class DatabaseService extends JavaService
 	private String driver = null;
 	private boolean mustCheckConnection = false;
 	private final Object transactionMutex = new Object();
-	private final static String templateField = "__template";
+	private final static String templateField = "_template";
 
 	@Override
 	protected void finalize()
