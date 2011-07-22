@@ -67,15 +67,16 @@ public class NamedStatementParser
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
 			} else {
-				if ( v.getFirstChild( "Date" ).isDefined() ) {
+				if ( v.hasChildren( "Date" ) ) {
 					Value date = v.getFirstChild( "Date" );
 					for( Integer index : entry.getValue() ) {
-						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-						try {
-							statement.setDate( index, new Date( dateFormat.parse(  date.strValue() ).getTime() ) );
-						} catch( ParseException e ) {
-							e.printStackTrace();
-						}
+						statement.setDate( index,
+							Date.valueOf(
+								date.getFirstChild( "year").intValue()
+								+ "-" + date.getFirstChild( "month" )
+								+ "-" + date.getFirstChild( "day" )
+							)
+						);
 					}
 				} else {
 					for( Integer index : entry.getValue() ) {
