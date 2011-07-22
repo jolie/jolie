@@ -30,9 +30,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import jolie.runtime.CanUseJars;
@@ -65,7 +62,7 @@ public class DatabaseService extends JavaService
 	private String driver = null;
 	private boolean mustCheckConnection = false;
 	private final Object transactionMutex = new Object();
-	private final String templateField = "__template";
+	private final static String templateField = "__template";
 
 	@Override
 	protected void finalize()
@@ -159,8 +156,9 @@ public class DatabaseService extends JavaService
 		if ( mustCheckConnection ) {
 			try {
 				if ( "postgresql".equals( driver ) ) {
-					// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
-					// only for postgres
+					/* The JDBC4 driver for postgresql does not implemented isValid().
+					 * We fallback to isClosed().
+					 */
 
 					if ( connection.isClosed() ) {
 						connection = DriverManager.getConnection(
@@ -188,8 +186,9 @@ public class DatabaseService extends JavaService
 	{
 		try {
 			if ( "postgresql".equals( driver ) ) {
-				// in jdbc4 method isValid() is not implemented. The workaround here is to use isClosed().
-				// only for postgre
+				/* The JDBC4 driver for postgresql does not implemented isValid().
+				 * We fallback to isClosed().
+				 */
 
 				if ( connection == null || connection.isClosed() ) {
 					throw new FaultException( "ConnectionError" );
@@ -338,7 +337,7 @@ public class DatabaseService extends JavaService
 		while( result.next() ) {
 			rowValue = vector.get( rowIndex );
 			for( i = 1; i <= cols; i++ ) {
-				ValueVector v = template.children().get( metadata.getColumnLabel( i ) );	// extract the value for the correspondant column
+				ValueVector v = template.children().get( metadata.getColumnLabel( i ) ); // extract the value for the corresponding column
 				Value cursor = rowValue.getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
 				Value temp_cursor = v.get( 0 ).getFirstChild( v.get( 0 ).children().keySet().iterator().next() );
 				while( temp_cursor.hasChildren() ) {
@@ -363,75 +362,45 @@ public class DatabaseService extends JavaService
 		synchronized( transactionMutex ) {
 			try {
 				connection.setAutoCommit( false );
-
-
 			} catch( SQLException e ) {
 				throw createFaultException( e );
-
-
 			}
+
 			Value currResultValue;
 			PreparedStatement stm;
-
-
 			int updateCount;
-
 
 			for( Value statementValue : request.getChildren( "statement" ) ) {
 				currResultValue = Value.create();
 				stm = null;
-
-
 				try {
 					updateCount = -1;
 					stm = new NamedStatementParser( connection, statementValue.strValue(), statementValue ).getPreparedStatement();
-
-
 					if ( stm.execute() == true ) {
 						updateCount = stm.getUpdateCount();
-
-
 						if ( updateCount == -1 ) {
 							if ( statementValue.hasChildren( templateField ) ) {
 								resultSetToValueVectorWithTemplate( stm.getResultSet(), currResultValue.getChildren( "row" ), statementValue.getFirstChild( templateField ) );
-
-
 							} else {
 								resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
-
-
 							}
-
-
 						}
 					}
 					currResultValue.setValue( updateCount );
 					resultVector.add( currResultValue );
-
-
 				} catch( SQLException e ) {
 					try {
 						connection.rollback();
-
-
 					} catch( SQLException e1 ) {
 						connection = null;
-
-
 					}
 					throw createFaultException( e );
-
-
 				} finally {
 					if ( stm != null ) {
 						try {
 							stm.close();
-
-
 						} catch( SQLException e ) {
 							throw createFaultException( e );
-
-
 						}
 					}
 				}
@@ -439,27 +408,17 @@ public class DatabaseService extends JavaService
 
 			try {
 				connection.commit();
-
-
 			} catch( SQLException e ) {
 				throw createFaultException( e );
-
-
 			} finally {
 				try {
 					connection.setAutoCommit( true );
-
-
 				} catch( SQLException e ) {
 					throw createFaultException( e );
-
-
 				}
 			}
 		}
 		return resultValue;
-
-
 	}
 
 	static FaultException createFaultException( SQLException e )
@@ -470,10 +429,7 @@ public class DatabaseService extends JavaService
 		v.getNewChild( "stackTrace" ).setValue( bs.toString() );
 		v.getNewChild( "errorCode" ).setValue( e.getErrorCode() );
 
-
 		return new FaultException( "SQLException", v );
-
-
 	}
 
 	@RequestResponse
@@ -484,39 +440,27 @@ public class DatabaseService extends JavaService
 		Value resultValue = Value.create();
 		PreparedStatement stm = null;
 
-
 		try {
 			synchronized( transactionMutex ) {
 				stm = new NamedStatementParser( connection, request.strValue(), request ).getPreparedStatement();
 				ResultSet result = stm.executeQuery();
-
-
 				if ( request.hasChildren( templateField ) ) {
 					resultSetToValueVectorWithTemplate( result, resultValue.getChildren( "row" ), request.getFirstChild( templateField ) );
-
-
 				} else {
 					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
-
-
 				}
 			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
-
-
 		} finally {
 			if ( stm != null ) {
 				try {
 					stm.close();
-
-
 				} catch( SQLException e ) {
 				}
 			}
 		}
 
 		return resultValue;
-
 	}
 }
