@@ -23,7 +23,12 @@ package jolie.doc.impl.html;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.Vector;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
@@ -195,8 +200,17 @@ public class JolieDocWriter
 			writer.write( "</tr>" );
 
 			// scanning operations into the interface
-			for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
-				operation = entry.getValue();
+			ArrayList<String> keylist = new ArrayList<String>();
+				System.out.print( "ciao0");
+			for( String key : interfaceDefinition.operationsMap().keySet() ) {
+				keylist.add( key );
+			}
+			Collections.sort( keylist );
+			Iterator keyiterator = keylist.iterator();
+			while( keyiterator.hasNext() ) {
+				String key = (String) keyiterator.next();
+
+				operation = interfaceDefinition.operationsMap().get( key );
 				writer.write( "<tr>" );
 				writer.write( "<td><a href=\"#" + operation.id() + "\">" + operation.id() + "</a></td>" );
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
@@ -215,9 +229,9 @@ public class JolieDocWriter
 					writer.write( "<td>" );
 					for( Entry<String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operation).faults().entrySet() ) {
 						if ( !fault.getValue().id().equals( "undefined" ) ) {
-							writer.write( fault.getKey() + "( <a href=\"#" + fault.getValue().id() + "\">" + fault.getValue().id() + "</a> )&nbsp;&nbsp;" );
+							writer.write( fault.getKey() + "( <a href=\"#" + fault.getValue().id() + "\">" + fault.getValue().id() + "</a> )&nbsp;&nbsp;<br>" );
 						} else {
-							writer.write( fault.getKey() + ",&nbsp;" );
+							writer.write( fault.getKey() + ",&nbsp;<br>" );
 						}
 					}
 					writer.write( "</td>" );
