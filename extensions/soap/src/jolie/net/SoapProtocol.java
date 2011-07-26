@@ -842,6 +842,10 @@ public class SoapProtocol extends SequentialCommProtocol
 		
 		try {
 			if ( message.content() != null && message.content().length > 0 ) {
+				if ( checkBooleanParameter( "debug" ) ) {
+					interpreter.logInfo( "[SOAP debug] Receiving:\n" + new String( message.content(), "UTF8" ) );
+				}
+				
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				/*Schema messageSchema = getRecvMessageValidationSchema();
@@ -851,17 +855,16 @@ public class SoapProtocol extends SequentialCommProtocol
 				}*/
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
-	
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
 				Document doc = builder.parse( src );
 				DOMSource dom = new DOMSource( doc );
 				soapMessage.getSOAPPart().setContent( dom );
 				
-				if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+				/*if ( checkBooleanParameter( "debugAfter" ) ) {
 					ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 					soapMessage.writeTo( tmpStream );
 					interpreter.logInfo( "[SOAP debug] Receiving:\n" + tmpStream.toString() );
-				}
+				}*/
 				
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault(); 
 				if ( soapFault == null ) {
