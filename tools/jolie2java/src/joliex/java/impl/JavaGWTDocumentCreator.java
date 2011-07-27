@@ -88,16 +88,6 @@ public class JavaGWTDocumentCreator {
 					System.out.print( nameFile + "\n" );
 					ConvertTypes( typeDefinition, writer );
 					counterSubClass = 0;
-//					while( counterSubClass < subclass.size() ) {
-//						System.out.print( "sono dentro al sub " + subclass.size() + "\n" );
-//						ConvertTypes( subclass.get( counterSubClass ), writer );
-//						counterSubClass++;
-//					}
-//					if ( subtypePresent ) {
-//
-//						closeClass( writer );
-//
-//					}
 
 					writer.flush();
 					writer.close();
@@ -216,7 +206,7 @@ public class JavaGWTDocumentCreator {
 
 
 
-			stringBuilder.append( "joliex.gwt.client.Value;\n" );
+			stringBuilder.append( "import joliex.gwt.client.Value;\n" );
 			stringBuilder.append( "\n" );
 		}
 
