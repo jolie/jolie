@@ -592,7 +592,7 @@ public class Scanner
 						retval = new Token( TokenType.MULTIPLY_ASSIGN );
 						readChar();
 					} else {
-						retval = new Token( TokenType.ASTERISK );
+						retval = new Token( TokenType.ASTERISK, "*" );
 					}
 					break;
 				case 6:	// ASSIGN OR EQUAL
