@@ -54,6 +54,7 @@ public class JavaGWTDocumentCreator {
     private boolean subtypePresent = false;
     private String namespace;
     ProgramInspector inspector;
+	private int counterInLineDefinition = 0;
 
     public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace) {
 
@@ -122,7 +123,6 @@ public class JavaGWTDocumentCreator {
 
         builderHeaderclass.append("package " + namespace + ";\n");
         ImportCreate(builderHeaderclass, typeDefinition);
-        int counterInLineDefinition = 0;
         if (SourceVersion.isKeyword(typeDefinition.id())){
             builderHeaderclass.append("public class $" + typeDefinition.id() + " {" + "\n");
         }else{
@@ -176,12 +176,7 @@ public class JavaGWTDocumentCreator {
     }
 
     private void ImportCreate(StringBuilder stringBuilder, TypeDefinition type) {
-
-
-
-
-
-        String nameFile = type.context().sourceName();
+		String nameFile = type.context().sourceName();
         TypeDefinition supportType = type;
         //System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
         List<String> a = new LinkedList<String>();
@@ -191,16 +186,6 @@ public class JavaGWTDocumentCreator {
 
         if (supportType.hasSubTypes()) {
             subtypePresent = true;
-
-
-
-
-            stringBuilder.append("import java.util.List;\n");
-            stringBuilder.append("import java.util.LinkedList;\n");
-
-
-
-            stringBuilder.append("import joliex.gwt.client.Value;\n");
             stringBuilder.append("\n");
         }
 
@@ -208,11 +193,6 @@ public class JavaGWTDocumentCreator {
     }
 
     private void VariableCreate(StringBuilder stringBuilder, TypeDefinition type) {
-
-
-
-
-
         String nameFile = type.context().sourceName();
         TypeDefinition supportType = type;
         int counterInlineDefinition = 0;
@@ -329,16 +309,16 @@ public class JavaGWTDocumentCreator {
         TypeDefinition supportType = type;
         if (counter == null) {
             if (SourceVersion.isKeyword(supportType.id())) {
-                stringBuilder.append("public ").append("$").append(supportType.id()).append("(Value v){\n");
+                stringBuilder.append("public ").append("$").append(supportType.id()).append("(joliex.gwt.client.Value v){\n");
             } else {
-                stringBuilder.append("public ").append(supportType.id()).append("(Value v){\n");
+                stringBuilder.append("public ").append(supportType.id()).append("(joliex.gwt.client.Value v){\n");
             }
         } else {
 
             if (SourceVersion.isKeyword(supportType.id())) {
-                stringBuilder.append("public ").append("$").append(counter).append("$").append(supportType.id()).append("(Value v){\n");
+                stringBuilder.append("public ").append("$").append(counter).append("$").append(supportType.id()).append("(joliex.gwt.client.Value v){\n");
             } else {
-                stringBuilder.append("public ").append(supportType.id()).append("(Value v){\n");
+                stringBuilder.append("public ").append(supportType.id()).append("(joliex.gwt.client.Value v){\n");
             }
 
 
@@ -498,13 +478,13 @@ public class JavaGWTDocumentCreator {
                             //dsadda.getChildren( typeName ).
                             stringBuilder.append("\n");
                             stringBuilder.append("\t" + "for(int counter").append(nameVariable).append("=0;" + "counter").append(nameVariable).append("<v.getChildren(\"").append(nameVariable).append("\").size();counter").append(nameVariable).append("++){\n");
-                            stringBuilder.append("\t\t" + "Integer support").append(nameVariable).append("=new Integer(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").intValue());\n");
+                            stringBuilder.append("\t\t" + "java.lang.Integer support").append(nameVariable).append("=new java.lang.Integer(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").intValue());\n");
                             stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("\t" + "}\n");
                         } else if (typeName.equals("double")) {
                             stringBuilder.append(nameVariable + "= new LinkedList<Double>();" + "\n");
                             stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
-                            stringBuilder.append("\t\t" + "Double support").append(nameVariable).append("=new Double(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").doubleValue());\n");
+                            stringBuilder.append("\t\t" + "java.lang.Double support").append(nameVariable).append("=new java.lang.Double(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").doubleValue());\n");
                             stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("\t}\n");
 
@@ -512,7 +492,7 @@ public class JavaGWTDocumentCreator {
                         } else if (typeName.equals("string")) {
 
                             stringBuilder.append("for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
-                            stringBuilder.append("\t\t" + "String support").append(nameVariable).append("=new String(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").strValue());\n");
+                            stringBuilder.append("\t\t" + "java.lang.String support").append(nameVariable).append("=new java.lang.String(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").strValue());\n");
                             stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("}\n");
 
