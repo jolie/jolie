@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2007-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,10 +29,31 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class InputPortInfo extends PortInfo
 {
+	public static class AggregationItemInfo {
+		private final String[] outputPortList;
+		private final InterfaceExtenderDefinition interfaceExtender;
+		
+		public AggregationItemInfo( String[] outputPortList, InterfaceExtenderDefinition extender )
+		{
+			this.outputPortList = outputPortList;
+			this.interfaceExtender = extender;
+		}
+		
+		public String[] outputPortList()
+		{
+			 return outputPortList;
+		}
+		
+		public InterfaceExtenderDefinition interfaceExtender()
+		{
+			return interfaceExtender;
+		}
+	}
+	
 	private final URI location;
 	private final String protocolId;
 	private final OLSyntaxNode protocolConfiguration;
-	private final String[] aggregationList;
+	private final AggregationItemInfo[] aggregationList;
 	private final Map< String, String > redirectionMap;
 
 	public InputPortInfo(
@@ -41,7 +62,7 @@ public class InputPortInfo extends PortInfo
 		URI location,
 		String protocolId,
 		OLSyntaxNode protocolConfiguration,
-		String[] aggregationList,
+		AggregationItemInfo[] aggregationList,
 		Map< String, String > redirectionMap
 	) {
 		super( context, id );
@@ -52,7 +73,7 @@ public class InputPortInfo extends PortInfo
 		this.redirectionMap = redirectionMap;
 	}
 
-	public String[] aggregationList()
+	public AggregationItemInfo[] aggregationList()
 	{
 		return aggregationList;
 	}

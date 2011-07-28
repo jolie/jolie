@@ -90,6 +90,7 @@ import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.SpawnStatement;
@@ -102,6 +103,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -468,19 +473,21 @@ public class SemanticVerifier implements OLVisitor
 		}
 
 		OutputPortInfo outputPort;
-		for( String portName : n.aggregationList() ) {
-			outputPort = outputPorts.get( portName );
-			if ( outputPort == null ) {
-				error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
-			}/* else {
-				for( OperationDeclaration op : outputPort.operations() ) {
-					if ( opSet.contains( op.id() ) ) {
-						error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
-					} else {
-						opSet.add( op.id() );
+		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
+			for( String portName : item.outputPortList() ) {
+				outputPort = outputPorts.get( portName );
+				if ( outputPort == null ) {
+					error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
+				}/* else {
+					for( OperationDeclaration op : outputPort.operations() ) {
+						if ( opSet.contains( op.id() ) ) {
+							error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
+						} else {
+							opSet.add( op.id() );
+						}
 					}
-				}
-			}*/
+				}*/
+			}
 		}
 
 		insideInputPort = false;
@@ -1009,6 +1016,16 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( EmbeddedServiceNode n )
 	{}
+	
+	public void visit( InterfaceExtenderDefinition n ) {}
+	public void visit( CourierDefinitionNode n ) {}
+	public void visit( CourierChoiceStatement n ) {}
+	
+	/**
+	 * @todo Must check if forward statements are inside a courier choice.
+	 */
+	public void visit( NotificationForwardStatement n ) {}
+	public void visit( SolicitResponseForwardStatement n ) {}
 	
 	/**
 	 * @todo Must check if it's inside an install function

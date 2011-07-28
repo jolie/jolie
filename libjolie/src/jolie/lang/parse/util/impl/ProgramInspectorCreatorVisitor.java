@@ -56,6 +56,7 @@ import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
@@ -94,6 +95,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -258,4 +263,9 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	public void visit( MultiplyAssignStatement n ) {}
 	public void visit( DivideAssignStatement n ) {}
 	public void visit( FreshValueExpressionNode n ) {}
+	public void visit( InterfaceExtenderDefinition n ) {}
+	public void visit( CourierDefinitionNode n ) {}
+	public void visit( CourierChoiceStatement n ) {}
+	public void visit( NotificationForwardStatement n ) {}
+	public void visit( SolicitResponseForwardStatement n ) {}
 }

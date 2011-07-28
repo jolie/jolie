@@ -51,6 +51,7 @@ import jolie.lang.parse.ast.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
 import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
@@ -93,6 +94,7 @@ import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.OperationCollector;
@@ -109,6 +111,9 @@ import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.VariablePathNode.Type;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
@@ -130,10 +135,13 @@ public class OLParser extends AbstractParser
 	private String[] includePaths;
 	private final Map< String, InterfaceDefinition > interfaces =
 		new HashMap< String, InterfaceDefinition >();
+	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
+		new HashMap< String, InterfaceExtenderDefinition >();
 
 	private final Map< String, TypeDefinition > definedTypes;
-	
 	private final ClassLoader classLoader;
+	
+	private InterfaceExtenderDefinition currInterfaceExtender = null;
         
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
@@ -663,7 +671,12 @@ public class OLParser extends AbstractParser
 				comment = token.content();
 				getToken();
 			} else if ( token.isKeyword( "interface" ) ) {
-				node = parseInterface();
+				getToken();
+				if ( token.isKeyword( "extender") ) {
+					node = parseInterfaceExtender();
+				} else {
+					node = parseInterface();
+				}
 				if ( commentsPreset && node != null ) {
 					node.setDocumentation( comment );
 					commentsPreset = false;
@@ -708,7 +721,7 @@ public class OLParser extends AbstractParser
 		inputPortLocation = null;
 		protocolId = null;
 		Map<String, String> redirectionMap = new HashMap<String, String>();
-		List< String > aggregationList = new LinkedList< String >();
+		List< InputPortInfo.AggregationItemInfo > aggregationList = new LinkedList< InputPortInfo.AggregationItemInfo >();
 		while ( token.isNot( Scanner.TokenType.RCURLY ) ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( iface );
@@ -793,15 +806,7 @@ public class OLParser extends AbstractParser
 			} else if ( token.isKeyword( "Aggregates" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected :" );
-				while ( token.is( Scanner.TokenType.ID ) ) {
-					aggregationList.add( token.content() );
-					getToken();
-					if ( token.is( Scanner.TokenType.COMMA ) ) {
-						getToken();
-					} else {
-						break;
-					}
-				}
+				parseAggregationList( aggregationList );
 			} else {
 				throwException( "Unrecognized token in inputPort " + inputPortName );
 			}
@@ -814,7 +819,7 @@ public class OLParser extends AbstractParser
 		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
-		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new String[ aggregationList.size() ] ), redirectionMap );
+		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ aggregationList.size() ] ), redirectionMap );
 		for( InterfaceDefinition i : interfaceList ) {
 			iport.addInterface( i );
 		}
@@ -822,25 +827,86 @@ public class OLParser extends AbstractParser
 		program.addChild( iport );
 		return iport;
 	}
+	
+	private void parseAggregationList( List< InputPortInfo.AggregationItemInfo > aggregationList )
+		throws ParserException, IOException
+	{
+		List< String > outputPortNames;
+		InterfaceExtenderDefinition extender;
+		for( boolean mainKeepRun = true; mainKeepRun; ) {
+			extender = null;
+			outputPortNames = new LinkedList< String >();
+			if ( token.is( Scanner.TokenType.LCURLY ) ) {
+				getToken();
+				for( boolean keepRun = true; keepRun; ) {
+					assertToken( Scanner.TokenType.ID, "expected output port name" );
+					outputPortNames.add( token.content() );
+					getToken();
+					if ( token.is( Scanner.TokenType.COMMA ) ) {
+						getToken();
+					} else if ( token.is( Scanner.TokenType.RCURLY ) ) {
+						keepRun = false;
+						getToken();
+					} else {
+						throwException( "unexpected token " + token.type() );
+					}
+				}
+				if ( token.is( Scanner.TokenType.WITH ) ) {
+					getToken();
+					assertToken( Scanner.TokenType.ID, "expected interface extender name" );
+					extender = interfaceExtenders.get( token.content() );
+					if ( extender == null ) {
+						throwException( "undefined interface extender: " + token.content() );
+					}
+					getToken();
+				}
+				aggregationList.add( new InputPortInfo.AggregationItemInfo(
+					outputPortNames.toArray( new String[ outputPortNames.size() ] ),
+					extender
+				) );
+				
+				if ( token.is( Scanner.TokenType.COMMA ) ) {
+					getToken();
+				} else {
+					mainKeepRun = false;
+				}
+			}
+		}
+	}
+	
+	private InterfaceDefinition parseInterfaceExtender()
+		throws IOException, ParserException
+	{
+		String name;
+		assertToken( Scanner.TokenType.ID, "expected interface extender name" );
+		name = token.content();
+		getToken();
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+		InterfaceExtenderDefinition extender = currInterfaceExtender =
+				new InterfaceExtenderDefinition( getContext(), name );
+		parseOperations( currInterfaceExtender );
+		interfaceExtenders.put( name, extender );
+		program.addChild( currInterfaceExtender );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
+		currInterfaceExtender = null;
+		return extender;
+	}
 
 	private InterfaceDefinition parseInterface()
 		throws IOException, ParserException
 	{
 		String name;
-		InterfaceDefinition iface=null;
-               
-		if ( token.isKeyword( "interface" ) ) {
-			getToken();
-			assertToken( Scanner.TokenType.ID, "expected interface name" );
-			name = token.content();
-			getToken();
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			iface = new InterfaceDefinition( getContext(), name );
-			parseOperations( iface );
-			interfaces.put( name, iface );
-			program.addChild( iface );
-			eat( Scanner.TokenType.RCURLY, "expected }" );
-		}
+		InterfaceDefinition iface = null;
+        assertToken( Scanner.TokenType.ID, "expected interface name" );
+		name = token.content();
+		getToken();
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+		iface = new InterfaceDefinition( getContext(), name );
+		parseOperations( iface );
+		interfaces.put( name, iface );
+		program.addChild( iface );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
+
 		return iface;
 	}
 
@@ -953,7 +1019,9 @@ public class OLParser extends AbstractParser
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) ) {
+			} else if ( token.is( Scanner.TokenType.ID ) || (
+				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
+			) ) {
 				opId = token.content();
 				OneWayOperationDeclaration opDecl = new OneWayOperationDeclaration( getContext(), opId );
 				getToken();
@@ -973,7 +1041,11 @@ public class OLParser extends AbstractParser
 					commentsPreset = false;
 				}
 
-				oc.addOperation( opDecl );
+				if ( currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK ) ) {
+					currInterfaceExtender.setDefaultOneWayOperation( opDecl );
+				} else {
+					oc.addOperation( opDecl );
+				}
 
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
@@ -1002,7 +1074,9 @@ public class OLParser extends AbstractParser
 				commentsPreset = true;
 				comment = token.content();
 				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) ) {
+			} else if ( token.is( Scanner.TokenType.ID ) || (
+				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
+			) ) {
 				opId = token.content();
 				getToken();
 				String requestTypeName = TypeDefinitionUndefined.UNDEFINED_KEYWORD;
@@ -1060,7 +1134,12 @@ public class OLParser extends AbstractParser
 					commentsPreset = false;
 				}
 
-				oc.addOperation( opRR );
+				if ( currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK ) ) {
+					currInterfaceExtender.setDefaultRequestResponseOperation( opRR );
+				} else {
+					oc.addOperation( opRR );
+				}
+				
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
 				} else {
@@ -1084,6 +1163,8 @@ public class OLParser extends AbstractParser
 		do {
 			if ( token.is( Scanner.TokenType.DEFINE ) ) {
 				program.addChild( parseDefinition() );
+			} else if ( token.isKeyword( "courier" ) ) {
+				program.addChild( parseCourierDefinition() );
 			} else if ( token.isKeyword( "main" ) ) {
 				if ( main != null ) {
 					throwException( "you must specify only one main definition" );
@@ -1129,20 +1210,36 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
-		assertToken(
-			Scanner.TokenType.ID, "expected definition identifier" );
+		assertToken( Scanner.TokenType.ID, "expected definition identifier" );
 		String definitionId = token.content();
 		getToken();
 
-		eat(
-			Scanner.TokenType.LCURLY, "expected { after definition declaration" );
+		eat( Scanner.TokenType.LCURLY, "expected { after definition declaration" );
 		DefinitionNode retVal =
 			new DefinitionNode(
 			getContext(),
 			definitionId,
 			parseProcess() );
-		eat(
-			Scanner.TokenType.RCURLY, "expected } after definition declaration" );
+		eat( Scanner.TokenType.RCURLY, "expected } after definition declaration" );
+
+		return retVal;
+	}
+	
+	private CourierDefinitionNode parseCourierDefinition()
+		throws IOException, ParserException
+	{
+		getToken();
+		assertToken( Scanner.TokenType.ID, "expected input port identifier" );
+		String inputPortName = token.content();
+		getToken();
+
+		eat( Scanner.TokenType.LCURLY, "expected { after courier definition" );
+		CourierDefinitionNode retVal = new CourierDefinitionNode(
+			getContext(),
+			inputPortName,
+			parseCourierChoice()
+		);
+		eat( Scanner.TokenType.RCURLY, "expected } after courier definition" );
 
 		return retVal;
 	}
@@ -1181,48 +1278,34 @@ public class OLParser extends AbstractParser
 	}
 	private List< List< Scanner.Token > > inVariablePaths = new LinkedList< List< Scanner.Token > >();
 
-	private OLSyntaxNode parseInVariablePathProcess(
-		boolean withConstruct )
+	private OLSyntaxNode parseInVariablePathProcess( boolean withConstruct )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode ret = null;
-		List< Scanner.Token > tokens = new LinkedList< Scanner.Token >();
+		List< Scanner.Token> tokens = new LinkedList< Scanner.Token>();
 
 		if ( withConstruct ) {
 			eat( Scanner.TokenType.LPAREN, "expected (" );
-
-			while ( token.isNot( Scanner.TokenType.LCURLY ) ) {
+			while( token.isNot( Scanner.TokenType.LCURLY ) ) {
 				tokens.add( token );
 				getToken();
 
 			}
 			//TODO transfer this whole buggy thing to the OOIT
-
 			tokens.remove( tokens.size() - 1 );
-		//getToken();
+			//getToken();
 		} else {
-			while ( token.isNot( Scanner.TokenType.LCURLY ) ) {
+			while( token.isNot( Scanner.TokenType.LCURLY ) ) {
 				tokens.add( token );
 				getToken();
 
 			}
-
-
-
-
-
-
-
-
 		}
 		inVariablePaths.add( tokens );
 
-		eat(
-			Scanner.TokenType.LCURLY, "expected {" );
-		ret =
-			parseProcess();
-		eat(
-			Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+		ret = parseProcess();
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		inVariablePaths.remove( inVariablePaths.size() - 1 );
 
 		return ret;
@@ -1248,6 +1331,8 @@ public class OLParser extends AbstractParser
 				getToken();
 				retVal =
 					parseOutputOperationStatement( id );
+			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
+				retVal = parseForwardStatement();
 			} else {
 				retVal = new DefinitionCallStatement( getContext(), id );
 			}
@@ -1508,6 +1593,26 @@ public class OLParser extends AbstractParser
 
 		return retVal;
 	}
+	
+	private OLSyntaxNode parseForwardStatement()
+		throws IOException, ParserException
+	{
+		OLSyntaxNode retVal;
+		String outputPortName = null;
+		if ( token.is( Scanner.TokenType.ID ) ) {
+			outputPortName = token.content();
+			getToken();
+		}
+		VariablePathNode outputVariablePath = parseOperationVariablePathParameter();
+		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Solicit-Response
+			VariablePathNode inputVariablePath = parseOperationVariablePathParameter();
+			retVal = new SolicitResponseForwardStatement( getContext(), outputPortName, outputVariablePath, inputVariablePath );
+		} else { // Notification
+			retVal = new NotificationForwardStatement( getContext(), outputPortName, outputVariablePath );
+		}
+		
+		return retVal;
+	}
 
 	private InstallFunctionNode parseInstallFunction()
 		throws IOException, ParserException
@@ -1655,10 +1760,8 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
-				expr =
-					parseExpression();
-				eat(
-					Scanner.TokenType.RSQUARE, "expected ]" );
+				expr = parseExpression();
+				eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
 				expr = null;
 			}
@@ -1694,6 +1797,71 @@ public class OLParser extends AbstractParser
 		getToken();
 
 		return _parseVariablePath( varId );
+	}
+	
+	private CourierChoiceStatement parseCourierChoice()
+		throws IOException, ParserException
+	{
+		CourierChoiceStatement stm = new CourierChoiceStatement( getContext() );
+		OLSyntaxNode body;
+		InterfaceDefinition iface;
+		String operationName;
+		VariablePathNode inputVariablePath, outputVariablePath;
+
+		while ( token.is( Scanner.TokenType.LSQUARE ) ) {
+			iface = null; operationName = null;
+			inputVariablePath = null; outputVariablePath = null;
+			getToken();
+			if ( token.isKeyword( "interface" ) ) {
+				getToken();
+				assertToken( Scanner.TokenType.ID, "expected interface name" );
+				iface = interfaces.get( token.content() );
+				if ( iface == null ) {
+					throwException( "undefined interface: " + token.content() );
+				}
+				getToken();
+				inputVariablePath = parseOperationVariablePathParameter();
+				if ( inputVariablePath == null ) {
+					throwException( "expected variable path" );
+				}
+				if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request-Response
+					outputVariablePath = parseOperationVariablePathParameter();
+				}
+			} else if ( token.is( Scanner.TokenType.ID ) ) {
+				operationName = token.content();
+				getToken();
+				inputVariablePath = parseOperationVariablePathParameter();
+				if ( inputVariablePath == null ) {
+					throwException( "expected variable path" );
+				}
+				if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request-Response
+					outputVariablePath = parseOperationVariablePathParameter();
+				}
+			} else {
+				throwException( "expected courier input guard (interface or operation name)" );
+			}
+
+			eat( Scanner.TokenType.RSQUARE, "expected ]" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			body = parseProcess();
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+
+			if ( iface == null ) { // It's an operation
+				if ( outputVariablePath == null ) { // One-Way
+					stm.operationOneWayBranches().add( new CourierChoiceStatement.OperationOneWayBranch( operationName, inputVariablePath, body ) );
+				} else { // Request-Response
+					stm.operationRequestResponseBranches().add( new CourierChoiceStatement.OperationRequestResponseBranch( operationName, inputVariablePath, outputVariablePath, body ) );
+				}
+			} else { // It's an interface
+				if ( outputVariablePath == null ) { // One-Way
+					stm.interfaceOneWayBranches().add( new CourierChoiceStatement.InterfaceOneWayBranch( iface, inputVariablePath, body ) );
+				} else { // Request-Response
+					stm.interfaceRequestResponseBranches().add( new CourierChoiceStatement.InterfaceRequestResponseBranch( iface, inputVariablePath, outputVariablePath, body ) );
+				}
+			}
+		}
+
+		return stm;
 	}
 
 	private NDChoiceStatement parseNDChoiceStatement()
@@ -1783,8 +1951,7 @@ public class OLParser extends AbstractParser
 	{
 		VariablePathNode ret = null;
 
-		eat(
-			Scanner.TokenType.LPAREN, "expected (" );
+		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			ret = parseVariablePath();
 		} else if ( token.is( Scanner.TokenType.DOT ) ) {
@@ -1801,8 +1968,7 @@ public class OLParser extends AbstractParser
 	{
 		OLSyntaxNode ret = null;
 
-		eat(
-			Scanner.TokenType.LPAREN, "expected (" );
+		eat( Scanner.TokenType.LPAREN, "expected (" );
 		if ( token.isNot( Scanner.TokenType.RPAREN ) ) {
 			ret = parseExpression();
 		}

@@ -23,6 +23,8 @@ package jolie.lang.parse;
 
 import jolie.lang.parse.context.ParsingContext;
 import java.lang.reflect.Array;
+import java.util.LinkedList;
+import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -77,6 +79,7 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.FreshValueExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -90,6 +93,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
@@ -180,10 +187,9 @@ public class OLParseTreeOptimizer
 			program.addChild( n );
 		}
 
-		public void visit( DefinitionNode procedure )
+		public void visit( DefinitionNode n )
 		{
-			procedure.body().accept( this );
-			program.addChild( new DefinitionNode( procedure.context(), procedure.id(), currNode ) );
+			program.addChild( new DefinitionNode( n.context(), n.id(), optimizeNode( n.body() ) ) );
 		}
 
 		public void visit( ParallelStatement stm )
@@ -750,8 +756,50 @@ public class OLParseTreeOptimizer
 		{
 			program.addChild( n );
 		}
+		
+		public void visit( InterfaceExtenderDefinition n )
+		{
+			program.addChild( n );
+		}
+	
+		public void visit( CourierDefinitionNode n )
+		{
+			program.addChild( new CourierDefinitionNode( n.context(), n.inputPortName(), optimizeNode( n.body() ) ) );
+		}
+	
+		public void visit( CourierChoiceStatement n )
+		{
+			CourierChoiceStatement courierChoice = new CourierChoiceStatement( n.context() );
+			for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
+				courierChoice.interfaceOneWayBranches().add( new CourierChoiceStatement.InterfaceOneWayBranch( branch.interfaceDefinition, branch.inputVariablePath, optimizeNode( branch.body ) ) );
+			}
+			
+			for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
+				courierChoice.interfaceRequestResponseBranches().add( new CourierChoiceStatement.InterfaceRequestResponseBranch( branch.interfaceDefinition, branch.inputVariablePath, branch.outputVariablePath, optimizeNode( branch.body ) ) );
+			}
+			
+			for( CourierChoiceStatement.OperationOneWayBranch branch : n.operationOneWayBranches() ) {
+				courierChoice.operationOneWayBranches().add( new CourierChoiceStatement.OperationOneWayBranch( branch.operation, branch.inputVariablePath, optimizeNode( branch.body ) ) );
+			}
+			
+			for( CourierChoiceStatement.OperationRequestResponseBranch branch : n.operationRequestResponseBranches() ) {
+				courierChoice.operationRequestResponseBranches().add( new CourierChoiceStatement.OperationRequestResponseBranch( branch.operation, branch.inputVariablePath, branch.outputVariablePath, optimizeNode( branch.body ) ) );
+			}
+			
+			currNode = courierChoice;
+		}
 
-		public void visit( DocumentationComment n ){}
+		public void visit( NotificationForwardStatement n )
+		{
+			currNode = new NotificationForwardStatement( n.context(), n.outputPortName(), optimizePath( n.outputVariablePath() ) );
+		}
+
+		public void visit( SolicitResponseForwardStatement n )
+		{
+			currNode = new SolicitResponseForwardStatement( n.context(), n.outputPortName(), optimizePath( n.outputVariablePath() ), optimizePath( n.inputVariablePath() ) );
+		}
+
+		public void visit( DocumentationComment n ) {}
 	}
 	
 	private Program originalProgram;

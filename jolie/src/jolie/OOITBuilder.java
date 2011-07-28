@@ -71,6 +71,7 @@ import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
@@ -110,6 +111,10 @@ import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
 import jolie.lang.parse.ast.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -473,7 +478,8 @@ public class OOITBuilder implements OLVisitor
 		Map< String, OneWayTypeDescription > outputPortNotificationTypes;
 		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
 		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
-		for( String outputPortName : n.aggregationList() ) {
+		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
+			String outputPortName = item.outputPortList()[0];
 			try {
 				outputPort = interpreter.getOutputPort( outputPortName );
 				outputPortNotificationTypes = notificationTypes.get( outputPortName );
@@ -1363,5 +1369,11 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( InterfaceDefinition n ) {}
 	public void visit( DocumentationComment n ) {}
+	
+	public void visit( InterfaceExtenderDefinition n ) {}
+	public void visit( CourierDefinitionNode n ) {}
+	public void visit( CourierChoiceStatement n ) {}
+	public void visit( NotificationForwardStatement n ) {}
+	public void visit( SolicitResponseForwardStatement n ) {}
 }
 

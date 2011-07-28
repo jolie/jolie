@@ -85,8 +85,13 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.FreshValueExpressionNode;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
+import jolie.lang.parse.ast.courier.CourierChoiceStatement;
+import jolie.lang.parse.ast.courier.CourierDefinitionNode;
+import jolie.lang.parse.ast.courier.NotificationForwardStatement;
+import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 
 public interface OLVisitor
 {
@@ -156,4 +161,9 @@ public interface OLVisitor
 	public void visit( InterfaceDefinition n );
 	public void visit( DocumentationComment n );
 	public void visit( FreshValueExpressionNode n );
+	public void visit( CourierDefinitionNode n );
+	public void visit( CourierChoiceStatement n );
+	public void visit( NotificationForwardStatement n );
+	public void visit( SolicitResponseForwardStatement n );
+	public void visit( InterfaceExtenderDefinition n );
 }
