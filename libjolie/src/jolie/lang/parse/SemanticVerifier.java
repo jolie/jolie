@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
 
 import jolie.lang.Constants.OperandType;
+import jolie.lang.Constants.OperationType;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;
@@ -162,6 +163,8 @@ public class SemanticVerifier implements OLVisitor
 	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
 	//private TypeDefinition rootType; // the type representing the whole session state
 	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
+	
+	private OperationType insideCourierOperationType = null;
 
 	public SemanticVerifier( Program program, Configuration configuration )
 	{
@@ -713,6 +716,9 @@ public class SemanticVerifier implements OLVisitor
 	
 	public void visit( OneWayOperationStatement n )
 	{
+		if ( insideCourierOperationType != null ) {
+			error( n, "input statements are forbidden inside courier definitions" );
+		}
 		verify( n.inputVarPath() );
 		if ( n.inputVarPath() != null ) {
 			if ( n.inputVarPath().isCSet() ) {
@@ -724,6 +730,9 @@ public class SemanticVerifier implements OLVisitor
 
 	public void visit( RequestResponseOperationStatement n )
 	{
+		if ( insideCourierOperationType != null ) {
+			error( n, "input statements are forbidden inside courier definitions" );
+		}
 		verify( n.inputVarPath() );
 		verify( n.process() );
 		if ( n.inputVarPath() != null ) {
@@ -1018,14 +1027,63 @@ public class SemanticVerifier implements OLVisitor
 	{}
 	
 	public void visit( InterfaceExtenderDefinition n ) {}
-	public void visit( CourierDefinitionNode n ) {}
-	public void visit( CourierChoiceStatement n ) {}
+	
+	public void visit( CourierDefinitionNode n )
+	{
+		if ( inputPorts.containsKey( n.inputPortName() ) == false ) {
+			error( n, "undefined input port: " + n.inputPortName() );
+		}
+		verify( n.body() );
+	}
+	
+	public void visit( CourierChoiceStatement n )
+	{
+		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
+			insideCourierOperationType = OperationType.ONE_WAY;
+			verify( branch.body );
+		}
+		
+		for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
+			insideCourierOperationType = OperationType.REQUEST_RESPONSE;
+			verify( branch.body );
+		}
+		
+		for( CourierChoiceStatement.OperationOneWayBranch branch : n.operationOneWayBranches() ) {
+			insideCourierOperationType = OperationType.ONE_WAY;
+			verify( branch.body );
+		}
+		
+		for( CourierChoiceStatement.OperationRequestResponseBranch branch : n.operationRequestResponseBranches() ) {
+			insideCourierOperationType = OperationType.REQUEST_RESPONSE;
+			verify( branch.body );
+		}
+		
+		insideCourierOperationType = null;
+	}
 	
 	/**
-	 * @todo Must check if forward statements are inside a courier choice.
+	 * @todo Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
-	public void visit( NotificationForwardStatement n ) {}
-	public void visit( SolicitResponseForwardStatement n ) {}
+	public void visit( NotificationForwardStatement n )
+	{
+		if ( insideCourierOperationType == null ) {
+			error( n, "the forward statement may be used only inside a courier definition" );
+		} else if ( insideCourierOperationType != OperationType.ONE_WAY ) {
+			error( n, "forward statement is a notification, but is inside a request-response courier definition. Maybe you wanted to specify a solicit-response forward?" );
+		}
+	}
+	
+	/**
+	 * @todo Check that the output port of the forward statement is right wrt the input port aggregation definition.
+	 */
+	public void visit( SolicitResponseForwardStatement n )
+	{
+		if ( insideCourierOperationType == null ) {
+			error( n, "the forward statement may be used only inside a courier definition" );
+		} else if ( insideCourierOperationType != OperationType.REQUEST_RESPONSE ) {
+			error( n, "forward statement is a solicit-response, but is inside a one-way courier definition. Maybe you wanted to specify a notification forward?" );
+		}
+	}
 	
 	/**
 	 * @todo Must check if it's inside an install function

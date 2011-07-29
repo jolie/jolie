@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,76 +19,57 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.net.ports;
 
-import java.net.URI;
-import java.util.HashMap;
-import jolie.net.ports.OutputPort;
 import java.util.Map;
-
-import jolie.Interpreter;
-import jolie.lang.Constants;
-import jolie.net.ports.InputPort;
-import jolie.net.ports.Interface;
-import jolie.net.protocols.CommProtocol;
-import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 
 /**
- * <code>LocalListener</code> is used internally by the interpreter for receiving
- * local messages.
- * 
+ * Represents a (runtime) interface extender
  * @author Fabrizio Montesi
  */
-public class LocalListener extends CommListener
+public class InterfaceExtender extends Interface
 {
-	public LocalListener( Interpreter interpreter )
-	{
-		super( interpreter, new InputPort(
-				"LocalInputPort",
-				URI.create( Constants.LOCAL_LOCATION_KEYWORD ),
-				new VariablePathBuilder( true ).toVariablePath(),
-				new Interface(
-					new HashMap< String, OneWayTypeDescription >(),
-					new HashMap< String, RequestResponseTypeDescription >()
-				),
-				new HashMap< String, AggregatedOperation >(),
-				new HashMap< String, OutputPort >()
-			)
-		);
-	}
+	private final OneWayTypeDescription defaultOneWayTypeDescription;
+	private final RequestResponseTypeDescription defaultRequestResponseTypeDescription;
 	
-	public void mergeInterface( Interface iface )
-	{
-		inputPort().getInterface().merge( iface );
-	}
-	
-	public void addRedirections( Map< String, OutputPort > redirectionMap )
-	{
-		inputPort().redirectionMap().putAll( redirectionMap );
+	public InterfaceExtender(
+		Map< String, OneWayTypeDescription > oneWayOperations,
+		Map< String, RequestResponseTypeDescription > requestResponseOperations,
+		OneWayTypeDescription defaultOneWayTypeDescription,
+		RequestResponseTypeDescription defaultRequestResponseTypeDescription
+	) {
+		super( oneWayOperations, requestResponseOperations );
+		this.defaultOneWayTypeDescription = defaultOneWayTypeDescription;
+		this.defaultRequestResponseTypeDescription = defaultRequestResponseTypeDescription;
 	}
 
-	public void addAggregations( Map< String, AggregatedOperation > aggregationMap )
+	public OneWayTypeDescription defaulOneWayTypeDescription()
 	{
-		inputPort().aggregationMap().putAll( aggregationMap );
+		return defaultOneWayTypeDescription;
 	}
 
-	@Override
-	public void shutdown()
-	{}
-	
-	@Override
-	public void run()
-	{}
-	
-	@Override
-	public CommProtocol createProtocol()
+	public RequestResponseTypeDescription defaultRequestResponseTypeDescription()
 	{
-		return null;
+		return defaultRequestResponseTypeDescription;
 	}
 	
-	@Override
-	final public void start()
-	{}
+	public OneWayTypeDescription getOneWayTypeDescription( String operationName )
+	{
+		OneWayTypeDescription ret = oneWayOperations().get( operationName );
+		if ( ret == null ) {
+			ret = defaultOneWayTypeDescription;
+		}
+		return ret;
+	}
+	
+	public RequestResponseTypeDescription getRequestResponseTypeDescription( String operationName )
+	{
+		RequestResponseTypeDescription ret = requestResponseOperations().get( operationName );
+		if ( ret == null ) {
+			ret = defaultRequestResponseTypeDescription;
+		}
+		return ret;
+	}
 }

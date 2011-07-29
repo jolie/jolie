@@ -53,7 +53,6 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
-import jolie.runtime.AggregatedOperation;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -340,21 +339,16 @@ public class CommCore
 	 * @see CommProtocolFactory
 	 */
 	public void addInputPort(
-				String inputPortName,
-				URI uri,
+				InputPort inputPort,
 				CommProtocolFactory protocolFactory,
-				VariablePath protocolConfigurationPath,
-				Process protocolConfigurationProcess,
-				Interface iface,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
+				Process protocolConfigurationProcess
 			)
 		throws IOException
 	{
 		protocolConfigurations.add( protocolConfigurationProcess );
 
 		CommListener listener = null;
-		String medium = uri.getScheme();
+		String medium = inputPort.location().getScheme();
 		CommListenerFactory factory = getCommListenerFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
@@ -363,15 +357,9 @@ public class CommCore
 		listener = factory.createListener(
 			interpreter,
 			protocolFactory,
-			new InputPort(
-				uri,
-				protocolConfigurationPath,
-				iface,
-				aggregationMap,
-				redirectionMap
-			)
+			inputPort
 		);
-		listenersMap.put( inputPortName, listener );
+		listenersMap.put( inputPort.name(), listener );
 	}
 	
 	private final ExecutorService executorService;
@@ -470,24 +458,7 @@ public class CommCore
 		private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
 			throws IOException, URISyntaxException
 		{
-			// Aggregation input
-			if ( operation.isOneWay() ) {
-				CommChannel oChannel = operation.port().getCommChannel();
-				oChannel.send( message );
-				oChannel.release();
-			} else {
-				CommChannel oChannel = operation.port().getNewCommChannel();
-				oChannel.setRedirectionChannel( channel );
-				oChannel.setRedirectionMessageId( message.id() );
-				try {
-					oChannel.send( message );
-					oChannel.setToBeClosed( false );
-					oChannel.disposeForInput();
-				} catch( IOException e ) {
-					channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
-					channel.disposeForInput();
-				}
-			}
+			operation.runAggregationBehaviour( message, channel );
 		}
 
 		private void handleDirectMessage( CommMessage message )
