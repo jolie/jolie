@@ -23,8 +23,6 @@ package jolie.lang.parse;
 
 import jolie.lang.parse.context.ParsingContext;
 import java.lang.reflect.Array;
-import java.util.LinkedList;
-import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.AddAssignStatement;
 import jolie.lang.parse.ast.AndConditionNode;

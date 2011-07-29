@@ -67,6 +67,7 @@ import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
+import jolie.process.OneWayProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -1067,7 +1068,13 @@ public class Interpreter
 		}
 	}
 
-	public boolean startSession( CommMessage message, CommChannel channel )
+	/**
+	 * Starts a service session.
+	 * @param message the message triggering the session start
+	 * @param channel the channel of the message triggering the session start
+	 * @return {@code true} if the service session is started, {@code false} otherwise
+	 */
+	public boolean startServiceSession( CommMessage message, CommChannel channel )
 	{
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			return false;

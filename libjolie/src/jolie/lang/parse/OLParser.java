@@ -673,6 +673,7 @@ public class OLParser extends AbstractParser
 			} else if ( token.isKeyword( "interface" ) ) {
 				getToken();
 				if ( token.isKeyword( "extender") ) {
+					getToken();
 					node = parseInterfaceExtender();
 				} else {
 					node = parseInterface();
@@ -851,25 +852,29 @@ public class OLParser extends AbstractParser
 						throwException( "unexpected token " + token.type() );
 					}
 				}
-				if ( token.is( Scanner.TokenType.WITH ) ) {
-					getToken();
-					assertToken( Scanner.TokenType.ID, "expected interface extender name" );
-					extender = interfaceExtenders.get( token.content() );
-					if ( extender == null ) {
-						throwException( "undefined interface extender: " + token.content() );
-					}
-					getToken();
+			} else {
+				assertToken( Scanner.TokenType.ID, "expected output port name" );
+				outputPortNames.add( token.content() );
+				getToken();
+			}
+			if ( token.is( Scanner.TokenType.WITH ) ) {
+				getToken();
+				assertToken( Scanner.TokenType.ID, "expected interface extender name" );
+				extender = interfaceExtenders.get( token.content() );
+				if ( extender == null ) {
+					throwException( "undefined interface extender: " + token.content() );
 				}
-				aggregationList.add( new InputPortInfo.AggregationItemInfo(
-					outputPortNames.toArray( new String[ outputPortNames.size() ] ),
-					extender
-				) );
-				
-				if ( token.is( Scanner.TokenType.COMMA ) ) {
-					getToken();
-				} else {
-					mainKeepRun = false;
-				}
+				getToken();
+			}
+			aggregationList.add( new InputPortInfo.AggregationItemInfo(
+				outputPortNames.toArray( new String[ outputPortNames.size() ] ),
+				extender
+			) );
+
+			if ( token.is( Scanner.TokenType.COMMA ) ) {
+				getToken();
+			} else {
+				mainKeepRun = false;
 			}
 		}
 	}
@@ -1041,7 +1046,7 @@ public class OLParser extends AbstractParser
 					commentsPreset = false;
 				}
 
-				if ( currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK ) ) {
+				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultOneWayOperation( opDecl );
 				} else {
 					oc.addOperation( opDecl );
@@ -1134,7 +1139,7 @@ public class OLParser extends AbstractParser
 					commentsPreset = false;
 				}
 
-				if ( currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK ) ) {
+				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
 					currInterfaceExtender.setDefaultRequestResponseOperation( opRR );
 				} else {
 					oc.addOperation( opRR );
@@ -1325,14 +1330,13 @@ public class OLParser extends AbstractParser
 
 			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.CHOICE ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
+			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
+				retVal = parseForwardStatement();
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				retVal = parseInputOperationStatement( id );
 			} else if ( token.is( Scanner.TokenType.AT ) ) {
 				getToken();
-				retVal =
-					parseOutputOperationStatement( id );
-			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
-				retVal = parseForwardStatement();
+				retVal = parseOutputOperationStatement( id );
 			} else {
 				retVal = new DefinitionCallStatement( getContext(), id );
 			}

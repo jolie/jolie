@@ -161,7 +161,11 @@ import jolie.process.SynchronizedProcess;
 import jolie.process.ThrowProcess;
 import jolie.process.UndefProcess;
 import jolie.process.WhileProcess;
-import jolie.runtime.AggregatedOperation;
+import jolie.net.AggregatedOperation;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.InterfaceExtender;
+import jolie.process.courier.ForwardNotificationProcess;
+import jolie.process.courier.ForwardSolicitResponseProcess;
 import jolie.runtime.AndCondition;
 import jolie.runtime.CastIntExpression;
 import jolie.runtime.CastRealExpression;
@@ -214,11 +218,34 @@ public class OOITBuilder implements OLVisitor
 	private String currentOutputPort = null;
 	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > isConstantMap;
+	private final Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
 	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
 	private final List< CorrelationSetInfo > correlationSetInfoList = new LinkedList< CorrelationSetInfo >();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private boolean registerSessionStarters = false;
+	private InputPort currCourierInputPort = null;
+	private String currCourierOperationName = null;
+	private final Map< String, Map< String, AggregationConfiguration > > aggregationConfigurations =
+		new HashMap< String, Map< String, AggregationConfiguration > >(); // Input port name -> (operation name -> aggregation configuration)
+	private final Map< String, InterfaceExtender > interfaceExtenders =
+		new HashMap< String, InterfaceExtender >();
+	
+	private static class AggregationConfiguration {
+		private final OutputPort defaultOutputPort;
+		private final Interface aggregatedInterface;
+		private final InterfaceExtender interfaceExtender;
+		
+		public AggregationConfiguration(
+			OutputPort defaultOutputPort,
+			Interface aggregatedInterface,
+			InterfaceExtender interfaceExtender
+		) {
+			this.defaultOutputPort = defaultOutputPort;
+			this.aggregatedInterface = aggregatedInterface;
+			this.interfaceExtender = interfaceExtender;
+		}
+	}
 
 	/**
 	 * Constructor.
@@ -339,37 +366,7 @@ public class OOITBuilder implements OLVisitor
 				initStarter.setCorrelationInitializer( currCorrelationSet );
 			}
 			starters.clear();
-		}		
-		
-		/*for( CorrelationSetInfo csetInfo : correlationSetInfoList ) {
-			correlationVariablePaths = new ArrayList< VariablePath >();
-			correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
-			
-			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
-				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
-				correlationVariablePaths.add( sessionVariablePath );
-				for( CorrelationSetInfo.CorrelationAliasInfo aliasInfo : csetVariableInfo.aliases() ) {
-					operations = inputTypeNameMap.get( aliasInfo.guardName() );
-					messageVariablePath = buildVariablePath( aliasInfo.variablePath() );
-					for( String operationName : operations ) {
-						correlationMap.put(
-							operationName,
-							new CorrelationPair( sessionVariablePath, messageVariablePath )
-						);
-						starter = interpreter.getSessionStarter( operationName );
-						if ( starter != null && starter.correlationInitializer() == null ) {
-							starters.add( starter );
-						}
-					}
-				}
-			}
-			currCorrelationSet = new CorrelationSet( correlationVariablePaths, correlationMap );
-			interpreter.addCorrelationSet( currCorrelationSet );
-			for( Interpreter.SessionStarter initStarter : starters ) {
-				initStarter.setCorrelationInitializer( currCorrelationSet );
-			}
-			starters.clear();
-		}*/
+		}
 	}
 	
 	public void visit( ExecutionInfo n )
@@ -451,6 +448,25 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), e );
 		}
 	}
+	
+	private AggregationConfiguration getAggregationConfiguration( String inputPortName, String operationName )
+	{
+		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
+		if ( map == null ) {
+			return null;
+		}
+		return map.get( operationName );
+	}
+	
+	private void putAggregationConfiguration( String inputPortName, String operationName, AggregationConfiguration configuration )
+	{
+		Map< String, AggregationConfiguration > map = aggregationConfigurations.get( inputPortName );
+		if ( map == null ) {
+			map = new HashMap< String, AggregationConfiguration >();
+			aggregationConfigurations.put( inputPortName, map );
+		}
+		map.put( operationName, configuration );
+	}
 
 	public void visit( InputPortInfo n )
 	{
@@ -478,17 +494,27 @@ public class OOITBuilder implements OLVisitor
 		Map< String, OneWayTypeDescription > outputPortNotificationTypes;
 		Map< String, RequestResponseTypeDescription > outputPortSolicitResponseTypes;
 		Map< String, AggregatedOperation > aggregationMap = new HashMap< String, AggregatedOperation >();
+		InterfaceExtender extender;
 		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
 			String outputPortName = item.outputPortList()[0];
+			if ( item.interfaceExtender() == null ) {
+				extender = null;
+			} else {
+				extender = interfaceExtenders.get( item.interfaceExtender().name() );
+			}
 			try {
 				outputPort = interpreter.getOutputPort( outputPortName );
 				outputPortNotificationTypes = notificationTypes.get( outputPortName );
 				outputPortSolicitResponseTypes = solicitResponseTypes.get( outputPortName );
 				for( String operationName : outputPortNotificationTypes.keySet() ) {
-					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.ONE_WAY, outputPort ) );
+					aggregationMap.put( operationName, AggregatedOperation.createDirect( operationName, Constants.OperationType.ONE_WAY, outputPort ) );
+					putAggregationConfiguration( n.id(), operationName,
+						new AggregationConfiguration( outputPort, outputPort.getInterface(), extender ) );
 				}
 				for( String operationName : outputPortSolicitResponseTypes.keySet() ) {
-					aggregationMap.put( operationName, new AggregatedOperation( operationName, Constants.OperationType.REQUEST_RESPONSE, outputPort ) );
+					aggregationMap.put( operationName, AggregatedOperation.createDirect( operationName, Constants.OperationType.REQUEST_RESPONSE, outputPort ) );
+					putAggregationConfiguration( n.id(), operationName,
+						new AggregationConfiguration( outputPort, outputPort.getInterface(), extender ) );
 				}
 			} catch( InvalidIdException e ) {
 				error( n.context(), e );
@@ -536,18 +562,23 @@ public class OOITBuilder implements OLVisitor
 		Process[] confChildren = new Process[] { assignLocation, assignProtocol, buildProcess( n.protocolConfiguration() ) };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
+		InputPort inputPort = new InputPort(
+			n.id(),
+			n.location(),
+			protocolConfigurationPath,
+			currentPortInterface,
+			aggregationMap,
+			redirectionMap
+		);
+		
 		if ( protocolFactory != null ) {
 			try {
 				interpreter.commCore().addInputPort(
-					n.id(),
-					n.location(),
+					inputPort,
 					protocolFactory,
-					protocolConfigurationPath,
-					protocolConfigurationSequence,
-					currentPortInterface,
-					aggregationMap,
-					redirectionMap
+					protocolConfigurationSequence
 				);
+				inputPorts.put( inputPort.name(), inputPort );
 			} catch( IOException ioe ) {
 				error( n.context(), ioe );
 			}
@@ -602,17 +633,6 @@ public class OOITBuilder implements OLVisitor
 		if ( insideType == false && insideOperationDeclaration == false ) {
 			types.put( n.id(), currType );
 		}
-		/*if ( n.untypedSubTypes() ) {
-			currType = new Type( n.nativeType(), n.cardinality(), true, null );
-		} else {
-			Map< String, Type > subTypes = new HashMap< String, Type >();
-			if ( n.subTypes() != null ) {
-				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
-					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
-				}
-			}
-			currType = new Type( n.nativeType(), n.cardinality(), false, subTypes );
-		}*/
 	}
 
 	public void visit( Program p )
@@ -622,22 +642,57 @@ public class OOITBuilder implements OLVisitor
 	}
 
 	private boolean insideOperationDeclaration = false;
+	
+	private OneWayTypeDescription buildOneWayTypeDescription( OneWayOperationDeclaration decl )
+	{
+		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
+			return new OneWayTypeDescription( types.get( decl.requestType().id() ) );
+		} else {
+			return new OneWayTypeDescription( buildType( decl.requestType() ) );
+		}
+	}
+	
+	private RequestResponseTypeDescription buildRequestResponseTypeDescription( RequestResponseOperationDeclaration decl )
+	{
+		RequestResponseTypeDescription typeDescription;
+		Map< String, Type > faults = new HashMap< String, Type >();
+		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
+			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
+				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
+			}
+			typeDescription = new RequestResponseTypeDescription(
+				types.get( decl.requestType().id() ),
+				types.get( decl.responseType().id() ),
+				faults
+			);
+		} else {
+			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
+				faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
+			}
+			typeDescription = new RequestResponseTypeDescription(
+				buildType( decl.requestType() ),
+				buildType( decl.responseType() ),
+				faults
+			);
+		}
+		return typeDescription;
+	}
 
 	public void visit( OneWayOperationDeclaration decl )
 	{
 		boolean backup = insideOperationDeclaration;
 		insideOperationDeclaration = true;
 		OneWayTypeDescription typeDescription = null;
-		if ( currentOutputPort == null ) {
+		if ( currentOutputPort == null ) { // We are in an input port
 			// Register if not already present
-			typeDescription = new OneWayTypeDescription( types.get( decl.requestType().id() ) );
+			typeDescription = buildOneWayTypeDescription( decl );
 			try {
 				interpreter.getOneWayOperation( decl.id() );
 			} catch( InvalidIdException e ) {
 				interpreter.register( decl.id(), new OneWayOperation( decl.id(), types.get( decl.requestType().id() ) ) );
 			}
 		} else {
-			typeDescription = new OneWayTypeDescription( buildType( decl.requestType() ) );
+			typeDescription = buildOneWayTypeDescription( decl );
 			notificationTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
 		}
 
@@ -657,29 +712,14 @@ public class OOITBuilder implements OLVisitor
 				RequestResponseOperation op = interpreter.getRequestResponseOperation( decl.id() );
 				typeDescription = op.typeDescription();
 			} catch( InvalidIdException e ) {
-				Map< String, Type > faults = new HashMap< String, Type >();
-				for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
-					faults.put( entry.getKey(), types.get( entry.getValue().id() ) );
-				}
-				typeDescription = new RequestResponseTypeDescription(
-					types.get( decl.requestType().id() ),
-					types.get( decl.responseType().id() ),
-					faults
-				);
+				typeDescription = buildRequestResponseTypeDescription( decl );
 				interpreter.register(
 					decl.id(),
 					new RequestResponseOperation( decl.id(), typeDescription )
 				);
 			}
 		} else {
-			Type requestType, responseType;
-			Map< String, Type > faultTypes = new HashMap< String, Type >();
-			requestType = buildType( decl.requestType() );
-			responseType = buildType( decl.responseType() );
-			for( Entry< String, TypeDefinition > entry : decl.faults().entrySet() ) {
-				faultTypes.put( entry.getKey(), types.get( entry.getValue().id() ) );
-			}
-			typeDescription = new RequestResponseTypeDescription( requestType, responseType, faultTypes );
+			typeDescription = buildRequestResponseTypeDescription( decl );
 			solicitResponseTypes.get( currentOutputPort ).put( decl.id(), typeDescription );
 		}
 
@@ -1370,10 +1410,186 @@ public class OOITBuilder implements OLVisitor
 	public void visit( InterfaceDefinition n ) {}
 	public void visit( DocumentationComment n ) {}
 	
-	public void visit( InterfaceExtenderDefinition n ) {}
-	public void visit( CourierDefinitionNode n ) {}
-	public void visit( CourierChoiceStatement n ) {}
-	public void visit( NotificationForwardStatement n ) {}
-	public void visit( SolicitResponseForwardStatement n ) {}
+	public void visit( InterfaceExtenderDefinition n )
+	{
+		Map< String, OneWayTypeDescription > oneWayDescs = new HashMap< String, OneWayTypeDescription >();
+		Map< String, RequestResponseTypeDescription > rrDescs = new HashMap< String, RequestResponseTypeDescription >();
+		for( Entry< String, OperationDeclaration > entry : n.operationsMap().entrySet() ) {
+			if ( entry.getValue() instanceof OneWayOperationDeclaration ) {
+				oneWayDescs.put( entry.getKey(), buildOneWayTypeDescription( (OneWayOperationDeclaration)entry.getValue() ) );
+			} else { // Request-Response
+				rrDescs.put( entry.getKey(), buildRequestResponseTypeDescription( (RequestResponseOperationDeclaration)entry.getValue() ) );
+			}
+		}
+		
+		InterfaceExtender extender = new InterfaceExtender(
+			oneWayDescs,
+			rrDescs,
+			buildOneWayTypeDescription( n.defaultOneWayOperation() ),
+			buildRequestResponseTypeDescription( n.defaultRequestResponseOperation() )
+		);
+		
+		interfaceExtenders.put( n.name(), extender );
+	}
+
+	public void visit( CourierDefinitionNode n )
+	{
+		currCourierInputPort = inputPorts.get( n.inputPortName() );
+		if ( currCourierInputPort == null ) {
+			error( n.context(), "cannot find input port: " + n.inputPortName() );
+		} else {
+			n.body().accept( this );
+		}
+		currCourierInputPort = null;
+	}
+	
+	private OneWayOperation getExtendedOneWayOperation( String inputPortName, String operationName )
+	{
+		AggregationConfiguration conf = getAggregationConfiguration( inputPortName, operationName );
+		OneWayTypeDescription desc = conf.aggregatedInterface.oneWayOperations().get( operationName );
+		Type extenderType = null;
+		if ( conf.interfaceExtender != null ) {
+			OneWayTypeDescription extenderDesc = conf.interfaceExtender.getOneWayTypeDescription( operationName );
+			if ( extenderDesc != null ) {
+				extenderType = extenderDesc.requestType();
+			}
+		}
+
+		return new OneWayOperation(
+			operationName,
+			Type.merge( desc.requestType(), extenderType )
+		);
+	}
+	
+	private RequestResponseOperation getExtendedRequestResponseOperation( String inputPortName, String operationName )
+	{
+		AggregationConfiguration conf = getAggregationConfiguration( inputPortName, operationName );
+		RequestResponseTypeDescription desc = conf.aggregatedInterface.requestResponseOperations().get( operationName );
+
+		Map< String, Type > extendedFaultMap = new HashMap< String, Type >();
+		extendedFaultMap.putAll( desc.faults() );
+		
+		Type requestExtenderType = null;
+		Type responseExtenderType = null;
+		
+		if ( conf.interfaceExtender != null ) {
+			RequestResponseTypeDescription extenderDesc = conf.interfaceExtender.getRequestResponseTypeDescription( operationName );
+			if ( extenderDesc != null ) {
+				requestExtenderType = extenderDesc.requestType();
+				responseExtenderType = extenderDesc.responseType();
+				extendedFaultMap.putAll( extenderDesc.faults() );
+			}
+		}
+		return new RequestResponseOperation(
+			operationName,
+			new RequestResponseTypeDescription(
+				Type.merge( desc.requestType(), requestExtenderType ),
+				Type.merge( desc.responseType(), responseExtenderType ),
+				extendedFaultMap
+			)
+		);
+	}
+
+	public void visit( CourierChoiceStatement n )
+	{
+		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
+			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
+				currCourierOperationName = entry.getKey();
+				currCourierInputPort.aggregationMap().put(
+					entry.getKey(),
+					AggregatedOperation.createWithCourier(
+						getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
+						buildVariablePath( branch.inputVariablePath ),
+						buildProcess( branch.body )
+					)
+				);
+			}
+		}
+		
+		for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
+			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
+				currCourierOperationName = entry.getKey();
+				currCourierInputPort.aggregationMap().put(
+					entry.getKey(),
+					AggregatedOperation.createWithCourier(
+						getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
+						buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
+						buildProcess( branch.body )
+					)
+				);
+			}
+		}
+		
+		for( CourierChoiceStatement.OperationOneWayBranch branch : n.operationOneWayBranches() ) {
+			currCourierOperationName = branch.operation;
+			currCourierInputPort.aggregationMap().put(
+				branch.operation,
+				AggregatedOperation.createWithCourier(
+					getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
+					buildVariablePath( branch.inputVariablePath ),
+					buildProcess( branch.body )
+				)
+			);
+		}
+		
+		for( CourierChoiceStatement.OperationRequestResponseBranch branch : n.operationRequestResponseBranches() ) {
+			currCourierOperationName = branch.operation;
+			currCourierInputPort.aggregationMap().put(
+				branch.operation,
+				AggregatedOperation.createWithCourier(
+					getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
+					buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
+					buildProcess( branch.body )
+				)
+			);
+		}
+		
+		currCourierOperationName = null;
+	}
+
+	public void visit( NotificationForwardStatement n )
+	{
+		AggregationConfiguration conf = getAggregationConfiguration( currCourierInputPort.name(), currCourierOperationName );
+		try {
+			OutputPort outputPort;
+			if ( n.outputPortName() != null ) {
+				outputPort = interpreter.getOutputPort( n.outputPortName() );
+			} else {
+				outputPort = conf.defaultOutputPort;
+			}
+			currProcess = new ForwardNotificationProcess(
+				currCourierOperationName,
+				outputPort,
+				buildVariablePath( n.outputVariablePath() ),
+				conf.aggregatedInterface.oneWayOperations().get( currCourierOperationName ),
+				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getOneWayTypeDescription( currCourierOperationName )
+			);
+		} catch( InvalidIdException e ) {
+			error( n.context(), e );
+		}
+	}
+
+	public void visit( SolicitResponseForwardStatement n )
+	{
+		AggregationConfiguration conf = getAggregationConfiguration( currCourierInputPort.name(), currCourierOperationName );
+		try {
+			OutputPort outputPort;
+			if ( n.outputPortName() != null ) {
+				outputPort = interpreter.getOutputPort( n.outputPortName() );
+			} else {
+				outputPort = conf.defaultOutputPort;
+			}
+			currProcess = new ForwardSolicitResponseProcess(
+				currCourierOperationName,
+				outputPort,
+				buildVariablePath( n.outputVariablePath() ),
+				buildVariablePath( n.inputVariablePath() ),
+				conf.aggregatedInterface.requestResponseOperations().get( currCourierOperationName ),
+				(conf.interfaceExtender == null) ? null : conf.interfaceExtender.getRequestResponseTypeDescription( currCourierOperationName )
+			);
+		} catch( InvalidIdException e ) {
+			error( n.context(), e );
+		}
+	}
 }
 

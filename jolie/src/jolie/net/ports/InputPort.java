@@ -23,7 +23,7 @@ package jolie.net.ports;
 
 import java.net.URI;
 import java.util.Map;
-import jolie.runtime.AggregatedOperation;
+import jolie.net.AggregatedOperation;
 import jolie.runtime.VariablePath;
 
 /**
@@ -32,6 +32,7 @@ import jolie.runtime.VariablePath;
  */
 public class InputPort implements Port
 {
+	private final String name;
 	private final Interface iface;
 	private final VariablePath protocolConfigurationPath;
 	private final Map< String, AggregatedOperation > aggregationMap;
@@ -40,6 +41,7 @@ public class InputPort implements Port
 
 	/**
 	 * Constructor
+	 * @param name the name of the input port
 	 * @param location the location of the input port
 	 * @param protocolConfigurationPath the protocol configuration variable path of this port
 	 * @param iface the interface of this input port
@@ -47,37 +49,61 @@ public class InputPort implements Port
 	 * @param redirectionMap the redirection map for this input port
 	 */
 	public InputPort(
+		String name,
 		URI location,
 		VariablePath protocolConfigurationPath,
 		Interface iface,
 		Map< String, AggregatedOperation > aggregationMap,
 		Map< String, OutputPort > redirectionMap
 	) {
+		this.name = name;
 		this.location = location;
 		this.iface = iface;
 		this.aggregationMap = aggregationMap;
 		this.redirectionMap = redirectionMap;
 		this.protocolConfigurationPath = protocolConfigurationPath;
 	}
+	
+	/**
+	 * Returns the name of this input port
+	 * @return the name of this input port
+	 */
+	public String name()
+	{
+		return name;
+	}
 
+	/**
+	 * Returns the {@link Interface} of this input port
+	 * @return the {@link Interface} of this input port
+	 */
 	public Interface getInterface()
 	{
 		return iface;
 	}
 
+	/**
+	 * Returns the variable path to the value containing the protocol configuration for this input port
+	 * @return the variable path to the value containing the protocol configuration for this input port
+	 * @see VariablePath
+	 */
 	public VariablePath protocolConfigurationPath()
 	{
 		return protocolConfigurationPath;
 	}
 
+	/**
+	 * Returns the aggregation map for this input port.
+	 * The keys of the map are the names of the aggregated operations.
+	 */
 	public Map< String, AggregatedOperation > aggregationMap()
 	{
 		return aggregationMap;
 	}
 
 	/**
-	 * Returns the redirection map of this listener.
-	 * @return the redirection map of this listener
+	 * Returns the redirection map of this input port.
+	 * @return the redirection map of this input port
 	 */
 	public Map< String, OutputPort > redirectionMap()
 	{
@@ -117,6 +143,11 @@ public class InputPort implements Port
 		return iface.containsOperation( operationName );
 	}
 
+	/**
+	 * Returns the operation aggregated by this input port that is identified by operationName
+	 * @param operationName the name of the aggregated operation
+	 * @return the operation aggregated by this input port that is identified by operationName
+	 */
 	public AggregatedOperation getAggregatedOperation( String operationName )
 	{
 		return aggregationMap.get( operationName );

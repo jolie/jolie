@@ -102,7 +102,7 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 
 		// We did not find any correlating session
-		if ( interpreter.startSession( message, channel ) ) {
+		if ( interpreter.startServiceSession( message, channel ) ) {
 			return;
 		}
 

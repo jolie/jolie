@@ -21,6 +21,7 @@
 
 package jolie.runtime.typing;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -52,10 +53,24 @@ class TypeImpl extends Type
 			subTypeKeySet = subTypes.keySet();
 		}
 	}
+	
+	protected Set< Entry< String, Type > > subTypeSet()
+	{
+		return subTypeSet;
+	}
 
 	protected Range cardinality()
 	{
 		return cardinality;
+	}
+	
+	public void cutChildrenFromValue( Value value )
+	{
+		if ( subTypeKeySet != null ) {
+			for( String childName : subTypeKeySet ) {
+				value.children().remove( childName );
+			}
+		}
 	}
 
 	protected Value cast( Value value, StringBuilder pathBuilder )
@@ -206,13 +221,18 @@ class TypeImpl extends Type
 
 		return false;
 	}
+	
+	protected NativeType nativeType()
+	{
+		return nativeType;
+	}
 }
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public abstract class Type
+public abstract class Type implements Cloneable
 {
 	public static final Type UNDEFINED =
 		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null );
@@ -230,6 +250,22 @@ public abstract class Type
 	{
 		return new TypeLink( linkedTypeName, cardinality );
 	}
+	
+	public static Type merge( Type t1, Type t2 )
+	{
+		NativeType nativeType = t1.nativeType();
+		Range cardinality = t1.cardinality();
+		Map< String, Type > subTypes = new HashMap< String, Type >();
+		for( Entry< String, Type > entry : t1.subTypeSet() ) {
+			subTypes.put( entry.getKey(), entry.getValue() );
+		}
+		if ( t2 != null ) {
+			for( Entry< String, Type > entry : t2.subTypeSet() ) {
+				subTypes.put( entry.getKey(), entry.getValue() );
+			}
+		}
+		return create( nativeType, cardinality, false, subTypes );
+	}
 
 	public void check( Value value )
 		throws TypeCheckingException
@@ -243,7 +279,10 @@ public abstract class Type
 		return cast( value, new StringBuilder( "#Message" ) );
 	}
 
+	public abstract void cutChildrenFromValue( Value value );
+	protected abstract NativeType nativeType();
 	protected abstract Range cardinality();
+	protected abstract Set< Entry< String, Type > > subTypeSet();
 	protected abstract void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException;
 	protected abstract Value cast( Value value, StringBuilder pathBuilder )
@@ -260,6 +299,16 @@ public abstract class Type
 			this.linkedTypeName = linkedTypeName;
 			this.cardinality = cardinality;
 		}
+		
+		protected Set< Entry< String, Type > > subTypeSet()
+		{
+			return linkedType.subTypeSet();
+		}
+		
+		protected NativeType nativeType()
+		{
+			return linkedType.nativeType();
+		}
 
 		public String linkedTypeName()
 		{
@@ -269,6 +318,11 @@ public abstract class Type
 		public void setLinkedType( Type linkedType )
 		{
 			this.linkedType = linkedType;
+		}
+		
+		public void cutChildrenFromValue( Value value )
+		{
+			linkedType.cutChildrenFromValue( value );
 		}
 
 		protected Range cardinality()

@@ -1,0 +1,170 @@
+/***************************************************************************
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
+package jolie.process.courier;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.lang.Constants;
+import jolie.net.CommChannel;
+import jolie.net.CommMessage;
+import jolie.net.ports.OutputPort;
+import jolie.process.Process;
+import jolie.process.TransformationReason;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
+
+/**
+ * 
+ * @author Fabrizio Montesi
+ */
+public class ForwardSolicitResponseProcess implements Process
+{
+	private final String operationName;
+	private final OutputPort outputPort;
+	private final VariablePath outputVariablePath, inputVariablePath;
+	private final RequestResponseTypeDescription aggregatedTypeDescription, extenderTypeDescription;
+
+	public ForwardSolicitResponseProcess(
+			String operationName,
+			OutputPort outputPort,
+			VariablePath outputVariablePath,
+			VariablePath inputVariablePath,
+			RequestResponseTypeDescription aggregatedTypeDescription,
+			RequestResponseTypeDescription extenderTypeDescription
+	) {
+		this.operationName = operationName;
+		this.outputPort = outputPort;
+		this.outputVariablePath = outputVariablePath;
+		this.inputVariablePath = inputVariablePath;
+		this.aggregatedTypeDescription = aggregatedTypeDescription;
+		this.extenderTypeDescription = extenderTypeDescription;
+	}
+	
+	public Process clone( TransformationReason reason )
+	{
+		return new ForwardSolicitResponseProcess(
+			operationName,
+			outputPort,
+			outputVariablePath,
+			inputVariablePath,
+			aggregatedTypeDescription,
+			extenderTypeDescription
+		);
+	}
+
+	private void log( String message )
+	{
+		Interpreter.getInstance().logInfo( "[Forward solicit-response operation " + operationName + "@" + outputPort.id() + "]: " + message );
+	}
+
+	public void run()
+		throws FaultException
+	{
+		if ( ExecutionThread.currentThread().isKilled() ) {
+			return;
+		}
+
+		boolean verbose = Interpreter.getInstance().verbose();
+		
+		CommChannel channel = null;
+		try {
+			Value messageValue = outputVariablePath.evaluate();
+			if ( extenderTypeDescription != null ) {
+				extenderTypeDescription.requestType().cutChildrenFromValue( messageValue );
+			}
+			aggregatedTypeDescription.requestType().check( messageValue );
+			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
+
+			channel = outputPort.getCommChannel();
+			if ( verbose ) {
+				log( "sending request " + message.id() );
+			}
+			channel.send( message );
+			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
+			if ( verbose ) {
+				log( "request " + message.id() + " sent" );
+			}
+			CommMessage response = null;
+			do {
+				response = channel.recvResponseFor( message );
+			} while( response == null );
+			if ( verbose ) {
+				log( "received response for request " + response.id() );
+			}
+			
+			if ( inputVariablePath != null )	 {
+				inputVariablePath.setValue( response.value() );
+			}
+			
+			if ( response.isFault() ) {
+				Type faultType = aggregatedTypeDescription.getFaultType( response.fault().faultName() );
+				if ( faultType != null ) {
+					try {
+						faultType.check( response.fault().value() );
+					} catch( TypeCheckingException e ) {
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+					}
+				}
+				throw response.fault();
+			} else {
+				if ( aggregatedTypeDescription.responseType() != null ) {
+					try {
+						aggregatedTypeDescription.responseType().check( response.value() );
+					} catch( TypeCheckingException e ) {
+						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+					}
+				}
+			}
+
+			/*try {
+				installProcess.run();
+			} catch( ExitingException e ) { assert false; }*/
+		} catch( IOException e ) {
+			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+		} catch( URISyntaxException e ) {
+			Interpreter.getInstance().logSevere( e );
+		} catch( TypeCheckingException e ) {
+			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
+		} finally {
+			if ( channel != null ) {
+				try {
+					channel.release();
+				} catch( IOException e ) {
+					Interpreter.getInstance().logWarning( e );
+				}
+			}
+		}
+	}
+	
+	public boolean isKillable()
+	{
+		return true;
+	}
+}
