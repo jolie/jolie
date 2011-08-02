@@ -85,7 +85,7 @@ public class JavaGWTDocumentCreator {
                     writer.close();
 
                 } catch (IOException ex) {
-                    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(JavaGWTDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
@@ -140,13 +140,22 @@ public class JavaGWTDocumentCreator {
 
                 if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
                     counterInLineDefinition++;
+                    if (SourceVersion.isKeyword(((TypeDefinition) me.getValue()).id() )){
+                        builderHeaderclass.append("public class ").append("$").append(counterInLineDefinition).append("$").append(((TypeDefinition) me.getValue()).id() + " {" + "\n");
+                        VariableCreate(builderHeaderclass, ((TypeDefinition) me.getValue()));
+                        ConstructorCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false, new Integer(counterInLineDefinition));
+                        MethodsCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
+                        builderHeaderclass.append("}\n");
+                    }else{
+                         builderHeaderclass.append("public class ").append(((TypeDefinition) me.getValue()).id() + " {" + "\n");
+                        VariableCreate(builderHeaderclass, ((TypeDefinition) me.getValue()));
+                        ConstructorCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false, new Integer(counterInLineDefinition));
+                        MethodsCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
+                        builderHeaderclass.append("}\n");
 
-                    builderHeaderclass.append("public class ").append("$").append(counterInLineDefinition).append("$").append(((TypeDefinition) me.getValue()).id() + " {" + "\n");
 
-                    VariableCreate(builderHeaderclass, ((TypeDefinition) me.getValue()));
-                    ConstructorCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false, new Integer(counterInLineDefinition));
-                    MethodsCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
-                    builderHeaderclass.append("}\n");
+
+                    }
                 }
 
             }
@@ -171,7 +180,7 @@ public class JavaGWTDocumentCreator {
         try {
             writer.append(builderHeaderclass.toString());
         } catch (IOException ex) {
-            Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JavaGWTDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -213,9 +222,9 @@ public class JavaGWTDocumentCreator {
                         if (SourceVersion.isKeyword((((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()))) {
 
                             System.out.println("WARNING java reserved KEYWORD " + ((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + " in " + supportType.id() + "in" + supportType.context().sourceName());
-                            stringBuilder.append("private List< ").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append("> ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private java.util.List< ").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append("> ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
                         } else {
-                            stringBuilder.append("private List< ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append("> ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private java.util.List< ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append("> ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
                         }
 
                     } else {
@@ -224,7 +233,7 @@ public class JavaGWTDocumentCreator {
                             System.out.println("WARNING java reserved KEYWORD " + ((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + " in " + supportType.id() + "in" + supportType.context().sourceName());
                             stringBuilder.append("private ").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(" " + " ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
                         } else {
-                            stringBuilder.append("private ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(" " + "_").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(" " + " ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
                         }
                     }
                 } else if ((((TypeDefinition) typedefitionMapEntry.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) typedefitionMapEntry.getValue()).hasSubTypes())) {
@@ -237,9 +246,9 @@ public class JavaGWTDocumentCreator {
                         if (SourceVersion.isKeyword(((TypeDefinition) typedefitionMapEntry.getValue()).id())) {
                             counterInlineDefinition++;
                             System.out.println("WARNING java reserved KEYWORD " + ((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + " in " + supportType.id() + "in" + supportType.context().sourceName());
-                            stringBuilder.append("private List< ").append("$").append(counterInlineDefinition).append("$").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(">  _").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private java.util.List< ").append("$").append(counterInlineDefinition).append("$").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(">  _").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).id()).append(";\n");
                         } else {
-                            stringBuilder.append("private List< ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append("> " + "_").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private java.util.List< ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append("> " + " ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(";\n");
                         }
 
                     } else {
@@ -249,7 +258,7 @@ public class JavaGWTDocumentCreator {
                             a = ((TypeDefinition) typedefitionMapEntry.getValue()).id();
                             stringBuilder.append("private ").append("$").append(counterInlineDefinition).append("$").append(a).append(" _").append(a).append(";\n");
                         } else {
-                            stringBuilder.append("private ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(" " + "_").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(";\n");
+                            stringBuilder.append("private ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(" " + " ").append(((TypeDefinition) typedefitionMapEntry.getValue()).id()).append(";\n");
                         }
                     }
                     subtypePresent = true;
@@ -260,14 +269,14 @@ public class JavaGWTDocumentCreator {
 
                         String typeName = ((TypeDefinition) typedefitionMapEntry.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
-                            stringBuilder.append("private java.util.List<java.lang.Integer> " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.util.List<java.lang.Integer> " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
                         } else if (typeName.equals("double")) {
 
-                            stringBuilder.append("private java.util.List<java.lang.Double> " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.util.List<java.lang.Double> " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
 
 
                         } else if (typeName.equals("string")) {
-                            stringBuilder.append("private java.util.List<java.lang.String> " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.util.List<java.lang.String> " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
 
                         }
 
@@ -275,15 +284,15 @@ public class JavaGWTDocumentCreator {
                     } else {
                         String typeName = ((TypeDefinition) typedefitionMapEntry.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
-                            stringBuilder.append("private java.lang.Integer " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.lang.Integer " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
                         } else if (typeName.equals("double")) {
 
-                            stringBuilder.append("private java.lang.Double " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.lang.Double " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
 
 
                         } else if (typeName.equals("string")) {
                             //stringBuilder.append( "private List<String> " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n" );
-                            stringBuilder.append("private java.lang.String " + " " + "_" + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
+                            stringBuilder.append("private java.lang.String " + " " + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n");
 
                         }
                         //stringBuilder.append( "private " + ((TypeDefinition) typedefitionMapEntry.getValue()).nativeType().id() + " " + ((TypeDefinition) typedefitionMapEntry.getValue()).id() + ";\n" );
@@ -294,12 +303,11 @@ public class JavaGWTDocumentCreator {
 
             }
             stringBuilder.append("private joliex.gwt.client.Value v ;\n");
-            stringBuilder.append("private joliex.gwt.client.Value vReturn= new Value() ;\n");
+            stringBuilder.append("private joliex.gwt.client.Value vReturn= new joliex.gwt.client.Value() ;\n");
             stringBuilder.append("\n");
 
         }
-        System.out.println("At the end o Variable creation");
-        System.out.println(stringBuilder.toString());
+        
     }
 
     private void ConstructorCreate(StringBuilder stringBuilder, TypeDefinition type, boolean naturalType, Integer counter) {
@@ -344,9 +352,9 @@ public class JavaGWTDocumentCreator {
                     if (((TypeDefinitionLink) typedefitionMapEntry.getValue()).cardinality().max() > 1) {
                         if (SourceVersion.isKeyword((((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()))) {
 
-                            stringBuilder.append(nameVariable).append("= new LinkedList<").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
+                            stringBuilder.append(nameVariable).append("= new java.util.LinkedList<").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
                         } else {
-                            stringBuilder.append(nameVariable).append("= new LinkedList<").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
+                            stringBuilder.append(nameVariable).append("= new java.util.LinkedList<").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
                         }
                         stringBuilder.append("}\n");
                     } else {
@@ -368,18 +376,18 @@ public class JavaGWTDocumentCreator {
                         if (SourceVersion.isKeyword(((TypeDefinition) typedefitionMapEntry.getValue()).id())) {
                             counterKeyWords++;
 
-                            stringBuilder.append("_").append(nameVariable).append("= new LinkedList<").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(">();" + "\n");
+                            stringBuilder.append(" ").append(nameVariable).append("= new java.util.LinkedList<").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(">();" + "\n");
                         } else {
-                            stringBuilder.append("_").append(nameVariable).append("= new LinkedList<").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(">();" + "\n");
+                            stringBuilder.append(" ").append(nameVariable).append("= new java.util.LinkedList<").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(">();" + "\n");
 
                         }
                         stringBuilder.append("}\n");
                     } else {
                         if (SourceVersion.isKeyword(((TypeDefinition) typedefitionMapEntry.getValue()).id())) {
                             counterKeyWords++;
-                            stringBuilder.append("_").append(nameVariable).append("=new ").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append("( v.getFirstChild(\"").append(nameVariable).append("\"));" + "\n");
+                            stringBuilder.append(nameVariable).append("=new ").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append("( v.getFirstChild(\"").append(nameVariable).append("\"));" + "\n");
                         } else {
-                            stringBuilder.append("_").append(nameVariable).append("=new ").append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append("( v.getFirstChild(\"").append(nameVariable).append("\"));" + "\n");
+                            stringBuilder.append(nameVariable).append("=new ").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append("( v.getFirstChild(\"").append(nameVariable).append("\"));" + "\n");
                         }
                         stringBuilder.append("}\n");
                     }
@@ -395,15 +403,15 @@ public class JavaGWTDocumentCreator {
 
                         String typeName = ((TypeDefinition) typedefitionMapEntry.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
-                            stringBuilder.append("_" + nameVariable + "= new LinkedList<java.lang.Integer>();" + "\n");
+                            stringBuilder.append( nameVariable + "= new java.util.LinkedList<java.lang.Integer>();" + "\n");
 
                         } else if (typeName.equals("double")) {
-                            stringBuilder.append("_" + nameVariable + "= new LinkedList<java.lang.Double>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<java.lang.Double>();" + "\n");
 
 
                         } else if (typeName.equals("string")) {
 
-                            stringBuilder.append("_" + nameVariable + "= new LinkedList<java.lang.String>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<java.lang.String>();" + "\n");
 
 
 
@@ -415,15 +423,15 @@ public class JavaGWTDocumentCreator {
                         //stringBuilder.append( "if (v.hasChildren(\"").append( nameVariable).append( "\")){\n");
                         if (typeName.equals("int")) {
 
-                            stringBuilder.append("_" + nameVariable + "=new java.lang.Integer(v.getFirstChild(\"" + nameVariable + "\").intValue());" + "\n");
+                            stringBuilder.append(nameVariable + "=new java.lang.Integer(v.getFirstChild(\"" + nameVariable + "\").intValue());" + "\n");
                             stringBuilder.append("}\n");
                         } else if (typeName.equals("double")) {
 
-                            stringBuilder.append("_" + nameVariable + "=new java.lang.Double(v.getFirstChild(\"" + nameVariable + "\").doubleValue());" + "\n");
+                            stringBuilder.append(nameVariable + "=new java.lang.Double(v.getFirstChild(\"" + nameVariable + "\").doubleValue());" + "\n");
                             stringBuilder.append("}\n");
 
                         } else if (typeName.equals("string")) {
-                            stringBuilder.append("_" + nameVariable + "=v.getFirstChild(\"" + nameVariable + "\").strValue();" + "\n");
+                            stringBuilder.append(  nameVariable + "=v.getFirstChild(\"" + nameVariable + "\").strValue();" + "\n");
                             stringBuilder.append("}\n");
 
 
@@ -446,7 +454,7 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                         stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                         stringBuilder.append("\t\t" + ((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + " support").append(nameVariable).append("=new " + ((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + "(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append("));\n");
-                        stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                        stringBuilder.append("\t\t"  + nameVariable + ".add(support" + nameVariable + ");\n");
                         stringBuilder.append("\t}\n");
                         //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + ">();"+ "\n" );
                         stringBuilder.append("}\n");
@@ -460,7 +468,7 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                         stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                         stringBuilder.append("\t\t" + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + " support").append(nameVariable).append("=new " + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + "(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append("));\n");
-                        stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                        stringBuilder.append("\t\t"  + nameVariable + ".add(support" + nameVariable + ");\n");
                         stringBuilder.append("\t}\n");
                         //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id() + ">();"+ "\n" );
                         stringBuilder.append("}\n");
@@ -479,13 +487,13 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n");
                             stringBuilder.append("\t" + "for(int counter").append(nameVariable).append("=0;" + "counter").append(nameVariable).append("<v.getChildren(\"").append(nameVariable).append("\").size();counter").append(nameVariable).append("++){\n");
                             stringBuilder.append("\t\t" + "java.lang.Integer support").append(nameVariable).append("=new java.lang.Integer(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").intValue());\n");
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                            stringBuilder.append("\t\t"  + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("\t" + "}\n");
                         } else if (typeName.equals("double")) {
-                            stringBuilder.append(nameVariable + "= new LinkedList<Double>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<Double>();" + "\n");
                             stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                             stringBuilder.append("\t\t" + "java.lang.Double support").append(nameVariable).append("=new java.lang.Double(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").doubleValue());\n");
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                            stringBuilder.append("\t\t"   + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("\t}\n");
 
 
@@ -493,7 +501,7 @@ public class JavaGWTDocumentCreator {
 
                             stringBuilder.append("for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                             stringBuilder.append("\t\t" + "java.lang.String support").append(nameVariable).append("=new java.lang.String(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").strValue());\n");
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("}\n");
 
 
@@ -523,7 +531,7 @@ public class JavaGWTDocumentCreator {
             if (SourceVersion.isKeyword(supportType.id())) {
                 stringBuilder.append("public ").append("$").append(counter).append("$").append(supportType.id()).append("(){\n");
             } else {
-                stringBuilder.append("public ").append(supportType.id()).append(supportType.id()).append("(){\n");
+                stringBuilder.append("public ").append(supportType.id()).append("(){\n");
             }
         }
 
@@ -545,9 +553,9 @@ public class JavaGWTDocumentCreator {
                     if (((TypeDefinitionLink) typedefitionMapEntry.getValue()).cardinality().max() > 1) {
                         if (SourceVersion.isKeyword((((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()))) {
 
-                            stringBuilder.append(nameVariable).append("= new LinkedList<").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
+                            stringBuilder.append(nameVariable).append("= new java.util.LinkedList<").append("$").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
                         } else {
-                            stringBuilder.append(nameVariable).append("= new LinkedList<").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
+                            stringBuilder.append(nameVariable).append("= new java.util.LinkedList<").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedType().id()).append(">();" + "\n");
                         }
 
 
@@ -562,16 +570,16 @@ public class JavaGWTDocumentCreator {
 
                         String typeName = ((TypeDefinition) typedefitionMapEntry.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
-                            stringBuilder.append(nameVariable + "= new LinkedList<Integer>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<Integer>();" + "\n");
 
                         } else if (typeName.equals("double")) {
-                            stringBuilder.append(nameVariable + "= new LinkedList<Double>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<Double>();" + "\n");
 
 
 
                         } else if (typeName.equals("string")) {
 
-                            stringBuilder.append(nameVariable + "= new LinkedList<String>();" + "\n");
+                            stringBuilder.append(nameVariable + "= new java.util.LinkedList<String>();" + "\n");
 
 
 
@@ -582,8 +590,7 @@ public class JavaGWTDocumentCreator {
             }
         }
         stringBuilder.append("}\n");
-        System.out.println("At the end of Constructor creation");
-        System.out.println(stringBuilder.toString());
+       
     }
 
     private void MethodsCreate(StringBuilder stringBuilder, TypeDefinition type, boolean naturalType) {
@@ -660,10 +667,10 @@ public class JavaGWTDocumentCreator {
                         } else {
 
                             stringBuilder.append("public ").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedTypeName()).append(" get").append(nameVariableOp).append("(){\n");
-                            stringBuilder.append("\n\treturn " + "_").append(nameVariable).append(";\n");
+                            stringBuilder.append("\n\treturn " + " ").append(nameVariable).append(";\n");
                             stringBuilder.append("}\n");
                             stringBuilder.append("public " + "void set").append(nameVariableOp).append("(").append(((TypeDefinitionLink) typedefitionMapEntry.getValue()).linkedTypeName()).append(" value ){\n");
-                            stringBuilder.append("\n\t" + "_").append(nameVariable).append("=value;\n");
+                            stringBuilder.append("\n\t" + " ").append(nameVariable).append("=value;\n");
                             stringBuilder.append("}\n");
                         }
                     }
@@ -679,46 +686,46 @@ public class JavaGWTDocumentCreator {
                         if (SourceVersion.isKeyword(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id())) {
                             counterKeyWords++;
                             stringBuilder.append("public ").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(" get").append(nameVariableOp).append("Value(int index){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".get(index);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
                             stringBuilder.append("public " + "void add").append(nameVariableOp).append("Value( ").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(" value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\n\t\t" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("\n\t\t" + " " + nameVariable + ".add(value);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".remove(index);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                         } else {
 
                             stringBuilder.append("public " + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + " get" + nameVariableOp + "Value(int index){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".get(index);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + " value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\n\t\t" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("\n\t\t" + " " + nameVariable + ".add(value);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".remove(index);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
@@ -729,20 +736,20 @@ public class JavaGWTDocumentCreator {
                         if (SourceVersion.isKeyword(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id())) {
                             counterKeyWords++;
                             stringBuilder.append("public ").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(" get").append(nameVariableOp).append("(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ";\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set").append(nameVariableOp).append("(").append("$").append(counterKeyWords).append("$").append(((TypeInlineDefinition) typedefitionMapEntry.getValue()).id()).append(" value ){\n");
-                            stringBuilder.append("\n\t" + "_" + nameVariable + "=value;\n");
+                            stringBuilder.append("\n\t" + " " + nameVariable + "=value;\n");
                             stringBuilder.append("}\n");
                         } else {
 
                             stringBuilder.append("public " + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ";\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "(" + ((TypeInlineDefinition) typedefitionMapEntry.getValue()).id() + " value ){\n");
-                            stringBuilder.append("\n\t" + "_" + nameVariable + "=value;\n");
+                            stringBuilder.append("\n\t" + " " + nameVariable + "=value;\n");
                             stringBuilder.append("}\n");
 
 
@@ -767,7 +774,7 @@ public class JavaGWTDocumentCreator {
 
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
@@ -775,37 +782,37 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(int value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
                             stringBuilder.append("\t\t" + "java.lang.Integer support").append(nameVariable).append("=new java.lang.Integer(value);\n");
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".add(" + "support" + nameVariable + " );\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".remove(index);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                         } else if (typeName.equals("double")) {
                             //stringBuilder.append(nameVariable +"= new LinkedList<Double>();"+ "\n" );
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
                             stringBuilder.append("public " + "double" + " get" + nameVariableOp + "Value(int index){\n");
-                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index).doubleValue();\n");
+                            stringBuilder.append("\treturn " + " " + nameVariable + ".get(index).doubleValue();\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value( double value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
                             stringBuilder.append("\t\t" + "java.lang.Double support").append(nameVariable).append("=new java.lang.Double(value);\n");
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".add(" + "support" + nameVariable + " );\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".remove(index);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
@@ -813,22 +820,22 @@ public class JavaGWTDocumentCreator {
                         } else if (typeName.equals("string")) {
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "String" + " get" + nameVariableOp + "Value(int index){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".get(index);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value( java.lang.String value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".add(value);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
-                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("\t\t" + " " + nameVariable + ".remove(index);\n");
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
@@ -844,34 +851,34 @@ public class JavaGWTDocumentCreator {
                         nameVariableOp = startingChar.toUpperCase() + remaningStr;
                         if (typeName.equals("int")) {
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".intValue();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".intValue();\n");
                             stringBuilder.append("}\n");
                             Integer a = new Integer(2);
 
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "Value(int value ){\n");
-                            stringBuilder.append("\n\t" + "_" + nameVariable + "=new java.lang.Integer(value);\n");
+                            stringBuilder.append("\n\t" + " " + nameVariable + "=new java.lang.Integer(value);\n");
                             stringBuilder.append("}\n");
 
                         } else if (typeName.equals("double")) {
                             //stringBuilder.append(nameVariable +"= new LinkedList<Double>();"+ "\n" );
                             stringBuilder.append("public " + "double" + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".doubleValue();\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ".doubleValue();\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "Value( double value ){\n");
-                            stringBuilder.append("\n\t\t" + "_" + nameVariable + "=new java.lang.Double(value);\n");
+                            stringBuilder.append("\n\t\t" + " " + nameVariable + "=new java.lang.Double(value);\n");
                             stringBuilder.append("}\n");
 
 
                         } else if (typeName.equals("string")) {
 
                             stringBuilder.append("public " + "String" + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("\n\treturn " + " " + nameVariable + ";\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "Value( java.lang.String value ){\n");
-                            stringBuilder.append("\n\t\t" + "_" + nameVariable + "=value;\n");
+                            stringBuilder.append("\n\t\t" + " " + nameVariable + "=value;\n");
                             stringBuilder.append("}\n");
 
 
@@ -889,7 +896,7 @@ public class JavaGWTDocumentCreator {
 
         }
         //// getVALUE
-        stringBuilder.append("public " + "Value get" + "Value(){\n");
+        stringBuilder.append("public " + "joliex.gwt.client.Value get" + "Value(){\n");
         Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
         Iterator i = supportSet.iterator();
 
@@ -898,14 +905,15 @@ public class JavaGWTDocumentCreator {
             //Value v
             //v.getNewChild( nameVariable ).deepCopy( v );
             //v.hasChildren( nameVariable );
+            stringBuilder.append("vReturn = new joliex.gwt.client.Value();\n");
             if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink) {
                 nameVariable = ((TypeDefinitionLink) me.getValue()).id();
 
                 if (((TypeDefinitionLink) me.getValue()).cardinality().max() > 1) {
 //
-                    stringBuilder.append("if(!(_").append(nameVariable).append(".isEmpty()) && (_").append(nameVariable).append("!=null)){\n");
-                    stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
-                    stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").deepCopy(" + "_" + nameVariable + ".get(counter" + nameVariable + ").getValue());\n");
+                    stringBuilder.append("if(!(").append(nameVariable).append(".isEmpty()) && (").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + " " + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                    stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").deepCopy(" + " " + nameVariable + ".get(counter" + nameVariable + ").getValue());\n");
                     stringBuilder.append("\t}\n");
                     stringBuilder.append("}\n");
 
@@ -915,8 +923,8 @@ public class JavaGWTDocumentCreator {
 
                 } else {
 //
-                    stringBuilder.append("if((_").append(nameVariable).append("!=null)){\n");
-                    stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".deepCopy(" + "_" + nameVariable + ".getValue());\n");
+                    stringBuilder.append("if((").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".deepCopy(" + " " + nameVariable + ".getValue());\n");
                     stringBuilder.append("}\n");
 
 
@@ -927,7 +935,7 @@ public class JavaGWTDocumentCreator {
 
                 nameVariable = ((TypeDefinition) me.getValue()).id();
                 if (((TypeDefinition) me.getValue()).cardinality().max() > 1) {
-                    stringBuilder.append("if(!(_").append(nameVariable).append(".isEmpty()) && (_").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("if(!(").append(nameVariable).append(".isEmpty()) && (_").append(nameVariable).append("!=null)){\n");
                     String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
 
                     if (typeName.equals("int")) {
@@ -935,8 +943,8 @@ public class JavaGWTDocumentCreator {
 //						stringBuilder.append( "\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n" );
 //						stringBuilder.append( "\t\tv.getChild(\"" + nameVariable + "\")" + ".set(counter" + nameVariable + ";new Value(" + nameVariable + ".get(counter" + nameVariable + ").intValue()));\n" );
 //						stringBuilder.append( "\t}\n}else{\n" );
-                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
-                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
+                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + " " + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").setValue(" + " " + nameVariable + ".get(counter" + nameVariable + "));\n");
                         stringBuilder.append("\t}");
 //						stringBuilder.append( "\n}\n" );
 
@@ -946,14 +954,14 @@ public class JavaGWTDocumentCreator {
                     } else if (typeName.equals("double")) {
 
 
-                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
-                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
+                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + " " + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").setValue(" + " " + nameVariable + ".get(counter" + nameVariable + "));\n");
                         stringBuilder.append("\t}");
                         //stringBuilder.append( "\n}\n" );
                     } else if (typeName.equals("string")) {
 //						
-                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
-                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
+                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + " " + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + " " + nameVariable + ".get(counter" + nameVariable + "));\n");
                         stringBuilder.append("\t}");
 
 
@@ -966,14 +974,14 @@ public class JavaGWTDocumentCreator {
                     String startingChar = nameVariable.substring(0, 1);
                     String remaningStr = nameVariable.substring(1, nameVariable.length());
                     nameVariableOp = startingChar.toUpperCase() + remaningStr;
-                    stringBuilder.append("if((_").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("if((").append(nameVariable).append("!=null)){\n");
                     if (typeName.equals("int")) {
 //
-                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
+                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + " " + nameVariable + ");\n");
 
                     } else if (typeName.equals("double")) {
 
-                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
+                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + " " + nameVariable + ");\n");
 //						//stringBuilder.append("\t}");
 //						stringBuilder.append( "}\n" );
 
@@ -981,7 +989,7 @@ public class JavaGWTDocumentCreator {
                     } else if (typeName.equals("string")) {
 
 //
-                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
+                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + " " + nameVariable + ");\n");
 
 
 
