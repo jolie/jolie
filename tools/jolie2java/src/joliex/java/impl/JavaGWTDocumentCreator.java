@@ -303,7 +303,7 @@ public class JavaGWTDocumentCreator {
 
             }
             stringBuilder.append("private joliex.gwt.client.Value v ;\n");
-            stringBuilder.append("private joliex.gwt.client.Value vReturn= new joliex.gwt.client.Value() ;\n");
+            stringBuilder.append("private joliex.gwt.client.Value vReturn ;\n");
             stringBuilder.append("\n");
 
         }
@@ -899,13 +899,13 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("public " + "joliex.gwt.client.Value get" + "Value(){\n");
         Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
         Iterator i = supportSet.iterator();
-
+         stringBuilder.append("vReturn = new joliex.gwt.client.Value();\n");
         while (i.hasNext()) {
             Map.Entry me = (Map.Entry) i.next();
             //Value v
             //v.getNewChild( nameVariable ).deepCopy( v );
             //v.hasChildren( nameVariable );
-            stringBuilder.append("vReturn = new joliex.gwt.client.Value();\n");
+           
             if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink) {
                 nameVariable = ((TypeDefinitionLink) me.getValue()).id();
 
