@@ -84,7 +84,7 @@ public class HtmlDocumentCreator
 			// extracts interfaces from aggregated outputPorts
 			for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
 				int i = 0;
-				while( !inputPort.aggregationList()[x].equals( outputPortList[i].id() ) ) {
+				while( !inputPort.aggregationList()[x].outputPortList()[0].equals( outputPortList[i].id() ) ) {
 					i++;
 				}
 				for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
