@@ -64,20 +64,23 @@ public class JavaScriptCommChannel extends AbstractCommChannel implements Pollab
 		} catch( NoSuchMethodException e ) {
 			throw new IOException( e );
 		}
+		CommMessage response;
 		if ( returnValue != null ) {
 			Value value = Value.create();
 			value.setValue( returnValue );
-			CommMessage response = new CommMessage(
+			response = new CommMessage(
 						message.id(),
 						message.operationName(),
 						message.resourcePath(),
 						value,
 						null
 					);
-			synchronized( messages ) {
-				messages.add( response );
-				messages.notifyAll();
-			}
+		} else {
+			response = CommMessage.createEmptyResponse( message );
+		}
+		synchronized( messages ) {
+			messages.add( response );
+			messages.notifyAll();
 		}
 	}
 
