@@ -37,6 +37,8 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ProgramInspector;
 
 /**
@@ -88,8 +90,8 @@ public class HtmlDocumentCreator
 					i++;
 				}
 				for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
-					jolieDocWriter.addInterface( interfaceDefinition );
-					addOperations( interfaceDefinition );
+					jolieDocWriter.addInterface( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ));
+					addOperations( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ) );
 				}
 			}
 			jolieDocWriter.write();
@@ -159,7 +161,6 @@ public class HtmlDocumentCreator
 	private void addSubTypes( TypeDefinition type )
 		throws IOException
 	{
-
 		if ( type.hasSubTypes() ) {
 			for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
 				if ( entry.getValue() instanceof TypeDefinitionLink ) {
@@ -167,6 +168,10 @@ public class HtmlDocumentCreator
 						types.add( ((TypeDefinitionLink) entry.getValue()).linkedType().id() );
 						jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
 						addSubTypes( ((TypeDefinitionLink) entry.getValue()).linkedType() );
+					}
+				} else if ( entry.getValue() instanceof TypeInlineDefinition ) {
+					if ( entry.getValue().hasSubTypes() ) {
+						addSubTypes( entry.getValue() );
 					}
 				}
 			}

@@ -201,7 +201,6 @@ public class JolieDocWriter
 
 			// scanning operations into the interface
 			ArrayList<String> keylist = new ArrayList<String>();
-				System.out.print( "ciao0");
 			for( String key : interfaceDefinition.operationsMap().keySet() ) {
 				keylist.add( key );
 			}
