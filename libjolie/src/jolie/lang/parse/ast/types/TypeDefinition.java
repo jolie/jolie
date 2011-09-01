@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Elvis Ciotti                                    *
  *   Copyright (C) 2009 by Fabrizio Montesi                                *
+ *   Copyright (C) 2011 by Claudio Guidi                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -26,6 +27,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
@@ -123,6 +125,43 @@ public abstract class TypeDefinition extends OLSyntaxNode
 		}
 
 		return true;
+	}
+
+	/**
+	 * @author Claudio Guidi
+	 */
+	public static TypeDefinition extend( TypeDefinition inputType, TypeDefinition extender, String prefix_name ) {
+
+		TypeDefinition newType = new TypeInlineDefinition( inputType.context(), prefix_name + "_" + inputType.id(), inputType.nativeType(), inputType.cardinality );;
+
+		if ( inputType instanceof TypeInlineDefinition ) {
+
+
+			if ( inputType.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : inputType.subTypes() ) {
+					((TypeInlineDefinition) newType).putSubType( subType.getValue() );
+				}
+			}
+			if ( extender.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : extender.subTypes() ) {
+					((TypeInlineDefinition) newType).putSubType( subType.getValue() );
+				}
+			}
+
+		} else if ( inputType instanceof TypeDefinitionLink ) {
+			newType = extend( ((TypeDefinitionLink) inputType).linkedType(), extender, prefix_name );
+			
+		} else if ( inputType instanceof TypeDefinitionUndefined ) {
+			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), prefix_name + "_" + inputType.id(), NativeType.VOID, inputType.cardinality );
+
+			if ( extender.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : extender.subTypes() ) {
+					newTid.putSubType( subType.getValue() );
+				}
+			}
+			newType = newTid;
+		}
+		return newType;
 	}
 
 	/**
