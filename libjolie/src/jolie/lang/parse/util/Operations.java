@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Claudio Guidi                                   *
+ *   Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,7 +18,6 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.lang.parse.util;
 
 import java.util.HashMap;
@@ -31,30 +30,37 @@ import jolie.lang.parse.ast.types.TypeDefinition;
  *
  * @author Claudio Guidi
  */
-public class Operations {
-
-	public static RequestResponseOperationDeclaration extend( RequestResponseOperationDeclaration operation, RequestResponseOperationDeclaration extender, String prefix_name ) {
-
+public class Operations
+{
+	public static RequestResponseOperationDeclaration extend(
+		RequestResponseOperationDeclaration operation,
+		RequestResponseOperationDeclaration extender,
+		String namePrefix
+	) {
 		TypeDefinition newRequestType = operation.requestType();
 		TypeDefinition newResponseType = operation.responseType();
 		Map<String, TypeDefinition> extendedFaultMap = new HashMap<String, TypeDefinition>();
 		extendedFaultMap.putAll( operation.faults() );
 		if ( extender != null ) {
-			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), prefix_name );
-			newResponseType = TypeDefinition.extend( operation.responseType(), extender.responseType(), prefix_name );
+			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), namePrefix );
+			newResponseType = TypeDefinition.extend( operation.responseType(), extender.responseType(), namePrefix );
 			extendedFaultMap.putAll( extender.faults() );
 		}
-		RequestResponseOperationDeclaration newOp = 
+		RequestResponseOperationDeclaration newOp =
 			new RequestResponseOperationDeclaration( operation.context(), operation.id(), newRequestType, newResponseType, extendedFaultMap );
 
 		return newOp;
 	}
 
-	public static OneWayOperationDeclaration extend( OneWayOperationDeclaration operation, OneWayOperationDeclaration extender, String prefix_name ) {
+	public static OneWayOperationDeclaration extend(
+		OneWayOperationDeclaration operation,
+		OneWayOperationDeclaration extender,
+		String namePrefix
+	) {
 
 		TypeDefinition newRequestType = operation.requestType();
 		if ( extender != null ) {
-			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), prefix_name );
+			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), namePrefix );
 		}
 		OneWayOperationDeclaration newOp =
 			new OneWayOperationDeclaration( operation.context(), operation.id() );
@@ -62,5 +68,4 @@ public class Operations {
 
 		return newOp;
 	}
-
 }
