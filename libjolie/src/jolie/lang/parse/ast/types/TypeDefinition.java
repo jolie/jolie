@@ -114,6 +114,10 @@ public abstract class TypeDefinition extends OLSyntaxNode
 				}
 
 				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
+					TypeDefinition rightSubType = right.getSubType( entry.getKey() );
+					if ( rightSubType == null ) {
+						return false;
+					}
 					if ( entry.getValue().isEquivalentTo( right.getSubType( entry.getKey() ) ) == false ) {
 						return false;
 					}
