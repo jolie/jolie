@@ -75,8 +75,8 @@ public class NamedStatementParser
 						statement.setDate( index,
 							Date.valueOf(
 								date.getFirstChild( "year").intValue()
-								+ "-" + date.getFirstChild( "month" )
-								+ "-" + date.getFirstChild( "day" )
+								+ "-" + date.getFirstChild( "month" ).intValue()
+								+ "-" + date.getFirstChild( "day" ).intValue()
 							)
 						);
 					}
