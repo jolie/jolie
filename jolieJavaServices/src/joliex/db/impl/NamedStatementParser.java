@@ -41,6 +41,10 @@ import jolie.runtime.Value;
  */
 public class NamedStatementParser
 {
+	private static class TypeKeywords {
+		private final static String DATE = "Date";
+	}
+
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
 	private final PreparedStatement statement;
 
@@ -65,8 +69,8 @@ public class NamedStatementParser
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
 			} else {
-				if ( v.hasChildren( "Date" ) ) {
-					Value date = v.getFirstChild( "Date" );
+				if ( v.hasChildren( TypeKeywords.DATE ) ) {
+					Value date = v.getFirstChild( TypeKeywords.DATE );
 					for( Integer index : entry.getValue() ) {
 						statement.setDate( index,
 							Date.valueOf(
