@@ -23,6 +23,8 @@ package jolie.lang.parse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 
 /**
@@ -238,9 +240,10 @@ public class Scanner
 	}
 	
 
-	private final InputStream stream;				// input stream
+	private final InputStream stream;		// input stream
+	private final Reader reader;		// data input
 	protected char ch;						// current character
-	protected int currByte;
+	protected int currInt;					// current stream int
 	protected int state;					// current state
 	private int line;						// current line
 	private final URI source;				// source name
@@ -255,6 +258,7 @@ public class Scanner
 		throws IOException
 	{
 		this.stream = stream;
+		this.reader = new InputStreamReader( stream );
 		this.source = source;
 		line = 1;
 		readChar();
@@ -344,21 +348,21 @@ public class Scanner
 		return ( c == '\n' || c == '\r' );
 	}
 	
-	public void readChar()
+	public final void readChar()
 		throws IOException
 	{
-		currByte = stream.read();
-		
-		ch = (char)currByte;
+		currInt = reader.read();
+
+		ch = (char)currInt;
 
 		if ( ch == '\n' ) {
 			line++;
 		}
 	}
 	
-	public byte currentByte()
+	public char currentCharacter()
 	{
-		return (byte)currByte;
+		return ch;
 	}
 	
 	public Token getToken()
@@ -367,11 +371,11 @@ public class Scanner
 		boolean keepRun = true;
 		state = 1;
 		
-		while ( currByte != -1 && isSeparator( ch ) ) {
+		while ( currInt != -1 && isSeparator( ch ) ) {
 			readChar();
 		}
 		
-		if ( currByte == -1 ) {
+		if ( currInt == -1 ) {
 			return new Token( TokenType.EOF );
 		}
 		
@@ -380,7 +384,7 @@ public class Scanner
 		StringBuilder builder = new StringBuilder();
 
 		while ( keepRun ) {
-			if ( currByte == -1 && retval == null ) {
+			if ( currInt == -1 && retval == null ) {
 				keepRun = false; // We *need* a token at this point
 			}
 			switch( state ) {
@@ -755,7 +759,7 @@ public class Scanner
 		if ( retval == null ) {
 			retval = new Token( TokenType.ERROR );
 		}
-		
+
 		return retval;
 	}
 }

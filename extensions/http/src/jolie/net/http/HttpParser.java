@@ -27,7 +27,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import jolie.lang.parse.Scanner;
@@ -172,7 +173,7 @@ public class HttpParser
 		if ( !token.isKeyword( HTTP ) )
 			throw new IOException( "Invalid HTTP header: expected HTTP version" );
 		
-		if ( (char)scanner.currentByte() != '/' )
+		if ( (char)scanner.currentCharacter() != '/' )
 			throw new IOException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
@@ -200,7 +201,7 @@ public class HttpParser
 		throws IOException
 	{
 		HttpMessage message = new HttpMessage( HttpMessage.Type.RESPONSE );
-		if ( (char)scanner.currentByte() != '/' )
+		if ( (char)scanner.currentCharacter() != '/' )
 			throw new IOException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
@@ -267,7 +268,7 @@ public class HttpParser
 		byte buffer[] = null;
 		if ( chunked ) {
 			InputStream stream = scanner.inputStream();
-			Vector< byte[] > chunks = new Vector< byte[] > ();
+			List< byte[] > chunks = new ArrayList< byte[] > ();
 			byte[] chunk;
 			
 			int l;
@@ -280,7 +281,7 @@ public class HttpParser
 					scanner.eatSeparators();
 					total += l;
 					chunk = new byte[ l ];
-					chunk[0] = scanner.currentByte();
+					chunk[0] = (byte) (scanner.currentCharacter());
 					blockingRead( stream, chunk, 1, l - 1 );
 					chunks.add( chunk );
 					scanner.readChar();
