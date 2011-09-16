@@ -24,18 +24,95 @@ package jolie.net.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-
 import jolie.lang.parse.Scanner;
 
-public class HttpScanner extends Scanner
+import jolie.lang.parse.Scanner.Token;
+import jolie.lang.parse.Scanner.TokenType;
+
+public class HttpScanner
 {
+	private final InputStream stream;
+	private int state;					// current state
+	private int currInt;
+	private char ch;
+	
+	
 	public HttpScanner( InputStream stream, URI source )
 		throws IOException
 	{
-		super( stream, source );
+		this.stream = stream;
+		readChar();
+	}
+	
+	public String readLine()
+		throws IOException
+	{
+		StringBuilder buffer = new StringBuilder();
+		readChar();
+		while( !Scanner.isNewLineChar( ch ) ) {
+			buffer.append( ch );
+			readChar();
+		}
+		return buffer.toString();
+	}
+	
+	/*
+	 * TODO: remove code duplication from jolie.lang.Scanner
+	 */
+	public String readWord()
+		throws IOException
+	{
+		return readWord( true );
+	}
+	
+	public String readWord( boolean readChar )
+		throws IOException
+	{
+		StringBuilder buffer = new StringBuilder();
+		if ( readChar ) {
+			readChar();
+		}
+
+		do {
+			buffer.append( ch );
+			readChar();
+		} while( !Scanner.isSeparator( ch ) );
+		return buffer.toString();
+	}
+	
+	public void eatSeparators()
+		throws IOException
+	{
+		while( Scanner.isSeparator( ch ) ) {
+			readChar();
+		}
+	}
+	
+	public void eatSeparatorsUntilEOF()
+		throws IOException
+	{
+		while( Scanner.isSeparator( ch ) && stream.available() > 0 ) {
+			readChar();
+		}
+	}
+	
+	public char currentCharacter()
+	{
+		return ch;
+	}
+	
+	public InputStream inputStream()
+	{
+		return stream;
+	}
+	
+	public final void readChar()
+		throws IOException
+	{
+		currInt = stream.read();
+		ch = (char)currInt;
 	}
 
-	@Override
 	public Token getToken()
 		throws IOException
 	{
@@ -45,7 +122,7 @@ public class HttpScanner extends Scanner
 		builder.append( ch );
 		int i;
 		String tmp;
-		while ( currByte != -1 && isSeparator( ch ) ) {
+		while ( ch != -1 && Scanner.isSeparator( ch ) ) {
 			readChar();
 			builder.append( ch );
 			tmp = builder.toString();
@@ -54,14 +131,14 @@ public class HttpScanner extends Scanner
 			}
 		}
 		
-		if ( currByte == -1 )
+		if ( ch == -1 )
 			return new Token( TokenType.EOF );
 		
 		boolean stopOneChar = false;
 		Token retval = null;
 		builder = new StringBuilder();
 
-		while ( currByte != -1 && retval == null ) {
+		while ( ch != -1 && retval == null ) {
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
@@ -255,7 +332,7 @@ public class HttpScanner extends Scanner
 
 		if ( retval == null )
 			retval = new Token( TokenType.ERROR );
-		
+
 		return retval;
 	}	
 }
