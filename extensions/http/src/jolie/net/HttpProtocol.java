@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -598,9 +598,9 @@ public class HttpProtocol extends CommProtocol
 		send_logDebugInfo( headerBuilder, encodedContent );
 		inputId = message.operationName();
 		
-		if ( charset == null ) {
+		/*if ( charset == null ) {
 			charset = "UTF8";
-		}
+		}*/
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
