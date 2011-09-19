@@ -205,9 +205,9 @@ public class StringUtils extends JavaService
 			response.setValue( 1 );
 			if ( m.groupCount() > 0 ) {
 				ValueVector groups = response.getChildren( "group" );
-				groups.add( Value.create( m.group( 0 ) ) );
+				groups.add( Value.create( ( m.group( 0 ) == null ) ? "" : m.group( 0 ) ) );
 				for( int i = 0; i < m.groupCount(); i++ ) {
-					groups.add( Value.create( m.group( i+1 ) ) );
+					groups.add( Value.create( ( m.group( i+1 ) == null ) ? "" : m.group( i+1 ) ) );
 				}
 			}
 		} else {
