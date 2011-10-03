@@ -72,11 +72,19 @@ public class NamedStatementParser
 				if ( v.hasChildren( TypeKeywords.DATE ) ) {
 					Value date = v.getFirstChild( TypeKeywords.DATE );
 					for( Integer index : entry.getValue() ) {
+						String month = String.valueOf( date.getFirstChild( "month").intValue() );
+						String day = String.valueOf( date.getFirstChild( "day").intValue() );
+						if ( month.length() < 2 ) {
+							month = "0" + month;
+						}
+						if ( day.length() < 2 ) {
+							day = "0" + day;
+						}
 						statement.setDate( index,
 							Date.valueOf(
 								date.getFirstChild( "year").intValue()
-								+ "-" + date.getFirstChild( "month" ).intValue()
-								+ "-" + date.getFirstChild( "day" ).intValue()
+								+ "-" + month
+								+ "-" +day
 							)
 						);
 					}
