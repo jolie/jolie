@@ -76,7 +76,7 @@ RequestResponse:
 	getDateValues(DateValuesRequestType)(DateValuesType),
 
 	/**
-		Returns the current date splitted in three fields: day, month and year
+		Returns the current date split in three fields: day, month and year
 	*/
 	getCurrentDateValues(void)(DateValuesType),
 	getDateDiff(DiffDateRequestType)(int),
