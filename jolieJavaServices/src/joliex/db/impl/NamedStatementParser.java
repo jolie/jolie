@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,7 @@ public class NamedStatementParser
 {
 	private static class TypeKeywords {
 		private final static String DATE = "Date";
+		private final static String TIME = "Time";
 	}
 
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
@@ -87,6 +89,27 @@ public class NamedStatementParser
 								+ "-" +day
 							)
 						);
+					}
+				} else if ( v.hasChildren( TypeKeywords.TIME ) ) {
+					Value time = v.getFirstChild( TypeKeywords.TIME );
+					for( Integer index : entry.getValue() ) {
+						String hour = String.valueOf( time.getFirstChild( "hour").intValue() );
+						String minute = String.valueOf( time.getFirstChild( "minute").intValue() );
+						String second = String.valueOf( time.getFirstChild( "second").intValue() );
+						if ( hour.length() < 2 ) {
+							hour = "0" + hour;
+						}
+						if ( minute.length() < 2 ) {
+							minute = "0" + minute;
+						}
+						if ( second.length() < 2 ) {
+							second = "0" + second;
+						}
+						statement.setTime( index,
+							Time.valueOf( hour +
+								":" + minute
+								+ ":" + second
+						) );
 					}
 				} else {
 					for( Integer index : entry.getValue() ) {
