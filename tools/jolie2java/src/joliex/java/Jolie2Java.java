@@ -15,8 +15,11 @@ import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+
 import joliex.java.impl.JavaDocumentCreator;
+
 import joliex.java.impl.JavaGWTDocumentCreator;
+import joliex.java.impl.JavaGWTDocumentCreatorOld;
 
 import joliex.java.impl.ProgramVisitor;
 
