@@ -36,7 +36,13 @@ type DateValuesType:void {
 	.year:int
 }
 
-type TimeValuesValue:void {
+type Time:void {
+	.hour:int
+	.minute:int
+	.second:int
+}
+
+type TimeValuesType:void {
 	.hour:int
 	.minute:int
 	.second:int
@@ -87,7 +93,7 @@ RequestResponse:
 	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
 	*/
 	getCurrentTimeMillis(void)(string),
-	getTimeValues(string)(TimeValuesType),
+	getTimeValues(string)(TimeValuesType)
 }
 
 embedded {
