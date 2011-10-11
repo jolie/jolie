@@ -98,7 +98,7 @@ RequestResponse:
 	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
 	*/
 	getCurrentTimeMillis( void )( string )
-	getTimeValues(TimeValuesRequestType)(TypeValuesType),
+	getTimeValues(TimeValuesRequestType)(TimeValuesType),
 }
 
 embedded {
