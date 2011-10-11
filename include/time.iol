@@ -41,17 +41,6 @@ type TimeValuesValue:void {
 	.minute:int
 	.second:int
 }
-/**
-	Request type for operation getDateValues. 
-	The root value contains the string to be converted into a DateValuesType
-*/
-type TimeValuesRequestType:string {
-	/**
-		Date format.
-		If not specified, it defaults to "dd/MM/yyyy"
-	*/
-	.format?:string
-}
 
 type DateValuesRequestType:string {
 	/**
@@ -97,8 +86,8 @@ RequestResponse:
 	/**!
 	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
 	*/
-	getCurrentTimeMillis( void )( string )
-	getTimeValues(TimeValuesRequestType)(TimeValuesType),
+	getCurrentTimeMillis(void)(string),
+	getTimeValues(string)(TimeValuesType),
 }
 
 embedded {
