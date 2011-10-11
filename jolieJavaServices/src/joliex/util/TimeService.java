@@ -241,7 +241,7 @@ public class TimeService extends JavaService
 	{
 		try {
 			Value v = Value.create();
-			DateFormat sdf = new SimpleDateFormat( "hh:mm:ss" );
+			DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );
 			Date date = sdf.parse( request.strValue() );
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTimeInMillis( date.getTime() );
