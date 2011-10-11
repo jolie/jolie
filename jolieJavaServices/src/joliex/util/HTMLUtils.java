@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Claudio Guidi <cguidi@italianasoftware.com>               *
+ *   Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,21 +23,14 @@ package joliex.util;
 
 
 import jolie.runtime.JavaService;
-import jolie.runtime.Value;
 import org.apache.commons.lang3.StringEscapeUtils;
 import jolie.runtime.AndJarDeps;
 
-@AndJarDeps({"commons-lang3-3.0.1.jar"})
+@AndJarDeps({"commons-lang3.jar"})
 public class HTMLUtils extends JavaService
 {
-
-	
-	public Value unescapeHTML( Value request )
+	public String unescapeHTML( String s )
 	{
-		Value ret = Value.create();
-		ret.setValue( StringEscapeUtils.unescapeHtml4( request.strValue() ));
-		return ret;
+		return StringEscapeUtils.unescapeHtml4( s );
 	}
-
-	
 }
