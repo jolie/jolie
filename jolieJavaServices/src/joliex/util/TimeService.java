@@ -22,7 +22,6 @@
 package joliex.util;
 
 
-import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,7 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.GregorianCalendar;
-import java.util.regex.Pattern;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -232,31 +230,29 @@ public class TimeService extends JavaService
 
 		return v;
 	}
-        /**
-         * @author Balint Maschio
-         *
-         */
-         public Value getTimeValues( Value request )
-                 throws FaultException
-            {
-
-                 Time time;
-                 Value v= Value.create();
-                 if (Pattern.matches("^([0-1][0-9]|[2][0-3]):([0-5][0-9]):([0-5][0-9])$", request.strValue())){
-
-                        time= Time.valueOf(request.strValue());
-                        v.getFirstChild( "hour" ).setValue( time.getHours());
-			v.getFirstChild( "minute" ).setValue( time.getMinutes() );
-			v.getFirstChild( "second" ).setValue( time.getSeconds());
-
-                }else{
-
-                throw new FaultException("Wrong Time Format ");
-
-                }
-
-          return v;
-         }
+	
+	/**
+	 * @author Balint Maschio
+	 * 10/2011 - Fabrizio Montesi: convert to using IllegalArgumentException
+	 * instead of regular expressions.
+	 */
+	public Value getTimeValues( Value request )
+		throws FaultException
+	{
+		try {
+			Value v = Value.create();
+			DateFormat sdf = new SimpleDateFormat( "hh:mm:ss" );
+			Date date = sdf.parse( request.strValue() );
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis( date.getTime() );
+			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR_OF_DAY ) );
+			v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
+			v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
+			return v;
+		} catch( ParseException e ) {
+			throw new FaultException( "InvalidTime", e );
+		}
+	}
 	/**
 	 * @author Claudio Guidi
 	 * 10/2010 - Fabrizio Montesi: some optimizations.
