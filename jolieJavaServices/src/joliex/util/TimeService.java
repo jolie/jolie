@@ -22,6 +22,7 @@
 package joliex.util;
 
 
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.GregorianCalendar;
+import java.util.regex.Pattern;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -230,7 +232,31 @@ public class TimeService extends JavaService
 
 		return v;
 	}
+        /**
+         * @author Balint Maschio
+         *
+         */
+         public Value getTimeValues( Value request )
+                 throws FaultException
+            {
 
+                 Time time;
+                 Value v= Value.create();
+                 if (Pattern.matches("^([0-1][0-9]|[2][0-3]):([0-5][0-9]):([0-5][0-9])$", request.strValue())){
+
+                        time= Time.valueOf(request.strValue());
+                        v.getFirstChild( "hour" ).setValue( time.getHours());
+			v.getFirstChild( "minute" ).setValue( time.getMinutes() );
+			v.getFirstChild( "second" ).setValue( time.getSeconds());
+
+                }else{
+
+                throw new FaultException("Wrong Time Format ");
+
+                }
+
+          return v;
+         }
 	/**
 	 * @author Claudio Guidi
 	 * 10/2010 - Fabrizio Montesi: some optimizations.
