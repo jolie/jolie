@@ -54,7 +54,7 @@ import joliex.db.impl.NamedStatementParser;
 	"jdbc-postgresql.jar", // PostgreSQL
 	"jdbc-sqlserver.jar", // Microsoft SQLServer
 	"jdbc-sqlite.jar", // SQLite
-	"jdbc-jt400.jar"
+	"jt400.jar"   //AS400 
 } )
 public class DatabaseService extends JavaService
 {
