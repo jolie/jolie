@@ -42,7 +42,7 @@ RequestResponse:
 }
 
 outputPort Bluetooth {
-Interfaces: BluetoothInterfaces
+Interfaces: BluetoothInterface
 }
 
 embedded {
