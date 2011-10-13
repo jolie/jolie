@@ -23,7 +23,9 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -92,8 +94,12 @@ public abstract class TypeDefinition extends OLSyntaxNode
 		return false;
 	}
 
-	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right )
+	/*
+	 * 13/10/2011 - Claudio Guidi: added recursiveTypesChecked list for checking recursive types equalness
+	 */
+	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right, List<String> recursiveTypesChecked )
 	{
+
 		if ( left.nativeType() != right.nativeType() ) {
 			return false;
 		}
@@ -118,7 +124,12 @@ public abstract class TypeDefinition extends OLSyntaxNode
 					if ( rightSubType == null ) {
 						return false;
 					}
-					if ( entry.getValue().isEquivalentTo( right.getSubType( entry.getKey() ) ) == false ) {
+					if ( recursiveTypesChecked.contains( rightSubType.id ) ) {
+						return true;
+					} else {
+						recursiveTypesChecked.add( rightSubType.id );
+					}
+					if ( entry.getValue().isEquivalentTo_recursive( right.getSubType( entry.getKey() ), recursiveTypesChecked ) == false ) {
 						return false;
 					}
 				}
@@ -167,7 +178,17 @@ public abstract class TypeDefinition extends OLSyntaxNode
 	 */
 	public boolean isEquivalentTo( TypeDefinition other )
 	{
-		return checkTypeEqualness( this, other );
+		List<String> recursiveTypeChecked = new ArrayList<String>();
+		return checkTypeEqualness( this, other, recursiveTypeChecked );
+	}
+
+	/**
+	 * introduced for checking also recursive type equalness
+	 * @author Claudio Guidi
+	 */
+	private boolean isEquivalentTo_recursive( TypeDefinition other, List<String> recursiveTypeChecked )
+	{
+		return checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	@Override
