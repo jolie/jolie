@@ -341,7 +341,10 @@ public class TypeChecker implements OLVisitor
 				) );
 				path.path().addAll( cvar.correlationVariablePath().path() );
 				FlaggedVariablePathNode flaggedPath = typingResult.providedCorrPaths.getContained( path );
-				if ( flaggedPath.isFresh() ) {
+				if ( flaggedPath == null ) { // The two cases could be merged in a single if-then-else condition, but they are logically different.
+					isCorrelationSetFresh = true; // We can set this because the correlation set is not used at all.
+					break;
+				} else if ( flaggedPath.isFresh() ) {
 					isCorrelationSetFresh = true;
 					break;
 				}
