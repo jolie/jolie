@@ -69,7 +69,10 @@ type DiffDateRequestType:void {
 	.date1:string
 	.date2:string
 }
-
+type GetTimeDiffReques:void {
+	.time1:string
+	.time2:string
+}
 outputPort Time {
 OneWay:
 	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
@@ -93,7 +96,9 @@ RequestResponse:
 	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
 	*/
 	getCurrentTimeMillis(void)(string),
-	getTimeValues(string)(TimeValuesType)
+	getTimeValues(string)(TimeValuesType),
+	getTimeDiff(GetTimeDiffRequest)(int)
+	getTimeFromMilliSeconds(int)TimeValuesType);
 }
 
 embedded {
