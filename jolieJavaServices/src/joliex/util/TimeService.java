@@ -278,4 +278,36 @@ public class TimeService extends JavaService
 		}
 		return v;
 	}
+        
+        public Value getTimeDiff( Value request )
+		throws FaultException
+	{
+		Value v = Value.create();
+		try {
+			
+			DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );
+			final Date dt1 = sdf.parse( request.getFirstChild( "time1" ).strValue() );
+			final Date dt2 = sdf.parse( request.getFirstChild( "time2" ).strValue() );
+			Long result = new Long( (dt1.getTime() - dt2.getTime()));
+                        
+                        
+			v.setValue( result.intValue() );
+		} catch( ParseException pe ) {
+			throw new FaultException( "InvalidDate", pe );
+		}
+		return v;
+	}
+        public Value getTimeFromMilliSeconds( Value request )
+		throws FaultException
+	{
+                        Value v = Value.create();
+                        DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );			
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis( new Long(request.intValue()) );
+			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR_OF_DAY ) );
+			v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
+			v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
+			return v;
+                        
+        }
 }
