@@ -371,6 +371,7 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "text/xml";
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
+                                System.out.println("sono dentro dove devo modificare send_encodeContent ");
 				ret.content = (ByteArray)message.value().valueObject();
 				ret.contentType = "application/octet-stream";
 			}
