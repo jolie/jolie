@@ -372,7 +372,7 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
                                 System.out.println("sono dentro dove devo modificare send_encodeContent ");
-                                if (message.value().hasChildren("contentDisposition")){
+                                if (hasParameter("contentDisposition")){
                                     System.out.println("sono dentro dove devo modificare send_encodeContent disposition ");
                                 }else{
                                         ret.content = (ByteArray)message.value().valueObject();
