@@ -303,8 +303,9 @@ public class TimeService extends JavaService
                         Value v = Value.create();
                         DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );			
 			Calendar calendar = Calendar.getInstance();
-			calendar.setTimeInMillis( request.intValue() );
-			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR_OF_DAY ) );
+			calendar.setTimeInMillis( request.intValue());
+                        
+			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
 			v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
 			v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
 			return v;
