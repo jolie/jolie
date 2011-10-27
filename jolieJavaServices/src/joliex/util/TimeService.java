@@ -29,6 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -300,9 +301,10 @@ public class TimeService extends JavaService
         public Value getTimeFromMilliSeconds( Value request )
 		throws FaultException
 	{
-                        Value v = Value.create();
-                        DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );			
-			Calendar calendar = Calendar.getInstance();
+                       Value v = Value.create();
+                       TimeZone timeZone= TimeZone.getTimeZone("GMT");
+         	
+			Calendar calendar = Calendar.getInstance(timeZone);
 			calendar.setTimeInMillis( request.intValue());
                         
 			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
