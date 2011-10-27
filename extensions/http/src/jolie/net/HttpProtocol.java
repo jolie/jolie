@@ -593,6 +593,7 @@ public class HttpProtocol extends CommProtocol
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
+                        System.out.println("sono dentro dove devo modificare send InputPort ==true ");
 		} else {
 			// We're sending a notification or a solicit
                         System.out.println("sono dentro dove devo modificare send InputPort ==False");
