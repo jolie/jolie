@@ -372,8 +372,12 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
                                 System.out.println("sono dentro dove devo modificare send_encodeContent ");
-				ret.content = (ByteArray)message.value().valueObject();
-				ret.contentType = "application/octet-stream";
+                                if (message.value().hasChildren("disposition")){
+                                    System.out.println("sono dentro dove devo modificare send_encodeContent disposition ");
+                                }else{
+                                        ret.content = (ByteArray)message.value().valueObject();
+                                        ret.contentType = "application/octet-stream";
+                                }
 			}
 		} else if ( "html".equals( format ) ) {
 			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
