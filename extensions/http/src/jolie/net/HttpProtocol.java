@@ -372,7 +372,7 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "text/xml";
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
-                                System.out.println("sono dentro dove devo modificare send_encodeContent ");
+                               
                                
                                         ret.content = (ByteArray)message.value().valueObject();
                                         ret.contentType = "application/octet-stream";
@@ -559,13 +559,14 @@ public class HttpProtocol extends CommProtocol
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 			}
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
-                        ///// here we deleling with the name of the fiel
-                        String contentDisposition = getStringParameter( "contentDisposition" );
-			if ( contentDisposition.length() > 0 ) {
+                        if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
                                 headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
                         }
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
+                        ///// here we deleling with the name of the fiel
+                        String contentDisposition = getStringParameter( "contentDisposition" );
+			
                         //headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
@@ -596,15 +597,15 @@ public class HttpProtocol extends CommProtocol
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
-                System.out.println("sono dentro dove devo modificare send");
+               
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
-                        System.out.println("sono dentro dove devo modificare send InputPort ==true ");
+                      
 		} else {
 			// We're sending a notification or a solicit
                         System.out.println("sono dentro dove devo modificare send InputPort ==False");
-			send_appendRequestHeaders( message, method, headerBuilder, charset );
+			
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
