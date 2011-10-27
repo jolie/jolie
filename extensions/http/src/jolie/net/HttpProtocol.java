@@ -562,7 +562,7 @@ public class HttpProtocol extends CommProtocol
                         String contentDisposition = getStringParameter( "contentDisposition" );
                         if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
-                                headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
+                                headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF);
                         }
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
                         ///// here we deleling with the name of the fiel
