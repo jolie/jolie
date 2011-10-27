@@ -69,7 +69,7 @@ type DiffDateRequestType:void {
 	.date1:string
 	.date2:string
 }
-type GetTimeDiffReques:void {
+type GetTimeDiffRequest:void {
 	.time1:string
 	.time2:string
 }
@@ -98,7 +98,7 @@ RequestResponse:
 	getCurrentTimeMillis(void)(string),
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int)
-	getTimeFromMilliSeconds(int)TimeValuesType);
+	getTimeFromMilliSeconds(int)(TimeValuesType);
 }
 
 embedded {
