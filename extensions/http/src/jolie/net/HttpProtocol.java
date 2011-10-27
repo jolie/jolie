@@ -562,10 +562,11 @@ public class HttpProtocol extends CommProtocol
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
                         ///// here we deleling with the name of the fiel
                         String contentDisposition = getStringParameter( "contentDisposition" );
-			if ( contentType.length() > 0 ) {
+			if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
-			}
-                        headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
+                                headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
+                        }
+                        //headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
 		}
