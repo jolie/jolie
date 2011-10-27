@@ -558,14 +558,15 @@ public class HttpProtocol extends CommProtocol
 			param = getStringParameter( "contentTransferEncoding" );
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
-			}
+			} 
+                        String contentDisposition = getStringParameter( "contentDisposition" );
                         if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
                                 headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
                         }
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
                         ///// here we deleling with the name of the fiel
-                        String contentDisposition = getStringParameter( "contentDisposition" );
+                       
 			
                         //headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
 		} else {
