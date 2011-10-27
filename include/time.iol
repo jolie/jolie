@@ -97,8 +97,8 @@ RequestResponse:
 	*/
 	getCurrentTimeMillis(void)(string),
 	getTimeValues(string)(TimeValuesType),
-	getTimeDiff(GetTimeDiffRequest)(int)
-	getTimeFromMilliSeconds(int)(TimeValuesType);
+	getTimeDiff(GetTimeDiffRequest)(int),
+	getTimeFromMilliSeconds(int)(TimeValuesType)
 }
 
 embedded {
