@@ -372,7 +372,7 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
                                 System.out.println("sono dentro dove devo modificare send_encodeContent ");
-                                if (message.value().hasChildren("disposition")){
+                                if (message.value().hasChildren("contentDisposition")){
                                     System.out.println("sono dentro dove devo modificare send_encodeContent disposition ");
                                 }else{
                                         ret.content = (ByteArray)message.value().valueObject();
@@ -590,6 +590,7 @@ public class HttpProtocol extends CommProtocol
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
+                System.out.println("sono dentro dove devo modificare send");
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
