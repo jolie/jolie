@@ -336,6 +336,7 @@ public class HttpProtocol extends CommProtocol
 	private static class EncodedContent {
 		private ByteArray content = null;
 		private String contentType = "";
+                private String contentDisposition="";
 	}
 		
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
@@ -372,12 +373,10 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
                                 System.out.println("sono dentro dove devo modificare send_encodeContent ");
-                                if (hasParameter("contentDisposition")){
-                                    System.out.println("sono dentro dove devo modificare send_encodeContent disposition ");
-                                }else{
+                               
                                         ret.content = (ByteArray)message.value().valueObject();
                                         ret.contentType = "application/octet-stream";
-                                }
+                                
 			}
 		} else if ( "html".equals( format ) ) {
 			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
@@ -561,6 +560,12 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
 			}
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
+                        ///// here we deleling with the name of the fiel
+                        String contentDisposition = getStringParameter( "contentDisposition" );
+			if ( contentType.length() > 0 ) {
+				encodedContent.contentDisposition = contentDisposition;
+			}
+                        headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
 		}
