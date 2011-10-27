@@ -605,7 +605,8 @@ public class HttpProtocol extends CommProtocol
                       
 		} else {
 			// We're sending a notification or a solicit
-                        System.out.println("sono dentro dove devo modificare send InputPort ==False");
+                        
+                        send_appendRequestHeaders( message, method, headerBuilder, charset );
 			
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
