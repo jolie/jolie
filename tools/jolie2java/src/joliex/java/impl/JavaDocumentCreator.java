@@ -86,9 +86,10 @@ public class JavaDocumentCreator {
         for (InputPortInfo inputPort : inputPorts) {
                  
             Collection<OperationDeclaration> operations = inputPort.operations();
-            System.out.println("Questo e il path del file:"+inputPort.context().source().getPath()+ " ter Porta :"+inputPort.id());
             
-            if (inputPort.context().source().getPath()!=null){
+            String sourceString=inputPort.context().source().toString();
+            System.out.println("Questo e il path del file:"+sourceString+ " per Porta :"+inputPort.id());
+            if ((sourceString.contains("/"))||sourceString.contains("\\")){
             System.out.println("name input port: " + inputPort.id() + " " + new Integer(inputPorts.length).toString());
             Iterator<OperationDeclaration> operatorIterator = operations.iterator();
             while (operatorIterator.hasNext()) {
