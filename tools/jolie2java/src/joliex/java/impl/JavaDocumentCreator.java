@@ -86,6 +86,7 @@ public class JavaDocumentCreator {
         for (InputPortInfo inputPort : inputPorts) {
                  
             Collection<OperationDeclaration> operations = inputPort.operations();
+            System.out.println(inputPort.context().source().getPath());
             if (inputPort.context().source().getPath()!=null){
             System.out.println("name input port: " + inputPort.id() + " " + new Integer(inputPorts.length).toString());
             Iterator<OperationDeclaration> operatorIterator = operations.iterator();
