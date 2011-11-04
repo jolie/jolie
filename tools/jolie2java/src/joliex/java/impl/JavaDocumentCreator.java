@@ -62,6 +62,7 @@ public class JavaDocumentCreator {
     private boolean subtypePresent = false;
     private String namespace;
     private LinkedHashMap<String, TypeDefinition> typeMap;
+    private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
 
     public JavaDocumentCreator(ProgramInspector inspector, String namespace) {
@@ -74,6 +75,7 @@ public class JavaDocumentCreator {
 
 
         typeMap = new LinkedHashMap<String, TypeDefinition>();
+        subTypeMap = new LinkedHashMap<String, TypeDefinition>();
         subclass = new Vector<TypeDefinition>();
         int counterSubClass;
         TypeDefinition[] support = inspector.getTypes();
@@ -82,8 +84,9 @@ public class JavaDocumentCreator {
         RequestResponseOperationDeclaration requestResponseOperation;
 
         for (InputPortInfo inputPort : inputPorts) {
-
+                 
             Collection<OperationDeclaration> operations = inputPort.operations();
+            if (inputPort.context().source().getPath()!=null){
             System.out.println("name input port: " + inputPort.id() + " " + new Integer(inputPorts.length).toString());
             Iterator<OperationDeclaration> operatorIterator = operations.iterator();
             while (operatorIterator.hasNext()) {
@@ -104,7 +107,8 @@ public class JavaDocumentCreator {
                     }
                 }
             }
-        }
+           }
+          }
 
         Iterator<Entry<String, TypeDefinition>> typeMapIterator = typeMap.entrySet().iterator();
         while (typeMapIterator.hasNext()) {
@@ -112,6 +116,12 @@ public class JavaDocumentCreator {
             if (!(typeEntry.getKey().equals("undefined"))) {
                parseSubType(typeEntry.getValue());
             }
+        }
+        Iterator<Entry<String, TypeDefinition>> subTypeMapIterator = subTypeMap.entrySet().iterator();
+        while (subTypeMapIterator.hasNext()) {
+            Entry<String, TypeDefinition> subTypeEntry = subTypeMapIterator.next();
+            typeMap.put(subTypeEntry.getKey(), subTypeEntry.getValue());
+            
         }
         typeMapIterator = typeMap.entrySet().iterator();
         while (typeMapIterator.hasNext()) {
@@ -862,8 +872,8 @@ public class JavaDocumentCreator {
                 Map.Entry me = (Map.Entry) i.next();
                 System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
                 if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink){
-                       if (!typeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())){
-                        typeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
+                       if (!subTypeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())){
+                        subTypeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
                         parseSubType(((TypeDefinitionLink)me.getValue()).linkedType());
                        }
                 }
