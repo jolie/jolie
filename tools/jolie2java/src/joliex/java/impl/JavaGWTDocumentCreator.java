@@ -62,6 +62,7 @@ public class JavaGWTDocumentCreator {
     private boolean subtypePresent = false;
     private String namespace;
     private LinkedHashMap<String, TypeDefinition> typeMap;
+    private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
 
     public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace) {
@@ -74,6 +75,7 @@ public class JavaGWTDocumentCreator {
 
 
         typeMap = new LinkedHashMap<String, TypeDefinition>();
+        subTypeMap = new LinkedHashMap<String, TypeDefinition>();
         subclass = new Vector<TypeDefinition>();
         int counterSubClass;
         TypeDefinition[] support = inspector.getTypes();
@@ -86,6 +88,8 @@ public class JavaGWTDocumentCreator {
             Collection<OperationDeclaration> operations = inputPort.operations();
             System.out.println("name input port: " + inputPort.id() + " " + new Integer(inputPorts.length).toString());
             Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+             String sourceString=inputPort.context().source().toString();
+            if ((sourceString.contains("/"))||sourceString.contains("\\")){
             while (operatorIterator.hasNext()) {
                 operation = operatorIterator.next();
                 System.out.println(operation.id());
@@ -104,7 +108,8 @@ public class JavaGWTDocumentCreator {
                     }
                 }
             }
-        }
+           }
+         }
 
         Iterator<Entry<String, TypeDefinition>> typeMapIterator = typeMap.entrySet().iterator();
         while (typeMapIterator.hasNext()) {
@@ -112,6 +117,12 @@ public class JavaGWTDocumentCreator {
             if (!(typeEntry.getKey().equals("undefined"))) {
                parseSubType(typeEntry.getValue());
             }
+        }
+        Iterator<Entry<String, TypeDefinition>> subTypeMapIterator = subTypeMap.entrySet().iterator();
+        while (subTypeMapIterator.hasNext()) {
+            Entry<String, TypeDefinition> subTypeEntry = subTypeMapIterator.next();
+            typeMap.put(subTypeEntry.getKey(), subTypeEntry.getValue());
+            
         }
         typeMapIterator = typeMap.entrySet().iterator();
         while (typeMapIterator.hasNext()) {
@@ -862,8 +873,8 @@ public class JavaGWTDocumentCreator {
                 Map.Entry me = (Map.Entry) i.next();
                 System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
                 if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink){
-                       if (!typeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())){
-                        typeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
+                       if (!subTypeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())){
+                        subTypeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
                         parseSubType(((TypeDefinitionLink)me.getValue()).linkedType());
                        }
                 }
