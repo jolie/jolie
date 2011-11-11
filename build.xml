@@ -48,7 +48,7 @@ java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie
 		<echo file="${private.install.launcher_dir}/jolie2java.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2java.jar;%joliepath%lib\jolie-gwt.jar joliex.java.Jolie2Java -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar;%joliepath%tools\jolie2java.jar;%joliepath%lib\jolie-gwt.jar joliex.java.Jolie2Java -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 
 		<echo message="Installing Jolie2Surface Windows launcher script..." />
