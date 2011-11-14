@@ -86,9 +86,10 @@ public class JavaGWTDocumentCreator {
         for (InputPortInfo inputPort : inputPorts) {
 
             Collection<OperationDeclaration> operations = inputPort.operations();
-            System.out.println("name input port: " + inputPort.id() + " " + new Integer(inputPorts.length).toString());
+            System.out.println("name input port: " + inputPort.id());
             Iterator<OperationDeclaration> operatorIterator = operations.iterator();
              String sourceString=inputPort.context().source().toString();
+             System.out.println(sourceString);
             if ((sourceString.contains("/"))||sourceString.contains("\\")){
             while (operatorIterator.hasNext()) {
                 operation = operatorIterator.next();
