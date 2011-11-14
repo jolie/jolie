@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Fabrizio Montesi <famontesi@gmail.com>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -33,6 +33,8 @@ public enum NativeType
 	//UNDEFINED( "undefined" ),
 	STRING( "string" ),
 	INT( "int" ),
+	LONG( "long" ),
+	BOOL( "bool" ),
 	DOUBLE( "double" ),
 	VOID( "void" ),
 	RAW( "raw" ),

@@ -19,49 +19,37 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
+package jolie.runtime.expression;
+
+import jolie.lang.Constants;
+import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-public class PreDecrementProcess implements Process, Expression
+public interface Expression
 {
-	final private VariablePath path;
-
-	public PreDecrementProcess( VariablePath varPath )
-	{
-		this.path = varPath;
-	}
+	public Value evaluate();
+	public Expression cloneExpression( TransformationReason reason );
 	
-	public Process clone( TransformationReason reason )
+	public class Operand
 	{
-		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
-	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
-		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
-	}
-	
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		Value val = path.getValue();
-		val.setValue( val.intValue() - 1 );
-	}
-	
-	public Value evaluate()
-	{
-		Value val = path.getValue();
-		val.setValue( val.intValue() - 1 );
-		return val;
-	}
-	
-	public boolean isKillable()
-	{
-		return true;
+		private final Constants.OperandType type;
+		private final Expression expression;
+						
+		public Operand( Constants.OperandType type, Expression expression )
+		{
+			this.type = type;
+			this.expression = expression;
+		}
+		
+		public Expression expression()
+		{
+			return expression;
+		}
+		
+		public Constants.OperandType type()
+		{
+			return type;
+		}
 	}
 }

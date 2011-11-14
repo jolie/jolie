@@ -19,38 +19,39 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import java.util.LinkedList;
-import java.util.List;
+package jolie.runtime.expression;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
-
-
-public class OrConditionNode extends OLSyntaxNode
+public class IsDefinedExpression implements Expression
 {
-	private final List< OLSyntaxNode > children;
+	final private VariablePath path;
+	
+	public IsDefinedExpression( VariablePath path )
+	{
+		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new IsDefinedExpression( path );
+	}
+	
+	public Value evaluate()
+	{
+		Value v = path.getValueOrNull();
+		boolean def = false;
+		if ( v != null ) {
+			if ( v.isDefined() ) {
+				def = true;
+			} else {
+				def = !v.children().isEmpty();
+			}
+		}
 
-	public OrConditionNode( ParsingContext context )
-	{
-		super( context );
-		children = new LinkedList< OLSyntaxNode >();
-	}
-	
-	public List< OLSyntaxNode > children()
-	{
-		return children;
-	}
-	
-	public void addChild( OLSyntaxNode node )
-	{
-		children.add( node );
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return Value.create( def );
 	}
 }

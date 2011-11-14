@@ -75,7 +75,7 @@ public final class Constants
 		Predefined( String id, Double content )
 		{
 			this.id = id;
-			this.token = new Scanner.Token( Scanner.TokenType.REAL, content.toString() );
+			this.token = new Scanner.Token( Scanner.TokenType.DOUBLE, content.toString() );
 		}
 
 		public final String id()

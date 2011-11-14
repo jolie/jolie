@@ -24,7 +24,7 @@ package jolie.runtime.embedding;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;

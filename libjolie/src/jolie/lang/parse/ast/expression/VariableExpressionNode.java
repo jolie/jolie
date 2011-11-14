@@ -19,13 +19,31 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.expression;
 
-package jolie.runtime;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.context.ParsingContext;
 
-import jolie.process.TransformationReason;
 
-public interface Condition
+public class VariableExpressionNode extends OLSyntaxNode
 {
-	public boolean evaluate();
-	public Condition cloneCondition( TransformationReason reason );
+	private final VariablePathNode variablePath;
+
+	public VariableExpressionNode( ParsingContext context, VariablePathNode variablePath )
+	{
+		super( context );
+		this.variablePath = variablePath;
+	}
+	
+	public VariablePathNode variablePath()
+	{
+		return variablePath;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
+	}
 }

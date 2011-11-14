@@ -21,6 +21,7 @@
 
 package jolie.runtime;
 
+import jolie.runtime.expression.Expression;
 import java.util.LinkedList;
 import java.util.List;
 import jolie.util.Pair;

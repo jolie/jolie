@@ -19,50 +19,35 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import java.util.Collection;
-
-import java.util.LinkedList;
-import jolie.lang.Constants;
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.util.Pair;
+package jolie.runtime.expression;
 
 
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-public class ProductExpressionNode extends OLSyntaxNode
+public class OrCondition implements Expression
 {
-	private final Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+	final private Expression[] children;
+	
+	public OrCondition( Expression[] children )
+	{
+		this.children = children;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new OrCondition( children );
+	}
+	
+	public Value evaluate()
+	{
+		for( Expression cond : children ) {
+			if ( cond.evaluate().boolValue() ) {
+				return Value.create( true );
+			}
+		}
 
-	public ProductExpressionNode( ParsingContext context )
-	{
-		super( context );
-		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
-	}
-	
-	public void multiply( OLSyntaxNode expression )
-	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MULTIPLY, expression ) );
-	}
-	
-	public void divide( OLSyntaxNode expression )
-	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.DIVIDE, expression ) );
-	}
-	
-	public void modulo( OLSyntaxNode expression )
-	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MODULUS, expression ) );
-	}
-	
-	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
-	{
-		return operands;
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return Value.create( false );
 	}
 }

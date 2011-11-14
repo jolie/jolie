@@ -19,28 +19,47 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.expression;
 
-package jolie.runtime;
+import java.util.Collection;
 
-import jolie.process.TransformationReason;
+import java.util.LinkedList;
+import java.util.List;
+import jolie.lang.Constants;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Pair;
 
-public class IsStringExpression implements Expression
+
+
+public class SumExpressionNode extends OLSyntaxNode
 {
-	final private VariablePath path;
-	
-	public IsStringExpression( VariablePath path )
+	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+
+	public SumExpressionNode( ParsingContext context )
 	{
-		this.path = path;
+		super( context );
+		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
 	}
 	
-	public Expression cloneExpression( TransformationReason reason )
+	public void add( OLSyntaxNode expression )
 	{
-		return new IsStringExpression( path );
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.ADD, expression ) );
 	}
 	
-	public Value evaluate()
+	public void subtract( OLSyntaxNode expression )
 	{
-		Value value = path.getValueOrNull();
-		return Value.create( ( value != null && value.isString() ) ? 1 : 0 );
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.SUBTRACT, expression ) );
+	}
+	
+	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
+	{
+		return operands;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

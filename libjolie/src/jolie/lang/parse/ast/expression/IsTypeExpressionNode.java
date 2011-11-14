@@ -19,40 +19,47 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.expression;
 
-package jolie.runtime;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.context.ParsingContext;
 
-import jolie.process.TransformationReason;
 
-
-/**
- * @author Fabrizio Montesi
- * TODO Clean up code.
- *
- */
-public class CompareCondition implements Condition
+public class IsTypeExpressionNode extends OLSyntaxNode
 {
-	private final Expression leftExpression, rightExpression;
-	private final CompareOperator compareOperator;
-	
-	public CompareCondition( Expression left, Expression right, CompareOperator compareOperator )
-	{
-		leftExpression = left;
-		rightExpression = right;
-		this.compareOperator = compareOperator;
+	public enum CheckType {
+		DEFINED,
+		INT,
+		STRING,
+		DOUBLE,
+		LONG,
+		BOOL
 	}
 	
-	public Condition cloneCondition( TransformationReason reason )
+	private final VariablePathNode variablePath;
+	private final CheckType type;
+
+	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath )
 	{
-		return new CompareCondition(
-					leftExpression.cloneExpression( reason ),
-					rightExpression.cloneExpression( reason ),
-					compareOperator
-				);
+		super( context );
+		this.type = type;
+		this.variablePath = variablePath;
 	}
 	
-	public boolean evaluate()
+	public CheckType type()
 	{
-		return compareOperator.evaluate( leftExpression.evaluate(), rightExpression.evaluate() );
+		return type;
+	}
+	
+	public VariablePathNode variablePath()
+	{
+		return variablePath;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

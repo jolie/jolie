@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,19 +19,28 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class FreshValueExpressionNode extends OLSyntaxNode
+public class NotExpressionNode extends OLSyntaxNode
 {
-	public FreshValueExpressionNode( ParsingContext context )
+	private final OLSyntaxNode expression;
+
+	public NotExpressionNode( ParsingContext context, OLSyntaxNode expression )
 	{
 		super( context );
+		this.expression = expression;
 	}
-
+	
+	public OLSyntaxNode expression()
+	{
+		return expression;
+	}
+	
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,44 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.expression;
 
-package jolie.runtime;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
 
 
-import jolie.lang.Constants;
-import jolie.process.TransformationReason;
-
-public class SumExpression implements Expression
+public class ConstantBoolExpression extends OLSyntaxNode
 {
-	final private Operand[] children;
-	
-	public SumExpression( Operand[] children )
+	private final boolean value;
+
+	public ConstantBoolExpression( ParsingContext context, boolean value )
 	{
-		this.children = children;
+		super( context );
+		this.value = value;
 	}
 	
-	public Expression cloneExpression( TransformationReason reason )
+	public boolean value()
 	{
-		Operand[] cc = new Operand[ children.length ];
-		
-		int i = 0;
-		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
-		}
-		return new SumExpression( cc );
+		return value;
 	}
 	
-	public Value evaluate()
+	public void accept( OLVisitor visitor )
 	{
-		Value val = Value.create( children[0].expression().evaluate() );
-		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.ADD ) {
-				val.add( children[i].expression().evaluate() );
-			} else {
-				val.subtract( children[i].expression().evaluate() );
-			}
-		}
-		
-		return val;
+		visitor.visit( this );
 	}
 }

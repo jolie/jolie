@@ -19,39 +19,35 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.ast.expression;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-public class IsTypeExpressionNode extends OLSyntaxNode
-{
-	public enum CheckType {
-		DEFINED,
-		INT,
-		STRING,
-		REAL
-	}
-	
-	private final VariablePathNode variablePath;
-	private final CheckType type;
 
-	public IsTypeExpressionNode( ParsingContext context, CheckType type, VariablePathNode variablePath )
+public class OrConditionNode extends OLSyntaxNode
+{
+	private final List< OLSyntaxNode > children;
+
+	public OrConditionNode( ParsingContext context )
 	{
 		super( context );
-		this.type = type;
-		this.variablePath = variablePath;
+		children = new LinkedList< OLSyntaxNode >();
 	}
 	
-	public CheckType type()
+	public List< OLSyntaxNode > children()
 	{
-		return type;
+		return children;
 	}
 	
-	public VariablePathNode variablePath()
+	public void addChild( OLSyntaxNode node )
 	{
-		return variablePath;
+		children.add( node );
 	}
 	
 	public void accept( OLVisitor visitor )

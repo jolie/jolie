@@ -20,45 +20,27 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
-
+package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-/** Provides the support for a "logical and" chain of other conditions. 
- * 
- * @author Fabrizio Montesi
- * @see Condition
- */
-public class AndCondition implements Condition
+public class NotExpression implements Expression
 {
-	final private Condition[] children;
+	private final Expression expression;
 	
-	/** Constructor */
-	public AndCondition( Condition[] children )
+	public NotExpression( Expression expression )
 	{
-		this.children = children;
+		this.expression = expression;
 	}
 	
-	public Condition cloneCondition( TransformationReason reason )
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new AndCondition( children );
+		return new NotExpression( expression.cloneExpression( reason ) );
 	}
 	
-	/** Applies the "logical and" rule.
-	 * Implemented as short and: starting from left, the first condition that
-	 * evaluates as false makes this "logical and" condition 
-	 * evaluation returning false, without checking the other conditions.  
-	 * @return true if every condition is satisfied, false otherwise.
-	 */
-	public boolean evaluate()
+	public Value evaluate()
 	{
-		for( Condition condition : children ) {
-			if ( condition.evaluate() == false ) {
-				return false;
-			}
-		}
-
-		return true;
+		return Value.create( !( expression.evaluate().boolValue() ) );
 	}
 }

@@ -21,6 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;

@@ -41,13 +41,13 @@ import java.util.Map;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.expression.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.ConstantIntegerExpression;
-import jolie.lang.parse.ast.ConstantRealExpression;
-import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
@@ -60,25 +60,24 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -86,7 +85,7 @@ import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
@@ -101,19 +100,21 @@ import jolie.lang.parse.ast.OperationCollector;
 import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.VariablePathNode.Type;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
@@ -250,10 +251,14 @@ public class OLParser extends AbstractParser
 	{
 		if ( token.is( Scanner.TokenType.CAST_INT ) ) {
 			return NativeType.INT;
-		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
+		} else if ( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
 			return NativeType.DOUBLE;
 		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
 			return NativeType.STRING;
+		} else if ( token.is( Scanner.TokenType.CAST_LONG ) ) {
+			return NativeType.LONG;
+		} else if ( token.is( Scanner.TokenType.CAST_BOOL ) ) {
+			return NativeType.BOOL;
 		} else {
 			return NativeType.fromString( token.content() );
 		}
@@ -1328,7 +1333,7 @@ public class OLParser extends AbstractParser
 			String id = token.content();
 			getToken();
 
-			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.CHOICE ) ) {
+			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
@@ -1346,7 +1351,7 @@ public class OLParser extends AbstractParser
 				parseInVariablePathProcess( true );
 		} else if ( token.is( Scanner.TokenType.DOT ) && inVariablePaths.size() > 0 ) {
 			retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
-		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
+		} else if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Pre increment: ++i
 			getToken();
 			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
@@ -1381,17 +1386,13 @@ public class OLParser extends AbstractParser
 				Scanner.TokenType.RPAREN, "expected )" );
 		} else if ( token.is( Scanner.TokenType.FOR ) ) {
 			getToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
+			eat( Scanner.TokenType.LPAREN, "expected (" );
 			OLSyntaxNode init = parseProcess();
-			eat(
-				Scanner.TokenType.COMMA, "expected ," );
-			OLSyntaxNode condition = parseCondition();
-			eat(
-				Scanner.TokenType.COMMA, "expected ," );
+			eat( Scanner.TokenType.COMMA, "expected ," );
+			OLSyntaxNode condition = parseExpression();
+			eat( Scanner.TokenType.COMMA, "expected ," );
 			OLSyntaxNode post = parseProcess();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 
 			OLSyntaxNode body = parseBasicStatement();
 
@@ -1406,7 +1407,7 @@ public class OLParser extends AbstractParser
 				throwException( "expected over" );
 			}
 			getToken();
-			OLSyntaxNode upperBoundExpression = parseExpression();
+			OLSyntaxNode upperBoundExpression = parseBasicExpression();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 
 			VariablePathNode inVariablePath = null;
@@ -1555,16 +1556,11 @@ public class OLParser extends AbstractParser
 
 			getToken();
 
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
-			cond =
-				parseCondition();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
-			node =
-				parseBasicStatement();
-			stm.addChild(
-				new Pair<OLSyntaxNode, OLSyntaxNode>( cond, node ) );
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			cond = parseExpression();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			node = parseBasicStatement();
+			stm.addChild( new Pair<OLSyntaxNode, OLSyntaxNode>( cond, node ) );
 
 			boolean keepRun = true;
 			while ( token.is( Scanner.TokenType.ELSE ) && keepRun ) {
@@ -1574,7 +1570,7 @@ public class OLParser extends AbstractParser
 					eat(
 						Scanner.TokenType.LPAREN, "expected (" );
 					cond =
-						parseCondition();
+						parseExpression();
 					eat(
 						Scanner.TokenType.RPAREN, "expected )" );
 					node =
@@ -1683,7 +1679,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			retVal =
 				new DivideAssignStatement( getContext(), path, parseExpression() );
-		} else if ( token.is( Scanner.TokenType.CHOICE ) ) {
+		} else if ( token.is( Scanner.TokenType.INCREMENT ) ) {
 			getToken();
 			retVal =
 				new PostIncrementStatement( getContext(), path );
@@ -1734,8 +1730,7 @@ public class OLParser extends AbstractParser
 			path = new VariablePathNode( getContext(), Type.NORMAL );
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
-				expr =
-					parseExpression();
+				expr = parseBasicExpression();
 				eat(
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
@@ -1753,8 +1748,7 @@ public class OLParser extends AbstractParser
 				nodeExpr = new ConstantStringExpression( getContext(), token.content() );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
-				nodeExpr =
-					parseExpression();
+				nodeExpr = parseBasicExpression();
 				assertToken(
 					Scanner.TokenType.RPAREN, "expected )" );
 			} else {
@@ -1764,7 +1758,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 				getToken();
-				expr = parseExpression();
+				expr = parseBasicExpression();
 				eat( Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
 				expr = null;
@@ -2025,22 +2019,17 @@ public class OLParser extends AbstractParser
 		OLSyntaxNode cond, process;
 		getToken();
 
-		eat(
-			Scanner.TokenType.LPAREN, "expected (" );
-		cond =
-			parseCondition();
-		eat(
-			Scanner.TokenType.RPAREN, "expected )" );
-		eat(
-			Scanner.TokenType.LCURLY, "expected {" );
+		eat( Scanner.TokenType.LPAREN, "expected (" );
+		cond = parseExpression();
+		eat( Scanner.TokenType.RPAREN, "expected )" );
+		eat( Scanner.TokenType.LCURLY, "expected {" );
 		process =
 			parseProcess();
-		eat(
-			Scanner.TokenType.RCURLY, "expected }" );
+		eat( Scanner.TokenType.RCURLY, "expected }" );
 		return new WhileStatement( context, cond, process );
 	}
 
-	private OLSyntaxNode parseCondition()
+	private OLSyntaxNode parseExpression()
 		throws IOException, ParserException
 	{
 		OrConditionNode orCond = new OrConditionNode( getContext() );
@@ -2066,65 +2055,34 @@ public class OLParser extends AbstractParser
 		return andCond;
 	}
 
-	private OLSyntaxNode parseNotCondition()
-		throws IOException, ParserException
-	{
-		OLSyntaxNode retVal = null;
-
-		if ( token.is( Scanner.TokenType.LPAREN ) ) {
-			getToken();
-			retVal =
-				parseCondition();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
-		} else {
-			retVal = new ExpressionConditionNode( getContext(), parseExpression() );
-		}
-
-		return new NotConditionNode( getContext(), retVal );
-	}
-
 	private OLSyntaxNode parseBasicCondition()
 		throws IOException, ParserException
 	{
 		OLSyntaxNode retVal = null;
 
-		if ( token.is( Scanner.TokenType.LPAREN ) ) {
+		/*if ( token.is( Scanner.TokenType.LPAREN ) ) {
 			getToken();
-			retVal =
-				parseCondition();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.NOT ) ) {
-			getToken();
-			retVal =
-				parseNotCondition();
+			retVal = parseExpression();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else {*/
+		Scanner.TokenType opType;
+		OLSyntaxNode expr1;
+
+		expr1 =	parseBasicExpression();
+
+		opType = token.type();
+		if ( opType != Scanner.TokenType.EQUAL && opType != Scanner.TokenType.LANGLE &&
+			opType != Scanner.TokenType.RANGLE && opType != Scanner.TokenType.MAJOR_OR_EQUAL &&
+			opType != Scanner.TokenType.MINOR_OR_EQUAL && opType != Scanner.TokenType.NOT_EQUAL ) {
+
+			retVal = expr1;
 		} else {
-			Scanner.TokenType opType;
-			OLSyntaxNode expr1;
-
-			expr1 =
-				parseExpression();
-
-			opType =
-				token.type();
-			if ( opType != Scanner.TokenType.EQUAL && opType != Scanner.TokenType.LANGLE &&
-				opType != Scanner.TokenType.RANGLE && opType != Scanner.TokenType.MAJOR_OR_EQUAL &&
-				opType != Scanner.TokenType.MINOR_OR_EQUAL && opType != Scanner.TokenType.NOT_EQUAL ) {
-
-				retVal = new ExpressionConditionNode( getContext(), expr1 );
-			} else {
-				OLSyntaxNode expr2;
-				getToken();
-
-				expr2 =
-					parseExpression();
-
-				retVal =
-					new CompareConditionNode( getContext(), expr1, expr2, opType );
-			}
-
+			OLSyntaxNode expr2;
+			getToken();
+			expr2 = parseBasicExpression();
+			retVal = new CompareConditionNode( getContext(), expr1, expr2, opType );
 		}
+		//}
 
 		if ( retVal == null ) {
 			throwException( "expected condition" );
@@ -2136,7 +2094,7 @@ public class OLParser extends AbstractParser
 	/**
 	 * @todo Check if negative integer handling is appropriate
 	 */
-	private OLSyntaxNode parseExpression()
+	private OLSyntaxNode parseBasicExpression()
 		throws IOException, ParserException
 	{
 		boolean keepRun = true;
@@ -2158,7 +2116,15 @@ public class OLParser extends AbstractParser
 				} else { // e.g. i 1
 					throwException( "expected expression operator" );
 				}
-			} else if ( token.is( Scanner.TokenType.REAL ) ) { // e.g. i -1
+			} else if ( token.is( Scanner.TokenType.LONG ) ) { // e.g. i -1L
+				long value = Long.parseLong( token.content() );
+				// We add it, because it's already negative.
+				if ( value < 0 ) {
+					sum.add( parseProductExpression() );
+				} else { // e.g. i 1
+					throwException( "expected expression operator" );
+				}
+			} else if ( token.is( Scanner.TokenType.DOUBLE ) ) { // e.g. i -1
 				double value = Double.parseDouble( token.content() );
 				// We add it, because it's already negative.
 				if ( value < 0 ) {
@@ -2200,7 +2166,7 @@ public class OLParser extends AbstractParser
 		}
 
 		if ( path != null ) {
-			if ( token.is( Scanner.TokenType.CHOICE ) ) { // Post increment
+			if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Post increment
 				getToken();
 				retVal =
 					new PostIncrementStatement( getContext(), path );
@@ -2210,19 +2176,30 @@ public class OLParser extends AbstractParser
 					new PostDecrementStatement( getContext(), path );
 			} else if ( token.is( Scanner.TokenType.ASSIGN ) ) {
 				getToken();
-				retVal =
-					new AssignStatement( getContext(), path, parseExpression() );
+				retVal = new AssignStatement( getContext(), path, parseExpression() );
 			} else {
 				retVal = new VariableExpressionNode( getContext(), path );
 			}
+		} else if ( token.is( Scanner.TokenType.NOT ) ) {
+			getToken();
+			retVal = new NotExpressionNode( getContext(), parseFactor() );
 		} else if ( token.is( Scanner.TokenType.STRING ) ) {
 			retVal = new ConstantStringExpression( getContext(), token.content() );
 			getToken();
 		} else if ( token.is( Scanner.TokenType.INT ) ) {
 			retVal = new ConstantIntegerExpression( getContext(), Integer.parseInt( token.content() ) );
 			getToken();
-		} else if ( token.is( Scanner.TokenType.REAL ) ) {
-			retVal = new ConstantRealExpression( getContext(), Double.parseDouble( token.content() ) );
+		} else if ( token.is( Scanner.TokenType.LONG ) ) {
+			retVal = new ConstantLongExpression( getContext(), Long.parseLong( token.content() ) );
+			getToken();
+		} else if ( token.is( Scanner.TokenType.TRUE ) ) {
+			retVal = new ConstantBoolExpression( getContext(), true );
+			getToken();
+		} else if ( token.is( Scanner.TokenType.FALSE ) ) {
+			retVal = new ConstantBoolExpression( getContext(), false );
+			getToken();
+		} else if ( token.is( Scanner.TokenType.DOUBLE ) ) {
+			retVal = new ConstantDoubleExpression( getContext(), Double.parseDouble( token.content() ) );
 			getToken();
 		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 			getToken();
@@ -2234,7 +2211,7 @@ public class OLParser extends AbstractParser
 				getContext(),
 				parseVariablePath()
 			);
-		} else if ( token.is( Scanner.TokenType.CHOICE ) ) { // Pre increment: ++i
+		} else if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Pre increment: ++i
 			getToken();
 			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
@@ -2258,12 +2235,30 @@ public class OLParser extends AbstractParser
 				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_REAL ) ) {
+		} else if ( token.is( Scanner.TokenType.IS_DOUBLE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			retVal = new IsTypeExpressionNode(
 				getContext(),
-				IsTypeExpressionNode.CheckType.REAL,
+				IsTypeExpressionNode.CheckType.DOUBLE,
+				parseVariablePath()
+			);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.IS_BOOL ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new IsTypeExpressionNode(
+				getContext(),
+				IsTypeExpressionNode.CheckType.BOOL,
+				parseVariablePath()
+			);
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.IS_LONG ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new IsTypeExpressionNode(
+				getContext(),
+				IsTypeExpressionNode.CheckType.LONG,
 				parseVariablePath()
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
@@ -2281,7 +2276,17 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			retVal = new TypeCastExpressionNode( getContext(), NativeType.INT, parseExpression() );
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_REAL ) ) {
+		} else if ( token.is( Scanner.TokenType.CAST_LONG ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new TypeCastExpressionNode( getContext(), NativeType.LONG, parseExpression() );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.CAST_BOOL ) ) {
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			retVal = new TypeCastExpressionNode( getContext(), NativeType.BOOL, parseExpression() );
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+		} else if ( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			retVal = new TypeCastExpressionNode(

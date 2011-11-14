@@ -22,16 +22,16 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.Condition;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 public class ForProcess implements Process
 {
-	final private Condition condition;
+	final private Expression condition;
 	final private Process init, post, process;
 
-	public ForProcess( Process init, Condition condition, Process post, Process process )
+	public ForProcess( Process init, Expression condition, Process post, Process process )
 	{
 		this.init = init;
 		this.condition = condition;
@@ -43,7 +43,7 @@ public class ForProcess implements Process
 	{
 		return new ForProcess(
 					init.clone( reason ),
-					condition.cloneCondition( reason ),
+					condition.cloneExpression( reason ),
 					post.clone( reason ),
 					process.clone( reason )
 				);
@@ -57,7 +57,7 @@ public class ForProcess implements Process
 		}
 		
 		init.run();
-		while ( condition.evaluate() ) {
+		while ( condition.evaluate().boolValue() ) {
 			process.run();
 			if ( ExecutionThread.currentThread().isKilled() )
 				return;

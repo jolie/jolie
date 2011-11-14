@@ -721,6 +721,12 @@ public class HttpProtocol extends CommProtocol
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
+		} else if ( NativeType.LONG == type ) {
+			try {
+				value.setValue( new Long( cookieValue ) );
+			} catch( NumberFormatException e ) {
+				throw new IOException( e );
+			}
 		} else if ( NativeType.STRING == type ) {
 			value.setValue( cookieValue );
 		} else if ( NativeType.DOUBLE == type ) {
@@ -729,6 +735,8 @@ public class HttpProtocol extends CommProtocol
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
+		} else if ( NativeType.BOOL == type ) {
+			value.setValue( Boolean.valueOf( cookieValue ) );
 		} else {
 			value.setValue( cookieValue );
 		}

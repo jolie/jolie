@@ -19,49 +19,38 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.lang.parse.ast.expression;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
-import jolie.runtime.Value;
+import java.util.LinkedList;
+import java.util.List;
 
-public class PreDecrementProcess implements Process, Expression
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
+
+
+
+public class AndConditionNode extends OLSyntaxNode
 {
-	final private VariablePath path;
+	private final List< OLSyntaxNode > children = new LinkedList< OLSyntaxNode >();
 
-	public PreDecrementProcess( VariablePath varPath )
+	public AndConditionNode( ParsingContext context )
 	{
-		this.path = varPath;
+		super( context );
 	}
 	
-	public Process clone( TransformationReason reason )
+	public List< OLSyntaxNode > children()
 	{
-		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
+		return children;
 	}
 	
-	public Expression cloneExpression( TransformationReason reason )
+	public void addChild( OLSyntaxNode node )
 	{
-		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
+		children.add( node );
 	}
 	
-	public void run()
+	public void accept( OLVisitor visitor )
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		Value val = path.getValue();
-		val.setValue( val.intValue() - 1 );
-	}
-	
-	public Value evaluate()
-	{
-		Value val = path.getValue();
-		val.setValue( val.intValue() - 1 );
-		return val;
-	}
-	
-	public boolean isKillable()
-	{
-		return true;
+		visitor.visit( this );
 	}
 }

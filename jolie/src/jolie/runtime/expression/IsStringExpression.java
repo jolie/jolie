@@ -20,35 +20,29 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.runtime.expression;
 
-import jolie.lang.Constants;
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
-public interface Expression
+public class IsStringExpression implements Expression
 {
-	public Value evaluate();
-	public Expression cloneExpression( TransformationReason reason );
+	private final VariablePath path;
 	
-	public class Operand
+	public IsStringExpression( VariablePath path )
 	{
-		final private Constants.OperandType type;
-		final private Expression expression;
-						
-		public Operand( Constants.OperandType type, Expression expression )
-		{
-			this.type = type;
-			this.expression = expression;
-		}
-		
-		public Expression expression()
-		{
-			return expression;
-		}
-		
-		public Constants.OperandType type()
-		{
-			return type;
-		}
+		this.path = path;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new IsStringExpression( path );
+	}
+	
+	public Value evaluate()
+	{
+		Value value = path.getValueOrNull();
+		return Value.create( value != null && value.isString() );
 	}
 }

@@ -32,7 +32,7 @@ import java.util.Set;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.util.Pair;
 import jolie.util.Range;

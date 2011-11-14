@@ -19,29 +19,48 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+package jolie.runtime.expression;
 
 
-public class ConstantStringExpression extends OLSyntaxNode
+import java.util.concurrent.locks.Condition;
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+
+/** Provides the support for a "logical and" chain of other conditions. 
+ * 
+ * @author Fabrizio Montesi
+ * @see Condition
+ */
+public class AndCondition implements Expression
 {
-	private final String value;
+	private final Expression[] children;
+	
+	/** Constructor */
+	public AndCondition( Expression[] children )
+	{
+		this.children = children;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		return new AndCondition( children );
+	}
+	
+	/** Applies the "logical and" rule.
+	 * Implemented as short and: starting from left, the first condition that
+	 * evaluates as false makes this "logical and" condition 
+	 * evaluation returning false, without checking the other conditions.  
+	 * @return true if every condition is satisfied, false otherwise.
+	 */
+	public Value evaluate()
+	{
+		for( Expression condition : children ) {
+			if ( condition.evaluate().boolValue() == false ) {
+				return Value.create( false );
+			}
+		}
 
-	public ConstantStringExpression( ParsingContext context, String value )
-	{
-		super( context );
-		this.value = value;
-	}
-	
-	public String value()
-	{
-		return value;
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return Value.create( true );
 	}
 }

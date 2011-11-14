@@ -23,7 +23,7 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.FaultException;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 
 
 public class ThrowProcess implements Process

@@ -135,7 +135,7 @@ public abstract class JavaService
 	 */
 	private static final Class<?>[] supportedTypes = new Class[] {
 		Value.class, String.class, Integer.class, Double.class, Boolean.class,
-		ByteArray.class
+		Long.class, ByteArray.class
 	};
 	private static final Method[] toValueConverters;
 	private static final Method[] fromValueConverters;

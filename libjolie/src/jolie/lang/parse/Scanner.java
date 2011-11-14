@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import jolie.lang.NativeType;
 
 /**
  * Scanner implementation for the JOLIE language parser.
@@ -41,7 +42,10 @@ public class Scanner
 		COMMA,				///< ,
 		DOT,				///< .
 		INT,				///< [0-9]+
-		REAL,				///< [0-9]*"."[0-9]+(e|E)[0-9]+
+		TRUE,				///< true
+		FALSE,				///< false
+		LONG,				///< [0-9]+L
+		DOUBLE,				///< [0-9]*"."[0-9]+(e|E)[0-9]+
 		LPAREN,				///< (
 		RPAREN,				///< )
 		LSQUARE,			///< [
@@ -50,7 +54,7 @@ public class Scanner
 		RCURLY,				///< }
 		//DOLLAR,				///< $
 		STRING,				///< "[[:graph:]]*"
-		CHOICE,				///< ++
+		INCREMENT,				///< ++
 		MINUS,				///< The minus sign -
 		ASTERISK,			///< *
 		DIVIDE,				///< /
@@ -108,11 +112,15 @@ public class Scanner
 		DECREMENT,				///< --
 		IS_STRING,				///< is_string
 		IS_INT,					///< is_int
-		IS_REAL,				///< is_double
+		IS_DOUBLE,				///< is_double
+		IS_BOOL,				///< is_bool
+		IS_LONG,				///< is_long
 		IS_DEFINED,				///< is_defined
 		CAST_INT,				///< int
 		CAST_STRING,			///< string
-		CAST_REAL,				///< double
+		CAST_DOUBLE,				///< double
+		CAST_BOOL,				///< bool
+		CAST_LONG,				///< long
 		SYNCHRONIZED,			///< synchronized
 		THROWS,					///< throws
 		CURRENT_HANDLER,		///< cH
@@ -183,7 +191,10 @@ public class Scanner
 			return	type == TokenType.STRING ||
 					type == TokenType.INT ||
 					type == TokenType.ID ||
-					type == TokenType.REAL;
+					type == TokenType.LONG ||
+					type == TokenType.TRUE ||
+					type == TokenType.FALSE ||
+					type == TokenType.DOUBLE;
 		}
 
 		/**
@@ -378,7 +389,7 @@ public class Scanner
 		if ( currInt == -1 ) {
 			return new Token( TokenType.EOF );
 		}
-		
+
 		boolean stopOneChar = false;
 		Token retval = null;
 		StringBuilder builder = new StringBuilder();
@@ -520,14 +531,22 @@ public class Scanner
 							retval = new Token( TokenType.IS_STRING );
 						} else if ( "is_int".equals( str ) ) {
 							retval = new Token( TokenType.IS_INT );
+						} else if ( "is_bool".equals( str ) ) {
+							retval = new Token( TokenType.IS_BOOL );
+						} else if ( "is_long".equals( str ) ) {
+							retval = new Token( TokenType.IS_LONG );
 						} else if ( "is_double".equals( str ) ) {
-							retval = new Token( TokenType.IS_REAL );
-						} else if ( "int".equals( str ) ) {
+							retval = new Token( TokenType.IS_DOUBLE );
+						} else if ( NativeType.INT.id().equals( str ) ) {
 							retval = new Token( TokenType.CAST_INT, str );
-						} else if ( "string".equals( str ) ) {
+						} else if ( NativeType.STRING.id().equals( str ) ) {
 							retval = new Token( TokenType.CAST_STRING, str );
-						} else if ( "double".equals( str ) ) {
-							retval = new Token( TokenType.CAST_REAL, str );
+						} else if ( NativeType.BOOL.id().equals( str ) ) {
+							retval = new Token( TokenType.CAST_BOOL, str );
+						} else if ( NativeType.LONG.id().equals( str ) ) {
+							retval = new Token( TokenType.CAST_LONG, str );
+						} else if ( NativeType.DOUBLE.id().equals( str ) ) {
+							retval = new Token( TokenType.CAST_DOUBLE, str );
 						} else if ( "throws".equals( str ) ) {
 							retval = new Token( TokenType.THROWS );
 						} else if ( "cH".equals( str ) ) {
@@ -536,23 +555,32 @@ public class Scanner
 							retval = new Token( TokenType.INIT );
 						} else if ( "with".equals( str ) ) {
 							retval = new Token( TokenType.WITH );
+						} else if ( "true".equals( str ) ) {
+							retval = new Token( TokenType.TRUE );
+						} else if ( "false".equals( str ) ) {
+							retval = new Token( TokenType.FALSE );
 						} else {
 							retval = new Token( TokenType.ID, str );
 						}
 					}
 					break;	
-				case 3: // INT
+				case 3: // INT (or LONG, or DOUBLE)
 					if ( ch == 'e'|| ch == 'E' ){
 						state = 19;
 					} else if ( !Character.isDigit( ch ) && ch != '.' ) {
-						retval = new Token( TokenType.INT, builder.toString() );
+						if ( ch == 'L' ) {
+							retval = new Token( TokenType.LONG, builder.toString() );
+							readChar();
+						} else {
+							retval = new Token( TokenType.INT, builder.toString() );
+						}
 					} else if ( ch == '.' ) {
 						builder.append( ch );
 						readChar();
 						if ( !Character.isDigit( ch ) ) {
 							retval =  new Token( TokenType.ERROR, builder.toString() );
 						}
-						else state = 17; // recognized a REAL
+						else state = 17; // recognized a DOUBLE
 					}
 					break;
 				case 4:	// STRING
@@ -585,7 +613,7 @@ public class Scanner
 						retval = new Token( TokenType.ADD_ASSIGN );
 						readChar();
 					} else if ( ch == '+' ) {
-						retval = new Token( TokenType.CHOICE );
+						retval = new Token( TokenType.INCREMENT );
 						readChar();
 					} else {
 						retval = new Token( TokenType.PLUS );
@@ -671,7 +699,7 @@ public class Scanner
 						}
 					}
 					break;
-				case 14: // MINUS OR (negative) INT OR POINTS_TO
+				case 14: // MINUS OR (negative) NUMBER OR POINTS_TO
 					if ( Character.isDigit( ch ) )
 						state = 3;
 					else if ( ch == '-' ) {
@@ -709,7 +737,7 @@ public class Scanner
 					if ( ch == 'E' || ch == 'e' )
 						state = 18;
 					else if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.REAL, builder.toString() );
+						retval = new Token( TokenType.DOUBLE, builder.toString() );
 					break;
 				case 18: // Scientific notation, first char after 'E'
 					if ( ch == '-' || ch == '+' )
@@ -727,7 +755,7 @@ public class Scanner
 					break;
 				case 20: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.REAL, builder.toString() );
+						retval = new Token( TokenType.DOUBLE, builder.toString() );
 					break;
 				case 21: // Documentation comment
 					if ( ch == '*' ) {

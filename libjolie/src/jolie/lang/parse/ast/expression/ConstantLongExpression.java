@@ -19,32 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.lang.parse.ast.expression;
 
-import java.util.UUID;
-import jolie.process.TransformationReason;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
 
-public class FreshValueExpression implements Expression
+
+public class ConstantLongExpression extends OLSyntaxNode
 {
-	private FreshValueExpression() {}
-	
-	private static class LazyHolder {
-		private LazyHolder() {}
-		static final FreshValueExpression instance = new FreshValueExpression();
+	private final long value;
+
+	public ConstantLongExpression( ParsingContext context, long value )
+	{
+		super( context );
+		this.value = value;
 	}
 	
-	public Expression cloneExpression( TransformationReason reason )
+	public long value()
 	{
-		return this;
+		return value;
 	}
 	
-	public static FreshValueExpression getInstance()
+	public void accept( OLVisitor visitor )
 	{
-		return FreshValueExpression.LazyHolder.instance;
-	}
-	
-	public Value evaluate()
-	{
-		return Value.create( UUID.randomUUID().toString() );
+		visitor.visit( this );
 	}
 }

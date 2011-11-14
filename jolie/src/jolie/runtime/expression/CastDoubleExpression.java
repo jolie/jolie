@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,29 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.runtime.expression;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-
-public class ConstantIntegerExpression extends OLSyntaxNode
+public class CastDoubleExpression implements Expression
 {
-	private final int value;
-
-	public ConstantIntegerExpression( ParsingContext context, int value )
+	final private Expression expression;
+	
+	public CastDoubleExpression( Expression expression )
 	{
-		super( context );
-		this.value = value;
+		this.expression = expression;
 	}
 	
-	public int value()
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		return value;
+		return new CastDoubleExpression( expression.cloneExpression( reason ) );
 	}
 	
-	public void accept( OLVisitor visitor )
+	public Value evaluate()
 	{
-		visitor.visit( this );
+		return Value.create( expression.evaluate().doubleValue() );
 	}
 }

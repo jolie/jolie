@@ -21,7 +21,7 @@
 
 package jolie.runtime.embedding;
 
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;

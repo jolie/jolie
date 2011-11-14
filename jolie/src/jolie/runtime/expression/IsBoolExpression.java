@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Claudio Guidi                                        *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,26 +19,30 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+
+package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
-public class CastRealExpression implements Expression
+public class IsBoolExpression implements Expression
 {
-	final private Expression expression;
+	private final VariablePath path;
 	
-	public CastRealExpression( Expression expression )
+	public IsBoolExpression( VariablePath path )
 	{
-		this.expression = expression;
+		this.path = path;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new CastRealExpression( expression.cloneExpression( reason ) );
+		return new IsBoolExpression( path );
 	}
 	
 	public Value evaluate()
 	{
-		return Value.create( expression.evaluate().doubleValue() );
+		Value value = path.getValueOrNull();
+		return Value.create( value != null && value.isBool() );
 	}
 }

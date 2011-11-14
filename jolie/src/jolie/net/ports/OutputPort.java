@@ -40,7 +40,7 @@ import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.SequentialProcess;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.VariablePathBuilder;
 import jolie.util.LocationParser;
 

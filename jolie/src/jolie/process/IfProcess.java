@@ -22,25 +22,25 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.Condition;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 
 public class IfProcess implements Process
 {
 	public static class CPPair
 	{
-		final private Condition condition;
-		final private Process process;
+		private final Expression condition;
+		private final Process process;
 		
-		public CPPair( Condition condition, Process process )
+		public CPPair( Expression condition, Process process )
 		{
 			this.condition = condition;
 			this.process = process;
 		}
 		
-		public Condition condition()
+		public Expression condition()
 		{
 			return condition;
 		}
@@ -51,8 +51,8 @@ public class IfProcess implements Process
 		}
 	}
 	
-	final private CPPair[] pairs;
-	final private Process elseProcess;
+	private final CPPair[] pairs;
+	private final Process elseProcess;
 	
 	public IfProcess( CPPair[] pairs, Process elseProcess )
 	{
@@ -65,7 +65,7 @@ public class IfProcess implements Process
 		CPPair[] pairsCopy = new CPPair[ pairs.length ];
 		for( int i = 0; i < pairs.length; i++ ) {
 			pairsCopy[ i ] = new CPPair(
-					pairs[ i ].condition.cloneCondition( reason ),
+					pairs[ i ].condition.cloneExpression( reason ),
 					pairs[ i ].process.clone( reason )
 				);
 		}
@@ -88,7 +88,7 @@ public class IfProcess implements Process
 		
 		while( keepRun && i < pairs.length ) {
 			pair = pairs[ i ];
-			if ( pair.condition().evaluate() ) {
+			if ( pair.condition().evaluate().boolValue() ) {
 				keepRun = false;
 				pair.process().run();
 			}
