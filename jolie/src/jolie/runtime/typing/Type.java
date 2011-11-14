@@ -173,6 +173,18 @@ class TypeImpl extends Type
 				} catch( TypeCastingException e ) {
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
+			} else if ( nativeType == NativeType.LONG ) {
+				try {
+					value.setValue( value.longValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
+			} else if ( nativeType == NativeType.BOOL ) {
+				try {
+					value.setValue( value.boolValueStrict() );
+				} catch( TypeCastingException e ) {
+					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+				}
 			} else if ( nativeType == NativeType.STRING ) {
 				try {
 					value.setValue( value.strValueStrict() );
@@ -209,6 +221,10 @@ class TypeImpl extends Type
 			return true;
 		} else if ( nativeType == NativeType.DOUBLE ) {
 			return value.isDouble() || value.isInt();
+		} else if ( nativeType == NativeType.LONG ) {
+			return value.isInt() || value.isLong();
+		} else if ( nativeType == NativeType.BOOL ) {
+			return value.isBool();
 		} else if ( nativeType == NativeType.INT ) {
 			return value.isInt();
 		} else if ( nativeType == NativeType.STRING ) {
