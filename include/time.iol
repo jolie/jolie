@@ -95,7 +95,7 @@ RequestResponse:
 	/**!
 	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
 	*/
-	getCurrentTimeMillis(void)(string),
+	getCurrentTimeMillis(void)(long),
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int),
 	getTimeFromMilliSeconds(int)(TimeValuesType)
