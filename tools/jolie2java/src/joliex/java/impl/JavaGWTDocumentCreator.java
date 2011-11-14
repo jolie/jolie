@@ -120,8 +120,11 @@ public class JavaGWTDocumentCreator {
         }
         Iterator<Entry<String, TypeDefinition>> subTypeMapIterator = subTypeMap.entrySet().iterator();
         while (subTypeMapIterator.hasNext()) {
+            
             Entry<String, TypeDefinition> subTypeEntry = subTypeMapIterator.next();
-            typeMap.put(subTypeEntry.getKey(), subTypeEntry.getValue());
+            if (!typeMap.containsKey(subTypeEntry.getKey())){
+                typeMap.put(subTypeEntry.getKey(), subTypeEntry.getValue());
+            }
             
         }
         typeMapIterator = typeMap.entrySet().iterator();
