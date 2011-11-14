@@ -48,6 +48,16 @@ import jolie.runtime.VariablePath;
 
 public class SodepProtocol extends ConcurrentCommProtocol
 {
+	private static class DataTypeHeaderId {
+		private static final int NULL = 0;
+		private static final int STRING = 1;
+		private static final int INT = 2;
+		private static final int DOUBLE = 3;
+		private static final int BYTE_ARRAY = 4;
+		private static final int BOOL = 5;
+		private static final int LONG = 6;
+	}
+	
 	public String name()
 	{
 		return "sodep";
@@ -120,21 +130,27 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	{
 		Object valueObject = value.valueObject();
 		if ( valueObject == null ) {
-			out.writeByte( 0 );
+			out.writeByte( DataTypeHeaderId.NULL );
 		} else if ( valueObject instanceof String ) {
-			out.writeByte( 1 );
+			out.writeByte( DataTypeHeaderId.STRING );
 			writeString( out, (String)valueObject );
 		} else if ( valueObject instanceof Integer ) {
-			out.writeByte( 2 );
+			out.writeByte( DataTypeHeaderId.INT );
 			out.writeInt( ((Integer)valueObject).intValue() );
 		} else if ( valueObject instanceof Double ) {
-			out.writeByte( 3 );
+			out.writeByte( DataTypeHeaderId.DOUBLE );
 			out.writeDouble( ((Double)valueObject).doubleValue() );
 		} else if ( valueObject instanceof ByteArray ) {
-			out.writeByte( 4 );
+			out.writeByte( DataTypeHeaderId.BYTE_ARRAY );
 			writeByteArray( out, (ByteArray)valueObject );
+		} else if ( valueObject instanceof Boolean ) {
+			out.writeByte( DataTypeHeaderId.BOOL );
+			out.writeBoolean( ((Boolean)valueObject).booleanValue() );
+		} else if ( valueObject instanceof Long ) {
+			out.writeByte( DataTypeHeaderId.LONG );
+			out.writeLong( ((Long)valueObject).longValue() );
 		} else {
-			out.writeByte( 0 );
+			out.writeByte( DataTypeHeaderId.NULL );
 		}
 
 		Map< String, ValueVector > children = value.children();
@@ -178,14 +194,24 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		Value value = Value.create();
 		Object valueObject = null;
 		byte b = in.readByte();
-		if ( b == 1 ) { // String
-			valueObject = readString( in );
-		} else if ( b == 2 ) { // Integer
-			valueObject = Integer.valueOf( in.readInt() );
-		} else if ( b == 3 ) { // Double
-			valueObject = Double.valueOf( in.readDouble() );
-		} else if ( b == 4 ) { // ByteArray
-			valueObject = readByteArray( in );
+		switch( b ) {
+			case DataTypeHeaderId.STRING:
+				valueObject = readString( in );
+				break;
+			case DataTypeHeaderId.INT:
+				valueObject = Integer.valueOf( in.readInt() );
+				break;
+			case DataTypeHeaderId.LONG:
+				valueObject = Long.valueOf( in.readLong() );
+				break;
+			case DataTypeHeaderId.DOUBLE:
+				valueObject = Double.valueOf( in.readDouble() );
+				break;
+			case DataTypeHeaderId.BYTE_ARRAY:
+				valueObject = valueObject = readByteArray( in );
+			case DataTypeHeaderId.NULL:
+			default:
+				break;
 		}
 
 		value.setValue( valueObject );
