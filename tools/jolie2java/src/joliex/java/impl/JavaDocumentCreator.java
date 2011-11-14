@@ -61,6 +61,7 @@ public class JavaDocumentCreator {
     private Vector<TypeDefinition> subclass;
     private boolean subtypePresent = false;
     private String namespace;
+    
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
