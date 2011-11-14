@@ -21,6 +21,22 @@
 
 include "../AbstractTestUnit.iol"
 
+define testBooleans
+{
+	x = true;
+	y = false;
+	z = x * y; // z == false
+	if ( z ) {
+		throw( TestFailed )
+	};
+	
+	z = false + true; // z == true
+	w = !z * true; // w == false
+	if ( (z && !w) == false ) {
+		throw( TestFailed )
+	}
+}
+
 define doTest
 {
 	if ( "Hello, " + "World!" != "Hello, World!" ) {
@@ -36,6 +52,8 @@ define doTest
 	x /= 2; // x = 4
 	if ( x != 4 ) {
 		throw( TestFailed, "compact inline arithmetic operators do not work correctly" )
-	}
+	};
+
+	testBooleans
 }
 
