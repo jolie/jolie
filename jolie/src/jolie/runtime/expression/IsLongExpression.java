@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,27 +20,29 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
-public class IsIntExpression implements Expression
+public class IsLongExpression implements Expression
 {
-	final private VariablePath path;
+	private final VariablePath path;
 	
-	public IsIntExpression( VariablePath path )
+	public IsLongExpression( VariablePath path )
 	{
 		this.path = path;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new IsIntExpression( path );
+		return new IsLongExpression( path );
 	}
 	
 	public Value evaluate()
 	{
 		Value value = path.getValueOrNull();
-		return Value.create( ( value != null && value.isInt() ) ? 1 : 0 );
+		return Value.create( value != null && value.isLong() );
 	}
 }

@@ -22,16 +22,16 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.Condition;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 public class WhileProcess implements Process
 {
-	final private Condition condition;
-	final private Process process;
+	private final Expression condition;
+	private final Process process;
 
-	public WhileProcess( Condition condition, Process process )
+	public WhileProcess( Expression condition, Process process )
 	{
 		this.condition = condition;
 		this.process = process;
@@ -40,7 +40,7 @@ public class WhileProcess implements Process
 	public Process clone( TransformationReason reason )
 	{
 		return new WhileProcess(
-					condition.cloneCondition( reason ),
+					condition.cloneExpression( reason ),
 					process.clone( reason )
 				);
 	}
@@ -51,7 +51,7 @@ public class WhileProcess implements Process
 		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
-		while( condition.evaluate() ) {
+		while( condition.evaluate().boolValue() ) {
 			process.run();
 			if ( ExecutionThread.currentThread().isKilled() ) {
 				return;

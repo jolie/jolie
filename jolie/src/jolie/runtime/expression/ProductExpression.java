@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,29 +19,45 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.runtime.expression;
 
-package jolie.runtime;
-
+import jolie.lang.Constants;
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-public class ExpressionCondition implements Condition
+public class ProductExpression implements Expression
 {
-	final private Expression expression;
+	private final Operand[] children;
+	
+	public ProductExpression( Operand[] children )
+	{
+		this.children = children;
+	}
+	
+	public Expression cloneExpression( TransformationReason reason )
+	{
+		Operand[] cc = new Operand[ children.length ];
 		
-	public ExpressionCondition( Expression expression )
-	{
-		this.expression = expression;
+		int i = 0;
+		for( Operand operand : children ) {
+			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
+		}
+		return new ProductExpression( cc );
 	}
 	
-	public Condition cloneCondition( TransformationReason reason )
+	public Value evaluate()
 	{
-		return new ExpressionCondition( expression.cloneExpression( reason ) );
-	}
-	
-	public boolean evaluate()
-	{
-		if ( expression.evaluate().intValue() != 0 )
-			return true;
-		return false;
+		Value val = Value.create( children[0].expression().evaluate() );
+		for( int i = 1; i < children.length; i++ ) {
+			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
+				val.multiply( children[i].expression().evaluate() );
+			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
+				val.divide( children[i].expression().evaluate() );
+			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
+				val.modulo( children[i].expression().evaluate() );
+			}
+		}
+		
+		return val;
 	}
 }

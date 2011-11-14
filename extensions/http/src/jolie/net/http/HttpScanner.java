@@ -237,7 +237,7 @@ public class HttpScanner
 					break;		
 				case 5:	// PLUS OR CHOICE
 					if ( ch == '+' ) {
-						retval = new Token( TokenType.CHOICE );
+						retval = new Token( TokenType.INCREMENT );
 						readChar();
 					} else
 						retval = new Token( TokenType.PLUS );

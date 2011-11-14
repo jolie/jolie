@@ -22,7 +22,7 @@
 package jolie.process;
 
 
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 
 public class RunProcess implements Process

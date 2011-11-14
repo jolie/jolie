@@ -1,6 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *   Copyright (C) by Claudio Guidi										   *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,27 +19,33 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.runtime.expression;
 
+import java.util.UUID;
 import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-public class IsRealExpression implements Expression
+public class FreshValueExpression implements Expression
 {
-	final private VariablePath path;
-
-	public IsRealExpression( VariablePath path )
-	{
-		this.path = path;
+	private FreshValueExpression() {}
+	
+	private static class LazyHolder {
+		private LazyHolder() {}
+		static final FreshValueExpression instance = new FreshValueExpression();
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new IsRealExpression( path );
+		return this;
 	}
-
+	
+	public static FreshValueExpression getInstance()
+	{
+		return FreshValueExpression.LazyHolder.instance;
+	}
+	
 	public Value evaluate()
 	{
-		Value value = path.getValueOrNull();
-		return Value.create( ( value != null && value.isDouble() ) ? 1 : 0 );
+		return Value.create( UUID.randomUUID().toString() );
 	}
 }

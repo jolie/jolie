@@ -43,13 +43,13 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.expression.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.ConstantIntegerExpression;
-import jolie.lang.parse.ast.ConstantRealExpression;
-import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
@@ -61,10 +61,9 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -72,20 +71,20 @@ import jolie.lang.parse.ast.InstallFunctionNode;
 import jolie.lang.parse.ast.InstallStatement;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -93,7 +92,7 @@ import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
@@ -102,19 +101,21 @@ import jolie.lang.parse.ast.Scope;
 import jolie.lang.parse.ast.SequenceStatement;
 import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -166,38 +167,40 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.InterfaceExtender;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
-import jolie.runtime.AndCondition;
-import jolie.runtime.CastIntExpression;
-import jolie.runtime.CastRealExpression;
-import jolie.runtime.CastStringExpression;
-import jolie.runtime.CompareCondition;
+import jolie.runtime.expression.AndCondition;
+import jolie.runtime.expression.CastIntExpression;
+import jolie.runtime.expression.CastDoubleExpression;
+import jolie.runtime.expression.CastStringExpression;
+import jolie.runtime.expression.CompareCondition;
 import jolie.runtime.CompareOperator;
-import jolie.runtime.Condition;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
-import jolie.runtime.Expression;
-import jolie.runtime.Expression.Operand;
-import jolie.runtime.ExpressionCondition;
-import jolie.runtime.FreshValueExpression;
+import jolie.runtime.expression.Expression;
+import jolie.runtime.expression.Expression.Operand;
+import jolie.runtime.expression.FreshValueExpression;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InstallFixedVariablePath;
 import jolie.runtime.InvalidIdException;
-import jolie.runtime.IsDefinedExpression;
-import jolie.runtime.IsIntExpression;
-import jolie.runtime.IsRealExpression;
-import jolie.runtime.IsStringExpression;
-import jolie.runtime.NotCondition;
+import jolie.runtime.expression.IsDefinedExpression;
+import jolie.runtime.expression.IsIntExpression;
+import jolie.runtime.expression.IsDoubleExpression;
+import jolie.runtime.expression.IsStringExpression;
 import jolie.runtime.OneWayOperation;
-import jolie.runtime.OrCondition;
-import jolie.runtime.ProductExpression;
+import jolie.runtime.expression.OrCondition;
+import jolie.runtime.expression.ProductExpression;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.SumExpression;
+import jolie.runtime.expression.SumExpression;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
+import jolie.runtime.expression.CastBoolExpression;
+import jolie.runtime.expression.CastLongExpression;
+import jolie.runtime.expression.IsBoolExpression;
+import jolie.runtime.expression.IsLongExpression;
+import jolie.runtime.expression.NotExpression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
@@ -590,7 +593,6 @@ public class OOITBuilder implements OLVisitor
 
 	private Process currProcess;
 	private Expression currExpression;
-	private Condition currCondition;
 	private Type currType;
 	boolean insideType = false;
 	
@@ -1102,11 +1104,11 @@ public class OOITBuilder implements OLVisitor
 		IfProcess.CPPair[] pairs = new IfProcess.CPPair[ n.children().size() ];
 		Process elseProcess = null;
 
-		Condition condition;
+		Expression condition;
 		int i = 0;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
-			condition = currCondition;
+			condition = currExpression;
 			pair.value().accept( this );
 			pairs[ i++ ] = new IfProcess.CPPair( condition, currProcess );
 		}
@@ -1142,37 +1144,37 @@ public class OOITBuilder implements OLVisitor
 	public void visit( WhileStatement n )
 	{
 		n.condition().accept( this );
-		Condition condition = currCondition;
+		Expression condition = currExpression;
 		n.body().accept( this );
 		currProcess = new WhileProcess( condition, currProcess );
 	}
 	
 	public void visit( OrConditionNode n )
 	{
-		Condition[] children = new Condition[ n.children().size() ];
+		Expression[] children = new Expression[ n.children().size() ];
 		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
-			children[ i++ ] = currCondition;
+			children[ i++ ] = currExpression;
 		}
-		currCondition = new OrCondition( children );
+		currExpression = new OrCondition( children );
 	}
 	
 	public void visit( AndConditionNode n )
 	{
-		Condition[] children = new Condition[ n.children().size() ];
+		Expression[] children = new Expression[ n.children().size() ];
 		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
-			children[ i++ ] = currCondition;
+			children[ i++ ] = currExpression;
 		}
-		currCondition = new AndCondition( children );
+		currExpression = new AndCondition( children );
 	}
 	
-	public void visit( NotConditionNode n )
+	public void visit( NotExpressionNode n )
 	{
-		n.condition().accept( this );
-		currCondition = new NotCondition( currCondition );
+		n.expression().accept( this );
+		currExpression = new NotExpression( currExpression );
 	}
 	
 	public void visit( CompareConditionNode n )
@@ -1196,15 +1198,9 @@ public class OOITBuilder implements OLVisitor
 			operator = CompareOperator.MAJOR_OR_EQUAL;
 		}
 		assert( operator != null );
-		currCondition = new CompareCondition( left, currExpression, operator );
+		currExpression = new CompareCondition( left, currExpression, operator );
 	}
-	
-	public void visit( ExpressionConditionNode n )
-	{
-		n.expression().accept( this );
-		currCondition = new ExpressionCondition( currExpression );
-	}
-	
+
 	public void visit( FreshValueExpressionNode n )
 	{
 		currExpression = FreshValueExpression.getInstance();
@@ -1215,7 +1211,17 @@ public class OOITBuilder implements OLVisitor
 		currExpression = Value.create( n.value() );
 	}
 	
-	public void visit( ConstantRealExpression n )
+	public void visit( ConstantLongExpression n )
+	{
+		currExpression = Value.create( n.value() );
+	}
+	
+	public void visit( ConstantBoolExpression n )
+	{
+		currExpression = Value.create( n.value() );
+	}
+	
+	public void visit( ConstantDoubleExpression n )
 	{
 		currExpression = Value.create( n.value() );
 	}
@@ -1302,9 +1308,15 @@ public class OOITBuilder implements OLVisitor
 		} else if ( type == IsTypeExpressionNode.CheckType.INT ) {
 			currExpression =
 				new IsIntExpression( buildVariablePath( n.variablePath() ) );
-		} else if ( type == IsTypeExpressionNode.CheckType.REAL ) {
+		} else if ( type == IsTypeExpressionNode.CheckType.DOUBLE ) {
 			currExpression =
-				new IsRealExpression( buildVariablePath( n.variablePath() ) );
+				new IsDoubleExpression( buildVariablePath( n.variablePath() ) );
+		} else if ( type == IsTypeExpressionNode.CheckType.BOOL ) {
+			currExpression =
+				new IsBoolExpression( buildVariablePath( n.variablePath() ) );
+		} else if ( type == IsTypeExpressionNode.CheckType.LONG ) {
+			currExpression =
+				new IsLongExpression( buildVariablePath( n.variablePath() ) );
 		} else if ( type == IsTypeExpressionNode.CheckType.STRING ) {
 			currExpression =
 				new IsStringExpression( buildVariablePath( n.variablePath() ) );
@@ -1317,9 +1329,13 @@ public class OOITBuilder implements OLVisitor
 		if ( n.type() == NativeType.INT ) {
 			currExpression = new CastIntExpression( currExpression );
 		} else if ( n.type() == NativeType.DOUBLE ) {
-			currExpression = new CastRealExpression( currExpression );
+			currExpression = new CastDoubleExpression( currExpression );
 		} else if ( n.type() == NativeType.STRING ) {
 			currExpression = new CastStringExpression( currExpression );
+		} else if ( n.type() == NativeType.BOOL ) {
+			currExpression = new CastBoolExpression( currExpression );
+		} else if ( n.type() == NativeType.LONG ) {
+			currExpression = new CastLongExpression( currExpression );
 		}
 	}
 	
@@ -1346,7 +1362,7 @@ public class OOITBuilder implements OLVisitor
 		n.post().accept( this );
 		Process post = currProcess;
 		n.condition().accept( this );
-		Condition condition = currCondition;
+		Expression condition = currExpression;
 		n.body().accept( this );
 		currProcess = new ForProcess( init, condition, post, currProcess );
 	}

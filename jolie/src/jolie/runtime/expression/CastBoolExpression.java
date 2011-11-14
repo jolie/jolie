@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,69 +19,28 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
-import jolie.runtime.InvalidIdException;
+package jolie.runtime.expression;
+
+import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
-/** Assigns an expression value to a VariablePath.
- * @see Expression
- * @see VariablePath
- * @author Fabrizio Montesi
- */
-public class AssignmentProcess implements Process, Expression
+public class CastBoolExpression implements Expression
 {
-	final private VariablePath varPath;
 	final private Expression expression;
-
-	/** Constructor.
-	 * 
-	 * @param varPath the variable which will receive the value
-	 * @param expression the expression of which the evaluation will be stored in the variable
-	 * @throws InvalidIdException if varId does not identify a variable
-	 */
-	public AssignmentProcess( VariablePath varPath, Expression expression )
-	{
-		this.varPath = varPath;
-		this.expression = expression;
-	}
 	
-	public Process clone( TransformationReason reason )
+	public CastBoolExpression( Expression expression )
 	{
-		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
-				);
+		this.expression = expression;
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new AssignmentProcess(
-					(VariablePath)varPath.cloneExpression( reason ),
-					expression.cloneExpression( reason )
-				);
-	}
-	
-	/** Evaluates the expression and stores its value in the variable. */
-	public void run()
-	{
-		if ( ExecutionThread.currentThread().isKilled() )
-			return;
-		varPath.getValue().assignValue( expression.evaluate() );
+		return new CastBoolExpression( expression.cloneExpression( reason ) );
 	}
 	
 	public Value evaluate()
 	{
-		Value val = varPath.getValue();
-		val.assignValue( expression.evaluate() );
-		return val;
-	}
-	
-	public boolean isKillable()
-	{
-		return true;
+		return Value.create( expression.evaluate().boolValue() );
 	}
 }

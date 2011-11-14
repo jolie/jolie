@@ -22,7 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 

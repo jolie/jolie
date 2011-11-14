@@ -22,7 +22,7 @@
 
 package jolie.runtime.embedding;
 
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.JavaService;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;

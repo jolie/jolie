@@ -19,29 +19,28 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+package jolie.runtime.expression;
 
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-public class NotConditionNode extends OLSyntaxNode
+public class CastIntExpression implements Expression
 {
-	private final OLSyntaxNode condition;
-
-	public NotConditionNode( ParsingContext context, OLSyntaxNode condition )
+	final private Expression expression;
+	
+	public CastIntExpression( Expression expression )
 	{
-		super( context );
-		this.condition = condition;
+		this.expression = expression;
 	}
 	
-	public OLSyntaxNode condition()
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		return condition;
+		return new CastIntExpression( expression.cloneExpression( reason ) );
 	}
 	
-	public void accept( OLVisitor visitor )
+	public Value evaluate()
 	{
-		visitor.visit( this );
+		return Value.create( expression.evaluate().intValue() );
 	}
 }

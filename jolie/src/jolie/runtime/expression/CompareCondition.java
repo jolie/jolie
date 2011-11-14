@@ -20,26 +20,41 @@
  ***************************************************************************/
 
 
-package jolie.runtime;
+package jolie.runtime.expression;
 
 import jolie.process.TransformationReason;
+import jolie.runtime.CompareOperator;
+import jolie.runtime.Value;
 
-public class NotCondition implements Condition
+
+/**
+ * @author Fabrizio Montesi
+ * TODO Clean up code.
+ *
+ */
+public class CompareCondition implements Expression
 {
-	final private Condition condition;
+	private final Expression leftExpression, rightExpression;
+	private final CompareOperator compareOperator;
 	
-	public NotCondition( Condition condition )
+	public CompareCondition( Expression left, Expression right, CompareOperator compareOperator )
 	{
-		this.condition = condition;
+		leftExpression = left;
+		rightExpression = right;
+		this.compareOperator = compareOperator;
 	}
 	
-	public Condition cloneCondition( TransformationReason reason )
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		return new NotCondition( condition.cloneCondition( reason ) );
+		return new CompareCondition(
+					leftExpression.cloneExpression( reason ),
+					rightExpression.cloneExpression( reason ),
+					compareOperator
+				);
 	}
 	
-	public boolean evaluate()
+	public Value evaluate()
 	{
-		return ( !( condition.evaluate() ) );
+		return Value.create( compareOperator.evaluate( leftExpression.evaluate(), rightExpression.evaluate() ) );
 	}
 }

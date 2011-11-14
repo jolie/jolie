@@ -37,14 +37,14 @@ import jolie.lang.Constants.OperandType;
 import jolie.lang.Constants.OperationType;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AndConditionNode;
+import jolie.lang.parse.ast.expression.AndConditionNode;
 import jolie.lang.parse.ast.AssignStatement;
 import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.CompareConditionNode;
 import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.ConstantIntegerExpression;
-import jolie.lang.parse.ast.ConstantRealExpression;
-import jolie.lang.parse.ast.ConstantStringExpression;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.CorrelationSetInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CurrentHandlerStatement;
@@ -52,24 +52,23 @@ import jolie.lang.parse.ast.DeepCopyStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ExpressionConditionNode;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
 import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.IsTypeExpressionNode;
+import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.LinkInStatement;
 import jolie.lang.parse.ast.LinkOutStatement;
 import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotConditionNode;
+import jolie.lang.parse.ast.expression.NotExpressionNode;
 import jolie.lang.parse.ast.NotificationOperationStatement;
 import jolie.lang.parse.ast.NullProcessStatement;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OneWayOperationStatement;
 import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OrConditionNode;
+import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.ParallelStatement;
 import jolie.lang.parse.ast.PointerStatement;
@@ -77,7 +76,7 @@ import jolie.lang.parse.ast.PostDecrementStatement;
 import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.ProductExpressionNode;
+import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
@@ -89,25 +88,27 @@ import jolie.lang.parse.ast.SolicitResponseOperationStatement;
 import jolie.lang.parse.ast.DefinitionCallStatement;
 import jolie.lang.parse.ast.DefinitionNode;
 import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.SubtractAssignStatement;
 import jolie.lang.parse.ast.MultiplyAssignStatement;
 import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SumExpressionNode;
+import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.SynchronizedStatement;
 import jolie.lang.parse.ast.ThrowStatement;
 import jolie.lang.parse.ast.TypeCastExpressionNode;
 import jolie.lang.parse.ast.UndefStatement;
 import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
+import jolie.lang.parse.ast.expression.ConstantBoolExpression;
+import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -846,9 +847,9 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	public void visit( NotConditionNode n )
+	public void visit( NotExpressionNode n )
 	{
-		n.condition().accept( this );
+		n.expression().accept( this );
 	}
 
 	public void visit( CompareConditionNode n )
@@ -857,14 +858,11 @@ public class SemanticVerifier implements OLVisitor
 		n.rightExpression().accept( this );
 	}
 
-	public void visit( ExpressionConditionNode n ) 
-	{
-		n.expression().accept( this );
-	}
-
 	public void visit( ConstantIntegerExpression n ) {}
-	public void visit( ConstantRealExpression n ) {}
+	public void visit( ConstantDoubleExpression n ) {}
 	public void visit( ConstantStringExpression n ) {}
+	public void visit( ConstantLongExpression n ) {}
+	public void visit( ConstantBoolExpression n ) {}
 
 	public void visit( ProductExpressionNode n )
 	{

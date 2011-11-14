@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) by Claudio Guidi                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -17,46 +17,31 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+ ***************************************************************************/      
 
-package jolie.runtime;
+package jolie.lang.parse.ast.expression;
 
-import jolie.lang.Constants;
-import jolie.process.TransformationReason;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
 
-public class ProductExpression implements Expression
+public class ConstantDoubleExpression extends OLSyntaxNode
 {
-	private final Operand[] children;
-	
-	public ProductExpression( Operand[] children )
+	private final double value;
+
+	public ConstantDoubleExpression( ParsingContext context, double value )
 	{
-		this.children = children;
+		super( context );
+		this.value = value;
 	}
 	
-	public Expression cloneExpression( TransformationReason reason )
+	public double value()
 	{
-		Operand[] cc = new Operand[ children.length ];
-		
-		int i = 0;
-		for( Operand operand : children ) {
-			cc[i++] = new Operand( operand.type(), operand.expression().cloneExpression( reason ) );
-		}
-		return new ProductExpression( cc );
+		return value;
 	}
 	
-	public Value evaluate()
+	public void accept( OLVisitor visitor )
 	{
-		Value val = Value.create( children[0].expression().evaluate() );
-		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
-				val.multiply( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
-				val.divide( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
-				val.modulo( children[i].expression().evaluate() );
-			}
-		}
-		
-		return val;
+		visitor.visit( this );
 	}
 }

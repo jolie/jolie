@@ -164,9 +164,9 @@ public class TimeService extends JavaService
 		}
 	}
 
-	public String getCurrentTimeMillis()
+	public Long getCurrentTimeMillis()
 	{
-		return new Long( System.currentTimeMillis()).toString();
+		return System.currentTimeMillis();
 	}
 	
 	public String getCurrentDateTime( Value request )
@@ -280,37 +280,35 @@ public class TimeService extends JavaService
 		return v;
 	}
         
-        public Value getTimeDiff( Value request )
+	public Value getTimeDiff( Value request )
 		throws FaultException
 	{
 		Value v = Value.create();
 		try {
-			
+
 			DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );
 			final Date dt1 = sdf.parse( request.getFirstChild( "time1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "time2" ).strValue() );
-			Long result = new Long( (dt1.getTime() - dt2.getTime()));
-                        
-                        
+			Long result = new Long( (dt1.getTime() - dt2.getTime()) );
 			v.setValue( result.intValue() );
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );
 		}
 		return v;
 	}
-        public Value getTimeFromMilliSeconds( Value request )
+
+	public Value getTimeFromMilliSeconds( Value request )
 		throws FaultException
 	{
-                       Value v = Value.create();
-                       TimeZone timeZone= TimeZone.getTimeZone("GMT");
-         	
-			Calendar calendar = Calendar.getInstance(timeZone);
-			calendar.setTimeInMillis( request.intValue());
-                        
-			v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
-			v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
-			v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
-			return v;
-                        
-        }
+		Value v = Value.create();
+		TimeZone timeZone = TimeZone.getTimeZone( "GMT" );
+
+		Calendar calendar = Calendar.getInstance( timeZone );
+		calendar.setTimeInMillis( request.intValue() );
+
+		v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
+		v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
+		v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
+		return v;
+	}
 }

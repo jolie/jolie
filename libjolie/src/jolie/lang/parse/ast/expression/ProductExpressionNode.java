@@ -19,37 +19,51 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie.lang.parse.ast.expression;
 
-package jolie.runtime;
+import java.util.Collection;
 
-import jolie.process.TransformationReason;
+import java.util.LinkedList;
+import jolie.lang.Constants;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Pair;
 
-public class IsDefinedExpression implements Expression
+
+
+public class ProductExpressionNode extends OLSyntaxNode
 {
-	final private VariablePath path;
-	
-	public IsDefinedExpression( VariablePath path )
-	{
-		this.path = path;
-	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
-		return new IsDefinedExpression( path );
-	}
-	
-	public Value evaluate()
-	{
-		Value v = path.getValueOrNull();
-		boolean def = false;
-		if ( v != null ) {
-			if ( v.isDefined() ) {
-				def = true;
-			} else {
-				def = !v.children().isEmpty();
-			}
-		}
+	private final Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
-		return Value.create( def );
+	public ProductExpressionNode( ParsingContext context )
+	{
+		super( context );
+		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
+	}
+	
+	public void multiply( OLSyntaxNode expression )
+	{
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MULTIPLY, expression ) );
+	}
+	
+	public void divide( OLSyntaxNode expression )
+	{
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.DIVIDE, expression ) );
+	}
+	
+	public void modulo( OLSyntaxNode expression )
+	{
+		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MODULUS, expression ) );
+	}
+	
+	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
+	{
+		return operands;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

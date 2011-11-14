@@ -19,33 +19,26 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
-
-import java.util.LinkedList;
-import java.util.List;
+package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
 
 
-
-public class AndConditionNode extends OLSyntaxNode
+public class ConstantStringExpression extends OLSyntaxNode
 {
-	private final List< OLSyntaxNode > children = new LinkedList< OLSyntaxNode >();
+	private final String value;
 
-	public AndConditionNode( ParsingContext context )
+	public ConstantStringExpression( ParsingContext context, String value )
 	{
 		super( context );
+		this.value = value;
 	}
 	
-	public List< OLSyntaxNode > children()
+	public String value()
 	{
-		return children;
-	}
-	
-	public void addChild( OLSyntaxNode node )
-	{
-		children.add( node );
+		return value;
 	}
 	
 	public void accept( OLVisitor visitor )

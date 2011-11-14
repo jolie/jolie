@@ -31,7 +31,7 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.RequestResponseOperation;

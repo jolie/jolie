@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,44 +19,20 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.ast.expression;
 
-import java.util.Collection;
-
-import java.util.LinkedList;
-import java.util.List;
-import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
-import jolie.util.Pair;
 
 
-
-public class SumExpressionNode extends OLSyntaxNode
+public class FreshValueExpressionNode extends OLSyntaxNode
 {
-	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands;
-
-	public SumExpressionNode( ParsingContext context )
+	public FreshValueExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
 	}
-	
-	public void add( OLSyntaxNode expression )
-	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.ADD, expression ) );
-	}
-	
-	public void subtract( OLSyntaxNode expression )
-	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.SUBTRACT, expression ) );
-	}
-	
-	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
-	{
-		return operands;
-	}
-	
+
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

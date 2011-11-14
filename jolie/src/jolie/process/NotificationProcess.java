@@ -30,7 +30,7 @@ import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.runtime.Expression;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.typing.OneWayTypeDescription;
