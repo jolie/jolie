@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import jolie.runtime.Value;
+import jolie.runtime.typing.TypeCastingException;
 
 /**
  * Commodity class for converting a parametrized
@@ -54,7 +55,7 @@ public class NamedStatementParser
 	private final PreparedStatement statement;
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
-		throws SQLException
+		throws SQLException, TypeCastingException
 	{
 		
                 String jdbcSql = parse( sql );
@@ -130,8 +131,9 @@ public class NamedStatementParser
 
                                 } else if(v.hasChildren( TypeKeywords.DATETIME)){
                                     for( Integer index : entry.getValue() ) {
-                                        System.out.println("this is the long: "+ new Long (v.longValue()).toString());
-                                        System.out.print(v.longValue());
+                                        System.out.println("this is the long: "+ new Long (v.longValueStrict()).toString());
+                                        System.out.println(v.longValue());
+                                        System.out.println();
                                         Timestamp timestamp= new Timestamp(v.longValue());
                                         System.out.println("I am adding time stamp"+ timestamp.toString());
                                         statement.setTimestamp(index, timestamp);
