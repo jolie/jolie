@@ -26,6 +26,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class NamedStatementParser
 {
 	private static class TypeKeywords {
 		private final static String DATE = "Date";
-                private final static String DATETIME = "DateTime";
+                private final static String DATETIME = "Timestamp";
                 private final static String TIME ="Time";
 	}
 
@@ -114,11 +115,8 @@ public class NamedStatementParser
                                                 if ( hour.length() < 2 ) {
 							hour = "0" + hour;
 						}
-                                                 System.out.println(Time.valueOf(hour
-                                                         + ":" + minute
-                                                         + ":" + second
-							));
-                                                 System.out.println("index"+ index + " -- " + Time.valueOf( hour + ":" + minute + ":" + second ) );
+                                                 
+                                                 
 						statement.setTime( index,
 							 Time.valueOf(hour
                                                          + ":" + minute
@@ -130,7 +128,16 @@ public class NamedStatementParser
 
 
 
-                                } else {
+                                } else if(v.hasChildren( TypeKeywords.DATETIME)){
+                                    for( Integer index : entry.getValue() ) {
+                                        Timestamp timestamp= new Timestamp(v.longValue());
+                                        statement.setTimestamp(index, timestamp);
+                                    }
+                                
+                                
+                                
+                                
+                                }else {
 					for( Integer index : entry.getValue() ) {
 						statement.setString( index, v.strValue() );
 					}
