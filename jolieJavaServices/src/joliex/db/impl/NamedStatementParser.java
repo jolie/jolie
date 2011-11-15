@@ -131,7 +131,7 @@ public class NamedStatementParser
 
                                 } else if(v.hasChildren( TypeKeywords.DATETIME)){
                                     for( Integer index : entry.getValue() ) {
-                                        System.out.println("this is the long: "+ new Long (v.longValueStrict()).toString());
+                                        System.out.println("this is the long: "+ new Long (v.intValue()).toString());
                                         System.out.println(v.longValue());
                                         System.out.println();
                                         Timestamp timestamp= new Timestamp(v.longValue());
