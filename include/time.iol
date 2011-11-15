@@ -47,6 +47,7 @@ type TimeValuesType:void {
 	.minute:int
 	.second:int
 }
+type Timestamp:long
 
 type DateValuesRequestType:string {
 	/**
