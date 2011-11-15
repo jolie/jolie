@@ -66,6 +66,10 @@ public class NamedStatementParser
 				for( Integer index : entry.getValue() ) {
 					statement.setDouble( index, v.doubleValue() );
 				}
+			} else if ( v.isLong() ) {
+				for( Integer index : entry.getValue() ) {
+					statement.setLong( index, v.longValue() );
+				}
 			} else if ( v.isBool() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setBoolean( index, v.boolValue() );
