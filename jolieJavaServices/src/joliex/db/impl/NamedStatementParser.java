@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import jolie.runtime.Value;
 
 /**
@@ -44,7 +45,8 @@ public class NamedStatementParser
 {
 	private static class TypeKeywords {
 		private final static String DATE = "Date";
-		private final static String TIME = "Time";
+                private final static String DATETIME = "DateTime";
+                private final static String TIME ="Time";
 	}
 
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
@@ -53,7 +55,9 @@ public class NamedStatementParser
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
 		throws SQLException
 	{
-		String jdbcSql = parse( sql );
+		
+                String jdbcSql = parse( sql );
+            
 		statement = connection.prepareStatement( jdbcSql );
 		Value v;
 		for( Entry< String, List< Integer > > entry : parameterPositions.entrySet() ) {
@@ -78,6 +82,7 @@ public class NamedStatementParser
 				for( Integer index : entry.getValue() ) {
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
+
 			} else {
 				if ( v.hasChildren( TypeKeywords.DATE ) ) {
 					Value date = v.getFirstChild( TypeKeywords.DATE );
@@ -98,28 +103,34 @@ public class NamedStatementParser
 							)
 						);
 					}
-				} else if ( v.hasChildren( TypeKeywords.TIME ) ) {
-					Value time = v.getFirstChild( TypeKeywords.TIME );
+				} else if(v.hasChildren(TypeKeywords.TIME)){
+                                    Value time = v.getFirstChild( TypeKeywords.TIME );
+                                    System.out.println("dentro Time Type");
 					for( Integer index : entry.getValue() ) {
+                                                
 						String hour = String.valueOf( time.getFirstChild( "hour").intValue() );
 						String minute = String.valueOf( time.getFirstChild( "minute").intValue() );
 						String second = String.valueOf( time.getFirstChild( "second").intValue() );
-						if ( hour.length() < 2 ) {
+                                                if ( hour.length() < 2 ) {
 							hour = "0" + hour;
 						}
-						if ( minute.length() < 2 ) {
-							minute = "0" + minute;
-						}
-						if ( second.length() < 2 ) {
-							second = "0" + second;
-						}
+                                                 System.out.println(Time.valueOf(hour
+                                                         + ":" + minute
+                                                         + ":" + second
+							));
+                                                 System.out.println("index"+ index + " -- " + Time.valueOf( hour + ":" + minute + ":" + second ) );
 						statement.setTime( index,
-							Time.valueOf( hour +
-								":" + minute
-								+ ":" + second
-						) );
+							 Time.valueOf(hour
+                                                         + ":" + minute
+                                                         + ":" + second
+							)
+						);
+                                               
 					}
-				} else {
+
+
+
+                                } else {
 					for( Integer index : entry.getValue() ) {
 						statement.setString( index, v.strValue() );
 					}
