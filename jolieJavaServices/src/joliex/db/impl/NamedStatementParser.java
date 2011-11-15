@@ -134,7 +134,10 @@ public class NamedStatementParser
                                         System.out.println("this is the long: "+ new Long (v.intValue()).toString());
                                         System.out.println(v.longValue());
                                         System.out.println();
-                                        Timestamp timestamp= new Timestamp(v.longValue());
+                                        Value timestampValue = v.getFirstChild( TypeKeywords.DATETIME );
+                                                
+                                       long l=timestampValue.getFirstChild("value").longValue();
+                                        Timestamp timestamp= new Timestamp(l);
                                         System.out.println("I am adding time stamp"+ timestamp.toString());
                                         statement.setTimestamp(index, timestamp);
                                     }
