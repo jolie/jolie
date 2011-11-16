@@ -99,7 +99,8 @@ RequestResponse:
 	getCurrentTimeMillis(void)(long),
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int),
-	getTimeFromMilliSeconds(int)(TimeValuesType)
+	getTimeFromMilliSeconds(int)(TimeValuesType),
+	getTimeStampFromString(string)(long)
 }
 
 embedded {
