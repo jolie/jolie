@@ -30,6 +30,8 @@ import java.util.Date;
 
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -304,11 +306,26 @@ public class TimeService extends JavaService
 		TimeZone timeZone = TimeZone.getTimeZone( "GMT" );
 
 		Calendar calendar = Calendar.getInstance( timeZone );
-		calendar.setTimeInMillis( request.intValue() );
+		calendar.setTimeInMillis( request.longValue() );
 
 		v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
 		v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
 		v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
 		return v;
+	}
+        
+        public Value getTimeStampFromString( Value request )
+		throws FaultException
+	{       
+        try {
+            Value v = Value.create();
+            String format=("dd/MM/yyyy kk:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat( format );
+            final Date dt = sdf.parse( request.strValue() );
+            v.setValue(dt.getTime()) ;
+            return v;
+        } catch (ParseException pe) {
+            throw new FaultException( "InvalidTimeStamp", pe );
+        }
 	}
 }
