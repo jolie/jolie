@@ -30,8 +30,6 @@ import java.util.Date;
 
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
