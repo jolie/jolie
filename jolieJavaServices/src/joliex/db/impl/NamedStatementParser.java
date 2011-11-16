@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import jolie.runtime.Value;
-import jolie.runtime.typing.TypeCastingException;
+
 
 /**
  * Commodity class for converting a parametrized
@@ -55,7 +55,7 @@ public class NamedStatementParser
 	private final PreparedStatement statement;
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
-		throws SQLException, TypeCastingException
+		throws SQLException
 	{
 		
                 String jdbcSql = parse( sql );
@@ -74,10 +74,12 @@ public class NamedStatementParser
 				}
 			} else if ( v.isLong() ) {
 				for( Integer index : entry.getValue() ) {
+                                       
 					statement.setLong( index, v.longValue() );
 				}
 			} else if ( v.isBool() ) {
 				for( Integer index : entry.getValue() ) {
+                                        
 					statement.setBoolean( index, v.boolValue() );
 				}
 			} else if ( v.isByteArray() ) {
@@ -130,16 +132,12 @@ public class NamedStatementParser
 
 
                                 } else if(v.hasChildren( TypeKeywords.DATETIME)){
+                                    Value timestampValue = v.getFirstChild( TypeKeywords.DATETIME );
                                     for( Integer index : entry.getValue() ) {
-                                        System.out.println("this is the long: "+ new Long (v.intValue()).toString());
-                                        System.out.println(v.longValue());
-                                        System.out.println();
-                                        Value timestampValue = v.getFirstChild( TypeKeywords.DATETIME );
-                                                
-                                       long l=timestampValue.getFirstChild("value").longValue();
-                                        Timestamp timestamp= new Timestamp(l);
-                                        System.out.println("I am adding time stamp"+ timestamp.toString());
-                                        statement.setTimestamp(index, timestamp);
+                                       
+                                       Timestamp timestamp= new Timestamp(timestampValue.getFirstChild("value").longValue());
+                                       statement.setTimestamp(index, timestamp);
+                                       
                                     }
                                 
                                 
