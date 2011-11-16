@@ -79,19 +79,20 @@ public class Value implements Serializable, IsSerializable
 	public boolean isDouble()
 	{
 		return type == Type.DOUBLE;
-        }
+	}
         
-        /// Added by Balint Maschio
-        public boolean isLong()
+	// Added by Balint Maschio
+	public boolean isLong()
 	{
 		return type == Type.LONG;
 	}
-        
-        public boolean isBool()
+
+	// Added by Balint Maschio
+	public boolean isBool()
 	{
 		return type == Type.BOOLEAN;
 	}
-	////
+
 	public boolean isDefined()
 	{
 		return type != Type.UNDEFINED;
@@ -154,19 +155,20 @@ public class Value implements Serializable, IsSerializable
 			return new String();
 		return valueObject.toString();
 	}
-        // Added by Balint Maschio
-        public long longValue()
+
+	// Added by Balint Maschio
+	public long longValue()
 	{
 		if ( valueObject == null )
 			return 0;
-		return  new Long (valueObject);
+		return new Long( valueObject );
 	}
-        
-        public Boolean boolValue()
+
+	public boolean boolValue()
 	{
 		if ( valueObject == null )
-			return null;
-		return  new Boolean (valueObject);
+			return false;
+		return Boolean.valueOf( valueObject );
 	}
 	
 	public Value getNewChild( String childId )
