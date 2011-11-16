@@ -47,7 +47,6 @@ type TimeValuesType:void {
 	.minute:int
 	.second:int
 }
-type Timestamp:long
 
 type DateValuesRequestType:string {
 	/**
@@ -100,7 +99,7 @@ RequestResponse:
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int),
 	getTimeFromMilliSeconds(int)(TimeValuesType),
-	getTimeStampFromString(string)(long)
+	getTimestampFromString(string)(long)
 }
 
 embedded {
