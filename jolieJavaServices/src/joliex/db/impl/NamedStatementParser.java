@@ -47,8 +47,8 @@ public class NamedStatementParser
 {
 	private static class TypeKeywords {
 		private final static String DATE = "Date";
-                private final static String DATETIME = "Timestamp";
-                private final static String TIME ="Time";
+		private final static String TIMESTAMP = "Timestamp";
+		private final static String TIME = "Time";
 	}
 
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
@@ -57,9 +57,8 @@ public class NamedStatementParser
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
 		throws SQLException
 	{
-		
-                String jdbcSql = parse( sql );
-            
+		String jdbcSql = parse( sql );
+
 		statement = connection.prepareStatement( jdbcSql );
 		Value v;
 		for( Entry< String, List< Integer > > entry : parameterPositions.entrySet() ) {
@@ -74,19 +73,16 @@ public class NamedStatementParser
 				}
 			} else if ( v.isLong() ) {
 				for( Integer index : entry.getValue() ) {
-                                       
 					statement.setLong( index, v.longValue() );
 				}
 			} else if ( v.isBool() ) {
 				for( Integer index : entry.getValue() ) {
-                                        
 					statement.setBoolean( index, v.boolValue() );
 				}
 			} else if ( v.isByteArray() ) {
 				for( Integer index : entry.getValue() ) {
 					statement.setBytes( index, v.byteArrayValue().getBytes() );
 				}
-
 			} else {
 				if ( v.hasChildren( TypeKeywords.DATE ) ) {
 					Value date = v.getFirstChild( TypeKeywords.DATE );
@@ -107,43 +103,32 @@ public class NamedStatementParser
 							)
 						);
 					}
-				} else if(v.hasChildren(TypeKeywords.TIME)){
-                                    Value time = v.getFirstChild( TypeKeywords.TIME );
-                                    System.out.println("dentro Time Type");
+				} else if ( v.hasChildren( TypeKeywords.TIME ) ) {
+					Value time = v.getFirstChild( TypeKeywords.TIME );
 					for( Integer index : entry.getValue() ) {
-                                                
-						String hour = String.valueOf( time.getFirstChild( "hour").intValue() );
-						String minute = String.valueOf( time.getFirstChild( "minute").intValue() );
-						String second = String.valueOf( time.getFirstChild( "second").intValue() );
-                                                if ( hour.length() < 2 ) {
+						String hour = String.valueOf( time.getFirstChild( "hour" ).intValue() );
+						String minute = String.valueOf( time.getFirstChild( "minute" ).intValue() );
+						String second = String.valueOf( time.getFirstChild( "second" ).intValue() );
+						if ( hour.length() < 2 ) {
 							hour = "0" + hour;
 						}
-                                                 
-                                                 
 						statement.setTime( index,
-							 Time.valueOf(hour
-                                                         + ":" + minute
-                                                         + ":" + second
-							)
-						);
-                                               
+							Time.valueOf( hour
+							+ ":" + minute
+							+ ":" + second ) );
 					}
-
-
-
-                                } else if(v.hasChildren( TypeKeywords.DATETIME)){
-                                    Value timestampValue = v.getFirstChild( TypeKeywords.DATETIME );
-                                    for( Integer index : entry.getValue() ) {
-                                       
-                                       Timestamp timestamp= new Timestamp(timestampValue.getFirstChild("value").longValue());
-                                       statement.setTimestamp(index, timestamp);
-                                       
-                                    }
-                                
-                                
-                                
-                                
-                                }else {
+				} else if ( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
+					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );
+					Timestamp timestamp;
+					if ( timestampValue.isInt() || timestampValue.isLong() ) {
+						timestamp = new Timestamp( timestampValue.longValue() );
+					} else {
+						throw new SQLException( "Found Timestamp, but epoch not specified." );
+					}
+					for( Integer index : entry.getValue() ) {
+						statement.setTimestamp( index, timestamp );
+					}
+				} else {
 					for( Integer index : entry.getValue() ) {
 						statement.setString( index, v.strValue() );
 					}
