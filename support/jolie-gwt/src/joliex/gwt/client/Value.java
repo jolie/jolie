@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 public class Value implements Serializable, IsSerializable
 {
 	public enum Type implements IsSerializable {
-		UNDEFINED, STRING, INT, DOUBLE
+		UNDEFINED, STRING, INT, DOUBLE, LONG ,BOOLEAN
 	}
 
 	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
@@ -56,7 +56,16 @@ public class Value implements Serializable, IsSerializable
 	{
 		setValue( value );
 	}
-	
+        // Added by Balint Maschio 
+	public Value( Long value )
+	{
+		setValue( value );
+	}
+        public Value( Boolean value )
+	{
+		setValue( value );
+	}
+        //
 	public boolean isString()
 	{
 		return type == Type.STRING;
@@ -70,8 +79,19 @@ public class Value implements Serializable, IsSerializable
 	public boolean isDouble()
 	{
 		return type == Type.DOUBLE;
+        }
+        
+        /// Added by Balint Maschio
+        public boolean isLong()
+	{
+		return type == Type.LONG;
 	}
-	
+        
+        public boolean isBool()
+	{
+		return type == Type.BOOLEAN;
+	}
+	////
 	public boolean isDefined()
 	{
 		return type != Type.UNDEFINED;
@@ -134,6 +154,20 @@ public class Value implements Serializable, IsSerializable
 			return new String();
 		return valueObject.toString();
 	}
+        // Added by Balint Maschio
+        public long longValue()
+	{
+		if ( valueObject == null )
+			return 0;
+		return  new Long (valueObject);
+	}
+        
+        public Boolean boolValue()
+	{
+		if ( valueObject == null )
+			return null;
+		return  new Boolean (valueObject);
+	}
 	
 	public Value getNewChild( String childId )
 	{
@@ -170,5 +204,21 @@ public class Value implements Serializable, IsSerializable
 	{
 		valueObject = obj.toString();
 		type = Type.DOUBLE;
+                
 	}
+        // Added by Balint Maschio
+        public void setValue( Long obj )
+	{
+		valueObject = obj.toString();
+		type = Type.LONG;
+                
+	}
+        
+        public void setValue( Boolean obj )
+	{
+		valueObject = obj.toString();
+		type = Type.BOOLEAN;
+                
+	}
+        
 }
