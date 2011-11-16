@@ -119,12 +119,7 @@ public class NamedStatementParser
 					}
 				} else if ( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
 					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );
-					Timestamp timestamp;
-					if ( timestampValue.isInt() || timestampValue.isLong() ) {
-						timestamp = new Timestamp( timestampValue.longValue() );
-					} else {
-						throw new SQLException( "Found Timestamp, but epoch not specified." );
-					}
+					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue() );
 					for( Integer index : entry.getValue() ) {
 						statement.setTimestamp( index, timestamp );
 					}
