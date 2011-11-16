@@ -314,7 +314,7 @@ public class TimeService extends JavaService
 		return v;
 	}
 
-	public Long getTimeStampFromString( String request )
+	public Long getTimestampFromString( String request )
 		throws FaultException
 	{       
 		try {
