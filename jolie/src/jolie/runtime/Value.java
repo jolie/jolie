@@ -788,8 +788,8 @@ public abstract class Value implements Expression, Cloneable
 			throw new TypeCastingException();
 		} else if ( o instanceof Long ) {
 			r = ((Long)o).longValue();
-		}else if ( o instanceof Integer ) {
-			r = ((Integer)o).longValue();  //added by Balint Maschio
+		} else if ( o instanceof Integer ) {
+			r = ((Integer)o).longValue(); // added by Balint Maschio
 		} else if ( o instanceof Boolean ) {
 			r = ( ((Boolean) o).booleanValue() == true ) ? 1L : 0L;
 		} else if ( o instanceof Double ) {
