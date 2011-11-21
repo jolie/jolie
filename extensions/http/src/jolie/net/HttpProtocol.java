@@ -546,7 +546,7 @@ public class HttpProtocol extends CommProtocol
 				encodedContent.contentType = contentType;
 			}
 
-			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+ 			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
 			if ( charset != null ) {
 				headerBuilder.append( "; charset=" + charset.toLowerCase() );
 			}
