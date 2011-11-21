@@ -336,7 +336,7 @@ public class HttpProtocol extends CommProtocol
 	private static class EncodedContent {
 		private ByteArray content = null;
 		private String contentType = "";
-                private String contentDisposition="";
+		private String contentDisposition = "";
 	}
 		
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
@@ -372,11 +372,8 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "text/xml";
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
-                               
-                               
-                                        ret.content = (ByteArray)message.value().valueObject();
-                                        ret.contentType = "application/octet-stream";
-                                
+				ret.content = (ByteArray) message.value().valueObject();
+				ret.contentType = "application/octet-stream";
 			}
 		} else if ( "html".equals( format ) ) {
 			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
@@ -558,17 +555,15 @@ public class HttpProtocol extends CommProtocol
 			param = getStringParameter( "contentTransferEncoding" );
 			if ( !param.isEmpty() ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
-			} 
-                        String contentDisposition = getStringParameter( "contentDisposition" );
-                        if ( contentDisposition.length() > 0 ) {
-				encodedContent.contentDisposition = contentDisposition;
-                                headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF);
-                        }
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
-                        ///// here we deleling with the name of the fiel
-                       
+			}
 			
-                        //headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition );
+			String contentDisposition = getStringParameter( "contentDisposition" );
+			if ( contentDisposition.length() > 0 ) {
+				encodedContent.contentDisposition = contentDisposition;
+				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
+			}
+			
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
 		}
