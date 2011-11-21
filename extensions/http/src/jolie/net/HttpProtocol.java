@@ -593,16 +593,13 @@ public class HttpProtocol extends CommProtocol
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
-               
+
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
-                      
 		} else {
 			// We're sending a notification or a solicit
-                        
-                        send_appendRequestHeaders( message, method, headerBuilder, charset );
-			
+			send_appendRequestHeaders( message, method, headerBuilder, charset );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( CRLF );
