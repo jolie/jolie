@@ -61,7 +61,7 @@ interface FileInterface {
 RequestResponse:
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(void) IOException(IOExceptionType),
 	writeFile(WriteFileRequest)(void) throws FileNotFound(void) IOException(IOExceptionType),
-	delete(DeleteRequest)(int) throws IOException(IOExceptionType),
+	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
 	mkdir(string)(int),
