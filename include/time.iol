@@ -73,6 +73,10 @@ type GetTimeDiffRequest:void {
 	.time1:string
 	.time2:string
 }
+
+type GetTimestampFromStringRequest:string {
+	.format?:string
+}
 outputPort Time {
 OneWay:
 	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
@@ -99,7 +103,7 @@ RequestResponse:
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int),
 	getTimeFromMilliSeconds(int)(TimeValuesType),
-	getTimestampFromString(string)(long)
+	getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException
 }
 
 embedded {
