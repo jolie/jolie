@@ -312,13 +312,19 @@ public class TimeService extends JavaService
 		return v;
 	}
 
-	public Long getTimestampFromString( String request )
+	public Long getTimestampFromString( Value request )
 		throws FaultException
 	{       
 		try {
-			String format = "dd/MM/yyyy kk:mm:ss";
+			String format;
+			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
+				format = "dd/MM/yyyy kk:mm:ss";
+			} else {
+				format = request.getFirstChild( "format" ).strValue();
+			}
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
-			final Date dt = sdf.parse( request );
+			final Date dt = sdf.parse( request.strValue() );
+                        
 			return dt.getTime();
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidTimestamp", pe );
