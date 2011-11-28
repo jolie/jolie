@@ -1511,29 +1511,33 @@ public class OOITBuilder implements OLVisitor
 	{
 		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
 			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
-				currCourierOperationName = entry.getKey();
-				currCourierInputPort.aggregationMap().put(
-					entry.getKey(),
-					AggregatedOperation.createWithCourier(
-						getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
-						buildVariablePath( branch.inputVariablePath ),
-						buildProcess( branch.body )
-					)
-				);
+				if ( entry.getValue() instanceof OneWayOperationDeclaration ) {
+					currCourierOperationName = entry.getKey();
+					currCourierInputPort.aggregationMap().put(
+						entry.getKey(),
+						AggregatedOperation.createWithCourier(
+							getExtendedOneWayOperation( currCourierInputPort.name(), currCourierOperationName ),
+							buildVariablePath( branch.inputVariablePath ),
+							buildProcess( branch.body )
+						)
+					);
+				}
 			}
 		}
 		
 		for( CourierChoiceStatement.InterfaceRequestResponseBranch branch : n.interfaceRequestResponseBranches() ) {
 			for( Map.Entry< String, OperationDeclaration > entry : branch.interfaceDefinition.operationsMap().entrySet() ) {
-				currCourierOperationName = entry.getKey();
-				currCourierInputPort.aggregationMap().put(
-					entry.getKey(),
-					AggregatedOperation.createWithCourier(
-						getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
-						buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
-						buildProcess( branch.body )
-					)
-				);
+				if ( entry.getValue() instanceof RequestResponseOperationDeclaration ) {
+					currCourierOperationName = entry.getKey();
+					currCourierInputPort.aggregationMap().put(
+						entry.getKey(),
+						AggregatedOperation.createWithCourier(
+							getExtendedRequestResponseOperation( currCourierInputPort.name(), currCourierOperationName ),
+							buildVariablePath( branch.inputVariablePath ), buildVariablePath( branch.outputVariablePath ),
+							buildProcess( branch.body )
+						)
+					);
+				}
 			}
 		}
 		
