@@ -524,15 +524,6 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
-			try {
-				interpreter.commCore().addLocalInputPort( n.id(), currentPortInterface, aggregationMap, redirectionMap );
-			} catch( IOException e ) {
-				error( n.context(), e );
-			}
-			return;
-		}
-		
 		String pId = n.protocolId();
 		CommProtocolFactory protocolFactory = null;
 
@@ -574,7 +565,14 @@ public class OOITBuilder implements OLVisitor
 			redirectionMap
 		);
 		
-		if ( protocolFactory != null ) {
+		if ( n.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+			try {
+				interpreter.commCore().addLocalInputPort( inputPort );
+				inputPorts.put( inputPort.name(), inputPort );
+			} catch( IOException e ) {
+				error( n.context(), e );
+			}
+		} else if ( protocolFactory != null ) {
 			try {
 				interpreter.commCore().addInputPort(
 					inputPort,
@@ -1455,6 +1453,9 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), "cannot find input port: " + n.inputPortName() );
 		} else {
 			n.body().accept( this );
+			if ( currCourierInputPort.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+				interpreter.commCore().localListener().inputPort().aggregationMap().putAll( currCourierInputPort.aggregationMap() );
+			}
 		}
 		currCourierInputPort = null;
 	}
