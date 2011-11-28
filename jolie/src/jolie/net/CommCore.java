@@ -50,7 +50,6 @@ import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
-import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
@@ -309,18 +308,13 @@ public class CommCore
 		return localListener;
 	}
 	
-	public void addLocalInputPort(
-				String inputPortName,
-				Interface iface,
-				Map< String, AggregatedOperation > aggregationMap,
-				Map< String, OutputPort > redirectionMap
-			)
+	public void addLocalInputPort( InputPort inputPort )
 		throws IOException
 	{
-		localListener.mergeInterface( iface );
-		localListener.addAggregations( aggregationMap );
-		localListener.addRedirections( redirectionMap );
-		listenersMap.put( inputPortName, localListener );
+		localListener.mergeInterface( inputPort.getInterface() );
+		localListener.addAggregations( inputPort.aggregationMap() );
+		localListener.addRedirections( inputPort.redirectionMap() );
+		listenersMap.put( inputPort.name(), localListener );
 	}
 	
 	/**
