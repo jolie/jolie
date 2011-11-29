@@ -829,7 +829,7 @@ public class HttpProtocol extends CommProtocol
 			requestFormat = "text/x-gwt-rpc";
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value );
-		} else if ( "application/octet-stream".equals( type ) ) {
+		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" )) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) ) {
 			parseJson( message, decodedMessage.value );
