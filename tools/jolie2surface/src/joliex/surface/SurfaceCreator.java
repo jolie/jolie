@@ -22,11 +22,14 @@ package joliex.surface;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -34,7 +37,10 @@ import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.util.Range;
 
 /**
@@ -51,6 +57,7 @@ public class SurfaceCreator
 	private ArrayList<TypeDefinition> aux_types_vector;
 	private int MAX_CARD = 2147483647;
 
+	
 	public SurfaceCreator( ProgramInspector inspector, URI originalFile )
 	{
 
@@ -94,7 +101,7 @@ public class SurfaceCreator
 				i++;
 			}
 			for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
-				interface_vector.add( interfaceDefinition );
+				interface_vector.add( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ) );
 			}
 		}
 
