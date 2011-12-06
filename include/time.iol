@@ -77,11 +77,21 @@ type GetTimeDiffRequest:void {
 type GetTimestampFromStringRequest:string {
 	.format?:string
 }
+
+type GetDateTime: long {
+  .format?: string
+}
+
 outputPort Time {
 OneWay:
 	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
 RequestResponse:
 	getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
+
+	/**!
+	  It returns a date time in a string format starting from a timestamp
+	*/
+	getDateTime( GetDateTime )( string ),
 
 	/**
 		Converts an input string into a date expressed by means of
