@@ -188,6 +188,27 @@ public class TimeService extends JavaService
 		return result;
 	}
 
+
+	public String getDateTime( Value request )
+	{
+		String result = null;
+		try {
+			String format;
+			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
+				format = "dd/MM/yyyy HH:mm:ss";
+			} else {
+				format = request.getFirstChild( "format" ).strValue();
+			}
+			long tm = request.longValue();
+			SimpleDateFormat sdf = new SimpleDateFormat( format );
+			final Date timestamp = new Date( tm );
+			result = sdf.format( timestamp );
+		} catch( Exception e ) {
+			e.printStackTrace(); // TODO FaultException
+		}
+		return result;
+	}
+
 	/**
 	 * @author Claudio Guidi
 	 */
