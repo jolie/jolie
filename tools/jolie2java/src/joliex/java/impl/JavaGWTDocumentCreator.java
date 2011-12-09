@@ -186,7 +186,8 @@ public class JavaGWTDocumentCreator {
         builderHeaderclass.append("public class " + typeDefinition.id() + " {" + "\n");
         if (typeDefinition.hasSubTypes()) {
 
-
+            ConvertSubTypes(typeDefinition, builderHeaderclass);
+            /*
             Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
@@ -197,7 +198,7 @@ public class JavaGWTDocumentCreator {
 
 
 
-                    }else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
+                }else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
                     builderHeaderclass.append("public class " + ((TypeDefinition) me.getValue()).id() + " {" + "\n");
                     variableCreate(builderHeaderclass, ((TypeDefinition) me.getValue()));
                     constructorCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
@@ -210,15 +211,50 @@ public class JavaGWTDocumentCreator {
 
 /////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
+*/
+            /*variableCreate(builderHeaderclass, typeDefinition);
+            constructorCreate(builderHeaderclass, typeDefinition, true);
+            methodsCreate(builderHeaderclass, typeDefinition, true);
+            builderHeaderclass.append("}\n");*/
+
+             
+            
+        }
+        
+        /*variableCreate(builderHeaderclass, typeDefinition);
+        constructorCreate(builderHeaderclass, typeDefinition, true);
+        methodsCreate(builderHeaderclass, typeDefinition, true);
+        */
+         
+        else{
+            builderHeaderclass.append("}\n");
+        }
+        writer.append(builderHeaderclass.toString());
+    }
+    
+    private void ConvertSubTypes(TypeDefinition typeDefinition, StringBuilder builderHeaderclass){
+        
+            Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
+            Iterator i = supportSet.iterator();
+            while (i.hasNext()) {
+                Map.Entry me = (Map.Entry) i.next();
+                System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
+                if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink){
+                        typeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
+
+
+
+                }else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
+                    builderHeaderclass.append("public class " + ((TypeDefinition) me.getValue()).id() + " {" + "\n");
+                    ConvertSubTypes((TypeDefinition) me.getValue(), builderHeaderclass);
+                }
+
+            }
 
             variableCreate(builderHeaderclass, typeDefinition);
             constructorCreate(builderHeaderclass, typeDefinition, true);
             methodsCreate(builderHeaderclass, typeDefinition, true);
             builderHeaderclass.append("}\n");
-            writer.append(builderHeaderclass.toString());
-
-
-        }
     }
 
     private void closeClass(Writer writer) {
