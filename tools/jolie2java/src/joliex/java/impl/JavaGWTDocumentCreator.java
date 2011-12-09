@@ -373,27 +373,29 @@ public class JavaGWTDocumentCreator {
                 Map.Entry me = (Map.Entry) supportTypeIterator.next();
                 if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink) {
                     nameVariable = ((TypeDefinitionLink) me.getValue()).id();
-                    stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
+                    //stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                     if (((TypeDefinitionLink) me.getValue()).cardinality().max() > 1) {
                         stringBuilder.append("_" + nameVariable + "= new LinkedList<" + ((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();" + "\n");
-                        stringBuilder.append("}\n");
+                        //stringBuilder.append("}\n");
                     } else {
+                        stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                         stringBuilder.append("_" + nameVariable + "=new " + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + "( v.getFirstChild(\"" + nameVariable + "\"));" + "\n");
                         stringBuilder.append("}\n");
                     }
                 } else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (naturalType) && ((TypeInlineDefinition) me.getValue()).hasSubTypes()) {
                     nameVariable = ((TypeInlineDefinition) me.getValue()).id();
-                    stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
+                    //stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                     if (((TypeInlineDefinition) me.getValue()).cardinality().max() > 1) {
                         stringBuilder.append("_" + nameVariable + "= new LinkedList<" + ((TypeInlineDefinition) me.getValue()).id() + ">();" + "\n");
-                        stringBuilder.append("}\n");
+                        //stringBuilder.append("}\n");
                     } else {
+                        stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                         stringBuilder.append("_" + nameVariable + "=new " + ((TypeInlineDefinition) me.getValue()).id() + "( v.getFirstChild(\"" + nameVariable + "\"));" + "\n");
                         stringBuilder.append("}\n");
                     }
                 } else {
                     nameVariable = ((TypeDefinition) me.getValue()).id();
-                    stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
+                    //stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                     if (((TypeDefinition) me.getValue()).cardinality().max() > 1) {
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
@@ -407,9 +409,9 @@ public class JavaGWTDocumentCreator {
                         }else if (typeName.equals("bool")) {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Boolean>();" + "\n");
                         }
-                        stringBuilder.append("}\n");
+                        //stringBuilder.append("}\n");
                     } else {
-
+                        stringBuilder.append("if (v.hasChildren(\"").append(nameVariable).append("\")){\n");
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
 
@@ -917,6 +919,7 @@ public class JavaGWTDocumentCreator {
         }
         //// getVALUE
         stringBuilder.append("public " + "Value get" + "Value(){\n");
+        stringBuilder.append("vReturn=new Value();\n");
         Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
         Iterator i = supportSet.iterator();
 
@@ -1008,6 +1011,10 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("\t}");
                         //stringBuilder.append( "\n}\n" );
 
+                    }else{
+                        stringBuilder.append("\tfor(int counter" + nameVariable +"=0; counter"+nameVariable+"<_"+nameVariable+".size(); counter"+nameVariable+"++){\n");
+                        stringBuilder.append("\tvReturn.getNewChild(\""+nameVariable+"\").deepCopy(_"+nameVariable+".get(counter"+nameVariable+").getValue());\n}\n");
+	
                     }
                     stringBuilder.append("}\n");
                 } else {
