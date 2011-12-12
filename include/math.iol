@@ -33,7 +33,7 @@ type SummationRequest:void {
 	.to:int
 }
 
-outputPort Math {
+interface MathInterface {
 RequestResponse:
 	/*! Returns the absolute value of the input integer. */
 	abs(int)(int),
@@ -49,6 +49,10 @@ RequestResponse:
 
 	/*! Returns the summation of values from .from to .to (see request data type). For example, .from=2 and .to=5 would produce a return value of 2+3+4+5=14. */
 	summation(SummationRequest)(int)
+}
+
+outputPort Math {
+Interfaces: MathInterface
 }
 
 embedded {
