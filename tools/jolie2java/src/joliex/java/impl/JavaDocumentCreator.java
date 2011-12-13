@@ -963,7 +963,7 @@ public class JavaDocumentCreator {
         }
         //// getVALUE
         stringBuilder.append("public " + "Value get" + "Value(){\n");
-        stringBuilder.append("vReturn=new Value();\n");
+        stringBuilder.append("vReturn=Value.create();\n");
         Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
         Iterator i = supportSet.iterator();
 
