@@ -330,7 +330,8 @@ public class JavaDocumentCreator {
             subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
-            stringBuilder.append("import jolie.runtime.Value;;\n");
+            stringBuilder.append("import jolie.runtime.Value;\n");
+            stringBuilder.append("import jolie.runtime.ByteArray;\n");
             stringBuilder.append("\n");
         }
     }
@@ -357,7 +358,9 @@ public class JavaDocumentCreator {
                         stringBuilder.append("private ").append(((TypeDefinition) me.getValue()).id()).append(" " + "_").append(((TypeDefinition) me.getValue()).id()).append(";\n");
                     }
                     subtypePresent = true;
-                } else {
+                /*}else if(((TypeDefinition) me.getValue()) instanceof TypeDefinition ){
+                    System.out.println("*******************"+((TypeDefinition) me.getValue()).id()+" *** "+((TypeDefinition) me.getValue()).nativeType().id());
+                */} else {
                     if (((TypeDefinition) me.getValue()).cardinality().max() > 1) {
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
@@ -375,6 +378,9 @@ public class JavaDocumentCreator {
                         
                               stringBuilder.append("private List<Boolean> " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
                         }
+                        else if(typeName.equals("raw")){
+                            stringBuilder.append("private List<ByteArray> " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
+                        }
                     } else {
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
@@ -389,6 +395,9 @@ public class JavaDocumentCreator {
                         }
                         else if (typeName.equals("bool")) {
                             stringBuilder.append("private Boolean " + " " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
+                        }else if(typeName.equals("raw")) {
+                            //System.out.println("TypeName = raw.");
+                            stringBuilder.append("private ByteArray " + " " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
                         }
                     }
                 }
@@ -454,6 +463,8 @@ public class JavaDocumentCreator {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Long>();" + "\n");
                         }else if (typeName.equals("bool")) {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Boolean>();" + "\n");
+                        }else if (typeName.equals("raw")){
+                            stringBuilder.append("_" + nameVariable + "= new LinkedList<ByteArray>();" + "\n");
                         }
                         //stringBuilder.append("}\n");
                     } else {
@@ -472,20 +483,19 @@ public class JavaDocumentCreator {
                             stringBuilder.append("_" + nameVariable + "=v.getFirstChild(\"" + nameVariable + "\").strValue();" + "\n");
                             stringBuilder.append("}\n");
 
-
                         }else if (typeName.equals("long")) {
                             stringBuilder.append("_" + nameVariable + "=new Long (v.getFirstChild(\"" + nameVariable + "\").longValue());" + "\n");
                             stringBuilder.append("}\n");
-
-
+                            
                         }else if (typeName.equals("bool")) {
                             stringBuilder.append("_" + nameVariable + "=new Boolean (v.getFirstChild(\"" + nameVariable + "\").boolValue());" + "\n");
                             stringBuilder.append("}\n");
-
-
+                            
+                        }else if (typeName.equals("raw")) {
+                            stringBuilder.append("_" + nameVariable + "= v.getFirstChild(\"" + nameVariable + "\").byteArrayValue();" + "\n");
+                            stringBuilder.append("}\n");
+                            
                         }
- 
-
                     }
                 }
 
@@ -538,7 +548,7 @@ public class JavaDocumentCreator {
                             stringBuilder.append("\t\t" + "Integer support").append(nameVariable).append("=new Integer(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").intValue());\n");
                             stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
                             stringBuilder.append("\t" + "}\n");
-                        } else if (typeName.equals("double")) {
+                        }else if (typeName.equals("double")) {
                             stringBuilder.append(nameVariable + "= new LinkedList<Double>();" + "\n");
                             stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                             stringBuilder.append("\t\t" + "Double support").append(nameVariable).append("=new Double(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").doubleValue());\n");
@@ -546,7 +556,7 @@ public class JavaDocumentCreator {
                             stringBuilder.append("\t}\n");
 
 
-                        } else if (typeName.equals("string")) {
+                        }else if (typeName.equals("string")) {
 
                             stringBuilder.append("for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                             stringBuilder.append("\t\t" + "String support").append(nameVariable).append("=new String(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").strValue());\n");
@@ -562,8 +572,7 @@ public class JavaDocumentCreator {
                             stringBuilder.append("\t}\n");
 
 
-                        }
-                        else if (typeName.equals("bool")) {
+                        }else if (typeName.equals("bool")) {
                             stringBuilder.append(nameVariable + "= new LinkedList<Boolean>();" + "\n");
                             stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
                             stringBuilder.append("\t\t" + "Boolean support").append(nameVariable).append("=new Boolean(v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").boolValue());\n");
@@ -571,6 +580,14 @@ public class JavaDocumentCreator {
                             stringBuilder.append("\t}\n");
 
 
+                        }else if (typeName.equals("raw")) {
+                            stringBuilder.append(nameVariable + "= new LinkedList<ByteArray>();" + "\n");
+                            stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
+                            stringBuilder.append("\t\t" + "ByteArray support").append(nameVariable).append("=v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").byteArrayValue();\n");
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                            stringBuilder.append("\t}\n");
+
+                            
                         }
                         stringBuilder.append("}\n");
                     }
@@ -642,7 +659,9 @@ public class JavaDocumentCreator {
 
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Boolean>();" + "\n");
 
+                        }else if (typeName.equals("raw")) {
 
+                            stringBuilder.append("_" + nameVariable + "= new LinkedList<ByteArray>();" + "\n");
 
                         }
                         
@@ -883,6 +902,29 @@ public class JavaDocumentCreator {
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
+                       } else if (typeName.equals("raw")) {
+
+
+
+                            stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
+                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("}\n");
+
+
+
+                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value(ByteArray value ){\n");
+                            //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
+                            stringBuilder.append("\t\t" + "ByteArray support").append(nameVariable).append("=value;\n");
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                            //stringBuilder.append( "\t}\n" );
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
+                            //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            //stringBuilder.append( "\t}\n" );
+                            stringBuilder.append("}\n");
+
                         }
                     } else {
 
@@ -944,6 +986,18 @@ public class JavaDocumentCreator {
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "Value( boolean value ){\n");
+                            stringBuilder.append("\n\t\t" + "_" + nameVariable + "=value;\n");
+                            stringBuilder.append("}\n");
+
+
+
+                        }else if (typeName.equals("raw")) {
+
+                            stringBuilder.append("public " + "ByteArray" + " get" + nameVariableOp + "(){\n");
+                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void set" + nameVariableOp + "Value( ByteArray value ){\n");
                             stringBuilder.append("\n\t\t" + "_" + nameVariable + "=value;\n");
                             stringBuilder.append("}\n");
 
@@ -1053,6 +1107,14 @@ public class JavaDocumentCreator {
                         stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
                         stringBuilder.append("\t}");
                         //stringBuilder.append( "\n}\n" );
+                        
+                    }
+                    else if (typeName.equals("raw")) {
+//						
+                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
+                        stringBuilder.append("\t}");
+                        //stringBuilder.append( "\n}\n" );
 
                     }else{
                         stringBuilder.append("\tfor(int counter" + nameVariable +"=0; counter"+nameVariable+"<_"+nameVariable+".size(); counter"+nameVariable+"++){\n");
@@ -1095,6 +1157,13 @@ public class JavaDocumentCreator {
                         stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
 
                     }else if (typeName.equals("bool")) {
+
+//
+                        stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
+
+
+                    
+                    }else if (typeName.equals("raw")) {
 
 //
                         stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
