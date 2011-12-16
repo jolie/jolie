@@ -335,6 +335,9 @@ public class JavaGWTDocumentCreator {
                         else if(typeName.equals("raw")){
                             stringBuilder.append("private List<ByteArray> " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
                         }
+                        else if(typeName.equals("any")){
+                            stringBuilder.append("private List<Object> " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
+                        }
                     } else {
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
                         if (typeName.equals("int")) {
@@ -351,6 +354,9 @@ public class JavaGWTDocumentCreator {
                         }else if(typeName.equals("raw")) {
                             //System.out.println("TypeName = raw.");
                             stringBuilder.append("private ByteArray " + " " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
+                        }else if(typeName.equals("any")) {
+                            //System.out.println("TypeName = raw.");
+                            stringBuilder.append("private Object " + " " + "_" + ((TypeDefinition) me.getValue()).id() + ";\n");
                         }
                     }
                 }
@@ -418,6 +424,8 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Boolean>();" + "\n");
                         }else if (typeName.equals("raw")){
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<ByteArray>();" + "\n");
+                        }else if (typeName.equals("any")){
+                            stringBuilder.append("_" + nameVariable + "= new LinkedList<Object>();" + "\n");
                         }
                         //stringBuilder.append("}\n");
                     } else {
@@ -447,6 +455,16 @@ public class JavaGWTDocumentCreator {
 
                         }else if (typeName.equals("raw")) {
                             stringBuilder.append("_" + nameVariable + "= v.getFirstChild(\"" + nameVariable + "\").byteArrayValue();" + "\n");
+                            stringBuilder.append("}\n");
+                        }else if (typeName.equals("any")) {
+                            
+                            	stringBuilder.append("if(v.getFirstChild(\"" + nameVariable + "\").isDouble()){\n"
+                                        + "\t_"+nameVariable+"=v.getFirstChild(\"" + nameVariable + "\").doubleValue();\n"
+                                        + "}else if(v.getFirstChild(\"" + nameVariable + "\").isString()){\n"
+                                        + "\t_"+nameVariable+"=v.getFirstChild(\"" + nameVariable + "\").strValue();\n"
+                                        + "}else if(v.getFirstChild(\"" + nameVariable + "\").isInt()){\n"
+                                        + "\t_"+nameVariable+"=v.getFirstChild(\"" + nameVariable + "\").intValue();\n"
+                                        + "}\n");
                             stringBuilder.append("}\n");
                             
                         }
@@ -546,7 +564,27 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\t}\n");
 
                             
+                        }else if (typeName.equals("any")) {
+                            stringBuilder.append(nameVariable + "= new LinkedList<Object>();" + "\n");
+                            stringBuilder.append("\t" + "for(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<v.getChildren(\"" + nameVariable + "\").size();counter" + nameVariable + "++){\n");
+                            //stringBuilder.append("\t\t" + "Object support").append(nameVariable).append("=v.getChildren(\"").append(nameVariable).append("\").get(counter").append(nameVariable).append(").byteArrayValue();\n");
+                            
+                            stringBuilder.append("\t\tObject support").append(nameVariable).append("=new Object();\n");
+                            stringBuilder.append("if(v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").isDouble()){\n"
+                                        + "\t_"+nameVariable+"=v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").doubleValue();\n"
+                                        + "}else if(v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").isString()){\n"
+                                        + "\t_"+nameVariable+"=v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").strValue();\n"
+                                        + "}else if(v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").isInt()){\n"
+                                        + "\t_"+nameVariable+"=v.getChildren(\""+nameVariable+"\").get(counter"+nameVariable+").intValue();\n"
+                                        + "}\n");
+                                                        
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(support" + nameVariable + ");\n");
+                            stringBuilder.append("\t}\n");
+
+                            
                         }
+                            
+                            
                         stringBuilder.append("}\n");
                     }
 
@@ -622,6 +660,12 @@ public class JavaGWTDocumentCreator {
                         }else if (typeName.equals("raw")) {
 
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<ByteArray>();" + "\n");
+
+
+
+                        }else if (typeName.equals("any")) {
+
+                            stringBuilder.append("_" + nameVariable + "= new LinkedList<Object>();" + "\n");
 
 
 
@@ -888,6 +932,29 @@ public class JavaGWTDocumentCreator {
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
+                                             } else if (typeName.equals("any")) {
+
+
+
+                            stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
+                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("}\n");
+
+
+
+                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value(Object value ){\n");
+                            //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
+                            stringBuilder.append("\t\t" + "Object support").append(nameVariable).append("=value;\n");
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                            //stringBuilder.append( "\t}\n" );
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
+                            //stringBuilder.append( "\tif ((" + nameVariable + ".size()>" + minIndex.toString() + ")){\n" );
+                            stringBuilder.append("\t\t" + "_" + nameVariable + ".remove(index);\n");
+                            //stringBuilder.append( "\t}\n" );
+                            stringBuilder.append("}\n");
+
                         }
                     } else {
 
@@ -961,6 +1028,18 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void set" + nameVariableOp + "Value( ByteArray value ){\n");
+                            stringBuilder.append("\n\t\t" + "_" + nameVariable + "=value;\n");
+                            stringBuilder.append("}\n");
+
+
+
+                        }else if (typeName.equals("any")) {
+
+                            stringBuilder.append("public " + "Object" + " get" + nameVariableOp + "(){\n");
+                            stringBuilder.append("\n\treturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void set" + nameVariableOp + "Value( Object value ){\n");
                             stringBuilder.append("\n\t\t" + "_" + nameVariable + "=value;\n");
                             stringBuilder.append("}\n");
 
@@ -1078,6 +1157,21 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ".get(counter" + nameVariable + "));\n");
                         stringBuilder.append("\t}");
                         //stringBuilder.append( "\n}\n" );
+                    }else if (typeName.equals("any")) {
+//						
+                        stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
+                        
+                        stringBuilder.append("\tif(_" + nameVariable + ".get(counter" + nameVariable + ") instanceof Integer){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "((Integer)(_" + nameVariable + ".get(counter" + nameVariable + "))).intValue());\n");
+                        stringBuilder.append("\t}else if(_" + nameVariable + ".get(counter" + nameVariable + ") instanceof Double){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "((Double)(_" + nameVariable + ".get(counter" + nameVariable + "))).doubleValue());\n");
+                        stringBuilder.append("\t}else if(_" + nameVariable + ".get(counter" + nameVariable + ") instanceof String){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "(String)(_" + nameVariable + ".get(counter" + nameVariable + ")));\n");
+                        stringBuilder.append("\t}");
+                        stringBuilder.append("\t}");
+                        //stringBuilder.append( "\n}\n" );
+
+                    
                     }else{
                         stringBuilder.append("\tfor(int counter" + nameVariable +"=0; counter"+nameVariable+"<_"+nameVariable+".size(); counter"+nameVariable+"++){\n");
                         stringBuilder.append("\tvReturn.getNewChild(\""+nameVariable+"\").deepCopy(_"+nameVariable+".get(counter"+nameVariable+").getValue());\n}\n");
@@ -1130,6 +1224,14 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("vReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "_" + nameVariable + ");\n");
 
 
+                    }else if(typeName.equals("any")) {
+                        stringBuilder.append("\tif(_" + nameVariable + " instanceof Integer){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "((Integer)(_" + nameVariable + ")).intValue());\n");
+                        stringBuilder.append("\t}else if(_" + nameVariable + " instanceof Double){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "((Double)(_" + nameVariable + ")).doubleValue());\n");
+                        stringBuilder.append("\t}else if(_" + nameVariable + " instanceof String){\n");
+                        stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\")" + ".setValue(" + "(String)(_" + nameVariable + "));\n");
+                        stringBuilder.append("\t}");
                     }
                     stringBuilder.append("}\n");
 
