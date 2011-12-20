@@ -798,7 +798,9 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
-
+                            stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index).intValue();\n");
+                            stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(int value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
@@ -871,7 +873,9 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
-
+                            stringBuilder.append("public " + "long" + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index).longValue();\n");
+                            stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(long value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
@@ -894,7 +898,9 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
-
+                            stringBuilder.append("public " + "boolean" + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index).booleanValue();\n");
+                            stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(boolean value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
@@ -917,7 +923,9 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
-
+                            stringBuilder.append("public " + "ByteArray" + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(ByteArray value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
@@ -932,7 +940,7 @@ public class JavaGWTDocumentCreator {
                             //stringBuilder.append( "\t}\n" );
                             stringBuilder.append("}\n");
 
-                                             } else if (typeName.equals("any")) {
+                      } else if (typeName.equals("any")) {
 
 
 
@@ -940,7 +948,9 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("\n\treturn " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
-
+                            stringBuilder.append("public " + "Object" + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\treturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void add" + nameVariableOp + "Value(Object value ){\n");
                             //stringBuilder.append( "\tif ((" + nameVariable + ".size()<" + maxIndex.toString() + "-" + minIndex.toString() + ")){\n" );
