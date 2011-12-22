@@ -85,6 +85,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 
 	private boolean correlate( SessionThread session, CommMessage message )
 	{
+		System.out.println( "Correlated called ");
 		if ( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)
 			||
