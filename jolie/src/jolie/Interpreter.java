@@ -67,7 +67,6 @@ import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
-import jolie.process.OneWayProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -107,8 +106,10 @@ public class Interpreter
 		public void run()
 		{
 			super.run();
+
 			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				try {
+
 					mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
 					correlationEngine.onSingleExecutionSessionStart( mainSession );
 					mainSession.addSessionListener( correlationEngine );
