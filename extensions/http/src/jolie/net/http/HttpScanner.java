@@ -32,9 +32,10 @@ import jolie.lang.parse.Scanner.TokenType;
 public class HttpScanner
 {
 	private final InputStream stream;
-	private int state;					// current state
+	private int state; // current state
 	private int currInt;
 	private char ch;
+	private static final int OVERFLOW_NET = 8192;
 	
 	
 	public HttpScanner( InputStream stream, URI source )
@@ -321,9 +322,12 @@ public class HttpScanner
 			}
 			
 			if ( retval == null ) {
-				if ( stopOneChar )
+				if ( stopOneChar ) {
 					stopOneChar = false;
-				else {
+				} else {
+					if ( builder.length() > OVERFLOW_NET ) {
+						throw new IOException( "Token length exceeds maximum allowed limit (" + OVERFLOW_NET + " bytes)" );
+					}
 					builder.append( ch );
 					readChar();
 				}
