@@ -597,7 +597,7 @@ public class JavaGWTDocumentCreator {
             stringBuilder.append("}\n");
         }
 
-///// constructor with out value
+///// constructor without value
         stringBuilder.append("public " + supportType.id() + "(){\n");
         stringBuilder.append("\n");
 
@@ -1083,7 +1083,7 @@ public class JavaGWTDocumentCreator {
 
                 if (((TypeDefinitionLink) me.getValue()).cardinality().max() > 1) {
 //
-                    stringBuilder.append("if(!(_").append(nameVariable).append(".isEmpty()) && (_").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("if(_").append(nameVariable).append("!=null && !_").append(nameVariable).append(".isEmpty()){\n");
                     stringBuilder.append("\tfor(int counter" + nameVariable + "=0;" + "counter" + nameVariable + "<" + "_" + nameVariable + ".size();counter" + nameVariable + "++){\n");
                     stringBuilder.append("\t\tvReturn.getNewChild(\"" + nameVariable + "\").deepCopy(" + "_" + nameVariable + ".get(counter" + nameVariable + ").getValue());\n");
                     stringBuilder.append("\t}\n");
@@ -1107,7 +1107,7 @@ public class JavaGWTDocumentCreator {
 
                 nameVariable = ((TypeDefinition) me.getValue()).id();
                 if (((TypeDefinition) me.getValue()).cardinality().max() > 1) {
-                    stringBuilder.append("if(!(_").append(nameVariable).append(".isEmpty()) && (_").append(nameVariable).append("!=null)){\n");
+                    stringBuilder.append("if(_").append(nameVariable).append("!=null && !_").append(nameVariable).append(".isEmpty()){\n");
                     String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
 
                     if (typeName.equals("int")) {
