@@ -83,7 +83,11 @@ RequestResponse:
 	split(SplitRequest)(SplitResult),
 	splitByLength(SplitByLengthRequest)(SplitResult),
 	trim(string)(string),
-	startsWith(StartsWithRequest)(int),
+	/**
+	DESCRIPTION
+	  check if the passed string starts with a given prefix
+	*/
+	startsWith(StartsWithRequest)( bool ),
 	valueToPrettyString(undefined)(string)
 }
 
