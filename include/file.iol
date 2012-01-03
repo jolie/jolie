@@ -64,8 +64,18 @@ RequestResponse:
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
-	mkdir(string)(int),
-	exists(string)(int),
+	/**!
+	DESCRIPTION
+	  it creates the directory specified in the request root. Returns true if the directory has been 
+	  created with success, false otherwise
+	*/
+	mkdir( string )( bool ),
+
+	/**!
+	DESCRIPTION
+	  it tests if the specified file or directory exists or not.
+	*/
+	exists( string )( bool ),
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(void),
