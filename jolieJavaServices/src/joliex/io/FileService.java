@@ -263,14 +263,14 @@ public class FileService extends JavaService
 		return retValue;
 	}
 
-	public Integer exists( String filename )
+	public Boolean exists( String filename )
 	{
-		return ( new File( filename ).exists() ) ? 1 : 0;
+		return ( new File( filename ).exists() ) ? true : false;
 	}
 	
-	public Integer mkdir( String directory )
+	public Boolean mkdir( String directory )
 	{
-		return ( new File( directory ).mkdirs() ) ? 1 : 0;
+		return ( new File( directory ).mkdirs() ) ? true : false;
 	}
 
 	public String getMimeType( String filename )
