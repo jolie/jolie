@@ -1114,6 +1114,9 @@ public class OLParser extends AbstractParser
 						if ( token.is( Scanner.TokenType.LPAREN ) ) {
 							getToken(); //eat (
 							faultTypeName = token.content();
+							if ( definedTypes.containsKey( faultTypeName ) == false ) {
+								throwException( "invalid type: " + faultTypeName );
+							}
 							getToken();
 							eat( Scanner.TokenType.RPAREN, "expected )" );
 						}
