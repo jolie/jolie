@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.JolieThread;
+import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -428,24 +429,25 @@ public class CommCore
 				interpreter.logWarning( error );
 				throw new IOException( error );
 			}
-			CommChannel oChannel = oPort.getNewCommChannel();
-			CommMessage rMessage =
-						new CommMessage(
-								message.id(),
-								message.operationName(),
-								rPath,
-								message.value(),
-								message.fault()
-						);
-			oChannel.setRedirectionChannel( channel );
-			oChannel.setRedirectionMessageId( rMessage.id() );
 			try {
+				CommChannel oChannel = oPort.getNewCommChannel();
+				CommMessage rMessage =
+							new CommMessage(
+									message.id(),
+									message.operationName(),
+									rPath,
+									message.value(),
+									message.fault()
+							);
+				oChannel.setRedirectionChannel( channel );
+				oChannel.setRedirectionMessageId( rMessage.id() );
 				oChannel.send( rMessage );
 				oChannel.setToBeClosed( false );
 				oChannel.disposeForInput();
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( message, new FaultException( e ) ) );
+				channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 				channel.disposeForInput();
+				throw e;
 			}
 		}
 
