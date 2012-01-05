@@ -208,7 +208,11 @@ public class SodepProtocol extends ConcurrentCommProtocol
 				valueObject = Double.valueOf( in.readDouble() );
 				break;
 			case DataTypeHeaderId.BYTE_ARRAY:
-				valueObject = valueObject = readByteArray( in );
+				valueObject = readByteArray( in );
+				break;
+			case DataTypeHeaderId.BOOL:
+				valueObject = Boolean.valueOf( in.readBoolean() );
+				break;
 			case DataTypeHeaderId.NULL:
 			default:
 				break;
