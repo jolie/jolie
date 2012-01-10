@@ -58,7 +58,7 @@ type Participant: void {
   .name: string
   .protocol: string
   .location: any
-  .interfaces: Interface
+  .interfaces*: Interface
 }
 
 type Conversation: void {
