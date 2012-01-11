@@ -645,6 +645,10 @@ public class OOITBuilder implements OLVisitor
 	
 	private OneWayTypeDescription buildOneWayTypeDescription( OneWayOperationDeclaration decl )
 	{
+		if ( decl == null ) {
+			return null;
+		}
+		
 		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
 			return new OneWayTypeDescription( types.get( decl.requestType().id() ) );
 		} else {
@@ -654,6 +658,10 @@ public class OOITBuilder implements OLVisitor
 	
 	private RequestResponseTypeDescription buildRequestResponseTypeDescription( RequestResponseOperationDeclaration decl )
 	{
+		if ( decl == null ) {
+			return null;
+		}
+		
 		RequestResponseTypeDescription typeDescription;
 		Map< String, Type > faults = new HashMap< String, Type >();
 		if ( currentOutputPort == null ) { // We are in an input port (TODO: why does this matter? junk code?)
