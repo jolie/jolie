@@ -411,6 +411,7 @@ public class SessionThread extends ExecutionThread
 			try {
 				if ( p == null ) {
 					Interpreter.getInstance().logUnhandledFault( f );
+					throw f;
 				} else {
 					Value scopeValue =
 						new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue();
