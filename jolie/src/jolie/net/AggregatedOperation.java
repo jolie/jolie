@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionListener;
 import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
@@ -87,13 +88,44 @@ public abstract class AggregatedOperation
 					courierProcess
 				});
 				SessionThread t = new SessionThread( p, state, initThread );
+				
+				final FaultException[] f = new FaultException[1];
+				f[0] = null;
+				t.addSessionListener( new SessionListener() {
+					public void onSessionExecuted( SessionThread session )
+					{}
+
+					public void onSessionError( SessionThread session, FaultException fault )
+					{
+						// We need to send the acknowledgement
+						if ( fault.faultName().equals( "CorrelationError" )
+							|| fault.faultName().equals( "IOException" )
+							|| fault.faultName().equals( "TypeMismatch" )
+							) {
+							synchronized( f ) {
+								f[0] = fault;
+							}
+						} else {
+							Interpreter.getInstance().logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
+							synchronized( f ) {
+								f[0] = new FaultException( jolie.lang.Constants.IO_EXCEPTION_FAULT_NAME, fault.faultName() );
+							}
+						}
+					}
+				} );
 				t.start();
 				try {
 					t.join();
 				} catch( InterruptedException e ) {}
 				
-				// We need to send the acknowledgement
-				channel.send( CommMessage.createEmptyResponse( requestMessage ) );
+				synchronized( f ) {
+					if ( f[0] == null ) {
+						// We need to send the acknowledgement
+						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
+					} else {
+						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ) );
+					}
+				}
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
