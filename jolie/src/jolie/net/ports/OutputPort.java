@@ -192,7 +192,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 				if ( ret == null ) {
 					ret = interpreter.commCore().createCommChannel( uri, this );
 				}
-
 			}
 		}
 

@@ -79,7 +79,7 @@ public class CommCore
 	private final Logger logger = Logger.getLogger( "JOLIE" );
 
 	private final int connectionsLimit;
-	private final int connectionsCache;
+	private final int connectionCacheSize;
 	private final Interpreter interpreter;
 
 	private final Map< URI, Map< String, CommChannel > > persistentChannels =
@@ -127,7 +127,7 @@ public class CommCore
 		}
 		return ret;
 	}
-
+	
 	public void putPersistentChannel( URI location, String protocol, CommChannel channel )
 	{
 		synchronized( persistentChannels ) {
@@ -136,9 +136,17 @@ public class CommCore
 				protocolChannels = new HashMap< String, CommChannel >();
 				persistentChannels.put( location, protocolChannels );
 			}
-			if ( protocolChannels.size() <= connectionsCache && protocolChannels.containsKey( protocol ) == false ) {
+			if ( protocolChannels.size() <= connectionCacheSize && protocolChannels.containsKey( protocol ) == false ) {
 				protocolChannels.put( protocol, channel );
 				// TODO implement channel garbage collection
+			} else {
+				try {
+					if ( protocolChannels.get( protocol ) != channel ) {
+						channel.close();
+					}
+				} catch( IOException e ) {
+					interpreter.logWarning( e );
+				}
 			}
 		}
 	}
@@ -156,16 +164,16 @@ public class CommCore
 	 * Constructor.
 	 * @param interpreter the Interpreter to refer to for this CommCore operations
 	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in parallel.
-	 * @param connectionsCache specifies an upper bound to the persistent output connection cache.
+	 * @param connectionsCacheSize specifies an upper bound to the persistent output connection cache.
 	 * @throws java.io.IOException
 	 */
-	public CommCore( Interpreter interpreter, int connectionsLimit, int connectionsCache )
+	public CommCore( Interpreter interpreter, int connectionsLimit, int connectionsCacheSize )
 		throws IOException
 	{
 		this.interpreter = interpreter;
 		this.localListener = new LocalListener( interpreter );
 		this.connectionsLimit = connectionsLimit;
-		this.connectionsCache = connectionsCache;
+		this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
 		if ( connectionsLimit > 0 ) {
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
