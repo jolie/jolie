@@ -89,6 +89,7 @@ public class NotificationProcess implements Process
 				oneWayDescription.requestType().check( message.value() );
 			}
 			channel = outputPort.getCommChannel();
+
 			if ( verbose ) {
 				log( "sending request " + message.id() );
 			}

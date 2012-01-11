@@ -214,23 +214,24 @@ public abstract class AggregatedOperation
 			throws IOException, URISyntaxException
 		{
 			// Aggregation input
-			if ( type == OperationType.ONE_WAY ) {
+			/*if ( type == OperationType.ONE_WAY ) {
 				CommChannel oChannel = outputPort.getCommChannel();
 				oChannel.send( requestMessage );
+				
 				oChannel.release();
-			} else {
-				CommChannel oChannel = outputPort.getNewCommChannel();
-				oChannel.setRedirectionChannel( channel );
-				oChannel.setRedirectionMessageId( requestMessage.id() );
-				try {
-					oChannel.send( requestMessage );
-					oChannel.setToBeClosed( false );
-					oChannel.disposeForInput();
-				} catch( IOException e ) {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-					channel.disposeForInput();
-				}
+			} else {*/
+			CommChannel oChannel = outputPort.getNewCommChannel();
+			oChannel.setRedirectionChannel( channel );
+			oChannel.setRedirectionMessageId( requestMessage.id() );
+			try {
+				oChannel.send( requestMessage );
+				oChannel.setToBeClosed( false );
+				oChannel.disposeForInput();
+			} catch( IOException e ) {
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+				channel.disposeForInput();
 			}
+			//}
 		}
 	}
 
