@@ -74,9 +74,6 @@ public abstract class AggregatedOperation
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				// We need to send the acknowledgement
-				channel.send( CommMessage.createEmptyResponse( requestMessage ) );
-
 				ExecutionThread initThread = Interpreter.getInstance().initThread();
 				try {
 					initThread.join();
@@ -89,9 +86,16 @@ public abstract class AggregatedOperation
 					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
 					courierProcess
 				});
-				new SessionThread( p, state, initThread ).start();
+				SessionThread t = new SessionThread( p, state, initThread );
+				t.start();
+				try {
+					t.join();
+				} catch( InterruptedException e ) {}
+				
+				// We need to send the acknowledgement
+				channel.send( CommMessage.createEmptyResponse( requestMessage ) );
 			} catch( TypeCheckingException e ) {
-				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
+				interpreter.logWarning( "TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
 					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
