@@ -99,6 +99,7 @@ public class HttpProtocol extends CommProtocol
 		private static String ALIAS = "alias";
 		private static String MULTIPART_HEADERS = "multipartHeaders";
 		private static String CONCURRENT = "concurrent";
+                //private static String USERAGENT = "userAgent";
 
 		private static class MultiPartHeaders {
 			private static String FILENAME = "filename";
@@ -864,6 +865,7 @@ public class HttpProtocol extends CommProtocol
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
 				decodedMessage.value.getFirstChild( "operation" ).setValue( decodedMessage.operationName );
+                                decodedMessage.value.getFirstChild("userAgent").setValue(message.userAgent());
 				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
 				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
 					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );
@@ -896,10 +898,11 @@ public class HttpProtocol extends CommProtocol
 		recv_checkForMultiPartHeaders( decodedMessage );// message, decodedMessage );
 		String property;
 		if (
-			(property=message.getProperty( "user-agent" )) != null &&
+			message.userAgent()!= null &&
 			hasParameter( "userAgent" )
 		) {
-			getParameterFirstValue( "userAgent" ).setValue( property );
+			getParameterFirstValue( "userAgent" ).setValue( message.userAgent() );
+                        
 		}
 	}
 
