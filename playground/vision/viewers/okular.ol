@@ -25,6 +25,7 @@ include "exec.iol"
 include "runtime.iol"
 include "string_utils.iol"
 include "viewer.iol"
+include "ui/swing_ui.iol"
 
 execution { sequential }
 
@@ -39,6 +40,7 @@ include "poller.iol"
 define startPoller
 {
 	install( RuntimeException => println@Console( main.RuntimeException.stackTrace )() );
+	println@Console("Poller 1")();
 	pollerData.type = "Jolie";
 	pollerData.filepath = "poller.ol";
 	loadEmbeddedService@Runtime( pollerData )( Poller.location );
@@ -50,7 +52,7 @@ define startPoller
 define initDocumentViewer
 {
 	exec@Exec( "qdbus org.kde.okular*" )( cmdResult );
-	if ( !is_defined( cmdResult ) ) {
+	if ( !is_string( cmdResult ) ) {
 		throw( ViewerFault, "Could not query Okular" )
 	} else {
 		cmdStr = cmdResult
@@ -65,19 +67,22 @@ define initDocumentViewer
 	if ( #ss.result > 1 ) {
 		range = " (1.." + (#ss.result) + ")"
 	};
-	println@Console( "Choose a viewer instance" + range )();
+	choiceText = "Choose a viewer instance" + range;
+	// println@Console( "Choose a viewer instance" + range )();
 	for( i = 0, i < #ss.result, i++ ) {
 		// We display numbers starting by 1
 		exec@Exec( "qdbus " + ss.result[i] + " /okular currentDocument" )( cDoc );
 		doc = cDoc;
 		trim@StringUtils( doc )( doc );
-		println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + doc )()
+		choiceText += "\n" + (i+1) + ") " + ss.result[i] + " - Currently displaying: " + doc
+		// println@Console( (i+1) + ") " + ss.result[i] + " - Currently displaying: " + doc )()
 	};
 	selected = -1;
-	registerForInput@Console()();
+	// registerForInput@Console()();
 	while( selected < 1 || selected > #ss.result ) {
-		print@Console( "> " )();
-		in( selected );
+		showInputDialog@SwingUI( choiceText )( selected );
+		// print@Console( "> " )();
+		// in( selected );
 		selected = int(selected)
 	};
 	selected--;

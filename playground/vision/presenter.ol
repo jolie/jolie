@@ -53,10 +53,10 @@ define initViewer
 
 		install( RuntimeException => println@Console( main.RuntimeException.stackTrace )() );
 		loadEmbeddedService@Runtime( embedInfo )( Viewer.location );
-		startData.presenterLocation = Location_PresenterService;
+		startData.presenterLocation = Location_Presenter;
 		if ( is_defined( args[1] ) ) { // We've been given a server location => we're a client
 			start@Viewer( startData )();
-			req.location = Location_PresenterService;
+			req.location = Location_Presenter;
 			Presenter.location = args[1];
 			startClientSession@Presenter( req )( resp );
 			masterSid = resp.sid;
