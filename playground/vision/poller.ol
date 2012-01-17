@@ -42,7 +42,6 @@ main
 	start( startData );
 	Viewer.location = startData.viewerLocation;
 	Presenter.location = startData.presenterLocation;
-
 	oldCurrentPage = -1;
 	currentDocument = "";
 	while( 1 ) {
@@ -50,13 +49,15 @@ main
 		currentPage@Viewer()( currentPage );
 		if ( currentPage != oldCurrentPage ) {
 			oldCurrentPage = currentPage;
-			request.pageNumber = currentPage;
+			undef( request );
+			request.pageNumber = int( currentPage );
 			request.local = 1;
 			goToPage@Presenter( request )
 		};
 		currentDocument@Viewer()( currentDocument );
 		if ( currentDocument != oldCurrentDocument ) {
 			oldCurrentDocument = currentDocument;
+			undef( request );
 			request.documentUrl = currentDocument;
 			request.local = 1;
 			openDocument@Presenter( request )
