@@ -38,6 +38,7 @@ type SubType: void {
 
 type Type: void {
   .name: string
+  .domain?: string
   .root_type: NativeType
   .sub_type*: SubType
 }
@@ -50,12 +51,14 @@ type Operation: void {
 
 type Interface: void {
   .name: string
+  .domain?: string
   .types*: Type
   .operations*: Operation
 }
 
 type Participant: void {
   .name: string
+  .domain?: string
   .protocol: string
   .location: any
   .interfaces*: Interface
@@ -71,7 +74,19 @@ type Conversation: void {
 
 type Role: void {
   .name: string
+  .domain?: string
   .input: Participant
   .output?: Participant
   .conversation*: Conversation 	
+}
+
+type Service: void {
+  .name: string
+  .domain?: string
+  .input*: Participant
+  .dependencies*: void {
+    .register?: string
+    .domain?: string
+    .output: Participant
+  }
 }
