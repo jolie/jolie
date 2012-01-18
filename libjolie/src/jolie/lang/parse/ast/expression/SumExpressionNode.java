@@ -21,7 +21,6 @@
 
 package jolie.lang.parse.ast.expression;
 
-import java.util.Collection;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -53,7 +52,7 @@ public class SumExpressionNode extends OLSyntaxNode
 		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.SUBTRACT, expression ) );
 	}
 	
-	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
+	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands()
 	{
 		return operands;
 	}

@@ -21,9 +21,9 @@
 
 package jolie.lang.parse.ast.expression;
 
-import java.util.Collection;
 
 import java.util.LinkedList;
+import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -34,7 +34,7 @@ import jolie.util.Pair;
 
 public class ProductExpressionNode extends OLSyntaxNode
 {
-	private final Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands;
+	private final List< Pair< Constants.OperandType, OLSyntaxNode > > operands;
 
 	public ProductExpressionNode( ParsingContext context )
 	{
@@ -57,7 +57,7 @@ public class ProductExpressionNode extends OLSyntaxNode
 		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MODULUS, expression ) );
 	}
 	
-	public Collection< Pair< Constants.OperandType, OLSyntaxNode > > operands()
+	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands()
 	{
 		return operands;
 	}
