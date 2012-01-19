@@ -83,10 +83,10 @@ type Role: void {
 type Service: void {
   .name: string
   .domain?: string
-  .input*: Participant
+  .input*: string
   .dependencies*: void {
     .register?: string
     .domain?: string
-    .output: Participant
+    .output: string
   }
 }
