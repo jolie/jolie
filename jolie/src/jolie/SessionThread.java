@@ -24,6 +24,7 @@ package jolie;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.correlation.CorrelationSet;
 import jolie.util.Pair;
 
 /**
@@ -150,7 +152,9 @@ public class SessionThread extends ExecutionThread
 
 	private final jolie.State state;
 	private final List< SessionListener > listeners = new LinkedList< SessionListener >();
-	protected final Deque< SessionMessage > messages = new LinkedList< SessionMessage >();
+	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues =
+		new HashMap< CorrelationSet, Deque< SessionMessage > >();
+	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new LinkedList< SessionMessage >();
 	private final Map< String, Deque< SessionMessageFuture > > messageWaiters =
 		new HashMap< String, Deque< SessionMessageFuture > >();
 
@@ -225,6 +229,7 @@ public class SessionThread extends ExecutionThread
 	{
 		super( process, parent );
 		this.state = state;
+		initMessageQueues();
 	}
 
 	public SessionThread( Process process, jolie.State state, ExecutionThread parent )
@@ -234,6 +239,7 @@ public class SessionThread extends ExecutionThread
 		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
 		}
+		initMessageQueues();
 	}
 	
 	public boolean isInitialisingThread()
@@ -260,6 +266,14 @@ public class SessionThread extends ExecutionThread
 	{
 		super( interpreter, process );
 		state = new jolie.State();
+		initMessageQueues();
+	}
+	
+	private void initMessageQueues()
+	{
+		for( CorrelationSet cset : interpreter().correlationSets() ) {
+			messageQueues.put( cset, new LinkedList< SessionMessage >() );
+		}
 	}
 	
 	/**
@@ -274,7 +288,7 @@ public class SessionThread extends ExecutionThread
 	public SessionThread( Process process, ExecutionThread parent )
 	{
 		super( process, parent );
-
+		initMessageQueues();
 		assert( parent != null );
 		state = parent.state().clone();
 		for( Scope s : parent.scopeStack ) {
@@ -295,28 +309,43 @@ public class SessionThread extends ExecutionThread
 	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations )
 	{
 		SessionMessageFuture future = new SessionMessageNDFuture( operations.keySet().toArray( new String[0] ) );
-		synchronized( messages ) {
-			SessionMessage message = messages.peekFirst();
+		synchronized( messageQueues ) {
+			Deque< SessionMessage > queue = null;
+			SessionMessage message = null;
 			InputOperation operation = null;
-			if ( message != null ) {
-				operation = operations.get( message.message().operationName() );
+
+			Iterator< Deque< SessionMessage > > it = messageQueues.values().iterator();
+			while( operation == null && it.hasNext() ) {
+				queue = it.next();
+				message = queue.peekFirst();
+				if ( message != null ) {
+					operation = operations.get( message.message().operationName() );
+				}
 			}
+			if ( message == null ) {
+				queue = uncorrelatedMessageQueue;
+				message = queue.peekFirst();
+				if ( message != null ) {
+					operation = operations.get( message.message().operationName() );
+				}
+			}
+
 			if ( message == null || operation == null ) {
 				for( Map.Entry< String, InputOperation > entry : operations.entrySet() ) {
 					addMessageWaiter( entry.getValue(), future );
 				}
 			} else {
 				future.setResult( message );
-				messages.removeFirst();
+				queue.removeFirst();
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
-				while( keepRun && !messages.isEmpty() ) {
-					message = messages.peekFirst();
+				while( keepRun && !queue.isEmpty() ) {
+					message = queue.peekFirst();
 					future = getMessageWaiter( message.message().operationName() );
 					if ( future != null ) { // We found a waiter for the unlocked message
 						future.setResult( message );
-						messages.removeFirst();
+						queue.removeFirst();
 					} else {
 						keepRun = false;
 					}
@@ -329,25 +358,33 @@ public class SessionThread extends ExecutionThread
 	public Future< SessionMessage > requestMessage( InputOperation operation )
 	{
 		SessionMessageFuture future = new SessionMessageFuture();
-		synchronized( messages ) {
-			SessionMessage message = messages.peekFirst();
+		CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
+		synchronized( messageQueues ) {
+			Deque< SessionMessage > queue;
+			if ( cset == null ) {
+				queue = uncorrelatedMessageQueue;
+			} else {
+				queue = messageQueues.get( cset );
+			}
+			
+			SessionMessage message = queue.peekFirst();
 			if ( message == null
 				|| message.message().operationName().equals( operation.id() ) == false
 			) {
 				addMessageWaiter( operation, future );
 			} else {
 				future.setResult( message );
-				messages.removeFirst();
+				queue.removeFirst();
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
 				SessionMessageFuture currFuture;
-				while( keepRun && !messages.isEmpty() ) {
-					message = messages.peekFirst();
+				while( keepRun && !queue.isEmpty() ) {
+					message = queue.peekFirst();
 					currFuture = getMessageWaiter( message.message().operationName() );
 					if ( currFuture != null ) { // We found a waiter for the unlocked message
 						currFuture.setResult( message );
-						messages.removeFirst();
+						queue.removeFirst();
 					} else {
 						keepRun = false;
 					}
@@ -383,10 +420,15 @@ public class SessionThread extends ExecutionThread
 
 	public void pushMessage( SessionMessage message )
 	{
-		synchronized( messages ) {
+		synchronized( messageQueues ) {
 			SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
 			if ( future == null ) {
-				messages.addLast( message );
+				CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
+				if ( cset != null ) {
+					messageQueues.get( cset ).addLast( message );
+				} else {
+					uncorrelatedMessageQueue.addLast( message );
+				}
 			} else {
 				future.setResult( message );
 			}
