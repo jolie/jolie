@@ -30,6 +30,10 @@ cset {
 	lastName: StartMessage.person.lastName Person.lastName
 }
 
+cset {
+	otherSid: PreEnd.otherSid
+}
+
 inputPort ServerInput {
 Location: "local"
 Interfaces: ServerInterface
@@ -41,14 +45,18 @@ Interfaces: ClientInterface
 
 main
 {
-	startSession( request )( sid ) {
+	startSession( request )( response ) {
 		synchronized( Lock ) {
-			sid = global.sid++
+			response.sid = global.sid++;
+			csets.otherSid = new;
+			response.otherSid = csets.otherSid;
+			response.person << request.person
 		};
 		Client.location = request.clientLocation
 	};
 	endSession( person );
+	preEndSession( r );
 	event.person -> person;
-	event.sid -> sid;
+	event.sid -> response.sid;
 	onSessionEnd@Client( event )
 }

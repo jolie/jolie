@@ -34,11 +34,24 @@ type OnSessionEndMessage:void {
 	.person:Person
 }
 
+type PreEnd:void {
+	.sid:int
+	.otherSid:string
+	.person:Person
+}
+
+type StartResponse:void {
+	.sid:int
+	.otherSid:string
+	.person:Person
+}
+
 interface ServerInterface {
 OneWay:
+	preEndSession(PreEnd),
 	endSession(Person)
 RequestResponse:
-	startSession(StartMessage)(int)
+	startSession(StartMessage)(StartResponse)
 }
 
 interface ClientInterface {

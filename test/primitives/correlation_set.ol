@@ -46,21 +46,24 @@ define doTest
 	r[2].clientLocation = r[0].clientLocation;
 	{
 		r[0].person.firstName = "John"; r[0].person.lastName = "Smith";
-		startSession@Server( r[0] )( sid[0] );
+		startSession@Server( r[0] )( resp[0] );
+		preEndSession@Server( resp[0] );
 		endSession@Server( r[0].person )
 		|
 		r[1].person.firstName = "Donald"; r[1].person.lastName = "Duck";
-		startSession@Server( r[1] )( sid[1] );
+		startSession@Server( r[1] )( resp[1] );
+		preEndSession@Server( resp[1] );
 		endSession@Server( r[1].person )
 		|
 		r[2].person.firstName = "Duffy"; r[2].person.lastName = "Duck";
-		startSession@Server( r[2] )( sid[2] );
+		startSession@Server( r[2] )( resp[2] );
+		preEndSession@Server( resp[2] );
 		endSession@Server( r[2].person )
 	};
 	for( i = 0, i < #r, i++ ) {
 		onSessionEnd( event );
-		for( k = 0, k < #sid, k++ ) {
-			if ( event.sid == sid[k] ) {
+		for( k = 0, k < #resp, k++ ) {
+			if ( event.sid == resp[k].sid ) {
 				if (
 					event.person.firstName != r[k].person.firstName
 					||
