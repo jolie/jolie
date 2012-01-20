@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -125,9 +126,9 @@ public class Interpreter
 			 * were to call that directly from here.
 			 */
 			execute( new Runnable() {
-				public void run()
+				private void pushMessages( Deque< SessionMessage > queue )
 				{
-					for( SessionMessage message : messages ) {
+					for( SessionMessage message : queue ) {
 						try {
 							correlationEngine.onMessageReceive( message.message(), message.channel() );
 						} catch( CorrelationError e ) {
@@ -139,6 +140,14 @@ public class Interpreter
 							}
 						}
 					}
+				}
+
+				public void run()
+				{
+					for( Deque< SessionMessage > queue : messageQueues.values() ) {
+						pushMessages( queue );
+					}
+					pushMessages( uncorrelatedMessageQueue );
 				}
 			});
 		}
