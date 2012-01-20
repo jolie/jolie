@@ -325,7 +325,7 @@ public class JolieClassLoader extends URLClassLoader
 		if ( url == null ) {
 			throw new IOException( "Resource not found: " + jarName );
 		}
-		if ( url.getProtocol().equals( "jap" ) ) {
+		if ( url.getProtocol().startsWith( "jap" ) ) {
 			addURL( new URL( url + "!/" ) );
 		} else {
 			addURL( new URL( "jap:" + url + "!/" ) );
