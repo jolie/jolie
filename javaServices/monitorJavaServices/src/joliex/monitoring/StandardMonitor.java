@@ -21,6 +21,9 @@
 
 package joliex.monitoring;
 
+import jolie.monitoring.MonitoringEvent;
+import jolie.runtime.embedding.RequestResponse;
+
 /**
  *
  * @author Claudio Guidi 24/01/2012
@@ -31,6 +34,6 @@ public class StandardMonitor extends AbstractMonitorJavaService
 	@Override
 	public void pushEvent( MonitoringEvent e )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." );
+		System.out.println( e.toString() );
 	}
 }
