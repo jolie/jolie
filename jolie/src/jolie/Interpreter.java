@@ -60,6 +60,7 @@ import jolie.lang.parse.Scanner;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.monitoring.MonitoringEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 
@@ -250,10 +251,50 @@ public class Interpreter
 
 	private final String programFilename;
 	private final File programDirectory;
+	private OutputPort monitor = null;
 
+	public void setMonitor( OutputPort monitor )
+	{
+		this.monitor = monitor;
+		fireMonitorEvent( MonitoringEvent.create( "MonitorAttached", Value.create() ) );
+	}
+	
+	public boolean isMonitoring()
+	{
+		return monitor != null;
+	}
+	
 	public long inputMessageTimeout()
 	{
 		return inputMessageTimeout;
+	}
+	
+	public void fireMonitorEvent( MonitoringEvent event )
+	{
+		if ( monitor != null ) {
+			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
+			CommChannel channel = null;
+			try {
+				channel = monitor.getCommChannel();
+				channel.send( m );
+				CommMessage response = null;
+				do {
+					response = channel.recvResponseFor( m );
+				} while( response == null );
+			} catch( URISyntaxException e ) {
+				logWarning( e );
+			} catch( IOException e ) {
+				logWarning( e );
+			} finally {
+				if ( channel != null ) {
+					try {
+						channel.release();
+					} catch( IOException e ) {
+						logWarning( e );
+					}
+				}
+			}
+		}
 	}
 
 	public long openInputConnectionTimeout()
@@ -1142,7 +1183,21 @@ public class Interpreter
 				});
 			}
 		}
+		
+		logSessionStart();
 
 		return true;
 	}
+	
+	private void logSessionStart()
+	{
+		if ( isMonitoring() ) {
+			fireMonitorEvent( MonitoringEvent.create( "SessionStarted", Value.create() ) );
+		}
+	}
+	
+	/*private void logSessionEnd()
+	{
+		fireMonitorEvent( MonitoringEvent.create( "SessionEnded", Value.create() ) );
+	}*/
 }

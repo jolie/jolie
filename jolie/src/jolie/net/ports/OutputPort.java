@@ -87,6 +87,24 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.iface = Interface.UNDEFINED;
 	}
 	
+	public OutputPort(
+		Interpreter interpreter,
+		String id,
+		VariablePath locationVariablePath,
+		VariablePath protocolVariablePath,
+		Interface iface,
+		boolean isConstant
+	) {
+		super( id );
+		this.isConstant = isConstant;
+		this.interpreter = interpreter;
+		this.locationVariablePath = locationVariablePath;
+		this.protocolVariablePath = protocolVariablePath;
+		this.iface = iface;
+		this.locationExpression = locationVariablePath;
+		this.configurationProcess = NullProcess.getInstance();
+	}
+	
 	/**
 	 * To be called by OOITBuilder
 	 */

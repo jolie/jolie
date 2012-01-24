@@ -39,6 +39,8 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
+import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
@@ -55,6 +57,32 @@ public class RuntimeService extends JavaService
 		Value v = Value.create();
 		v.setValue( interpreter.commCore().getLocalCommChannel() );
 		return v;
+	}
+	
+	@RequestResponse
+	public void setMonitor( final Value request )
+	{
+		final VariablePath locationPath = new VariablePathBuilder( true )
+			.add( Constants.MONITOR_OUTPUTPORT_NAME, 0 )
+			.add( Constants.LOCATION_NODE_NAME, 0 ).toVariablePath();
+		locationPath.setValue( request.getFirstChild( Constants.LOCATION_NODE_NAME ) );
+		
+		final VariablePath protocolPath = new VariablePathBuilder( true )
+			.add( Constants.MONITOR_OUTPUTPORT_NAME, 0 )
+			.add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
+		protocolPath.setValue( request.getFirstChild( Constants.PROTOCOL_NODE_NAME ) );
+		
+		OutputPort port = new OutputPort(
+			interpreter(),
+			Constants.MONITOR_OUTPUTPORT_NAME,
+			locationPath,
+			protocolPath,
+			null,
+			true
+		);
+		port.optimizeLocation();
+
+		interpreter.setMonitor( port );
 	}
 
 	@RequestResponse
