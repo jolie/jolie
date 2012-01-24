@@ -225,7 +225,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2surface}/build.xml" inheritall="false" target="jar"/>
@@ -260,7 +261,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.jolieJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
 	</target>
 	<target name="dist" depends="-init,jar">
 		<delete dir="dist"/>
@@ -299,7 +301,8 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		</copy>
 		<copy todir="dist/javaServices" flatten="true">
 			<resources>
-				<file file="${project.jolieJavaServices}/dist/jolieJavaServices.jar"/>
+				<file file="${project.coreJavaServices}/dist/coreJavaServices.jar"/>
+				<file file="${project.monitorJavaServices}/dist/monitorJavaServices.jar"/>
 			</resources>
 		</copy>
 		
