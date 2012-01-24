@@ -39,7 +39,11 @@
 			<item> global </item>
 			<item> is_defined </item>
 			<item> is_int </item>
+			<item> is_bool </item>
+			<item> is_long </item>
 			<item> is_string </item>
+			<item> bool </item>
+			<item> long </item>
 			<item> int </item>
 			<item> string </item>
 			<item> double </item>

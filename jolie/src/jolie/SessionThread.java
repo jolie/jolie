@@ -366,7 +366,7 @@ public class SessionThread extends ExecutionThread
 			} else {
 				queue = messageQueues.get( cset );
 			}
-			
+
 			SessionMessage message = queue.peekFirst();
 			if ( message == null
 				|| message.message().operationName().equals( operation.id() ) == false
