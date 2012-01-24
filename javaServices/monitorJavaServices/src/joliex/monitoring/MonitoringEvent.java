@@ -31,25 +31,32 @@ import jolie.runtime.Value;
  */
 public class MonitoringEvent implements ValueConverter
 {
-	private final String name;
+	private final String type;
 	private final long timestamp;
+	private final long memory;
 	private final Value data;
 	
-	public MonitoringEvent( String name, long timestamp, Value data )
+	public MonitoringEvent( String type, long timestamp, long memory, Value data )
 	{
-		this.name = name;
+		this.type = type;
 		this.timestamp = timestamp;
+		this.memory = memory;
 		this.data = data;
 	}
 	
-	public String name()
+	public String type()
 	{
-		return name;
+		return type;
 	}
 	
 	public long timestamp()
 	{
 		return timestamp;
+	}
+
+	public long memory()
+	{
+		return memory;
 	}
 	
 	public Value data()
@@ -60,8 +67,9 @@ public class MonitoringEvent implements ValueConverter
 	public static MonitoringEvent fromValue( Value value )
 	{
 		return new MonitoringEvent(
-			value.getFirstChild( "name" ).strValue(),
+			value.getFirstChild( "type" ).strValue(),
 			value.getFirstChild( "timestamp" ).longValue(),
+			value.getFirstChild( "memory" ).longValue(),
 			value.getFirstChild( "data" )
 		);
 	}
@@ -69,8 +77,9 @@ public class MonitoringEvent implements ValueConverter
 	public static Value toValue( MonitoringEvent e )
 	{
 		Value ret = Value.create();
-		ret.getFirstChild( "name" ).setValue( e.name );
+		ret.getFirstChild( "type" ).setValue( e.type );
 		ret.getFirstChild( "timestamp" ).setValue( e.timestamp );
+		ret.getFirstChild( "memory" ).setValue( e.memory );
 		ret.getChildren( "data" ).add( e.data );
 		return ret;
 	}
