@@ -27,7 +27,6 @@ import java.net.URISyntaxException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
-import jolie.monitoring.MonitoringEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -79,10 +78,6 @@ public class SolicitResponseProcess implements Process
 
 	private void log( String message )
 	{
-		Interpreter interpreter = Interpreter.getInstance();
-		if ( interpreter.isMonitoring() ) {
-			interpreter.fireMonitorEvent( MonitoringEvent.create( "SolicitResponse", Value.UNDEFINED_VALUE ) );
-		}
 		Interpreter.getInstance().logInfo( "[SolicitResponse operation " + operationId + "@" + outputPort.id() + "]: " + message );
 	}
 
