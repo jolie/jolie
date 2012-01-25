@@ -22,7 +22,6 @@
 package joliex.monitoring;
 
 import jolie.monitoring.MonitoringEvent;
-import jolie.runtime.embedding.RequestResponse;
 
 /**
  *
