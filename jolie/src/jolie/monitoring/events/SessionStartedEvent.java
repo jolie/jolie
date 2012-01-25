@@ -19,78 +19,20 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.monitoring;
+package jolie.monitoring.events;
 
-import jolie.runtime.JavaService.ValueConverter;
+import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
 /**
- * A monitoring event, supporting the {@link ValueConverter} interface for automatic
- * transformation between Jolie messages and Java objects.
+ * {@link MonitoringEvent} for a session start.
+ * 
  * @author Fabrizio Montesi
  */
-public class MonitoringEvent implements ValueConverter
+public class SessionStartedEvent extends MonitoringEvent
 {
-	private final String type;
-	private final long timestamp;
-	private final long memory;
-	private final Value data;
-	
-	public MonitoringEvent( String type, Value data )
+	public SessionStartedEvent()
 	{
-		this(
-			type,
-			System.currentTimeMillis(),
-			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
-			data
-		);
-	}
-	
-	private MonitoringEvent( String type, long timestamp, long memory, Value data )
-	{
-		this.type = type;
-		this.timestamp = timestamp;
-		this.memory = memory;
-		this.data = data;
-	}
-	
-	public String type()
-	{
-		return type;
-	}
-	
-	public long timestamp()
-	{
-		return timestamp;
-	}
-
-	public long memory()
-	{
-		return memory;
-	}
-	
-	public Value data()
-	{
-		return data;
-	}
-	
-	public static MonitoringEvent fromValue( Value value )
-	{
-		return new MonitoringEvent(
-			value.getFirstChild( "type" ).strValue(),
-			value.getFirstChild( "timestamp" ).longValue(),
-			value.getFirstChild( "memory" ).longValue(),
-			value.getFirstChild( "data" )
-		);
-	}
-	
-	public static Value toValue( MonitoringEvent e )
-	{
-		Value ret = Value.create();
-		ret.getFirstChild( "type" ).setValue( e.type );
-		ret.getFirstChild( "timestamp" ).setValue( e.timestamp );
-		ret.getFirstChild( "memory" ).setValue( e.memory );
-		ret.getChildren( "data" ).add( e.data );
-		return ret;
+		super( "SessionStarted", Value.UNDEFINED_VALUE );
 	}
 }

@@ -61,6 +61,8 @@ import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.monitoring.MonitoringEvent;
+import jolie.monitoring.events.MonitorAttachedEvent;
+import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 
@@ -256,7 +258,7 @@ public class Interpreter
 	public void setMonitor( OutputPort monitor )
 	{
 		this.monitor = monitor;
-		fireMonitorEvent( MonitoringEvent.create( "MonitorAttached", Value.create() ) );
+		fireMonitorEvent( new MonitorAttachedEvent() );
 	}
 	
 	public boolean isMonitoring()
@@ -1192,7 +1194,7 @@ public class Interpreter
 	private void logSessionStart()
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( MonitoringEvent.create( "SessionStarted", Value.create() ) );
+			fireMonitorEvent( new SessionStartedEvent() );
 		}
 	}
 	
