@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -25,18 +25,19 @@ import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
 /**
- * {@link MonitoringEvent} for a session start.
- * 
- * @author Fabrizio Montesi
+ *
+ * @author claudio guidi
+ * 27/01/2012
  */
-public class SessionStartedEvent extends MonitoringEvent {
+public class OperationStartedEvent extends MonitoringEvent {
 
-	public SessionStartedEvent( String operation_name, String session_id )
-	{
-		super( "SessionStarted", Value.UNDEFINED_VALUE );
+	public OperationStartedEvent( String operation_name, String session_id ) {
 
-		data().getFirstChild( "session_id").setValue( session_id );
+		super( "OperationStarted", Value.UNDEFINED_VALUE );
+
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
-
+		data().getFirstChild( "session_id" ).setValue( "session_id" );
+		
 	}
+
 }
