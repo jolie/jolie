@@ -1143,6 +1143,8 @@ public class Interpreter
 		} catch( InterruptedException e ) {
 			return false;
 		}
+		
+		SessionThread spawnedSession = null;
 
 		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
@@ -1150,12 +1152,12 @@ public class Interpreter
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
 				starter.body
 			} );
-			SessionThread newSession = new SessionThread(
+			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread
 			);
-			correlationEngine.onSessionStart( newSession, starter, message );
-			newSession.addSessionListener( correlationEngine );
-			newSession.start();
+			correlationEngine.onSessionStart( spawnedSession, starter, message );
+			spawnedSession.addSessionListener( correlationEngine );
+			spawnedSession.start();
 		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
 			State state = initExecutionThread.state().clone();
 			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
@@ -1163,7 +1165,7 @@ public class Interpreter
 				starter.body
 			} );
 			final SessionThread currentMainSession = mainSession;
-			mainSession = new SessionThread(
+			spawnedSession = mainSession = new SessionThread(
 				sequence, state, initExecutionThread
 			);
 			correlationEngine.onSessionStart( mainSession, starter, message );
@@ -1186,15 +1188,15 @@ public class Interpreter
 			}
 		}
 		
-		logSessionStart();
+		logSessionStart( message.operationName(), spawnedSession.getName() );
 
 		return true;
 	}
 	
-	private void logSessionStart()
+	private void logSessionStart( String operationName, String sessionId )
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent() );
+			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
 		}
 	}
 	
