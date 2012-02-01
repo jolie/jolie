@@ -294,7 +294,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		if ( checkBooleanParameter( "keepAlive", true ) ) {
+		if ( checkBooleanParameter( "keepAlive", false ) ) {
 			channel().setToBeClosed( false );
 		} else {
 			channel().setToBeClosed( true );
