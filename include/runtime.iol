@@ -58,9 +58,15 @@ type GetIncludePathResponse:void {
 	.path*:string
 }
 
+type SetMonitorRequest:void {
+	.location:any
+	.protocol?:string { ? }
+}
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
+	setMonitor(SetMonitorRequest)(void),
 	loadEmbeddedService(LoadEmbeddedServiceRequest)(any) throws RuntimeException(RuntimeExceptionType),
 
 	getRedirection(GetRedirectionRequest)(any),

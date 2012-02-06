@@ -21,5 +21,5 @@
 
 type Binding:void {
 	.location:string
-	.protocol:string { ? }
+	.protocol?:string { ? }
 }
