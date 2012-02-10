@@ -85,7 +85,7 @@ public class XmlStorage extends AbstractStorageService
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src = new InputSource( new InputStreamReader( istream ) );
 			Document doc = builder.parse( src );
-			jolie.xml.XmlUtils.documentToValue( doc, value );
+			jolie.xml.XmlUtils.documentToValue( doc, value ,true);
 		} catch( Exception e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
 		}
