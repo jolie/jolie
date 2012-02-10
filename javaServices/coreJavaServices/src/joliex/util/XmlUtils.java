@@ -97,17 +97,14 @@ public class XmlUtils extends JavaService
 			}
 
 			Document doc = builder.parse( src );
-                        if (request.hasChildren("options")){
-                            if (request.getFirstChild("options").hasChildren("includeAttributes")){
-                                jolie.xml.XmlUtils.documentToValue( doc, result , request.getFirstChild("options").getFirstChild("includeAttributes").boolValue());
-                            }
-                        }else
-                        {
-                        
-                            jolie.xml.XmlUtils.documentToValue( doc, result ,true);
-                        
-                        }
-			return result;
+			boolean includeAttributes = false;
+			if ( request.hasChildren( "options" ) ){
+				if ( request.getFirstChild( "options" ).hasChildren( "includeAttributes" ) ){
+					includeAttributes = request.getFirstChild( "options" ).getFirstChild( "includeAttributes" ).boolValue();
+				}
+			}
+			jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
+            return result;
 		} catch( ParserConfigurationException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
