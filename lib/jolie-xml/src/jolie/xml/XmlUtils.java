@@ -160,7 +160,9 @@ public class XmlUtils
 			}
 		}
 	}
-
+public static void documentToValue( Document document, Value value ) {
+documentToValue( document, value, true );
+}
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
 	{
 		if ( type.isSimpleType() ) {
@@ -294,14 +296,23 @@ public class XmlUtils
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
 	 */
-	public static void documentToValue( Document document, Value value )
-	{
+	public static void documentToValue( Document document, Value value, boolean withAttributes )
+	{     
+              if (withAttributes){
 		setAttributes( value, document.getDocumentElement() );
 		elementsToSubValues(
 			value,
-			document.getDocumentElement().getChildNodes()
+			document.getDocumentElement().getChildNodes(),true
 		);
+              }else{
+                  elementsToSubValues(
+			value,
+			document.getDocumentElement().getChildNodes(),false
+		);
+                  
+              }
 	}
+        
 
 	/*
 	 * author: Claudio Guidi
@@ -411,7 +422,7 @@ public class XmlUtils
 		}
 	}
 
-	private static void elementsToSubValues( Value value, NodeList list )
+	private static void elementsToSubValues( Value value, NodeList list , boolean withAttributes)
 	{
 		Node node;
 		Value childValue;
@@ -420,12 +431,19 @@ public class XmlUtils
 			node = list.item( i );
 			switch( node.getNodeType() ) {
 			case Node.ATTRIBUTE_NODE:
+                            if (withAttributes){
 				getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
-				break;
+                            }
+                                break;
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
-				setAttributes( childValue, node );
-				elementsToSubValues( childValue, node.getChildNodes() );
+				if (withAttributes){
+                                setAttributes( childValue, node );
+                           
+				elementsToSubValues( childValue, node.getChildNodes(),withAttributes );
+                                }else{
+                                elementsToSubValues( childValue, node.getChildNodes(),withAttributes );
+                                }
 				break;
 			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:

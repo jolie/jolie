@@ -40,11 +40,12 @@ public class XsdUtils
 		xsdToNativeTypeMap.put( "string", NativeType.STRING );
 		xsdToNativeTypeMap.put( "date", NativeType.STRING );
 		xsdToNativeTypeMap.put( "time", NativeType.STRING );
-		xsdToNativeTypeMap.put( "boolean", NativeType.STRING );
+		xsdToNativeTypeMap.put( "boolean", NativeType.BOOL );
 		xsdToNativeTypeMap.put( "int", NativeType.INT );
 		xsdToNativeTypeMap.put( "integer", NativeType.INT );
 		xsdToNativeTypeMap.put( "decimal", NativeType.DOUBLE );
 		xsdToNativeTypeMap.put( "anyType", NativeType.ANY );
+                xsdToNativeTypeMap.put( "dateTime", NativeType.STRING );
 	}
 
 	public static NativeType xsdToNativeType( String xsdTypeName )
