@@ -125,7 +125,7 @@ public class FileService extends JavaService
 			InputSource src = new InputSource( new InputStreamReader( istream ) );
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value );
+			jolie.xml.XmlUtils.documentToValue( doc, value ,true);
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
