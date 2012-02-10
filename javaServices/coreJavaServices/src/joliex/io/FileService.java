@@ -40,7 +40,6 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -125,7 +124,7 @@ public class FileService extends JavaService
 			InputSource src = new InputSource( new InputStreamReader( istream ) );
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
-			jolie.xml.XmlUtils.documentToValue( doc, value ,true);
+			jolie.xml.XmlUtils.documentToValue( doc, value );
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
