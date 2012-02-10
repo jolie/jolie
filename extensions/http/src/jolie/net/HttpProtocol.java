@@ -34,9 +34,11 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -269,11 +271,13 @@ public class HttpProtocol extends CommProtocol
 		if ( value.children().isEmpty() == false ) {
 			headerBuilder.append( '?' );
 			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-				headerBuilder
-					.append( entry.getKey() )
-					.append( '=' )
-					.append( URLEncoder.encode( entry.getValue().first().strValue(), charset ) )
-					.append( '&' );
+				for( Value v : entry.getValue() ) {
+					headerBuilder
+						.append( entry.getKey() )
+						.append( '=' )
+						.append( URLEncoder.encode( v.strValue(), charset ) )
+						.append( '&' );
+				}
 			}
 		}
 	}
@@ -766,15 +770,23 @@ public class HttpProtocol extends CommProtocol
 
 	private static void recv_parseQueryString( HttpMessage message, Value value )
 	{
+		Map< String, Integer > indexes = new HashMap< String, Integer >();
 		String queryString = message.requestPath() == null ? "" : message.requestPath();
 		String[] kv = queryString.split( "\\?" );
+		Integer index;
 		if ( kv.length > 1 ) {
 			queryString = kv[1];
 			String[] params = queryString.split( "&" );
 			for( String param : params ) {
 				kv = param.split( "=", 2 );
 				if ( kv.length > 1 ) {
-					value.getFirstChild( kv[0] ).setValue( kv[1] );
+					index = indexes.get( kv[0] );
+					if ( index == null ) {
+						index = 0;
+						indexes.put( kv[0], index );
+					}
+					value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
+					indexes.put( kv[0], index + 1 );
 				}
 			}
 		}
