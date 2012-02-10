@@ -30,9 +30,15 @@ type XMLTransformationRequest:void {
 	.xslt:string
 }
 
+type XMLToValueRequest:any {
+	.options?:void {
+		.includeAttributes:bool // Default: true
+	}
+}
+
 outputPort XmlUtils {
 RequestResponse:
-	xmlToValue(any)(undefined) throws IOException(IOExceptionType),
+	xmlToValue(XMLToValueRequest)(undefined) throws IOException(IOExceptionType),
 	transform(XMLTransformationRequest)(string) throws TransformerException(JavaExceptionType),
 	valueToXml(undefined)(string)
 }
