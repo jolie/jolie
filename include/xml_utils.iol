@@ -32,7 +32,7 @@ type XMLTransformationRequest:void {
 
 type XMLToValueRequest:any {
 	.options?:void {
-		.includeAttributes:bool // Default: true
+		.includeAttributes?:bool // Default: true
 	}
 }
 
