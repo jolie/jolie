@@ -45,7 +45,7 @@ public class XsdUtils
 		xsdToNativeTypeMap.put( "integer", NativeType.INT );
 		xsdToNativeTypeMap.put( "decimal", NativeType.DOUBLE );
 		xsdToNativeTypeMap.put( "anyType", NativeType.ANY );
-                xsdToNativeTypeMap.put( "dateTime", NativeType.STRING );
+		xsdToNativeTypeMap.put( "dateTime", NativeType.STRING );
 	}
 
 	public static NativeType xsdToNativeType( String xsdTypeName )
