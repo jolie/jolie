@@ -296,21 +296,22 @@ documentToValue( document, value, true );
 	 * @param document the source XML document
 	 * @param value the Value receiving the JOLIE representation of document
 	 */
-	public static void documentToValue( Document document, Value value, boolean withAttributes )
-	{     
-              if (withAttributes){
-		setAttributes( value, document.getDocumentElement() );
-		elementsToSubValues(
-			value,
-			document.getDocumentElement().getChildNodes(),true
-		);
-              }else{
-                  elementsToSubValues(
-			value,
-			document.getDocumentElement().getChildNodes(),false
-		);
-                  
-              }
+	public static void documentToValue( Document document, Value value, boolean includeAttributes )
+	{ 
+		if ( includeAttributes ) {
+			setAttributes( value, document.getDocumentElement() );
+			elementsToSubValues(
+				value,
+				document.getDocumentElement().getChildNodes(),
+				true
+			);
+		} else {
+			elementsToSubValues(
+				value,
+				document.getDocumentElement().getChildNodes(),
+				false
+			);
+		}
 	}
         
 
@@ -422,7 +423,7 @@ documentToValue( document, value, true );
 		}
 	}
 
-	private static void elementsToSubValues( Value value, NodeList list , boolean withAttributes)
+	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )
 	{
 		Node node;
 		Value childValue;
@@ -431,19 +432,16 @@ documentToValue( document, value, true );
 			node = list.item( i );
 			switch( node.getNodeType() ) {
 			case Node.ATTRIBUTE_NODE:
-                            if (withAttributes){
-				getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
-                            }
-                                break;
+				if ( includeAttributes ) {
+					getAttribute( value, node.getNodeName() ).setValue( node.getNodeValue() );
+				}
+				break;
 			case Node.ELEMENT_NODE:
 				childValue = value.getNewChild( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
-				if (withAttributes){
-                                setAttributes( childValue, node );
-                           
-				elementsToSubValues( childValue, node.getChildNodes(),withAttributes );
-                                }else{
-                                elementsToSubValues( childValue, node.getChildNodes(),withAttributes );
-                                }
+				if ( includeAttributes ){
+					setAttributes( childValue, node );
+				}
+				elementsToSubValues( childValue, node.getChildNodes(), includeAttributes );
 				break;
 			case Node.CDATA_SECTION_NODE:
 			case Node.TEXT_NODE:
