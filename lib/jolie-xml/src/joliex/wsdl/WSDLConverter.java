@@ -49,6 +49,7 @@ import javax.wsdl.Service;
 import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.http.HTTPAddress;
+import javax.wsdl.extensions.http.HTTPBinding;
 import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.wsdl.extensions.soap.SOAPBinding;
 import javax.xml.namespace.QName;
@@ -84,6 +85,7 @@ public class WSDLConverter
 {
 	private enum Style {
 		DOCUMENT,
+		HTTP,
 		RPC;
 	}
 
@@ -464,6 +466,8 @@ public class WSDLConverter
 				if ( "rpc".equals(((SOAPBinding)element).getStyle()) ) {
 					style = Style.RPC;
 				}
+			} else if ( element instanceof HTTPBinding ) {
+				style = Style.HTTP;
 			}
 		}
 		Interface iface = new Interface( portType.getQName().getLocalPart(), comment );
@@ -520,6 +524,10 @@ public class WSDLConverter
 					typeName = XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id();
 				} else {
 					typeName = part.getElementName().getLocalPart();
+					NativeType nativeType = XsdUtils.xsdToNativeType( typeName );
+					if ( nativeType != null ) {
+						typeName = nativeType.id();
+					}
 				}
 			}
 		}
@@ -582,6 +590,10 @@ public class WSDLConverter
 						faultTypeName = XsdUtils.xsdToNativeType( part.getTypeName().getLocalPart() ).id();
 					} else {
 						faultTypeName = part.getElementName().getLocalPart();
+						NativeType nativeType = XsdUtils.xsdToNativeType( faultTypeName );
+						if ( nativeType != null ) {
+							faultTypeName = nativeType.id();
+						}
 					}
 				}
 			}
