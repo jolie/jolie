@@ -35,7 +35,7 @@ type FlushResponse: void {
   .events*: MonitorEvent
 }
 
-type SetMonitorRequest: void {
+type SetStandardMonitorRequest: void {
   .triggered_enabled?: bool
   .trigger_threshold?: int
   .queue_max?: int
@@ -44,7 +44,7 @@ type SetMonitorRequest: void {
 interface StandardMonitorInterface {
 RequestResponse:
   flush( void )( FlushResponse ),
-  setMonitor( SetMonitorRequest )( void ) 
+  setMonitor( SetStandardMonitorRequest )( void ) 
 }
 
 interface StandardMonitorInputInterface {
