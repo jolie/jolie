@@ -13,6 +13,12 @@
    limitations under the License.
 ********************************************************************************/
 
+type Name: void {
+  .name: string
+  .domain?: string
+  .registry?: string       // if omitted = local
+}
+
 type NativeType: void {
   .string_type?: int
   .int_type?: int
@@ -20,7 +26,10 @@ type NativeType: void {
   .any_type?: int
   .void_type?: int
   .undefined_type?: int
-  .link?: string
+  .link?: void {
+     .name: string
+     .domain?: string
+  }
 }
 
 type Cardinality: void {
@@ -33,32 +42,32 @@ type SubType: void {
   .name: string
   .cardinality: Cardinality
   .type_inline?: Type
-  .type_link?: string 
+  .type_link?: void {
+     .name: string
+     .domain: string
+  }
 }
 
 type Type: void {
-  .name: string
-  .domain?: string
+  .name: Name
   .root_type: NativeType
   .sub_type*: SubType
 }
 
 type Operation: void {
-  .name: string
-  .input: string
-  .output?: string
+  .operation_name: string
+  .input: Name
+  .output?: Name
 }
 
 type Interface: void {
-  .name: string
-  .domain?: string
+  .name: Name
   .types*: Type
   .operations*: Operation
 }
 
 type Participant: void {
-  .name: string
-  .domain?: string
+  .name: Name
   .protocol: string
   .location: any
   .interfaces*: Interface
@@ -73,20 +82,21 @@ type Conversation: void {
 }
 
 type Role: void {
-  .name: string
-  .domain?: string
+  .name: Name
   .input: Participant
   .output?: Participant
   .conversation*: Conversation 	
 }
 
 type Service: void {
-  .name: string
-  .domain?: string
-  .input*: string
-  .dependencies*: void {
-    .register?: string
-    .domain?: string
-    .output: string
+  .name: Name
+  .input*: void {
+    .name: string
+    .domain: string
+  }
+  .dependencies*: void {		// outputports
+    .domain: string
+    .registry?: string
+    .name: string
   }
 }
