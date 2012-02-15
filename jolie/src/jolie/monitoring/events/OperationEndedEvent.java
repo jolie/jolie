@@ -17,7 +17,7 @@ public class OperationEndedEvent extends MonitoringEvent {
 
 	public OperationEndedEvent( String operation_name, String session_id ) {
 
-		super( "OperationEnded", Value.UNDEFINED_VALUE );
+		super( "OperationEnded", Value.create() );
 
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
 		data().getFirstChild( "session_id" ).setValue( "session_id" );

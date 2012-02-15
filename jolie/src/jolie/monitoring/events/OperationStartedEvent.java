@@ -33,7 +33,7 @@ public class OperationStartedEvent extends MonitoringEvent {
 
 	public OperationStartedEvent( String operation_name, String session_id ) {
 
-		super( "OperationStarted", Value.UNDEFINED_VALUE );
+		super( "OperationStarted", Value.create() );
 
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
 		data().getFirstChild( "session_id" ).setValue( "session_id" );
