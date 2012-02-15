@@ -34,6 +34,6 @@ public class MonitorAttachedEvent extends MonitoringEvent
 {
 	public MonitorAttachedEvent()
 	{
-		super( "MonitorAttached", Value.UNDEFINED_VALUE );
+		super( "MonitorAttached", Value.create() );
 	}
 }

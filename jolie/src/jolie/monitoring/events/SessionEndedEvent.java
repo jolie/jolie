@@ -17,7 +17,7 @@ public class SessionEndedEvent extends MonitoringEvent {
 	
 	public SessionEndedEvent( String operation_name, String session_id )
 	{
-		super( "SessionEnded", Value.UNDEFINED_VALUE );
+		super( "SessionEnded", Value.create() );
 
 		data().getFirstChild( "session_id" ).setValue( session_id );
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
