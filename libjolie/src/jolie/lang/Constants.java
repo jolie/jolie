@@ -128,6 +128,8 @@ public final class Constants
 			return EmbeddedServiceType.JOLIE;
 		} else if ( "java".equalsIgnoreCase( str ) ) {
 			return EmbeddedServiceType.JAVA;
+		} else if ( "javascript".equalsIgnoreCase( str ) ) {
+			return EmbeddedServiceType.JAVASCRIPT;
 		}
 
 		return EmbeddedServiceType.UNSUPPORTED;
