@@ -28,6 +28,10 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
@@ -36,6 +40,9 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class ConsoleService extends JavaService
 {
+	private HashMap< String, String > session_tokens;
+	private boolean session_listener_enabled = false;
+
 	private class ConsoleInputThread extends Thread
 	{
 		private boolean keepRun = true;
@@ -58,7 +65,17 @@ public class ConsoleService extends JavaService
 				String line;
 				while( keepRun ) {
 					line = stdin.readLine();
-					sendMessage( CommMessage.createRequest( "in", "/", Value.create( line ) ) );
+					if ( session_listener_enabled ) {
+						Iterator it = session_tokens.keySet().iterator();
+						while( it.hasNext() ) {
+							Value v = Value.create();
+							v.getFirstChild( "token" ).setValue( it.next() );
+							v.setValue( line );
+							sendMessage( CommMessage.createRequest( "in", "/", v ) );
+						}
+					} else {
+						sendMessage( CommMessage.createRequest( "in", "/", Value.create( line ) ) );
+					}
 				}
 			} catch( ClosedByInterruptException ce ) {
 			} catch( Exception e ) {
@@ -70,8 +87,14 @@ public class ConsoleService extends JavaService
 	private ConsoleInputThread consoleInputThread;
 
 	@RequestResponse
-	public void registerForInput()
+	public void registerForInput( Value request )
 	{
+		if ( request.getFirstChild( "session_listener_enabled").isDefined() ) {
+			if ( request.getFirstChild( "session_listener_enabled").boolValue() ) {
+				session_listener_enabled = true;
+				session_tokens = new HashMap<String, String>();
+			}
+		}
 		consoleInputThread = new ConsoleInputThread();
 		consoleInputThread.start();
 	}
@@ -92,5 +115,23 @@ public class ConsoleService extends JavaService
 	public void println( String s )
 	{
 		System.out.println( s );
+	}
+
+	@RequestResponse
+	public void subscribeSessionListener( Value request )
+	{
+		String token = request.getFirstChild( "token" ).strValue();
+		if ( session_listener_enabled ) {
+			session_tokens.put(  token, token );
+		}
+	}
+
+	@RequestResponse
+	public void unsubscribeSessionListener( Value request )
+	{
+		String token = request.getFirstChild( "token" ).strValue();
+		if ( session_listener_enabled ) {
+			session_tokens.remove( token );
+		}
 	}
 }
