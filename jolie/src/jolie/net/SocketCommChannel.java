@@ -108,7 +108,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			throw new IOException( e );
 		}
 	}
-
+	
 	protected void closeImpl()
 		throws IOException
 	{
