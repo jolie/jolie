@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -537,11 +536,11 @@ public class HttpProtocol extends CommProtocol
 	)
 	{
 		String param;
-		if ( checkBooleanParameter( "keepAlive" ) == false || channel().toBeClosed() ) {
+		if ( checkBooleanParameter( "keepAlive", true ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
-		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
+		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( CRLF );
 		}
 		
@@ -944,8 +943,8 @@ public class HttpProtocol extends CommProtocol
 
 		if ( message.getProperty( "connection" ) != null ) {
 			HttpUtils.recv_checkForChannelClosing( message, channel() );
-		} else if ( hasParameter( "keepAlive" ) ) {
-			channel().setToBeClosed( checkBooleanParameter( "keepAlive" ) == false );
+		} else {
+			channel().setToBeClosed( checkBooleanParameter( "keepAlive", true ) == false );
 		}
 				
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
