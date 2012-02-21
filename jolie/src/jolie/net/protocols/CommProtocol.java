@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import jolie.net.AbstractCommChannel;
-
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
@@ -112,7 +111,7 @@ public abstract class CommProtocol
 	 */
 	protected boolean checkBooleanParameter( String id )
 	{
-		return hasParameter( id ) && getParameterFirstValue( id ).intValue() == 1;
+		return hasParameter( id ) && getParameterFirstValue( id ).boolValue();
 	}
 
 	/**
@@ -122,7 +121,7 @@ public abstract class CommProtocol
 	protected boolean checkBooleanParameter( String id, boolean defaultValue )
 	{
 		if ( hasParameter( id ) ) {
-			return getParameterFirstValue( id ).intValue() == 1;
+			return getParameterFirstValue( id ).boolValue();
 		} else {
 			return defaultValue;
 		}
