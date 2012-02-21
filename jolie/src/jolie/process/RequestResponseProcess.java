@@ -23,20 +23,14 @@ package jolie.process;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
-import jolie.runtime.ExitingException;
+import jolie.runtime.*;
 import jolie.runtime.expression.Expression;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.Value;
-import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
 

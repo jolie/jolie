@@ -23,7 +23,6 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -31,10 +30,10 @@ import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
