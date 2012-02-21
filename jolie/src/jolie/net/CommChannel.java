@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
+import jolie.runtime.TimeoutHandler;
 
 /**
  * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
@@ -53,6 +54,18 @@ public abstract class CommChannel
 	private boolean isOpen = true;
 
 	private long redirectionMessageId = 0L;
+	
+	private TimeoutHandler timeoutHandler = null;
+
+	protected void setTimeoutHandler( TimeoutHandler timeoutHandler )
+	{
+		this.timeoutHandler = timeoutHandler;
+	}
+
+	protected TimeoutHandler timeoutHandler()
+	{
+		return timeoutHandler;
+	}
 
 	protected long redirectionMessageId()
 	{
@@ -234,8 +247,7 @@ public abstract class CommChannel
 	public final void release()
 		throws IOException
 	{
-		// TODO: get rid of the code duplication
-		/*if ( lock.isHeldByCurrentThread() ) {
+		if ( lock.isHeldByCurrentThread() ) {
 			if ( toBeClosed() ) {
 				isOpen = false;
 				close();
@@ -244,25 +256,6 @@ public abstract class CommChannel
 			}
 		} else {
 			lock.lock();
-			try {
-				if ( toBeClosed() ) {
-					isOpen = false;
-					close();
-				} else {
-					releaseImpl();
-				}
-			} finally {
-				lock.unlock();
-			}
-		}*/
-		if ( lock.isHeldByCurrentThread() ) {
-			if ( toBeClosed() ) {
-				isOpen = false;
-				close();
-			} else {
-				releaseImpl();
-			}
-		} else if ( lock.tryLock() ) {
 			try {
 				if ( toBeClosed() ) {
 					isOpen = false;

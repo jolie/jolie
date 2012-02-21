@@ -76,20 +76,30 @@ public class CommCore
 
 	private final ThreadGroup threadGroup;
 
-	private final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger logger = Logger.getLogger( "JOLIE" );
 
 	private final int connectionsLimit;
-	private final int connectionCacheSize;
+	// private final int connectionCacheSize;
 	private final Interpreter interpreter;
 
+	// Location URI -> Protocol name -> Persistent CommChannel object
 	private final Map< URI, Map< String, CommChannel > > persistentChannels =
 			new HashMap< URI, Map< String, CommChannel > >();
 
 	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel > protocolChannels )
-	{
+	{		
 		protocolChannels.remove( protocol );
 		if ( protocolChannels.isEmpty() ) {
 			persistentChannels.remove( location );
+		}
+	}
+	
+	private void removePersistentChannel( URI location, String protocol, CommChannel channel )
+	{
+		if ( persistentChannels.containsKey( location ) ) {
+			if ( persistentChannels.get( location ).get( protocol ) == channel ) {
+				removePersistentChannel( location, protocol, persistentChannels.get( location ) );
+			}
 		}
 	}
 
@@ -109,9 +119,16 @@ public class CommCore
 							 * If not, then others should not access this until
 							 * the caller is finished using it.
 							 */
-							if ( ret.isThreadSafe() == false ) {
-								removePersistentChannel( location, protocol, protocolChannels );
-							}
+							//if ( ret.isThreadSafe() == false ) {
+							removePersistentChannel( location, protocol, protocolChannels );
+							//} else {
+							// If we return a channel, make sure it will not timeout!
+							ret.setTimeoutHandler( null );
+							//if ( ret.timeoutHandler() != null ) {
+								//interpreter.removeTimeoutHandler( ret.timeoutHandler() );
+								// ret.setTimeoutHandler( null );
+							//}
+							//}
 							ret.lock.unlock();
 						} else { // Channel is closed
 							removePersistentChannel( location, protocol, protocolChannels );
@@ -125,10 +142,38 @@ public class CommCore
 				}
 			}
 		}
+
 		return ret;
 	}
-	
-	public void putPersistentChannel( URI location, String protocol, CommChannel channel )
+
+	private void setTimeoutHandler( final CommChannel channel, final URI location, final String protocol )
+	{
+		if ( channel.timeoutHandler() != null ) {
+			interpreter.removeTimeoutHandler( channel.timeoutHandler() );
+		}
+
+		final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
+			@Override
+			public void onTimeout()
+			{
+				try {
+					synchronized( persistentChannels ) {
+						if ( channel.timeoutHandler() == this ) {
+							removePersistentChannel( location, protocol, channel );
+							channel.close();
+							channel.setTimeoutHandler( null );
+						}
+					}
+				} catch( IOException e ) {
+					interpreter.logSevere( e );
+				}
+			}
+		};
+		channel.setTimeoutHandler( handler );
+		interpreter.addTimeoutHandler( handler );
+	}
+
+	public void putPersistentChannel( URI location, String protocol, final CommChannel channel )
 	{
 		synchronized( persistentChannels ) {
 			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
@@ -136,18 +181,26 @@ public class CommCore
 				protocolChannels = new HashMap< String, CommChannel >();
 				persistentChannels.put( location, protocolChannels );
 			}
-			if ( protocolChannels.size() <= connectionCacheSize && protocolChannels.containsKey( protocol ) == false ) {
+			// Set the timeout
+			setTimeoutHandler( channel, location, protocol );
+			// Put the protocol in the cache (may overwrite another one)
+			protocolChannels.put( protocol, channel );
+			/*if ( protocolChannels.size() <= connectionCacheSize && protocolChannels.containsKey( protocol ) == false ) {
+				// Set the timeout
+				setTimeoutHandler( channel );
+				// Put the protocol in the cache
 				protocolChannels.put( protocol, channel );
-				// TODO implement channel garbage collection
 			} else {
 				try {
 					if ( protocolChannels.get( protocol ) != channel ) {
 						channel.close();
+					} else {
+						setTimeoutHandler( channel );
 					}
 				} catch( IOException e ) {
 					interpreter.logWarning( e );
 				}
-			}
+			}*/
 		}
 	}
 
@@ -167,13 +220,13 @@ public class CommCore
 	 * @param connectionsCacheSize specifies an upper bound to the persistent output connection cache.
 	 * @throws java.io.IOException
 	 */
-	public CommCore( Interpreter interpreter, int connectionsLimit, int connectionsCacheSize )
+	public CommCore( Interpreter interpreter, int connectionsLimit /*, int connectionsCacheSize */ )
 		throws IOException
 	{
 		this.interpreter = interpreter;
 		this.localListener = new LocalListener( interpreter );
 		this.connectionsLimit = connectionsLimit;
-		this.connectionCacheSize = connectionsCacheSize;
+		// this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
 		if ( connectionsLimit > 0 ) {
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
@@ -731,19 +784,19 @@ public class CommCore
 									if ( channel.lock.tryLock() ) {
 										try {
 											key.cancel();
+											key.channel().configureBlocking( true );
 											if ( channel.isOpen() ) {
-												key.channel().configureBlocking( true );
-												if ( channel.selectionTimeoutHandler() != null ) {
+												/*if ( channel.selectionTimeoutHandler() != null ) {
 													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
-												}
+												}*/
 												scheduleReceive( channel, channel.parentInputPort() );
 											} else {
 												channel.closeImpl();
 											}
-											channel.lock.unlock();
 										} catch( IOException e ) {
-											channel.lock.unlock();
 											throw e;
+										} finally {
+											channel.lock.unlock();
 										}
 									}
 								} catch( IOException e ) {
@@ -810,7 +863,10 @@ public class CommCore
 				if ( isSelecting( channel ) ) {
 					selector.wakeup();
 					synchronized( selectingMutex ) {
-						channel.selectableChannel().keyFor( selector ).cancel();
+						SelectionKey key = channel.selectableChannel().keyFor( selector );
+						if ( key != null ) {
+							key.cancel();
+						}
 						selector.selectNow();
 					}
 					channel.selectableChannel().configureBlocking( true );
@@ -850,13 +906,17 @@ public class CommCore
 	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		final TimeoutHandler handler = new TimeoutHandler( interpreter.openInputConnectionTimeout() ) {
+		selectorThread().register( channel );
+		/*final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
 			public void onTimeout()
 			{
 				try {
-					selectorThread().unregister( channel );
-					channel.close();
+					if ( isSelecting( channel ) ) {
+						selectorThread().unregister( channel );
+						channel.setToBeClosed( true );
+						channel.close();
+					}
 				} catch( IOException e ) {
 					interpreter.logSevere( e );
 				}
@@ -867,7 +927,7 @@ public class CommCore
 			interpreter.addTimeoutHandler( handler );
 		} else {
 			channel.setSelectionTimeoutHandler( null );
-		}
+		}*/
 	}
 
 	/** Shutdowns the communication core, interrupting every communication-related thread. */

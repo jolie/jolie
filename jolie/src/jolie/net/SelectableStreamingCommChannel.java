@@ -27,7 +27,6 @@ import java.net.URI;
 import java.nio.channels.SelectableChannel;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.TimeoutHandler;
 
 /**
  * This class implements the support for a selectable channel.
@@ -38,21 +37,9 @@ import jolie.runtime.TimeoutHandler;
  */
 public abstract class SelectableStreamingCommChannel extends StreamingCommChannel
 {
-	private TimeoutHandler selectionTimeoutHandler = null;
-
 	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		super( location, protocol );
-	}
-
-	protected void setSelectionTimeoutHandler( TimeoutHandler selectionTimeoutHandler )
-	{
-		this.selectionTimeoutHandler = selectionTimeoutHandler;
-	}
-
-	protected TimeoutHandler selectionTimeoutHandler()
-	{
-		return selectionTimeoutHandler;
 	}
 
 	/**
