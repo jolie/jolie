@@ -246,9 +246,13 @@ public class Interpreter
 	private final boolean verbose;
 	private final Timer timer;
 	private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private long openInputConnectionTimeout = 24 * 60 * 60 * 1000; // 1 day
+	// private long persistentConnectionTimeout = 24 * 60 * 60 * 1000; // 1 day
+	private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
+	// private long persistentConnectionTimeout = 1;
 
+	// 11 is the default initial capacity for PriorityQueue
 	private final Queue< TimeoutHandler > timeoutHandlerQueue = new PriorityQueue< TimeoutHandler >( 11, new TimeoutHandler.Comparator() );
+	
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
 
 	private final String programFilename;
@@ -299,9 +303,9 @@ public class Interpreter
 		}
 	}
 
-	public long openInputConnectionTimeout()
+	public long persistentConnectionTimeout()
 	{
-		return openInputConnectionTimeout;
+		return persistentConnectionTimeout;
 	}
 
 	public CorrelationEngine correlationEngine()
@@ -320,7 +324,18 @@ public class Interpreter
 	{
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.add( handler );
-			checkForExpiredTimeoutHandlers();
+			if ( timeoutHandlerQueue.size() == 1 ) {
+				schedule( new TimerTask() {
+					public void run()
+					{
+						synchronized( timeoutHandlerQueue ) {
+							checkForExpiredTimeoutHandlers();
+						}
+					}
+				}, handler.time() - System.currentTimeMillis() + 1 );
+			} else {
+				checkForExpiredTimeoutHandlers();
+			}
 		}
 	}
 
@@ -328,6 +343,7 @@ public class Interpreter
 	{
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.remove( handler );
+			checkForExpiredTimeoutHandlers();
 		}
 	}
 
@@ -733,7 +749,7 @@ public class Interpreter
 		programFilename = new File( cmdParser.programFilepath() ).getName();
 		arguments = cmdParser.arguments();
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		commCore = new CommCore( this, cmdParser.connectionsLimit(), cmdParser.connectionsCache() );
+		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
