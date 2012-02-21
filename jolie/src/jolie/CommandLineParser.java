@@ -259,7 +259,7 @@ public class CommandLineParser
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
 		boolean bVerbose = false;
-		boolean bTypeCheck = true;
+		boolean bTypeCheck = false; // Default for typecheck
 		List< String > programArgumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
