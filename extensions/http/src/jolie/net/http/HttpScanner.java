@@ -326,7 +326,13 @@ public class HttpScanner
 					stopOneChar = false;
 				} else {
 					if ( builder.length() > OVERFLOW_NET ) {
-						throw new IOException( "Token length exceeds maximum allowed limit (" + OVERFLOW_NET + " bytes)" );
+						throw new IOException(
+							"Token length exceeds maximum allowed limit ("
+							+ OVERFLOW_NET +
+							" bytes). First 10 characters: "
+							+ builder.toString().substring( 0, 10 )
+							+ " Last 10 characters: " + builder.toString().substring( builder.length() - 10, builder.length() )
+						);
 					}
 					builder.append( ch );
 					readChar();
