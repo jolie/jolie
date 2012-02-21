@@ -268,11 +268,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		if ( checkBooleanParameter( "keepAlive", false ) ) {
-			channel().setToBeClosed( false );
-		} else {
-			channel().setToBeClosed( true );
-		}
+		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
 		String charset = getStringParameter( "charset" );
 		if ( !charset.isEmpty() ) {
@@ -294,11 +290,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		if ( checkBooleanParameter( "keepAlive", false ) ) {
-			channel().setToBeClosed( false );
-		} else {
-			channel().setToBeClosed( true );
-		}
+		channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 
 		String charset = getStringParameter( "charset" );
 		if ( !charset.isEmpty() ) {
