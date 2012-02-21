@@ -19,15 +19,46 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-inputPort ConsoleInputPort {
-Location: "local"
-OneWay:
-	in(string)
+cset{ coreJavaserviceConsoleToken: InRequest.token }
+
+type RegisterForInputRequest: void {
+  .session_listener_enabled?: bool
+}
+
+type SubscribeSessionListener: void {
+  .token: string
+}
+
+type UnsubscribeSessionListener: void {
+  .token: string
+}
+
+type InRequest: string {
+  .token?: string
 }
 
 interface ConsoleInterface {
 RequestResponse:
-	print(undefined)(void), println(undefined)(void), registerForInput(void)(void)
+	print( undefined )( void ), 
+
+	println( undefined )( void ), 
+
+	/**!
+	  it enables the console for input listening
+	  parameter session_listener_enabled enables console input listening for more than one service session (default=false)
+	*/
+	registerForInput( RegisterForInputRequest )( void ),
+
+	/**!
+	  it receives a token string which identifies a service session.
+	  it enables the session to receive inputs from the console
+	*/
+	subscribeSessionListener( SubscribeSessionListener )( void ),
+	
+	/**!
+	  it disables a session to receive inputs from the console, previously registered with subscribeSessionListener operation
+	*/
+	unsubscribeSessionListener( UnsubscribeSessionListener )( void )
 }
 
 outputPort Console {
@@ -37,4 +68,10 @@ Interfaces: ConsoleInterface
 embedded {
 Java:
 	"joliex.io.ConsoleService" in Console
+}
+
+inputPort ConsoleInputPort {
+Location: "local"
+OneWay:
+	in( InRequest )
 }
