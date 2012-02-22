@@ -26,6 +26,8 @@ import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.monitoring.events.OperationEndedEvent;
+import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
@@ -82,6 +84,10 @@ public class RequestResponseProcess implements InputOperationProcess
 	
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
+		if ( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), "sessionId" ) );
+		}
+
 		log( "received message " + sessionMessage.message().id() );
 		if ( inputVarPath != null ) {
 			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
@@ -148,7 +154,13 @@ public class RequestResponseProcess implements InputOperationProcess
 	private void runBehaviour( CommChannel channel, CommMessage message )
 		throws FaultException
 	{
+		// Variables for monitor
+		int responseStatus = OperationEndedEvent.SUCCESS;
+		String details = "";
+
+
 		FaultException typeMismatch = null;
+		
 
 		FaultException fault = null;
 		CommMessage response = null;
@@ -160,9 +172,13 @@ public class RequestResponseProcess implements InputOperationProcess
 			if ( ethread.isKilled() ) {
 				try {
 					response = createFaultMessage( message, ethread.killerFault() );
+					responseStatus = OperationEndedEvent.FAULT;
+					details = ethread.killerFault().faultName();
 				} catch( TypeCheckingException e ) {
 					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
 					response = CommMessage.createFaultResponse( message, typeMismatch );
+					responseStatus = OperationEndedEvent.ERROR;
+					details = typeMismatch.faultName();
 				}
 			} else {
 				response =
@@ -170,21 +186,29 @@ public class RequestResponseProcess implements InputOperationProcess
 						message,
 						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 					);
+					responseStatus = OperationEndedEvent.SUCCESS;
+					details = "";
 				if ( operation.typeDescription().responseType() != null ) {
 					try {
 						operation.typeDescription().responseType().check( response.value() );
 					} catch( TypeCheckingException e ) {
 						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
 						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
+						responseStatus = OperationEndedEvent.ERROR;
+						details =  Constants.TYPE_MISMATCH_FAULT_NAME;
 					}
 				}
 			}
 		} catch( FaultException f ) {
 			try {
 				response = createFaultMessage( message, f );
+				responseStatus = OperationEndedEvent.FAULT;
+				details = f.faultName();
 			} catch( TypeCheckingException e ) {
 				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
 				response = CommMessage.createFaultResponse( message, typeMismatch );
+				responseStatus = OperationEndedEvent.ERROR;
+				details = typeMismatch.faultName();
 			}
 			fault = f;
 		}
@@ -192,6 +216,9 @@ public class RequestResponseProcess implements InputOperationProcess
 		try {
 			channel.send( response );
 			log( "sent response for message " + message.id() );
+			if ( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), "session_id", responseStatus, details));
+			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
