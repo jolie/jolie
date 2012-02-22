@@ -22,7 +22,7 @@
 cset { coreJavaserviceConsoleToken: InRequest.token }
 
 type RegisterForInputRequest: void {
-	.session_listener_enabled?: bool
+  .enableSessionListener?: bool
 }
 
 type SubscribeSessionListener: void {
