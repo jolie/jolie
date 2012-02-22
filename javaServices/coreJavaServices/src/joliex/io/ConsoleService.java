@@ -30,9 +30,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -40,8 +37,8 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class ConsoleService extends JavaService
 {
-	private HashMap< String, String > session_tokens;
-	private boolean session_listener_enabled = false;
+	private HashMap< String, String > sessionTokens;
+	private boolean sessionListeners = false;
 
 	private class ConsoleInputThread extends Thread
 	{
@@ -65,8 +62,8 @@ public class ConsoleService extends JavaService
 				String line;
 				while( keepRun ) {
 					line = stdin.readLine();
-					if ( session_listener_enabled ) {
-						Iterator it = session_tokens.keySet().iterator();
+					if ( sessionListeners ) {
+						Iterator it = sessionTokens.keySet().iterator();
 						while( it.hasNext() ) {
 							Value v = Value.create();
 							v.getFirstChild( "token" ).setValue( it.next() );
@@ -91,8 +88,8 @@ public class ConsoleService extends JavaService
 	{
 		if ( request.getFirstChild( "session_listener_enabled").isDefined() ) {
 			if ( request.getFirstChild( "session_listener_enabled").boolValue() ) {
-				session_listener_enabled = true;
-				session_tokens = new HashMap<String, String>();
+				sessionListeners = true;
+				sessionTokens = new HashMap<String, String>();
 			}
 		}
 		consoleInputThread = new ConsoleInputThread();
@@ -121,8 +118,8 @@ public class ConsoleService extends JavaService
 	public void subscribeSessionListener( Value request )
 	{
 		String token = request.getFirstChild( "token" ).strValue();
-		if ( session_listener_enabled ) {
-			session_tokens.put(  token, token );
+		if ( sessionListeners ) {
+			sessionTokens.put(  token, token );
 		}
 	}
 
@@ -130,8 +127,8 @@ public class ConsoleService extends JavaService
 	public void unsubscribeSessionListener( Value request )
 	{
 		String token = request.getFirstChild( "token" ).strValue();
-		if ( session_listener_enabled ) {
-			session_tokens.remove( token );
+		if ( sessionListeners ) {
+			sessionTokens.remove( token );
 		}
 	}
 }
