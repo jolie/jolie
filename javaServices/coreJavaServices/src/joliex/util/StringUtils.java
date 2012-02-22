@@ -150,11 +150,12 @@ public class StringUtils extends JavaService
 
 	public String substring( Value request )
 	{
-		String subst = "";
+		String subst;
 		if ( request.strValue().length() < request.getFirstChild( "end" ).intValue() ) {
 			subst = request.strValue().substring(
-			request.getFirstChild( "begin" ).intValue(),
-			request.strValue().length() );
+				request.getFirstChild( "begin" ).intValue(),
+				request.strValue().length()
+			);
 		} else {
 			subst = request.strValue().substring(
 				request.getFirstChild( "begin" ).intValue(),
