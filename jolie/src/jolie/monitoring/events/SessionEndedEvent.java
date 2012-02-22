@@ -12,6 +12,9 @@ import jolie.runtime.Value;
  *
  * @author claudio guidi
  * 27/01/2012
+ *
+ * ending states:
+ *
  */
 public class SessionEndedEvent extends MonitoringEvent {
 	
