@@ -25,40 +25,40 @@ OneWay:
 }
 
 type MonitorEvent: void {
-  .type: string 
-  .memory: long
-  .timestamp: long
-  .data?: void { ? }
+	.type: string 
+	.memory: long
+	.timestamp: long
+	.data?: void { ? }
 }
 
 type FlushResponse: void {
-  .events*: MonitorEvent
+	.events*: MonitorEvent
 }
 
 type SetStandardMonitorRequest: void {
-  .triggered_enabled?: bool
-  .trigger_threshold?: int
-  .queue_max?: int
+	.triggeredEnabled?: bool
+	.triggerThreshold?: int
+	.queueMax?: int
 }
 
 interface StandardMonitorInterface {
 RequestResponse:
-  flush( void )( FlushResponse ),
-  setMonitor( SetStandardMonitorRequest )( void ) 
+	flush( void )( FlushResponse ),
+	setMonitor( SetStandardMonitorRequest )( void ) 
 }
 
 interface StandardMonitorInputInterface {
 OneWay:
-  monitorAlert( void )
+	monitorAlert( void )
 }
 
 outputPort Monitor {
-Interfaces: MonitorInterface, StandardMonitorInterface
+	Interfaces: MonitorInterface, StandardMonitorInterface
 }
 
 inputPort MonitorInput {
-Location: "local"
-Interfaces: StandardMonitorInputInterface
+	Location: "local"
+	Interfaces: StandardMonitorInputInterface
 }
 
 embedded {
