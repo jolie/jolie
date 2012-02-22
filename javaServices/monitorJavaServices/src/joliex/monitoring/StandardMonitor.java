@@ -37,16 +37,16 @@ import jolie.runtime.Value;
 public class StandardMonitor extends AbstractMonitorJavaService
 {
 	private Deque q = new LinkedList();		// event list
-	private boolean trigger_enabled;
-	private int queue_max;
-	private int trigger_threshold;
+	private boolean triggerEnabled;
+	private int queueMax;
+	private int triggerThreshold;
 	private boolean alert;
 
 	public StandardMonitor()
 	{
-		trigger_enabled = false;
-		trigger_threshold = 75;
-		queue_max = 100;
+		triggerEnabled = false;
+		triggerThreshold = 75;
+		queueMax = 100;
 		alert = false;
 	}
 
@@ -57,12 +57,12 @@ public class StandardMonitor extends AbstractMonitorJavaService
 	{
 		
 		synchronized( this ) {
-			if ( q.size() >= queue_max ) {
+			if ( q.size() >= queueMax ) {
 				q.removeFirst();
 			}
 			q.addLast( e );
-			if ( trigger_enabled && !alert ) {
-				if ( q.size() >= trigger_threshold ) {
+			if ( triggerEnabled && !alert ) {
+				if ( q.size() >= triggerThreshold ) {
 					sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create( ) ) );
 					alert = true;
 				}
@@ -95,19 +95,19 @@ public class StandardMonitor extends AbstractMonitorJavaService
 	/*
 	 * request:
 	 *	   .triggered_enabled?: bool
-	 *	   .trigger_threshold?: int
-	 *     .queue_max?: int
+	 *	   .triggerThreshold?: int
+	 *     .queueMax?: int
 	 *
 	 */
 	public void setMonitor( Value request ) {
-		if ( request.getFirstChild( "triggered_enabled" ).isDefined() ) {
-			trigger_enabled = request.getFirstChild( "triggered_enabled" ).boolValue();
+		if ( request.getFirstChild( "triggeredEnabled" ).isDefined() ) {
+			triggerEnabled = request.getFirstChild( "triggeredEnabled" ).boolValue();
 		}
-		if ( request.getFirstChild( "trigger_threshold" ).isDefined() ) {
-			trigger_threshold = request.getFirstChild( "trigger_threshold" ).intValue();
+		if ( request.getFirstChild( "triggerThreshold" ).isDefined() ) {
+			triggerThreshold = request.getFirstChild( "triggerThreshold" ).intValue();
 		}
-		if ( request.getFirstChild( "queue_max" ).isDefined() ) {
-			queue_max = request.getFirstChild( "queue_max" ).intValue();
+		if ( request.getFirstChild( "queueMax" ).isDefined() ) {
+			queueMax = request.getFirstChild( "queueMax" ).intValue();
 		}
 	}
 
