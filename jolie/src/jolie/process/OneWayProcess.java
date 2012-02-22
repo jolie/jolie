@@ -24,6 +24,7 @@ package jolie.process;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -59,6 +60,10 @@ public class OneWayProcess implements InputOperationProcess
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
+		if ( Interpreter.getInstance().isMonitoring() ) {
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), "sessionId" ) );
+		}
+
 		log( "received message " + sessionMessage.message().id() );
 		if ( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
