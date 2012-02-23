@@ -153,13 +153,12 @@ public class WSDLDocCreator
 			schemaRootElement = this.createSchemaRootElement( schemaDocument );
 			
 
-                        // scans inputPorts
-                        InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
+			// scans inputPorts
+			InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
 
 
                         
-			for( InputPortInfo inputPort : inputPortList ) { 
-                                        
+			for( InputPortInfo inputPort : inputPortList ) {
                                 if ( inputPort.protocolId().equals(  "soap"  ) )  {
                                     soap_port_flag = true;
                                 
@@ -172,9 +171,16 @@ public class WSDLDocCreator
                                     Binding bd = createBindingSOAP(localDef, pt, portTypeName + "SOAPBinding" );
 
                                     // service creation
-                                    String address = inputPort.location().toString().substring( 6 );   // exclude socket word
-                                    address = "http" + address;
+									String address;
+									if ( inputPort.location().toString().equals( "local" )) {
+										address = "local";
+									} else {
+										address = inputPort.location().toString().substring( 6 );   // exclude socket word
+										address = "http" + address;
+									}
                                     createService(localDef, portTypeName + "Service", bd, address );
+
+									System.out.println("Scanning interfaces...");
 
                                      // scans interfaces
                                     for ( InterfaceDefinition interfaceDefinition:inputPort.getInterfaceList() )
@@ -183,6 +189,7 @@ public class WSDLDocCreator
                                             Map< String , OperationDeclaration > operationMap = interfaceDefinition.operationsMap();
 
                                             for ( Entry< String , OperationDeclaration > operationEntry:operationMap.entrySet() ) {
+												
                                                     if ( operationEntry.getValue() instanceof OneWayOperationDeclaration ) {
                                                             // OW
 
@@ -201,17 +208,19 @@ public class WSDLDocCreator
 
                                                            // adding operation binding
                                                            addOperationSOAPBinding( localDef, pt, wsdlOp, bd );
+														
                                                     }
 
                                             }
 
                                     }
                                 }
+						
 			}
 
-                        if ( soap_port_flag == false ) {
-                             throw( new Jolie2WsdlException( "ERROR: jolie2wsdl only support soap port declarations in jolie files" ) );
-                        }
+			if ( soap_port_flag == false ) {
+				 throw( new Jolie2WsdlException( "ERROR: jolie2wsdl only support soap port declarations in jolie files" ) );
+			}
 		
 			setSchemaDocIntoWSDLTypes( schemaDocument );		
 			WSDLWriter wsdl_writer = wsdlFactory.newWSDLWriter();
@@ -340,7 +349,7 @@ public class WSDLDocCreator
 		Message inputMessage = localDef.createMessage();
 		inputMessage.setUndefined( false );
 
-                Part inputPart = localDef.createPart();
+        Part inputPart = localDef.createPart();
 		inputPart.setName( "body" );
                 try {
                      // adding wsdl_types related to this message
@@ -457,7 +466,7 @@ public class WSDLDocCreator
 		wsdlOp.setUndefined( false );
 
 		Input in = def.createInput();
-                Message msg_req = addRequestMessage( localDef, op  );
+        Message msg_req = addRequestMessage( localDef, op  );
 		msg_req.setUndefined( false );
 		in.setMessage( msg_req );
 		wsdlOp.setInput( in );
@@ -478,12 +487,12 @@ public class WSDLDocCreator
 
                 // creating input
 		Input in = def.createInput();
-                Message msg_req = addRequestMessage( localDef, op  );
+        Message msg_req = addRequestMessage( localDef, op  );
 		in.setMessage( msg_req );
 		wsdlOp.setInput( in );
 
                 // creating output
-                Output out = def.createOutput();
+        Output out = def.createOutput();
 		Message msg_resp = addResponseMessage( localDef, op  );
 		out.setMessage( msg_resp );
 		wsdlOp.setOutput( out );
@@ -540,7 +549,7 @@ public class WSDLDocCreator
 			bindOp.setOperation( wsdlOp );
 
                         // adding input
-                        BindingInput bindingInput = localDef.createBindingInput();
+            BindingInput bindingInput = localDef.createBindingInput();
 			SOAPBody body = (SOAPBody) extensionRegistry.createExtension( BindingInput.class, new QName( NameSpacesEnum.SOAP.getNameSpaceURI(), "body" ) );
 			body.setUse( "literal" );
 			bindingInput.addExtensibilityElement( body );
