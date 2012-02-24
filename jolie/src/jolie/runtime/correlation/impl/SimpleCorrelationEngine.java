@@ -98,8 +98,12 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		List< CorrelationPair > pairs;
 		CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
 		if ( cset == null ) {
-			// It must be a session starter.
-			return false;
+			if ( interpreter().executionMode() == ExecutionMode.SINGLE ) {
+				return true;
+			} else {
+				// It must be a session starter.
+				return false;
+			}
 		}
 		pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
