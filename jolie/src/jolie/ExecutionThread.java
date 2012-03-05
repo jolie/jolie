@@ -51,6 +51,7 @@ abstract public class ExecutionThread extends JolieThread
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
 		final private Map< String, Process > faultMap = new HashMap< String, Process >();
 		final private Map< String, Process > compMap = new HashMap< String, Process >();
+
 		
 		@Override
 		public Scope clone()
@@ -405,4 +406,6 @@ abstract public class ExecutionThread extends JolieThread
 	{
 		return process;
 	}
+
+	public abstract String getSessionId();
 }

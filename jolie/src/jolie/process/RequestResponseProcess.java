@@ -85,7 +85,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), "sessionId" ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId() ) );
 		}
 
 		log( "received message " + sessionMessage.message().id() );
@@ -217,7 +217,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			channel.send( response );
 			log( "sent response for message " + message.id() );
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), "session_id", responseStatus, details));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details));
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );

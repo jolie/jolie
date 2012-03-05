@@ -23,7 +23,7 @@ public class OperationEndedEvent extends MonitoringEvent {
 		super( "OperationEnded", Value.create() );
 
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
-		data().getFirstChild( "session_id" ).setValue( "session_id" );
+		data().getFirstChild( "session_id" ).setValue( session_id );
 		data().getFirstChild( "status" ).setValue( status );
 		data().getFirstChild( "details" ).setValue( details );
 
