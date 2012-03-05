@@ -38,6 +38,8 @@ public class ParallelExecution
 		{
 			super( process, ExecutionThread.currentThread() );
 		}
+
+
 		
 		public jolie.State state()
 		{
@@ -65,6 +67,12 @@ public class ParallelExecution
 			} catch( ExitingException f ) {
 				terminationNotify( this );
 			}
+		}
+
+		@Override
+		public String getSessionId()
+		{
+			return parent.getSessionId();
 		}
 	}
 	
@@ -153,4 +161,5 @@ public class ParallelExecution
 			}
 		}
 	}
+
 }

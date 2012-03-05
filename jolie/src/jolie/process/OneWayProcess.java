@@ -61,7 +61,7 @@ public class OneWayProcess implements InputOperationProcess
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), "sessionId" ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId() ) );
 		}
 
 		log( "received message " + sessionMessage.message().id() );

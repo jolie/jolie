@@ -36,7 +36,7 @@ public class OperationStartedEvent extends MonitoringEvent {
 		super( "OperationStarted", Value.create() );
 
 		data().getFirstChild( "operation_name" ).setValue( operation_name );
-		data().getFirstChild( "session_id" ).setValue( "session_id" );
+		data().getFirstChild( "session_id" ).setValue( session_id );
 		
 	}
 
