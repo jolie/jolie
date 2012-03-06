@@ -55,7 +55,7 @@ import jolie.runtime.Value;
 
 /**
  *
- * @author balint
+ * @author balint maschio & michele morgagni
  */
 public class JavaGWTDocumentCreator {
 
@@ -356,6 +356,15 @@ public class JavaGWTDocumentCreator {
                     if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
                         stringBuilder.append("_" + subType.id() + "= new LinkedList<" + ((TypeDefinitionLink) subType).linkedType().id() + ">();" + "\n");
                         //stringBuilder.append("}\n");
+                        
+                        //to check:
+                        stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                        stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
+                        stringBuilder.append("" + ((TypeDefinitionLink) subType).linkedTypeName() + " support").append(subType.id()).append(" = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                        stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                        stringBuilder.append("}\n");
+                        //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
+                        stringBuilder.append("}\n");
                     } else {
                         stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                         stringBuilder.append("_" + subType.id() + " = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "( v.getFirstChild(\"" + subType.id() + "\"));" + "\n");
