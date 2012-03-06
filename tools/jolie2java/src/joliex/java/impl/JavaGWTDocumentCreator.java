@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -64,11 +65,29 @@ public class JavaGWTDocumentCreator {
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
+    
+    private static HashMap<NativeType,String> javaNativeEquivalent = new HashMap<NativeType,String>();
+    private static HashMap<NativeType,String> javaNativeMethod = new HashMap<NativeType,String>();
 
     public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace) {
 
         this.inspector = inspector;
         this.namespace = namespace;
+        
+        javaNativeEquivalent.put(NativeType.INT, "Integer");
+        javaNativeEquivalent.put(NativeType.BOOL, "Boolean");
+        javaNativeEquivalent.put(NativeType.DOUBLE, "Double");
+        javaNativeEquivalent.put(NativeType.LONG, "Long");
+        javaNativeEquivalent.put(NativeType.STRING, "String");
+        javaNativeEquivalent.put(NativeType.ANY, "Object");
+        javaNativeEquivalent.put(NativeType.RAW, "ByteArray");
+        
+        javaNativeMethod.put(NativeType.INT, "intValue()");
+        javaNativeMethod.put(NativeType.BOOL, "boolValue()");
+        javaNativeMethod.put(NativeType.DOUBLE, "doubleValue()");
+        javaNativeMethod.put(NativeType.LONG, "longValue()");
+        javaNativeMethod.put(NativeType.STRING, "strValue()");
+        javaNativeMethod.put(NativeType.RAW, "byteArrayValue()");
     }
 
     public void ConvertDocument() {
@@ -187,44 +206,8 @@ public class JavaGWTDocumentCreator {
         if (typeDefinition.hasSubTypes()) {
 
             ConvertSubTypes(typeDefinition, builderHeaderclass);
-            /*
-            Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
-            Iterator i = supportSet.iterator();
-            while (i.hasNext()) {
-                Map.Entry me = (Map.Entry) i.next();
-                System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-                if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink){
-                        typeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
-
-
-
-                }else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
-                    builderHeaderclass.append("public class " + ((TypeDefinition) me.getValue()).id() + " {" + "\n");
-                    variableCreate(builderHeaderclass, ((TypeDefinition) me.getValue()));
-                    constructorCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
-                    methodsCreate(builderHeaderclass, ((TypeDefinition) me.getValue()), false);
-                    builderHeaderclass.append("}\n");
-                }
-
-            }
-
-
-/////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-*/
-            /*variableCreate(builderHeaderclass, typeDefinition);
-            constructorCreate(builderHeaderclass, typeDefinition, true);
-            methodsCreate(builderHeaderclass, typeDefinition, true);
-            builderHeaderclass.append("}\n");*/
-
-             
-            
+           
         }
-        
-        /*variableCreate(builderHeaderclass, typeDefinition);
-        constructorCreate(builderHeaderclass, typeDefinition, true);
-        methodsCreate(builderHeaderclass, typeDefinition, true);
-        */
          
         else{
             builderHeaderclass.append("}\n");
@@ -239,12 +222,7 @@ public class JavaGWTDocumentCreator {
             while (i.hasNext()) {
                 Map.Entry me = (Map.Entry) i.next();
                 System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
-                if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink){
-                        typeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(),((TypeDefinitionLink)me.getValue()).linkedType());
-
-
-
-                }else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
+                if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
                     builderHeaderclass.append("public class " + ((TypeDefinition) me.getValue()).id() + " {" + "\n");
                     ConvertSubTypes((TypeDefinition) me.getValue(), builderHeaderclass);
                 }
@@ -252,8 +230,8 @@ public class JavaGWTDocumentCreator {
             }
 
             variableCreate(builderHeaderclass, typeDefinition);
-            constructorCreate(builderHeaderclass, typeDefinition, true);
-            methodsCreate(builderHeaderclass, typeDefinition, true);
+            constructorCreate(builderHeaderclass, typeDefinition/*, true*/);
+            methodsCreate(builderHeaderclass, typeDefinition/*, true*/);
             builderHeaderclass.append("}\n");
     }
 
@@ -291,10 +269,550 @@ public class JavaGWTDocumentCreator {
             stringBuilder.append("\n");
         }
     }
+    
+    private void variableCreate(StringBuilder stringBuilder, TypeDefinition type) {
+        
+        if (type.hasSubTypes()) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+            Iterator i = supportSet.iterator();
+            
+            while (i.hasNext()) {
+                
+                TypeDefinition subType = (TypeDefinition) (((Map.Entry)i.next()).getValue());
+                
+                if(subType instanceof TypeDefinitionLink){
+                    
+                    //link
+                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                        stringBuilder.append("private List<" + ((TypeDefinitionLink) subType).linkedType().id() + "> " + "_" + ((TypeDefinitionLink) subType).id() + ";\n");
+                    } else {
+                        stringBuilder.append("private " + ((TypeDefinitionLink) subType).linkedType().id() + " " + "_" + ((TypeDefinitionLink) subType).id() + ";\n");
+                    }
+                    
+                }else if(subType instanceof TypeInlineDefinition){
 
+                    if(subType.hasSubTypes()){
+
+                        /*if(subType.nativeType()==NativeType.VOID){
+                            //manage type with subtypes and a rootValue
+                        }else{
+                            //manage type with subtypes without rootValue
+                        }*/
+                        if (subType.cardinality().max() > 1) {
+                                stringBuilder.append("private List<"+subType.id()+"> " + "_" + subType.id() + ";\n");
+                        }else{
+                            stringBuilder.append("private "+subType.id()+" _" + subType.id() + ";\n");
+                        }
+
+                    }else{
+                        //native type
+                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        if (subType.cardinality().max() > 1) {
+                                stringBuilder.append("private List<"+javaCode+"> " + "_" + subType.id() + ";\n");
+                        }else{
+                            stringBuilder.append("private "+javaCode+" _" + subType.id() + ";\n");
+                        }
+                    }
+                
+
+                }else{
+                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                }
+             }
+        }
+        
+        if(type.hasSubTypes() && type.nativeType()!=NativeType.VOID){
+            stringBuilder.append("private "+javaNativeEquivalent.get(type.nativeType())+" rootValue;\n");
+        }
+
+        // stringBuilder.append("private Value v ;\n");
+        //stringBuilder.append("private Value vReturn=  new Value() ;\n");
+        stringBuilder.append("\n");
+            
+        
+        
+        
+        
+    }
+    
+    private void constructorCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
+        
+        //constructor with parameters
+        
+        stringBuilder.append("public " + type.id() + "(Value v){\n");
+        stringBuilder.append("\n");
+        //stringBuilder.append("this.v=v;\n");
+        
+        if (type.hasSubTypes()) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+            Iterator i = supportSet.iterator();
+            
+            while (i.hasNext()) {
+                
+                TypeDefinition subType = (TypeDefinition) (((Map.Entry)i.next()).getValue());
+                
+                if(subType instanceof TypeDefinitionLink){
+                    //link
+                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                        stringBuilder.append("_" + subType.id() + "= new LinkedList<" + ((TypeDefinitionLink) subType).linkedType().id() + ">();" + "\n");
+                        //stringBuilder.append("}\n");
+                    } else {
+                        stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                        stringBuilder.append("_" + subType.id() + " = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "( v.getFirstChild(\"" + subType.id() + "\"));" + "\n");
+                        stringBuilder.append("}\n");
+                    }
+                }else if(subType instanceof TypeInlineDefinition){
+
+                    if(subType.hasSubTypes()){
+
+                        /*if(subType.nativeType()==NativeType.VOID){
+                            //manage type with subtypes and a rootValue
+                        }else{
+                            //manage type with subtypes without rootValue
+                        }*/
+                        
+                        if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
+                            stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
+                            
+                            //to check:
+                            stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                            stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
+                            stringBuilder.append("" + subType.id() + " support").append(subType.id()).append("=new " + subType.id() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                            stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                            stringBuilder.append("}\n");
+                            //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
+                            stringBuilder.append("}\n");
+                        } else {
+                            stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                            stringBuilder.append("_" + subType.id() + " = new " + subType.id() + "( v.getFirstChild(\"" + subType.id() + "\"));" + "\n");
+                            stringBuilder.append("}\n");
+                        }
+                        
+
+                    }else{
+                        //native type
+                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        
+                        if (((TypeDefinition) subType).cardinality().max() > 1) {
+                            stringBuilder.append("_" + subType.id() + "= new LinkedList<"+javaCode+">();" + "\n");
+                            
+                            stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                            stringBuilder.append("for(int counter" + subType.id() + "=0; " + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size(); counter" + subType.id() + "++){\n");
+                            if(subType.nativeType()!=NativeType.ANY){
+                                stringBuilder.append("" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")."+javaMethod+";\n");
+                                stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                            }else{
+                                stringBuilder.append("if(v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").isDouble()){\n"
+                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").doubleValue();\n"
+                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").isString()){\n"
+                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").strValue();\n"
+                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").isInt()){\n"
+                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter"+subType.id()+").intValue();\n"
+                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                        + "}\n");    
+                            }
+                            stringBuilder.append("}\n");
+                            //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
+                            stringBuilder.append("}\n");
+                        } else {
+                            stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
+                            
+                            
+                            if(subType.nativeType()!=NativeType.ANY){
+                                stringBuilder.append("_" + subType.id() + "= v.getFirstChild(\"" + subType.id() + "\")."+javaMethod+";" + "\n");
+                            }else{
+                               stringBuilder.append("if(v.getFirstChild(\"" + subType.id() + "\").isDouble()){\n"
+                                        + "_"+subType.id()+" = v.getFirstChild(\"" + subType.id() + "\").doubleValue();\n"
+                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isString()){\n"
+                                        + "_"+subType.id()+" = v.getFirstChild(\"" + subType.id() + "\").strValue();\n"
+                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isInt()){\n"
+                                        + "_"+subType.id()+" = v.getFirstChild(\"" + subType.id() + "\").intValue();\n"
+                                        + "}\n");                             
+                            }
+                            stringBuilder.append("}\n");
+                        }
+
+                    }
+
+                }else{
+                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                }
+             }
+        }
+        
+        if(type.hasSubTypes() && type.nativeType()!=NativeType.VOID){
+            
+            String javaCode = javaNativeEquivalent.get(type.nativeType());
+            String javaMethod = javaNativeMethod.get(type.nativeType());
+            
+            if(type.nativeType()!=NativeType.ANY){
+                stringBuilder.append("rootValue = v."+javaMethod+";" + "\n");
+            }else{                            
+                stringBuilder.append("if(v.isDouble()){\n"
+                   + "rootValue = v.doubleValue();\n"
+                   + "}else if(v.isString()){\n"
+                   + "rootValue = v.strValue();\n"
+                   + "}else if(v.isInt()){\n"
+                   + "rootValue = v.intValue();\n"
+                   + "}\n");                            
+             }
+        }
+        stringBuilder.append("}\n");
+        
+        
+        
+        //constructor without parameters
+        
+        stringBuilder.append("public " + type.id() + "(){\n");
+        stringBuilder.append("\n");
+        
+        if (type.hasSubTypes()) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+            Iterator i = supportSet.iterator();
+            
+            while (i.hasNext()) {
+                
+                TypeDefinition subType = (TypeDefinition) (((Map.Entry)i.next()).getValue());
+                
+                if(subType instanceof TypeDefinitionLink){
+                    //link
+                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                        stringBuilder.append("_" + subType.id() + "= new LinkedList<" + ((TypeDefinitionLink) subType).linkedType().id() + ">();" + "\n");
+                        //stringBuilder.append("}\n");
+                    }
+                }else if(subType instanceof TypeInlineDefinition){
+
+                    if(subType.hasSubTypes()){
+
+                        if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
+                            stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
+                        }
+                        /*if(subType.nativeType()==NativeType.VOID){
+                            //manage type with subtypes and a rootValue
+                        }else{
+                            //manage type with subtypes without rootValue
+                        }*/
+
+                    }else{
+                        //native type
+                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        //String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        
+                        if (((TypeDefinition) subType).cardinality().max() > 1) {
+                            stringBuilder.append("_" + subType.id() + "= new LinkedList<"+javaCode+">();" + "\n");
+                        }
+                    }
+
+                }else{
+                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                }
+             }
+        }
+        
+        stringBuilder.append("}\n");
+    }
+    
+     private void methodsCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
+         
+        if (type.hasSubTypes()) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+            Iterator i = supportSet.iterator();
+                               
+            while (i.hasNext()) {
+                
+                TypeDefinition subType = (TypeDefinition) (((Map.Entry)i.next()).getValue());
+                
+                String nameVariable = subType.id();
+                String startingChar = nameVariable.substring(0, 1);
+                String remaningStr = nameVariable.substring(1, nameVariable.length());
+                String nameVariableOp = startingChar.toUpperCase() + remaningStr;
+                
+                if(subType instanceof TypeDefinitionLink){
+                    //link
+                    
+                    if (subType.cardinality().max() > 1) {
+
+                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "Value(int index){\n");
+                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                        stringBuilder.append("}\n");
+
+                        stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
+                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                        stringBuilder.append("}\n");
+
+
+                        stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                        stringBuilder.append("}\n");
+
+                        stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
+                        stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                        stringBuilder.append("}\n");
+
+                    } else {
+
+                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "(){\n");
+                        stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                        stringBuilder.append("}\n");
+
+                        stringBuilder.append("public " + "void set" + nameVariableOp + "(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                        stringBuilder.append("}\n");
+
+                    }
+                }else if(subType instanceof TypeInlineDefinition){
+
+                    if(subType.hasSubTypes()){
+
+                        /*if(subType.nativeType()==NativeType.VOID){
+                            //manage type with subtypes and a rootValue
+                        }else{
+                            //manage type with subtypes without rootValue
+                        }*/
+                        
+                        if (subType.cardinality().max() > 1) {
+
+                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "Value(int index){\n");
+                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
+                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("}\n");
+
+
+                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + subType.id() + " value ){\n");
+                            stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
+                            stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("}\n");
+
+                        } else {
+
+                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "(){\n");
+                            stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("}\n");
+
+                            stringBuilder.append("public " + "void set" + nameVariableOp + "(" + subType.id() + " value ){\n");
+                            stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                            stringBuilder.append("}\n");
+
+                        }
+
+                    }else{
+                        //native type
+                        
+                        String javaCode = javaNativeEquivalent.get(type.nativeType());
+                        String javaMethod = javaNativeMethod.get(type.nativeType());
+            
+                        if (type.nativeType()!=NativeType.VOID) {
+                            
+                            if (subType.cardinality().max() > 1) {
+                                
+                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Size(){\n");
+                                stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                                stringBuilder.append("}\n");
+
+                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value(int index){\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ".get(index)."+javaMethod+";\n");
+                                stringBuilder.append("}\n");
+
+                                stringBuilder.append("public " + "void add" + nameVariableOp + "Value("+javaCode+" value ){\n");
+                                stringBuilder.append("" + javaCode+" support").append(nameVariable).append(" = value;\n");
+                                stringBuilder.append("" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                                stringBuilder.append("}\n");
+
+                                stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
+                                stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                                stringBuilder.append("}\n");
+                                
+                            }else{
+                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "(){\n");
+                                stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                                stringBuilder.append("}\n");
+
+                                stringBuilder.append("public " + "void set" + nameVariableOp + "(" + javaCode + " value ){\n");
+                                stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                                stringBuilder.append("}\n");
+                            }
+
+
+
+                        }
+                    }
+
+                }else{
+                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                }
+             }
+             if(type.hasSubTypes() && type.nativeType()!=NativeType.VOID){
+            
+                String javaCode = javaNativeEquivalent.get(type.nativeType());
+                String javaMethod = javaNativeMethod.get(type.nativeType());
+                
+                stringBuilder.append("public " + javaCode + " getRootValue(){\n");
+                stringBuilder.append("\nreturn " + "rootValue;\n");
+                stringBuilder.append("}\n");
+                
+                stringBuilder.append("public void setRootValue("+javaCode+" value){\n");
+                stringBuilder.append("\nrootValue = value;\n");
+                stringBuilder.append("}\n");
+
+            }
+                    
+        }
+        
+        
+        //getValue
+        
+        stringBuilder.append("public " + "Value getValue(){\n");
+        stringBuilder.append("Value vReturn = new Value();\n");
+        
+        if (type.hasSubTypes()) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+            Iterator i = supportSet.iterator();
+            
+            while (i.hasNext()) {
+                
+                TypeDefinition subType = (TypeDefinition) (((Map.Entry)i.next()).getValue());
+                
+                if(subType instanceof TypeDefinitionLink){
+                    //link
+                    if (subType.cardinality().max() > 1) {
+                        
+                        stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
+                        stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
+                        stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").deepCopy(" + "_" + subType.id() + ".get(counter" + subType.id() + ").getValue());\n");
+                        stringBuilder.append("}\n");
+                        stringBuilder.append("}\n");
+
+                    } else {
+                        stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
+                        stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".deepCopy(" + "_" + subType.id() + ".getValue());\n");
+                        stringBuilder.append("}\n");
+                    }
+                }else if(subType instanceof TypeInlineDefinition){
+
+                    if(subType.hasSubTypes()){
+
+                        /*if(subType.nativeType()==NativeType.VOID){
+                            //manage type with subtypes and a rootValue
+                        }else{
+                            //manage type with subtypes without rootValue
+                        }*/
+                        if (subType.cardinality().max() > 1) {
+
+                            stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
+                            stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
+                            stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").deepCopy(" + "_" + subType.id() + ".get(counter" + subType.id() + ").getValue());\n");
+                            stringBuilder.append("}\n");
+                            stringBuilder.append("}\n");
+
+                        } else {
+                            stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
+                            stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".deepCopy(" + "_" + subType.id() + ".getValue());\n");
+                            stringBuilder.append("}\n");
+                        }
+
+                    }else{
+                        //native type
+                        
+                        String javaCode = javaNativeEquivalent.get(type.nativeType());
+                        String javaMethod = javaNativeMethod.get(type.nativeType());
+                        
+                        if (subType.cardinality().max() > 1) {
+                            stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
+                            stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
+                            if(subType.nativeType()!=NativeType.ANY){
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(" + "_" + subType.id() + ".get(counter" + subType.id() + "));\n");
+                            }else{
+                                stringBuilder.append("if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Integer){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ".get(counter" + subType.id() + "))).intValue());\n");
+                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Double){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ".get(counter" + subType.id() + "))).doubleValue());\n");
+                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof String){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
+                                stringBuilder.append("}");
+                            }
+                            stringBuilder.append("}");
+                            stringBuilder.append("}\n");
+                            
+                        }else{
+                            stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
+                             if(subType.nativeType()!=NativeType.ANY){
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "_" + subType.id() + ");\n");
+                             }else{
+                                stringBuilder.append("if(_" + subType.id() + " instanceof Integer){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ")).intValue());\n");
+                                stringBuilder.append("}else if(_" + subType.id() + " instanceof Double){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ")).doubleValue());\n");
+                                stringBuilder.append("}else if(_" + subType.id() + " instanceof String){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + "));\n");
+                                stringBuilder.append("}");
+                             }
+                            stringBuilder.append("}\n");
+                        }
+                    }
+
+                }else{
+                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                }
+             }
+        }
+        
+        if(type.hasSubTypes() && type.nativeType()!=NativeType.VOID){
+                
+            stringBuilder.append("if((rootValue!=null)){\n");
+            if(type.nativeType()!=NativeType.ANY){
+                stringBuilder.append("vReturn.setValue(rootValue);\n");
+            }else{
+                stringBuilder.append("if(rootValue instanceof Integer){\n");
+                stringBuilder.append("vReturn.setValue(((Integer)(rootValue)).intValue());\n");
+                stringBuilder.append("}else if(rootValue instanceof Double){\n");
+                stringBuilder.append("vReturn.setValue(((Double)(rootValue)).doubleValue());\n");
+                stringBuilder.append("}else if(rootValue instanceof String){\n");
+                stringBuilder.append("vReturn.setValue(((String)(rootValue)));\n");
+                stringBuilder.append("}");
+            }
+            
+            stringBuilder.append("}\n");
+
+        }
+        
+        stringBuilder.append("return vReturn ;\n");
+        stringBuilder.append("}\n");
+     }
+     
+     
+     
+/*
     private void variableCreate(StringBuilder stringBuilder, TypeDefinition type) {
         TypeDefinition supportType = type;
         if (supportType.hasSubTypes()) {
+            
+            String name = (supportType.nativeType().id());
+            if (name.equals("int")) {
+               stringBuilder.append("private int rootValue;\n");
+            } else if (name.equals("double")) {
+               stringBuilder.append("private double rootValue;\n");
+            } else if (name.equals("string")) {
+               stringBuilder.append("private String rootValue;\n");
+            }else if (name.equals("long")) {
+               stringBuilder.append("private long rootValue;\n");
+            }
+            else if (name.equals("bool")) {
+               stringBuilder.append("private boolean rootValue;\n");
+            }else if(name.equals("raw")) {
+               stringBuilder.append("private ByteArray rootValue;\n");
+            }else if(name.equals("any")) {
+               stringBuilder.append("private Object rootValue;\n");
+            }
+            
             Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
@@ -306,7 +824,7 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("private " + ((TypeDefinitionLink) me.getValue()).linkedType().id() + " " + "_" + ((TypeDefinitionLink) me.getValue()).id() + ";\n");
                     }
                 } else if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
-                    StringBuilder supBuffer = new StringBuilder();
+                    //StringBuilder supBuffer = new StringBuilder();
                     this.subclass.add(((TypeInlineDefinition) me.getValue()));
                     if (((TypeInlineDefinition) me.getValue()).cardinality().max() > 1) {
                         stringBuilder.append("private List< ").append(((TypeDefinition) me.getValue()).id()).append("> " + "_").append(((TypeDefinition) me.getValue()).id()).append(";\n");
@@ -417,6 +935,7 @@ public class JavaGWTDocumentCreator {
                         } else if (typeName.equals("double")) {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Double>();" + "\n");
                         } else if (typeName.equals("string")) {
+                            //stringBuilder.append("//on top\n");
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<String>();" + "\n");
                         }else if (typeName.equals("long")) {
                             stringBuilder.append("_" + nameVariable + "= new LinkedList<Long>();" + "\n");
@@ -625,8 +1144,14 @@ public class JavaGWTDocumentCreator {
 
 
                 } else {
-
-                    nameVariable = ((TypeDefinition) me.getValue()).id();
+                    
+                     nameVariable = ((TypeDefinition) me.getValue()).id();
+                    
+                    if(((TypeDefinition) me.getValue()).hasSubTypes()){
+                        stringBuilder.append("_" + nameVariable + "= new LinkedList<"+ ((TypeDefinition) me.getValue()).id() +">();" + "\n");
+                    }else
+                    
+                   
                     if (((TypeDefinition) me.getValue()).cardinality().max() > 1) {
 
                         String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
@@ -698,8 +1223,8 @@ public class JavaGWTDocumentCreator {
                     String startingChar = nameVariable.substring(0, 1);
                     String remaningStr = nameVariable.substring(1, nameVariable.length());
                     nameVariableOp = startingChar.toUpperCase() + remaningStr;
-                    Integer maxIndex = new Integer(((TypeDefinitionLink) me.getValue()).cardinality().max());
-                    Integer minIndex = new Integer(((TypeDefinitionLink) me.getValue()).cardinality().min());
+                    //Integer maxIndex = new Integer(((TypeDefinitionLink) me.getValue()).cardinality().max());
+                    //Integer minIndex = new Integer(((TypeDefinitionLink) me.getValue()).cardinality().min());
                     if (((TypeDefinitionLink) me.getValue()).cardinality().max() > 1) {
 
                         stringBuilder.append("public " + ((TypeDefinitionLink) me.getValue()).linkedTypeName() + " get" + nameVariableOp + "Value(int index){\n");
@@ -1192,9 +1717,9 @@ public class JavaGWTDocumentCreator {
 
 
                     String typeName = ((TypeDefinition) me.getValue()).nativeType().id();
-                    String startingChar = nameVariable.substring(0, 1);
-                    String remaningStr = nameVariable.substring(1, nameVariable.length());
-                    nameVariableOp = startingChar.toUpperCase() + remaningStr;
+                    //String startingChar = nameVariable.substring(0, 1);
+                    //String remaningStr = nameVariable.substring(1, nameVariable.length());
+                    //nameVariableOp = startingChar.toUpperCase() + remaningStr;
                     stringBuilder.append("if((_").append(nameVariable).append("!=null)){\n");
                     if (typeName.equals("int")) {
 //						
@@ -1257,6 +1782,9 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("}\n");
 
     }
+ */     
+     
+     
     private void parseSubType(TypeDefinition typeDefinition){
         if (typeDefinition.hasSubTypes()) {
                      Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
