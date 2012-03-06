@@ -333,7 +333,7 @@ public class JavaDocumentCreator {
         
     }
     
-    private void constructorCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
+private void constructorCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
         
         //constructor with parameters
         
@@ -612,12 +612,12 @@ public class JavaDocumentCreator {
                             
                             if (subType.cardinality().max() > 1) {
                                 
-                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Size(){\n");
+                                stringBuilder.append("public int get" + nameVariableOp + "Size(){\n");
                                 stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
                                 stringBuilder.append("}\n");
 
                                 stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value(int index){\n");
-                                stringBuilder.append("return " + "_" + nameVariable + ".get(index)."+javaMethod+";\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                                 stringBuilder.append("}\n");
 
                                 stringBuilder.append("public " + "void add" + nameVariableOp + "Value("+javaCode+" value ){\n");
@@ -720,8 +720,8 @@ public class JavaDocumentCreator {
                     }else{
                         //native type
                         
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(type.nativeType());
+                        String javaMethod = javaNativeMethod.get(type.nativeType());
                         
                         if (subType.cardinality().max() > 1) {
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
