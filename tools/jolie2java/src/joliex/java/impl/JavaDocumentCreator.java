@@ -605,10 +605,10 @@ public class JavaDocumentCreator {
                     }else{
                         //native type
                         
-                        String javaCode = javaNativeEquivalent.get(type.nativeType());
-                        String javaMethod = javaNativeMethod.get(type.nativeType());
+                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        String javaMethod = javaNativeMethod.get(subType.nativeType());
             
-                        if (type.nativeType()!=NativeType.VOID) {
+                        if (subType.nativeType()!=NativeType.VOID) {
                             
                             if (subType.cardinality().max() > 1) {
                                 
@@ -720,8 +720,8 @@ public class JavaDocumentCreator {
                     }else{
                         //native type
                         
-                        String javaCode = javaNativeEquivalent.get(type.nativeType());
-                        String javaMethod = javaNativeMethod.get(type.nativeType());
+                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        String javaMethod = javaNativeMethod.get(subType.nativeType());
                         
                         if (subType.cardinality().max() > 1) {
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
