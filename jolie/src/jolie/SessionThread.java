@@ -474,10 +474,9 @@ public class SessionThread extends ExecutionThread
 		}
 	}
 
-	public String getSessionId() {
+	public String getSessionId()
+	{
 		//return new Long(this.getId()).toString();
-		return	this.getName();
+		return this.getName();
 	}
-
-
 }

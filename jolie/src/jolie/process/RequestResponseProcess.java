@@ -42,6 +42,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	private final VariablePath inputVarPath; // may be null
 	private final Expression outputExpression; // may be null
 	private final Process process;
+	private boolean isSessionStarter = false;
 	
 	public RequestResponseProcess(
 			RequestResponseOperation operation,
@@ -53,6 +54,11 @@ public class RequestResponseProcess implements InputOperationProcess
 		this.inputVarPath = inputVarPath;
 		this.process = process;
 		this.outputExpression = outputExpression;
+	}
+	
+	public void setSessionStarter( boolean isSessionStarter )
+	{
+		this.isSessionStarter = isSessionStarter;
 	}
 
 	public InputOperation inputOperation()
@@ -84,7 +90,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
-		if ( Interpreter.getInstance().isMonitoring() ) {
+		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId() ) );
 		}
 

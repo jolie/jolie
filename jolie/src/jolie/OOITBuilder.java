@@ -807,6 +807,7 @@ public class OOITBuilder implements OLVisitor
 
 	private void registerSessionStarter( InputOperationProcess guard, Process body )
 	{
+		guard.setSessionStarter( true );
 		interpreter.registerSessionStarter( guard, body );
 	}
 

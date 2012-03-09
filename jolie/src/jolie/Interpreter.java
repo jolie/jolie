@@ -62,6 +62,7 @@ import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
+import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
@@ -1143,7 +1144,7 @@ public class Interpreter
 	 * @param channel the channel of the message triggering the session start
 	 * @return {@code true} if the service session is started, {@code false} otherwise
 	 */
-	public boolean startServiceSession( CommMessage message, CommChannel channel )
+	public boolean startServiceSession( final CommMessage message, CommChannel channel )
 	{
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			return false;
@@ -1173,6 +1174,18 @@ public class Interpreter
 			);
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
+			logSessionStart( message.operationName(), spawnedSession.getName() );
+			spawnedSession.addSessionListener( new SessionListener() {
+				public void onSessionExecuted( SessionThread session )
+				{
+					logSessionEnd( message.operationName(), session.getSessionId() );
+				}
+				
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
+					logSessionEnd( message.operationName(), session.getSessionId() );
+				}
+			} );
 			spawnedSession.start();
 		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
 			State state = initExecutionThread.state().clone();
@@ -1186,6 +1199,17 @@ public class Interpreter
 			);
 			correlationEngine.onSessionStart( mainSession, starter, message );
 			mainSession.addSessionListener( correlationEngine );
+			spawnedSession.addSessionListener( new SessionListener() {
+				public void onSessionExecuted( SessionThread session )
+				{
+					logSessionEnd( message.operationName(), session.getSessionId() );
+				}
+				
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
+					logSessionEnd( message.operationName(), session.getSessionId() );
+				}
+			} );
 			if ( currentMainSession == null ) {
 				mainSession.start();
 			} else {
@@ -1203,8 +1227,6 @@ public class Interpreter
 				});
 			}
 		}
-		
-		logSessionStart( message.operationName(), spawnedSession.getName() );
 
 		return true;
 	}
@@ -1216,8 +1238,11 @@ public class Interpreter
 		}
 	}
 	
-	/*private void logSessionEnd()
+	private void logSessionEnd( String operationName, String sessionId )
 	{
-		fireMonitorEvent( MonitoringEvent.create( "SessionEnded", Value.create() ) );
-	}*/
+		if ( isMonitoring() ) {
+			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+		}
+	}
 }
+
