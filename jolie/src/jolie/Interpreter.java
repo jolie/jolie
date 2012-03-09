@@ -62,6 +62,7 @@ import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
+import jolie.monitoring.events.OperationStartedEvent;
 import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
@@ -1235,6 +1236,7 @@ public class Interpreter
 	{
 		if ( isMonitoring() ) {
 			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId ) );
 		}
 	}
 	
