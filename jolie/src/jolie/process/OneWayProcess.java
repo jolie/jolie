@@ -36,6 +36,7 @@ public class OneWayProcess implements InputOperationProcess
 {
 	private final OneWayOperation operation;
 	private final VariablePath varPath;
+	private boolean isSessionStarter = false;
 
 	public OneWayProcess( OneWayOperation operation, VariablePath varPath )
 	{
@@ -43,6 +44,11 @@ public class OneWayProcess implements InputOperationProcess
 		this.varPath = varPath;
 	}
 
+	public void setSessionStarter( boolean isSessionStarter )
+	{
+		this.isSessionStarter = isSessionStarter;
+	}
+	
 	public InputOperation inputOperation()
 	{
 		return operation;
@@ -60,7 +66,7 @@ public class OneWayProcess implements InputOperationProcess
 
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
-		if ( Interpreter.getInstance().isMonitoring() ) {
+		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId() ) );
 		}
 
