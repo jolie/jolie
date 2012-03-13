@@ -20,12 +20,14 @@ type Name: void {
 }
 
 type NativeType: void {
-  .string_type?: int
-  .int_type?: int
-  .double_type?: int
-  .any_type?: int
-  .void_type?: int
-  .undefined_type?: int
+  .string_type?: bool
+  .int_type?: bool
+  .double_type?: bool
+  .any_type?: bool
+  .void_type?: bool
+  .undefined_type?: bool
+  .bool_type?: bool
+  .long_type?: bool
   .link?: void {
      .name: string
      .domain?: string
@@ -94,9 +96,5 @@ type Service: void {
     .name: string
     .domain: string
   }
-  .dependencies*: void {		// outputports
-    .domain: string
-    .registry?: string
-    .name: string
-  }
+  .output*: Name
 }
