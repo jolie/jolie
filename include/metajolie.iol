@@ -26,9 +26,23 @@ type ParseRoleRequest: void {
   .filename: string
 }
 
+type GetMetaDataRequest: void {
+  .filename: string
+  .name: Name
+}
+
+type GetMetaDataResponse: void {
+  .service: Service
+  .input*: Participant
+  .output*: Participant
+  .interfaces*: Interface
+  .types*: Type
+}
+
 interface MetaJolieInterface {
 RequestResponse:
-	parseRoles( ParseRoleRequest)( Role )
+	parseRoles( ParseRoleRequest)( Role ),
+	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 }
 
 outputPort MetaJolie {
