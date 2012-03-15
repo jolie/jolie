@@ -22,7 +22,7 @@
 include "types/role_types.iol"
 
 type ParseRoleRequest: void {
-  .rolename: string
+  .rolename: Name
   .filename: string
 }
 
@@ -39,10 +39,20 @@ type GetMetaDataResponse: void {
   .types*: Type
 }
 
+type GetInputPortMetaDataRequest: void {
+  .filename: string
+  .name: Name
+}
+
+type GetInputPortMetaDataResponse: void {
+  .input*: Participant
+}
+
 interface MetaJolieInterface {
 RequestResponse:
 	parseRoles( ParseRoleRequest)( Role ),
-	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
+	getMetaData( GetMetaDataRequest )( GetMetaDataResponse ),
+	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
 }
 
 outputPort MetaJolie {
