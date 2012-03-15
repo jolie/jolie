@@ -44,10 +44,7 @@ type SubType: void {
   .name: string
   .cardinality: Cardinality
   .type_inline?: Type
-  .type_link?: void {
-     .name: string
-     .domain: string
-  }
+  .type_link?: Name
 }
 
 type Type: void {
