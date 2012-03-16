@@ -85,18 +85,24 @@ public class ValuePrettyPrinter
 	{
 		Integer i;
 		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			i = 0;
-			for( Value child : entry.getValue() ) {
+			if ( entry.getValue().isEmpty() ) {
 				writeIndented( "." );
 				writer.write( entry.getKey() );
-				writer.write( '[' );
-				writer.write( i.toString() );
-				writer.write( ']' );
-				writeNativeValue( child );
-				indent();
-				writeChildren( child );
-				unindent();
-				i++;
+				writer.write( " (empty)" );
+			} else {
+				i = 0;
+				for( Value child : entry.getValue() ) {
+					writeIndented( "." );
+					writer.write( entry.getKey() );
+					writer.write( '[' );
+					writer.write( i.toString() );
+					writer.write( ']' );
+					writeNativeValue( child );
+					indent();
+					writeChildren( child );
+					unindent();
+					i++;
+				}
 			}
 		}
 	}
