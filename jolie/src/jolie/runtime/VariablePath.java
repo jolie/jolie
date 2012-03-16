@@ -305,8 +305,8 @@ public class VariablePath implements Expression, Cloneable
 	
 	public final void makePointer( VariablePath rightPath )
 	{
-		Pair< Expression, Expression > pair = null;
-		ValueVector currVector = null;
+		Pair< Expression, Expression > pair;
+		ValueVector currVector;
 		Value currValue = getRootValue();
 		int index;
 		String keyStr;
@@ -334,8 +334,8 @@ public class VariablePath implements Expression, Cloneable
 	
 	private Object getValueOrValueVector()
 	{	
-		Pair< Expression, Expression > pair = null;
-		ValueVector currVector = null;
+		Pair< Expression, Expression > pair;
+		ValueVector currVector;
 		Value currValue = getRootValue();
 		int index;
 
