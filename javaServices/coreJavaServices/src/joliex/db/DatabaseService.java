@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -235,6 +236,7 @@ public class DatabaseService extends JavaService
 	private static void setValue( Value fieldValue, ResultSet result, int columnType, int index )
 		throws SQLException
 	{
+            
 		switch( columnType ) {
 			case java.sql.Types.INTEGER:
 			case java.sql.Types.SMALLINT:
@@ -263,6 +265,7 @@ public class DatabaseService extends JavaService
 				}
 			}
 			break;
+                     
 			case java.sql.Types.FLOAT:
 				fieldValue.setValue( result.getFloat( index ) );
 				break;
@@ -273,6 +276,14 @@ public class DatabaseService extends JavaService
 				Clob clob = result.getClob( index );
 				fieldValue.setValue( clob.getSubString( 0L, (int) clob.length() ) );
 				break;
+                        case java.sql.Types.BINARY:
+                                ByteArray supportByteArray = new ByteArray(result.getBytes(index));
+                                fieldValue.setValue(supportByteArray );
+                                break;
+                         case java.sql.Types.VARBINARY:
+                                supportByteArray = new ByteArray(result.getBytes(index));
+                                fieldValue.setValue(supportByteArray );
+                                break;
 			case java.sql.Types.NVARCHAR:
 			case java.sql.Types.NCHAR:
 			case java.sql.Types.LONGNVARCHAR:
