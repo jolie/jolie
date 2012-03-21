@@ -934,6 +934,7 @@ public class CommCore
 	public synchronized void shutdown()
 	{
 		if ( active ) {
+			active = false;
 			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 				entry.getValue().shutdown();
 			}
@@ -942,7 +943,6 @@ public class CommCore
 			}
 			executorService.shutdown();
 			threadGroup.interrupt();
-			active = false;
 		}
 	}
 
