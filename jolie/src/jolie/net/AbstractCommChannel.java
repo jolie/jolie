@@ -35,7 +35,7 @@ import jolie.runtime.Value;
 
 public abstract class AbstractCommChannel extends CommChannel
 {
-	private static final long RECEIVER_KEEP_ALIVE = 10000; // msecs
+	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
 	private final Map< Long, CommMessage > pendingResponses =
 			new HashMap< Long, CommMessage >();
