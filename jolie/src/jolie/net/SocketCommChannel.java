@@ -46,6 +46,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	private final PreBufferedInputStream istream;
 	private final OutputStream ostream;
 	
+	private static final int SO_LINGER = 10000;
+	
 	/** Constructor.
 	 * 
 	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
@@ -58,6 +60,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	{
 		super( location, protocol );
 		this.socketChannel = socketChannel;
+		socketChannel.socket().setSoLinger( true, SO_LINGER );
 		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 		setToBeClosed( false ); // Socket connections are kept open by default
