@@ -40,7 +40,7 @@ public class NetworkService extends JavaService  {
 		throws FaultException {
 
 		Value response = Value.create();
-		ValueVector interfaces = response.getChildren( "interface_name");
+		ValueVector interfaces = response.getChildren( "interfaceName");
 
 		try {
 			Enumeration<NetworkInterface> list = NetworkInterface.getNetworkInterfaces();
@@ -56,7 +56,7 @@ public class NetworkService extends JavaService  {
 		return response;
 	}
 
-	public Value getIPs( Value request )
+	public Value getIPAddresses( Value request )
 		throws FaultException {
 
 		Value response = Value.create();
@@ -67,7 +67,7 @@ public class NetworkService extends JavaService  {
 			while (list.hasMoreElements()) {
 				NetworkInterface n = list.nextElement();
 				
-				if ( n.getName().equals( request.getFirstChild("interface_name").strValue())) {
+				if ( n.getName().equals( request.getFirstChild("interfaceName").strValue())) {
 					found = true;
 		
 					Enumeration<InetAddress> ad = n.getInetAddresses();
