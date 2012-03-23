@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Claudio Guidi <famontesi@gmail.com>             *
+ *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,14 +22,14 @@
 type GetNetworkInterfaceNamesRequest: void 
 
 type GetNetworkInterfaceNamesResponse: void {
-  .interface_name*: string
+  .interfaceName*: string
 }
 
-type GetIPsRequest: void {
-  .interface_name: string
+type GetIPAddressesRequest: void {
+  .interfaceName: string
 }
 
-type GetIPsResponse: void {
+type GetIPAddressesResponse: void {
   .ip4?: string
   .ip6?: string
 }
@@ -38,7 +38,7 @@ type GetIPsResponse: void {
 interface NetworkServiceInterface {
 RequestResponse:
   getNetworkInterfaceNames( GetNetworkInterfaceNamesRequest )( GetNetworkInterfaceNamesResponse ),
-  getIPs( GetIPsRequest )( GetIPsResponse )
+  getIPAddresses( GetIPAddressesRequest )( GetIPAddressesResponse )
     throws InterfaceNotFound
 	
 }
