@@ -125,7 +125,17 @@ import jolie.util.Pair;
 public class SemanticVerifier implements OLVisitor
 {
 	public static class Configuration {
-		public boolean checkForMain = true;
+		private boolean checkForMain = true;
+		
+		public void setCheckForMain( boolean checkForMain )
+		{
+			this.checkForMain = checkForMain;
+		}
+		
+		public boolean checkForMain()
+		{
+			return checkForMain;
+		}
 	}
 	
 	private final Program program;
