@@ -70,8 +70,15 @@ type StringItemList:void {
 	.item*:string
 }
 
+type IndexOfRequest: string {
+	.word: string
+}
+
+type IndexOfResponse: int
+
 interface StringUtilsInterface {
 RequestResponse:
+	indexOf(IndexOfRequest)(IndexOfResponse),
 	substring(SubStringRequest)(string),
 	join(JoinRequest)(string),
 	leftPad(PadRequest)(string),
