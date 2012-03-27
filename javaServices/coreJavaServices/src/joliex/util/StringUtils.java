@@ -32,6 +32,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
+import jolie.runtime.embedding.RequestResponse;
 
 public class StringUtils extends JavaService
 {
@@ -253,6 +254,14 @@ public class StringUtils extends JavaService
 		} catch( IOException e ) {} // Should never happen
 		return writer.toString();
 	}
+	
+	public Value indexOf( Value request ) {
+		String string = request.strValue();
+		Value response = Value.create();
+		response.setValue( string.indexOf( request.getFirstChild("word").strValue()) );
+		return response;
+
+	}
 
 	public String rightPad( Value request )
 	{
@@ -272,4 +281,6 @@ public class StringUtils extends JavaService
 		}
 		return builder.toString();
 	}
+
+	
 }
