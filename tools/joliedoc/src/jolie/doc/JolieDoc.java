@@ -40,7 +40,7 @@ public class JolieDoc
 			CommandLineParser cmdParser = new CommandLineParser( args, JolieDoc.class.getClassLoader() );
 			args = cmdParser.arguments();
 			SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
-			configuration.checkForMain = false;
+			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
