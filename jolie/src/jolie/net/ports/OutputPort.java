@@ -38,6 +38,7 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
+import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.SequentialProcess;
 import jolie.runtime.expression.Expression;
@@ -147,6 +148,24 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		}
 		children.add( protocolConfigurationProcess );
 		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+	}
+	
+	/**
+	 * Returns a new message with same operation and value, but resourcePath
+	 * updated to the current one of this output port.
+	 * @param message the original message
+	 * @return a new message with same operation and value, but updated resource
+	 */
+	public CommMessage getResourceUpdatedMessage( CommMessage message )
+		throws URISyntaxException
+	{
+		return new CommMessage(
+			message.id(),
+			message.operationName(),
+			getResourcePath(),
+			message.value(),
+			message.fault()
+		);
 	}
 
 	public Interface getInterface()

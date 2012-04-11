@@ -224,7 +224,7 @@ public abstract class AggregatedOperation
 			oChannel.setRedirectionChannel( channel );
 			oChannel.setRedirectionMessageId( requestMessage.id() );
 			try {
-				oChannel.send( requestMessage );
+				oChannel.send( outputPort.getResourceUpdatedMessage( requestMessage ) );
 				oChannel.setToBeClosed( false );
 				oChannel.disposeForInput();
 			} catch( IOException e ) {
