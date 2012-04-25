@@ -465,6 +465,16 @@ public class SemanticVerifier implements OLVisitor
 		if ( n.isCSet() && !n.isStatic() ) {
 			error( n, "Correlation paths must be statically defined" );
 		}
+		
+		if ( !(n.path().get( 0 ).key() instanceof ConstantStringExpression) ) {
+			if ( n.isGlobal() ) {
+				error( n, "the global keyword in paths must be followed by an identifier" );
+			} else if ( n.isCSet() ) {
+				error( n, "the csets keyword in paths must be followed by an identifier" );
+			} else {
+				error( n, "paths must start with an identifier" );
+			}
+		}
 	}
 
 	public void visit( InputPortInfo n )
@@ -765,8 +775,8 @@ public class SemanticVerifier implements OLVisitor
 		
 	public void visit( AssignStatement n )
 	{
-		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
+		encounteredAssignment( n.variablePath() );
 		n.expression().accept( this );
 	}
 	
