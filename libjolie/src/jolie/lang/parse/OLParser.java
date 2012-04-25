@@ -113,8 +113,7 @@ import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
@@ -143,7 +142,7 @@ public class OLParser extends AbstractParser
 	private final ClassLoader classLoader;
 	
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
-        
+	
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
@@ -1721,7 +1720,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		OLSyntaxNode expr;
-		VariablePathNode path = null;
+		VariablePathNode path;
 
 		if ( varId.equals( Constants.GLOBAL ) ) {
 			path = new VariablePathNode( getContext(), Type.GLOBAL );
@@ -1879,20 +1878,16 @@ public class OLParser extends AbstractParser
 			} else */if ( token.is( Scanner.TokenType.ID ) ) {
 				String id = token.content();
 				getToken();
-
-				inputGuard =
-					parseInputOperationStatement( id );
+				inputGuard = parseInputOperationStatement( id );
 			} else {
 				throwException( "expected input guard" );
 			}
 
 			eat( Scanner.TokenType.RSQUARE, "] expected" );
-			eat(
-				Scanner.TokenType.LCURLY, "expected {" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process =
 				parseProcess();
-			eat(
-				Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 			stm.addChild( new Pair<OLSyntaxNode, OLSyntaxNode>( inputGuard, process ) );
 		}
 
@@ -1903,15 +1898,12 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
-		eat(
-			Scanner.TokenType.LPAREN, "expected (" );
-		assertToken(
-			Scanner.TokenType.ID, "expected link identifier" );
+		eat( Scanner.TokenType.LPAREN, "expected (" );
+		assertToken( Scanner.TokenType.ID, "expected link identifier" );
 		LinkInStatement stm = new LinkInStatement( getContext(), token.content() );
 		getToken();
 
-		eat(
-			Scanner.TokenType.RPAREN, "expected )" );
+		eat( Scanner.TokenType.RPAREN, "expected )" );
 		return stm;
 	}
 
@@ -1926,12 +1918,10 @@ public class OLParser extends AbstractParser
 			OLSyntaxNode outputExpression = parseOperationExpressionParameter();
 			OLSyntaxNode process;
 
-			eat(
-				Scanner.TokenType.LCURLY, "expected {" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
 			process =
 				parseProcess();
-			eat(
-				Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
 			stm =
 				new RequestResponseOperationStatement(
 				context, id, inputVarPath, outputExpression, process );
@@ -2061,37 +2051,44 @@ public class OLParser extends AbstractParser
 	private OLSyntaxNode parseBasicCondition()
 		throws IOException, ParserException
 	{
-		OLSyntaxNode retVal = null;
+		OLSyntaxNode ret;
 
-		/*if ( token.is( Scanner.TokenType.LPAREN ) ) {
-			getToken();
-			retVal = parseExpression();
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else {*/
 		Scanner.TokenType opType;
 		OLSyntaxNode expr1;
 
 		expr1 =	parseBasicExpression();
 
 		opType = token.type();
-		if ( opType != Scanner.TokenType.EQUAL && opType != Scanner.TokenType.LANGLE &&
-			opType != Scanner.TokenType.RANGLE && opType != Scanner.TokenType.MAJOR_OR_EQUAL &&
-			opType != Scanner.TokenType.MINOR_OR_EQUAL && opType != Scanner.TokenType.NOT_EQUAL ) {
-
-			retVal = expr1;
-		} else {
+		if ( opType == Scanner.TokenType.EQUAL || opType == Scanner.TokenType.LANGLE ||
+			opType == Scanner.TokenType.RANGLE || opType == Scanner.TokenType.MAJOR_OR_EQUAL ||
+			opType == Scanner.TokenType.MINOR_OR_EQUAL || opType == Scanner.TokenType.NOT_EQUAL
+		) {
 			OLSyntaxNode expr2;
 			getToken();
 			expr2 = parseBasicExpression();
-			retVal = new CompareConditionNode( getContext(), expr1, expr2, opType );
+			ret = new CompareConditionNode( getContext(), expr1, expr2, opType );
+		} else if ( opType == Scanner.TokenType.INSTANCE_OF ) {
+			getToken();
+			TypeDefinition type;
+			NativeType nativeType = readNativeType();
+			if ( nativeType == null ) { // It's a user-defined type
+				assertToken( Scanner.TokenType.ID, "expected type name after instanceof" );
+			}
+			if ( definedTypes.containsKey( token.content() ) == false ) {
+				throwException( "invalid type: " + token.content() );
+			}
+			type = definedTypes.get( token.content() );
+			ret = new InstanceOfExpressionNode( getContext(), expr1, type );
+			getToken();
+		} else {
+			ret = expr1;
 		}
-		//}
 
-		if ( retVal == null ) {
+		if ( ret == null ) {
 			throwException( "expected condition" );
 		}
 
-		return retVal;
+		return ret;
 	}
 
 	/**

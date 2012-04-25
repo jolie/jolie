@@ -96,6 +96,7 @@ import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.expression.ConstantBoolExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.util.Pair;
@@ -733,6 +734,15 @@ public class OLParseTreeOptimizer
 					n.context(),
 					n.type(),
 					optimizePath( n.variablePath() )
+				);
+		}
+		
+		public void visit( InstanceOfExpressionNode n )
+		{
+			currNode = new InstanceOfExpressionNode(
+					n.context(),
+					optimizeNode( n.expression() ),
+					n.type()
 				);
 		}
 

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2012 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,37 +19,38 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
+package jolie.lang.parse.ast.expression;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.SocketChannel;
-import jolie.net.ext.CommChannelFactory;
-import jolie.net.ports.OutputPort;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.context.ParsingContext;
 
-/**
- * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
- * @author Fabrizio Montesi
- */
-public class SocketCommChannelFactory extends CommChannelFactory
+
+public class InstanceOfExpressionNode extends OLSyntaxNode
 {
-	public SocketCommChannelFactory( CommCore commCore )
-	{
-		super( commCore );
-	}
+	private final OLSyntaxNode expression;
+	private final TypeDefinition type;
 
-	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
+	public InstanceOfExpressionNode( ParsingContext context, OLSyntaxNode expression, TypeDefinition type )
 	{
-		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
-		SocketCommChannel ret = null;
-		try {
-			ret = new SocketCommChannel( channel, location, port.getProtocol() );
-		} catch( URISyntaxException e ) {
-			throw new IOException( e );
-		}
-		return ret;
+		super( context );
+		this.type = type;
+		this.expression = expression;
+	}
+	
+	public TypeDefinition type()
+	{
+		return type;
+	}
+	
+	public OLSyntaxNode expression()
+	{
+		return expression;
+	}
+	
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

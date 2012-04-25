@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2012 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,37 +19,42 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.SocketChannel;
-import jolie.net.ext.CommChannelFactory;
-import jolie.net.ports.OutputPort;
+package jolie.runtime.expression;
+
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
+import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypeCheckingException;
 
 /**
- * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
+ * Implements the instanceof operator.
  * @author Fabrizio Montesi
  */
-public class SocketCommChannelFactory extends CommChannelFactory
+public class InstanceOfExpression implements Expression
 {
-	public SocketCommChannelFactory( CommCore commCore )
+	private final Expression expression;
+	private final Type type;
+	
+	public InstanceOfExpression( Expression expression, Type type )
 	{
-		super( commCore );
+		this.expression = expression;
+		this.type = type;
 	}
-
-	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
+	
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
-		SocketCommChannel ret = null;
+		return new InstanceOfExpression( expression, type );
+	}
+	
+	public Value evaluate()
+	{
+		boolean ret = true;
 		try {
-			ret = new SocketCommChannel( channel, location, port.getProtocol() );
-		} catch( URISyntaxException e ) {
-			throw new IOException( e );
+			type.check( expression.evaluate() );
+		} catch( TypeCheckingException e ) {
+			ret = false;
 		}
-		return ret;
+		return Value.create( ret );
 	}
 }

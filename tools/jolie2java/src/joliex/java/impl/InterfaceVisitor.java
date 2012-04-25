@@ -95,8 +95,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 
@@ -195,6 +194,7 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( RunStatement n ) {}
 	public void visit( UndefStatement n ) {}
 	public void visit( ValueVectorSizeExpressionNode n ) {}
+	public void visit( InstanceOfExpressionNode n ) {}
 	public void visit( PreIncrementStatement n ) {}
 	public void visit( PostIncrementStatement n ) {}
 	public void visit( PreDecrementStatement n ) {}
