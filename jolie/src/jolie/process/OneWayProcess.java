@@ -26,11 +26,7 @@ import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.SessionMessage;
-import jolie.runtime.ExitingException;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.VariablePath;
+import jolie.runtime.*;
 
 public class OneWayProcess implements InputOperationProcess
 {

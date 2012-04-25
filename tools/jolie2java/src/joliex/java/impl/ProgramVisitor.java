@@ -93,8 +93,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import joliex.java.support.GeneralProgramVisitor;
@@ -250,6 +249,7 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 
 	public void visit( ConstantIntegerExpression n ) {}
 	public void visit( ConstantLongExpression n ) {}
+	public void visit( InstanceOfExpressionNode n ) {}
 	public void visit( ConstantBoolExpression n ) {}
 
 	public void visit( ConstantDoubleExpression n )

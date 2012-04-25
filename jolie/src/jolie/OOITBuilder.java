@@ -116,6 +116,7 @@ import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.expression.ConstantBoolExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -196,11 +197,7 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
-import jolie.runtime.expression.CastBoolExpression;
-import jolie.runtime.expression.CastLongExpression;
-import jolie.runtime.expression.IsBoolExpression;
-import jolie.runtime.expression.IsLongExpression;
-import jolie.runtime.expression.NotExpression;
+import jolie.runtime.expression.*;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
@@ -1328,6 +1325,11 @@ public class OOITBuilder implements OLVisitor
 			currExpression =
 				new IsStringExpression( buildVariablePath( n.variablePath() ) );
 		}
+	}
+	
+	public void visit( InstanceOfExpressionNode n )
+	{
+		currExpression = new InstanceOfExpression( buildExpression( n.expression() ), buildType( n.type() ) );
 	}
 	
 	public void visit( TypeCastExpressionNode n )

@@ -52,9 +52,9 @@ public class Scanner
 		RSQUARE,			///< ]
 		LCURLY,				///< {
 		RCURLY,				///< }
-		//DOLLAR,				///< $
+		//DOLLAR,			///< $
 		STRING,				///< "[[:graph:]]*"
-		INCREMENT,				///< ++
+		INCREMENT,			///< ++
 		MINUS,				///< The minus sign -
 		ASTERISK,			///< *
 		DIVIDE,				///< /
@@ -72,6 +72,7 @@ public class Scanner
 		AT,					///< @
 		LINKIN,				///< linkIn
 		LINKOUT,			///< linkOut
+		INSTANCE_OF,		///< instanceof
 		EQUAL,				///< ==
 		AND,				///< &&
 		OR,					///< ||
@@ -537,6 +538,8 @@ public class Scanner
 							retval = new Token( TokenType.IS_LONG );
 						} else if ( "is_double".equals( str ) ) {
 							retval = new Token( TokenType.IS_DOUBLE );
+						} else if ( "instanceof".equals( str ) ) {
+							retval = new Token( TokenType.INSTANCE_OF );
 						} else if ( NativeType.INT.id().equals( str ) ) {
 							retval = new Token( TokenType.CAST_INT, str );
 						} else if ( NativeType.STRING.id().equals( str ) ) {

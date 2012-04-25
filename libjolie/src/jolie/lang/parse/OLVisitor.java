@@ -93,6 +93,7 @@ import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
 import jolie.lang.parse.ast.expression.ConstantBoolExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 
 public interface OLVisitor
 {
@@ -152,6 +153,7 @@ public interface OLVisitor
 	public void visit( ForEachStatement n );
 	public void visit( SpawnStatement n );
 	public void visit( IsTypeExpressionNode n );
+	public void visit( InstanceOfExpressionNode n );
 	public void visit( TypeCastExpressionNode n );
 	public void visit( SynchronizedStatement n );
 	public void visit( CurrentHandlerStatement n );

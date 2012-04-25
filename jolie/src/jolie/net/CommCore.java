@@ -530,6 +530,7 @@ public class CommCore
 					if ( operation instanceof OneWayOperation ) {
 						// We need to send the acknowledgement
 						channel.send( CommMessage.createEmptyResponse( message ) );
+						//channel.release();
 					}
 				} catch( TypeCheckingException e ) {
 					interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );

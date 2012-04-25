@@ -161,15 +161,12 @@ public class RequestResponseProcess implements InputOperationProcess
 		throws FaultException
 	{
 		// Variables for monitor
-		int responseStatus = OperationEndedEvent.SUCCESS;
-		String details = "";
-
+		int responseStatus;
+		String details;
 
 		FaultException typeMismatch = null;
-		
-
 		FaultException fault = null;
-		CommMessage response = null;
+		CommMessage response;
 		try {
 			try {
 				process.run();
