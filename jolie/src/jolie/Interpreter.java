@@ -21,44 +21,20 @@
 
 package jolie;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import jolie.lang.Constants;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
-import jolie.lang.parse.OLParseTreeOptimizer;
-import jolie.lang.parse.OLParser;
-import jolie.lang.parse.ParserException;
+import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.SemanticVerifier;
-import jolie.lang.parse.TypeChecker;
+import jolie.lang.parse.*;
 import jolie.lang.parse.ast.Program;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
@@ -67,21 +43,13 @@ import jolie.monitoring.events.SessionEndedEvent;
 import jolie.monitoring.events.SessionStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
-
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
+import jolie.runtime.*;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
@@ -253,7 +221,8 @@ public class Interpreter
 	// private long persistentConnectionTimeout = 1;
 
 	// 11 is the default initial capacity for PriorityQueue
-	private final Queue< TimeoutHandler > timeoutHandlerQueue = new PriorityQueue< TimeoutHandler >( 11, new TimeoutHandler.Comparator() );
+	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
+		new PriorityQueue< WeakReference< TimeoutHandler > >( 11, new TimeoutHandler.Comparator() );
 	
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
 
@@ -325,7 +294,7 @@ public class Interpreter
 	public void addTimeoutHandler( TimeoutHandler handler )
 	{
 		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( handler );
+			timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
 			if ( timeoutHandlerQueue.size() == 1 ) {
 				schedule( new TimerTask() {
 					public void run()
@@ -341,28 +310,38 @@ public class Interpreter
 		}
 	}
 
-	public void removeTimeoutHandler( TimeoutHandler handler )
+	/*public void removeTimeoutHandler( TimeoutHandler handler )
 	{
 		synchronized( timeoutHandlerQueue ) {
 			timeoutHandlerQueue.remove( handler );
 			checkForExpiredTimeoutHandlers();
 		}
-	}
+	}*/
 
 	private void checkForExpiredTimeoutHandlers()
 	{
 		long currentTime = System.currentTimeMillis();
-		TimeoutHandler handler = timeoutHandlerQueue.peek();
-		while( handler != null && handler.time() < currentTime ) {
-			final TimeoutHandler h = handler;
-			timeoutHandlerExecutor.execute( new Runnable() {
-				public void run()
-				{
-					h.onTimeout();
-				}
-			} );
-			timeoutHandlerQueue.remove();
-			handler = timeoutHandlerQueue.peek();
+		WeakReference< TimeoutHandler > whandler = timeoutHandlerQueue.peek();
+		boolean keepRun = true;
+		TimeoutHandler handler;
+		while( whandler != null && keepRun ) {
+			handler = whandler.get();
+			if ( handler == null ) {
+				timeoutHandlerQueue.remove();
+				whandler = timeoutHandlerQueue.peek();
+			} else if ( handler.time() < currentTime ) {
+				final TimeoutHandler h = handler;
+				timeoutHandlerExecutor.execute( new Runnable() {
+					public void run()
+					{
+						h.onTimeout();
+					}
+				} );
+				timeoutHandlerQueue.remove();
+				whandler = timeoutHandlerQueue.peek();
+			} else {
+				keepRun = false;
+			}
 		}
 	}
 	
