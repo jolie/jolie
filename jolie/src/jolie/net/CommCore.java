@@ -148,9 +148,9 @@ public class CommCore
 
 	private void setTimeoutHandler( final CommChannel channel, final URI location, final String protocol )
 	{
-		if ( channel.timeoutHandler() != null ) {
+		/*if ( channel.timeoutHandler() != null ) {
 			interpreter.removeTimeoutHandler( channel.timeoutHandler() );
-		}
+		}*/
 
 		final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
