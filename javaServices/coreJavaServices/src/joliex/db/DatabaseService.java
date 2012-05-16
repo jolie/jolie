@@ -478,6 +478,7 @@ public class DatabaseService extends JavaService
 				} else {
 					resultSetToValueVector( result, resultValue.getChildren( "row" ) );
 				}
+				result.close();
 			}
 		} catch( SQLException e ) {
 			throw createFaultException( e );
