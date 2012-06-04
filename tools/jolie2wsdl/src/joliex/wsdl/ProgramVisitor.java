@@ -1,5 +1,3 @@
-package joliex.wsdl;
-
 /***************************************************************************
  *   Copyright (C) 2010 by Balint Maschio <bmaschio@italianasoftware.com>  *
  *                                                                         *
@@ -21,7 +19,7 @@ package joliex.wsdl;
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
+package joliex.wsdl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,8 +93,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import joliex.wsdl.support.GeneralProgramVisitor;
@@ -273,6 +270,10 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	}
 
 	public void visit( VariableExpressionNode n )
+	{
+	}
+        
+        public void visit( InstanceOfExpressionNode n )
 	{
 	}
 
