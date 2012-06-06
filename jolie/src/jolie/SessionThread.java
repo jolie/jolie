@@ -73,7 +73,6 @@ public class SessionThread extends ExecutionThread
 			lock.lock();
 			try {
 				if ( !isDone ) {
-					System.out.println( "cancel" );
 					this.sessionMessage = null;
 					isDone = true;
 					isCancelled = true;
