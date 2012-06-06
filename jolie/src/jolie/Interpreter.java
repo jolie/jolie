@@ -215,7 +215,7 @@ public class Interpreter
 	private final String logPrefix;
 	private final boolean verbose;
 	private final Timer timer;
-	private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
+	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private long persistentConnectionTimeout = 24 * 60 * 60 * 1000 * 10; // 10 days
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
@@ -241,10 +241,10 @@ public class Interpreter
 		return monitor != null;
 	}
 	
-	public long inputMessageTimeout()
+	/*public long inputMessageTimeout()
 	{
 		return inputMessageTimeout;
-	}
+	}*/
 	
 	public void fireMonitorEvent( MonitoringEvent event )
 	{

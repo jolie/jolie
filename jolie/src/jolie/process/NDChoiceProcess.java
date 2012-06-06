@@ -90,7 +90,7 @@ public class NDChoiceProcess implements Process
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap );
+		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
 		try {
 			SessionMessage m = f.get();
 			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
