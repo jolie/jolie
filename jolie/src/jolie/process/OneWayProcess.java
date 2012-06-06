@@ -82,10 +82,12 @@ public class OneWayProcess implements InputOperationProcess
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( operation );
+		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
 		try {
 			SessionMessage m = f.get();
-			receiveMessage( m, ethread.state() ).run();
+			if ( m != null ) { // If it is null, we got killed by a fault
+				receiveMessage( m, ethread.state() ).run();
+			}
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );
 		}

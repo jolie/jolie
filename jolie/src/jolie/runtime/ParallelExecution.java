@@ -39,21 +39,19 @@ public class ParallelExecution
 			super( process, ExecutionThread.currentThread() );
 		}
 
-
-		
 		public jolie.State state()
 		{
 			return parent.state();
 		}
 
-		public Future< SessionMessage > requestMessage( InputOperation operation )
+		public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread )
 		{
-			return parent.requestMessage( operation );
+			return parent.requestMessage( operation, ethread );
 		}
 
-		public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations )
+		public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 		{
-			return parent.requestMessage( operations );
+			return parent.requestMessage( operations, ethread );
 		}
 
 		@Override

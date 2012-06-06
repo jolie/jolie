@@ -60,6 +60,7 @@ public class SessionThread extends ExecutionThread
 		private final Condition condition;
 		private SessionMessage sessionMessage = null;
 		private boolean isDone = false;
+		private boolean isCancelled = false;
 
 		public SessionMessageFuture()
 		{
@@ -69,7 +70,20 @@ public class SessionThread extends ExecutionThread
 
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
-			return false;
+			lock.lock();
+			try {
+				if ( !isDone ) {
+					System.out.println( "cancel" );
+					this.sessionMessage = null;
+					isDone = true;
+					isCancelled = true;
+					condition.signalAll();
+				}
+			} finally {
+				lock.unlock();
+			}
+			
+			return true;
 		}
 
 		public SessionMessage get( long timeout, TimeUnit unit )
@@ -94,6 +108,7 @@ public class SessionThread extends ExecutionThread
 			try {
 				lock.lock();
 				if ( !isDone ) {
+					System.out.println( "in wait" );
 					condition.await();
 				}
 			} finally {
@@ -104,7 +119,7 @@ public class SessionThread extends ExecutionThread
 
 		public boolean isCancelled()
 		{
-			return false;
+			return isCancelled;
 		}
 
 		public boolean isDone()
@@ -116,9 +131,11 @@ public class SessionThread extends ExecutionThread
 		{
 			lock.lock();
 			try {
-				this.sessionMessage = sessionMessage;
-				isDone = true;
-				condition.signalAll();
+				if ( !isDone ) {
+					this.sessionMessage = sessionMessage;
+					isDone = true;
+					condition.signalAll();
+				}
 			} finally {
 				lock.unlock();
 			}
@@ -306,9 +323,10 @@ public class SessionThread extends ExecutionThread
 		return state;
 	}
 
-	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations )
+	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 	{
 		SessionMessageFuture future = new SessionMessageNDFuture( operations.keySet().toArray( new String[0] ) );
+		ethread.cancelIfKilled( future );
 		synchronized( messageQueues ) {
 			Deque< SessionMessage > queue = null;
 			SessionMessage message = null;
@@ -355,9 +373,10 @@ public class SessionThread extends ExecutionThread
 		return future;
 	}
 
-	public Future< SessionMessage > requestMessage( InputOperation operation )
+	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread )
 	{
 		SessionMessageFuture future = new SessionMessageFuture();
+		ethread.cancelIfKilled( future );
 		CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
 		synchronized( messageQueues ) {
 			Deque< SessionMessage > queue;

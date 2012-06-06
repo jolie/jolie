@@ -21,8 +21,11 @@
 
 package jolie;
 
+import java.lang.ref.WeakReference;
 import jolie.lang.Constants;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.Future;
@@ -42,7 +45,7 @@ import jolie.runtime.VariablePath;
  * @see jolie.State
  * @author Fabrizio Montesi
  */
-abstract public class ExecutionThread extends JolieThread
+public abstract class ExecutionThread extends JolieThread
 {
 	/**
 	 * A Scope object represents a fault handling scope,
@@ -150,9 +153,11 @@ abstract public class ExecutionThread extends JolieThread
 		}
 	}
 
-	final protected Process process;
-	final protected Stack< Scope > scopeStack = new Stack< Scope >();
-	final protected ExecutionThread parent;
+	protected final Process process;
+	protected final Stack< Scope > scopeStack = new Stack< Scope >();
+	protected final ExecutionThread parent;
+	private final List< WeakReference< Future< ? > > > futureToCancel =
+			new LinkedList< WeakReference< Future< ? > > >();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	
@@ -195,6 +200,16 @@ abstract public class ExecutionThread extends JolieThread
 	public void kill( FaultException fault )
 	{
 		killerFault = fault;
+		
+		WeakReference< Future< ? > > ref;
+		while( !futureToCancel.isEmpty() ) {
+			ref = futureToCancel.get( 0 );
+			if ( ref.get() != null ) {
+				ref.get().cancel( true );
+			}
+			futureToCancel.remove( 0 );
+		}
+		
 		if( canBeInterrupted ) {
 			interrupt();
 		}
@@ -279,6 +294,33 @@ abstract public class ExecutionThread extends JolieThread
 		}
 		
 		return scopeStack.peek().id();
+	}
+	
+	/**
+	 * Registers a future to be cancelled when this thread is killed.
+	 * @param f the future to cancel
+	 */
+	public synchronized void cancelIfKilled( Future< ? > f )
+	{
+		cleanFuturesToKill();
+		if ( isKilled() ) {
+			f.cancel( true );
+		}
+		futureToCancel.add( new WeakReference< Future< ? > >( f ) );
+	}
+	
+	private void cleanFuturesToKill()
+	{
+		WeakReference< Future< ? > > ref;
+		boolean keepAlive = true;
+		while( !futureToCancel.isEmpty() && keepAlive ) {
+			ref = futureToCancel.get( 0 );
+			if ( ref.get() == null ) {
+				futureToCancel.remove( 0 );
+			} else {
+				keepAlive = false;
+			}
+		}
 	}
 
 	/**
@@ -393,14 +435,14 @@ abstract public class ExecutionThread extends JolieThread
 	 * @param operation the operation on which the process wants to receive the message
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( InputOperation operation );
+	public abstract Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread );
 
 	/**
 	 * Requests a message from the currently executing session.
 	 * @param operations the map of possible operations on which the process wants to receive the message
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations );
+	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread );
 	
 	protected Process process()
 	{
