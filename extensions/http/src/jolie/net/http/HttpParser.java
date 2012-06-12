@@ -100,10 +100,10 @@ public class HttpParser
 						message.addCookie( nv[0], nv[1] );
 					}
 				}
-			}else if("user-agent".equals(name)){
-                            message.setUserAgent(value);
-                        }else {
-                            message.setProperty( name, value );
+			} else if ( "user-agent".equals( name ) ) {
+				message.setUserAgent( value );
+			} else {
+				message.setProperty( name, value );
 			}
 			getToken();
 		}
