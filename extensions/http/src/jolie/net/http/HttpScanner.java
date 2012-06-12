@@ -123,7 +123,7 @@ public class HttpScanner
 		builder.append( ch );
 		int i;
 		String tmp;
-		while ( ch != -1 && Scanner.isSeparator( ch ) ) {
+		while ( currInt != -1 && Scanner.isSeparator( ch ) ) {
 			readChar();
 			builder.append( ch );
 			tmp = builder.toString();
@@ -132,14 +132,14 @@ public class HttpScanner
 			}
 		}
 		
-		if ( ch == -1 )
+		if ( currInt == -1 )
 			return new Token( TokenType.EOF );
 		
 		boolean stopOneChar = false;
 		Token retval = null;
 		builder = new StringBuilder();
 
-		while ( ch != -1 && retval == null ) {
+		while ( currInt != -1 && retval == null ) {
 			switch( state ) {
 				/* When considering multi-characters tokens (states > 1),
 				 * remember to read another character in case of a
