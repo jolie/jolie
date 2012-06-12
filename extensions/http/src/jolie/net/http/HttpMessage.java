@@ -114,7 +114,7 @@ public class HttpMessage
 	private int httpCode;
 	private String requestPath;
 	private String reason;
-        private String userAgent;
+	private String userAgent;
 
 	public boolean isSupported()
 	{
@@ -175,12 +175,12 @@ public class HttpMessage
 	{
 		requestPath = path;
 	}
-        
-        public void setUserAgent( String userAgent )
-        {
-            this.userAgent = userAgent;
-        }
-	
+
+	public void setUserAgent( String userAgent )
+	{
+		this.userAgent = userAgent;
+	}
+
 	public void setProperty( String name, String value )
 	{
 		propMap.put( name, value );
