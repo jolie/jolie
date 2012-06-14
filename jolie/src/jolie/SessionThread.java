@@ -107,7 +107,6 @@ public class SessionThread extends ExecutionThread
 			try {
 				lock.lock();
 				if ( !isDone ) {
-					System.out.println( "in wait" );
 					condition.await();
 				}
 			} finally {
