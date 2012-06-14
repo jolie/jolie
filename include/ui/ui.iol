@@ -20,9 +20,8 @@
  ***************************************************************************/
 
 interface UserInterface {
-OneWay:
-	showMessageDialog(string)
 RequestResponse:
+	showMessageDialog(string)(void),
 	showYesNoQuestionDialog(string)(int),
 	showInputDialog(string)(string)
 }
