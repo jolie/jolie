@@ -23,9 +23,11 @@ package joliex.ui;
 
 import javax.swing.JOptionPane;
 import jolie.runtime.JavaService;
+import jolie.runtime.embedding.RequestResponse;
 
 public class SwingService extends JavaService
 {
+	@RequestResponse
 	public void showMessageDialog( String message )
 	{
 		JOptionPane.showMessageDialog( null, message );
