@@ -60,10 +60,10 @@ public class XmlUtils extends JavaService
 	{
 		try {
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
-			String root = request.getFirstChild( "root" ).strValue();
-			jolie.xml.XmlUtils.valueToDocument(
-				request.getFirstChild( root ),
-				root,
+			String rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
+			jolie.xml.XmlUtils.valueToStorageDocument(
+				request.getFirstChild( "root" ),
+				rootNodeName,
 				doc
 			);
 			Transformer t = transformerFactory.newTransformer();
@@ -103,7 +103,11 @@ public class XmlUtils extends JavaService
 					includeAttributes = request.getFirstChild( "options" ).getFirstChild( "includeAttributes" ).boolValue();
 				}
 			}
-			jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
+			if ( includeAttributes ) {
+				jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
+			} else {
+				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
+			}
             return result;
 		} catch( ParserConfigurationException e ) {
 			e.printStackTrace();
