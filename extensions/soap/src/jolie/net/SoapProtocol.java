@@ -148,6 +148,10 @@ public class SoapProtocol extends SequentialCommProtocol
 	private boolean received = false;
 	
 	private final static String CRLF = new String( new char[] { 13, 10 } );
+        private final static String SOAP_FORCED_ATTRIBUTE_NODE = "__forced_attributes";
+        private final static String SOAP_FORCED_ATTRIBUTE_NODE_NAME = "name";
+        private final static String SOAP_FORCED_ATTRIBUTE_NODE_PREFIX = "prefix";
+        private final static String SOAP_FORCED_ATTRIBUTE_NODE_VALUE = "value";
 
 	public String name()
 	{
@@ -232,7 +236,7 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( !schema.getTargetNamespace().equals( XMLConstants.W3C_XML_SCHEMA_NS_URI ) ) {
 					namespacePrefixMap.put( schema.getTargetNamespace(), nsPrefix + i++ );
 				}
-			}
+			} 
 		}
 
 		return schemaSet;
@@ -319,7 +323,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		Map< String, ValueVector > attrs = getAttributesOrNull( value );
 		if ( attrs != null ) {
 			ValueVector vec = attrs.get( attrName );
-			if ( vec != null && vec.size() > 0 )
+			if ( vec != null && vec.size() > 0 ) 
 				ret = vec.first();
 		}
 		
@@ -364,11 +368,16 @@ public class SoapProtocol extends SequentialCommProtocol
 		
 		if ( type.isSimpleType() ) {
 			element.addTextNode( value.strValue() );
+                        
+                        
 		} else if ( type.isComplexType() ) {
 			String name;
 			Value currValue;
 			XSComplexType complexT = type.asComplexType();
-
+                        XSParticle particle;
+			XSContentType contentT;
+                       
+                                                                //end new stuff
 			// Iterate over attributes
 			Collection< ? extends XSAttributeUse > attributeUses = complexT.getAttributeUses();
 			for( XSAttributeUse attrUse : attributeUses ) {
@@ -379,9 +388,87 @@ public class SoapProtocol extends SequentialCommProtocol
 				}
 			}
 			
+                        // check if there are forced attributes
+                        // select all the attributes
+                       
+                        ValueVector vecForcedAttr = value.getChildren( SOAP_FORCED_ATTRIBUTE_NODE );
+                        // select all the forced attributes
+                      
+                        if ( vecForcedAttr != null ) {
+                            for ( Value v : vecForcedAttr ) {
+                                String nameType =v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_NAME ).strValue();
+                                String prefixType= v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_PREFIX ).strValue() ;
+                                QName attrName = envelope.createQName(nameType, prefixType);
+                                element.addAttribute( attrName,  v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_VALUE ).strValue() );
+                            }
+                        }
+                
+                        if (type.getBaseType().isComplexType()){
+                         ///// adding base type parent
+                            contentT = complexT.getBaseType().asComplexType().getContentType();
+                            if ( contentT.asSimpleType() != null ) {
+                                    element.addTextNode( value.strValue() );
+                            } else if ( (particle=contentT.asParticle()) != null ) {
+				XSTerm term = particle.getTerm();
+//				XSElementDecl elementDecl;
+				XSModelGroupDecl modelGroupDecl;
+				XSModelGroup modelGroup = null;
+				//int size = value.children().size();
+				//if ( particle.getMinOccurs()
+				// It's a simple element, repeated some times
+				/*if ( (elementDecl=term.asElementDecl()) != null ) {
+
+				} else */if ( (modelGroupDecl=term.asModelGroupDecl()) != null ) {
+					modelGroup = modelGroupDecl.getModelGroup();
+				} else if ( term.isModelGroup() )
+					modelGroup = term.asModelGroup();
+				
+				if ( modelGroup != null ) {
+					XSModelGroup.Compositor compositor = modelGroup.getCompositor();
+					if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
+						XSParticle[] children = modelGroup.getChildren();
+						XSTerm currTerm;
+						XSElementDecl currElementDecl;
+						Value v;
+						ValueVector vec;
+						String prefix;
+						for( int i = 0; i < children.length; i++ ) {
+							currTerm = children[i].getTerm();
+                                                       
+                                                        
+							if ( currTerm.isElementDecl() ) { 
+                                                               
+								currElementDecl = currTerm.asElementDecl();
+								name = currElementDecl.getName();
+								prefix = ( first ) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
+								SOAPElement childElement = null;
+								if ( (vec=value.children().get( name )) != null ) {
+									int k = 0;
+									while( vec.size() > 0 && (children[i].getMaxOccurs() > k || children[i].getMaxOccurs() == XSParticle.UNBOUNDED ) ) {
+										if ( prefix == null ) {
+											childElement = element.addChildElement( name );
+										} else {
+											childElement = element.addChildElement( name, prefix );
+										}
+										v = vec.remove( 0 );
+										valueToTypedSOAP(
+											v,
+											currElementDecl,
+											childElement,
+											envelope,
+											false );
+										k++;
+									}
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                            
+                        }
+                   
 			
-			XSParticle particle;
-			XSContentType contentT;
 			contentT = complexT.getContentType();
 			if ( contentT.asSimpleType() != null ) {
 				element.addTextNode( value.strValue() );
@@ -411,7 +498,9 @@ public class SoapProtocol extends SequentialCommProtocol
 						String prefix;
 						for( int i = 0; i < children.length; i++ ) {
 							currTerm = children[i].getTerm();
-							if ( currTerm.isElementDecl() ) {
+                                                       
+							if ( currTerm.isElementDecl() ) { 
+                                                               
 								currElementDecl = currTerm.asElementDecl();
 								name = currElementDecl.getName();
 								prefix = ( first ) ? getPrefix( currElementDecl ) : getPrefixOrNull( currElementDecl );
@@ -676,7 +765,7 @@ public class SoapProtocol extends SequentialCommProtocol
 						}
 					}
 				} else {
-					initNamespacePrefixes( soapEnvelope );					
+					initNamespacePrefixes( soapEnvelope );	
 					boolean wrapped = true;
 					Value vStyle = getParameterVector( "style" ).first();
 					if ( "document".equals( vStyle.strValue() ) ) {
@@ -790,7 +879,9 @@ public class SoapProtocol extends SequentialCommProtocol
 			value.setValue( value.intValue() );
 		} else if ( "xsd:double".equals( type ) ) {
 			value.setValue( value.doubleValue() );
-		}
+		} else if ("xsd:boolean".equals(type)){
+                        value.setValue( value.boolValue());
+                }
 	}
 
 	private static Element getFirstElement( Node node )
