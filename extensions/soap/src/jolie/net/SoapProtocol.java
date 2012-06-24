@@ -335,8 +335,9 @@ public class SoapProtocol extends SequentialCommProtocol {
         return namespacePrefixMap.get(decl.getOwnerSchema().getTargetNamespace());
     }
 
-    private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur ) 
+    private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur,boolean fromDerive ) 
         throws SOAPException {
+        
         if ( currTerm.isElementDecl() ) {
                 ValueVector vec;
                 XSElementDecl currElementDecl = currTerm.asElementDecl();
@@ -352,6 +353,7 @@ public class SoapProtocol extends SequentialCommProtocol {
                             childElement = element.addChildElement(name, prefix);
                         }
                         Value v = vec.remove(0);
+                       
                         valueToTypedSOAP(
                                 v,
                                 currElementDecl,
@@ -360,9 +362,24 @@ public class SoapProtocol extends SequentialCommProtocol {
                                 false);
                         k++;
                     }
+                    if ((fromDerive==true) &&(getMaxOccur==1)){
+                         if (prefix == null) {
+                            childElement = element.addChildElement(name);
+                        } else {
+                            childElement = element.addChildElement(name, prefix);
+                        }
+                      Value v= value.getFirstChild(name);
+                        valueToTypedSOAP(
+                                v,
+                                currElementDecl,
+                                childElement,
+                                envelope,
+                                false);
+                    
+                    }
                 }
             }
-        
+    
     }
     private void groupProcessing(
             Value value,
@@ -370,7 +387,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             SOAPElement element,
             SOAPEnvelope envelope,
             boolean first,
-            XSModelGroup modelGroup) throws SOAPException {
+            XSModelGroup modelGroup,boolean a) throws SOAPException {
 
         XSParticle[] children = modelGroup.getChildren();
         XSTerm currTerm;
@@ -380,12 +397,14 @@ public class SoapProtocol extends SequentialCommProtocol {
         String prefix;
         for (int i = 0; i < children.length; i++) {
             currTerm = children[i].getTerm();
-            termProcessing(value, element, envelope, first, currTerm, children[i].getMaxOccurs());
-            
-        }
+            termProcessing(value, element, envelope, first, currTerm, children[i].getMaxOccurs(),a);
+            if (currTerm.isModelGroup()){
+                
+                 groupProcessing(value, xsDecl, element, envelope, first, currTerm.asModelGroup(),true);
+            }
 
     }
-
+    }
     private void valueToTypedSOAP(
             Value value,
             XSElementDecl xsDecl,
@@ -395,7 +414,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             )
             throws SOAPException {
         XSType type = xsDecl.getType();
-
+          
         if (type.isSimpleType()) {
             element.addTextNode(value.strValue());
 
@@ -420,7 +439,7 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             // check if there are forced attributes
             // select all the attributes
-
+             
             ValueVector vecForcedAttr = value.getChildren(SOAP_FORCED_ATTRIBUTE_NODE);
             // select all the forced attributes
 
@@ -432,31 +451,36 @@ public class SoapProtocol extends SequentialCommProtocol {
                     element.addAttribute(attrName, v.getFirstChild(SOAP_FORCED_ATTRIBUTE_NODE_VALUE).strValue());
                 }
             }
-
-            if (type.getBaseType().isComplexType()) {
-                ///// adding base type parent
-                contentT = complexT.getBaseType().asComplexType().getContentType();
-                if (contentT.asSimpleType() != null) {
-                    element.addTextNode(value.strValue());
-                } else if ((particle = contentT.asParticle()) != null) {
-                    XSTerm term = particle.getTerm();
-                    XSModelGroupDecl modelGroupDecl;
-                    XSModelGroup modelGroup = null;
-                    if ((modelGroupDecl = term.asModelGroupDecl()) != null) {
-                        modelGroup = modelGroupDecl.getModelGroup();
-                    } else if (term.isModelGroup()) {
-                        modelGroup = term.asModelGroup();
-                    }
-
-                    if (modelGroup != null) {
-                        XSModelGroup.Compositor compositor = modelGroup.getCompositor();
-                        if (compositor.equals(XSModelGroup.SEQUENCE)) {
-                            groupProcessing(value, xsDecl, element, envelope, first, modelGroup );
-                        }
-                    }
-                }
-                
+            if (type.getDerivationMethod()==XSType.EXTENSION){
+             System.out.println(element.getElementName().getLocalName() + " "+ type.getBaseType().asComplexType().getName());
             }
+
+//            if ((type.getBaseType().isComplexType())&&(type.asComplexType().getExplicitContent()!=null))  {
+//                ///// adding base type parent
+//                
+//                    contentT = type.getBaseType().asComplexType().getContentType();
+//                if (contentT.asSimpleType() != null) {
+//                    element.addTextNode(value.strValue());
+//                } else if ((particle = contentT.asParticle()) != null) {
+//                    XSTerm term = particle.getTerm();
+//                    XSModelGroupDecl modelGroupDecl;
+//                    XSModelGroup modelGroup = null;
+//                    if ((modelGroupDecl = term.asModelGroupDecl()) != null) {
+//                        modelGroup = modelGroupDecl.getModelGroup();
+//                    } else if (term.isModelGroup()) {
+//                        modelGroup = term.asModelGroup();
+//                    }
+//
+//                    if (modelGroup != null) {
+//                        XSModelGroup.Compositor compositor = modelGroup.getCompositor();
+//                        if (compositor.equals(XSModelGroup.SEQUENCE)) {
+//                            groupProcessing(value, xsDecl, element, envelope, first, modelGroup );
+//                        }
+//                    }
+//                }
+//                
+//            
+//            }
 
             // processing content (no base type parent )
             contentT = complexT.getContentType();
@@ -471,11 +495,11 @@ public class SoapProtocol extends SequentialCommProtocol {
                 } else if (term.isModelGroup()) {
                     modelGroup = term.asModelGroup();
                 }
-
+                
                 if (modelGroup != null) {
                     XSModelGroup.Compositor compositor = modelGroup.getCompositor();
                     if (compositor.equals(XSModelGroup.SEQUENCE)) {
-                         groupProcessing(value, xsDecl, element, envelope, first, modelGroup );
+                         groupProcessing(value, xsDecl, element, envelope, first, modelGroup,false );
                     } 
                 }
             }
@@ -726,7 +750,7 @@ public class SoapProtocol extends SequentialCommProtocol {
                 // Some service implementations do not like empty headers
                 soapEnvelope.getHeader().detachNode();
             }
-
+           
             ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
             soapMessage.writeTo(tmpStream);
 
