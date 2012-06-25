@@ -335,7 +335,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         return namespacePrefixMap.get(decl.getOwnerSchema().getTargetNamespace());
     }
 
-    private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur,boolean fromDerive ) 
+    private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur, boolean fromDerive )
         throws SOAPException {
         
         if ( currTerm.isElementDecl() ) {
@@ -391,10 +391,6 @@ public class SoapProtocol extends SequentialCommProtocol {
 
         XSParticle[] children = modelGroup.getChildren();
         XSTerm currTerm;
-        XSElementDecl currElementDecl;
-        Value v;
-        ValueVector vec;
-        String prefix;
         for (int i = 0; i < children.length; i++) {
             currTerm = children[i].getTerm();
             termProcessing(value, element, envelope, first, currTerm, children[i].getMaxOccurs(),a);
@@ -413,6 +409,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             boolean first // Ugly fix! This should be removed as soon as another option arises.
             )
             throws SOAPException {
+		
         XSType type = xsDecl.getType();
           
         if (type.isSimpleType()) {
@@ -451,36 +448,7 @@ public class SoapProtocol extends SequentialCommProtocol {
                     element.addAttribute(attrName, v.getFirstChild(SOAP_FORCED_ATTRIBUTE_NODE_VALUE).strValue());
                 }
             }
-            if (type.getDerivationMethod()==XSType.EXTENSION){
-             System.out.println(element.getElementName().getLocalName() + " "+ type.getBaseType().asComplexType().getName());
-            }
-
-//            if ((type.getBaseType().isComplexType())&&(type.asComplexType().getExplicitContent()!=null))  {
-//                ///// adding base type parent
-//                
-//                    contentT = type.getBaseType().asComplexType().getContentType();
-//                if (contentT.asSimpleType() != null) {
-//                    element.addTextNode(value.strValue());
-//                } else if ((particle = contentT.asParticle()) != null) {
-//                    XSTerm term = particle.getTerm();
-//                    XSModelGroupDecl modelGroupDecl;
-//                    XSModelGroup modelGroup = null;
-//                    if ((modelGroupDecl = term.asModelGroupDecl()) != null) {
-//                        modelGroup = modelGroupDecl.getModelGroup();
-//                    } else if (term.isModelGroup()) {
-//                        modelGroup = term.asModelGroup();
-//                    }
-//
-//                    if (modelGroup != null) {
-//                        XSModelGroup.Compositor compositor = modelGroup.getCompositor();
-//                        if (compositor.equals(XSModelGroup.SEQUENCE)) {
-//                            groupProcessing(value, xsDecl, element, envelope, first, modelGroup );
-//                        }
-//                    }
-//                }
-//                
-//            
-//            }
+            
 
             // processing content (no base type parent )
             contentT = complexT.getContentType();
