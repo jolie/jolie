@@ -141,10 +141,6 @@ public class SoapProtocol extends SequentialCommProtocol
 	private final Map<String, String> namespacePrefixMap = new HashMap<String, String>();
 	private boolean received = false;
 	private final static String CRLF = new String( new char[]{13, 10} );
-	private final static String SOAP_FORCED_ATTRIBUTE_NODE = "__forced_attributes";
-	private final static String SOAP_FORCED_ATTRIBUTE_NODE_NAME = "name";
-	private final static String SOAP_FORCED_ATTRIBUTE_NODE_PREFIX = "prefix";
-	private final static String SOAP_FORCED_ATTRIBUTE_NODE_VALUE = "value";
 	/* 
 	 * it forced the insertion of namespaces within the soap message
 	 * 
