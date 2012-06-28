@@ -164,6 +164,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	 *	}
 	 * }
 	 */
+	private final static String SOAP_PARAMETER_ABSTRACT_TYPE = "abstract_type";
 	private final static String SOAP_PARAMETER_ADD_ATTRIBUTE = "add_attribute";
 	private final static String SOAP_PARAMETER_ENVELOPE = "envelope";
 	private final static String SOAP_PARAMETER_OPERATION = "operation";
@@ -371,7 +372,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		return namespacePrefixMap.get( decl.getOwnerSchema().getTargetNamespace() );
 	}
 
-	private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur, boolean fromDerive )
+	private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first, XSTerm currTerm, int getMaxOccur, ValueVector abstractTypeExtender )
 		throws SOAPException
 	{
 
@@ -390,30 +391,17 @@ public class SoapProtocol extends SequentialCommProtocol
 						childElement = element.addChildElement( name, prefix );
 					}
 					Value v = vec.remove( 0 );
-
+					System.out.println( "term" + name );
 					valueToTypedSOAP(
 						v,
 						currElementDecl,
 						childElement,
 						envelope,
-						false );
+						false,
+						abstractTypeExtender,
+						name );
 					k++;
 				}
-				/*if ( (fromDerive == true) && (getMaxOccur == 1) ) {
-					if ( prefix == null ) {
-						childElement = element.addChildElement( name );
-					} else {
-						childElement = element.addChildElement( name, prefix );
-					}
-					Value v = value.getFirstChild( name );
-					valueToTypedSOAP(
-						v,
-						currElementDecl,
-						childElement,
-						envelope,
-						false );
-
-				}*/
 			}
 		}
 
@@ -425,7 +413,7 @@ public class SoapProtocol extends SequentialCommProtocol
 		SOAPElement element,
 		SOAPEnvelope envelope,
 		boolean first,
-		XSModelGroup modelGroup, boolean fromDerive )
+		XSModelGroup modelGroup, ValueVector abstractTypeExtender )
 		throws SOAPException
 	{
 
@@ -434,11 +422,32 @@ public class SoapProtocol extends SequentialCommProtocol
 		for( int i = 0; i < children.length; i++ ) {
 			currTerm = children[i].getTerm();
 			if ( currTerm.isModelGroup() ) {
-				groupProcessing( value, xsDecl, element, envelope, first, currTerm.asModelGroup(), true );
+				groupProcessing( value, xsDecl, element, envelope, first, currTerm.asModelGroup(), abstractTypeExtender );
 			} else {
-				termProcessing( value, element, envelope, first, currTerm, children[i].getMaxOccurs(), fromDerive );
+				termProcessing( value, element, envelope, first, currTerm, children[i].getMaxOccurs(), abstractTypeExtender );
 			}
 
+		}
+	}
+
+	private void addForcedAttribute( ValueVector abstractTypeExtender, String valueNodeName, SOAPElement element, SOAPEnvelope envelope )
+		throws SOAPException
+	{
+		if ( abstractTypeExtender != null ) {
+			boolean extenderFound = false;
+			int extenderIndex = 0;
+			while( !extenderFound && extenderIndex < abstractTypeExtender.size() ) {
+				Value extender = abstractTypeExtender.get( extenderIndex );
+				if ( extender.getFirstChild( "node" ).strValue().equals( valueNodeName ) ) {
+					Value attribute = extender.getFirstChild( "attribute" );
+					String nameType = attribute.getFirstChild( "name" ).strValue();
+					String prefixType = attribute.getFirstChild( "prefix" ).strValue();
+					QName attrName = envelope.createQName( nameType, prefixType );
+					element.addAttribute( attrName, attribute.getFirstChild( "value" ).strValue() );
+					extenderFound = true;
+				}
+				extenderIndex++;
+			}
 		}
 	}
 
@@ -447,7 +456,9 @@ public class SoapProtocol extends SequentialCommProtocol
 		XSElementDecl xsDecl,
 		SOAPElement element,
 		SOAPEnvelope envelope,
-		boolean first // Ugly fix! This should be removed as soon as another option arises.
+		boolean first,
+		ValueVector abstractTypeExtender,
+		String valueNodeName// Ugly fix! This should be removed as soon as another option arises.
 		)
 		throws SOAPException
 	{
@@ -456,7 +467,8 @@ public class SoapProtocol extends SequentialCommProtocol
 
 		if ( type.isSimpleType() ) {
 			element.addTextNode( value.strValue() );
-
+			// check if there are forced attributes
+			addForcedAttribute( abstractTypeExtender, valueNodeName, element, envelope );
 
 		} else if ( type.isComplexType() ) {
 			String name;
@@ -477,19 +489,7 @@ public class SoapProtocol extends SequentialCommProtocol
 			}
 
 			// check if there are forced attributes
-			// select all the attributes
-
-			ValueVector vecForcedAttr = value.getChildren( SOAP_FORCED_ATTRIBUTE_NODE );
-			// select all the forced attributes
-
-			if ( vecForcedAttr != null ) {
-				for( Value v : vecForcedAttr ) {
-					String nameType = v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_NAME ).strValue();
-					String prefixType = v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_PREFIX ).strValue();
-					QName attrName = envelope.createQName( nameType, prefixType );
-					element.addAttribute( attrName, v.getFirstChild( SOAP_FORCED_ATTRIBUTE_NODE_VALUE ).strValue() );
-				}
-			}
+			addForcedAttribute( abstractTypeExtender, valueNodeName, element, envelope );
 
 
 			// processing content (no base type parent )
@@ -509,7 +509,7 @@ public class SoapProtocol extends SequentialCommProtocol
 				if ( modelGroup != null ) {
 					XSModelGroup.Compositor compositor = modelGroup.getCompositor();
 					if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-						groupProcessing( value, xsDecl, element, envelope, first, modelGroup, false );
+						groupProcessing( value, xsDecl, element, envelope, first, modelGroup, abstractTypeExtender );
 					}
 				}
 			}
@@ -767,6 +767,7 @@ public class SoapProtocol extends SequentialCommProtocol
 						wrapped = (vStyle.getChildren( "wrapped" ).first().intValue() > 0);
 					}
 					SOAPElement opBody = soapBody;
+					ValueVector abstractTypeExtender = null;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
 							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
@@ -780,24 +781,46 @@ public class SoapProtocol extends SequentialCommProtocol
 										// attributes must be added to the envelope
 										Value attribute = op.getFirstChild( "attribute" );
 										QName attrName;
-										if ( attribute.hasChildren( "prefix") ) {
-											attrName = opBody.createQName(attribute.getFirstChild( "name").strValue(), attribute.getFirstChild( "prefix").strValue());
+										if ( attribute.hasChildren( "prefix" ) ) {
+											attrName = opBody.createQName( attribute.getFirstChild( "name" ).strValue(), attribute.getFirstChild( "prefix" ).strValue() );
 										} else {
-											attrName = opBody.createQName(attribute.getFirstChild( "name").strValue(), null );
+											attrName = opBody.createQName( attribute.getFirstChild( "name" ).strValue(), null );
 										}
-										opBody.addAttribute( attrName, attribute.getFirstChild( "value").strValue() );
+										opBody.addAttribute( attrName, attribute.getFirstChild( "value" ).strValue() );
 
-										
+
 
 									}
 								}
 
 							}
 						}
+						/*
+						 * check if there are abstract type extensions to be added to some nodes
+						 * type AbstractType: void {
+						 *	.operation*: void {
+						 *		.operation_name: string
+						 *		.extension*: void {
+						 *			.attribute: string   attribute to add
+						 *			.node: string	     node to be extended
+						 *		}
+						 *	}
+						 *
+						 * soap parameter = abstract_type: AbstractType
+						 * }
+						 */
 
+						if ( hasParameter( SOAP_PARAMETER_ABSTRACT_TYPE ) ) {
+							ValueVector operation_vec = getParameterFirstValue( SOAP_PARAMETER_ABSTRACT_TYPE ).getChildren( "operation" );
+							for( Value op : operation_vec ) {
+								if ( op.getFirstChild( "operation_name" ).strValue().equals( message.operationName() ) ) {
+									abstractTypeExtender = op.getChildren( "extension" );
+								}
+							}
+						}
 
 					}
-					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped );
+					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped, abstractTypeExtender, "" );
 				}
 			}
 
