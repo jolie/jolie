@@ -387,7 +387,6 @@ public class SoapProtocol extends SequentialCommProtocol
 						childElement = element.addChildElement( name, prefix );
 					}
 					Value v = vec.remove( 0 );
-					System.out.println( "term" + name );
 					valueToTypedSOAP(
 						v,
 						currElementDecl,
