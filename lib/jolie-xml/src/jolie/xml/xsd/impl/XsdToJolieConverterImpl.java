@@ -1,6 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2010 by Mirco Gamberini                                 *
  *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2012 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -27,7 +28,9 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSModelGroup;
 import com.sun.xml.xsom.XSModelGroupDecl;
 import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSRestrictionSimpleType;
 import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import java.util.ArrayList;
@@ -35,10 +38,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -55,12 +61,16 @@ import jolie.xml.xsd.XsdUtils;
 public class XsdToJolieConverterImpl implements XsdToJolieConverter
 {
 	private final Logger logger;
-	private final List< TypeDefinition > jolieTypes = new ArrayList< TypeDefinition >();
+	private final List<TypeDefinition> jolieTypes = new ArrayList<TypeDefinition>();
 	private final static ParsingContext parsingContext = URIParsingContext.DEFAULT;
 	private final boolean strict;
 	private final XSSchemaSet schemaSet;
-	private final Map< String, TypeDefinition > complexTypes = new HashMap< String, TypeDefinition >();
-
+	private final Map<String, TypeDefinition> complexTypes = new HashMap<String, TypeDefinition>();
+	private final Map<String, TypeDefinition> simpleTypes = new HashMap<String, TypeDefinition>();
+	private final ArrayList<String> complexTypeNames = new ArrayList<String>();
+	//private final ArrayList<String> simpleTypeNames = new ArrayList<String>()
+	private static final String XMLSCHEMA_URI = "http://www.w3.org/2001/XMLSchema";
+	private static final String XMLSOAPSCHEMA_URI = "http://schemas.xmlsoap.org/soap/encoding/";
 	private static final String WARNING_1 = "Element type does not exist.";
 	private static final String WARNING_2 = "The referred type is not defined or is not supported by JOLIE.";
 	private static final String ERROR_SIMPLE_TYPE = "\nERROR: ConversionException\n";
@@ -70,6 +80,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private static final String WARNING_SEQUENCE = "Element \"sequence\" is unsupported by JOLIE.";
 	private static final String WARNING_DEFAULT_ATTRIBUTE = "Attribute \"default\" is unsupported by JOLIE.";
 	private static final String WARNING_FIXED_ATTRIBUTE = "Attribute \"fixed\" is unsupported by JOLIE.";
+	public static final String TYPE_SUFFIX = "Type";
 
 	/*
 	 * Constructor.
@@ -83,27 +94,124 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		this.logger = logger;
 	}
 
-	public List< TypeDefinition > convert()
+	private boolean checkSkippedTypes( String typeName, String targetNameSpace )
+	{
+		boolean flag = false;
+		if ( targetNameSpace.equals( XMLSCHEMA_URI ) || targetNameSpace.equals( XMLSOAPSCHEMA_URI )) {
+			if ( typeName.equals( "unsignedShort" )
+				|| typeName.equals( "long" )
+				|| typeName.equals( "date" )
+				|| typeName.equals( "float" )
+				|| typeName.equals( "short" )
+				|| typeName.equals( "nonNegativeInteger" )
+				|| typeName.equals( "time" )
+				|| typeName.equals( "base64Binary" )
+				|| typeName.equals( "unsignedShort" )
+				|| typeName.equals( "gMonthDay" )
+				|| typeName.equals( "gYeardDay" )
+				|| typeName.equals( "gDay" )
+				|| typeName.equals( "gMonth" )
+				|| typeName.equals( "gYearMonth" )
+				|| typeName.equals( "gYear" )
+				|| typeName.equals( "dateTime" )
+				|| typeName.equals( "nonPositiveInteger" )
+				|| typeName.equals( "anyURI" )
+				|| typeName.equals( "byte" )
+				|| typeName.equals( "hexBinary" )
+				|| typeName.equals( "boolean" )
+				|| typeName.equals( "negativeInteger" )
+				|| typeName.equals( "long" )
+				|| typeName.equals( "unsignedByte" )
+				|| typeName.equals( "integer" )
+				|| typeName.equals( "int" )
+				|| typeName.equals( "unsignedInt" )
+				|| typeName.equals( "normalizedString" )
+				|| typeName.equals( "double" )
+				|| typeName.equals( "decimal" )
+				|| typeName.equals( "positiveInteger" )
+				|| typeName.equals( "duration" )
+				|| typeName.equals( "string" )
+				|| typeName.equals( "unsignedLong" )
+				|| typeName.equals( "base64" )
+				|| typeName.equals( "anyType" )
+				|| typeName.equals( "anySimpleType" )
+				|| typeName.equals( "ENTITIES" )
+				|| typeName.equals( "ENTITY" )
+				|| typeName.equals( "ID" )
+				|| typeName.equals( "IDREF" )
+				|| typeName.equals( "IDREFS" )
+				|| typeName.equals( "language" )
+				|| typeName.equals( "Name" )
+				|| typeName.equals( "NCName" )
+				|| typeName.equals( "NMTOKEN" )
+				|| typeName.equals( "NMTOKENS" )
+				|| typeName.equals( "normalizedString" )
+				|| typeName.equals( "QName" )
+				|| typeName.equals( "token" ) ) {
+				flag = true;
+			}
+		}
+
+		return flag;
+
+	}
+
+	public List<TypeDefinition> convert()
 		throws ConversionException
 	{
+
+		// creating type name lists
+		Iterator complexNameIter = schemaSet.iterateComplexTypes();
+		while( complexNameIter.hasNext() ) {
+			XSComplexType complexType = (XSComplexType) complexNameIter.next();
+			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
+				// avoinding simple type insertion
+				complexTypeNames.add( complexType.getName() + TYPE_SUFFIX );
+			}
+		}
+
+		// Load simple types
+		Iterator simpleIter = schemaSet.iterateSimpleTypes();
+		while( simpleIter.hasNext() ) {
+			XSSimpleType simpleType = (XSSimpleType) simpleIter.next();
+			if ( !checkSkippedTypes( simpleType.getName(), simpleType.getTargetNamespace() ) ) {
+				TypeDefinition jolieSimpleType;
+				jolieSimpleType = loadSimpleType( simpleType, false, simpleTypes.get( simpleType.getName() + TYPE_SUFFIX ) );
+				simpleTypes.put( jolieSimpleType.id(), jolieSimpleType );
+				jolieTypes.add( jolieSimpleType );
+			}
+		}
+
+
 		// Load complex types
 		Iterator complexIter = schemaSet.iterateComplexTypes();
 		while( complexIter.hasNext() ) {
 			XSComplexType complexType = (XSComplexType) complexIter.next();
-			if ( complexType.getName().equals( "anyType" ) == false ) {
-				TypeDefinition jolieComplexType = loadComplexType( complexType );
-				complexTypes.put( jolieComplexType.id(), jolieComplexType );
-				jolieTypes.add( jolieComplexType );
+			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
+				TypeDefinition jolieComplexType;
+				if ( complexTypes.containsKey( complexType.getName() + TYPE_SUFFIX ) ) {
+					// lazy type
+					jolieComplexType = loadComplexType( complexType, true, complexTypes.get( complexType.getName() + TYPE_SUFFIX ) );
+				} else {
+					jolieComplexType = loadComplexType( complexType, false, complexTypes.get( complexType.getName() + TYPE_SUFFIX ) );
+					if ( jolieComplexType != null ) {
+						complexTypes.put( jolieComplexType.id(), jolieComplexType );
+					}
+				}
+				if ( jolieComplexType != null ) {
+					jolieTypes.add( jolieComplexType );
+				} 
 			}
 		}
+
 
 		// Load element types
 		Iterator elementDeclIter = schemaSet.iterateElementDecls();
 		while( elementDeclIter.hasNext() ) {
 			XSElementDecl element = (XSElementDecl) elementDeclIter.next();
 			XSType type = element.getType();
-
 			checkDefaultAndFixed( element );
+
 
 			if ( type == null ) {
 				continue;
@@ -113,11 +221,24 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				continue;
 			}
 
-			// The element refers to a previously defined complex type
-			if ( type.getName() != null && complexTypes.get( type.getName() ) != null && complexTypes.containsKey( element.getName() ) == false ) {
-				TypeDefinition jolieType = new TypeDefinitionLink( parsingContext, element.getName(), Constants.RANGE_ONE_TO_ONE, complexTypes.get( type.getName() ) );
-				jolieTypes.add( jolieType );
-				continue;
+			if ( type.getName() != null ) {
+				String fullName = type.getName() + TYPE_SUFFIX;
+
+				// The element refers to a previously defined complex type
+				if ( complexTypes.get( fullName ) != null
+					&& complexTypes.containsKey( element.getName() ) ) {
+					TypeDefinition jolieType = new TypeDefinitionLink( parsingContext, element.getName(), Constants.RANGE_ONE_TO_ONE, complexTypes.get( fullName ) );
+					jolieTypes.add( jolieType );
+					continue;
+				}
+
+				// The element refers to a previously defined simple type
+				if ( simpleTypes.get( fullName ) != null
+					&& simpleTypes.containsKey( element.getName() ) == false ) {
+					TypeDefinition jolieType = new TypeDefinitionLink( parsingContext, element.getName(), Constants.RANGE_ONE_TO_ONE, simpleTypes.get( fullName ) );
+					jolieTypes.add( jolieType );
+					continue;
+				}
 			}
 
 			if ( type.isSimpleType() ) { // Element is a simple type
@@ -127,13 +248,13 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				XSParticle particle;
 				XSContentType contentType;
 				contentType = complexType.getContentType();
-				
+
 				// The complex type does not contain sub elements
 				if ( (particle = contentType.asParticle()) == null ) {
-					jolieTypes.add( createAnyOrUndefined( element.getName(), complexType ) );
+					//jolieTypes.add( createAnyOrUndefined( element.getName(), complexType ) );
 					continue;
 				}
-				
+
 				if ( contentType.asSimpleType() != null ) { // Unsupported by JOLIE
 					checkStrictModeForSimpleType( contentType );
 				} else if ( (particle = contentType.asParticle()) != null ) {
@@ -142,20 +263,9 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 					XSModelGroup modelGroup = null;
 					modelGroup = getModelGroup( modelGroupDecl, term );
 					if ( modelGroup != null ) {
-						XSModelGroup.Compositor compositor = modelGroup.getCompositor();
-						// We handle "all" and "sequence", but not "choice"
-						if ( compositor.equals( XSModelGroup.ALL ) || compositor.equals( XSModelGroup.SEQUENCE ) ) {
-							if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-								log( Level.WARNING, WARNING_SEQUENCE );
-							}
-
-							// Create the new complex type
-							TypeInlineDefinition jolieComplexType = createComplexType( complexType, element.getName(), particle );
-							navigateSubTypes( modelGroup.getChildren(), jolieComplexType );
-							jolieTypes.add( jolieComplexType );
-						} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
-							throw new ConversionException( ERROR_CHOICE );
-						}
+						TypeInlineDefinition jolieComplexType = createComplexType( complexType, element.getName(), particle );
+						groupProcessing( modelGroup, particle, jolieComplexType );
+						jolieTypes.add( jolieComplexType );
 					}
 				}
 			} else {
@@ -165,6 +275,33 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		return jolieTypes;
 	}
 
+	private void groupProcessing( XSModelGroup modelGroup, XSParticle particle, TypeInlineDefinition jolieType )
+		throws ConversionException
+	{
+		XSModelGroup.Compositor compositor = modelGroup.getCompositor();
+		// We handle "all" and "sequence", but not "choice"
+		if ( compositor.equals( XSModelGroup.ALL ) || compositor.equals( XSModelGroup.SEQUENCE ) ) {
+			if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
+				log( Level.WARNING, WARNING_SEQUENCE );
+			}
+
+			XSParticle[] children = modelGroup.getChildren();
+			XSTerm currTerm;
+			for( int i = 0; i < children.length; i++ ) {
+				currTerm = children[i].getTerm();
+				if ( currTerm.isModelGroup() ) {
+					groupProcessing( currTerm.asModelGroup(), particle, jolieType );
+				} else {
+					// Create the new complex type for root types
+					navigateSubTypes( children[i], jolieType );
+				}
+			}
+		} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
+			throw new ConversionException( ERROR_CHOICE );
+		}
+
+	}
+
 	private void log( Level level, String message )
 	{
 		if ( logger != null ) {
@@ -172,35 +309,41 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		}
 	}
 
-	/**
-	 * Recursive navigation of a complex type sub elements
-	 */
-	private void navigateSubTypes( XSParticle[] children, TypeInlineDefinition jolieType )
+	private void navigateSubTypes( XSParticle parentParticle, TypeInlineDefinition jolieType )
 		throws ConversionException
 	{
 		XSTerm currTerm;
-		XSElementDecl currElementDecl;
-		for( int i = 0; i < children.length; i++ ) {
-			currTerm = children[i].getTerm();
-			if ( currTerm.isElementDecl() ) {
-				currElementDecl = currTerm.asElementDecl();
-				XSType type = currElementDecl.getType();
-				/*if ( type != null && type.getName() != null && type.getName().contentEquals( "anyType" ) ) {
-					TypeInlineDefinition jolieSimpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), XsdUtils.xsdToNativeType( type.getName() ), getRange( children[i] ) );
-					jolieType.putSubType( jolieSimpleType );
-					continue;
-				}*/
-				if ( type != null && type.getName() != null && complexTypes.get( type.getName() ) != null ) {
-					TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(), getRange( children[i] ), complexTypes.get( type.getName() ) );
-					jolieType.putSubType( jolieSimpleType );
-					continue;
+		currTerm = parentParticle.getTerm();
+		if ( currTerm.isElementDecl() ) {
+			XSElementDecl currElementDecl;
+			currElementDecl = currTerm.asElementDecl();
+			XSType type = currElementDecl.getType();
+
+			if ( type != null && (type.getName()) != null && complexTypeNames.contains( type.getName() + TYPE_SUFFIX ) ) {
+				if ( complexTypes.get( type.getName() + TYPE_SUFFIX ) == null ) {
+					// create lazy type
+					TypeDefinition jolieLazyType = new TypeInlineDefinition( parsingContext, type.getName() + TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+					complexTypes.put( type.getName() + TYPE_SUFFIX, jolieLazyType );
 				}
+				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(), getRange( parentParticle ), complexTypes.get( type.getName() + TYPE_SUFFIX ) );
+				jolieType.putSubType( jolieSimpleType );
+
+			} else if ( type != null && type.getName() != null && simpleTypes.get( type.getName() + TYPE_SUFFIX ) != null ) {
+				/*if ( simpleTypes.get( type.getName() + TYPE_SUFFIX ) == null ) {
+				// create lazy type
+				TypeDefinition jolieLazyType = new TypeInlineDefinition( parsingContext, type.getName() + TYPE_SUFFIX, NativeType.ANY, Constants.RANGE_ONE_TO_ONE );
+				simpleTypes.put( type.getName() + TYPE_SUFFIX, jolieLazyType );
+				}*/
+				TypeDefinition jolieSimpleType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(), getRange( parentParticle ), simpleTypes.get( type.getName() + TYPE_SUFFIX ) );
+				jolieType.putSubType( jolieSimpleType );
+
+			} else {
 
 				checkDefaultAndFixed( currElementDecl );
 				if ( type.isSimpleType() ) {
 					checkForNativeType( type, WARNING_2 );
 					if ( type.getName() != null && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
-						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( children[i] ) ) );
+						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( parentParticle ) ) );
 					}
 				} else if ( type.isComplexType() ) {
 					XSComplexType complexType = type.asComplexType();
@@ -208,106 +351,85 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 					XSContentType contentType;
 					contentType = complexType.getContentType();
 					if ( (particle = contentType.asParticle()) == null ) {
-						jolieType.putSubType( createAnyOrUndefined( currElementDecl.getName(), complexType ) );
-						continue;
+						//jolieType.putSubType( createAnyOrUndefined( currElementDecl.getName(), complexType ) );
 					}
 					if ( contentType.asSimpleType() != null ) {
 						checkStrictModeForSimpleType( contentType );
 					} else if ( (particle = contentType.asParticle()) != null ) {
-						
 						XSTerm term = particle.getTerm();
 						XSModelGroupDecl modelGroupDecl = null;
 						XSModelGroup modelGroup = null;
 						modelGroup = getModelGroup( modelGroupDecl, term );
 						if ( modelGroup != null ) {
-							XSModelGroup.Compositor compositor = modelGroup.getCompositor();
-							if ( compositor.equals( XSModelGroup.ALL ) || compositor.equals( XSModelGroup.SEQUENCE ) ) {
-								if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-									log( Level.WARNING, WARNING_SEQUENCE );
-								}
-
-								// Create a new complex type
-								TypeInlineDefinition jolieComplexType = createComplexType( complexType, currElementDecl.getName(), children[i] );
-								if ( type.getBaseType().getName().equals( "anyType" ) ) {
-									jolieComplexType.setUntypedSubTypes( true );
-								} else {
-									navigateSubTypes( modelGroup.getChildren(), jolieComplexType );
-								}
-								jolieType.putSubType( jolieComplexType );
-							} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
-								throw new ConversionException( ERROR_CHOICE );
-							}
+							TypeInlineDefinition jolieComplexType = createComplexType( complexType, currElementDecl.getName(), particle );
+							groupProcessing( modelGroup, particle, jolieComplexType );
+							jolieType.putSubType( jolieComplexType );
 						}
 					}
-				} else {
-					log( Level.WARNING, "Rilevato tipo diverso da simple o complex" );
 				}
 			}
 		}
 	}
 
-	private TypeDefinition loadComplexType( XSComplexType complexType )
+	private TypeDefinition loadSimpleType( XSSimpleType simpleType, boolean lazy, TypeDefinition lazyType )
+	{
+		// processing restrictions
+		TypeInlineDefinition jolietype;
+
+		if ( lazy ) {
+			jolietype = (TypeInlineDefinition) lazyType;
+		} else {
+			if ( simpleType.isRestriction() ) {
+				XSRestrictionSimpleType restriction = simpleType.asRestriction();
+				checkType( restriction.getBaseType() );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName() + TYPE_SUFFIX, XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
+
+			} else {
+				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName(), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
+
+			}
+		}
+		return jolietype;
+	}
+
+	private TypeDefinition loadComplexType( XSComplexType complexType, boolean lazy, TypeDefinition lazyType )
 		throws ConversionException
 	{
 		XSParticle particle;
 		XSContentType contentType;
 		contentType = complexType.getContentType();
+
 		if ( (particle = contentType.asParticle()) == null ) {
-			return createAnyOrUndefined( complexType.getName(), complexType );
+			return null;//createAnyOrUndefined( complexType.getName(), complexType );
+
 		}
-		TypeInlineDefinition jolieType = createComplexType( complexType, complexType.getName(), particle );
+
+		TypeInlineDefinition jolieType;
+
+		if ( lazy ) {
+			jolieType = (TypeInlineDefinition) lazyType;
+		} else {
+			jolieType = createComplexType( complexType, complexType.getName() + TYPE_SUFFIX, particle );
+		}
+
 		if ( contentType.asSimpleType() != null ) {
 			checkStrictModeForSimpleType( contentType );
+
 		} else if ( (particle = contentType.asParticle()) != null ) {
 			XSTerm term = particle.getTerm();
 			XSModelGroupDecl modelGroupDecl = null;
 			XSModelGroup modelGroup = null;
 			modelGroup = getModelGroup( modelGroupDecl, term );
-			if ( modelGroup != null ) {
-				XSModelGroup.Compositor compositor = modelGroup.getCompositor();
-				if ( compositor.equals( XSModelGroup.ALL ) || compositor.equals( XSModelGroup.SEQUENCE ) ) {
-					if ( compositor.equals( XSModelGroup.SEQUENCE ) ) {
-						log( Level.WARNING, WARNING_SEQUENCE );
-					}
-					XSTerm currTerm;
-					XSElementDecl currElementDecl;
-					for( int i = 0; i < modelGroup.getChildren().length; i++ ) {
-						currTerm = modelGroup.getChildren()[i].getTerm();
-						if ( currTerm.isElementDecl() ) {
-							currElementDecl = currTerm.asElementDecl();
-							XSType type = currElementDecl.getType();
-							if ( type != null && type.getName() != null && type.getName().contentEquals( "anyType" ) ) {
-								TypeInlineDefinition simpleType = new TypeInlineDefinition( parsingContext, currElementDecl.getName(), XsdUtils.xsdToNativeType( type.getName() ), getRange( modelGroup.getChildren()[i] ) );
-								jolieType.putSubType( simpleType );
-								continue;
-							}
 
-							checkDefaultAndFixed( currElementDecl );
-							if ( type.isSimpleType() ) {
-								checkForNativeType( type, WARNING_2 );
-								if ( type.getName() != null ) {
-									if ( XsdUtils.xsdToNativeType( type.getName() ) != null ) {
-										jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( modelGroup.getChildren()[i] ) ) );
-									}
-								}
-							} else if ( type.isComplexType() ) {
-								TypeDefinition jolieComplexType = null;
-								if ( type.isGlobal() ) {
-									jolieComplexType = new TypeDefinitionLink( parsingContext, currElementDecl.getName(), getRange( modelGroup.getChildren()[i] ), new TypeInlineDefinition( parsingContext, type.getName(), NativeType.VOID, Constants.RANGE_ONE_TO_ONE ) );
-								} else {
-									jolieComplexType = createComplexType( complexType, currElementDecl.getName(), modelGroup.getChildren()[i] );
-									loadComplexType( type.asComplexType() );
-								}
-								jolieType.putSubType( jolieComplexType );
-							}
-						}
-					}
-				} else if ( compositor.equals( XSModelGroup.CHOICE ) ) {
-					throw new ConversionException( ERROR_CHOICE );
-				}
+
+			if ( modelGroup != null ) {
+				groupProcessing( modelGroup, particle, jolieType );
 			}
 		}
 		return jolieType;
+
+
 	}
 
 	private TypeInlineDefinition createAnyOrUndefined( String typeName, XSComplexType complexType )
@@ -323,6 +445,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( type.getName() != null && (type.getName().contains( "date" ) || type.getName().contains( "time" ) || type.getName().contains( "boolean" )) ) {
 			log( Level.WARNING, WARNING_CONVERT_STRING + " Type: " + type.getName() );
+
+
 		}
 	}
 
@@ -333,10 +457,14 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( element.getDefaultValue() != null ) {
 			log( Level.WARNING, WARNING_DEFAULT_ATTRIBUTE + " Element: " + element.getName() );
+
+
 		}
 
 		if ( element.getFixedValue() != null ) {
 			log( Level.WARNING, WARNING_FIXED_ATTRIBUTE + " Element: " + element.getName() );
+
+
 		}
 
 	}
@@ -345,14 +473,20 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		checkType( type );
 		return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
+
+
 	}
 
 	private TypeInlineDefinition createComplexType( XSComplexType complexType, String typeName, XSParticle particle )
 	{
 		if ( complexType.isMixed() ) {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, getRange( particle ) );
+
+
 		} else {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.VOID, getRange( particle ) );
+
+
 		}
 	}
 
@@ -360,16 +494,24 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( (modelGroupDecl = term.asModelGroupDecl()) != null ) {
 			return modelGroupDecl.getModelGroup();
+
+
 		} else if ( term.isModelGroup() ) {
 			return term.asModelGroup();
+
+
 		} else {
 			return null;
+
+
 		}
 	}
 
 	private boolean strict()
 	{
 		return strict;
+
+
 	}
 
 	/**
@@ -392,23 +534,36 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( !strict() ) {
 			log( Level.WARNING, WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
+
+
 		} else {
 			throw new ConversionException( ERROR_SIMPLE_TYPE + WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
+
+
 		}
 	}
 
 	private Range getRange( XSParticle part )
 	{
 		int min = 1;
+
+
 		int max = Integer.MAX_VALUE;
+
+
 		if ( part.getMinOccurs() != -1 ) {
 			min = part.getMinOccurs();
+
+
 		}
 
 		if ( part.getMaxOccurs() != -1 ) {
 			max = part.getMaxOccurs();
+
+
 		}
 
 		return new Range( min, max );
+
 	}
 }
