@@ -89,6 +89,17 @@ public class FileService extends JavaService
 	}
 
 	@RequestResponse
+	public Value convertFromBinaryToBase64Value( Value value )
+		throws IOException
+	{
+		byte[] buffer = value.byteArrayValue().getBytes();
+		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+		Value retValue = Value.create();
+		retValue.setValue( encoder.encode( buffer ) );
+		return retValue;
+	}
+
+	@RequestResponse
 	public void setMimeTypeFile( String filename )
 		throws FaultException
 	{
@@ -505,4 +516,6 @@ public class FileService extends JavaService
 			return pattern.matcher( name ).matches();
 		}
 	}
+
+	
 }
