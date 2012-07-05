@@ -89,13 +89,11 @@ public class FileService extends JavaService
 	}
 
 	@RequestResponse
-	public Value convertFromBinaryToBase64Value( Value value )
+	public String convertFromBinaryToBase64Value( Value value )
 	{
 		byte[] buffer = value.byteArrayValue().getBytes();
 		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		Value retValue = Value.create();
-		retValue.setValue( encoder.encode( buffer ) );
-		return retValue;
+		return encoder.encode( buffer );
 	}
 
 	@RequestResponse
