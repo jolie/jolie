@@ -45,15 +45,14 @@ public class GetSurface
 	{
 		// TODO code application logic here
 		try {
-
 			CommandLineParser cmdParser = new CommandLineParser( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
 				cmdParser.includePaths(), GetSurface.class.getClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
-
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
+                       
 			document.ConvertDocument( cmdParser.arguments()[0] );
 
 		} catch( CommandLineException ex ) {

@@ -46,6 +46,8 @@ import jolie.util.Range;
 /**
  *
  * @author Claudio Guidi
+ * 
+ * Modified by Francesco Bullini, 05/07/2012
  */
 public class SurfaceCreator
 {
@@ -75,9 +77,11 @@ public class SurfaceCreator
 		ow_vector = new ArrayList<OneWayOperationDeclaration>();
 		types_vector = new ArrayList<String>();
 		aux_types_vector = new ArrayList<TypeDefinition>();
-
+                System.out.println("inputPortToCreate="+inputPortToCreate);
 		// find inputPort
+                System.out.println("originalFile="+originalFile);
 		InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
+                 System.out.println("inputPortList="+inputPortList[0].id());
 		InputPortInfo inputPort = null;
 		for( InputPortInfo iP : inputPortList ) {
 			if ( iP.id().equals( inputPortToCreate ) ) {
@@ -192,6 +196,7 @@ public class SurfaceCreator
 				}
 				ret = ret + "}";
 			}
+                        else if (type.untypedSubTypes()){ ret = ret+ "{ ? }"; }
 		}
 		;
 		return ret;
@@ -199,8 +204,9 @@ public class SurfaceCreator
 
 	private String getType( TypeDefinition type )
 	{
-		String ret = "";
-		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() ) ) {
+		String ret = "";                            
+		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )  && !type.id().equals("undefined")) {
+                        
 			System.out.print( "type " + type.id() + ":" );
 			if ( type instanceof TypeDefinitionLink ) {
 				System.out.println( ((TypeDefinitionLink) type).linkedTypeName() );
@@ -215,8 +221,10 @@ public class SurfaceCreator
 						System.out.println( getSubType( entry.getValue(), 1 ) );
 					}
 					System.out.println( "}" );
-				} else {
-					System.out.println();
+				} else { 
+                                    if (type.untypedSubTypes()) {
+					System.out.println( " { ? }" );}
+                                   
 				}
 			}
 			types_vector.add( type.id() );
