@@ -156,7 +156,7 @@ public class MetaJolie extends JavaService {
                 if ( !is_generalType( typedef.id() ) ) {
                     type.getFirstChild("name").deepCopy( setName( name ));
 					type.getFirstChild( "name").getFirstChild( "name").setValue( typedef.id() );
-                    type.getFirstChild("root_type").getFirstChild("link").setValue( ((TypeDefinitionLink) typedef ).linkedTypeName());
+                    type.getFirstChild("root_type").getFirstChild("link").getFirstChild("name").setValue( ((TypeDefinitionLink) typedef ).linkedTypeName());
                     insertType( types, types_vector, name, ((TypeDefinitionLink) typedef ).linkedType() );
                 }
             } else {
