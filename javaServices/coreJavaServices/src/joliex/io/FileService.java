@@ -90,7 +90,6 @@ public class FileService extends JavaService
 
 	@RequestResponse
 	public Value convertFromBinaryToBase64Value( Value value )
-		throws IOException
 	{
 		byte[] buffer = value.byteArrayValue().getBytes();
 		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
