@@ -77,11 +77,11 @@ public class SurfaceCreator
 		ow_vector = new ArrayList<OneWayOperationDeclaration>();
 		types_vector = new ArrayList<String>();
 		aux_types_vector = new ArrayList<TypeDefinition>();
-                System.out.println("inputPortToCreate="+inputPortToCreate);
+             
 		// find inputPort
-                System.out.println("originalFile="+originalFile);
+               
 		InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
-                 System.out.println("inputPortList="+inputPortList[0].id());
+            
 		InputPortInfo inputPort = null;
 		for( InputPortInfo iP : inputPortList ) {
 			if ( iP.id().equals( inputPortToCreate ) ) {
@@ -222,8 +222,12 @@ public class SurfaceCreator
 					}
 					System.out.println( "}" );
 				} else { 
+                                    
                                     if (type.untypedSubTypes()) {
 					System.out.println( " { ? }" );}
+                                    else {
+                                        System.out.println( "" );
+                                    }
                                    
 				}
 			}
