@@ -80,7 +80,8 @@ RequestResponse:
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(void),
 	setMimeTypeFile(string)(void) throws IOException(void),
-	convertFromBinaryToBase64Value( raw )( string )
+	convertFromBinaryToBase64Value( raw )( string ),
+	convertFromBase64ToBinaryValue( string )( raw ) throws IOException(IOExceptionType)
 }
 
 outputPort File {
