@@ -1084,7 +1084,7 @@ public class OOITBuilder implements OLVisitor
 			return new VariablePath( internalPath );
 		}
 	}
-	
+
 	public void visit( PointerStatement n )
 	{
 		currProcess =
@@ -1093,7 +1093,7 @@ public class OOITBuilder implements OLVisitor
 				buildVariablePath( n.rightPath() )
 				);
 	}
-	
+
 	public void visit( DeepCopyStatement n )
 	{
 		currProcess =
@@ -1102,7 +1102,7 @@ public class OOITBuilder implements OLVisitor
 				buildVariablePath( n.rightPath() )
 				);
 	}
-	
+
 	public void visit( IfStatement n )
 	{
 		IfProcess.CPPair[] pairs = new IfProcess.CPPair[ n.children().size() ];
@@ -1124,7 +1124,7 @@ public class OOITBuilder implements OLVisitor
 		
 		currProcess = new IfProcess( pairs, elseProcess );
 	}
-	
+
 	public void visit( CurrentHandlerStatement n )
 	{
 		currProcess = CurrentHandlerProcess.getInstance();
@@ -1132,19 +1132,15 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( DefinitionCallStatement n )
 	{
-		try {
-			currProcess = new CallProcess( interpreter.getDefinition( n.id() ) );
-		} catch( InvalidIdException e ) {
-			error( n.context(), e );
-		}
+		currProcess = new CallProcess( n.id() );
 	}
-	
+
 	public void visit( RunStatement n )
 	{
 		n.expression().accept( this );
 		currProcess = new RunProcess( currExpression );
 	}
-	
+
 	public void visit( WhileStatement n )
 	{
 		n.condition().accept( this );

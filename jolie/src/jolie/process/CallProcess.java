@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -20,8 +20,10 @@
  ***************************************************************************/
 
 package jolie.process;
+import jolie.Interpreter;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.InvalidIdException;
 
 
 /** Executes a sub-routine.
@@ -31,31 +33,41 @@ import jolie.runtime.FaultException;
  */
 public class CallProcess implements Process
 {
-	final private DefinitionProcess definition;
+	private final String definitionName;
 	
 	/** Constructor
 	 * 
 	 * @param definition the definition to execute.
 	 */
-	public CallProcess( DefinitionProcess definition )
+	public CallProcess( String definitionName )
 	{
-		this.definition = definition;
+		this.definitionName = definitionName;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new CallProcess( definition );
+		return new CallProcess( definitionName );
 	}
 	
 	/** Executes the definition. */
 	public void run()
 		throws FaultException, ExitingException
 	{
-		definition.run();
+		try {
+			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );
+			definition.run();
+		} catch( InvalidIdException e ) {
+			throw new FaultException( "FatalError", "Definition not found: " + definitionName );
+		}
 	}
 	
 	public boolean isKillable()
 	{
-		return definition.isKillable();
+		try {
+			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );
+			return definition.isKillable();
+		} catch( InvalidIdException e ) {
+			return true;
+		}
 	}
 }
