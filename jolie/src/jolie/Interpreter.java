@@ -83,7 +83,6 @@ public class Interpreter
 
 			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				try {
-
 					mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
 					correlationEngine.onSingleExecutionSessionStart( mainSession );
 					mainSession.addSessionListener( correlationEngine );
