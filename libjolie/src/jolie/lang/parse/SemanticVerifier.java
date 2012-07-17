@@ -851,7 +851,12 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.elseProcess() );
 	}
 
-	public void visit( DefinitionCallStatement n ) {}
+	public void visit( DefinitionCallStatement n )
+	{
+		if ( !subroutineNames.contains( n.id() ) ) {
+			error( n, "Call to undefined definition: " + n.id() );
+		}
+	}
 
 	public void visit( WhileStatement n )
 	{
