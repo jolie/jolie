@@ -21,30 +21,18 @@
 
 package jolie;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import jolie.lang.Constants;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import jolie.jap.JapURLConnection;
+import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
 import jolie.runtime.correlation.CorrelationEngine;
 
@@ -63,6 +51,7 @@ public class CommandLineParser
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
 	private final String[] optionArgs;
+	private final String[] whitepages;
 	private final URL[] libURLs;
 	private final InputStream programStream;
 	private final String programFilepath;
@@ -185,7 +174,9 @@ public class CommandLineParser
 		helpBuilder.append(
 				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
-				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: true)" ) );
+				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
+		helpBuilder.append(
+				getOptionString( "-R [location]", "Add the service at [location] to the registry whitelist for this Jolie program" ) );
 		helpBuilder.append(
 				getOptionString( "--verbose", "Activate verbose mode" ) );
 		helpBuilder.append(
@@ -253,14 +244,14 @@ public class CommandLineParser
 		throws CommandLineException, IOException
 	{
 		List< String > argsList = new ArrayList< String >( args.length );
-		for( int i = 0; i < args.length; i++ ) {
-			argsList.add( args[ i ] );
-		}
+		Collections.addAll( argsList, args );
+
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
 		boolean bVerbose = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		List< String > programArgumentsList = new ArrayList< String >();
+		List< String > whitepageList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
 		int cLimit = -1;
@@ -285,6 +276,11 @@ public class CommandLineParser
 					throw new CommandLineException( "Invalid constant definition, reason: " + e.getMessage() );
 				}
 				optionsList.add( argsList.get( i ) );
+			} else if ( "-R".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				whitepageList.add( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
 			} else if ( "-i".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
@@ -292,9 +288,7 @@ public class CommandLineParser
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
-				for( String s : tmp ) {
-					includeList.add( s );
-				}
+				Collections.addAll( includeList, tmp );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "-l".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -303,9 +297,7 @@ public class CommandLineParser
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
-				for( String s : tmp ) {
-					libList.add( s );
-				}
+				Collections.addAll( libList, tmp );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -389,6 +381,7 @@ public class CommandLineParser
 		}
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
+		whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
@@ -509,9 +502,7 @@ public class CommandLineParser
 			String options = attrs.getValue( Constants.Manifest.Options );
 			if ( options != null ) {
 				String[] tmp = optionSeparatorPattern.split( options );
-				for( String s : tmp ) {
-					optionList.add( s );
-				}
+				Collections.addAll( optionList, tmp );
 			}
 		}
 		return optionList;
