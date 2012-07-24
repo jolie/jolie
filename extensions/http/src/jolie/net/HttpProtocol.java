@@ -427,7 +427,7 @@ public class HttpProtocol extends CommProtocol
 			} catch( SerializationException e ) {
 				throw new IOException( e );
 			}
-		} else if ( "json".equals( format ) ) {
+		} else if ( "json".equals( format ) || "application/json".equals( format ) ) {
 			ret.contentType = "application/json";
 			StringBuilder jsonStringBuilder = new StringBuilder();
 			JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
@@ -845,6 +845,7 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) ) {
 			parseJson( message, decodedMessage.value );
+			requestFormat = "application/json";
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "json".equals( format ) ) {

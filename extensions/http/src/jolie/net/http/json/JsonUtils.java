@@ -142,42 +142,48 @@ public class JsonUtils
 	private static ValueVector jsonObjectToValueVector( Object obj )
 	{
 		ValueVector vec = ValueVector.create();
-		Value val;
 		if ( obj instanceof JSONObject ) {
-			val = Value.create();
+			Value val = Value.create();
 			jsonObjectToValue( (JSONObject)obj, val );
 			vec.add( val );
 		} else if ( obj instanceof JSONArray ) {
 			JSONArray array = (JSONArray) obj;
 			for ( Object element : array ) {
 				if ( element instanceof JSONObject ) {
-					val = Value.create();
+					Value val = Value.create();
 					jsonObjectToValue( (JSONObject)element, val );
 					vec.add( val );
+				} else {
+					vec.add( getBasicValue( element ) );
 				}
 			}
 		} else {
-			val = Value.create();
-			if ( obj instanceof String ) {
-				val.setValue( (String) obj );
-			} else if ( obj instanceof Double ) {
-				val.setValue( (Double) obj );
-			} else if ( obj instanceof Integer ) {
-				val.setValue( (Integer) obj );
-			} else if ( obj instanceof Long ) {
-				val.setValue( ((Long) obj).intValue() );
-			} else if ( obj instanceof Boolean ) {
-				Boolean b = (Boolean) obj;
-				if ( b ) {
-					val.setValue( 1 );
-				} else {
-					val.setValue( 0 );
-				}
-			} else {
-				val.setValue( obj.toString() );
-			}
-			vec.add(  val );
+			vec.add( getBasicValue( obj ) );
 		}
 		return vec;
+	}
+	
+	private static Value getBasicValue( Object obj )
+	{
+		Value val = Value.create();
+		if ( obj instanceof String ) {
+			val.setValue( (String) obj );
+		} else if ( obj instanceof Double ) {
+			val.setValue( (Double) obj );
+		} else if ( obj instanceof Integer ) {
+			val.setValue( (Integer) obj );
+		} else if ( obj instanceof Long ) {
+			val.setValue( ((Long) obj).intValue() );
+		} else if ( obj instanceof Boolean ) {
+			Boolean b = (Boolean) obj;
+			if ( b ) {
+				val.setValue( 1 );
+			} else {
+				val.setValue( 0 );
+			}
+		} else {
+			val.setValue( obj.toString() );
+		}
+		return val;
 	}
 }
