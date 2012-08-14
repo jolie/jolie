@@ -92,7 +92,6 @@ public class HttpProtocol extends CommProtocol
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
 	//private static final byte[] INTERNAL_SERVER_ERROR_HEADER = "HTTP/1.1 500 Internal Server error".getBytes();
 
-
 	private static class Parameters {
 		private static String DEBUG = "debug";
 		private static String COOKIES = "cookies";
@@ -100,7 +99,7 @@ public class HttpProtocol extends CommProtocol
 		private static String ALIAS = "alias";
 		private static String MULTIPART_HEADERS = "multipartHeaders";
 		private static String CONCURRENT = "concurrent";
-                //private static String USERAGENT = "userAgent";
+		private static final String USER_AGENT = "userAgent";
 
 		private static class MultiPartHeaders {
 			private static String FILENAME = "filename";
@@ -446,7 +445,7 @@ public class HttpProtocol extends CommProtocol
 			headerBuilder.append( "Location: " + redirect + CRLF );
 		}
 		send_appendSetCookieHeader( message, headerBuilder );
-		headerBuilder.append( "Server: JOLIE" ).append( CRLF );
+		headerBuilder.append( "Server: Jolie" ).append( CRLF );
 		StringBuilder cacheControlHeader = new StringBuilder();
 		if ( hasParameter( "cacheControl" ) ) {
 			Value cacheControl = getParameterFirstValue( "cacheControl" );
@@ -877,7 +876,7 @@ public class HttpProtocol extends CommProtocol
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
 				decodedMessage.value.getFirstChild( "operation" ).setValue( decodedMessage.operationName );
-                                decodedMessage.value.getFirstChild("userAgent").setValue(message.userAgent());
+				decodedMessage.value.getFirstChild( Parameters.USER_AGENT).setValue( message.userAgent() );
 				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
 				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
 					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );
@@ -907,14 +906,12 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		recv_checkForCookies( message, decodedMessage );
-		recv_checkForMultiPartHeaders( decodedMessage );// message, decodedMessage );
-		String property;
+		recv_checkForMultiPartHeaders( decodedMessage );
 		if (
 			message.userAgent()!= null &&
-			hasParameter( "userAgent" )
+			hasParameter( Parameters.USER_AGENT)
 		) {
-			getParameterFirstValue( "userAgent" ).setValue( message.userAgent() );
-                        
+			getParameterFirstValue( Parameters.USER_AGENT).setValue( message.userAgent() );     
 		}
 	}
 
