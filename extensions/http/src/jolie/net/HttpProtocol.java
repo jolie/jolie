@@ -908,10 +908,10 @@ public class HttpProtocol extends CommProtocol
 		recv_checkForCookies( message, decodedMessage );
 		recv_checkForMultiPartHeaders( decodedMessage );
 		if (
-			message.userAgent()!= null &&
-			hasParameter( Parameters.USER_AGENT)
+			message.userAgent() != null &&
+			hasParameter( Parameters.USER_AGENT )
 		) {
-			getParameterFirstValue( Parameters.USER_AGENT).setValue( message.userAgent() );     
+			getParameterFirstValue( Parameters.USER_AGENT ).setValue( message.userAgent() );     
 		}
 	}
 
