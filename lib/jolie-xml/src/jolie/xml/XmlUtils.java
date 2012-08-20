@@ -369,7 +369,7 @@ documentToValue( document, value, true );
 	private static String setAttributesForStoring( Value value, Node node )
 	{
 		NamedNodeMap map = node.getAttributes();
-		String type = "";
+		String type = "string";
 		if ( map != null ) {
 			Node attr;
 			for( int i = 0; i < map.getLength(); i++ ) {
