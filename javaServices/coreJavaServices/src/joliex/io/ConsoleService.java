@@ -30,6 +30,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import jolie.net.CommMessage;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -37,10 +38,8 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class ConsoleService extends JavaService
 {
-
-	private HashMap< String, String > sessionTokens;
+	private Map< String, String > sessionTokens;
 	private boolean sessionListeners = false;
-
 
 	private class ConsoleInputThread extends Thread
 	{
