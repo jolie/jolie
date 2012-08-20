@@ -49,6 +49,7 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
+import jolie.process.TransformationReason;
 import jolie.runtime.*;
 import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
@@ -1140,7 +1141,7 @@ public class Interpreter
 			return false;
 		}
 		
-		SessionThread spawnedSession = null;
+		final SessionThread spawnedSession;
 
 		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
@@ -1167,17 +1168,45 @@ public class Interpreter
 			} );
 			spawnedSession.start();
 		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
+			/*
+			 * We use mainSession as a reference to the latest arrived
+			 * sequential session spawn request.
+			 */
+			final SessionThread currentMainSession = mainSession;
 			State state = initExecutionThread.state().clone();
 			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+				new jolie.process.Process() {
+					public void run()
+						throws FaultException, ExitingException
+					{
+						if ( currentMainSession != null ) {
+							try {
+								currentMainSession.join();
+							} catch( InterruptedException e ) {
+								logSevere( e );
+							}
+						}
+					}
+
+					public jolie.process.Process clone( TransformationReason reason )
+					{
+						return this;
+					}
+
+					public boolean isKillable()
+					{
+						return false;
+					}
+				},
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
 				starter.body
 			} );
-			final SessionThread currentMainSession = mainSession;
-			spawnedSession = mainSession = new SessionThread(
+			
+			spawnedSession = new SessionThread(
 				sequence, state, initExecutionThread
 			);
-			correlationEngine.onSessionStart( mainSession, starter, message );
-			mainSession.addSessionListener( correlationEngine );
+			correlationEngine.onSessionStart( spawnedSession, starter, message );
+			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session )
 				{
@@ -1189,22 +1218,8 @@ public class Interpreter
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 			} );
-			if ( currentMainSession == null ) {
-				mainSession.start();
-			} else {
-				final SessionThread futureSession = mainSession;
-				execute( new Runnable() {
-					public void run()
-					{
-						try {
-							currentMainSession.join();
-						} catch( InterruptedException e ) {
-							logSevere( e );
-						}
-						futureSession.start();
-					}
-				});
-			}
+			mainSession = spawnedSession;
+			mainSession.start();
 		}
 
 		return true;
