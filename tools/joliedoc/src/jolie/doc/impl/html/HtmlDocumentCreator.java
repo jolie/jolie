@@ -58,7 +58,6 @@ public class HtmlDocumentCreator
 	{
 		this.inspector = inspector;
 		this.directorySourceFile = directorySourceFile;
-		types = new ArrayList<String>();
 	}
 
 	public void ConvertDocument()
@@ -72,6 +71,7 @@ public class HtmlDocumentCreator
 		boolean inputPortExist = false;
 		for( InputPortInfo inputPort : inputPorts ) {
 			inputPortExist = true;
+                        types = new ArrayList<String>();
 			writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
 			jolieDocWriter = new JolieDocWriter( writer );
 			jolieDocWriter.addPort( inputPort );
