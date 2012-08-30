@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -26,16 +26,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import jolie.lang.NativeType;
 
 /**
- * Scanner implementation for the JOLIE language parser.
+ * Scanner implementation for the Jolie language parser.
  * 
  * @author Fabrizio Montesi
  *
  */
 public class Scanner
 {
+	/** Token types */
 	public enum TokenType {
 		EOF,				///< End Of File
 		ID,					///< [a-z][a-zA-Z0-9]*
@@ -127,6 +130,56 @@ public class Scanner
 		CURRENT_HANDLER,		///< cH
 		INIT,					///< init
 		ERROR					///< Scanner error
+	}
+	
+	/*
+	 * Map of unreserved keywords,
+	 * which can be considered as IDs in certain places (e.g. variables).
+	 */
+	private static final Map< String, TokenType > unreservedKeywords = new HashMap< String, TokenType >();
+	
+	static {
+		// Initialise the unreserved keywords map.
+		unreservedKeywords.put( "OneWay", TokenType.OP_OW );
+		unreservedKeywords.put( "RequestResponse", TokenType.OP_RR );
+		unreservedKeywords.put( "linkIn", TokenType.LINKIN );
+		unreservedKeywords.put( "linkOut", TokenType.LINKOUT );
+		unreservedKeywords.put( "if", TokenType.IF );
+		unreservedKeywords.put( "else", TokenType.ELSE );
+		unreservedKeywords.put( "include", TokenType.INCLUDE );
+		unreservedKeywords.put( "define", TokenType.DEFINE );
+		unreservedKeywords.put( "nullProcess", TokenType.NULL_PROCESS );
+		unreservedKeywords.put( "while", TokenType.WHILE );
+		unreservedKeywords.put( "execution", TokenType.EXECUTION );
+		unreservedKeywords.put( "install", TokenType.INSTALL );
+		unreservedKeywords.put( "this", TokenType.THIS );
+		unreservedKeywords.put( "synchronized", TokenType.SYNCHRONIZED );
+		unreservedKeywords.put( "throw", TokenType.THROW );
+		unreservedKeywords.put( "scope", TokenType.SCOPE );
+		unreservedKeywords.put( "spawn", TokenType.SPAWN );
+		unreservedKeywords.put( "comp", TokenType.COMPENSATE );
+		unreservedKeywords.put( "exit", TokenType.EXIT );
+		unreservedKeywords.put( "constants", TokenType.CONSTANTS );
+		unreservedKeywords.put( "undef", TokenType.UNDEF );
+		unreservedKeywords.put( "for", TokenType.FOR );
+		unreservedKeywords.put( "foreach", TokenType.FOREACH );
+		unreservedKeywords.put( "is_defined", TokenType.IS_DEFINED );
+		unreservedKeywords.put( "is_string", TokenType.IS_STRING );
+		unreservedKeywords.put( "is_int", TokenType.IS_INT );
+		unreservedKeywords.put( "is_bool", TokenType.IS_BOOL );
+		unreservedKeywords.put( "is_long", TokenType.IS_LONG );
+		unreservedKeywords.put( "is_double", TokenType.IS_DOUBLE );
+		unreservedKeywords.put( "instanceof", TokenType.INSTANCE_OF );
+		unreservedKeywords.put( NativeType.INT.id(), TokenType.CAST_INT );
+		unreservedKeywords.put( NativeType.STRING.id(), TokenType.CAST_STRING );
+		unreservedKeywords.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
+		unreservedKeywords.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
+		unreservedKeywords.put( "throws", TokenType.THROWS );
+		unreservedKeywords.put( "cH", TokenType.CURRENT_HANDLER );
+		unreservedKeywords.put( "init", TokenType.INIT );
+		unreservedKeywords.put( "with", TokenType.WITH );
+		unreservedKeywords.put( "true", TokenType.TRUE );
+		unreservedKeywords.put( "false", TokenType.FALSE );
 	}
 	
 	/**
@@ -253,7 +306,7 @@ public class Scanner
 	
 
 	private final InputStream stream;		// input stream
-	private final Reader reader;		// data input
+	private final Reader reader;			// data input
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
 	protected int state;					// current state
@@ -319,11 +372,21 @@ public class Scanner
 		return stream;
 	}
 	
+	/**
+	 * Returns the current line the scanner is reading.
+	 * 
+	 * @return the current line the scanner is reading.
+	 */
 	public int line()
 	{
 		return line;
 	}
 	
+	/**
+	 * Returns the source URI the scanner is reading.
+	 * 
+	 * @return the source URI the scanner is reading
+	 */
 	public URI source()
 	{
 		return source;
@@ -334,6 +397,10 @@ public class Scanner
 		return source.getSchemeSpecificPart();
 	}
 	
+	/**
+	 * Eats all separators (whitespace) until the next input.
+	 * @throws IOException 
+	 */
 	public void eatSeparators()
 		throws IOException
 	{
@@ -350,16 +417,30 @@ public class Scanner
 		}
 	}
 	
+	/**
+	 * Checks whether a character is a separator (whitespace).
+	 * @param c the character to check as a whitespace
+	 * @return <code>true</code> if <code>c</code> is a separator (whitespace)
+	 */
 	public static boolean isSeparator( int c )
 	{
 		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
 	
+	/**
+	 * Checks whether a character is a newline character.
+	 * @param c the character to check
+	 * @return <code>true</code> if <code>c</code> is a newline character
+	 */
 	public static boolean isNewLineChar( int c )
 	{
 		return ( c == '\n' || c == '\r' );
 	}
 	
+	/**
+	 * Reads the next character and loads it into the scanner local state.
+	 * @throws IOException if the source cannot be read
+	 */
 	public final void readChar()
 		throws IOException
 	{
@@ -372,11 +453,20 @@ public class Scanner
 		}
 	}
 	
+	/**
+	 * Returns the current character in the scanner local state.
+	 * @return the current character in the scanner local state
+	 */
 	public char currentCharacter()
 	{
 		return ch;
 	}
 	
+	/**
+	 * Consumes characters from the source text and returns its corresponding token.
+	 * @return the token corresponding to the consumed characters
+	 * @throws IOException if not enough characters can be read from the source
+	 */
 	public Token getToken()
 		throws IOException
 	{
@@ -473,95 +563,12 @@ public class Scanner
 					}
 					
 					break;
-				case 2:	// ID
+				case 2:	// ID (or unreserved keyword)
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
 						String str = builder.toString();
-						if ( "OneWay".equals( str ) ) {
-							retval = new Token( TokenType.OP_OW );
-						} else if ( "RequestResponse".equals( str ) ) {
-							retval = new Token( TokenType.OP_RR );
-						} else if ( "linkIn".equals( str ) ) {
-							retval = new Token( TokenType.LINKIN );
-						} else if ( "linkOut".equals( str ) ) {
-							retval = new Token( TokenType.LINKOUT );
-						} else if ( "if".equals( str ) ) {
-							retval = new Token( TokenType.IF );
-						} else if ( "else".equals( str ) ) {
-							retval = new Token( TokenType.ELSE );
-						} else if ( "and".equals( str ) ) {
-							retval = new Token( TokenType.AND );
-						} else if ( "or".equals( str ) ) {
-							retval = new Token( TokenType.OR );
-						} else if ( "include".equals( str ) ) {
-							retval = new Token( TokenType.INCLUDE );
-						} else if ( "define".equals( str ) ) {
-							retval = new Token( TokenType.DEFINE );
-						} else if ( "nullProcess".equals( str ) ) {
-							retval = new Token( TokenType.NULL_PROCESS );
-						} else if ( "while".equals( str ) ) {
-							retval = new Token( TokenType.WHILE );
-						} else if ( "execution".equals( str ) ) {
-							retval = new Token( TokenType.EXECUTION );
-						} else if ( "install".equals( str ) ) {
-							retval = new Token( TokenType.INSTALL );
-						} else if ( "this".equals( str ) ) {
-							retval = new Token( TokenType.THIS );
-						} else if ( "synchronized".equals( str ) ) {
-							retval = new Token( TokenType.SYNCHRONIZED );
-						} else if ( "throw".equals( str ) ) {
-							retval = new Token( TokenType.THROW );
-						} else if ( "scope".equals( str ) ) {
-							retval = new Token( TokenType.SCOPE );
-						} else if ( "spawn".equals( str ) ) {
-							retval = new Token( TokenType.SPAWN );
-						} else if ( "comp".equals( str ) ) {
-							retval = new Token( TokenType.COMPENSATE );
-						} else if ( "exit".equals( str ) ) {
-							retval = new Token( TokenType.EXIT );
-						} else if ( "constants".equals( str ) ) {
-							retval = new Token( TokenType.CONSTANTS );
-						} else if ( "undef".equals( str ) ) {
-							retval = new Token( TokenType.UNDEF );
-						} else if ( "for".equals( str ) ) {
-							retval = new Token( TokenType.FOR );
-						} else if ( "foreach".equals( str ) ) {
-							retval = new Token( TokenType.FOREACH );
-						} else if ( "is_defined".equals( str ) ) {
-							retval = new Token( TokenType.IS_DEFINED );
-						} else if ( "is_string".equals( str ) ) {
-							retval = new Token( TokenType.IS_STRING );
-						} else if ( "is_int".equals( str ) ) {
-							retval = new Token( TokenType.IS_INT );
-						} else if ( "is_bool".equals( str ) ) {
-							retval = new Token( TokenType.IS_BOOL );
-						} else if ( "is_long".equals( str ) ) {
-							retval = new Token( TokenType.IS_LONG );
-						} else if ( "is_double".equals( str ) ) {
-							retval = new Token( TokenType.IS_DOUBLE );
-						} else if ( "instanceof".equals( str ) ) {
-							retval = new Token( TokenType.INSTANCE_OF );
-						} else if ( NativeType.INT.id().equals( str ) ) {
-							retval = new Token( TokenType.CAST_INT, str );
-						} else if ( NativeType.STRING.id().equals( str ) ) {
-							retval = new Token( TokenType.CAST_STRING, str );
-						} else if ( NativeType.BOOL.id().equals( str ) ) {
-							retval = new Token( TokenType.CAST_BOOL, str );
-						} else if ( NativeType.LONG.id().equals( str ) ) {
-							retval = new Token( TokenType.CAST_LONG, str );
-						} else if ( NativeType.DOUBLE.id().equals( str ) ) {
-							retval = new Token( TokenType.CAST_DOUBLE, str );
-						} else if ( "throws".equals( str ) ) {
-							retval = new Token( TokenType.THROWS );
-						} else if ( "cH".equals( str ) ) {
-							retval = new Token( TokenType.CURRENT_HANDLER );
-						} else if ( "init".equals( str ) ) {
-							retval = new Token( TokenType.INIT );
-						} else if ( "with".equals( str ) ) {
-							retval = new Token( TokenType.WITH );
-						} else if ( "true".equals( str ) ) {
-							retval = new Token( TokenType.TRUE );
-						} else if ( "false".equals( str ) ) {
-							retval = new Token( TokenType.FALSE );
+						TokenType tt = unreservedKeywords.get( str );
+						if ( tt != null ) {
+							retval = new Token( tt, str );
 						} else {
 							retval = new Token( TokenType.ID, str );
 						}
