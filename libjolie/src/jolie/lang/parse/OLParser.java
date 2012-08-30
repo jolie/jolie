@@ -292,7 +292,7 @@ public class OLParser extends AbstractParser
 
 		// SubType id
 		String id = token.content();
-		eat( Scanner.TokenType.ID, "expected type name" );
+		eatIdentifier( "expected type name" );
 
 		Range cardinality = parseCardinality();
 		eat( Scanner.TokenType.COLON, "expected COLON" );
@@ -1746,7 +1746,7 @@ public class OLParser extends AbstractParser
 		OLSyntaxNode nodeExpr = null;
 		while ( token.is( Scanner.TokenType.DOT ) ) {
 			getToken();
-			if ( token.is( Scanner.TokenType.ID ) ) {
+			if ( token.isIdentifier() ) {
 				nodeExpr = new ConstantStringExpression( getContext(), token.content() );
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
 				getToken();
@@ -1754,7 +1754,7 @@ public class OLParser extends AbstractParser
 				assertToken(
 					Scanner.TokenType.RPAREN, "expected )" );
 			} else {
-				assertToken( Scanner.TokenType.ID, "expected nested node identifier" );
+				throwException( "expected nested node identifier" );
 			}
 
 			getToken();

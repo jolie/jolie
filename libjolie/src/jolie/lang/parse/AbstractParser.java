@@ -119,6 +119,35 @@ public abstract class AbstractParser
 	}
 	
 	/**
+	 * Eats the current token, asserting that it is an identifier (or an unreserved keyword).
+	 * Calling eatIdentifier( errorMessage ) is equivalent to call subsequently
+	 * assertIdentifier( errorMessage ) and getToken().
+	 * @param errorMessage The error message to throw as a {@link ParserException} in case the current token is not an identifier.
+	 * @throws ParserException If the current token is not an identifier.
+	 * @throws IOException If the internal scanner cannot read the next token.
+	 */
+	protected void eatIdentifier( String errorMessage )
+		throws ParserException, IOException
+	{
+		assertIdentifier( errorMessage );
+		getToken();
+	}
+	
+	/**
+	 * Asserts that the current token is an identifier (or an unreserved keyword).
+	 * @param errorMessage the error message to throw as a {@link ParserException}
+	 * if the current token is not an identifier.
+	 * @throws ParserException if the current token is not an identifier.
+	 */
+	protected void assertIdentifier( String errorMessage )
+		throws ParserException
+	{
+		if ( !token.isIdentifier() ) {
+			throwException( errorMessage );
+		}
+	}
+	
+	/**
 	 * Asserts the current token type.
 	 * @param type The token type to assert.
 	 * @param errorMessage The error message to display in case of a wrong token type.
