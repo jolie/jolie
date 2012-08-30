@@ -21,15 +21,16 @@
 
 package jolie.lang.parse;
 
-import jolie.lang.parse.context.ParsingContext;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 
 
-/** Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}.
+/**
+ * Skeleton implementation of a parser based on {@link jolie.lang.parse.Scanner}.
  * Note that the parsing process is not re-entrant.
  * @author Fabrizio Montesi
  * @see Scanner
@@ -82,6 +83,10 @@ public abstract class AbstractParser
 		this.scanner = scanner;
 	}
 	
+	/**
+	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
+	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
+	 */
 	public ParsingContext getContext()
 	{
 		return new URIParsingContext( scanner.source(), scanner.line() );
@@ -122,8 +127,9 @@ public abstract class AbstractParser
 	protected void assertToken( Scanner.TokenType type, String errorMessage )
 		throws ParserException
 	{
-		if ( token.isNot( type ) )
+		if ( token.isNot( type ) ) {
 			throwException( errorMessage );
+		}
 	}
 	
 	/**

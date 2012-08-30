@@ -194,6 +194,7 @@ public class Scanner
 	{
 		private final TokenType type;
 		private final String content;
+		private final boolean isUnreservedKeyword;
 
 		/**
 		 * Constructor. The content of the token will be set to "".
@@ -202,7 +203,8 @@ public class Scanner
 		public Token( TokenType type )
 		{
 			this.type = type;
-			content = "";
+			this.content = "";
+			this.isUnreservedKeyword = false;
 		}
 
 		/**
@@ -214,6 +216,20 @@ public class Scanner
 		{
 			this.type = type;
 			this.content = content;
+			this.isUnreservedKeyword = false;
+		}
+		
+		/**
+		 * Constructor.
+		 * @param type the type of this token
+		 * @param content the content of this token
+		 * @param isUnreservedKeyword specifies whether this token is an unreserved keyword
+		 */
+		public Token( TokenType type, String content, boolean isUnreservedKeyword )
+		{
+			this.type = type;
+			this.content = content;
+			this.isUnreservedKeyword = isUnreservedKeyword;
 		}
 
 		/**
@@ -290,6 +306,17 @@ public class Scanner
 		public boolean isKeyword( String keyword )
 		{
 			return( type == TokenType.ID && content.equals( keyword ) ); 
+		}
+		
+		/**
+		 * Returns <code>true</code> if this token has type <code>TokenType.ID</code>
+		 * or is a token for an unreserved keyword, <code>false</code> otherwise.
+		 * @return <code>true</code> if this token has type <code>TokenType.ID</code>
+		 * or is a token for an unreserved keyword, <code>false</code> otherwise.
+		 */
+		public boolean isIdentifier()
+		{
+			return( type == TokenType.ID || isUnreservedKeyword );
 		}
 
 		/**
@@ -568,8 +595,10 @@ public class Scanner
 						String str = builder.toString();
 						TokenType tt = unreservedKeywords.get( str );
 						if ( tt != null ) {
-							retval = new Token( tt, str );
+							// It is an unreserved keyword
+							retval = new Token( tt, str, true );
 						} else {
+							// It is a normal ID, not corresponding to any keyword
 							retval = new Token( TokenType.ID, str );
 						}
 					}
