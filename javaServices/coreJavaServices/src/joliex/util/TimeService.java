@@ -25,11 +25,7 @@ package joliex.util;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.*;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -252,6 +248,53 @@ public class TimeService extends JavaService
 
 		return v;
 	}
+        /**
+	 * @author Balint Maschio
+	 */
+        
+        public Value getDateTimeValues( Value request )
+		throws FaultException
+	{
+            SimpleDateFormat sdf= null;
+		Value v = Value.create();
+		try {
+			System.out.println("getDateTimeValues");
+                        String format;
+			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
+				format = "dd/MM/yyyy hh:ss:mm";
+			} else {
+				format = request.getFirstChild( "format" ).strValue();
+			}
+                        if ( request.getFirstChild( "language" ).strValue().isEmpty() ) {
+				 sdf = new SimpleDateFormat( format,Locale.US);
+			} else {
+				String language = request.getFirstChild( "language" ).strValue();
+                                if (language.equals("us")){
+                                    sdf = new SimpleDateFormat( format,Locale.ENGLISH);
+                                } else if(language.equals("it")){
+                                
+                                    sdf = new SimpleDateFormat( format,Locale.ITALIAN);
+                                }
+                                
+			}
+			
+			GregorianCalendar cal = new GregorianCalendar();
+			final Date dt = sdf.parse( request.strValue() );
+			cal.setTimeInMillis( dt.getTime() );
+			v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
+			v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
+			v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
+                        v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
+                        v.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
+                        v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
+                        System.out.println("getDateTimeValues");
+                        
+		} catch( ParseException pe ) {
+			throw new FaultException( "InvalidDate", pe );
+		}
+
+		return v;
+	}
 	
 	/**
 	 * @author Balint Maschio
@@ -310,6 +353,7 @@ public class TimeService extends JavaService
 			DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );
 			final Date dt1 = sdf.parse( request.getFirstChild( "time1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "time2" ).strValue() );
+                        
 			Long result = new Long( (dt1.getTime() - dt2.getTime()) );
 			v.setValue( result.intValue() );
 		} catch( ParseException pe ) {
@@ -326,8 +370,7 @@ public class TimeService extends JavaService
 
 		Calendar calendar = Calendar.getInstance( timeZone );
 		calendar.setTimeInMillis( request.longValue() );
-
-		v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR ) );
+		v.getFirstChild( "hour" ).setValue( calendar.get( Calendar.HOUR_OF_DAY ) );
 		v.getFirstChild( "minute" ).setValue( calendar.get( Calendar.MINUTE ) );
 		v.getFirstChild( "second" ).setValue( calendar.get( Calendar.SECOND ) );
 		return v;
