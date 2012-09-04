@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.runtime.JavaService;
@@ -281,6 +282,11 @@ public class StringUtils extends JavaService
 		}
 		return builder.toString();
 	}
+        
+        public String getRandomUUID( Value request )
+        {
+            return UUID.randomUUID().toString();
+        }
 
 	
 }
