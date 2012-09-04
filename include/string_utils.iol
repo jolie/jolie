@@ -78,6 +78,10 @@ type IndexOfResponse: int
 
 interface StringUtilsInterface {
 RequestResponse:
+	/*
+	  it returns a random UUID
+	*/
+	getRandomUUID( void )( string ),
 	indexOf(IndexOfRequest)(IndexOfResponse),
 	substring(SubStringRequest)(string),
 	join(JoinRequest)(string),
