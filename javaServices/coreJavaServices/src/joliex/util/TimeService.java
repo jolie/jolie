@@ -185,9 +185,9 @@ public class TimeService extends JavaService
 	}
 
 
-	public String getDateTime( Value request )
+	public Value getDateTime( Value request )
 	{
-		String result = null;
+		Value result = Value.create();
 		try {
 			String format;
 			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
@@ -198,7 +198,15 @@ public class TimeService extends JavaService
 			long tm = request.longValue();
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date timestamp = new Date( tm );
-			result = sdf.format( timestamp );
+			result.setValue(sdf.format( timestamp ));
+                        GregorianCalendar cal = new GregorianCalendar();
+		        cal.setTimeInMillis( timestamp.getTime() );
+                        result.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
+                        result.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
+                        result.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
+                        result.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
+                        result.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
+                        result.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
 		} catch( Exception e ) {
 			e.printStackTrace(); // TODO FaultException
 		}
