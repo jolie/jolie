@@ -287,6 +287,15 @@ public class StringUtils extends JavaService
         {
             return UUID.randomUUID().toString();
         }
+        
+        public String toLowerCase(Value request){
+             return request.strValue().toLowerCase();
+        }
+        public String toUpperCase(Value request){
+            return request.strValue().toUpperCase();
+        }
+        
+        
 
 	
 }
