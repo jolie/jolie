@@ -94,6 +94,8 @@ RequestResponse:
 	split(SplitRequest)(SplitResult),
 	splitByLength(SplitByLengthRequest)(SplitResult),
 	trim(string)(string),
+	toLowerCase(string)(string),
+	toUpperCase(string)(string),
 	/**
 	DESCRIPTION
 	  check if the passed string starts with a given prefix
