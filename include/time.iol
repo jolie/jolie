@@ -24,22 +24,12 @@
 WARNING: work in progress, the API is unstable.
 */
 
-type Date:void {
-	.day:int
-	.month:int
-	.year:int
-}
+
 
 type DateValuesType:void {
 	.day:int
 	.month:int
 	.year:int
-}
-
-type Time:void {
-	.hour:int
-	.minute:int
-	.second:int
 }
 
 type TimeValuesType:void {
@@ -75,11 +65,31 @@ type GetTimeDiffRequest:void {
 }
 
 type GetTimestampFromStringRequest:string {
-	.format?:string
+	.format?:string 
+	.language?: string
 }
 
-type GetDateTime: long {
+type GetDateTimeRequest: long {
   .format?: string
+ 
+}
+
+type GetDateTimeResponse: string {
+	.day:int
+	.month:int
+	.year:int      
+	.hour:int
+	.minute:int
+	.second:int 
+}
+
+type DateTimeType:void{
+	.day:int
+	.month:int
+	.year:int      
+	.hour:int
+	.minute:int
+	.second:int
 }
 
 outputPort Time {
@@ -91,7 +101,7 @@ RequestResponse:
 	/**!
 	  It returns a date time in a string format starting from a timestamp
 	*/
-	getDateTime( GetDateTime )( string ),
+	getDateTime( GetDateTimeRequest )( GetDateTimeResponse ),
 
 	/**
 		Converts an input string into a date expressed by means of
@@ -113,7 +123,9 @@ RequestResponse:
 	getTimeValues(string)(TimeValuesType),
 	getTimeDiff(GetTimeDiffRequest)(int),
 	getTimeFromMilliSeconds(int)(TimeValuesType),
-	getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException
+	getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
+	getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
+
 }
 
 embedded {
