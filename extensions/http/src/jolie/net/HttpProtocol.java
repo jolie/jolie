@@ -100,6 +100,7 @@ public class HttpProtocol extends CommProtocol
 		private static String MULTIPART_HEADERS = "multipartHeaders";
 		private static String CONCURRENT = "concurrent";
 		private static final String USER_AGENT = "userAgent";
+                private static String HEADERFIELD = "headerfield";
 
 		private static class MultiPartHeaders {
 			private static String FILENAME = "filename";
@@ -765,6 +766,26 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 	}
+        
+        private void recv_checkForGenericHeader( HttpMessage message, DecodedMessage decodedMessage )
+		throws IOException
+	{
+		Value header = null;
+		if ( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERFIELD ) ) {
+			header = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERFIELD );
+		} else if ( hasParameter( Parameters.HEADERFIELD ) ) {
+			header = getParameterFirstValue( Parameters.HEADERFIELD );
+		}
+		if ( header != null ) {
+                        Iterator<String> iterator = header.children().keySet().iterator();
+                        while( iterator.hasNext() ){
+                            String name = iterator.next();
+                            String val = header.getFirstChild( name ).strValue();
+                            name = name.replace( "_", "-" );
+                            decodedMessage.value.getFirstChild(val).setValue(message.getPropertyOrEmptyString(name));
+                        }
+                }
+	}
 
 	private static void recv_parseQueryString( HttpMessage message, Value value )
 	{
@@ -906,6 +927,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		recv_checkForCookies( message, decodedMessage );
+                recv_checkForGenericHeader( message, decodedMessage );
 		recv_checkForMultiPartHeaders( decodedMessage );
 		if (
 			message.userAgent() != null &&

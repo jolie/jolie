@@ -102,6 +102,7 @@ public class HttpParser
 				}
 			} else if ( "user-agent".equals( name ) ) {
 				message.setUserAgent( value );
+                                message.setProperty( name, value );
 			} else {
 				message.setProperty( name, value );
 			}
