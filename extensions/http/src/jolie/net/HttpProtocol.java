@@ -100,7 +100,7 @@ public class HttpProtocol extends CommProtocol
 		private static String MULTIPART_HEADERS = "multipartHeaders";
 		private static String CONCURRENT = "concurrent";
 		private static final String USER_AGENT = "userAgent";
-                private static String HEADERFIELD = "headerfield";
+		private static String HEADERS = "headers";
 
 		private static class MultiPartHeaders {
 			private static String FILENAME = "filename";
@@ -771,20 +771,20 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		Value header = null;
-		if ( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERFIELD ) ) {
-			header = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERFIELD );
-		} else if ( hasParameter( Parameters.HEADERFIELD ) ) {
-			header = getParameterFirstValue( Parameters.HEADERFIELD );
+		if ( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERS ) ) {
+			header = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
+		} else if ( hasParameter( Parameters.HEADERS ) ) {
+			header = getParameterFirstValue( Parameters.HEADERS );
 		}
 		if ( header != null ) {
-                        Iterator<String> iterator = header.children().keySet().iterator();
-                        while( iterator.hasNext() ){
-                            String name = iterator.next();
-                            String val = header.getFirstChild( name ).strValue();
-                            name = name.replace( "_", "-" );
-                            decodedMessage.value.getFirstChild(val).setValue(message.getPropertyOrEmptyString(name));
-                        }
-                }
+			Iterator<String> iterator = header.children().keySet().iterator();
+			while( iterator.hasNext() ){
+			    String name = iterator.next();
+			    String val = header.getFirstChild( name ).strValue();
+			    name = name.replace( "_", "-" );
+			    decodedMessage.value.getFirstChild(val).setValue(message.getPropertyOrEmptyString(name));
+			}
+		}
 	}
 
 	private static void recv_parseQueryString( HttpMessage message, Value value )
