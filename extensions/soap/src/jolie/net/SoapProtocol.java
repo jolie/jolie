@@ -1010,7 +1010,7 @@ public class SoapProtocol extends SequentialCommProtocol
 
 			String resourcePath = recv_getResourcePath( message );
 			if ( message.isResponse() ) {
-				if ( fault != null && message.httpCode() == 500 ) {
+				if ( fault != null && message.statusCode() == 500 ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
 				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
