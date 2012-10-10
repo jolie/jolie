@@ -212,7 +212,7 @@ public class HttpParser
 
 		getToken();
 		tokenAssert( Scanner.TokenType.INT );
-		message.setHttpCode( Integer.parseInt( token.content() ) );
+		message.setStatusCode( Integer.parseInt( token.content() ) );
 		message.setReason( scanner.readLine() );
 
 		return message;

@@ -111,7 +111,7 @@ public class HttpMessage
 	
 	final private Map< String, String > cookies = new HashMap< String, String >();
 	
-	private int httpCode;
+	private int statusCode;
 	private String requestPath;
 	private String reason;
 	private String userAgent;
@@ -239,14 +239,14 @@ public class HttpMessage
 		return type == Type.ERROR;
 	}
 	
-	public int httpCode()
+	public int statusCode()
 	{
-		return httpCode;
+		return statusCode;
 	}
 	
-	public void setHttpCode( int code )
+	public void setStatusCode( int code )
 	{
-		httpCode = code;
+		statusCode = code;
 	}
 	
 	public byte[] content()
