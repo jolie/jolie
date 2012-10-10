@@ -342,7 +342,7 @@ public class HttpProtocol extends CommProtocol
 		private String contentType = "";
 		private String contentDisposition = "";
 	}
-		
+
 	private EncodedContent send_encodeContent( CommMessage message, Method method, String charset, String format )
 		throws IOException
 	{
@@ -818,7 +818,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Receiving:\n" );
-		debugSB.append( "HTTP Code: " + message.httpCode() + "\n" );
+		debugSB.append( "HTTP Code: " + message.statusCode() + "\n" );
 		debugSB.append( "Resource: " + message.requestPath() + "\n" );
 		debugSB.append( "--> Header properties\n" );
 		for( Entry< String, String > entry : message.properties() ) {
