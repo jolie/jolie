@@ -88,6 +88,14 @@ public class OneWayProcess implements InputOperationProcess
 			if ( m != null ) { // If it is null, we got killed by a fault
 				receiveMessage( m, ethread.state() ).run();
 			}
+		} catch( FaultException e ) {
+			// Should never happen since receiveMessage always
+			// returns a NullProcess here.
+			throw e;
+		} catch( ExitingException e ) {
+			// Should never happen since receiveMessage always
+			// returns a NullProcess here.
+			throw e;
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
