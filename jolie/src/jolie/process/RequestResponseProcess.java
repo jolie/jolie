@@ -22,6 +22,7 @@
 package jolie.process;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -132,6 +133,10 @@ public class RequestResponseProcess implements InputOperationProcess
 			if ( m != null ) { // If it is null, we got killed by a fault
 				receiveMessage( m, ethread.state() ).run();
 			}
+		} catch( FaultException e ) {
+			throw e;
+		} catch( ExitingException e ) {
+			throw e;
 		} catch( Exception e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
