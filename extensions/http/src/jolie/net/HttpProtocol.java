@@ -19,7 +19,6 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.net;
 
 import com.google.gwt.user.client.rpc.SerializationException;
@@ -35,11 +34,13 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import java.util.Set;
 import java.util.regex.Matcher;
+
 import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -86,24 +87,101 @@ import org.xml.sax.SAXException;
 /**
  * HTTP protocol implementation
  * @author Fabrizio Montesi
+ * 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status codes
  */
 public class HttpProtocol extends CommProtocol
 {
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
-	//private static final byte[] INTERNAL_SERVER_ERROR_HEADER = "HTTP/1.1 500 Internal Server error".getBytes();
-
+	private static final int defaultStatusCode = 200;
+	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
+	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
+	
+	static {
+		locationRequiredStatusCodes.add( 301 );
+		locationRequiredStatusCodes.add( 302 );
+		locationRequiredStatusCodes.add( 303 );
+		locationRequiredStatusCodes.add( 307 );
+		locationRequiredStatusCodes.add( 308 );
+	}
+	
+	static {
+		// Initialise the HTTP Status code map.
+		statusCodeDescriptions.put( 100,"Continue" );
+		statusCodeDescriptions.put( 101,"Switching Protocols" );
+		statusCodeDescriptions.put( 102,"Processing" );
+		statusCodeDescriptions.put( 200,"OK" );
+		statusCodeDescriptions.put( 201,"Created" );
+		statusCodeDescriptions.put( 202,"Accepted" );
+		statusCodeDescriptions.put( 203,"Non-Authoritative Information" );
+		statusCodeDescriptions.put( 204,"No Content" );
+		statusCodeDescriptions.put( 205,"Reset Content" );
+		statusCodeDescriptions.put( 206,"Partial Content" );
+		statusCodeDescriptions.put( 207,"Multi-Status" );
+		statusCodeDescriptions.put( 208,"Already Reported" );
+		statusCodeDescriptions.put( 226,"IM Used" );
+		statusCodeDescriptions.put( 300,"Multiple Choices" );
+		statusCodeDescriptions.put( 301,"Moved Permanently" );
+		statusCodeDescriptions.put( 302,"Found" );
+		statusCodeDescriptions.put( 303,"See Other" );
+		statusCodeDescriptions.put( 304,"Not Modified" );
+		statusCodeDescriptions.put( 305,"Use Proxy" );
+		statusCodeDescriptions.put( 306,"Reserved" );
+		statusCodeDescriptions.put( 307,"Temporary Redirect" );
+		statusCodeDescriptions.put( 308,"Permanent Redirect" );
+		statusCodeDescriptions.put( 400,"Bad Request" );
+		statusCodeDescriptions.put( 401,"Unauthorized" );
+		statusCodeDescriptions.put( 402,"Payment Required" );
+		statusCodeDescriptions.put( 403,"Forbidden" );
+		statusCodeDescriptions.put( 404,"Not Found" );
+		statusCodeDescriptions.put( 405,"Method Not Allowed" );
+		statusCodeDescriptions.put( 406,"Not Acceptable" );
+		statusCodeDescriptions.put( 407,"Proxy Authentication Required" );
+		statusCodeDescriptions.put( 408,"Request Timeout" );
+		statusCodeDescriptions.put( 409,"Conflict" );
+		statusCodeDescriptions.put( 410,"Gone" );
+		statusCodeDescriptions.put( 411,"Length Required" );
+		statusCodeDescriptions.put( 412,"Precondition Failed" );
+		statusCodeDescriptions.put( 413,"Request Entity Too Large" );
+		statusCodeDescriptions.put( 414,"Request-URI Too Long" );
+		statusCodeDescriptions.put( 415,"Unsupported Media Type" );
+		statusCodeDescriptions.put( 416,"Requested Range Not Satisfiable" );
+		statusCodeDescriptions.put( 417,"Expectation Failed" );
+		statusCodeDescriptions.put( 422,"Unprocessable Entity" );
+		statusCodeDescriptions.put( 423,"Locked" );
+		statusCodeDescriptions.put( 424,"Failed Dependency" );
+		statusCodeDescriptions.put( 426,"Upgrade Required" );
+		statusCodeDescriptions.put( 427,"Unassigned" );
+		statusCodeDescriptions.put( 428,"Precondition Required" );
+		statusCodeDescriptions.put( 429,"Too Many Requests" );
+		statusCodeDescriptions.put( 430,"Unassigned" );
+		statusCodeDescriptions.put( 431,"Request Header Fields Too Large" );
+		statusCodeDescriptions.put( 500,"Internal Server Error" );
+		statusCodeDescriptions.put( 501,"Not Implemented" );
+		statusCodeDescriptions.put( 502,"Bad Gateway" );
+		statusCodeDescriptions.put( 503,"Service Unavailable" );
+		statusCodeDescriptions.put( 504,"Gateway Timeout" );
+		statusCodeDescriptions.put( 505,"HTTP Version Not Supported" );
+		statusCodeDescriptions.put( 507,"Insufficient Storage" );
+		statusCodeDescriptions.put( 508,"Loop Detected" );
+		statusCodeDescriptions.put( 509,"Unassigned" );
+		statusCodeDescriptions.put( 510,"Not Extended" );
+		statusCodeDescriptions.put( 511,"Network Authentication Required" );
+	}
+	
 	private static class Parameters {
-		private static String DEBUG = "debug";
-		private static String COOKIES = "cookies";
-		private static String METHOD = "method";
-		private static String ALIAS = "alias";
-		private static String MULTIPART_HEADERS = "multipartHeaders";
-		private static String CONCURRENT = "concurrent";
+		private static final String DEBUG = "debug";
+		private static final String COOKIES = "cookies";
+		private static final String METHOD = "method";
+		private static final String ALIAS = "alias";
+		private static final String MULTIPART_HEADERS = "multipartHeaders";
+		private static final String CONCURRENT = "concurrent";
 		private static final String USER_AGENT = "userAgent";
-		private static String HEADERS = "headers";
+		private static final String HEADERS = "headers";
+		private static final String STATUS_CODE = "statusCode";
+		private static final String REDIRECT = "redirect";
 
 		private static class MultiPartHeaders {
-			private static String FILENAME = "filename";
+			private static final String FILENAME = "filename";
 		}
 	}
 
@@ -436,15 +514,47 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 
-	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
+	private boolean isLocationNeeded( int statusCode )
 	{
-		String redirect = getStringParameter( "redirect" );
-		if ( redirect.isEmpty() ) {
-			headerBuilder.append( "HTTP/1.1 200 OK" + CRLF );
-		} else {
-			headerBuilder.append( "HTTP/1.1 303 See Other" + CRLF );
-			headerBuilder.append( "Location: " + redirect + CRLF );
+		return locationRequiredStatusCodes.contains( statusCode );
+	}
+	
+	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
+	{		
+		int statusCode = defaultStatusCode;
+		String statusDescription = null;
+
+		if( hasParameter( Parameters.STATUS_CODE ) ) {
+			statusCode = getIntParameter( Parameters.STATUS_CODE );
+			if ( !statusCodeDescriptions.containsKey( statusCode ) ) {
+				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
+					message.operationName() +
+					" is sending a message with status code " +
+					statusCode +
+					", which is not in the HTTP specifications."
+				);
+				statusDescription = "Internal Server Error";
+			} else if ( isLocationNeeded( statusCode ) && !hasParameter( Parameters.REDIRECT ) ) {
+				// if statusCode is a redirection code, location parameter is needed
+				Interpreter.getInstance().logWarning( "HTTP protocol for operation " +
+					message.operationName() +
+					" is sending a message with status code " +
+					statusCode +
+					", which expects a redirect parameter but the latter is not set."
+				);
+			}
 		}
+		
+		if ( statusDescription == null ) {
+			statusDescription = statusCodeDescriptions.get( statusCode );
+		}
+		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + CRLF );
+		
+		// if redirect has been set, the redirect location parameter is set
+		if ( hasParameter( Parameters.REDIRECT ) ) {
+			headerBuilder.append( "Location: " + getStringParameter( Parameters.REDIRECT ) + CRLF );
+		}
+		
 		send_appendSetCookieHeader( message, headerBuilder );
 		headerBuilder.append( "Server: Jolie" ).append( CRLF );
 		StringBuilder cacheControlHeader = new StringBuilder();
@@ -944,6 +1054,13 @@ public class HttpProtocol extends CommProtocol
 		private long id = CommMessage.GENERIC_ID;
 	}
 	
+	private void recv_checkForStatusCode( HttpMessage message )
+	{
+		if ( hasParameter( Parameters.STATUS_CODE ) ) {
+			getParameterFirstValue( Parameters.STATUS_CODE ).setValue( message.statusCode() );
+		} 
+	}
+	
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -970,6 +1087,9 @@ public class HttpProtocol extends CommProtocol
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message );
 		}
+		
+		recv_checkForStatusCode( message );
+		
 		if ( message.size() > 0 ) {
 			recv_parseMessage( message, decodedMessage, charset );
 		}
