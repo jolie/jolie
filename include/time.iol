@@ -24,18 +24,6 @@
 WARNING: work in progress, the API is unstable.
 */
 
-type Date:void {
-	.day:int
-	.month:int
-	.year:int
-}
-
-type Time:void {
-	.hour:int
-	.minute:int
-	.second:int
-}
-
 
 type DateValuesType:void {
 	.day:int
