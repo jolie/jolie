@@ -761,7 +761,7 @@ public class SoapProtocol extends SequentialCommProtocol
 					boolean wrapped = true;
 					Value vStyle = getParameterVector( "style" ).first();
 					if ( "document".equals( vStyle.strValue() ) ) {
-						wrapped = (vStyle.getChildren( "wrapped" ).first().intValue() > 0);
+						wrapped = vStyle.getFirstChild( "wrapped" ).boolValue();
 					}
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
