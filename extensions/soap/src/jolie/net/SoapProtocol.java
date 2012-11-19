@@ -1,19 +1,24 @@
-/**
- * *************************************************************************
- * Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com> * * This
- * program is free software; you can redistribute it and/or modify * it under
- * the terms of the GNU Library General Public License as * published by the
- * Free Software Foundation; either version 2 of the * License, or (at your
- * option) any later version. * * This program is distributed in the hope that
- * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
- * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
- * GNU General Public License for more details. * * You should have received a
- * copy of the GNU Library General Public * License along with this program; if
- * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
- * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
- * *************************************************************************
- */
+/***************************************************************************
+ *   Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
 package jolie.net;
 
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
@@ -138,9 +143,18 @@ public class SoapProtocol extends SequentialCommProtocol
 	private Definition wsdlDefinition = null;
 	private Port wsdlPort = null;
 	private final TransformerFactory transformerFactory;
-	private final Map<String, String> namespacePrefixMap = new HashMap<String, String>();
+	private final Map< String, String > namespacePrefixMap = new HashMap< String, String >();
 	private boolean received = false;
 	private final static String CRLF = new String( new char[]{13, 10} );
+	
+	private static class Parameters {
+		private static final String WRAPPED = "wrapped";
+		private static final String INHERITED_TYPE = "__soap_inherited_type";
+		private static final String ADD_ATTRIBUTE = "add_attribute";
+		private static final String ENVELOPE = "envelope";
+		private static final String OPERATION = "operation";
+		private static final String STYLE = "style";
+	}
 	/* 
 	 * it forced the insertion of namespaces within the soap message
 	 * 
@@ -152,7 +166,7 @@ public class SoapProtocol extends SequentialCommProtocol
 	 * 
 	 * parameter add_attribute: void {
 	 *	.envelope: void {
-	attribute*: Attribute
+	 *      .attribute*: Attribute
 	 *	}
 	 *	.operation*: void {
 	 *		.operation_name: string
@@ -160,10 +174,6 @@ public class SoapProtocol extends SequentialCommProtocol
 	 *	}
 	 * }
 	 */
-	private final static String SOAP_INHERITED_TYPE = "__soap_inherited_type";
-	private final static String SOAP_PARAMETER_ADD_ATTRIBUTE = "add_attribute";
-	private final static String SOAP_PARAMETER_ENVELOPE = "envelope";
-	private final static String SOAP_PARAMETER_OPERATION = "operation";
 
 	public String name()
 	{
@@ -456,8 +466,8 @@ public class SoapProtocol extends SequentialCommProtocol
 			if ( currType.asComplexType().isAbstract() ) {
 				// if the complex type is abstract search for the inherited type defined into the jolie value
 				// under the node __soap_inherited_type
-				if ( value.hasChildren( SOAP_INHERITED_TYPE ) ) {
-					String inheritedType = value.getFirstChild( SOAP_INHERITED_TYPE ).strValue();
+				if ( value.hasChildren( Parameters.INHERITED_TYPE ) ) {
+					String inheritedType = value.getFirstChild( Parameters.INHERITED_TYPE ).strValue();
 					XSComplexType xsInheritedType = sSet.getComplexType( messageNamespace, inheritedType );
 					if ( xsInheritedType == null ) {
 						System.out.println( "WARNING: Type " + inheritedType + " not found in the schema set");
@@ -748,30 +758,30 @@ public class SoapProtocol extends SequentialCommProtocol
 				} else {
 					initNamespacePrefixes( soapEnvelope );
 
-					if ( hasParameter( SOAP_PARAMETER_ADD_ATTRIBUTE ) ) {
-						Value add_parameter = getParameterFirstValue( SOAP_PARAMETER_ADD_ATTRIBUTE );
-						if ( add_parameter.hasChildren( SOAP_PARAMETER_ENVELOPE ) ) {
+					if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
+						Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
+						if ( add_parameter.hasChildren( Parameters.ENVELOPE ) ) {
 							// attributes must be added to the envelope
-							ValueVector attributes = add_parameter.getFirstChild( SOAP_PARAMETER_ENVELOPE ).getChildren( "attribute" );
+							ValueVector attributes = add_parameter.getFirstChild( Parameters.ENVELOPE ).getChildren( "attribute" );
 							for( Value att : attributes ) {
 								soapEnvelope.addNamespaceDeclaration( att.getFirstChild( "name" ).strValue(), att.getFirstChild( "value" ).strValue() );
 							}
 						}
 					}
 					boolean wrapped = true;
-					Value vStyle = getParameterVector( "style" ).first();
+					Value vStyle = getParameterVector( Parameters.STYLE ).first();
 					if ( "document".equals( vStyle.strValue() ) ) {
-						wrapped = vStyle.getFirstChild( "wrapped" ).boolValue();
+						wrapped = vStyle.getFirstChild( Parameters.WRAPPED ).boolValue();
 					}
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
 							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
 						// adding forced attributes to operation 
-						if ( hasParameter( SOAP_PARAMETER_ADD_ATTRIBUTE ) ) {
-							Value add_parameter = getParameterFirstValue( SOAP_PARAMETER_ADD_ATTRIBUTE );
-							if ( add_parameter.hasChildren( SOAP_PARAMETER_OPERATION ) ) {
-								ValueVector operations = add_parameter.getChildren( SOAP_PARAMETER_OPERATION );
+						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
+							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
+							if ( add_parameter.hasChildren( Parameters.OPERATION ) ) {
+								ValueVector operations = add_parameter.getChildren( Parameters.OPERATION );
 								for( Value op : operations ) {
 									if ( op.getFirstChild( "operation_name" ).strValue().equals( message.operationName() ) ) {
 										// attributes must be added to the envelope
@@ -783,15 +793,11 @@ public class SoapProtocol extends SequentialCommProtocol
 											attrName = opBody.createQName( attribute.getFirstChild( "name" ).strValue(), null );
 										}
 										opBody.addAttribute( attrName, attribute.getFirstChild( "value" ).strValue() );
-
-
-
 									}
 								}
 
 							}
 						}
-						
 					}
 					valueToTypedSOAP( message.value(), elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
 				}
