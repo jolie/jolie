@@ -14,4 +14,11 @@ type SodepConfiguration:void {
 	 * Supported values: "gzip"
 	 */
 	.compression?:string
+
+	/*
+	 * Defines whether the underlying connection should be kept open.
+	 *
+	 * Default: true
+	 */
+	.keepAlive:bool
 }
