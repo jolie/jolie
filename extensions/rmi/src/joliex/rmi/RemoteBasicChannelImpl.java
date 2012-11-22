@@ -22,6 +22,7 @@
 package joliex.rmi;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
 
@@ -59,6 +60,12 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel
 	public CommMessage recv()
 		throws IOException
 	{
-		return channel.recv();
+		throw new IOException( "Unsupported operation" );
+		//return channel.recv();
+	}
+	
+	public CommMessage recvResponseFor( CommMessage request )
+	{
+		return channel.recvResponseFor( request );
 	}
 }

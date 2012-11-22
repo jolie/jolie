@@ -49,7 +49,7 @@ public class JolieRemoteImpl implements JolieRemote
 	public RemoteBasicChannel createRemoteBasicChannel()
 		throws RemoteException
 	{
-		RemoteBasicChannelImpl channel = new RemoteBasicChannelImpl( interpreter.commCore().getLocalCommChannel(), this );
+		RemoteBasicChannelImpl channel = new RemoteBasicChannelImpl( interpreter.commCore().getLocalCommChannel( listener ), this );
 		channels.add( channel );
 		return (RemoteBasicChannel)UnicastRemoteObject.exportObject( channel );
 	}

@@ -25,6 +25,7 @@ import jolie.runtime.expression.Expression;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +117,7 @@ class ValueLink extends Value implements Cloneable
 	}
 }
 
-class ValueImpl extends Value implements Cloneable
+class ValueImpl extends Value implements Cloneable, Serializable
 {
 	private static final long serialVersionUID = 1L;
 	

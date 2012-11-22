@@ -48,7 +48,13 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		return remoteChannel.recv();
+		throw new IOException( "Unsupported operation" );
+		//return remoteChannel.recv();
+	}
+	
+	public CommMessage recvResponseFor( CommMessage request )
+	{
+		return remoteChannel.recvResponseFor( request );
 	}
 
 	public boolean isReady()
