@@ -518,7 +518,13 @@ public class FileService extends JavaService
 	public Value list( Value request )
 	{
 		File dir = new File( request.getFirstChild( "directory" ).strValue() );
-		String[] files = dir.list( new ListFilter( request.getFirstChild( "regex" ).strValue() ) );
+		String regex;
+		if ( request.hasChildren( "regex" ) ) {
+			regex = request.getFirstChild( "regex" ).strValue();
+		} else {
+			regex = ".*";
+		}
+		String[] files = dir.list( new ListFilter( regex ) );
 		Value response = Value.create();
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
