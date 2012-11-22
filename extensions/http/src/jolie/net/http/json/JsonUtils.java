@@ -43,23 +43,30 @@ public class JsonUtils
 	public static void valueToJsonString( Value value, StringBuilder builder )
 		throws IOException
 	{
-		builder.append( '{' );
-		if ( value.isDefined() ) {
-			appendKeyColon( builder, ROOT_SIGN );
-			builder.append( nativeValueToJsonString( value ) );
-		}
-		int size = value.children().size();
-		int i = 0;
-		for( Entry< String, ValueVector > child : value.children().entrySet() ) {
-			if ( child.getValue().isEmpty() == false ) {
-				appendKeyColon( builder, child.getKey() );
-				valueVectorToJsonString( child.getValue(), builder );
+		if ( value.children().isEmpty() ) {
+			if ( value.isDefined() ) {
+				builder.append( nativeValueToJsonString( value ) );
 			}
-			if ( i++ < size - 1 ) {
-				builder.append( ',' );
+		} else {
+			builder.append( '{' );
+			if ( value.isDefined() ) {
+				appendKeyColon( builder, ROOT_SIGN );
+				builder.append( nativeValueToJsonString( value ) );
 			}
-		}
-		builder.append( '}' );
+			int size = value.children().size();
+			int i = 0;
+			for( Entry< String, ValueVector > child : value.children().entrySet() ) {
+				if ( child.getValue().isEmpty() == false ) {
+					appendKeyColon( builder, child.getKey() );
+					valueVectorToJsonString( child.getValue(), builder );
+				}
+				if ( i++ < size - 1 ) {
+					builder.append( ',' );
+				}
+			}
+			builder.append( '}' );
+		}	
+		
 	}
 
 	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder )
