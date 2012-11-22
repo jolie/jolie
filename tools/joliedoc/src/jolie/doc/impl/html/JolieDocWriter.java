@@ -55,8 +55,9 @@ public class JolieDocWriter
 	private Vector<String> typeDefintionLinkNameVector;
 	private Vector<InterfaceDefinition> interfaceDefintionVector;
 	private Writer writer;
+	private final String originalFilename;
 
-	public JolieDocWriter( Writer writer )
+	public JolieDocWriter( Writer writer, String originalFilename )
 	{
 		this.writer = writer;
 		typeDefinitionLinkVector = new Vector<TypeDefinitionLink>();
@@ -64,6 +65,7 @@ public class JolieDocWriter
 		typeDefinitonVector = new Vector<TypeDefinition>();
 		typeDefintionNameVector = new Vector<String>();
 		interfaceDefintionVector = new Vector<InterfaceDefinition>();
+		this.originalFilename = originalFilename;
 	}
 
 	public void addPort( PortInfo port )
@@ -150,9 +152,10 @@ public class JolieDocWriter
 		}
 
 		writer.write( "<h1>" + "JolieDoc for Port " + port.id() + "</h1>" );
+		writer.write( "<h2>From file <code>" + originalFilename + "</code></h2>" );
 		if ( !(port.getDocumentation() == null) ) {
-			writer.write( port.getDocumentation().trim().replace( "\n", "<br>" ) );
-			writer.write( "<BR><BR>" );
+			writer.write( port.getDocumentation().trim().replace( "\n", "<br/>" ) );
+			writer.write( "<br/><br/>" );
 		}
 		writer.write( "<table>" );
 		writer.write( "<tr>" );
