@@ -50,7 +50,7 @@ type RenameRequest:void {
 
 type ListRequest:void {
 	.directory:string
-	.regex:string
+	.regex?:string
 }
 
 type ListResponse:void {
