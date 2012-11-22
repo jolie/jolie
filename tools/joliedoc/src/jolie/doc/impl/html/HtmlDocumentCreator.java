@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>          *
- *    Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>          *
+ *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>  *
+ *    Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -102,6 +102,7 @@ public class HtmlDocumentCreator
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
 			for( OutputPortInfo outputPort : outputPortList ) {
 				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );
+				types = new ArrayList< String >();
 				jolieDocWriter = new JolieDocWriter( writer );
 				jolieDocWriter.addPort( outputPort );
 				List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
