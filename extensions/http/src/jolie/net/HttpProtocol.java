@@ -950,10 +950,22 @@ public class HttpProtocol extends CommProtocol
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 	
-	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String charset )
+	private void recv_parseRequestFormat( HttpMessage message )
 		throws IOException
 	{
 		requestFormat = null;
+		
+		String type = message.getPropertyOrEmptyString( "content-type" ).split( ";" )[0];
+		if ( "text/x-gwt-rpc".equals( type ) ) {
+			requestFormat = "text/x-gwt-rpc";
+		} else if ( "application/json".equals( type ) ) {
+			requestFormat = "application/json";
+		}
+	}
+	
+	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String charset )
+		throws IOException
+	{
 		String format = "xml";
 		if ( hasParameter( "format" ) ) {
 			format = getStringParameter( "format" );
@@ -968,14 +980,12 @@ public class HttpProtocol extends CommProtocol
 			parseXML( message, decodedMessage.value );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
-			requestFormat = "text/x-gwt-rpc";
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value );
 		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) ) {
 			parseJson( message, decodedMessage.value );
-			requestFormat = "application/json";
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "json".equals( format ) ) {
@@ -1090,6 +1100,7 @@ public class HttpProtocol extends CommProtocol
 		
 		recv_checkForStatusCode( message );
 		
+		recv_parseRequestFormat( message );
 		if ( message.size() > 0 ) {
 			recv_parseMessage( message, decodedMessage, charset );
 		}
