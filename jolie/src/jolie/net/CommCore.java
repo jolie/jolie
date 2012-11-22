@@ -351,6 +351,11 @@ public class CommCore
 	{
 		return new LocalCommChannel( interpreter, localListener );
 	}
+	
+	public LocalCommChannel getLocalCommChannel( CommListener listener )
+	{
+		return new LocalCommChannel( interpreter, listener );
+	}
 
 	private CommListenerFactory getCommListenerFactory( String name )
 		throws IOException
