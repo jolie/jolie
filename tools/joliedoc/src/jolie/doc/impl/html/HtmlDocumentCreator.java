@@ -63,7 +63,8 @@ public class HtmlDocumentCreator
 	public void ConvertDocument()
 		throws IOException
 	{
-		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/" ) + 1 );
+		int filenameIndex = directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/" ) + 1;
+		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, filenameIndex );
 
 		// scanning inputPorts. For each inputPort will be generated an html file
 
@@ -73,7 +74,7 @@ public class HtmlDocumentCreator
 			inputPortExist = true;
                         types = new ArrayList<String>();
 			writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
-			jolieDocWriter = new JolieDocWriter( writer );
+			jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 			jolieDocWriter.addPort( inputPort );
 			List<InterfaceDefinition> interfacesList = inputPort.getInterfaceList();
 			for( InterfaceDefinition interfaceDefintion : interfacesList ) {
@@ -103,7 +104,7 @@ public class HtmlDocumentCreator
 			for( OutputPortInfo outputPort : outputPortList ) {
 				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );
 				types = new ArrayList< String >();
-				jolieDocWriter = new JolieDocWriter( writer );
+				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( outputPort );
 				List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
 				for( InterfaceDefinition interfaceDefintion : interfacesList ) {
