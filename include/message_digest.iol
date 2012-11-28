@@ -26,10 +26,13 @@ type MD5Request:string {
 	.radix?:int
 }
 
+interface MessageDigestInterface {
+	RequestResponse:
+		md5(MD5Request)(string) throws UnsupportedOperation(JavaExceptionType)
+}
 
 outputPort MessageDigest {
-RequestResponse:
-	md5(MD5Request)(string) throws UnsupportedOperation(JavaExceptionType)
+	Interfaces: MessageDigestInterface
 }
 
 embedded {

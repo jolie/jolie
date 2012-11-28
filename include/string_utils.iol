@@ -78,8 +78,8 @@ type IndexOfResponse: int
 
 interface StringUtilsInterface {
 RequestResponse:
-	/*
-	  it returns a random UUID
+	/**!
+	* it returns a random UUID
 	*/
 	getRandomUUID( void )( string ),
 	indexOf(IndexOfRequest)(IndexOfResponse),
@@ -96,9 +96,9 @@ RequestResponse:
 	trim(string)(string),
 	toLowerCase(string)(string),
 	toUpperCase(string)(string),
-	/**
-	DESCRIPTION
-	  check if the passed string starts with a given prefix
+
+	/**!
+	* checks if the passed string starts with a given prefix
 	*/
 	startsWith(StartsWithRequest)( bool ),
 	valueToPrettyString(undefined)(string)

@@ -31,10 +31,13 @@ type CommandExecutionResult:any { // Can be string or void
 	.stderr?:string // The standard error output of the executed command
 }
 
+interface ExecInterface {
+	RequestResponse:
+		exec(CommandExecutionRequest)(CommandExecutionResult)
+}
 
 outputPort Exec {
-RequestResponse:
-	exec(CommandExecutionRequest)(CommandExecutionResult)
+	Interfaces: ExecInterface
 }
 
 embedded {
