@@ -55,32 +55,32 @@ RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver,
 	
 	/**!
-	Queries the database.
-
-	Field _template allows for the definition of a specific output template.
-	Assume, e.g., to have a table with the following columns:
-	| col1 | col2 | col3 | col4 |
-	If _template is not used the output will be rows with the following format:
-	row
-	 |-col1
-	 |-col2
-	 |-col3
-	 |-col4
-	Now let us suppose we would like to have the following structure for each row:
-	row
-	  |-mycol1			contains content of col1
-	      |-mycol2			contains content of col2	
-		  |-mycol3		contains content of col3
-	  |-mycol4			contains content of col4
-
-	In order to achieve this, we can use field _template as it follows:
-	  with( query_request._template ) {
-	    .mycol1 = "col1";
-	    .mycol1.mycol2 = "col2";
-	    .mycol1.mycol2.mycol3 = "col3";
-	    .mycol4 = "col4"
-	  }
-	Note that _template does not currently support vectors.
+	* Queries the database.
+	* 
+	* Field _template allows for the definition of a specific output template.
+	* Assume, e.g., to have a table with the following columns:
+	* | col1 | col2 | col3 | col4 |
+	* If _template is not used the output will be rows with the following format:
+	* row
+	*  |-col1
+	*  |-col2
+	*  |-col3
+	*  |-col4
+	* Now let us suppose we would like to have the following structure for each row:
+	* row
+	*   |-mycol1			contains content of col1
+	*       |-mycol2			contains content of col2	
+	* 	  |-mycol3		contains content of col3
+	*   |-mycol4			contains content of col4
+	* 
+	* In order to achieve this, we can use field _template as it follows:
+	*   with( query_request._template ) {
+	*     .mycol1 = "col1";
+	*     .mycol1.mycol2 = "col2";
+	*     .mycol1.mycol2.mycol3 = "col3";
+	*     .mycol4 = "col4"
+	*   }
+	* Note that _template does not currently support vectors.
 	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,

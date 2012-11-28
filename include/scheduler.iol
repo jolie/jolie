@@ -31,7 +31,7 @@ type FullDate:void {
 }
 
 
-/**
+/**!
 * Configure the schedule with a repeat-period end a start time
 */
 type ScheduleReq:void {
@@ -42,7 +42,7 @@ type ScheduleReq:void {
 	.period:int
 }
 
-/**
+/**!
 * Configure the schedule for once daily activation
 */
 type DailyScheduleReq:void {
@@ -52,25 +52,30 @@ type DailyScheduleReq:void {
 	.start_min?:int    //if not specified, it defaults to 0
 }
 
-/**
+/**!
 * Configure the schedule in chron style string
 */
-/*
-type CronScheduleReq:void {
 
-	.operation?:string   //if not specified, it defaults to timeout
-	.chron_config:string //example "0 42 10 * * ?" ogni giorno alle 10:42
-	.date_format?:string
-	//.start_date?:FullDate //TODO if not specified, it defaults to now
-	//.end_date?:FullDate   //TODO if not specified, it defaults to never
-}
+/*
+*type CronScheduleReq:void {
+*
+*	.operation?:string   //if not specified, it defaults to timeout
+*	.chron_config:string //example "0 42 10 * * ?" ogni giorno alle 10:42
+*	.date_format?:string
+*	//.start_date?:FullDate //TODO if not specified, it defaults to now
+*	//.end_date?:FullDate   //TODO if not specified, it defaults to never
+*}
 */
 
+interface SchedulerInterface{
+	OneWay:
+		setSchedule( ScheduleReq ),
+		//,setScheduleByCronFormat( ChronScheduleReq )
+		setDailySchedule( DailyScheduleReq )
+}
+
 outputPort SchedulerPort {
-OneWay:
-	setSchedule( ScheduleReq ),
-	//,setScheduleByCronFormat( ChronScheduleReq )
-	setDailySchedule( DailyScheduleReq )
+	Interfaces: SchedulerInterface
 }
 
 embedded {

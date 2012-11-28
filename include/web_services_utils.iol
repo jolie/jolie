@@ -22,9 +22,13 @@
 
 include "types/IOException.iol"
 
-outputPort WebServicesUtils {
+interface WebServicesUtilsInterface {
 RequestResponse:
 	wsdlToJolie(string)(string) throws IOException(IOExceptionType)
+}
+
+outputPort WebServicesUtils {
+	Interfaces: WebServicesUtilsInterface
 }
 
 embedded {

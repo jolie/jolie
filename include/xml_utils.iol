@@ -41,14 +41,18 @@ type ValueToXmlRequest: void {
   .rootNodeName: string
 }
 
+interface XmlUtilsInterface{
+	RequestResponse:
+		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType),
+		transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
+		/**!
+		*  It transforms the value contained within the root node into an xml string.
+		*/
+		valueToXml( ValueToXmlRequest )(string)
+}
+
 outputPort XmlUtils {
-RequestResponse:
-	xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType),
-	transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
-	/**!
-	  It trasnforms the value contained within the root node into an xml string.
-	*/
-	valueToXml( ValueToXmlRequest )(string)
+	Interfaces: XmlUtilsInterface
 }
 
 embedded {

@@ -21,7 +21,7 @@
 
 
 /**
-WARNING: work in progress, the API is unstable.
+*WARNING: work in progress, the API is unstable.
 */
 
 
@@ -38,18 +38,20 @@ type TimeValuesType:void {
 }
 
 type DateValuesRequestType:string {
-	/**
-		Date format.
-		If not specified, it defaults to "dd/MM/yyyy"
+	/*
+	* Date format.
+	* If not specified, it defaults to "dd/MM/yyyy"
 	*/
+
 	.format?:string
 }
 
 type CurrentDateTimeRequestType:void {
-	/**
-		Date format.
-		If not specified, it defaults to "dd/MM/yyyy"
+	/*
+	* 	Date format.
+	* 	If not specified, it defaults to "dd/MM/yyyy"
 	*/
+
 	.format?:string
 }
 
@@ -91,40 +93,43 @@ type DateTimeType:void{
 	.second:int
 }
 
+interface TimeInterface{
+	OneWay:
+		setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
+	RequestResponse:
+		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
+
+		/**!
+		* It returns a date time in a string format starting from a timestamp
+		*/
+		getDateTime( GetDateTimeRequest )( GetDateTimeResponse ),
+
+		/**!
+		* Converts an input string into a date expressed by means of
+		* three elements: day, month and year. The request may specify the 
+		* date parsing format. See #DateValuesRequestType for details.
+		*/
+		getDateValues(DateValuesRequestType)(DateValuesType),
+
+		/**!
+		* Returns the current date split in three fields: day, month and year
+		*/
+		getCurrentDateValues(void)(DateValuesType),
+		getDateDiff(DiffDateRequestType)(int),
+
+		/**!
+		* Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
+		*/
+		getCurrentTimeMillis(void)(long),
+		getTimeValues(string)(TimeValuesType),
+		getTimeDiff(GetTimeDiffRequest)(int),
+		getTimeFromMilliSeconds(int)(TimeValuesType),
+		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
+		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
+}
+
 outputPort Time {
-OneWay:
-	setNextTimeout, setNextTimeoutByDateTime, setNextTimeoutByTime
-RequestResponse:
-	getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
-
-	/**!
-	  It returns a date time in a string format starting from a timestamp
-	*/
-	getDateTime( GetDateTimeRequest )( GetDateTimeResponse ),
-
-	/**
-		Converts an input string into a date expressed by means of
-		three elements: day, month and year. The request may specify the 
-		date parsing format. See #DateValuesRequestType for details.
-	*/
-	getDateValues(DateValuesRequestType)(DateValuesType),
-
-	/**
-		Returns the current date split in three fields: day, month and year
-	*/
-	getCurrentDateValues(void)(DateValuesType),
-	getDateDiff(DiffDateRequestType)(int),
-
-	/**!
-	Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
-	*/
-	getCurrentTimeMillis(void)(long),
-	getTimeValues(string)(TimeValuesType),
-	getTimeDiff(GetTimeDiffRequest)(int),
-	getTimeFromMilliSeconds(int)(TimeValuesType),
-	getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
-	getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
-
+	Interfaces: TimeInterface
 }
 
 embedded {

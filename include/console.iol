@@ -44,19 +44,19 @@ RequestResponse:
 	println( undefined )( void ), 
 
 	/**!
-	  it enables the console for input listening
-	  parameter session_listener_enabled enables console input listening for more than one service session (default=false)
+	*  it enables the console for input listening
+	*  parameter session_listener_enabled enables console input listening for more than one service session (default=false)
 	*/
 	registerForInput( RegisterForInputRequest )( void ),
 
 	/**!
-	  it receives a token string which identifies a service session.
-	  it enables the session to receive inputs from the console
+	* it receives a token string which identifies a service session.
+	* it enables the session to receive inputs from the console
 	*/
 	subscribeSessionListener( SubscribeSessionListener )( void ),
 	
 	/**!
-	  it disables a session to receive inputs from the console, previously registered with subscribeSessionListener operation
+	* it disables a session to receive inputs from the console, previously registered with subscribeSessionListener operation
 	*/
 	unsubscribeSessionListener( UnsubscribeSessionListener )( void )
 }
@@ -70,8 +70,12 @@ Java:
 	"joliex.io.ConsoleService" in Console
 }
 
+interface ConsoleInputInterface {
+	OneWay:
+		in( InRequest )
+}
+
 inputPort ConsoleInputPort {
 Location: "local"
-OneWay:
-	in( InRequest )
+Interfaces: ConsoleInputInterface
 }
