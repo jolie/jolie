@@ -53,6 +53,7 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	}
 	
 	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException
 	{
 		return remoteChannel.recvResponseFor( request );
 	}
