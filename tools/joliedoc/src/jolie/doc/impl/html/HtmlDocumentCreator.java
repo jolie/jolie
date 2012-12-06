@@ -69,6 +69,7 @@ public class HtmlDocumentCreator
 		// scanning inputPorts. For each inputPort will be generated an html file
 
 		InputPortInfo[] inputPorts = inspector.getInputPorts( directorySourceFile );
+		OutputPortInfo[] outputPorts = inspector.getOutputPorts( directorySourceFile );
 		boolean inputPortExist = false;
 		for( InputPortInfo inputPort : inputPorts ) {
 			inputPortExist = true;
@@ -98,8 +99,8 @@ public class HtmlDocumentCreator
 			jolieDocWriter.write();
 			System.out.println( "Generated joliedoc " + directorySOA + inputPort.id() + ".html" );
 		}
-		if ( !inputPortExist ) {
-			System.out.println( "JolieDoc: no inputPort found, generated joliedocs for outputPorts." );
+		if ( /* !inputPortExist */ outputPorts.length > 0 ) {
+			//System.out.println( "JolieDoc: no inputPort found, generated joliedocs for outputPorts." );
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
 			for( OutputPortInfo outputPort : outputPortList ) {
 				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );

@@ -32,19 +32,21 @@ import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
 
+
 public class JolieDoc
 {
 	public static void main( String[] args )
 	{
 		try {
 			CommandLineParser cmdParser = new CommandLineParser( args, JolieDoc.class.getClassLoader() );
-			args = cmdParser.arguments();
 			SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), JolieDoc.class.getClassLoader(), cmdParser.definedConstants(),
+				cmdParser.includePaths(), 
+				JolieDoc.class.getClassLoader(), 
+				cmdParser.definedConstants(),
 				configuration
 			);			
 			

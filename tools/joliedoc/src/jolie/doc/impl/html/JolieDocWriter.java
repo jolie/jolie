@@ -50,7 +50,7 @@ public class JolieDocWriter
 {
 	private PortInfo port;
 	private Vector<String> typeDefintionNameVector;
-	private Vector<TypeDefinition> typeDefinitonVector;
+	private Vector<TypeDefinition> typeDefinitionVector;
 	private Vector<TypeDefinitionLink> typeDefinitionLinkVector;
 	private Vector<String> typeDefintionLinkNameVector;
 	private Vector<InterfaceDefinition> interfaceDefintionVector;
@@ -62,7 +62,7 @@ public class JolieDocWriter
 		this.writer = writer;
 		typeDefinitionLinkVector = new Vector<TypeDefinitionLink>();
 		typeDefintionLinkNameVector = new Vector<String>();
-		typeDefinitonVector = new Vector<TypeDefinition>();
+		typeDefinitionVector = new Vector<TypeDefinition>();
 		typeDefintionNameVector = new Vector<String>();
 		interfaceDefintionVector = new Vector<InterfaceDefinition>();
 		this.originalFilename = originalFilename;
@@ -87,7 +87,7 @@ public class JolieDocWriter
 
 		if ( (!NativeType.isNativeTypeKeyword( typeDefinition.id() )) && (!typeDefinition.id().equals( "undefined" )) ) {
 			if ( !(typeDefintionLinkNameVector.contains( typeDefinition.id() )) && !(typeDefintionNameVector.contains( typeDefinition.id() )) ) {
-				typeDefinitonVector.add( typeDefinition );
+				typeDefinitionVector.add( typeDefinition );
 				typeDefintionNameVector.add( typeDefinition.id() );
 			}
 		}
@@ -144,7 +144,7 @@ public class JolieDocWriter
 		if ( port instanceof OutputPortInfo ) {
 			OutputPortInfo htmlPort = (OutputPortInfo) port;
 			location = htmlPort.location() == null ? "" : htmlPort.location().toString();
-			protocol = htmlPort.protocolId();
+			protocol = htmlPort.protocolId() == null ? "" : htmlPort.protocolId();
 		} else {
 			InputPortInfo htmlPort = (InputPortInfo) port;
 			location = htmlPort.location() == null ? "" : htmlPort.location().toString();
@@ -174,7 +174,7 @@ public class JolieDocWriter
 		writer.write( "</table>" );
 
 		// generating interface list
-		writer.write( "<br>" );
+		//writer.write( "<br>" );
 		writer.write( "<h2>" + "List of the available interfaces</h2>" );
 		writer.write( "<ul>" );
 
@@ -190,7 +190,7 @@ public class JolieDocWriter
 			writer.write( "<a name=\"" + interfaceDefinition.name() + "\"></a>" );
 			if ( !(interfaceDefinition.getDocumentation() == null) ) {
 				writer.write( interfaceDefinition.getDocumentation().trim().replace( "\n", "<br>" ) );
-				writer.write( "<BR><BR>" );
+				//writer.write( "<BR><BR>" );
 			}
 
 			OperationDeclaration operation;
@@ -255,30 +255,31 @@ public class JolieDocWriter
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
 			for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
 				OperationDeclaration operation = entry.getValue();
-				writer.write( "<br><div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><h3>" + operation.id() + "</h3></div><br>" );
+				writer.write( "<div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><h3>" + operation.id() + "</h3></div>" );
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
 					RequestResponseOperationDeclaration rrOperation = (RequestResponseOperationDeclaration) operation;
-					writer.write( operation.id() + "( <a href=\"#" + rrOperation.requestType().id() + "\">" + rrOperation.requestType().id()
-						+ "</a> )( <a href=\"#" + rrOperation.responseType().id() + "\">" + rrOperation.responseType().id() + "</a> )<br>" );
+					writer.write( "<pre>" + operation.id() + "( <a href=\"#" + rrOperation.requestType().id() + "\">" + rrOperation.requestType().id()
+						+ "</a> )( <a href=\"#" + rrOperation.responseType().id() + "\">" + rrOperation.responseType().id() + "</a> )" );
 					boolean faultExist = false;
 					for( Entry<String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operation).faults().entrySet() ) {
 						if ( !faultExist ) {
-							writer.write( indent( 4 ) + "throws<br>" );
+							writer.write( " throws" );
 							faultExist = true;
 						}
+						writer.write( "\n" + indent(4) );
 						if ( !fault.getValue().id().equals( "undefined" ) ) {
-							writer.write( indent( 8 ) + fault.getKey() + "( <a href=\"#" + fault.getValue().id() + "\">" + fault.getValue().id() + "</a> )<br>" );
+							writer.write( fault.getKey() + "( <a href=\"#" + fault.getValue().id() + "\">" + fault.getValue().id() + "</a> )" );
 						} else {
-							writer.write( indent( 8 ) + fault.getKey() + "<br>" );
+							writer.write( fault.getKey() );
 						}
 					}
+					writer.write( "</pre>" );
 				} else {
 					OneWayOperationDeclaration owOperation = (OneWayOperationDeclaration) operation;
-					writer.write( operation.id() + "( <a href=\"#" + owOperation.requestType().id() + "\">" + owOperation.requestType().id() + "</a> )<br>" );
+					writer.write( "<p><pre>" + operation.id() + "( <a href=\"#" + owOperation.requestType().id() + "\">" + owOperation.requestType().id() + "</a> )</pre></p>" );
 				}
 				if ( operation.getDocumentation() != null ) {
-					writer.write( "<br>" );
-					writer.write( "<span class=\"opdoc\">" + operation.getDocumentation().trim().replace( "\n", "<br>" ) + "</span>" );
+					writer.write( "<span class=\"opdoc\"><p>" + operation.getDocumentation().trim().replace( "\n", "<br>" ) + "</p></span>" );
 				}
 
 			}
@@ -286,11 +287,12 @@ public class JolieDocWriter
 
 		writer.write( "<hr>" );
 		writer.write( "<h2>Message type list</h2>" );
-
+		
+		
 		// scanning type list
-		for( TypeDefinition typesDefinition : typeDefinitonVector ) {
+		for( TypeDefinition typesDefinition : typeDefinitionVector ) {
 			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3>" + typesDefinition.id() + "</h3>" );
-			writer.write( writeType( typesDefinition, false, 0 ) );
+			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinition, false, 0 ) + "</div>");
 		}
 
 		writer.write( "<hr>" );
@@ -298,7 +300,7 @@ public class JolieDocWriter
 		for( TypeDefinitionLink typesDefinitionLink : typeDefinitionLinkVector ) {
 			writer.write( "<h3 id=\"" + typesDefinitionLink.linkedTypeName() + "\">" + typesDefinitionLink.linkedTypeName() + "</h3>" );
 			writer.write( "<a name=\"" + typesDefinitionLink.linkedTypeName() + "\"></a>" );
-			writer.write( writeType( typesDefinitionLink.linkedType(), false, 0 ) );
+			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinitionLink.linkedType(), false, 0 ) + "</div>" );
 		}
 
 		// document ending
@@ -316,7 +318,7 @@ public class JolieDocWriter
 		StringBuilder builder = new StringBuilder();
 		if ( subType ) {
 			for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
-				builder.append( "&nbsp;" );
+				builder.append( " " );
 			}
 			builder.append( "." + type.id() + getCardinalityString( type ) );
 		} else {
@@ -326,19 +328,19 @@ public class JolieDocWriter
 
 		if ( type instanceof TypeDefinitionLink ) {
 			TypeDefinitionLink link = (TypeDefinitionLink) type;
-			builder.append( "<a href=\"#" + link.linkedTypeName() + "\">" + link.linkedTypeName() + "</a>" );
+			builder.append( /* "<a href=\"#" + */ link.linkedTypeName() /* + "\">" + link.linkedTypeName() + "</a>" */ );
 
 		} else if ( type.untypedSubTypes() ) {
 			builder.append( "undefined" );
 		} else {
-			builder.append( "<span class=\"native\">" + nativeTypeToString( type.nativeType() ) + "</span>" );
+			builder.append( /*"<span class=\"native\">" + */ nativeTypeToString( type.nativeType() ) /* + "</span>" */ );
 			if ( type.hasSubTypes() ) {
-				builder.append( "&nbsp;{ <BR>" );
+				builder.append( " { \n" );
 				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
-					builder.append( writeType( entry.getValue(), true, indetationLevel + 4 ) + "<br>" );
+					builder.append( writeType( entry.getValue(), true, indetationLevel + 4 ) + "\n" );
 				}
 				for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
-					builder.append( "&nbsp;" );
+					builder.append( " " );
 				}
 				;
 				builder.append( "}" );
@@ -370,7 +372,7 @@ public class JolieDocWriter
 	{
 		String indentation = "";
 		for( int x = 0; x < n; x++ ) {
-			indentation = indentation + "&nbsp;";
+			indentation = indentation + "\t";
 		}
 		return indentation;
 	}
