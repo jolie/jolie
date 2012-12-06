@@ -89,6 +89,7 @@ RequestResponse:
 	rightPad(PadRequest)(string),
 	length(string)(int),
 	match(MatchRequest)(MatchResult),
+	find(MatchRequest)(MatchResult),
 	replaceAll(ReplaceAllRequest)(string),
 	sort(StringItemList)(StringItemList),
 	split(SplitRequest)(SplitResult),
