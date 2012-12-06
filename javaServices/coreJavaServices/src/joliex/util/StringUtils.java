@@ -226,6 +226,26 @@ public class StringUtils extends JavaService
 		}
 		return response;
 	}
+	
+		public Value find( Value request )
+	{
+		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
+		Matcher m = p.matcher( request.strValue() );
+		Value response = Value.create();
+		if ( m.find() ) {
+			response.setValue( 1 );
+			if ( m.groupCount() > 0 ) {
+				ValueVector groups = response.getChildren( "group" );
+				groups.add( Value.create( ( m.group( 0 ) == null ) ? "" : m.group( 0 ) ) );
+				for( int i = 0; i < m.groupCount(); i++ ) {
+					groups.add( Value.create( ( m.group( i+1 ) == null ) ? "" : m.group( i+1 ) ) );
+				}
+			}
+		} else {
+			response.setValue( 0 );
+		}
+		return response;
+	}
 
 	public String leftPad( Value request )
 	{
