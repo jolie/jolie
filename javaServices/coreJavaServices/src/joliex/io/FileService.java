@@ -1,19 +1,24 @@
-/**
- * *************************************************************************
- * Copyright (C) 2008-2012 by Fabrizio Montesi <famontesi@gmail.com> * * This
- * program is free software; you can redistribute it and/or modify * it under
- * the terms of the GNU Library General Public License as * published by the
- * Free Software Foundation; either version 2 of the * License, or (at your
- * option) any later version. * * This program is distributed in the hope that
- * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
- * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
- * GNU General Public License for more details. * * You should have received a
- * copy of the GNU Library General Public * License along with this program; if
- * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
- * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
- **************************************************************************
- */
+/***************************************************************************
+ *   Copyright (C) 2008-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
 package joliex.io;
 
 import com.sun.xml.xsom.XSSchemaSet;
@@ -105,7 +110,6 @@ public class FileService extends JavaService
 		} catch( IOException ex ) {
 			throw new FaultException( "IOException", ex );
 		}
-
 	}
 
 	@RequestResponse
@@ -294,7 +298,7 @@ public class FileService extends JavaService
 				istream.close();
 			}
 		} catch( FileNotFoundException e ) {
-			throw new FaultException( "FileNotFound" );
+			throw new FaultException( "FileNotFound", e );
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
 		}
@@ -317,7 +321,7 @@ public class FileService extends JavaService
 	{
 		File file = new File( filename );
 		if ( file.exists() == false ) {
-			throw new FaultException( "FileNotFound" );
+			throw new FaultException( "FileNotFound", filename );
 		}
 		return fileTypeMap.getContentType( file );
 	}
@@ -342,7 +346,13 @@ public class FileService extends JavaService
 		return jolie.lang.Constants.fileSeparator;
 	}
 
-	private void writeXML( File file, Value value, boolean append, String schemaFilename, boolean indent )
+	private void writeXML(
+		File file, Value value,
+		boolean append,
+		String schemaFilename,
+		String doctypeSystem,
+		boolean indent
+	)
 		throws IOException
 	{
 		if ( value.children().isEmpty() ) {
@@ -383,6 +393,11 @@ public class FileService extends JavaService
 			} else {
 				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 			}
+			
+			if ( doctypeSystem != null ) {		
+				transformer.setOutputProperty( "doctype-system", doctypeSystem );
+			}
+			
 			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
@@ -464,11 +479,14 @@ public class FileService extends JavaService
 				}
 				boolean indent = false;
 				if ( request.getFirstChild( "format" ).hasChildren( "indent" ) ) {
-					if ( request.getFirstChild( "format" ).getFirstChild( "indent" ).intValue() > 0 ) {
-						indent = true;
-					}
+					indent = request.getFirstChild( "format" ).getFirstChild( "indent" ).boolValue();
 				}
-				writeXML( file, content, append, schemaFilename, indent );
+				
+				String doctypePublic = null;
+				if ( request.getFirstChild( "format" ).hasChildren( "doctype_system" ) ) {
+					doctypePublic = request.getFirstChild( "format" ).getFirstChild( "doctype_system" ).strValue();
+				}
+				writeXML( file, content, append, schemaFilename, doctypePublic, indent );
 			} else if ( "xml_store".equals( format ) ) {
 				writeStorageXML( file, content );
 			} else if ( format.isEmpty() ) {
