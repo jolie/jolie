@@ -19,8 +19,10 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
+include "types/JavaException.iol"
 include "types/IOException.iol"
+
+type FileNotFoundType:WeakJavaExceptionType
 
 type ReadFileRequest:void {
 	.filename:string
@@ -33,8 +35,9 @@ type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
 	.format?:string { // Can be "binary", "text" or "xml" (defaults to "text")
+		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
-		.indent?:int // if greater than 0, indentation is applied to file
+		.indent?:bool // if true, indentation is applied to file (default: false)
 	}
 	.append?:int // Default: 0
 }
@@ -59,8 +62,8 @@ type ListResponse:void {
 
 interface FileInterface {
 RequestResponse:
-	readFile(ReadFileRequest)(undefined) throws FileNotFound(void) IOException(IOExceptionType),
-	writeFile(WriteFileRequest)(void) throws FileNotFound(void) IOException(IOExceptionType),
+	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
+	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
