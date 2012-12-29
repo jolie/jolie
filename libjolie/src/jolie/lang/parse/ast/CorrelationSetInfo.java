@@ -21,14 +21,18 @@
 
 package jolie.lang.parse.ast;
 
+import java.io.Serializable;
 import java.util.List;
+import jolie.lang.Constants;
 
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 
 public class CorrelationSetInfo extends OLSyntaxNode
 {
-	public static class CorrelationAliasInfo {
+	public static class CorrelationAliasInfo implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
+		
 		private final String guardName;
 		private final VariablePathNode variablePath;
 
@@ -49,7 +53,9 @@ public class CorrelationSetInfo extends OLSyntaxNode
 		}
 	}
 
-	public static class CorrelationVariableInfo {
+	public static class CorrelationVariableInfo implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
+		
 		private final VariablePathNode correlationVariablePath;
 		private final List< CorrelationAliasInfo > aliases;
 
