@@ -21,10 +21,11 @@
 
 package jolie.lang.parse.ast;
 
+import java.io.Serializable;
 import jolie.util.Pair;
 
 
-public class InstallFunctionNode
+public class InstallFunctionNode implements Serializable
 {
 	private final Pair< String, OLSyntaxNode >[] pairs;
 
