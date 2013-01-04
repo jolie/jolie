@@ -54,6 +54,9 @@ type RenameRequest:void {
 type ListRequest:void {
 	.directory:string
 	.regex?:string
+	.order?: void {
+	  .byname?: bool
+	}
 }
 
 type ListResponse:void {
