@@ -41,6 +41,8 @@ import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -543,6 +545,15 @@ public class FileService extends JavaService
 			regex = ".*";
 		}
 		String[] files = dir.list( new ListFilter( regex ) );
+                
+                if ( request.hasChildren("order") ) {
+                    Value order = request.getFirstChild("order");
+                    if ( order.hasChildren("byname") && order.getFirstChild("byname").boolValue() ) {
+                        Arrays.sort( files );
+                    }
+                }
+               
+                
 		Value response = Value.create();
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
