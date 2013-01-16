@@ -92,7 +92,8 @@ import org.xml.sax.SAXException;
 public class HttpProtocol extends CommProtocol
 {
 	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
-	private static final int defaultStatusCode = 200;
+	private static final int DEFAULT_STATUS_CODE = 200;
+	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
 	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
 	
@@ -521,7 +522,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
 	{		
-		int statusCode = defaultStatusCode;
+		int statusCode = DEFAULT_STATUS_CODE;
 		String statusDescription = null;
 
 		if( hasParameter( Parameters.STATUS_CODE ) ) {
@@ -543,6 +544,8 @@ public class HttpProtocol extends CommProtocol
 					", which expects a redirect parameter but the latter is not set."
 				);
 			}
+		} else if ( hasParameter( Parameters.REDIRECT ) ) {
+			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
 		}
 		
 		if ( statusDescription == null ) {
