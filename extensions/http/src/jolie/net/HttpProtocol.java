@@ -1020,7 +1020,9 @@ public class HttpProtocol extends CommProtocol
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
 				decodedMessage.value.getFirstChild( "operation" ).setValue( decodedMessage.operationName );
-				decodedMessage.value.getFirstChild( Parameters.USER_AGENT).setValue( message.userAgent() );
+				if ( message.userAgent() != null ) {
+					decodedMessage.value.getFirstChild( Parameters.USER_AGENT ).setValue( message.userAgent() );
+				}
 				Value cookies = decodedMessage.value.getFirstChild( "cookies" );
 				for( Entry< String, String > cookie : message.cookies().entrySet() ) {
 					cookies.getFirstChild( cookie.getKey() ).setValue( cookie.getValue() );

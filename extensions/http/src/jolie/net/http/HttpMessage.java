@@ -114,7 +114,7 @@ public class HttpMessage
 	private int statusCode;
 	private String requestPath;
 	private String reason;
-	private String userAgent;
+	private String userAgent = null;
 
 	public boolean isSupported()
 	{
@@ -218,12 +218,12 @@ public class HttpMessage
 	{
 		return requestPath;
 	}
-        
-        public String userAgent()
-        {
-                return userAgent;
-        }
-	
+
+	public String userAgent()
+	{
+		return userAgent;
+	}
+
 	/*public Type type()
 	{
 		return type;
