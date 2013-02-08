@@ -98,12 +98,10 @@ public class SurfaceCreator
 			interface_vector.add( interfaceDefinition );
 		}
 		OutputPortInfo[] outputPortList = inspector.getOutputPorts( );
-                System.out.println("outputports number:" + outputPortList.length );
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
 			int i = 0;
 			while( !inputPort.aggregationList()[x].outputPortList()[0].equals( outputPortList[i].id() ) ) {
-				System.out.println(outputPortList[i].id() + ":" + i );
                                 i++;
                                 
 			}
