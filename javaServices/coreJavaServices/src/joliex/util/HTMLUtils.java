@@ -33,4 +33,9 @@ public class HTMLUtils extends JavaService
 	{
 		return StringEscapeUtils.unescapeHtml4( s );
 	}
+
+	public String escapeHTML( String s )
+	{
+		return StringEscapeUtils.escapeHtml4( s );
+	}
 }

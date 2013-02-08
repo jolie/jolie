@@ -22,7 +22,8 @@
 
 interface HTMLUtilsInterface {
 RequestResponse:
-	unescapeHTML(string)(string)
+	unescapeHTML( string )( string ),
+	escapeHTML( string )( string )
 }
 
 outputPort HTMLUtils {
