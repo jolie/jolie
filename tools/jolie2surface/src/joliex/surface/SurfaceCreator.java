@@ -80,7 +80,7 @@ public class SurfaceCreator
              
 		// find inputPort
                
-		InputPortInfo[] inputPortList = inspector.getInputPorts( originalFile );
+		InputPortInfo[] inputPortList = inspector.getInputPorts( );
             
 		InputPortInfo inputPort = null;
 		for( InputPortInfo iP : inputPortList ) {
@@ -97,12 +97,15 @@ public class SurfaceCreator
 		for( InterfaceDefinition interfaceDefinition : inputPort.getInterfaceList() ) {
 			interface_vector.add( interfaceDefinition );
 		}
-		OutputPortInfo[] outputPortList = inspector.getOutputPorts( originalFile );
+		OutputPortInfo[] outputPortList = inspector.getOutputPorts( );
+                System.out.println("outputports number:" + outputPortList.length );
 		// extracts interfaces from aggregated outputPorts
 		for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
 			int i = 0;
 			while( !inputPort.aggregationList()[x].outputPortList()[0].equals( outputPortList[i].id() ) ) {
-				i++;
+				System.out.println(outputPortList[i].id() + ":" + i );
+                                i++;
+                                
 			}
 			for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
 				interface_vector.add( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ) );
