@@ -80,7 +80,7 @@ RequestResponse:
 	*     .mycol1.mycol2.mycol3 = "col3";
 	*     .mycol4 = "col4"
 	*   }
-	* Note that _template does not currently support vectors.
+	* _template does not currently support vectors.
 	*/
 	query(QueryRequest)(QueryResult) throws SQLException ConnectionError,
 	update(UpdateRequest)(int) throws SQLException ConnectionError,
