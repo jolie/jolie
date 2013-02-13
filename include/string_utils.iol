@@ -76,12 +76,21 @@ type IndexOfRequest: string {
 
 type IndexOfResponse: int
 
+type ContainsRequest:string {
+	.substring:string
+}
+
 interface StringUtilsInterface {
 RequestResponse:
 	/**!
 	* it returns a random UUID
 	*/
 	getRandomUUID( void )( string ),
+
+	/**!
+	 * Returns true if the string contains .substring
+	 */
+	contains( ContainsRequest )( bool ),
 	indexOf(IndexOfRequest)(IndexOfResponse),
 	substring(SubStringRequest)(string),
 	join(JoinRequest)(string),
