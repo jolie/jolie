@@ -227,7 +227,7 @@ public class StringUtils extends JavaService
 		return response;
 	}
 	
-		public Value find( Value request )
+	public Value find( Value request )
 	{
 		Pattern p = Pattern.compile( request.getFirstChild( "regex" ).strValue() );
 		Matcher m = p.matcher( request.strValue() );
@@ -276,12 +276,12 @@ public class StringUtils extends JavaService
 		return writer.toString();
 	}
 	
-	public Value indexOf( Value request ) {
+	public Value indexOf( Value request )
+	{
 		String string = request.strValue();
 		Value response = Value.create();
-		response.setValue( string.indexOf( request.getFirstChild("word").strValue()) );
+		response.setValue( string.indexOf( request.getFirstChild( "word" ).strValue()) );
 		return response;
-
 	}
 
 	public String rightPad( Value request )
@@ -302,20 +302,24 @@ public class StringUtils extends JavaService
 		}
 		return builder.toString();
 	}
-        
-        public String getRandomUUID( Value request )
-        {
-            return UUID.randomUUID().toString();
-        }
-        
-        public String toLowerCase(Value request){
-             return request.strValue().toLowerCase();
-        }
-        public String toUpperCase(Value request){
-            return request.strValue().toUpperCase();
-        }
-        
-        
 
+	public String getRandomUUID( Value request )
+	{
+		return UUID.randomUUID().toString();
+	}
+
+	public String toLowerCase( String str )
+	{
+		return str.toLowerCase();
+	}
+
+	public String toUpperCase( String str )
+	{
+		return str.toUpperCase();
+	}
 	
+	public Boolean contains( String str )
+	{
+		return str.contains( str );
+	}
 }
