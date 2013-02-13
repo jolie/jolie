@@ -318,8 +318,8 @@ public class StringUtils extends JavaService
 		return str.toUpperCase();
 	}
 	
-	public Boolean contains( String str )
+	public Boolean contains( Value request )
 	{
-		return str.contains( str );
+		return request.strValue().contains( request.getFirstChild( "substring" ).strValue() );
 	}
 }
