@@ -38,6 +38,7 @@ type WriteFileRequest:void {
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
 		.indent?:bool // if true, indentation is applied to file (default: false)
+		.encoding? : string // set the encoding. Default UTF-8
 	}
 	.append?:int // Default: 0
 }
