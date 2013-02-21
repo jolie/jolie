@@ -353,6 +353,7 @@ public class FileService extends JavaService
 		boolean append,
 		String schemaFilename,
 		String doctypeSystem,
+                String encoding,
 		boolean indent
 	)
 		throws IOException
@@ -400,6 +401,9 @@ public class FileService extends JavaService
 				transformer.setOutputProperty( "doctype-system", doctypeSystem );
 			}
 			
+                        if ( encoding != null ) {
+                            transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+                        }
 			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
@@ -488,7 +492,11 @@ public class FileService extends JavaService
 				if ( request.getFirstChild( "format" ).hasChildren( "doctype_system" ) ) {
 					doctypePublic = request.getFirstChild( "format" ).getFirstChild( "doctype_system" ).strValue();
 				}
-				writeXML( file, content, append, schemaFilename, doctypePublic, indent );
+                                String encoding = null;
+                                if ( request.getFirstChild( "format" ).hasChildren( "encoding" ) ) {
+					encoding = request.getFirstChild( "format" ).getFirstChild( "encoding" ).strValue();
+				}
+				writeXML( file, content, append, schemaFilename, doctypePublic, encoding, indent );
 			} else if ( "xml_store".equals( format ) ) {
 				writeStorageXML( file, content );
 			} else if ( format.isEmpty() ) {
