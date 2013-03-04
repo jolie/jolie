@@ -407,6 +407,7 @@ public class FileService extends JavaService
 			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
+                        writer.close();
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
@@ -434,6 +435,7 @@ public class FileService extends JavaService
 			Writer writer = new FileWriter( file, false );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
+                        writer.close();
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
