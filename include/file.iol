@@ -84,7 +84,7 @@ RequestResponse:
 	exists( string )( bool ),
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
-	getMimeType(string)(string) throws FileNotFound(void),
+	getMimeType(string)(string) throws FileNotFound(string),
 	setMimeTypeFile(string)(void) throws IOException(void),
 	convertFromBinaryToBase64Value( raw )( string ),
 	convertFromBase64ToBinaryValue( string )( raw ) throws IOException(IOExceptionType)
