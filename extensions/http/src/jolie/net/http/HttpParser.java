@@ -159,10 +159,12 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.GET );
 		} else if ( token.isKeyword( POST ) ) {
 			message = new HttpMessage( HttpMessage.Type.POST );
-		} else if (
+		} else if ( token.isKeyword( HEAD ) ) {
+                    message = new HttpMessage( HttpMessage.Type.HEAD );
+                } else if (
 			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
-			token.isKeyword( HEAD ) || token.isKeyword( PUT ) ||
-			token.isKeyword( DELETE ) || token.isKeyword( TRACE )
+			token.isKeyword( PUT ) || token.isKeyword( DELETE ) || 
+                        token.isKeyword( TRACE )
 		) {
 			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
 		} else {
