@@ -134,7 +134,7 @@ public class RuntimeService extends JavaService {
     public Value getOutputPorts() {
         Value ret = Value.create();
         int counter = 0;
-        for (OutputPort o : interpreter.outputPorts()) {
+        for ( OutputPort o : interpreter.outputPorts() ) {
             ret.getChildren("port").get(counter).getFirstChild("name").setValue(o.id());
             try {
                 ret.getChildren("port").get(counter).getFirstChild("protocol").setValue( o.getProtocol().name());
