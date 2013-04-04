@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2013      by Claudio Guidi    <guidiclaudio@gmail.com>  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -63,6 +64,24 @@ type SetMonitorRequest:void {
 	.protocol?:string { ? }
 }
 
+type GetOutputPortRequest: void {
+	.name: string
+}
+
+type GetOutputPortResponse: void {
+	.name: string
+	.protocol: string
+	.location: string
+}
+
+type GetOutputPortsResponse: void {
+	.port*: void {
+	  .name: string
+	  .protocol: string
+	  .location: string
+	}
+}
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
@@ -76,6 +95,18 @@ RequestResponse:
 	getIncludePaths(void)(GetIncludePathResponse),
 
 	setOutputPort(SetOutputPortRequest)(void),
+
+	/**!
+	*	it returns a port definition if it exists, OuputPortDoesNotExist fault otherwise
+	*/
+	getOutputPort( GetOutputPortRequest )( GetOutputPortResponse )
+	  throws OutputPortDoesNotExist,
+
+	/**!
+	*	it returns the list of definitions of all the available outputPorts of the service
+	*/
+	getOutputPorts( void )( GetOutputPortsResponse ),
+
 	removeOutputPort(string)(void),
 	callExit(any)(void),
 	dumpState(void)(string),
