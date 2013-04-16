@@ -48,11 +48,20 @@ type GetInputPortMetaDataResponse: void {
   .input*: Participant
 }
 
+type CheckNativeTypeRequest: void {
+  .type_name: string
+}
+
+type CheckNativeTypeResponse: void {
+  .result: bool
+}
+
 interface MetaJolieInterface {
 RequestResponse:
 	parseRoles( ParseRoleRequest)( Role ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse ),
-	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
+	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse ),
+	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse )
 }
 
 outputPort MetaJolie {
