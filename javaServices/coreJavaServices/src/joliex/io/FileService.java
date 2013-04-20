@@ -400,10 +400,11 @@ public class FileService extends JavaService
 			if ( doctypeSystem != null ) {		
 				transformer.setOutputProperty( "doctype-system", doctypeSystem );
 			}
+
+			if ( encoding != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+			}
 			
-                        if ( encoding != null ) {
-                            transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
-                        }
 			Writer writer = new FileWriter( file, append );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
