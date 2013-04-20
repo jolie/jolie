@@ -40,7 +40,6 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
 {
-
 	private final Interpreter interpreter;
 
 	public RuntimeService()
