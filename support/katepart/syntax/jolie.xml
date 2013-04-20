@@ -24,6 +24,7 @@
 			<item> inputPort </item>
 			<item> outputPort </item>
 			<item> interface </item>
+			<item> extender </item>
 			<item> execution </item>
 			<item> cset </item>
 			<item> nullProcess </item>
@@ -42,7 +43,10 @@
 			<item> is_bool </item>
 			<item> is_long </item>
 			<item> is_string </item>
+			<item> instanceof </item>
 			<item> bool </item>
+			<item> true </item>
+			<item> false </item>
 			<item> long </item>
 			<item> int </item>
 			<item> string </item>
@@ -54,6 +58,7 @@
 			<item> Interfaces </item>
 			<item> Aggregates </item>
 			<item> Redirects </item>
+			<item> courier </item>
 		</list>
 		<contexts>
 			<context attribute="Normal Text" lineEndContext="#stay" name="Normal">
