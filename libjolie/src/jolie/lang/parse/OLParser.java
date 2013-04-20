@@ -1815,6 +1815,7 @@ public class OLParser extends AbstractParser
 			if ( token.isKeyword( "interface" ) ) {
 				getToken();
 				assertToken( Scanner.TokenType.ID, "expected interface name" );
+				checkConstant();
 				iface = interfaces.get( token.content() );
 				if ( iface == null ) {
 					throwException( "undefined interface: " + token.content() );
