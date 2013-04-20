@@ -520,7 +520,7 @@ public class FileService extends JavaService
 		boolean ret = true;
 		if ( isRegex ) {
 			File dir = new File( filename ).getAbsoluteFile().getParentFile();
-			String[] files = dir.list( new ListFilter( filename ) );
+			String[] files = dir.list( new ListFilter( filename, false ) );
 			if ( files != null ) {
 				for( String file : files ) {
 					new File( file ).delete();
@@ -554,16 +554,23 @@ public class FileService extends JavaService
 		} else {
 			regex = ".*";
 		}
-		String[] files = dir.list( new ListFilter( regex ) );
-                
-                if ( request.hasChildren("order") ) {
-                    Value order = request.getFirstChild("order");
-                    if ( order.hasChildren("byname") && order.getFirstChild("byname").boolValue() ) {
-                        Arrays.sort( files );
-                    }
-                }
-               
-                
+		
+		boolean dirsOnly;
+		if ( request.hasChildren( "dirsOnly" ) ) {
+			dirsOnly = request.getFirstChild( "dirsOnly" ).boolValue();
+		} else {
+			dirsOnly = false;
+		}
+		
+		String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
+
+		if ( request.hasChildren( "order" ) ) {
+			Value order = request.getFirstChild( "order" );
+			if ( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
+				Arrays.sort( files );
+			}
+		}
+
 		Value response = Value.create();
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
@@ -576,16 +583,18 @@ public class FileService extends JavaService
 
 	private static class ListFilter implements FilenameFilter
 	{
-		final private Pattern pattern;
+		private final Pattern pattern;
+		private final boolean dirsOnly;
 
-		public ListFilter( String regex )
+		public ListFilter( String regex, boolean dirsOnly )
 		{
 			this.pattern = Pattern.compile( regex );
+			this.dirsOnly = dirsOnly;
 		}
 
 		public boolean accept( File file, String name )
 		{
-			return pattern.matcher( name ).matches();
+			return pattern.matcher( name ).matches() && ( dirsOnly || file.isDirectory() );
 		}
 	}
 }
