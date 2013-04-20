@@ -55,8 +55,9 @@ type RenameRequest:void {
 type ListRequest:void {
 	.directory:string
 	.regex?:string
+	.dirsOnly?:bool	// List only directories?
 	.order?: void {
-	  .byname?: bool
+		.byname?: bool
 	}
 }
 
