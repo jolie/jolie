@@ -457,7 +457,8 @@ public class DatabaseService extends JavaService
 		e.printStackTrace( new PrintStream( bs ) );
 		v.getNewChild( "stackTrace" ).setValue( bs.toString() );
 		v.getNewChild( "errorCode" ).setValue( e.getErrorCode() );
-
+                v.getNewChild( "SQLState" ).setValue( e.getSQLState() );
+                v.getNewChild( "message" ).setValue( e.getMessage() );
 		return new FaultException( "SQLException", v );
 	}
 
