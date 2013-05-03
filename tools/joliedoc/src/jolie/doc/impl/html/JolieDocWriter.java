@@ -124,6 +124,7 @@ public class JolieDocWriter
 			+ ".native { font-weight:bold; color:#990000; }"
 			+ ".opdoc { font-family: Sans-serif; }"
 			+ ".operation-title { background-color: #EEEEEE; width:600px; height:20px; }"
+			+ ".code{ white-space:pre; }"
 			+ "</style></head>" );
 	}
 
