@@ -157,9 +157,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		List< Entry< String, ValueVector > > entries =
 					new LinkedList< Entry< String, ValueVector > >();
 		for( Entry< String, ValueVector > entry : children.entrySet() ) {
-			if ( !entry.getKey().startsWith( "@" ) ) {
+			// if ( !entry.getKey().startsWith( "@" ) ) {
 				entries.add( entry );
-			}
+			// }
 		}
 
 		out.writeInt( entries.size() );
