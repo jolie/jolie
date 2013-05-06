@@ -438,16 +438,18 @@ public class SessionThread extends ExecutionThread
 	public void pushMessage( SessionMessage message )
 	{
 		synchronized( messageQueues ) {
-			SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
-			if ( future == null ) {
-				CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
-				if ( cset != null ) {
-					messageQueues.get( cset ).addLast( message );
-				} else {
-					uncorrelatedMessageQueue.addLast( message );
-				}
+			Deque< SessionMessage > queue;
+			CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
+			if ( cset != null ) {
+				queue = messageQueues.get( cset );
 			} else {
+				queue = uncorrelatedMessageQueue;
+			}
+			SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
+			if ( future != null && queue.isEmpty() ) {
 				future.setResult( message );
+			} else {
+				queue.addLast( message );
 			}
 		}
 	}
