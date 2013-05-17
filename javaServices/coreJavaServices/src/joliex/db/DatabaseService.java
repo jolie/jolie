@@ -236,7 +236,6 @@ public class DatabaseService extends JavaService
 	private static void setValue( Value fieldValue, ResultSet result, int columnType, int index )
 		throws SQLException
 	{
-            
 		switch( columnType ) {
 			case java.sql.Types.INTEGER:
 			case java.sql.Types.SMALLINT:
@@ -309,6 +308,16 @@ public class DatabaseService extends JavaService
 				}
 			}
 			break;
+                        case java.sql.Types.BIT:
+                        case java.sql.Types.BOOLEAN: {
+                                Boolean bool = result.getBoolean( index );
+                                if ( bool == null ) {
+                                    fieldValue.setValue( false );
+                                } else {
+                                    fieldValue.setValue( bool );
+                                }
+                        }
+                        break;
 			case java.sql.Types.VARCHAR:
 			default:
 				String str = result.getString( index );
