@@ -468,7 +468,7 @@ public class CommandLineParser
 		}
 
 		if ( filepath == null ) { // Main program not defined, we make <japName>.ol and <japName>.olc guesses
-			String name = japFile.getName();
+			String name = new File( japFile.getName() ).getName();
 			filepath = new StringBuilder()
 						.append( name.subSequence( 0, name.lastIndexOf( ".jap" ) ) )
 						.append( ".ol" )
