@@ -526,7 +526,7 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private static IncludeFile retrieveIncludeFile( String path, String filename )
+	private static IncludeFile retrieveIncludeFile( final String path, final String filename )
 	{
 		IncludeFile ret = null;
 
@@ -547,6 +547,7 @@ public class OLParser extends AbstractParser
 				String urlStr =
 					new StringBuilder()
 						.append( path )
+						.append( Constants.fileSeparator )
 						.append( filename )
 						.toString();
 				URL url = null;
@@ -563,7 +564,8 @@ public class OLParser extends AbstractParser
 				}
 				ret = new IncludeFile(
 					url.openStream(),
-					path
+					new File( url.toString() ).getParent()
+					//path
 				);
 			} catch( MalformedURLException mue ) {
 			} catch( IOException ioe ) {
@@ -606,7 +608,8 @@ public class OLParser extends AbstractParser
 
 			origIncludePaths = includePaths;
 			try {
-				setScanner( new Scanner( includeFile.getInputStream(), new URI( "file:" + includeStr ) ) );
+				setScanner( new Scanner( includeFile.getInputStream(), new URI( includeFile.parentPath.toString() + includeStr ) ) );
+				// new URI( "file:" + includeStr ) ) );
 			} catch( URISyntaxException e ) {
 				throw new IOException( e );
 			}
