@@ -594,7 +594,7 @@ public class OLParser extends AbstractParser
 			if ( includeFile == null ) {
 				URL includeURL = classLoader.getResource( includeStr );
 				if ( includeURL != null ) {
-					includeFile = new IncludeFile( includeURL.openStream(), null );
+					includeFile = new IncludeFile( includeURL.openStream(), new File( includeURL.toString() ).getParent() );
 				}
 			}
 
