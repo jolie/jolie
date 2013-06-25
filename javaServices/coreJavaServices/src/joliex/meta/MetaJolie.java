@@ -146,6 +146,7 @@ public class MetaJolie extends JavaService {
 
     private void insertType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef) {
         if (!types.contains(typedef)) {
+            types.add( typedef );
             Value type = Value.create();
             if (typedef instanceof TypeDefinitionLink) {
                 if (!is_generalType(typedef.id())) {
@@ -169,7 +170,7 @@ public class MetaJolie extends JavaService {
                     }
                 }
             }
-            types_vector.add(type);
+            types_vector.add( type );
         }
     }
 
@@ -372,10 +373,10 @@ public class MetaJolie extends JavaService {
                     current_operation.getFirstChild("input").getFirstChild("name").setValue(requestResponseOperation.requestType().id());
                     current_operation.getFirstChild("output").deepCopy(setName(name));
                     current_operation.getFirstChild("output").getFirstChild("name").setValue(requestResponseOperation.responseType().id());
-                    if (!isNativeType(requestResponseOperation.requestType().id())) {
+                    if (!isNativeType(requestResponseOperation.requestType().id())) {                    
                         insertType(types, interface_types, name, requestResponseOperation.requestType());
                     }
-                    if (!isNativeType(requestResponseOperation.responseType().id())) {
+                    if (!isNativeType(requestResponseOperation.responseType().id())) {                       
                         insertType(types, interface_types, name, requestResponseOperation.responseType());
                     }
                 }
@@ -553,7 +554,6 @@ public class MetaJolie extends JavaService {
 
     @RequestResponse
     public Value getInputPortMetaData(Value request) {
-
         String domain = "";
         List<TypeDefinition> types = new ArrayList<TypeDefinition>();
         List<InterfaceDefinition> interfaces = new ArrayList<InterfaceDefinition>();
