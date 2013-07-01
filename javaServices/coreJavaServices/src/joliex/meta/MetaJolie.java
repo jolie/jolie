@@ -340,12 +340,11 @@ public class MetaJolie extends JavaService {
             }
         }
 
-        ArrayList<TypeDefinition> types = new ArrayList<TypeDefinition>();
-
         // scan all the interfaces first interface
         for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            ArrayList<TypeDefinition> types = new ArrayList<TypeDefinition>();
             InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
-            Value input_interface = response.getFirstChild("interfaces");
+            Value input_interface = response.getChildren("interfaces").get( intf_index );
             input_interface.getFirstChild("name").deepCopy(setName(name));
             input_interface.getFirstChild("name").getFirstChild("name").setValue(interfaceDefinition.name());
 
