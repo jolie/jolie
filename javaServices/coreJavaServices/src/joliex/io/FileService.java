@@ -581,6 +581,14 @@ public class FileService extends JavaService
 		}
 		return response;
 	}
+        
+        public Value isDirectory( Value request ) {
+            File dir = new File( request.strValue() );
+            Value response = Value.create();
+            response.setValue( dir.isDirectory() );
+            return response;
+            
+        }
 
 	private static class ListFilter implements FilenameFilter
 	{
