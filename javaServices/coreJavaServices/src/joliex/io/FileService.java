@@ -601,9 +601,10 @@ public class FileService extends JavaService
 			this.dirsOnly = dirsOnly;
 		}
 
-		public boolean accept( File file, String name )
+		public boolean accept( File directory, String filename )
 		{
-			return pattern.matcher( name ).matches() && ( dirsOnly || file.isDirectory() );
+			File file = new File(directory.getAbsolutePath() + File.separator + filename);
+			return pattern.matcher( filename ).matches() && ( !dirsOnly || file.isDirectory() );
 		}
 	}
 }
