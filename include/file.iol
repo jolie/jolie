@@ -74,6 +74,11 @@ RequestResponse:
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
+
+	/**!
+	   it deletes a directory recursively removing all its contents
+	*/
+	deleteDir( string )( bool ) throws IOException(IOExceptionType),
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
 	/**!
