@@ -534,6 +534,11 @@ public class FileService extends JavaService
 		}
 		return ret;
 	}
+        
+        @RequestResponse
+        public Boolean deleteDir( Value request ) {
+            return __deleteDir( new File( request.strValue() ) );
+        }
 
 	@RequestResponse
 	public void rename( Value request )
@@ -589,6 +594,17 @@ public class FileService extends JavaService
             return response;
             
         }
+        
+        private boolean __deleteDir( File file ) {
+            if ( file.isDirectory() ) 
+            {
+                String[] children = file.list(); 
+                for (int i = 0; i < children.length; i++) {
+                    __deleteDir( new File( file, children[ i ]));
+                } 
+            };
+            return file.delete();
+        }
 
 	private static class ListFilter implements FilenameFilter
 	{
@@ -607,4 +623,6 @@ public class FileService extends JavaService
 			return pattern.matcher( filename ).matches() && ( !dirsOnly || file.isDirectory() );
 		}
 	}
+        
+      
 }
