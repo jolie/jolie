@@ -500,7 +500,7 @@ public class MetaJolie extends JavaService {
             Value input = response.getFirstChild("input");
             if (inputPortList.length > 0) {
                 InputPortInfo inputPort = inputPortList[0];
-                input.deepCopy(getInputPort(inputPort, request.getFirstChild("name"),  inspector.getOutputPorts()));
+                input.deepCopy(getInputPort(inputPort, request.getFirstChild("name"), inspector.getOutputPorts()));
             }
 
             // scanning first outputPort if it exists
@@ -581,7 +581,9 @@ public class MetaJolie extends JavaService {
                 response.getChildren("types").get(tp).deepCopy(getType(typeDefinition, request.getFirstChild("name")));
             }
 
-        } catch (CommandLineException | IOException | ParserException e) {
+        } catch (CommandLineException e) {
+        } catch (IOException e) {
+        } catch (ParserException e) {
         }
         return response;
     }
@@ -619,8 +621,11 @@ public class MetaJolie extends JavaService {
             }
 
 
-        } catch (CommandLineException | IOException | ParserException e) {
+        } catch (CommandLineException e) {
+        } catch (IOException e) {
+        } catch (ParserException e) {
         }
+
         return response;
     }
 
