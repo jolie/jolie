@@ -33,7 +33,9 @@ public class JolieGWTConverter
 			retValue.setValue( value.intValue() );
 		} else if ( value.isDouble() ) {
 			retValue.setValue( value.doubleValue() );
-		}
+		} else if ( value.isBool() ) {
+                        retValue.setValue( value.boolValue() );
+                }
 		
 		jolie.runtime.ValueVector vec;
 		jolie.runtime.Value valueToAdd;
