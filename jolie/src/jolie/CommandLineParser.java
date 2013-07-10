@@ -156,7 +156,8 @@ public class CommandLineParser
 		return constants;
 	}
 
-	private String getHelpString()
+        
+	protected String getHelpString()
 	{
 		StringBuilder helpBuilder = new StringBuilder();
 		helpBuilder.append( getVersionString() );
