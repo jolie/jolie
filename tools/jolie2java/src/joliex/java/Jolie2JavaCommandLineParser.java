@@ -6,66 +6,64 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import joliex.java.formatExeption;
 
-public class Jolie2JavaCommandLineParser extends CommandLineParser
-{
-	private String namespace;
+public class Jolie2JavaCommandLineParser extends CommandLineParser {
+
+    private String namespace;
     private String format;
-	
-	public String getNameSpace()
-		throws formatExeption
-	{
-		
+    private String targetPort;
 
-		return namespace;
-	}
-	public String getFormat()
-	{
+    public String getNameSpace()
+            throws formatExeption {
+        return namespace;
+    }
 
-	  return format;
-	}
+    public String getFormat() {
+        return format;
+    }
+    
+    public String getTargetPort() {
+        return targetPort;
+    }
 
-	private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler
-	{
-		private String namespace ;
-		private String format;
-                private String target;
-		public int onUnrecognizedArgument( List< String > argumentsList, int index )
-			throws CommandLineException
-		{
-			if ( "--namespace".equals( argumentsList.get( index ) ) ) {
-				index++;
+    private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
-				namespace = argumentsList.get( index );
-				//index++;
-			} else if ( "--format".equals( argumentsList.get( index ) ) ) {
-				index++;
-				format = argumentsList.get( index );
-			} else if ( "--target".equals( argumentsList.get( index ) ) ) {
-				index++;
-				target = argumentsList.get( index );
-			} else {
-				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
-			}
-//			} else {
-//				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
-//			}
+        private String namespace;
+        private String format;
+        private String targetPort;
 
-			return index;
-		}
-	}
+        public int onUnrecognizedArgument(List< String> argumentsList, int index)
+                throws CommandLineException {
+            if ("--namespace".equals(argumentsList.get(index))) {
+                index++;
 
-	public static Jolie2JavaCommandLineParser create( String[] args, ClassLoader parentClassLoader )
-		throws CommandLineException, IOException
-	{
-		return new Jolie2JavaCommandLineParser( args, parentClassLoader, new JolieDummyArgumentHandler() );
-	}
+                namespace = argumentsList.get(index);
+                //index++;
+            } else if ("--format".equals(argumentsList.get(index))) {
+                index++;
+                format = argumentsList.get(index);
+            } else if ("--targetPort".equals(argumentsList.get(index))) {
+                index++;
+                targetPort = argumentsList.get(index);
+            }  
+            else {
+                throw new CommandLineException("Unrecognized command line option: " + argumentsList.get(index));
+            }
 
-	private Jolie2JavaCommandLineParser( String[] args, ClassLoader parentClassLoader, JolieDummyArgumentHandler argHandler )
-		throws CommandLineException, IOException
-	{
-		super( args, parentClassLoader, argHandler );
+            return index;
+        }
+    }
 
-		namespace = argHandler.namespace;
-		format= argHandler.format;
-	}
+    public static Jolie2JavaCommandLineParser create(String[] args, ClassLoader parentClassLoader)
+            throws CommandLineException, IOException {
+        return new Jolie2JavaCommandLineParser(args, parentClassLoader, new JolieDummyArgumentHandler());
+    }
+
+    private Jolie2JavaCommandLineParser(String[] args, ClassLoader parentClassLoader, JolieDummyArgumentHandler argHandler)
+            throws CommandLineException, IOException {
+        super(args, parentClassLoader, argHandler);
+
+        namespace = argHandler.namespace;
+        format = argHandler.format;
+        targetPort = argHandler.targetPort;
+    }
 }

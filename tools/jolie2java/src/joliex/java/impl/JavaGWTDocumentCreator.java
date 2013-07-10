@@ -1,18 +1,18 @@
 /**
  * *************************************************************************
- * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>    
- * Copyright (C) 2012 by Michele Morgagni <mmorgagni@italianasoftware.com>  
- * Copyright (C) 2013 by Claudio Guidi <guidiclaudio@gmail.com>
- * This program is free software; you can redistribute it and/or modify * it under
- * the terms of the GNU Library General Public License as * published by the
- * Free Software Foundation; either version 2 of the * License, or (at your
- * option) any later version. * * This program is distributed in the hope that
- * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
- * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
- * GNU General Public License for more details. * * You should have received a
- * copy of the GNU Library General Public * License along with this program; if
- * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
- * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
+ * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>
+ * Copyright (C) 2012 by Michele Morgagni <mmorgagni@italianasoftware.com>
+ * Copyright (C) 2013 by Claudio Guidi <guidiclaudio@gmail.com> This program is
+ * free software; you can redistribute it and/or modify * it under the terms of
+ * the GNU Library General Public License as * published by the Free Software
+ * Foundation; either version 2 of the * License, or (at your option) any later
+ * version. * * This program is distributed in the hope that it will be useful,
+ * * but WITHOUT ANY WARRANTY; without even the implied warranty of *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General
+ * Public License for more details. * * You should have received a copy of the
+ * GNU Library General Public * License along with this program; if not, write
+ * to the * Free Software Foundation, Inc., * 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA. * * For details about the authors of this
  * software, see the AUTHORS file. *
  * *************************************************************************
  */
@@ -59,22 +59,23 @@ import joliex.java.support.treeOLObject;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-
 public class JavaGWTDocumentCreator {
 
     private Vector<TypeDefinition> subclass;
     private boolean subtypePresent = false;
     private String namespace;
+    private String targetPort;
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
     private static HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
     private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
 
-    public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace) {
+    public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace, String targetPort) {
 
         this.inspector = inspector;
         this.namespace = namespace;
+        this.targetPort = targetPort;
 
         javaNativeEquivalent.put(NativeType.INT, "Integer");
         javaNativeEquivalent.put(NativeType.BOOL, "Boolean");
@@ -93,7 +94,7 @@ public class JavaGWTDocumentCreator {
     }
 
     public void ConvertDocument() throws FaultException {
-
+System.out.println( targetPort );
 
         typeMap = new LinkedHashMap<String, TypeDefinition>();
         subTypeMap = new LinkedHashMap<String, TypeDefinition>();
@@ -102,8 +103,8 @@ public class JavaGWTDocumentCreator {
         try {
             // creating ZipOutputStream
             File jarFile = new File("archive.jar");
-            FileOutputStream os = new FileOutputStream( jarFile );
-            ZipOutputStream zipStream = new ZipOutputStream( os );
+            FileOutputStream os = new FileOutputStream(jarFile);
+            ZipOutputStream zipStream = new ZipOutputStream(os);
 
 
             TypeDefinition[] support = inspector.getTypes();
@@ -112,36 +113,29 @@ public class JavaGWTDocumentCreator {
             RequestResponseOperationDeclaration requestResponseOperation;
 
             for (InputPortInfo inputPort : inputPorts) {
-                /*Writer writer;
-                 try {
-                 writer = new BufferedWriter(new FileWriter(inputPort.id() + "Port.java"));
-                 writer.append(ConvertInputPorts(inputPort));
-                 writer.flush();
-                 writer.close();
-                 } catch (IOException ex) {
-                 Logger.getLogger(JavaGWTDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
-                 }*/
-                ConvertInputPorts(inputPort, zipStream);
-                Collection<OperationDeclaration> operations = inputPort.operations();
-                Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+                if (targetPort == null || inputPort.id().equals(targetPort)) {
+                    ConvertInputPorts(inputPort, zipStream);
+                    Collection<OperationDeclaration> operations = inputPort.operations();
+                    Iterator<OperationDeclaration> operatorIterator = operations.iterator();
 
 
-                String sourceString = inputPort.context().source().toString();
-                if ((sourceString.contains("/")) || sourceString.contains("\\")) {
-                    while (operatorIterator.hasNext()) {
-                        operation = operatorIterator.next();
-                        if (operation instanceof RequestResponseOperationDeclaration) {
-                            requestResponseOperation = (RequestResponseOperationDeclaration) operation;
-                            if (!typeMap.containsKey(requestResponseOperation.requestType().id())) {
-                                typeMap.put(requestResponseOperation.requestType().id(), requestResponseOperation.requestType());
-                            }
-                            if (!typeMap.containsKey(requestResponseOperation.responseType().id())) {
-                                typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
-                            }
-                        } else {
-                            OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
-                            if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
-                                typeMap.put(oneWayOperationDeclaration.requestType().id(), oneWayOperationDeclaration.requestType());
+                    String sourceString = inputPort.context().source().toString();
+                    if ((sourceString.contains("/")) || sourceString.contains("\\")) {
+                        while (operatorIterator.hasNext()) {
+                            operation = operatorIterator.next();
+                            if (operation instanceof RequestResponseOperationDeclaration) {
+                                requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+                                if (!typeMap.containsKey(requestResponseOperation.requestType().id())) {
+                                    typeMap.put(requestResponseOperation.requestType().id(), requestResponseOperation.requestType());
+                                }
+                                if (!typeMap.containsKey(requestResponseOperation.responseType().id())) {
+                                    typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
+                                }
+                            } else {
+                                OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+                                if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
+                                    typeMap.put(oneWayOperationDeclaration.requestType().id(), oneWayOperationDeclaration.requestType());
+                                }
                             }
                         }
                     }
@@ -170,13 +164,14 @@ public class JavaGWTDocumentCreator {
                 if (!(typeEntry.getKey().equals("undefined"))) {
                     subclass = new Vector<TypeDefinition>();
                     subtypePresent = false;
+                    ConvertTypes(typeEntry.getValue(), zipStream, namespace);
                 }
             }
 
             zipStream.close();
             os.flush();
             os.close();
-            
+
         } catch (IOException e) {
             throw new FaultException(e);
         }
@@ -193,11 +188,11 @@ public class JavaGWTDocumentCreator {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void ConvertInputPorts(InputPortInfo inputPortInfo, ZipOutputStream zipStream ) 
-        throws IOException {
+    public void ConvertInputPorts(InputPortInfo inputPortInfo, ZipOutputStream zipStream)
+            throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         StringBuilder operationCallBuilder = new StringBuilder();
-        stringBuilder.append("package ").append(namespace).append(";\n");
+        stringBuilder.append("package ").append(namespace).append(".").append(inputPortInfo.id()).append(";\n");
 
         // adding imports
         stringBuilder.append("import joliex.gwt.client.JolieCallback;");
@@ -212,6 +207,7 @@ public class JavaGWTDocumentCreator {
             if (operation instanceof RequestResponseOperationDeclaration) {
                 RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operation;
                 stringBuilder.append("import ").append(namespace).append(".types.").append(requestResponseOperation.requestType().id()).append(";\n");
+                stringBuilder.append("import ").append(namespace).append(".").append(inputPortInfo.id()).append(".callbacks.CallBack").append(requestResponseOperation.id()).append(";\n");
                 operationCallBuilder.append(getPortOperationMethod(requestResponseOperation.id(), requestResponseOperation.requestType().id()));
                 generateCallBackClass(requestResponseOperation, zipStream, inputPortInfo.id());
             } else {
@@ -232,10 +228,10 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("}\n;");
 
         String namespaceDir = namespace.replaceAll("\\.", "/");
-        ZipEntry zipEntry = new ZipEntry( namespaceDir + "/" + inputPortInfo.id() + "/" + inputPortInfo.id() + "Port.java" );;
-        zipStream.putNextEntry( zipEntry );
+        ZipEntry zipEntry = new ZipEntry(namespaceDir + "/" + inputPortInfo.id() + "/" + inputPortInfo.id() + "Port.java");;
+        zipStream.putNextEntry(zipEntry);
         byte[] bb = stringBuilder.toString().getBytes();
-        zipStream.write( bb, 0, bb.length );
+        zipStream.write(bb, 0, bb.length);
         zipStream.closeEntry();
 
     }
@@ -245,20 +241,20 @@ public class JavaGWTDocumentCreator {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void ConvertTypes(TypeDefinition typeDefinition, ZipOutputStream zipStream, String portName )
+    public void ConvertTypes(TypeDefinition typeDefinition, ZipOutputStream zipStream, String portName)
             throws IOException {
         StringBuilder builderHeaderclass = new StringBuilder();
-        builderHeaderclass.append("package ").append(namespace).append(";\n");
+        builderHeaderclass.append("package ").append(namespace).append(".types;\n");
         importsCreate(builderHeaderclass, typeDefinition);
         convertClass(typeDefinition, builderHeaderclass);
-        
+
         String namespaceDir = namespace.replaceAll("\\.", "/");
-        ZipEntry zipEntry = new ZipEntry( namespaceDir + "/" + portName + "/types/" + typeDefinition.id() + ".java" );;
-        zipStream.putNextEntry( zipEntry );
+        ZipEntry zipEntry = new ZipEntry(namespaceDir + "/types/" + typeDefinition.id() + ".java");;
+        zipStream.putNextEntry(zipEntry);
         byte[] bb = builderHeaderclass.toString().getBytes();
-        zipStream.write( bb, 0, bb.length );
+        zipStream.write(bb, 0, bb.length);
         zipStream.closeEntry();
-       
+
     }
 
     private void ConvertSubTypes(TypeDefinition typeDefinition, StringBuilder builderHeaderclass) {
@@ -296,19 +292,19 @@ public class JavaGWTDocumentCreator {
         }
     }
 
-    private void generateCallBackClass(RequestResponseOperationDeclaration operation, ZipOutputStream zipStream, String portName ) {
+    private void generateCallBackClass(RequestResponseOperationDeclaration operation, ZipOutputStream zipStream, String portName) {
         try {
-            
 
             // generate class
             StringBuilder stringBuilder = new StringBuilder();
 
-            stringBuilder.append("package ").append(namespace).append(";\n");
+            stringBuilder.append("package ").append(namespace).append(".").append(portName).append(".callbacks;\n");
 
             // adding imports
             stringBuilder.append("import joliex.gwt.client.FaultException;");
             stringBuilder.append("import joliex.gwt.client.JolieCallback;");
             stringBuilder.append("import joliex.gwt.client.Value;");
+            stringBuilder.append("import ").append(namespace).append(".types.").append(operation.responseType().id()).append(";\n");
 
             stringBuilder.append("public abstract class CallBack").append(operation.id()).append(" extends JolieCallback{");
 
@@ -335,14 +331,14 @@ public class JavaGWTDocumentCreator {
 
             //closign class
             stringBuilder.append("}\n");
-            
+
             String namespaceDir = namespace.replaceAll("\\.", "/");
-            ZipEntry zipEntry = new ZipEntry( namespaceDir + "/" + portName + "/callbacks/" + "CallBack" + operation.id() + ".java" );
-            zipStream.putNextEntry( zipEntry );
+            ZipEntry zipEntry = new ZipEntry(namespaceDir + "/" + portName + "/callbacks/" + "CallBack" + operation.id() + ".java");
+            zipStream.putNextEntry(zipEntry);
             byte[] bb = stringBuilder.toString().getBytes();
-            zipStream.write( bb, 0, bb.length );
+            zipStream.write(bb, 0, bb.length);
             zipStream.closeEntry();
-            
+
 
         } catch (IOException ex) {
             Logger.getLogger(JavaGWTDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
@@ -882,7 +878,7 @@ public class JavaGWTDocumentCreator {
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
                 Map.Entry me = (Map.Entry) i.next();
-                System.out.print(((TypeDefinition) me.getValue()).id() + "\n");
+                
                 if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink) {
                     if (!subTypeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())) {
                         subTypeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(), ((TypeDefinitionLink) me.getValue()).linkedType());
