@@ -44,25 +44,17 @@ public class Jolie2Java {
             ProgramInspector inspector = ParsingUtils.createInspector(program);
             ProgramVisitor visitor = new ProgramVisitor(program);
             visitor.run();
-
-            System.out.print(args.toString());
+            
             String format = cmdParser.getFormat();
-            System.out.print(format);
             if (format.equals("java")) {
-                String namespace = cmdParser.getNameSpace();
-                JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, namespace);
+                JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, cmdParser.getNameSpace());
                 documentJava.ConvertDocument();
-
             } else if (format.equals("gwt")) {
-                String namespace = cmdParser.getNameSpace();
-                JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(inspector, namespace);
+                JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(inspector, cmdParser.getNameSpace(), cmdParser.getTargetPort());
                 documentJava.ConvertDocument();
 
             } else {
-
                 System.out.print("type not yet implemented");
-
-
             }
 
 
