@@ -94,7 +94,6 @@ public class JavaGWTDocumentCreator {
     }
 
     public void ConvertDocument() throws FaultException {
-System.out.println( targetPort );
 
         typeMap = new LinkedHashMap<String, TypeDefinition>();
         subTypeMap = new LinkedHashMap<String, TypeDefinition>();
