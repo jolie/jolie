@@ -119,25 +119,25 @@ public class JavaGWTDocumentCreator {
 
 
                     String sourceString = inputPort.context().source().toString();
-                    if ((sourceString.contains("/")) || sourceString.contains("\\")) {
-                        while (operatorIterator.hasNext()) {
-                            operation = operatorIterator.next();
-                            if (operation instanceof RequestResponseOperationDeclaration) {
-                                requestResponseOperation = (RequestResponseOperationDeclaration) operation;
-                                if (!typeMap.containsKey(requestResponseOperation.requestType().id())) {
-                                    typeMap.put(requestResponseOperation.requestType().id(), requestResponseOperation.requestType());
-                                }
-                                if (!typeMap.containsKey(requestResponseOperation.responseType().id())) {
-                                    typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
-                                }
-                            } else {
-                                OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
-                                if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
-                                    typeMap.put(oneWayOperationDeclaration.requestType().id(), oneWayOperationDeclaration.requestType());
-                                }
+
+                    while (operatorIterator.hasNext()) {
+                        operation = operatorIterator.next();
+                        if (operation instanceof RequestResponseOperationDeclaration) {
+                            requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+                            if (!typeMap.containsKey(requestResponseOperation.requestType().id())) {
+                                typeMap.put(requestResponseOperation.requestType().id(), requestResponseOperation.requestType());
+                            }
+                            if (!typeMap.containsKey(requestResponseOperation.responseType().id())) {
+                                typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
+                            }
+                        } else {
+                            OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+                            if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
+                                typeMap.put(oneWayOperationDeclaration.requestType().id(), oneWayOperationDeclaration.requestType());
                             }
                         }
                     }
+
                 }
             }
 
@@ -877,7 +877,7 @@ public class JavaGWTDocumentCreator {
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
                 Map.Entry me = (Map.Entry) i.next();
-                
+
                 if (((TypeDefinition) me.getValue()) instanceof TypeDefinitionLink) {
                     if (!subTypeMap.containsKey(((TypeDefinitionLink) me.getValue()).linkedTypeName())) {
                         subTypeMap.put(((TypeDefinitionLink) me.getValue()).linkedTypeName(), ((TypeDefinitionLink) me.getValue()).linkedType());
