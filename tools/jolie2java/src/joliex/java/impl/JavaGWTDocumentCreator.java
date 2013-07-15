@@ -108,22 +108,32 @@ public class JavaGWTDocumentCreator {
 
             TypeDefinition[] support = inspector.getTypes();
             InputPortInfo[] inputPorts = inspector.getInputPorts();
+            OutputPortInfo[] outputPorts = inspector.getOutputPorts();
             OperationDeclaration operation;
             RequestResponseOperationDeclaration requestResponseOperation;
 
             for (InputPortInfo inputPort : inputPorts) {
                 if (targetPort == null || inputPort.id().equals(targetPort)) {
-                    ConvertInputPorts(inputPort, zipStream);
-                    Collection<OperationDeclaration> operations = inputPort.operations();
-                    Iterator<OperationDeclaration> operatorIterator = operations.iterator();
+                    ConvertInputPorts(inputPort, outputPorts, zipStream);
+                    Map<String, OperationDeclaration> operations = inputPort.operationsMap();
 
+                    for (int x = 0; x < inputPort.aggregationList().length; x++) {
+                        int i = 0;
+                        while (!inputPort.aggregationList()[x].outputPortList()[0].equals(outputPorts[i].id())) {
+                            i++;
+                        }
+                        for (InterfaceDefinition interfaceDefinition : outputPorts[i].getInterfaceList()) {
 
-                    String sourceString = inputPort.context().source().toString();
+                            for (Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet()) {
+                                operations.put(entry.getKey(), entry.getValue());
+                            }
+                        }
+                    }
 
-                    while (operatorIterator.hasNext()) {
-                        operation = operatorIterator.next();
-                        if (operation instanceof RequestResponseOperationDeclaration) {
-                            requestResponseOperation = (RequestResponseOperationDeclaration) operation;
+                    for (Entry<String, OperationDeclaration> operationEntry : operations.entrySet()) {
+
+                        if (operationEntry.getValue() instanceof RequestResponseOperationDeclaration) {
+                            requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
                             if (!typeMap.containsKey(requestResponseOperation.requestType().id())) {
                                 typeMap.put(requestResponseOperation.requestType().id(), requestResponseOperation.requestType());
                             }
@@ -131,7 +141,7 @@ public class JavaGWTDocumentCreator {
                                 typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
                             }
                         } else {
-                            OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
+                            OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operationEntry.getValue();
                             if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
                                 typeMap.put(oneWayOperationDeclaration.requestType().id(), oneWayOperationDeclaration.requestType());
                             }
@@ -187,7 +197,7 @@ public class JavaGWTDocumentCreator {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void ConvertInputPorts(InputPortInfo inputPortInfo, ZipOutputStream zipStream)
+    public void ConvertInputPorts(InputPortInfo inputPortInfo, OutputPortInfo[] outputPorts, ZipOutputStream zipStream)
             throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         StringBuilder operationCallBuilder = new StringBuilder();
@@ -197,11 +207,24 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("import joliex.gwt.client.JolieCallback;");
         stringBuilder.append("import joliex.gwt.client.JolieService;");
         stringBuilder.append("import joliex.gwt.client.Value;");
-        Collection<OperationDeclaration> operations = inputPortInfo.operations();
-        Iterator<OperationDeclaration> operatorIterator = operations.iterator();
-        while (operatorIterator.hasNext()) {
+        Map<String, OperationDeclaration> operations = inputPortInfo.operationsMap();
+
+        for (int x = 0; x < inputPortInfo.aggregationList().length; x++) {
+            int i = 0;
+            while (!inputPortInfo.aggregationList()[x].outputPortList()[0].equals(outputPorts[i].id())) {
+                i++;
+            }
+            for (InterfaceDefinition interfaceDefinition : outputPorts[i].getInterfaceList()) {
+
+                for (Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet()) {
+                    operations.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        
+         for (Entry<String, OperationDeclaration> operationEntry : operations.entrySet()) {
             OperationDeclaration operation;
-            operation = operatorIterator.next();
+            operation = operationEntry.getValue();
 
             if (operation instanceof RequestResponseOperationDeclaration) {
                 RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operation;
