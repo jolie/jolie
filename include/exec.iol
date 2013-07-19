@@ -24,6 +24,7 @@ type CommandExecutionRequest:string { // The command to execute
 	.waitFor?:int // 1 if the command is to be waited for, 0 otherwise
 	.args[0,*]:string // Arguments to be passed to the command
 	.workingDirectory?:string // Working directory for the process to execute (default: current directory)
+	.stdOutConsoleEnable?: bool // if true standard output is redirected to console
 }
 
 type CommandExecutionResult:any { // Can be string or void
