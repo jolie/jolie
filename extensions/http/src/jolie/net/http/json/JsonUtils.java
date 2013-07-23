@@ -188,7 +188,9 @@ public class JsonUtils
 			} else {
 				val.setValue( 0 );
 			}
-		} else {
+		} else if ( obj == null ) {
+                        
+                } else {
 			val.setValue( obj.toString() );
 		}
 		return val;
