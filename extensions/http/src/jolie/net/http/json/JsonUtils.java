@@ -189,7 +189,7 @@ public class JsonUtils
 				val.setValue( 0 );
 			}
 		} else if ( obj == null ) {
-                        
+                        val.setValue( new String() );
                 } else {
 			val.setValue( obj.toString() );
 		}
