@@ -238,7 +238,7 @@ documentToValue( document, value, true );
 		Element element,
 		Document doc
 	) {
-		// Supports only string, int and double
+		// Supports only string, int, double and bool
 		if ( value.isString() ) {
 			element.appendChild( doc.createTextNode( value.strValue() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "string" );
@@ -248,7 +248,10 @@ documentToValue( document, value, true );
 		} else if ( value.isDouble() ) {
 			element.appendChild( doc.createTextNode( new Double( value.doubleValue() ).toString() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "double" );
-		} else {
+		} else if ( value.isBool() ) {
+                        element.appendChild( doc.createTextNode( new Boolean( value.boolValue() ).toString() ) );
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "bool" );
+                } else {
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "void" );
 		}
 
@@ -419,7 +422,10 @@ documentToValue( document, value, true );
 				value.setValue( new Integer( builder.toString() ) );
 			} else if ( type.equals( "double" ) ) {
 				value.setValue( new Double( builder.toString() ) );
-			}
+			} else if ( type.equals("bool") ) {
+                                value.setValue( new Boolean( builder.toString() ));
+                        }
+                
 		}
 	}
 
