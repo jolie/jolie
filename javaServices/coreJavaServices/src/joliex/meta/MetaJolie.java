@@ -26,6 +26,7 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -579,6 +580,14 @@ public class MetaJolie extends JavaService {
             for (int tp = 0; tp < types.size(); tp++) {
                 TypeDefinition typeDefinition = types.get(tp);
                 response.getChildren("types").get(tp).deepCopy(getType(typeDefinition, request.getFirstChild("name")));
+            }
+            
+            // adding embedded services
+            EmbeddedServiceNode[] embeddedServices = inspector.getEmbeddedServices();
+            for( int es = 0; es < embeddedServices.length; es++ ) {
+                response.getChildren("embeddedServices").get( es ).getFirstChild( "type" ).setValue( embeddedServices[ es ].type().toString() );
+                response.getChildren("embeddedServices").get( es ).getFirstChild( "servicepath" ).setValue( embeddedServices[ es ].servicePath() );
+                response.getChildren("embeddedServices").get( es ).getFirstChild( "portId" ).setValue( embeddedServices[ es ].portId() );
             }
 
         } catch (CommandLineException e) {
