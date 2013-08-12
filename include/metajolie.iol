@@ -37,6 +37,11 @@ type GetMetaDataResponse: void {
   .output*: Participant
   .interfaces*: Interface
   .types*: Type
+  .embeddedServices*: void {
+	.type: string
+	.servicepath: string
+	.portId: string
+  }
 }
 
 type GetInputPortMetaDataRequest: void {
