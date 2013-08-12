@@ -25,11 +25,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.util.ProgramInspector;
+import sun.awt.EmbeddedFrame;
 
 /**
  * Implementation of {@link jolie.lang.parse.util.ProgramInspector}.
@@ -42,19 +44,22 @@ public class ProgramInspectorImpl implements ProgramInspector
 	private final Map< URI, List< InterfaceDefinition > > interfaces;
 	private final Map< URI, List< InputPortInfo > > inputPorts;
 	private final Map< URI, List< OutputPortInfo > > outputPorts;
+        private final Map< URI, List< EmbeddedServiceNode > > embeddedServices;
 
 	public ProgramInspectorImpl(
 		URI[] sources,
 		Map< URI, List< TypeDefinition > > types,
 		Map< URI, List< InterfaceDefinition > > interfaces,
 		Map< URI, List< InputPortInfo > > inputPorts,
-		Map< URI, List< OutputPortInfo > > outputPorts
+		Map< URI, List< OutputPortInfo > > outputPorts,
+                Map< URI, List< EmbeddedServiceNode > > embeddedServices
 	) {
 		this.sources = sources;
 		this.interfaces = interfaces;
 		this.inputPorts = inputPorts;
 		this.types = types;
 		this.outputPorts = outputPorts;
+                this.embeddedServices = embeddedServices;
 	}
 
 	public URI[] getSources()
@@ -149,4 +154,24 @@ public class ProgramInspectorImpl implements ProgramInspector
 		}
 		return list.toArray( new OutputPortInfo[ 0 ] );
 	}
+        
+        public EmbeddedServiceNode[] getEmbeddedServices() {
+                List< EmbeddedServiceNode > result = new ArrayList< EmbeddedServiceNode >();
+		List< EmbeddedServiceNode > list;
+		for( URI source : sources ) {
+			list = embeddedServices.get( source );
+			if ( list != null ) {
+				result.addAll( list );
+			}
+		}
+		return result.toArray( new EmbeddedServiceNode[ 0 ] );
+        }
+        
+        public EmbeddedServiceNode[] getEmbeddedServices( URI source ) {
+                List< EmbeddedServiceNode > list = embeddedServices.get( source );
+		if ( list == null ) {
+			return new EmbeddedServiceNode[ 0 ];
+		}
+		return list.toArray( new EmbeddedServiceNode[ 0 ] );
+        }
 }

@@ -22,6 +22,7 @@
 package jolie.lang.parse.util;
 
 import java.net.URI;
+import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -93,4 +94,17 @@ public interface ProgramInspector
 	 * @return an array of all the types defined in the specified source
 	 */
 	public TypeDefinition[] getTypes( URI source );
+        
+        /**
+	 * Returns an array of all the embedded service nodes in the specified source.
+	 * @param source the target source
+	 * @return an array of all the embedded service nodes defined in the specified source
+	 */
+	public EmbeddedServiceNode[] getEmbeddedServices( URI source );
+
+	/**
+	 * Returns an array of all the embedded service nodes defined in the program.
+	 * @return an array of all the embedded service nodes defined in the program
+	 */
+	public EmbeddedServiceNode[] getEmbeddedServices( );
 }
