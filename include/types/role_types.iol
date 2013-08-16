@@ -53,10 +53,16 @@ type Type: void {
   .sub_type*: SubType
 }
 
+type Fault: void {
+  .name: Name
+  .type_name?: Name
+}
+
 type Operation: void {
   .operation_name: string
   .input: Name
   .output?: Name
+  .fault*: Fault
 }
 
 type Interface: void {
