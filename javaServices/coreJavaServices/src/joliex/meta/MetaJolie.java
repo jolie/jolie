@@ -93,7 +93,15 @@ public class MetaJolie extends JavaService {
     }
 
     private boolean isNativeType(String type) {
-        if (type.equals("any") || type.equals("string") || type.equals("double") || type.equals("int") || type.equals("void")) {
+        if (type.equals("any") 
+                || type.equals("string") 
+                || type.equals("double") 
+                || type.equals("int") 
+                || type.equals("void") 
+                || type.equals("undefined")
+                || type.equals("any")
+                || type.equals("bool")
+                || type.equals("long")) {
             return true;
         } else {
             return false;
@@ -266,6 +274,19 @@ public class MetaJolie extends JavaService {
                 }
                 if (!isNativeType(requestResponseOperation.responseType().id())) {
                     addType(types, requestResponseOperation.responseType());
+                }
+                Map<String, TypeDefinition> faults  = requestResponseOperation.faults();
+                int faultCounter = 0;
+                for( Entry<String, TypeDefinition> f : faults.entrySet() ) {
+                    current_operation.getChildren("fault").get( faultCounter ).getFirstChild("name").getFirstChild("name").setValue( f.getKey() );
+                    if ( f.getValue() != null ) {
+                        current_operation.getChildren("fault").get( faultCounter ).getFirstChild("type_name").deepCopy(setName(name));
+                        current_operation.getChildren("fault").get( faultCounter ).getFirstChild("type_name").getFirstChild("name").setValue( f.getValue().id() );
+                        if ( !isNativeType( f.getValue().id() )) {
+                            addType( types, f.getValue() );
+                        }
+                    }
+                    faultCounter++;
                 }
             }
             operations.add(current_operation);
