@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-cset { coreJavaserviceConsoleToken: InRequest.token }
+//cset { coreJavaserviceConsoleToken: InRequest.token }
 
 type RegisterForInputRequest: void {
   .enableSessionListener?: bool
