@@ -269,6 +269,8 @@ main
       response = "void"
     } else if ( is_defined( request.undefined_type ) ) {
       response = "undefined"
+    } else if ( is_defined( request.bool_type ) ) {
+      response = "bool"
     } else if ( is_defined( request.link ) ) {
       response = request.link.name
     }
