@@ -40,6 +40,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
+import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -546,7 +547,8 @@ public class MetaJolie extends JavaService {
     }
 
     @RequestResponse
-    public Value getMetaData(Value request) {
+    public Value getMetaData(Value request) 
+        throws FaultException {
 
         String domain = "";
         List<TypeDefinition> types = new ArrayList<TypeDefinition>();
@@ -614,6 +616,11 @@ public class MetaJolie extends JavaService {
         } catch (CommandLineException e) {
         } catch (IOException e) {
         } catch (ParserException e) {
+            Value fault = Value.create();
+            fault.getFirstChild("message").setValue( e.getMessage() );
+            fault.getFirstChild("line").setValue( e.getLine() );
+            fault.getFirstChild("sourceName").setValue( e.getSourceName() );
+            throw new FaultException("ParserException", fault);
         }
         return response;
     }
