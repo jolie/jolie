@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.lang.Constants;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -79,6 +80,7 @@ public class ScopeProcess implements Process
 							.toVariablePath()
 							.getValue();
 					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
+                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
 					this.runScope( p );
 				} else {
 					fault = f;
