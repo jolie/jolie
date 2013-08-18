@@ -21,6 +21,12 @@
 
 include "types/role_types.iol"
 
+type ParserExceptionType: void {
+  .message: string
+  .line: int
+  .sourceName: string
+}
+
 type ParseRoleRequest: void {
   .rolename: Name
   .filename: string
@@ -64,7 +70,8 @@ type CheckNativeTypeResponse: void {
 interface MetaJolieInterface {
 RequestResponse:
 	parseRoles( ParseRoleRequest)( Role ),
-	getMetaData( GetMetaDataRequest )( GetMetaDataResponse ),
+	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
+	    throws ParserException( ParserExceptionType ),
 	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse ),
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse )
 }
