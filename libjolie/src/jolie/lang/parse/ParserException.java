@@ -50,4 +50,12 @@ public class ParserException extends Exception
 			.append( mesg )
 			.toString();
 	}
+        
+        public int getLine() {
+            return line;
+        }
+        
+        public String getSourceName() {
+            return sourceName;
+        }
 }
