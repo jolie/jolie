@@ -508,9 +508,18 @@ public class HttpProtocol extends CommProtocol
 			}
 		} else if ( "json".equals( format ) || "application/json".equals( format ) ) {
 			ret.contentType = "application/json";
-			StringBuilder jsonStringBuilder = new StringBuilder();
-			JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
-			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
+                        StringBuilder jsonStringBuilder = new StringBuilder();
+                        if ( message.isFault() ) {
+                                Value jolieJSONFault = Value.create();
+                                jolieJSONFault.getFirstChild("jolieFault").getFirstChild("faultName").setValue( message.fault().faultName() );
+                                if ( !message.fault().value().hasChildren() && !message.fault().value().strValue().isEmpty() ) {
+                                    jolieJSONFault.getFirstChild("jolieFault").getFirstChild("data").deepCopy( message.fault().value() );
+                                }
+                                JsonUtils.valueToJsonString( jolieJSONFault, jsonStringBuilder );
+                        } else {
+                                JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
+                        }
+                        ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		}
 		return ret;
 	}
