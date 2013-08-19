@@ -30,6 +30,7 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
+import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
 import jolie.runtime.FaultException;
@@ -39,6 +40,8 @@ import jolie.process.RequestResponseProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 
 /**
@@ -137,6 +140,16 @@ public abstract class AggregatedOperation
 				channel.disposeForInput();
 			}
 		}
+
+                @Override
+                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
+                    return null;
+                }
+
+                @Override
+                public OneWayTypeDescription getOneWayTypeDescription() {
+                    return operation.getOneWayTypeDescription();
+                }
 	}
 	
 	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation {
@@ -192,17 +205,29 @@ public abstract class AggregatedOperation
 				channel.disposeForInput();
 			}
 		}
-	}
+
+                @Override
+                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
+                    return operation.typeDescription();
+                }
+
+                @Override
+                public OneWayTypeDescription getOneWayTypeDescription() {
+                    return null;
+                }
+        }
 	
 	private static class DirectAggregatedOperation extends AggregatedOperation {
 		private final OutputPort outputPort;
 		private final Constants.OperationType type;
+                private final String name;
 		
 		public DirectAggregatedOperation( String name, Constants.OperationType type, OutputPort outputPort )
 		{
 			super( name );
 			this.type = type;
 			this.outputPort = outputPort;
+                        this.name = name;
 		}
 		
 		public OperationType type()
@@ -233,7 +258,26 @@ public abstract class AggregatedOperation
 			}
 			//}
 		}
-	}
+
+                @Override
+                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
+                    if ( type.equals( Constants.OperationType.ONE_WAY )) {
+                        return null;
+                    } else {
+                        return outputPort.getInterface().requestResponseOperations().get( name );
+                    }
+                }
+
+                @Override
+                public OneWayTypeDescription getOneWayTypeDescription() {
+                    if ( type.equals( Constants.OperationType.REQUEST_RESPONSE )) {
+                        return null;
+                    } else {
+                        return outputPort.getInterface().oneWayOperations().get( name );
+                    }
+
+                }
+        }
 
 	private final String name;
 	
@@ -271,6 +315,18 @@ public abstract class AggregatedOperation
 	 */
 	public abstract OperationType type();
 
+	        /**
+	 * Returns the TypeDefinition of the response message
+	 * @return the type definition of the response message.
+	 */
+        public abstract RequestResponseTypeDescription getRequestResponseTypeDescription();
+	
+        /**
+	 * Returns the TypeDefinition of the request message
+	 * @return the type definition of the request message.
+	 */
+        public abstract OneWayTypeDescription getOneWayTypeDescription();
+
 	/**
 	 * Returns the name of this operation.
 	 * @return the name of this operation.
@@ -279,7 +335,7 @@ public abstract class AggregatedOperation
 	{
 		return name;
 	}
-	
+        
 	public abstract void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }
