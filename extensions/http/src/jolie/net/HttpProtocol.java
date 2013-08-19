@@ -1132,16 +1132,31 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
-			&& channel().parentPort().getInterface().containsOperation( retVal.operationName() ) ) {
+			&& ( channel().parentPort().getInterface().containsOperation( retVal.operationName() )
+                             ||
+                             channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) ) {
 			try {
-				// The message is for this service
-				Interface iface = channel().parentPort().getInterface();
-				OneWayTypeDescription oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+                                // The message is for this service
+                                OneWayTypeDescription oneWayTypeDescription;
+                                if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+                                    oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
+                                } else {
+                                    Interface iface = channel().parentPort().getInterface();
+                                    oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+                                }
+                                
 				if ( oneWayTypeDescription != null && message.isResponse() == false ) {
 					// We are receiving a One-Way message
 					oneWayTypeDescription.requestType().cast( retVal.value() );
 				} else {
-					RequestResponseTypeDescription rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+					RequestResponseTypeDescription rrTypeDescription;
+                                        if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+                                            rrTypeDescription =  channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
+                                        } else {
+                                            Interface iface = channel().parentPort().getInterface(); 
+                                            rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+                                        }
+ 
 					if ( retVal.isFault() ) {
 						Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
 						if ( faultType != null ) {
