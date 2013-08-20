@@ -273,7 +273,7 @@ public class HttpProtocol extends CommProtocol
 		return null;
 	}
 	
-	private final static String BOUNDARY = "----Jol13H77p$$Bound4r1$$";
+	private final static String BOUNDARY = "----Jol13H77p77Bound4r155";
 	
 	private void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
@@ -414,6 +414,7 @@ public class HttpProtocol extends CommProtocol
 			format = getStringParameter( "format" );
 		}
 		return format;
+                
 	}
 	
 	private static class EncodedContent {
@@ -430,7 +431,7 @@ public class HttpProtocol extends CommProtocol
 			// We are building a GET request
 			return ret;
 		}
-
+                
 		if ( "xml".equals( format ) ) {
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + (( inInputPort ) ? "Response" : "") );
@@ -463,16 +464,48 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "text/html";
 		} else if ( "multipart/form-data".equals( format ) ) {
 			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
-			StringBuilder builder = new StringBuilder();
+			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+                        StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
 					builder.append( "--" ).append( BOUNDARY ).append( CRLF );
-					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' ).append( CRLF ).append( CRLF );
-					builder.append( entry.getValue().first().strValue() ).append( CRLF );
+					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
+                                        boolean isBinary = false;
+                                        if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
+                                            Value specOpParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.MULTIPART_HEADERS );
+                                            if ( specOpParam.hasChildren("partName") ) {
+                                                ValueVector partNames = specOpParam.getChildren("partName");
+                                                for( int p = 0; p < partNames.size(); p++ ) {
+                                                    if ( partNames.get( p ).hasChildren("part") ) {
+                                                        if ( partNames.get( p ).getFirstChild("part").strValue().equals(  entry.getKey() )) {
+                                                            isBinary = true;
+                                                            if ( partNames.get( p ).hasChildren("filename") ) {
+                                                                builder.append("; filename=\"").append( partNames.get( p ).getFirstChild("filename").strValue() ).append("\"");
+                                                            }
+                                                            if ( partNames.get( p ).hasChildren("contentType")) {
+                                                                builder.append( CRLF ).append("Content-Type:").append( partNames.get( p ).getFirstChild("contentType").strValue() );
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+                                        builder.append( CRLF ).append( CRLF );
+                                        if ( isBinary ) {
+                                            bStream.write( builder.toString().getBytes( charset ));
+                                            bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
+                                            builder.delete( 0, builder.length() - 1 );
+                                            builder.append( CRLF );
+                                        } else {
+                                            builder.append( entry.getValue().first().strValue() ).append( CRLF );
+                                        }
 				}
 			}
 			builder.append( "--" + BOUNDARY + "--" );
-			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+                        bStream.write( builder.toString().getBytes( charset ));
+			ret.content = new ByteArray( bStream.toByteArray() );
+                        
 		} else if ( "x-www-form-urlencoded".equals( format ) ) {
 			ret.contentType = "application/x-www-form-urlencoded";
 			Iterator< Entry< String, ValueVector > > it =
@@ -1146,10 +1179,15 @@ public class HttpProtocol extends CommProtocol
                              channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) ) {
 			try {
                                 // The message is for this service
-                                OneWayTypeDescription oneWayTypeDescription;
-                                if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-                                    oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
-                                } else {
+                                boolean hasInput = false;
+                                OneWayTypeDescription oneWayTypeDescription = null;
+                                if ( channel().parentInputPort() != null ) {
+                                        if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null  ) {
+                                             oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
+                                             hasInput = true;
+                                        }
+                                } 
+                                if ( !hasInput ) {
                                     Interface iface = channel().parentPort().getInterface();
                                     oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
                                 }
@@ -1158,10 +1196,16 @@ public class HttpProtocol extends CommProtocol
 					// We are receiving a One-Way message
 					oneWayTypeDescription.requestType().cast( retVal.value() );
 				} else {
-					RequestResponseTypeDescription rrTypeDescription;
-                                        if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-                                            rrTypeDescription =  channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
-                                        } else {
+                                        hasInput = false;
+					RequestResponseTypeDescription rrTypeDescription = null;
+                                        if ( channel().parentInputPort() != null ) {
+                                            if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+                                                rrTypeDescription =  channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
+                                                hasInput = true;
+                                            } 
+                                        }
+                                        
+                                        if ( !hasInput ) {
                                             Interface iface = channel().parentPort().getInterface(); 
                                             rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
                                         }
