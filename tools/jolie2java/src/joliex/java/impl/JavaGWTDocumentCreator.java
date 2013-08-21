@@ -309,7 +309,7 @@ public class JavaGWTDocumentCreator {
             subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
-            stringBuilder.append("import jolie.runtime.ByteArray;\n");
+            stringBuilder.append("import joliex.gwt.client.ByteArray;\n");
             stringBuilder.append("\n");
         }
     }
