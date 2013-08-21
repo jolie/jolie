@@ -27,11 +27,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.runtime.ByteArray;
 
 public class Value implements Serializable, IsSerializable
 {
 	public enum Type implements IsSerializable {
-		UNDEFINED, STRING, INT, DOUBLE, LONG ,BOOLEAN
+		UNDEFINED, STRING, INT, DOUBLE, LONG ,BOOLEAN, BYTEARRAY
 	}
 
 	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
@@ -170,6 +171,17 @@ public class Value implements Serializable, IsSerializable
 			return false;
 		return Boolean.valueOf( valueObject );
 	}
+        
+        public ByteArray byteArrayValue() {
+                
+                ByteArray r = null;
+		if ( valueObject == null ) {
+                        byte[] resp = new byte[0];
+			return new ByteArray( resp );
+		} else {
+                    return new ByteArray( valueObject.getBytes() );
+                }
+        }
 	
 	public Value getNewChild( String childId )
 	{
@@ -222,5 +234,10 @@ public class Value implements Serializable, IsSerializable
 		type = Type.BOOLEAN;
                 
 	}
+        
+        public void setValue( ByteArray obj ) {
+                valueObject = obj.toString();
+                type = Type.BYTEARRAY;
+        }
         
 }
