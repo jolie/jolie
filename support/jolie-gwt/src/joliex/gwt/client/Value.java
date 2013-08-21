@@ -27,7 +27,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import jolie.runtime.ByteArray;
 
 public class Value implements Serializable, IsSerializable
 {
@@ -179,7 +178,15 @@ public class Value implements Serializable, IsSerializable
                         byte[] resp = new byte[0];
 			return new ByteArray( resp );
 		} else {
-                    return new ByteArray( valueObject.getBytes() );
+                    char[] chars = valueObject.toCharArray();
+                    byte[] byteArrayToReturn= new byte[chars.length * 2 ];  //bytes per char = 2
+                    for (int i = 0; i < chars.length; i++)
+                    {
+                        for (int j = 0; j < 2; j++)
+                            byteArrayToReturn[i * 2 + j] = (byte) (chars[i] >>> (8 * (1 - j)));
+                    }
+                    
+                    return new ByteArray( byteArrayToReturn );
                 }
         }
 	
