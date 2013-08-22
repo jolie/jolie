@@ -155,7 +155,8 @@ public class MetaJolie extends JavaService {
     }
 
     private void insertType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef) {
-        if (!types.contains(typedef)) {
+        // to be optimized, similar code with addType
+        if (!types.contains(typedef) && !isNativeType( typedef.id() )) {
             types.add(typedef);
             Value type = Value.create();
             if (typedef instanceof TypeDefinitionLink) {
@@ -223,19 +224,35 @@ public class MetaJolie extends JavaService {
     }
 
     private List<TypeDefinition> addType(List<TypeDefinition> types, TypeDefinition typedef) {
-        if (!types.contains(typedef)) {
-            types.add(typedef);
+        
+        if (!types.contains(typedef) && ! isNativeType( typedef.id() )) {
+                types.add(typedef);
             if (typedef instanceof TypeDefinitionLink) {
                 addType(types, ((TypeDefinitionLink) typedef).linkedType());
             } else {
                 TypeInlineDefinition td = (TypeInlineDefinition) typedef;
                 if (td.hasSubTypes()) {
                     for (Entry<String, TypeDefinition> entry : td.subTypes()) {
-                        addType(types, entry.getValue());
+                            addSubType(types, entry.getValue());
                     }
                 }
             }
         }
+        return types;
+    }
+    
+    private List<TypeDefinition> addSubType(List<TypeDefinition> types, TypeDefinition subtype ) {
+        if (subtype instanceof TypeDefinitionLink) {
+                addType(types, ((TypeDefinitionLink) subtype).linkedType());
+            } else {
+                TypeInlineDefinition td = (TypeInlineDefinition) subtype;
+                if (td.hasSubTypes()) {
+                    for (Entry<String, TypeDefinition> entry : td.subTypes()) {
+                            addSubType(types, entry.getValue());
+                    }
+                }
+            }
+        
         return types;
     }
 
