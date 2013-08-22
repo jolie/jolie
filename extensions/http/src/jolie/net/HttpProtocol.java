@@ -652,6 +652,19 @@ public class HttpProtocol extends CommProtocol
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( CRLF );
 		}
 	}
+        
+        private void send_appendHeader( CommMessage message, StringBuilder headerBuilder )
+	{
+                Value v = getParameterFirstValue( "addHeader" );
+		if ( v != null ) {
+                    if ( v.hasChildren("header") && v.hasChildren("value") ) {
+			String header =
+				v.getFirstChild( "header" ).strValue() + ": " +
+				v.getFirstChild( "value" ).strValue();
+			headerBuilder.append( header ).append( CRLF );
+                    }
+		}
+	}
 
 	private Method send_getRequestMethod( CommMessage message )
 		throws IOException
@@ -681,6 +694,7 @@ public class HttpProtocol extends CommProtocol
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
+                send_appendHeader( message, headerBuilder );
 	}
 	
 	private void send_appendGenericHeaders(
