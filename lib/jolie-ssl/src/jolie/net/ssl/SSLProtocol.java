@@ -351,12 +351,24 @@ public class SSLProtocol extends SequentialCommProtocol
 			result = sslEngine.unwrap( cryptBuffer, clearInputBuffer );
 			switch( result.getStatus() ) {
 			case BUFFER_OVERFLOW:
-				enlargeClearInputBuffer();
+				/*enlargeClearInputBuffer();
 				oldPosition = clearInputBuffer.position();
 				clearInputBuffer.position( clearInputBuffer.limit() );
-				clearInputBuffer.limit( clearInputBuffer.capacity() );
+				clearInputBuffer.limit( clearInputBuffer.capacity() );*/
+                                int appSize = sslEngine.getSession().getApplicationBufferSize();
+                                ByteBuffer tmpBuffer1 = ByteBuffer.allocate(appSize + clearInputBuffer.position());
+                                clearInputBuffer.flip();
+                                tmpBuffer1.put( clearInputBuffer );
+                                clearInputBuffer = tmpBuffer1;
 				break;
 			case BUFFER_UNDERFLOW:
+                                int netSize = sslEngine.getSession().getPacketBufferSize();
+                                if ( netSize > clearInputBuffer.capacity() ) {
+                                    ByteBuffer tmpBuffer2 = ByteBuffer.allocate( netSize );
+                                    cryptBuffer.flip();
+                                    tmpBuffer2.put( cryptBuffer );
+                                    cryptBuffer = tmpBuffer2;
+                                }
 				byteOutputStream.write( inputStream.read() );
 				break;
 			case CLOSED:
