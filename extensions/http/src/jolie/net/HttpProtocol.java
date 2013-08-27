@@ -359,6 +359,15 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 	}
+        
+        private void send_appendQueryJSONString( Value value, String charset, StringBuilder headerBuilder )
+		throws IOException
+	{
+		if ( value.children().isEmpty() == false ) {
+			headerBuilder.append( "?=" );
+                        JsonUtils.valueToJsonString(value, headerBuilder );
+		}
+	}
 	
 	private void send_appendParsedAlias( String alias, Value value, String charset, StringBuilder headerBuilder )
 		throws IOException
@@ -635,7 +644,16 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( method == Method.GET ) {
-			send_appendQuerystring( message.value(), charset, headerBuilder );
+                        boolean jsonFormat = false;
+                        if( getParameterFirstValue("method").hasChildren("queryFormat") ) {
+                            if ( getParameterFirstValue("method").getFirstChild("queryFormat").strValue().equals("json")) {
+                                jsonFormat = true;
+                                send_appendQueryJSONString( message.value(), charset, headerBuilder );
+                            }
+                        } 
+                        if ( !jsonFormat ) {
+                            send_appendQuerystring( message.value(), charset, headerBuilder );
+                        }
 		}
 	}
 	
