@@ -84,7 +84,7 @@ public class HttpScanner
 	public void eatSeparators()
 		throws IOException
 	{
-		while( Scanner.isSeparator( ch ) ) {
+		while( Scanner.isNewLineChar( ch ) ) {
 			readChar();
 		}
 	}
@@ -111,7 +111,7 @@ public class HttpScanner
 		throws IOException
 	{
 		currInt = stream.read();
-		ch = (char)currInt;
+		ch = (char)currInt;            
 	}
 
 	public Token getToken()
