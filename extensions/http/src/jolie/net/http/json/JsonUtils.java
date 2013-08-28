@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.lang.parse.ParserException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import org.json.simple.JSONArray;
@@ -107,11 +108,16 @@ public class JsonUtils
 		throws IOException
 	{
 		try {
-			jsonObjectToValue( (JSONObject)JSONValue.parseWithException( reader ), value );
+                        Object obj =  JSONValue.parseWithException( reader );
+                        if ( obj instanceof JSONArray ) {
+                            value.children().put( "json_array", jsonObjectToValueVector( obj ) );
+                        } else {
+                            jsonObjectToValue( (JSONObject) obj, value );
+                        }       
 		} catch( ParseException e ) {
 			throw new IOException( e );
 		} catch( ClassCastException e ) {
-			throw new IOException( e );
+                        throw new IOException( e );
 		}
 	}
 
