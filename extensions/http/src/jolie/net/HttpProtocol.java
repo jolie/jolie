@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -373,6 +374,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		int offset = 0;
+                ArrayList<String> aliasKeys = new ArrayList<String>();
 		String currStrValue;
 		String currKey;
 		StringBuilder result = new StringBuilder( alias );
@@ -385,6 +387,7 @@ public class HttpProtocol extends CommProtocol
 					currStrValue = URLEncoder.encode( value.strValue(), charset );
 				} else {
 					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+                                        aliasKeys.add( currKey );
 				}
 			} else { // We have to insert the string raw
 				currKey = alias.substring( m.start() + 3, m.end() - 1 );
@@ -392,6 +395,7 @@ public class HttpProtocol extends CommProtocol
 					currStrValue = value.strValue();
 				} else {
 					currStrValue = value.getFirstChild( currKey ).strValue();
+                                        aliasKeys.add( currKey );
 				}
 			}
 
@@ -401,6 +405,10 @@ public class HttpProtocol extends CommProtocol
 			);
 			offset += currStrValue.length() - 3 - currKey.length();
 		}
+                // removing used keys
+                for( int k = 0; k < aliasKeys.size(); k++ ) {
+                    value.children().remove( aliasKeys.get(k));
+                }
 		headerBuilder.append( result );
 	}
 	
