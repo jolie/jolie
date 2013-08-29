@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
 import java.util.Map.Entry;
-import jolie.lang.parse.ParserException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import org.json.simple.JSONArray;
