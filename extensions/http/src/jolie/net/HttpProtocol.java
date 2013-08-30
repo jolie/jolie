@@ -570,7 +570,9 @@ public class HttpProtocol extends CommProtocol
                                 JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
                         }
                         ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
-		}
+		} else if ( "raw".equals( format ) ) {
+                        ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+                }
 		return ret;
 	}
 
