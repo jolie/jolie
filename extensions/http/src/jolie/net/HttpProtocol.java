@@ -764,7 +764,7 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
 			}
 			
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
 		}
@@ -814,7 +814,7 @@ public class HttpProtocol extends CommProtocol
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
-			ostream.write( CRLF.getBytes( charset ) );
+			//ostream.write( CRLF.getBytes( charset ) );
 		}
 	}
 
