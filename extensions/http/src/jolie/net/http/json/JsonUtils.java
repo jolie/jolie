@@ -46,7 +46,9 @@ public class JsonUtils
 		if ( value.children().isEmpty() ) {
 			if ( value.isDefined() ) {
 				builder.append( nativeValueToJsonString( value ) );
-			}
+			} else {
+                                builder.append("{}");
+                        }
 		} else {
 			builder.append( '{' );
 			if ( value.isDefined() ) {
@@ -56,13 +58,15 @@ public class JsonUtils
 			int size = value.children().size();
 			int i = 0;
 			for( Entry< String, ValueVector > child : value.children().entrySet() ) {
+                                appendKeyColon( builder, child.getKey() );
 				if ( child.getValue().isEmpty() == false ) {
-					appendKeyColon( builder, child.getKey() );
 					valueVectorToJsonString( child.getValue(), builder );
-				}
-				if ( i++ < size - 1 ) {
-					builder.append( ',' );
-				}
+				} else {
+                                        builder.append("[]");
+                                }
+                                if ( i++ < size - 1 ) {
+                                         builder.append( ',' );
+                                }
 			}
 			builder.append( '}' );
 		}	
