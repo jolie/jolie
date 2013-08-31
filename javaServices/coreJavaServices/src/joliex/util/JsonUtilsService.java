@@ -52,6 +52,8 @@ public class JsonUtilsService extends JavaService {
     }
     
     	private final static String ROOT_SIGN = "$";
+        private final static String JSONARRAY_KEY = "_";
+        private final static String JSONULL = "__NULL__";
 
 	private static void valueToJsonString( Value value, StringBuilder builder )
 		throws IOException
@@ -59,33 +61,44 @@ public class JsonUtilsService extends JavaService {
 		if ( value.children().isEmpty() ) {
 			if ( value.isDefined() ) {
 				builder.append( nativeValueToJsonString( value ) );
-			}
+			} else {
+                                builder.append("{}");
+                        }
 		} else {
-			builder.append( '{' );
-			if ( value.isDefined() ) {
-				appendKeyColon( builder, ROOT_SIGN );
-				builder.append( nativeValueToJsonString( value ) );
-			}
-			int size = value.children().size();
-			int i = 0;
-			for( Entry< String, ValueVector > child : value.children().entrySet() ) {
-				if ( child.getValue().isEmpty() == false ) {
-					appendKeyColon( builder, child.getKey() );
-					valueVectorToJsonString( child.getValue(), builder );
-				}
-				if ( i++ < size - 1 ) {
-					builder.append( ',' );
-				}
-			}
-			builder.append( '}' );
+                        if ( value.hasChildren( JSONARRAY_KEY ))  {
+                            valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true );
+                        } else {
+                                builder.append( '{' );
+                                if ( value.isDefined() ) {
+                                        appendKeyColon( builder, ROOT_SIGN );
+                                        builder.append( nativeValueToJsonString( value ) );
+                                }
+                                int size = value.children().size();
+                                int i = 0;
+                                for( Entry< String, ValueVector > child : value.children().entrySet() ) {                                
+                                        appendKeyColon( builder, child.getKey() );
+                                        valueVectorToJsonString( child.getValue(), builder, false );                                
+                                        if ( i++ < size - 1 ) {
+                                                builder.append( ',' );
+                                        }
+                                }
+                                builder.append( '}' );
+                        }
 		}	
 		
 	}
-
-	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder )
+        
+        private static void appendKeyColon( StringBuilder builder, String key )
+	{
+		builder.append( '"' )
+			.append( key )
+			.append( "\":" );
+	}
+        
+        private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray )
 		throws IOException
 	{
-		if ( vector.size() > 1 ) {
+                if ( isArray || ( !isArray && vector.size() > 1 )) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
 				valueToJsonString( vector.get( i ), builder );
@@ -99,120 +112,17 @@ public class JsonUtilsService extends JavaService {
 		}
 	}
 
-	private static void appendKeyColon( StringBuilder builder, String key )
-	{
-		builder.append( '"' )
-			.append( key )
-			.append( "\":" );
-	}
-
 	private static String nativeValueToJsonString( Value value )
 		throws IOException
 	{
 		if ( value.isInt() || value.isDouble() ) {
 			return value.strValue();
 		} else {
+                    if ( value.strValue().equals( JSONULL )) {
+                        return "null";
+                    } else {
 			return '"' + JSONValue.escape( value.strValue() ) + '"';
+                    }
 		}
 	}
-
-	private static void parseJsonIntoValue( Reader reader, Value value )
-		throws IOException
-	{
-		try {
-                        Object obj =  JSONValue.parseWithException( reader );
-                        if ( obj instanceof JSONArray ) {
-                            value.children().put( "json_array", jsonObjectToValueVector( obj ) );
-                        } else {
-                            jsonObjectToValue( (JSONObject) obj, value );
-                        }       
-		} catch( ParseException e ) {
-			throw new IOException( e );
-		} catch( ClassCastException e ) {
-                        throw new IOException( e );
-		}
-	}
-
-	private static void jsonObjectToValue( JSONObject obj, Value value )
-	{
-		Map< String, Object > map = (Map< String, Object >)obj;
-		ValueVector vec;
-		for( Entry< String, Object > entry : map.entrySet() ) {
-			if ( entry.getKey().equals( ROOT_SIGN ) ) {
-				if ( entry.getValue() instanceof String ) {
-					value.setValue( (String) entry.getValue() );
-				} else if ( entry.getValue() instanceof Double ) {
-					value.setValue( (Double)entry.getValue() );
-				} else if ( entry.getValue() instanceof Integer ) {
-					value.setValue( (Integer)entry.getValue() );
-				} else if ( entry.getValue() instanceof Long ) {
-					value.setValue( ((Long)entry.getValue()).intValue() );
-				} else if ( entry.getValue() instanceof Boolean ){
-					Boolean b = (Boolean)entry.getValue();
-					if ( b ) {
-						value.setValue( 1 );
-					} else {
-						value.setValue( 0 );
-					}
-				} else {
-					value.setValue( entry.getValue().toString() );
-				}
-			} else {
-				vec = jsonObjectToValueVector( entry.getValue() );
-				value.children().put( entry.getKey(), vec );
-			}
-		}
-	}
-
-	private static ValueVector jsonObjectToValueVector( Object obj )
-	{
-		ValueVector vec = ValueVector.create();
-		if ( obj instanceof JSONObject ) {
-			Value val = Value.create();
-			jsonObjectToValue( (JSONObject)obj, val );
-			vec.add( val );
-		} else if ( obj instanceof JSONArray ) {
-			JSONArray array = (JSONArray) obj;
-			for ( Object element : array ) {
-				if ( element instanceof JSONObject ) {
-					Value val = Value.create();
-					jsonObjectToValue( (JSONObject)element, val );
-					vec.add( val );
-				} else {
-					vec.add( getBasicValue( element ) );
-				}
-			}
-		} else {
-			vec.add( getBasicValue( obj ) );
-		}
-		return vec;
-	}
-	
-	private static Value getBasicValue( Object obj )
-	{
-		Value val = Value.create();
-		if ( obj instanceof String ) {
-			val.setValue( (String) obj );
-		} else if ( obj instanceof Double ) {
-			val.setValue( (Double) obj );
-		} else if ( obj instanceof Integer ) {
-			val.setValue( (Integer) obj );
-		} else if ( obj instanceof Long ) {
-			val.setValue( ((Long) obj).intValue() );
-		} else if ( obj instanceof Boolean ) {
-			Boolean b = (Boolean) obj;
-			if ( b ) {
-				val.setValue( 1 );
-			} else {
-				val.setValue( 0 );
-			}
-		} else if ( obj == null ) {
-                        val.setValue( new String() );
-                } else {
-			val.setValue( obj.toString() );
-		}
-		return val;
-	}
-    
-    
 }
