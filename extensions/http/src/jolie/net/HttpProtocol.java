@@ -835,10 +835,11 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 
-	private static void parseJson( HttpMessage message, Value value )
+	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding )
 		throws IOException
 	{
-		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ) ), value );
+                
+		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ) ), value, strictEncoding );
 	}
 	
 	private static void parseForm( HttpMessage message, Value value, String charset )
@@ -1072,11 +1073,23 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) ) {
-			parseJson( message, decodedMessage.value );
+                        boolean strictEncoding = false;
+                        if ( hasParameter( "json_encoding" ) ) {
+                            if ( getParameterFirstValue("json_encoding").strValue().equals("strict")) {
+                                strictEncoding = true;
+                            }
+                        }
+                        parseJson( message, decodedMessage.value, strictEncoding );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "json".equals( format ) ) {
-			parseJson( message, decodedMessage.value );
+			boolean strictEncoding = false;
+                        if ( hasParameter( "json_encoding" ) ) {
+                            if ( getParameterFirstValue("json_encoding").strValue().equals("strict")) {
+                                strictEncoding = true;
+                            }
+                        }
+                        parseJson( message, decodedMessage.value, strictEncoding );
 		} else {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		}

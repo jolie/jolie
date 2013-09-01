@@ -113,15 +113,15 @@ public class JsonUtils
 		}
 	}
 
-	public static void parseJsonIntoValue( Reader reader, Value value )
+	public static void parseJsonIntoValue( Reader reader, Value value, boolean strictEncoding )
 		throws IOException
 	{
 		try {
                         Object obj =  JSONValue.parseWithException( reader );
                         if ( obj instanceof JSONArray ) {
-                            value.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj ) );
+                            value.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
                         } else {
-                            jsonObjectToValue( (JSONObject) obj, value );
+                            jsonObjectToValue( (JSONObject) obj, value, strictEncoding );
                         }       
 		} catch( ParseException e ) {
 			throw new IOException( e );
@@ -130,7 +130,7 @@ public class JsonUtils
 		}
 	}
 
-	private static void jsonObjectToValue( JSONObject obj, Value value )
+	private static void jsonObjectToValue( JSONObject obj, Value value, boolean strictEncoding )
 	{
 		Map< String, Object > map = (Map< String, Object >)obj;
 		ValueVector vec;
@@ -155,35 +155,37 @@ public class JsonUtils
 					value.setValue( entry.getValue().toString() );
 				}
 			} else {
-				vec = jsonObjectToValueVector( entry.getValue() );
+				vec = jsonObjectToValueVector( entry.getValue(), strictEncoding  );
 				value.children().put( entry.getKey(), vec );
 			}
 		}
 	}
 
-	private static ValueVector jsonObjectToValueVector( Object obj )
+	private static ValueVector jsonObjectToValueVector( Object obj, boolean strictEncoding )
 	{
 		ValueVector vec = ValueVector.create();
 		if ( obj instanceof JSONObject ) {
 			Value val = Value.create();
-			jsonObjectToValue( (JSONObject)obj, val );
+			jsonObjectToValue( (JSONObject)obj, val, strictEncoding );
 			vec.add( val );
-		} else if ( obj instanceof JSONArray ) {
+		} else if ( obj instanceof JSONArray && strictEncoding ) {
                         Value arrayValue = Value.create();
                         vec.add( arrayValue );
-                        arrayValue.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj ) );
+                        arrayValue.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
+		} else if ( obj instanceof JSONArray && !strictEncoding ) {
+                        vec = jsonArrayToValueVector( (JSONArray) obj, strictEncoding );
 		} else {
 			vec.add( getBasicValue( obj ) );
 		}
 		return vec;
 	}
         
-        private static ValueVector jsonArrayToValueVector( JSONArray array ) {
+        private static ValueVector jsonArrayToValueVector( JSONArray array, boolean strictEncoding ) {
                 ValueVector vec = ValueVector.create();
 		for ( Object element : array ) {
                         if ( element instanceof JSONObject ) {
                                 Value val = Value.create();
-                                jsonObjectToValue( (JSONObject)element, val );
+                                jsonObjectToValue( (JSONObject)element, val, strictEncoding );
                                 vec.add( val );
                         } else {
                                 vec.add( getBasicValue( element ) );
