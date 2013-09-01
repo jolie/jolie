@@ -129,6 +129,7 @@ public class Value implements Serializable, IsSerializable
 	public void deepCopy( Value otherValue )
 	{
 		valueObject = otherValue.valueObject;
+                type = otherValue.type;
 		ValueVector myVector;
 		Value myValue;
 		for( Entry< String, ValueVector > entry : otherValue.children.entrySet() ) {
