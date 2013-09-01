@@ -142,7 +142,7 @@ public class FileService extends JavaService
 		value.setValue( new ByteArray( buffer ) );
 	}
 
-	private void readJsonIntoValue( InputStream istream, Value value, Charset charset )
+	private void readJsonIntoValue( InputStream istream, Value value, Charset charset, boolean strictEncoding )
 		throws IOException
 	{
 		InputStreamReader isr;
@@ -152,7 +152,7 @@ public class FileService extends JavaService
 			isr = new InputStreamReader( istream, charset );
 		}
 		Reader r = new BufferedReader( isr );
-		JsonUtils.parseJsonIntoValue( r, value );
+		JsonUtils.parseJsonIntoValue( r, value, strictEncoding );
 	}
 
 	private void readXMLIntoValue( InputStream istream, Value value )
@@ -287,7 +287,13 @@ public class FileService extends JavaService
 					if ( formatValue.hasChildren( "charset" ) ) {
 						charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 					}
-					readJsonIntoValue( istream, retValue, charset );
+                                        boolean strictEncoding = false;
+                                        if ( request.getFirstChild("format").hasChildren("json_encoding")) {
+                                            if ( request.getFirstChild("format").getFirstChild("json_encoding").strValue().equals("strict")) {
+                                                strictEncoding = true;
+                                            }
+                                        }
+					readJsonIntoValue( istream, retValue, charset, strictEncoding );
 				} else {
 					Charset charset = null;
 					Value formatValue = request.getFirstChild( "format" );
