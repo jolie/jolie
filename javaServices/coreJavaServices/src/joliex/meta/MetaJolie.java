@@ -369,8 +369,6 @@ public class MetaJolie extends JavaService {
         }
 
 
-
-
         // scan all the interfaces of the inputPort
         for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
             InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
@@ -389,6 +387,52 @@ public class MetaJolie extends JavaService {
             for (InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList()) {
                 Value input_interface = response.getChildren("interfaces").get(cur_itf_index);
                 addInterfaceToPortInfo(input_interface, interfaceDefinition, name);
+            }
+        }
+
+        return response;
+
+    }
+    
+        private Value getInputPort(InputPortInfo portInfo, Value name, OutputPortInfo[] outputPortList, List<InterfaceDefinition> interfaces) {
+
+        Value response = Value.create();
+        response.getFirstChild("name").deepCopy(setName(name));
+        // setting the name of the port
+        response.getFirstChild("name").getFirstChild("name").setValue(portInfo.id());
+
+
+
+        InputPortInfo port = (InputPortInfo) portInfo;
+        response.getFirstChild("location").setValue(port.location().toString());
+        if (port.protocolId() != null) {
+            response.getFirstChild("protocol").setValue(port.protocolId());
+        } else {
+            response.getFirstChild("protocol").setValue("");
+        }
+
+
+        // scan all the interfaces of the inputPort
+        for (int intf_index = 0; intf_index < portInfo.getInterfaceList().size(); intf_index++) {
+            InterfaceDefinition interfaceDefinition = portInfo.getInterfaceList().get(intf_index);
+            response.getChildren("interfaces").get(intf_index).getFirstChild("name").deepCopy(setName(name));
+            response.getChildren("interfaces").get(intf_index).getFirstChild("name").getFirstChild("name").setValue(interfaceDefinition.name());
+            addInterfaceToList(interfaces, interfaceDefinition);
+        }
+
+        // scanning aggregation
+        // extracts interfaces from aggregated outputPorts
+        for (int x = 0; x < portInfo.aggregationList().length; x++) {
+            int i = 0;
+            while (!portInfo.aggregationList()[x].outputPortList()[0].equals(outputPortList[i].id())) {
+                i++;
+            }
+            int intf =  response.getChildren("interfaces").size();
+            for (InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList()) {
+                response.getChildren("interfaces").get(intf).getFirstChild("name").deepCopy(setName(name));
+                response.getChildren("interfaces").get(intf).getFirstChild("name").getFirstChild("name").setValue(interfaceDefinition.name());
+                addInterfaceToList(interfaces, interfaceDefinition);
+                intf++;
             }
         }
 
@@ -489,6 +533,7 @@ public class MetaJolie extends JavaService {
             } else {
                 response.getFirstChild("protocol").setValue("");
             }
+            
         } else if (portInfo instanceof OutputPortInfo) {
             OutputPortInfo port = (OutputPortInfo) portInfo;
             if (port.location() != null) {
@@ -515,6 +560,8 @@ public class MetaJolie extends JavaService {
             interfaces = addInterfaceToList(interfaces, interfaceDefinition);
 
         }
+        
+        
         return response;
     }
 
@@ -588,18 +635,7 @@ public class MetaJolie extends JavaService {
             URI originalFile = program.context().source();
 
             response.getFirstChild("service").getFirstChild("name").deepCopy(setName(request.getFirstChild("name")));
-
-            InputPortInfo[] inputPortList = inspector.getInputPorts(originalFile);
-            ValueVector input = response.getChildren("input");
-            if (inputPortList.length > 0) {
-                for (int ip = 0; ip < inputPortList.length; ip++) {
-                    InputPortInfo inputPort = inputPortList[ ip];
-                    input.get(ip).deepCopy(getPort(inputPort, request.getFirstChild("name"), interfaces));
-                    response.getFirstChild("service").getChildren("input").get(ip).getFirstChild("name").setValue(inputPort.id());
-                    response.getFirstChild("service").getChildren("input").get(ip).getFirstChild("domain").setValue(domain);
-                }
-            }
-
+            
             OutputPortInfo[] outputPortList = inspector.getOutputPorts();
             if (outputPortList.length > 0) {
                 ValueVector output = response.getChildren("output");
@@ -610,6 +646,19 @@ public class MetaJolie extends JavaService {
                     response.getFirstChild("service").getChildren("output").get(op).getFirstChild("domain").setValue(domain);
                 }
             }
+
+            InputPortInfo[] inputPortList = inspector.getInputPorts(originalFile);
+            ValueVector input = response.getChildren("input");
+            if (inputPortList.length > 0) {
+                for (int ip = 0; ip < inputPortList.length; ip++) {
+                    InputPortInfo inputPort = inputPortList[ ip];
+                    input.get(ip).deepCopy(getInputPort(inputPort, request.getFirstChild("name"), outputPortList, interfaces ));
+                    response.getFirstChild("service").getChildren("input").get(ip).getFirstChild("name").setValue(inputPort.id());
+                    response.getFirstChild("service").getChildren("input").get(ip).getFirstChild("domain").setValue(domain);
+                }
+            }
+
+            
             // adding interfaces
             for (int intf = 0; intf < interfaces.size(); intf++) {
                 InterfaceDefinition interfaceDefinition = interfaces.get(intf);
