@@ -98,7 +98,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		}
 		
 		Value value = Value.create();
-		JsonUtils.parseJsonIntoValue( new InputStreamReader( istream ), value );
+		JsonUtils.parseJsonIntoValue( new InputStreamReader( istream ), value, false );
 
 		long id = value.getFirstChild( "id" ).intValue();
 		String operationName = value.getFirstChild( "method" ).strValue();
