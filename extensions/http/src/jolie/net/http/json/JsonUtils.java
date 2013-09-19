@@ -55,15 +55,16 @@ public class JsonUtils
                         if ( value.hasChildren( JSONARRAY_KEY ))  {
                             valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true );
                         } else {
+                                int size = value.children().size();
                                 builder.append( '{' );
                                 if ( value.isDefined() ) {
                                         appendKeyColon( builder, ROOT_SIGN );
                                         builder.append( nativeValueToJsonString( value ) );
+                                        if ( size > 0 ) {
+                                            builder.append( ',' );
+                                        }
                                 }
-                                int size = value.children().size();
-                                if ( size > 0 ) {
-                                     builder.append( ',' );
-                                }
+
                                 int i = 0;
                                 for( Entry< String, ValueVector > child : value.children().entrySet() ) {                                
                                         appendKeyColon( builder, child.getKey() );
