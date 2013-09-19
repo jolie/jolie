@@ -61,6 +61,9 @@ public class JsonUtils
                                         builder.append( nativeValueToJsonString( value ) );
                                 }
                                 int size = value.children().size();
+                                if ( size > 0 ) {
+                                     builder.append( ',' );
+                                }
                                 int i = 0;
                                 for( Entry< String, ValueVector > child : value.children().entrySet() ) {                                
                                         appendKeyColon( builder, child.getKey() );
