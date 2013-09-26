@@ -21,6 +21,7 @@
 
 package jolie.lang.parse.ast;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class InputPortInfo extends PortInfo
 {
-	public static class AggregationItemInfo {
+	public static class AggregationItemInfo implements Serializable {
 		private final String[] outputPortList;
 		private final InterfaceExtenderDefinition interfaceExtender;
 		
