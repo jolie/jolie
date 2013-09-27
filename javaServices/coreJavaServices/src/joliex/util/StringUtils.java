@@ -109,6 +109,29 @@ public class StringUtils extends JavaService
 	{
 		return request.self.startsWith( request.prefix );
 	}
+        
+        public static class EndsWithRequest implements ValueConverter
+        {
+            private String self, suffix;
+            private EndsWithRequest() {}
+            public static EndsWithRequest fromValue( Value value ) {
+                EndsWithRequest ret = new EndsWithRequest();
+                ret.self = value.strValue();
+                ret.suffix = value.getFirstChild("suffix").strValue();
+                return ret;
+            }
+            public static Value toValue( EndsWithRequest request ) {
+                Value ret = Value.create();
+                ret.setValue( request.self );
+                ret.getFirstChild("suffix").setValue( request.suffix );
+                return ret;
+            }
+        }
+        
+        public Boolean endsWith( EndsWithRequest request )
+	{
+		return request.self.endsWith( request.suffix );
+	}
 
 	public static class JoinRequest implements ValueConverter
 	{
