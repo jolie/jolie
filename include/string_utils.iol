@@ -19,7 +19,9 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
+type EndsWithRequest: string {
+	.suffix: string
+}
 
 type ReplaceAllRequest:string {
 	.regex:string
@@ -82,6 +84,11 @@ type ContainsRequest:string {
 
 interface StringUtilsInterface {
 RequestResponse:
+	/**!
+	  checks if a string ends with a given suffix
+	*/
+	endsWith( EndsWithRequest )( bool ),
+
 	/**!
 	* it returns a random UUID
 	*/
