@@ -386,13 +386,8 @@ public class CommandLineParser
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
-		} else if ( olFilepath.endsWith( ".olc" ) ) {
-			isProgramCompiled = true;
-		} else {
-			isProgramCompiled = false;
 		}
-		
-		programFilepath = olFilepath;
+	
 		
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
@@ -431,10 +426,28 @@ public class CommandLineParser
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		programStream = getOLStream( olFilepath, includeList, jolieClassLoader );
-		if ( programStream == null ) {
-			throw new FileNotFoundException( olFilepath );
+                InputStream tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
+		
+		if ( tmpProgramStream == null ) {
+                        if ( olFilepath.endsWith(".ol") ) {
+                            // try to read the compiled version of the ol file
+                            olFilepath = olFilepath + "c";
+                            tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
+                            if ( tmpProgramStream == null ) {
+                                throw new FileNotFoundException( olFilepath );
+                            }
+                        } else {
+                            throw new FileNotFoundException( olFilepath );
+                        }
 		}
+                
+                if ( olFilepath.endsWith( ".olc" ) ) {
+			isProgramCompiled = true;
+		} else {
+			isProgramCompiled = false;
+		}
+                programFilepath = olFilepath;
+                programStream = tmpProgramStream;
 
 		includePaths = includeList.toArray( new String[]{} );
 	}
