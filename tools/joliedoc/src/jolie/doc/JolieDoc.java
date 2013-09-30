@@ -38,7 +38,8 @@ public class JolieDoc
 	public static void main( String[] args )
 	{
 		try {
-			CommandLineParser cmdParser = new CommandLineParser( args, JolieDoc.class.getClassLoader() );
+			JolieDocCommandLineParser cmdParser = JolieDocCommandLineParser.create( args, JolieDoc.class.getClassLoader() );
+                        
 			SemanticVerifier.Configuration configuration = new SemanticVerifier.Configuration();
 			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
@@ -53,7 +54,7 @@ public class JolieDoc
 			ProgramInspector inspector=ParsingUtils.createInspector( program );
 
 			HtmlDocumentCreator document = new HtmlDocumentCreator( inspector, program.context().source() );
-			document.ConvertDocument();
+			document.ConvertDocument( cmdParser.getOutputPortEnabled(), cmdParser.getInputPortName() );
 			/*
 			HTMLDocumentCreator document = new HTMLDocumentCreator();
 			document.createDocument( program, cmdParser.programFilepath() );*/
