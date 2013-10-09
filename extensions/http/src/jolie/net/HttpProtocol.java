@@ -685,11 +685,13 @@ public class HttpProtocol extends CommProtocol
 	{
                 Value v = getParameterFirstValue( "addHeader" );
 		if ( v != null ) {
-                    if ( v.hasChildren("header") && v.hasChildren("value") ) {
-			String header =
-				v.getFirstChild( "header" ).strValue() + ": " +
-				v.getFirstChild( "value" ).strValue();
-			headerBuilder.append( header ).append( CRLF );
+                    if ( v.hasChildren("header") ) {
+                        for( Value head : v.getChildren("header") ) {
+                                String header =
+                                        head.strValue() + ": " +
+                                        head.getFirstChild( "value" ).strValue();
+                                headerBuilder.append( header ).append( CRLF );
+                        }
                     }
 		}
 	}
