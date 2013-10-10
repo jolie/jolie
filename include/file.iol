@@ -79,6 +79,12 @@ RequestResponse:
 	   it deletes a directory recursively removing all its contents
 	*/
 	deleteDir( string )( bool ) throws IOException(IOExceptionType),
+	
+	/**!
+	  it takes a file content and returns the size
+	*/
+	getSize( any )( int ),
+	
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
 	/**!
