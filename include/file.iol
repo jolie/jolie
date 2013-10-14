@@ -24,6 +24,11 @@ include "types/IOException.iol"
 
 type FileNotFoundType:WeakJavaExceptionType
 
+type CopyDirRequest: void {
+	.from: string
+	.to: string
+}
+
 type ReadFileRequest:void {
 	.filename:string
 	.format?:string { // Can be "base64", "binary", "text" or "xml" (defaults to "text")
@@ -73,6 +78,12 @@ RequestResponse:
 	isDirectory( string )( bool ) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
+	
+	/**!
+	  it copies a source directory into a destination one
+	*/
+	copyDir( CopyDirRequest )( bool ) throws IOException FileNotFound,
+	
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
 
 	/**!
