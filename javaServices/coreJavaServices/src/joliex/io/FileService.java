@@ -12,7 +12,7 @@
  * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
  * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
  * software, see the AUTHORS file. *
- **************************************************************************
+ * *************************************************************************
  */
 package joliex.io;
 
@@ -30,6 +30,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 
 import java.io.Writer;
@@ -217,6 +218,48 @@ public class FileService extends JavaService {
             }
             value.getFirstChild(name).setValue(propertyValue);
         }
+    }
+
+    private void __copyDir(File src, File dest) throws FileNotFoundException, IOException {
+        if (src.isDirectory()) {
+            if (!dest.exists()) {
+                dest.mkdir();
+            }
+            String[] files = src.list();
+            for (String file : files) {
+                File fileSrc = new File(src, file);
+                File fileDest = new File(dest, file );
+                __copyDir( fileSrc, fileDest );
+            }
+        } else {
+            // copy files
+            FileInputStream inStream = new FileInputStream(src);
+            FileOutputStream outStream = new FileOutputStream(dest);
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inStream.read(buffer)) > 0) {
+                outStream.write(buffer, 0, length);
+            }
+            inStream.close();
+            outStream.close();
+        }
+    }
+
+    public Value copyDir(Value request) throws FaultException {
+        Value retValue = Value.create();
+        retValue.setValue(true);
+        String fromDirName = request.getFirstChild("from").strValue();
+        String toDirName = request.getFirstChild("to").strValue();
+        File fromDir = new File(fromDirName);
+        File toDir = new File(toDirName);
+        try {
+            __copyDir(fromDir, toDir);
+        } catch (FileNotFoundException e) {
+            throw new FaultException("FileNotFound");
+        } catch (IOException e) {
+            throw new FaultException("IOException");
+        }
+        return retValue;
     }
 
     public Value readFile(Value request)
