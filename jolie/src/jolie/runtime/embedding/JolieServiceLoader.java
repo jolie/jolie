@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import jolie.runtime.expression.Expression;
 import java.util.List;
@@ -47,12 +48,8 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
 		
 		String[] options = currInterpreter.optionArgs();
-		for( int i = 0; i < options.length; i++ ) {
-			newArgs.add( options[ i ] );
-		}
-		for( int k = 0; k < ss.length; k++ ) {
-			newArgs.add( ss[ k ] );
-		}
+		newArgs.addAll( Arrays.asList( options ) );
+		newArgs.addAll( Arrays.asList( ss ) );
 		interpreter = new Interpreter(
 			newArgs.toArray( new String[ newArgs.size() ] ),
 			currInterpreter.getClassLoader(),
