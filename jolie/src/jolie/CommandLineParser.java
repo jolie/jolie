@@ -388,10 +388,10 @@ public class CommandLineParser
 			throw new CommandLineException( "Input file not specified." );
 		}
 	
-		
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
 
+		addProgramDirectories( includeList, libList, olFilepath );
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
 			if ( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
@@ -426,30 +426,49 @@ public class CommandLineParser
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-                InputStream tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
-		
+		InputStream tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
+
 		if ( tmpProgramStream == null ) {
-                        if ( olFilepath.endsWith(".ol") ) {
-                            // try to read the compiled version of the ol file
-                            olFilepath = olFilepath + "c";
-                            tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
-                            if ( tmpProgramStream == null ) {
-                                throw new FileNotFoundException( olFilepath );
-                            }
-                        } else {
-                            throw new FileNotFoundException( olFilepath );
-                        }
+			if ( olFilepath.endsWith( ".ol" ) ) {
+				// try to read the compiled version of the ol file
+				olFilepath = olFilepath + "c";
+				tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
+				if ( tmpProgramStream == null ) {
+					throw new FileNotFoundException( olFilepath );
+				}
+			} else {
+				throw new FileNotFoundException( olFilepath );
+			}
 		}
-                
-                if ( olFilepath.endsWith( ".olc" ) ) {
+
+		if ( olFilepath.endsWith( ".olc" ) ) {
 			isProgramCompiled = true;
 		} else {
 			isProgramCompiled = false;
 		}
-                programFilepath = olFilepath;
-                programStream = tmpProgramStream;
+		programFilepath = olFilepath;
+		programStream = tmpProgramStream;
 
 		includePaths = includeList.toArray( new String[]{} );
+	}
+	
+	/**
+	 * Adds the standard include and library subdirectories of the program to
+	 * the classloader paths.
+	 */
+	private void addProgramDirectories( List< String > includeList, List< String > libList, String olFilepath )
+	{
+		File olFile = new File( olFilepath );
+		if ( olFile.exists() ) {
+			File parent = olFile.getParentFile();
+			if ( parent != null && parent.isDirectory() ) {
+				String parentPath = parent.getAbsolutePath();
+				includeList.add( parentPath );
+				includeList.add( parentPath + "/include" );
+				libList.add( parentPath );
+				libList.add( parentPath + "/lib" );
+			}
+		}
 	}
 
 	public File programDirectory()
