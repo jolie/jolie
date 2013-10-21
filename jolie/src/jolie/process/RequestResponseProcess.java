@@ -22,7 +22,6 @@
 package jolie.process;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
@@ -92,7 +91,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId() ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), sessionMessage.message().value() ) );
 		}
 
 		log( "received message " + sessionMessage.message().id() );
@@ -227,7 +226,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			channel.send( response );
 			log( "sent response for message " + message.id() );
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, response.value() ));
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
