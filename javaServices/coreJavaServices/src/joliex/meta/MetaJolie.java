@@ -137,7 +137,7 @@ public class MetaJolie extends JavaService {
 
     private void insertType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef) {
         // to be optimized, similar code with addType
-        if (!types.contains(typedef) && !isNativeType(typedef.id())) {
+        if (!types.contains(typedef) && !isNativeType(typedef.id()) && !typedef.id().equals("undefined")) {
             types.add(typedef);
             Value type = Value.create();
             if (typedef instanceof TypeDefinitionLink) {
