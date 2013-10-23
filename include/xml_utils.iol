@@ -37,7 +37,7 @@ type XMLToValueRequest:any {
 }
 
 type ValueToXmlRequest: void {
-  .root: void { ? }  			
+  .root: any { ? }  			
   .rootNodeName: string
 }
 
@@ -46,7 +46,7 @@ interface XmlUtilsInterface{
 		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType),
 		transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
 		/**!
-		*  It transforms the value contained within the root node into an xml string.
+		*  It transforms the value contained within the root node into an xml string. Root values of field .root will be discarded
 		*/
 		valueToXml( ValueToXmlRequest )(string)
 }
