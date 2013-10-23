@@ -25,7 +25,7 @@ type NativeType: void {
   .double_type?: bool
   .any_type?: bool
   .void_type?: bool
-  .undefined_type?: bool
+  //.undefined_type?: bool
   .bool_type?: bool
   .long_type?: bool
   .link?: void {
