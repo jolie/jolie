@@ -21,8 +21,12 @@
 
 //cset { coreJavaserviceConsoleToken: InRequest.token }
 
+type EnableTimestampRequest: bool {
+	.format?: string
+}
+
 type RegisterForInputRequest: void {
-  .enableSessionListener?: bool
+	.enableSessionListener?: bool
 }
 
 type SubscribeSessionListener: void {
@@ -42,6 +46,12 @@ RequestResponse:
 	print( undefined )( void ), 
 
 	println( undefined )( void ), 
+	
+	/**!
+	*	It enables timestamp inline printing for each console output operation call: print, println
+	*	Parameter format allows to specifiy the timestamp output format. Bad Format will be printed out if format value is not allowed.
+	*/
+	enableTimestamp( EnableTimestampRequest )( void ),
 
 	/**!
 	*  it enables the console for input listening
