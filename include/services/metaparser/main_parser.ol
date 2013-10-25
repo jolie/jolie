@@ -271,6 +271,8 @@ main
       response = "undefined"
     } else if ( is_defined( request.bool_type ) ) {
       response = "bool"
+    } else if ( is_defined( request.long_type ) ) {
+      response = "long"
     } else if ( is_defined( request.link ) ) {
       response = request.link.name
     }
