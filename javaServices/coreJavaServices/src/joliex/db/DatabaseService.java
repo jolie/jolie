@@ -243,8 +243,7 @@ public class DatabaseService extends JavaService
 				fieldValue.setValue( result.getInt( index ) );
 				break;
 			case java.sql.Types.BIGINT:
-				// TODO: to be changed when getting support for Long in Jolie.
-				fieldValue.setValue( result.getInt( index ) );
+				fieldValue.setValue( result.getLong( index ) );
 				break;
                         case java.sql.Types.REAL:
 			case java.sql.Types.DOUBLE:
