@@ -111,8 +111,8 @@ RequestResponse:
 	exists( string )( bool ),
 	getServiceDirectory(void)(string),
 	getFileSeparator(void)(string),
-	getMimeType(string)(string) throws FileNotFound(string),
-	setMimeTypeFile(string)(void) throws IOException(void),
+	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
+	setMimeTypeFile(string)(void) throws IOException(IOExceptionType),
 	convertFromBinaryToBase64Value( raw )( string ),
 	convertFromBase64ToBinaryValue( string )( raw ) throws IOException(IOExceptionType)
 }
