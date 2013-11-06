@@ -66,8 +66,10 @@ import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.ports.Interface;
+import jolie.net.ports.Port;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
+import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -361,12 +363,12 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
         
-        private void send_appendQueryJSONString( Value value, String charset, StringBuilder headerBuilder )
+	private void send_appendQueryJSONString( CommMessage message, String charset, StringBuilder headerBuilder )
 		throws IOException
 	{
-		if ( value.children().isEmpty() == false ) {
+		if ( message.value().hasChildren() == false ) {
 			headerBuilder.append( "?=" );
-                        JsonUtils.valueToJsonString(value, headerBuilder );
+			JsonUtils.valueToJsonString( message.value(), getSendType( message ), headerBuilder );
 		}
 	}
 	
@@ -374,7 +376,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		int offset = 0;
-                ArrayList<String> aliasKeys = new ArrayList<String>();
+		ArrayList<String> aliasKeys = new ArrayList<String>();
 		String currStrValue;
 		String currKey;
 		StringBuilder result = new StringBuilder( alias );
@@ -387,7 +389,7 @@ public class HttpProtocol extends CommProtocol
 					currStrValue = URLEncoder.encode( value.strValue(), charset );
 				} else {
 					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
-                                        aliasKeys.add( currKey );
+					aliasKeys.add( currKey );
 				}
 			} else { // We have to insert the string raw
 				currKey = alias.substring( m.start() + 3, m.end() - 1 );
@@ -395,7 +397,7 @@ public class HttpProtocol extends CommProtocol
 					currStrValue = value.strValue();
 				} else {
 					currStrValue = value.getFirstChild( currKey ).strValue();
-                                        aliasKeys.add( currKey );
+					aliasKeys.add( currKey );
 				}
 			}
 
@@ -405,10 +407,10 @@ public class HttpProtocol extends CommProtocol
 			);
 			offset += currStrValue.length() - 3 - currKey.length();
 		}
-                // removing used keys
-                for( int k = 0; k < aliasKeys.size(); k++ ) {
-                    value.children().remove( aliasKeys.get(k));
-                }
+		// removing used keys
+		for( int k = 0; k < aliasKeys.size(); k++ ) {
+			value.children().remove( aliasKeys.get( k ) );
+		}
 		headerBuilder.append( result );
 	}
 	
@@ -487,42 +489,41 @@ public class HttpProtocol extends CommProtocol
 				if ( !entry.getKey().startsWith( "@" ) ) {
 					builder.append( "--" ).append( BOUNDARY ).append( CRLF );
 					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
-                                        boolean isBinary = false;
-                                        if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
-                                            Value specOpParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.MULTIPART_HEADERS );
-                                            if ( specOpParam.hasChildren("partName") ) {
-                                                ValueVector partNames = specOpParam.getChildren("partName");
-                                                for( int p = 0; p < partNames.size(); p++ ) {
-                                                    if ( partNames.get( p ).hasChildren("part") ) {
-                                                        if ( partNames.get( p ).getFirstChild("part").strValue().equals(  entry.getKey() )) {
-                                                            isBinary = true;
-                                                            if ( partNames.get( p ).hasChildren("filename") ) {
-                                                                builder.append("; filename=\"").append( partNames.get( p ).getFirstChild("filename").strValue() ).append("\"");
-                                                            }
-                                                            if ( partNames.get( p ).hasChildren("contentType")) {
-                                                                builder.append( CRLF ).append("Content-Type:").append( partNames.get( p ).getFirstChild("contentType").strValue() );
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        
-                                        builder.append( CRLF ).append( CRLF );
-                                        if ( isBinary ) {
-                                            bStream.write( builder.toString().getBytes( charset ));
-                                            bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
-                                            builder.delete( 0, builder.length() - 1 );
-                                            builder.append( CRLF );
-                                        } else {
-                                            builder.append( entry.getValue().first().strValue() ).append( CRLF );
-                                        }
+					boolean isBinary = false;
+					if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
+						Value specOpParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.MULTIPART_HEADERS );
+						if ( specOpParam.hasChildren( "partName" ) ) {
+							ValueVector partNames = specOpParam.getChildren( "partName" );
+							for( int p = 0; p < partNames.size(); p++ ) {
+								if ( partNames.get( p ).hasChildren( "part" ) ) {
+									if ( partNames.get( p ).getFirstChild( "part" ).strValue().equals( entry.getKey() ) ) {
+										isBinary = true;
+										if ( partNames.get( p ).hasChildren( "filename" ) ) {
+											builder.append( "; filename=\"" ).append( partNames.get( p ).getFirstChild( "filename" ).strValue() ).append( "\"" );
+										}
+										if ( partNames.get( p ).hasChildren( "contentType" ) ) {
+											builder.append( CRLF ).append( "Content-Type:" ).append( partNames.get( p ).getFirstChild( "contentType" ).strValue() );
+										}
+									}
+								}
+							}
+						}
+					}
+
+					builder.append( CRLF ).append( CRLF );
+					if ( isBinary ) {
+						bStream.write( builder.toString().getBytes( charset ) );
+						bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
+						builder.delete( 0, builder.length() - 1 );
+						builder.append( CRLF );
+					} else {
+						builder.append( entry.getValue().first().strValue() ).append( CRLF );
+					}
 				}
 			}
 			builder.append( "--" + BOUNDARY + "--" );
-                        bStream.write( builder.toString().getBytes( charset ));
+			bStream.write( builder.toString().getBytes( charset ));
 			ret.content = new ByteArray( bStream.toByteArray() );
-                        
 		} else if ( "x-www-form-urlencoded".equals( format ) ) {
 			ret.contentType = "application/x-www-form-urlencoded";
 			Iterator< Entry< String, ValueVector > > it =
@@ -558,21 +559,21 @@ public class HttpProtocol extends CommProtocol
 			}
 		} else if ( "json".equals( format ) || "application/json".equals( format ) ) {
 			ret.contentType = "application/json";
-                        StringBuilder jsonStringBuilder = new StringBuilder();
-                        if ( message.isFault() ) {
-                                Value jolieJSONFault = Value.create();
-                                jolieJSONFault.getFirstChild("jolieFault").getFirstChild("faultName").setValue( message.fault().faultName() );
-                                if ( !message.fault().value().hasChildren() && !message.fault().value().strValue().isEmpty() ) {
-                                    jolieJSONFault.getFirstChild("jolieFault").getFirstChild("data").deepCopy( message.fault().value() );
-                                }
-                                JsonUtils.valueToJsonString( jolieJSONFault, jsonStringBuilder );
-                        } else {
-                                JsonUtils.valueToJsonString( message.value(), jsonStringBuilder );
-                        }
-                        ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
+			StringBuilder jsonStringBuilder = new StringBuilder();
+			if ( message.isFault() ) {
+				Value jolieJSONFault = Value.create();
+				jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "faultName" ).setValue( message.fault().faultName() );
+				if ( !message.fault().value().hasChildren() && !message.fault().value().strValue().isEmpty() ) {
+					jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "data" ).deepCopy( message.fault().value() );
+				}
+				JsonUtils.valueToJsonString( jolieJSONFault, getSendType( message ), jsonStringBuilder );
+			} else {
+				JsonUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+			}
+			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
-                        ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
-                }
+			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+		}
 		return ret;
 	}
 
@@ -580,7 +581,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		return locationRequiredStatusCodes.contains( statusCode );
 	}
-	
+
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
 	{		
 		int statusCode = DEFAULT_STATUS_CODE;
@@ -654,16 +655,16 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( method == Method.GET ) {
-                        boolean jsonFormat = false;
-                        if( getParameterFirstValue("method").hasChildren("queryFormat") ) {
-                            if ( getParameterFirstValue("method").getFirstChild("queryFormat").strValue().equals("json")) {
-                                jsonFormat = true;
-                                send_appendQueryJSONString( message.value(), charset, headerBuilder );
-                            }
-                        } 
-                        if ( !jsonFormat ) {
-                            send_appendQuerystring( message.value(), charset, headerBuilder );
-                        }
+			boolean jsonFormat = false;
+			if ( getParameterFirstValue( "method" ).hasChildren( "queryFormat" ) ) {
+				if ( getParameterFirstValue( "method" ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
+					jsonFormat = true;
+					send_appendQueryJSONString( message, charset, headerBuilder );
+				}
+			}
+			if ( !jsonFormat ) {
+				send_appendQuerystring( message.value(), charset, headerBuilder );
+			}
 		}
 	}
 	
@@ -966,8 +967,8 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 	}
-        
-        private void recv_checkForGenericHeader( HttpMessage message, DecodedMessage decodedMessage )
+
+	private void recv_checkForGenericHeader( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
 		Value header = null;
@@ -978,11 +979,11 @@ public class HttpProtocol extends CommProtocol
 		}
 		if ( header != null ) {
 			Iterator<String> iterator = header.children().keySet().iterator();
-			while( iterator.hasNext() ){
-			    String name = iterator.next();
-			    String val = header.getFirstChild( name ).strValue();
-			    name = name.replace( "_", "-" );
-			    decodedMessage.value.getFirstChild(val).setValue(message.getPropertyOrEmptyString(name));
+			while( iterator.hasNext() ) {
+				String name = iterator.next();
+				String val = header.getFirstChild( name ).strValue();
+				name = name.replace( "_", "-" );
+				decodedMessage.value.getFirstChild( val ).setValue( message.getPropertyOrEmptyString( name ) );
 			}
 		}
 	}
@@ -1231,42 +1232,41 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
-			&& ( channel().parentPort().getInterface().containsOperation( retVal.operationName() )
-                             ||
-                             channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) ) {
+			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
+			|| channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null) ) {
 			try {
-                                // The message is for this service
-                                boolean hasInput = false;
-                                OneWayTypeDescription oneWayTypeDescription = null;
-                                if ( channel().parentInputPort() != null ) {
-                                        if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null  ) {
-                                             oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
-                                             hasInput = true;
-                                        }
-                                } 
-                                if ( !hasInput ) {
-                                    Interface iface = channel().parentPort().getInterface();
-                                    oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
-                                }
-                                
+				// The message is for this service
+				boolean hasInput = false;
+				OneWayTypeDescription oneWayTypeDescription = null;
+				if ( channel().parentInputPort() != null ) {
+					if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+						oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
+						hasInput = true;
+					}
+				}
+				if ( !hasInput ) {
+					Interface iface = channel().parentPort().getInterface();
+					oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
+				}
+
 				if ( oneWayTypeDescription != null && message.isResponse() == false ) {
 					// We are receiving a One-Way message
 					oneWayTypeDescription.requestType().cast( retVal.value() );
 				} else {
-                                        hasInput = false;
+					hasInput = false;
 					RequestResponseTypeDescription rrTypeDescription = null;
-                                        if ( channel().parentInputPort() != null ) {
-                                            if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-                                                rrTypeDescription =  channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
-                                                hasInput = true;
-                                            } 
-                                        }
-                                        
-                                        if ( !hasInput ) {
-                                            Interface iface = channel().parentPort().getInterface(); 
-                                            rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
-                                        }
- 
+					if ( channel().parentInputPort() != null ) {
+						if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
+							rrTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
+							hasInput = true;
+						}
+					}
+
+					if ( !hasInput ) {
+						Interface iface = channel().parentPort().getInterface();
+						rrTypeDescription = iface.requestResponseOperations().get( retVal.operationName() );
+					}
+
 					if ( retVal.isFault() ) {
 						Type faultType = rrTypeDescription.faults().get( retVal.fault().faultName() );
 						if ( faultType != null ) {
@@ -1286,5 +1286,43 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		return retVal;
+	}
+	
+	private Type getSendType( CommMessage message )
+		throws IOException
+	{
+		Type ret = null;
+
+		if ( channel().parentPort() == null ) {
+			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
+		}
+		
+		Interface iface = channel().parentPort().getInterface();
+		if ( iface.containsOperation( message.operationName() ) == false ) {
+			
+		}
+		
+		if ( iface.oneWayOperations().containsKey( message.operationName() ) ) {
+			if ( message.isFault() ) {
+				ret = Type.UNDEFINED;
+			} else {
+				OneWayTypeDescription ow = iface.oneWayOperations().get( message.operationName() );
+				ret = ow.requestType();
+			}
+		} else if ( iface.requestResponseOperations().containsKey( message.operationName() ) ) {
+			RequestResponseTypeDescription rr = iface.requestResponseOperations().get( message.operationName() );
+			if ( message.isFault() ) {
+				ret = rr.getFaultType( message.fault().faultName() );
+				if ( ret == null ) {
+					ret = Type.UNDEFINED;
+				}
+			} else {
+				ret = ( inInputPort ) ? rr.requestType() : rr.responseType();
+			}
+		} else {
+			throw new IOException( "Operation " + message.operationName() + " not declared in port interface for HTTP protocol" );
+		}
+		
+		return ret;
 	}
 }
