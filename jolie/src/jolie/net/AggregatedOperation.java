@@ -141,15 +141,17 @@ public abstract class AggregatedOperation
 			}
 		}
 
-                @Override
-                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
-                    return null;
-                }
+		@Override
+		public RequestResponseTypeDescription getRequestResponseTypeDescription()
+		{
+			return null;
+		}
 
-                @Override
-                public OneWayTypeDescription getOneWayTypeDescription() {
-                    return operation.getOneWayTypeDescription();
-                }
+		@Override
+		public OneWayTypeDescription getOneWayTypeDescription()
+		{
+			return operation.getOneWayTypeDescription();
+		}
 	}
 	
 	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation {
@@ -206,16 +208,18 @@ public abstract class AggregatedOperation
 			}
 		}
 
-                @Override
-                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
-                    return operation.typeDescription();
-                }
+		@Override
+		public RequestResponseTypeDescription getRequestResponseTypeDescription()
+		{
+			return operation.typeDescription();
+		}
 
-                @Override
-                public OneWayTypeDescription getOneWayTypeDescription() {
-                    return null;
-                }
-        }
+		@Override
+		public OneWayTypeDescription getOneWayTypeDescription()
+		{
+			return null;
+		}
+	}
 	
 	private static class DirectAggregatedOperation extends AggregatedOperation {
 		private final OutputPort outputPort;
@@ -259,24 +263,26 @@ public abstract class AggregatedOperation
 			//}
 		}
 
-                @Override
-                public RequestResponseTypeDescription getRequestResponseTypeDescription() {
-                    if ( type.equals( Constants.OperationType.ONE_WAY )) {
-                        return null;
-                    } else {
-                        return outputPort.getInterface().requestResponseOperations().get( name );
-                    }
-                }
+		@Override
+		public RequestResponseTypeDescription getRequestResponseTypeDescription()
+		{
+			if ( type.equals( Constants.OperationType.ONE_WAY ) ) {
+				return null;
+			} else {
+				return outputPort.getInterface().requestResponseOperations().get( name );
+			}
+		}
 
-                @Override
-                public OneWayTypeDescription getOneWayTypeDescription() {
-                    if ( type.equals( Constants.OperationType.REQUEST_RESPONSE )) {
-                        return null;
-                    } else {
-                        return outputPort.getInterface().oneWayOperations().get( name );
-                    }
+		@Override
+		public OneWayTypeDescription getOneWayTypeDescription()
+		{
+			if ( type.equals( Constants.OperationType.REQUEST_RESPONSE ) ) {
+				return null;
+			} else {
+				return outputPort.getInterface().oneWayOperations().get( name );
+			}
 
-                }
+		}
         }
 
 	private final String name;
