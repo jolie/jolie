@@ -21,10 +21,10 @@
 
 package jolie.runtime.typing;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -34,9 +34,8 @@ class TypeImpl extends Type
 {
 	private final Range cardinality;
 	private final NativeType nativeType;
-	private final Set< Entry< String, Type > > subTypeSet;
-	private final Set< String > subTypeKeySet;
-
+	private final Map< String, Type > subTypes;
+	
 	public TypeImpl(
 		NativeType nativeType,
 		Range cardinality,
@@ -46,28 +45,26 @@ class TypeImpl extends Type
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
 		if ( undefinedSubTypes ) {
-			subTypeSet = null;
-			subTypeKeySet = null;
+			this.subTypes = null;
 		} else {
-			subTypeSet = subTypes.entrySet();
-			subTypeKeySet = subTypes.keySet();
+			this.subTypes = Collections.unmodifiableMap( subTypes );
 		}
 	}
 	
-	protected Set< Entry< String, Type > > subTypeSet()
+	public Map< String, Type > subTypes()
 	{
-		return subTypeSet;
+		return subTypes;
 	}
 
-	protected Range cardinality()
+	public Range cardinality()
 	{
 		return cardinality;
 	}
 	
 	public void cutChildrenFromValue( Value value )
 	{
-		if ( subTypeKeySet != null ) {
-			for( String childName : subTypeKeySet ) {
+		if ( subTypes != null ) {
+			for( String childName : subTypes.keySet() ) {
 				value.children().remove( childName );
 			}
 		}
@@ -77,8 +74,8 @@ class TypeImpl extends Type
 		throws TypeCastingException
 	{
 		castNativeType( value, pathBuilder );
-		if ( subTypeSet != null ) {
-			for( Entry< String, Type > entry : subTypeSet ) {
+		if ( subTypes != null ) {
+			for( Entry< String, Type > entry : subTypes.entrySet() ) {
 				castSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
 			}
 		}
@@ -118,13 +115,13 @@ class TypeImpl extends Type
 			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
 		}
 
-		if ( subTypeSet != null ) {
-			for( Entry< String, Type > entry : subTypeSet ) {
+		if ( subTypes != null ) {
+			for( Entry< String, Type > entry : subTypes.entrySet() ) {
 				checkSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
 			}
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {
-				if ( subTypeKeySet.contains( childName ) == false ) {
+				if ( subTypes.containsKey( childName ) == false ) {
 					throw new TypeCheckingException( "Unexpected child node: " + pathBuilder.toString() + "." + childName );
 				}
 			}
@@ -238,7 +235,7 @@ class TypeImpl extends Type
 		return false;
 	}
 	
-	protected NativeType nativeType()
+	public NativeType nativeType()
 	{
 		return nativeType;
 	}
@@ -272,11 +269,11 @@ public abstract class Type implements Cloneable
 		NativeType nativeType = t1.nativeType();
 		Range cardinality = t1.cardinality();
 		Map< String, Type > subTypes = new HashMap< String, Type >();
-		for( Entry< String, Type > entry : t1.subTypeSet() ) {
+		for( Entry< String, Type > entry : t1.subTypes().entrySet()) {
 			subTypes.put( entry.getKey(), entry.getValue() );
 		}
 		if ( t2 != null ) {
-			for( Entry< String, Type > entry : t2.subTypeSet() ) {
+			for( Entry< String, Type > entry : t2.subTypes().entrySet() ) {
 				subTypes.put( entry.getKey(), entry.getValue() );
 			}
 		}
@@ -296,9 +293,9 @@ public abstract class Type implements Cloneable
 	}
 
 	public abstract void cutChildrenFromValue( Value value );
-	protected abstract NativeType nativeType();
-	protected abstract Range cardinality();
-	protected abstract Set< Entry< String, Type > > subTypeSet();
+	public abstract NativeType nativeType();
+	public abstract Range cardinality();
+	public abstract Map< String, Type > subTypes();
 	protected abstract void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException;
 	protected abstract Value cast( Value value, StringBuilder pathBuilder )
@@ -316,12 +313,12 @@ public abstract class Type implements Cloneable
 			this.cardinality = cardinality;
 		}
 		
-		protected Set< Entry< String, Type > > subTypeSet()
+		public Map< String, Type > subTypes()
 		{
-			return linkedType.subTypeSet();
+			return linkedType.subTypes();
 		}
 		
-		protected NativeType nativeType()
+		public NativeType nativeType()
 		{
 			return linkedType.nativeType();
 		}
@@ -341,7 +338,7 @@ public abstract class Type implements Cloneable
 			linkedType.cutChildrenFromValue( value );
 		}
 
-		protected Range cardinality()
+		public Range cardinality()
 		{
 			return cardinality;
 		}
