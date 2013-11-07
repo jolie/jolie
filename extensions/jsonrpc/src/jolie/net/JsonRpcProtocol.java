@@ -32,6 +32,7 @@ import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.Type;
 
 /**
  * 
@@ -84,7 +85,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			}
 		}
 		StringBuilder builder = new StringBuilder();
-		JsonUtils.valueToJsonString( value, builder );
+		JsonUtils.valueToJsonString( value, Type.UNDEFINED, builder );
 		ostream.write( builder.toString().getBytes() );
 	}
 

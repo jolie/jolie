@@ -25,6 +25,7 @@ package jolie.net;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
+import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
@@ -55,7 +56,7 @@ public class CommMessage implements Serializable
 
 	private static final AtomicLong idCounter = new AtomicLong( 1L );
 	public static final long GENERIC_ID = 0L;
-	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", "/", Value.UNDEFINED_VALUE, null );
+	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
 	
 	private final long id;
 	private final String operationName;

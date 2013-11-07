@@ -57,6 +57,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
@@ -66,14 +67,13 @@ import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.ports.Interface;
-import jolie.net.ports.Port;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
-import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
@@ -1240,7 +1240,7 @@ public class HttpProtocol extends CommProtocol
 				OneWayTypeDescription oneWayTypeDescription = null;
 				if ( channel().parentInputPort() != null ) {
 					if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-						oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOneWayTypeDescription();
+						oneWayTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOperationTypeDescription().asOneWayTypeDescription();
 						hasInput = true;
 					}
 				}
@@ -1257,7 +1257,7 @@ public class HttpProtocol extends CommProtocol
 					RequestResponseTypeDescription rrTypeDescription = null;
 					if ( channel().parentInputPort() != null ) {
 						if ( channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null ) {
-							rrTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getRequestResponseTypeDescription();
+							rrTypeDescription = channel().parentInputPort().getAggregatedOperation( retVal.operationName() ).getOperationTypeDescription().asRequestResponseTypeDescription();
 							hasInput = true;
 						}
 					}
@@ -1297,20 +1297,21 @@ public class HttpProtocol extends CommProtocol
 			throw new IOException( "Could not retrieve communication port for HTTP protocol" );
 		}
 		
-		Interface iface = channel().parentPort().getInterface();
-		if ( iface.containsOperation( message.operationName() ) == false ) {
-			
+		OperationTypeDescription opDesc = channel().parentPort().getOperationTypeDescription( message.operationName(), Constants.ROOT_RESOURCE_PATH );
+		
+		if ( opDesc == null ) {
+			throw new IOException( "Operation " + message.operationName() + " not declared in port interface for HTTP protocol" );
 		}
 		
-		if ( iface.oneWayOperations().containsKey( message.operationName() ) ) {
+		if ( opDesc.asOneWayTypeDescription() != null ) {
 			if ( message.isFault() ) {
 				ret = Type.UNDEFINED;
 			} else {
-				OneWayTypeDescription ow = iface.oneWayOperations().get( message.operationName() );
+				OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
 				ret = ow.requestType();
 			}
-		} else if ( iface.requestResponseOperations().containsKey( message.operationName() ) ) {
-			RequestResponseTypeDescription rr = iface.requestResponseOperations().get( message.operationName() );
+		} else if ( opDesc.asRequestResponseTypeDescription() != null ) {
+			RequestResponseTypeDescription rr = opDesc.asRequestResponseTypeDescription();
 			if ( message.isFault() ) {
 				ret = rr.getFaultType( message.fault().faultName() );
 				if ( ret == null ) {
@@ -1320,9 +1321,9 @@ public class HttpProtocol extends CommProtocol
 				ret = ( inInputPort ) ? rr.requestType() : rr.responseType();
 			}
 		} else {
-			throw new IOException( "Operation " + message.operationName() + " not declared in port interface for HTTP protocol" );
+			throw new IOException( "Internal error" );
 		}
-		
+
 		return ret;
 	}
 }
