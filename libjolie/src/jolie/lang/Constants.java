@@ -112,6 +112,7 @@ public final class Constants
 	public static final String GLOBAL = "global";
 	public static final String CSETS = "csets";
 	public static final Charset defaultCharset;
+	public static final String ROOT_RESOURCE_PATH = "/";
 
 	static {
 		defaultCharset = Charset.forName( "UTF-8" );
