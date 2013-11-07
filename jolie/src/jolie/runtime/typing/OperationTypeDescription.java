@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2013 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,37 +19,14 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.ports;
-
-import jolie.runtime.VariablePath;
-import jolie.runtime.typing.OperationTypeDescription;
+package jolie.runtime.typing;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public interface Port
+public interface OperationTypeDescription
 {
-	/**
-	 * Returns the {@link VariablePath} pointing to the protocol
-	 * configuration of this port.
-	 * @return the {@link VariablePath} pointing to the protocol configuration of this port.
-	 */
-	public VariablePath protocolConfigurationPath();
-
-	/**
-	 * Returns the {@link Interface} exposed directly by this port.
-	 * @return the {@link Interface} exposed directly by this port.
-	 */
-	public Interface getInterface();
-	
-	/**
-	 * Returns the {@link OperationTypeDescription} of the named operation,
-	 * also considering the type modifications given by eventual aggregations.
-	 * 
-	 * @param operationName the name of the operation.
-	 * @param resourcePath the resource path of the operation (in case of redirection).
-	 * @return the {@link OperationTypeDescription} of the named operation.
-	 */
-	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath );
+	public OneWayTypeDescription asOneWayTypeDescription();
+	public RequestResponseTypeDescription asRequestResponseTypeDescription();
 }

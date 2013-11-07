@@ -43,6 +43,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.process.SequentialProcess;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.typing.OperationTypeDescription;
 import jolie.util.LocationParser;
 
 /**
@@ -155,6 +156,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * updated to the current one of this output port.
 	 * @param message the original message
 	 * @return a new message with same operation and value, but updated resource
+	 * @throws java.net.URISyntaxException
 	 */
 	public CommMessage getResourceUpdatedMessage( CommMessage message )
 		throws URISyntaxException
@@ -209,7 +211,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private synchronized CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
-		CommChannel ret = null;
+		CommChannel ret;
 		Value loc = locationExpression.evaluate();
 		if ( loc.isChannel() ) {
 			// It's a local channel
@@ -314,5 +316,15 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	public Process configurationProcess()
 	{
 		return configurationProcess;
+	}
+	
+	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath )
+	{
+		OperationTypeDescription ret = iface.oneWayOperations().get( operationName );
+		if ( ret == null ) {
+			ret = iface.requestResponseOperations().get( operationName );
+		}
+		
+		return ret;
 	}
 }

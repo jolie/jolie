@@ -30,7 +30,6 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
-import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
 import jolie.runtime.FaultException;
@@ -40,8 +39,7 @@ import jolie.process.RequestResponseProcess;
 import jolie.process.SequentialProcess;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 
 /**
@@ -140,15 +138,8 @@ public abstract class AggregatedOperation
 				channel.disposeForInput();
 			}
 		}
-
-		@Override
-		public RequestResponseTypeDescription getRequestResponseTypeDescription()
-		{
-			return null;
-		}
-
-		@Override
-		public OneWayTypeDescription getOneWayTypeDescription()
+		
+		public OperationTypeDescription getOperationTypeDescription()
 		{
 			return operation.getOneWayTypeDescription();
 		}
@@ -208,16 +199,9 @@ public abstract class AggregatedOperation
 			}
 		}
 
-		@Override
-		public RequestResponseTypeDescription getRequestResponseTypeDescription()
+		public OperationTypeDescription getOperationTypeDescription()
 		{
 			return operation.typeDescription();
-		}
-
-		@Override
-		public OneWayTypeDescription getOneWayTypeDescription()
-		{
-			return null;
 		}
 	}
 	
@@ -263,27 +247,11 @@ public abstract class AggregatedOperation
 			//}
 		}
 
-		@Override
-		public RequestResponseTypeDescription getRequestResponseTypeDescription()
+		public OperationTypeDescription getOperationTypeDescription()
 		{
-			if ( type.equals( Constants.OperationType.ONE_WAY ) ) {
-				return null;
-			} else {
-				return outputPort.getInterface().requestResponseOperations().get( name );
-			}
+			return outputPort.getInterface().requestResponseOperations().get( name );
 		}
-
-		@Override
-		public OneWayTypeDescription getOneWayTypeDescription()
-		{
-			if ( type.equals( Constants.OperationType.REQUEST_RESPONSE ) ) {
-				return null;
-			} else {
-				return outputPort.getInterface().oneWayOperations().get( name );
-			}
-
-		}
-        }
+	}
 
 	private final String name;
 	
@@ -321,17 +289,7 @@ public abstract class AggregatedOperation
 	 */
 	public abstract OperationType type();
 
-	        /**
-	 * Returns the TypeDefinition of the response message
-	 * @return the type definition of the response message.
-	 */
-        public abstract RequestResponseTypeDescription getRequestResponseTypeDescription();
-	
-        /**
-	 * Returns the TypeDefinition of the request message
-	 * @return the type definition of the request message.
-	 */
-        public abstract OneWayTypeDescription getOneWayTypeDescription();
+	public abstract OperationTypeDescription getOperationTypeDescription();
 
 	/**
 	 * Returns the name of this operation.

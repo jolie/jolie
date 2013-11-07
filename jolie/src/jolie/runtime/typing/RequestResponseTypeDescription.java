@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * @author Fabrizio Montesi
  */
-public class RequestResponseTypeDescription
+public class RequestResponseTypeDescription implements OperationTypeDescription
 {
 	private final Type requestType;
 	private final Type responseType;
@@ -58,5 +58,15 @@ public class RequestResponseTypeDescription
 	public Map< String, Type > faults()
 	{
 		return faultTypes;
+	}
+	
+	public OneWayTypeDescription asOneWayTypeDescription()
+	{
+		return null;
+	}
+	
+	public RequestResponseTypeDescription asRequestResponseTypeDescription()
+	{
+		return this;
 	}
 }

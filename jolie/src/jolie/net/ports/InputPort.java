@@ -23,8 +23,10 @@ package jolie.net.ports;
 
 import java.net.URI;
 import java.util.Map;
+import jolie.lang.Constants;
 import jolie.net.AggregatedOperation;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OperationTypeDescription;
 
 /**
  * Represents an input port definition.
@@ -151,5 +153,23 @@ public class InputPort implements Port
 	public AggregatedOperation getAggregatedOperation( String operationName )
 	{
 		return aggregationMap.get( operationName );
+	}
+	
+	public OperationTypeDescription getOperationTypeDescription( String operationName, String resourcePath )
+	{
+		OperationTypeDescription ret = null;
+		
+		if ( resourcePath.equals( Constants.ROOT_RESOURCE_PATH ) ) {
+			if ( aggregationMap.containsKey( operationName ) ) {
+				ret = aggregationMap.get( operationName ).getOperationTypeDescription();
+			} else {
+				ret = iface.oneWayOperations().get( operationName );
+				if ( ret == null ) {
+					ret = iface.requestResponseOperations().get( operationName );
+				}
+			}
+		} /* TODO: implement code for handling redirections */
+		
+		return ret;
 	}
 }

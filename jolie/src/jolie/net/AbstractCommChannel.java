@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.TimerTask;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
@@ -198,7 +199,7 @@ public abstract class AbstractCommChannel extends CommChannel
 						monitor.response = new CommMessage(
 							entry.getKey(),
 							"",
-							"/",
+							Constants.ROOT_RESOURCE_PATH,
 							Value.create(),
 							new FaultException( "IOException", e )
 						);
