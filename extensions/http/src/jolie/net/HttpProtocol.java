@@ -1318,7 +1318,7 @@ public class HttpProtocol extends CommProtocol
 					ret = Type.UNDEFINED;
 				}
 			} else {
-				ret = ( inInputPort ) ? rr.requestType() : rr.responseType();
+				ret = ( inInputPort ) ? rr.responseType() : rr.requestType();
 			}
 		} else {
 			throw new IOException( "Internal error" );
