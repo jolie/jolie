@@ -56,9 +56,10 @@ public class JsonUtils
 			}
 		} else {
 			if ( value.hasChildren( JSONARRAY_KEY ) ) {
-				valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true );
+				valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
 			} else {
-				int size = value.children().size();
+                                
+                                int size = value.children().size();
 				builder.append( '{' );
 				if ( value.isDefined() ) {
 					appendKeyColon( builder, ROOT_SIGN );
@@ -70,8 +71,12 @@ public class JsonUtils
 
 				int i = 0;
 				for( Entry< String, ValueVector> child : value.children().entrySet() ) {
+                                        Type subType = null;
+                                        if ( type != null && type.subTypes() != null ) {
+                                            subType = type.subTypes().get( child.getKey() );
+                                        }
 					appendKeyColon( builder, child.getKey() );
-					valueVectorToJsonString( child.getValue(), builder, false );
+					valueVectorToJsonString( child.getValue(), builder, false, subType );
 					if ( i++ < size - 1 ) {
 						builder.append( ',' );
 					}
@@ -81,20 +86,22 @@ public class JsonUtils
 		}
 	}
 
-	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray )
+	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type )
 		throws IOException
 	{
-		if ( isArray || (!isArray && vector.size() > 1) ) {
+		if ( isArray || (!isArray 
+                                &&  (( type!= null && type.cardinality().max() > 1) 
+                                     || (type == null && vector.size() > 1 ) )  ) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
-				valueToJsonString( vector.get( i ), null, builder );
+				valueToJsonString( vector.get( i ), type, builder );
 				if ( i < vector.size() - 1 ) {
 					builder.append( ',' );
 				}
 			}
 			builder.append( ']' );
 		} else {
-			valueToJsonString( vector.first(), null, builder );
+			valueToJsonString( vector.first(), type, builder );
 		}
 	}
 
