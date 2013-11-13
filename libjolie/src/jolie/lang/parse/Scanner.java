@@ -174,6 +174,7 @@ public class Scanner
 		unreservedKeywords.put( NativeType.STRING.id(), TokenType.CAST_STRING );
 		unreservedKeywords.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
 		unreservedKeywords.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
+                unreservedKeywords.put( NativeType.LONG.id(), TokenType.CAST_LONG );
 		unreservedKeywords.put( "throws", TokenType.THROWS );
 		unreservedKeywords.put( "cH", TokenType.CURRENT_HANDLER );
 		unreservedKeywords.put( "init", TokenType.INIT );
