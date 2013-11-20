@@ -47,6 +47,7 @@ import joliex.db.impl.NamedStatementParser;
  * @author Fabrizio Montesi
  * 2008 - Marco Montesi: connection string fix for Microsoft SQL Server
  * 2009 - Claudio Guidi: added support for SQLite
+ * 2013 - Matthias Dieter Wallnöfer: added support for HSQLDB
  */
 @CanUseJars( {
 	"derby.jar", // Java DB - Embedded
@@ -55,7 +56,8 @@ import joliex.db.impl.NamedStatementParser;
 	"jdbc-postgresql.jar", // PostgreSQL
 	"jdbc-sqlserver.jar", // Microsoft SQLServer
 	"jdbc-sqlite.jar", // SQLite
-	"jt400.jar"   //AS400 
+	"jt400.jar", // AS400
+	"hsqldb.jar" // HSQLDB
 } )
 public class DatabaseService extends JavaService
 {
@@ -103,7 +105,7 @@ public class DatabaseService extends JavaService
 		password = request.getChildren( "password" ).first().strValue();
 		String attributes = request.getFirstChild( "attributes" ).strValue();
 		String separator = "/";
-		boolean isDerbyEmbedded = false;
+		boolean isEmbedded = false;
 		try {
 			if ( "postgresql".equals( driver ) ) {
 				Class.forName( "org.postgresql.Driver" );
@@ -121,20 +123,40 @@ public class DatabaseService extends JavaService
 				Class.forName( "com.ibm.as400.access.AS400JDBCDriver" );
 			} else if ( "derby_embedded".equals( driver ) ) {
 				Class.forName( "org.apache.derby.jdbc.EmbeddedDriver" );
-				isDerbyEmbedded = true;
+				isEmbedded = true;
 				driver = "derby";
+			} else if ( "hsqldb_hsql".equals( driver ) ||
+			            "hsqldb_hsqls".equals( driver ) ||
+			            "hsqldb_http".equals( driver ) ||
+			            "hsqldb_https".equals( driver ) ) {
+				Class.forName( "org.hsqldb.jdbcDriver" );
+			} else if ( "hsqldb_embedded".equals( driver ) ) {
+				Class.forName( "org.hsqldb.jdbcDriver" );
+				isEmbedded = true;
+				driver = "hsqldb";
 			} else {
-				throw new FaultException( "InvalidDriver", "Uknown driver: " + driver );
+				throw new FaultException( "InvalidDriver", "Unknown driver: " + driver );
 			}
 
-			if ( isDerbyEmbedded ) {
+			if ( isEmbedded ) {
 				connectionString = "jdbc:" + driver + ":" + databaseName;
 				if ( !attributes.isEmpty() ) {
 					connectionString += ";" + attributes;
 				}
-				connection = DriverManager.getConnection( connectionString );
+				if ( "hsqldb".equals( driver ) ) {
+					connection = DriverManager.getConnection(
+						connectionString,
+						username,
+						password );
+				} else {
+					connection = DriverManager.getConnection( connectionString );
+				}
 			} else {
-				connectionString = "jdbc:" + driver + "://" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
+				if ( driver.startsWith ( "hsqldb" ) ) {
+					connectionString = "jdbc:" + driver + ":" + driver.substring(driver.indexOf("_") + 1) + "//" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
+				} else {
+					connectionString = "jdbc:" + driver + "://" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
+				}
 				connection = DriverManager.getConnection(
 					connectionString,
 					username,
