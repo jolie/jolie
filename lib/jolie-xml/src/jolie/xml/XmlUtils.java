@@ -248,6 +248,9 @@ documentToValue( document, value, true );
 		} else if ( value.isDouble() ) {
 			element.appendChild( doc.createTextNode( new Double( value.doubleValue() ).toString() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "double" );
+		} else if ( value.isLong() ) {
+			element.appendChild( doc.createTextNode( new Long( value.longValue() ).toString() ) );
+			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "long" );
 		} else if ( value.isBool() ) {
                         element.appendChild( doc.createTextNode( new Boolean( value.boolValue() ).toString() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "bool" );
@@ -420,6 +423,8 @@ documentToValue( document, value, true );
 				value.setValue( builder.toString() );
 			} else if ( type.equals( "int" ) ) {
 				value.setValue( new Integer( builder.toString() ) );
+			} else if ( type.equals( "long" ) ) {
+				value.setValue( new Long( builder.toString() ) );
 			} else if ( type.equals( "double" ) ) {
 				value.setValue( new Double( builder.toString() ) );
 			} else if ( type.equals("bool") ) {
