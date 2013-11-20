@@ -730,6 +730,8 @@ public abstract class Value implements Expression, Cloneable
 			r = ((Integer)o).intValue();
 		} else if ( o instanceof Double ) {
 			r = ((Double)o).intValue();
+		} else if ( o instanceof Long ) {
+			r = ((Long)o).intValue();
 		} else if ( o instanceof Boolean ) {
 			r = ( ((Boolean) o).booleanValue() == true ) ? 1 : 0;
 		} else if ( o instanceof String ) {
