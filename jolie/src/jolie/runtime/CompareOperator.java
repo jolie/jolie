@@ -39,7 +39,9 @@ public enum CompareOperator
 		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() < right.doubleValue() );
-			} else {
+			} if ( left.isLong() ) {
+                                return ( left.longValue() < right.longValue() );
+                        } else {
 				return ( left.intValue() < right.intValue() );
 			}
 		}
@@ -47,7 +49,9 @@ public enum CompareOperator
 		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() > right.doubleValue() );
-			} else {
+			} if ( left.isLong() ) {
+                                return ( left.longValue() > right.longValue() );
+                        } else {
 				return ( left.intValue() > right.intValue() );
 			}
 		}
@@ -55,7 +59,9 @@ public enum CompareOperator
 		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() <= right.doubleValue() );
-			} else {
+			} if ( left.isLong() ) {
+                                return ( left.longValue() <= right.longValue() );
+                        } else {
 				return ( left.intValue() <= right.intValue() );
 			}
 		}
@@ -63,7 +69,9 @@ public enum CompareOperator
 		public final boolean evaluate( Value left, Value right ) {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() >= right.doubleValue() );
-			} else {
+			} if ( left.isLong() ) {
+                                return ( left.longValue() >= right.longValue() );
+                        } else {
 				return ( left.intValue() >= right.intValue() );
 			}
 		}
