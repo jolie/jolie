@@ -17,11 +17,11 @@ include "types/role_types.iol"
 
 interface ParserInterface {
   RequestResponse:
-    getIndent( void )( int ),
     getInterface( Interface )( string ),
     getParticipantInput( Participant )( string ),
     getParticipantOutput( Participant )( string ),
     getSurface( Participant )( string ),
+    getSurfaceWithoutOutputPort( Participant )( string ),
     getType( Type )( string ),
     getTypeInLine( Type )( string ),
     getSubType( SubType )( string ),
