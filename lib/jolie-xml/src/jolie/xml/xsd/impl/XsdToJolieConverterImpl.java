@@ -248,10 +248,9 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				XSParticle particle;
 				XSContentType contentType;
 				contentType = complexType.getContentType();
-
 				// The complex type does not contain sub elements
-				if ( (particle = contentType.asParticle()) == null ) {
-					//jolieTypes.add( createAnyOrUndefined( element.getName(), complexType ) );
+				if ( (particle = contentType.asParticle()) == null && !checkSkippedTypes( element.getName(), element.getTargetNamespace() )) {
+					jolieTypes.add( createAnyOrUndefined( element.getName(), complexType ) );
 					continue;
 				}
 
