@@ -471,7 +471,12 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private TypeInlineDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
 	{
 		checkType( type );
-		return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
+                if ( element.isNillable() ) {
+                        return new TypeInlineDefinition( parsingContext, element.getName(), NativeType.ANY, range );
+                } else {
+                        return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
+                }
+		
 
 
 	}
