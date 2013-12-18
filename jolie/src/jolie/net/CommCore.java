@@ -41,6 +41,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
 import java.util.regex.Pattern;
@@ -73,7 +76,7 @@ import jolie.runtime.typing.TypeCheckingException;
 public class CommCore
 {
 	private final Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
-
+	private final static int CHANNEL_HANDLER_TIMEOUT = 5;
 	private final ThreadGroup threadGroup;
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
@@ -81,6 +84,8 @@ public class CommCore
 	private final int connectionsLimit;
 	// private final int connectionCacheSize;
 	private final Interpreter interpreter;
+	
+	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 
 	// Location URI -> Protocol name -> Persistent CommChannel object
 	private final Map< URI, Map< String, CommChannel > > persistentChannels =
@@ -590,6 +595,7 @@ public class CommCore
 			CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().initThread() );
 			channel.lock.lock();
+			channelHandlersLock.readLock().lock();
 			try {
 				if ( channel.redirectionChannel() == null ) {
 					assert( port != null );
@@ -607,6 +613,7 @@ public class CommCore
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
 			} finally {
+				channelHandlersLock.readLock().unlock();
 				if ( channel.lock.isHeldByCurrentThread() ) {
 					channel.lock.unlock();
 				}
@@ -651,7 +658,7 @@ public class CommCore
 	 */
 	public void init()
 		throws IOException
-	{		
+	{
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 			entry.getValue().start();
 		}
@@ -750,11 +757,12 @@ public class CommCore
 	}
 	
 	private SelectorThread selectorThread = null;
+	private Object selectorThreadMonitor = new Object();
 	
 	private SelectorThread selectorThread()
 		throws IOException
 	{
-		synchronized( this ) {
+		synchronized( selectorThreadMonitor ) {
 			if ( selectorThread == null ) {
 				selectorThread = new SelectorThread( interpreter );
 				selectorThread.start();
@@ -946,7 +954,13 @@ public class CommCore
 			}
 			if ( selectorThread != null ) {
 				selectorThread.selector.wakeup();
+				try {
+					selectorThread.join();
+				} catch( InterruptedException e ) {}
 			}
+			try {
+				channelHandlersLock.writeLock().tryLock( CHANNEL_HANDLER_TIMEOUT, TimeUnit.SECONDS );
+			} catch( InterruptedException e ) {}
 			executorService.shutdown();
 			threadGroup.interrupt();
 		}
