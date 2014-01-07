@@ -41,7 +41,7 @@ java -ea:jolie... -ea:joliex... -Xmx1G -jar %joliepath%jolie.jar -l .\lib\*;%jol
 		<echo file="${private.install.launcher_dir}/joliec.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\joliec.jar jolie.compiler.Main -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar;%joliepath%tools\joliec.jar jolie.compiler.Main -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 
 		<echo message="Installing Jolie2Java Windows launcher script..." />
@@ -55,14 +55,14 @@ java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie
 		<echo file="${private.install.launcher_dir}/jolie2surface.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2surface.jar joliex.surface.GetSurface -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar;%joliepath%tools\jolie2surface.jar joliex.surface.GetSurface -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 
 		<echo message="Installing Jolie2Dummy Windows launcher script..." />
 		<echo file="${private.install.launcher_dir}/jolie2dummy.bat">@echo off
 set joliepath=${install.dir}\
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar:%joliepath%tools\jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
+java -ea:jolie... -ea:joliex... -cp %joliepath%jolie.jar;%joliepath%lib\libjolie.jar;%joliepath%tools\jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l %joliepath%lib;%joliepath%javaServices\*;%joliepath%extensions\* -i %joliepath%include %params%
 		</echo>
 
 		<echo message="Installing Jolie2Wsdl Windows launcher script..." />
