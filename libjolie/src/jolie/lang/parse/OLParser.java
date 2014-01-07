@@ -509,10 +509,12 @@ public class OLParser extends AbstractParser
 	private static class IncludeFile {
 		private final InputStream inputStream;
 		private final String parentPath;
-		private IncludeFile( InputStream inputStream, String parentPath )
+                private final URI uri;
+		private IncludeFile( InputStream inputStream, String parentPath, URI uri )
 		{
 			this.inputStream = inputStream;
 			this.parentPath = parentPath;
+                        this.uri = uri;
 		}
 
 		private InputStream getInputStream()
@@ -524,6 +526,10 @@ public class OLParser extends AbstractParser
 		{
 			return parentPath;
 		}
+                
+                private URI getURI() {
+                        return uri;
+                }
 	}
 
 	private static IncludeFile retrieveIncludeFile( final String path, final String filename )
@@ -540,7 +546,8 @@ public class OLParser extends AbstractParser
 		try {
 			ret = new IncludeFile(
 					new BufferedInputStream( new FileInputStream( f ) ),
-					f.getParent()
+					f.getParent(),
+                                        f.toURI()
 				);
 		} catch( FileNotFoundException e ) {
 			try {
@@ -562,9 +569,11 @@ public class OLParser extends AbstractParser
 				} else {
 					url = new URL( new URI( urlStr ).normalize().toString() );
 				}
+                                File f2 = new File( url.toString() );
 				ret = new IncludeFile(
 					url.openStream(),
-					new File( url.toString() ).getParent()
+					f2.getParent(),
+                                        f2.toURI()
 					//path
 				);
 			} catch( MalformedURLException mue ) {
@@ -594,7 +603,8 @@ public class OLParser extends AbstractParser
 			if ( includeFile == null ) {
 				URL includeURL = classLoader.getResource( includeStr );
 				if ( includeURL != null ) {
-					includeFile = new IncludeFile( includeURL.openStream(), new File( includeURL.toString() ).getParent() );
+                                        File f = new File( includeURL.toString() );
+					includeFile = new IncludeFile( includeURL.openStream(), f.getParent(), f.toURI() );
 				}
 			}
 
@@ -607,12 +617,9 @@ public class OLParser extends AbstractParser
 			}
 
 			origIncludePaths = includePaths;
-			try {
-				setScanner( new Scanner( includeFile.getInputStream(), new URI( includeFile.parentPath.toString() + includeStr ) ) );
-				// new URI( "file:" + includeStr ) ) );
-			} catch( URISyntaxException e ) {
-				throw new IOException( e );
-			}
+			
+                        setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI() ) );
+			
 
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
