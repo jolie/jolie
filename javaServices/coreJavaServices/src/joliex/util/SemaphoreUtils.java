@@ -36,7 +36,8 @@ public class SemaphoreUtils extends JavaService {
 	}
 	
 	private int getPermits( Value v ){
-		if( v.getFirstChild( "permits" ) != null ){
+		if( v.getFirstChild( "permits" ) != null && 
+			v.getFirstChild( "permits" ).intValue() != 0 ){
 			return v.getFirstChild( "permits" ).intValue();
 		} else {
 			return 1;
