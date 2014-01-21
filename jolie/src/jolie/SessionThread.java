@@ -323,7 +323,7 @@ public class SessionThread extends ExecutionThread
 
 	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 	{
-		SessionMessageFuture future = new SessionMessageNDFuture( operations.keySet().toArray( new String[0] ) );
+		final SessionMessageFuture future = new SessionMessageNDFuture( operations.keySet().toArray( new String[0] ) );
 		ethread.cancelIfKilled( future );
 		synchronized( messageQueues ) {
 			Deque< SessionMessage > queue = null;
@@ -356,11 +356,12 @@ public class SessionThread extends ExecutionThread
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
+				SessionMessageFuture f;
 				while( keepRun && !queue.isEmpty() ) {
 					message = queue.peekFirst();
-					future = getMessageWaiter( message.message().operationName() );
-					if ( future != null ) { // We found a waiter for the unlocked message
-						future.setResult( message );
+					f = getMessageWaiter( message.message().operationName() );
+					if ( f != null ) { // We found a waiter for the unlocked message
+						f.setResult( message );
 						queue.removeFirst();
 					} else {
 						keepRun = false;
