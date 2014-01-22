@@ -363,7 +363,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
         
-	private void send_appendQueryJSONString( CommMessage message, String charset, StringBuilder headerBuilder )
+	private void send_appendJsonQueryString( CommMessage message, String charset, StringBuilder headerBuilder )
 		throws IOException
 	{
 		if ( message.value().hasChildren() == false ) {
@@ -659,7 +659,7 @@ public class HttpProtocol extends CommProtocol
 			if ( getParameterFirstValue( "method" ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( "method" ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					jsonFormat = true;
-					send_appendQueryJSONString( message, charset, headerBuilder );
+					send_appendJsonQueryString( message, charset, headerBuilder );
 				}
 			}
 			if ( !jsonFormat ) {
