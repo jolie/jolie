@@ -21,15 +21,12 @@
 
 include "types/role_types.iol"
 
-type ParserExceptionType: void {
-  .message: string
-  .line: int
-  .sourceName: string
+type CheckNativeTypeRequest: void {
+  .type_name: string
 }
 
-type ParseRoleRequest: void {
-  .rolename: Name
-  .filename: string
+type CheckNativeTypeResponse: void {
+  .result: bool
 }
 
 type GetMetaDataRequest: void {
@@ -59,21 +56,39 @@ type GetInputPortMetaDataResponse: void {
   .input*: Participant
 }
 
-type CheckNativeTypeRequest: void {
-  .type_name: string
+type MessageTypeCastRequest: void {
+  .message: undefined
+  .types: void {
+	.messageTypeName: Name
+	.types*: Type
+  }
 }
 
-type CheckNativeTypeResponse: void {
-  .result: bool
+type MessageTypeCastResponse: void {
+  .message: undefined
+}
+
+type ParserExceptionType: void {
+  .message: string
+  .line: int
+  .sourceName: string
+}
+
+type ParseRoleRequest: void {
+  .rolename: Name
+  .filename: string
 }
 
 interface MetaJolieInterface {
 RequestResponse:
-	parseRoles( ParseRoleRequest)( Role ),
+	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 	    throws ParserException( ParserExceptionType ),
 	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse ),
-	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse )
+	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
+	    throws TypeMismatch,
+	parseRoles( ParseRoleRequest)( Role )
+	
 }
 
 outputPort MetaJolie {
