@@ -19,6 +19,7 @@ package joliex.meta;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -547,6 +548,13 @@ public class MetaJolie extends JavaService {
 
         return response;
     }
+    
+    @RequestResponse
+    public Value checkNativeType(Value request) {
+        Value response = Value.create();
+        response.getFirstChild("result").setValue(isNativeType(request.getFirstChild("type_name").strValue()));
+        return response;
+    }
 
     @RequestResponse
     public Value parseRoles(Value request) {
@@ -714,11 +722,123 @@ public class MetaJolie extends JavaService {
 
         return response;
     }
-
-    @RequestResponse
-    public Value checkNativeType(Value request) {
-        Value response = Value.create();
-        response.getFirstChild("result").setValue(isNativeType(request.getFirstChild("type_name").strValue()));
-        return response;
+    
+    private Value findType( ValueVector types, String typeName, String typeDomain ) {
+            Iterator iterator = types.iterator();
+            boolean found = false;
+            int index = 0;
+            while( index < types.size() && !found ) {
+                Value type = (Value) iterator.next();
+                String name = type.getFirstChild("name").getFirstChild("name").strValue();
+                String domain = type.getFirstChild("name").getFirstChild("domain").strValue();
+                if( name.equals( typeName ) && domain.equals( typeDomain )) {
+                    found = true;
+                }
+                index++;
+            }
+            return types.get( index - 1 );
     }
+    
+    private void castingSubType( ValueVector subTypes, String elementName, ValueVector messageVector, ValueVector types, Value response ) 
+        throws FaultException {
+          boolean found = false;
+          int index = 0;
+          while( !found && index < subTypes.size() ) {
+              if ( subTypes.get( index ).getFirstChild("name").strValue().equals( elementName )) {
+                  found = true;
+              }
+              index++;
+          }
+          if ( !found ) {
+              throw new FaultException("TypeMismatch");
+          } else {
+              Value subType = subTypes.get( index -1 );
+              // check cardinality
+              if ( messageVector.size() < subType.getFirstChild("Cardinality").getFirstChild("min").intValue() ) {
+                  throw new FaultException("TypeMismatch");
+              }
+              if ( subType.getFirstChild("cardinality").getChildren("max").size() > 0 ) {
+                  if ( messageVector.size() > subType.getFirstChild("cardinality").getFirstChild("max").intValue() ) {
+                        throw new FaultException("TypeMismatch");
+                  }
+              }
+              // casting all the elements
+              for( int el = 0; el < messageVector.size(); el++ ) {
+                  if ( subType.getChildren("type_inline").size() > 0 ) {
+                      castingType( subType.getFirstChild("type_inline"), messageVector.get( el ), types, response.getChildren(elementName).get( el ) );
+                  } else if ( subType.getChildren("type_link").size() > 0 ) {
+                      String name = subType.getFirstChild("type_link").getFirstChild("name").strValue();
+                      String domain = subType.getFirstChild("type_link").getFirstChild("domain").strValue();
+                      Value typeToCast = findType(types, name, domain);
+                      castingType( typeToCast, messageVector.get( el ), types, response.getChildren(elementName).get( el ) );
+                  }
+              }
+          }
+        
+    }
+    
+    private void castingType( Value typeToCast, Value message, ValueVector types, Value response ) 
+        throws FaultException {
+          
+          // casting root
+          if( typeToCast.getFirstChild("root_type").getChildren("string_type").size() > 0 ) {
+              response.setValue( message.strValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0 ) {
+              response.setValue( message.intValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("double_type").size() > 0 ) {
+              response.setValue( message.doubleValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("any_type").size() > 0 ) {
+              response.setValue( message.strValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0 ) {
+              response.setValue( message.intValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("void_type").size() > 0 ) {
+            
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("log_type").size() > 0 ) {
+              response.setValue( message.longValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("int_type").size() > 0 ) {
+              response.setValue( message.intValue() );
+          }
+          if( typeToCast.getFirstChild("root_type").getChildren("link").size() > 0 ) {
+              String domain = "";
+              if ( typeToCast.getFirstChild("root_type").getFirstChild("link").getChildren("domain").size() > 0 ) {
+                  domain = typeToCast.getFirstChild("root_type").getFirstChild("link").getFirstChild("domain").strValue();
+              }
+              Value linkRootType = findType( types, typeToCast.getFirstChild("root_type").getFirstChild("link").getFirstChild("name").strValue(), domain ).getFirstChild("root_type");
+              castingType(linkRootType, message, types, response );
+          }
+          
+          // casting subTypes
+          if ( typeToCast.getChildren("sub_type").size() > 0 ) {
+                    // ranging over all the subfields of the message
+                    for( Entry<String, ValueVector> e : message.children().entrySet() ) {
+                            castingSubType( typeToCast.getChildren("sub_type"), e.getKey(), message.getChildren( e.getKey() ), types, response );
+                    }                                 
+          }
+          
+    }
+   
+    
+    @RequestResponse
+    public Value messageTypeCast(Value request) 
+        throws FaultException {
+          Value message = request.getFirstChild("message");
+          String messageTypeName = request.getFirstChild("types").getFirstChild("messageTypeName").getFirstChild("name").strValue();
+          String messageTypeDomain = request.getFirstChild("types").getFirstChild("messageTypeName").getFirstChild("domain").strValue();
+          ValueVector types = request.getFirstChild("types").getChildren("types");
+          Value response = Value.create();
+          
+          // get message type
+          Value messageType = findType(types, messageTypeName, messageTypeDomain);
+          // casting root node
+          castingType( messageType, message, types, response.getFirstChild("message") );
+                             
+          return response;
+    }    
 }
