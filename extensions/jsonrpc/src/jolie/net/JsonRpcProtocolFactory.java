@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
+@AndJarDeps({"json_simple.jar"})
 public class JsonRpcProtocolFactory extends CommProtocolFactory
 {
 	public JsonRpcProtocolFactory( CommCore commCore )
