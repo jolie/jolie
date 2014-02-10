@@ -160,9 +160,15 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			}
 		} else if ( name.equals( "string" ) ) {
 			value.setValue( content.getTextContent() );
-		} else if ( name.equals( "int" ) || name.equals( "i4" ) || name.equals( "boolean" ) ) {
+		} else if ( name.equals( "int" ) || name.equals( "i4" ) ) {
 			try {
 				value.setValue( Integer.parseInt( content.getTextContent() ) );
+			} catch( NumberFormatException e ) {
+				throw new IOException( e );
+			}
+		} else if ( name.equals( "boolean" ) ) {
+			try {
+				value.setValue( Integer.parseInt( content.getTextContent() ) != 0);
 			} catch( NumberFormatException e ) {
 				throw new IOException( e );
 			}
@@ -209,6 +215,14 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			i.appendChild( doc.createTextNode( value.strValue() ) );
 			v.appendChild( i );
 			node.appendChild( v );
+
+		} else if ( value.isBool() ) {
+		
+			Element b = doc.createElement( "boolean" );
+			b.appendChild( doc.createTextNode( value.boolValue() ? "1" : "0" ) );
+			v.appendChild( b );
+			node.appendChild( v );
+			
 		} else if ( value.hasChildren( "array" ) ) {
 			// array creation
 
@@ -219,11 +233,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			}
 			a.appendChild( d );
 			v.appendChild( a );
-			node.appendChild( v );
-		} else if ( value.hasChildren( "boolean" ) ) {
-			Element b = doc.createElement( "boolean" );
-			b.appendChild( doc.createTextNode( value.getFirstChild( "boolean" ).strValue() ) );
-			v.appendChild( b );
 			node.appendChild( v );
 		} else {
 			for ( Entry<String, ValueVector> entry : value.children().entrySet() ) {
@@ -303,7 +312,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			fault.appendChild( v );
 			root.appendChild( fault );
 
-		} else if ( message.value().hasChildren( "param" ) == true ) {
+		} else if ( message.value().hasChildren( "param" ) ) {
 			// params exist
 			Element params = doc.createElement( "params" );
 			for ( int i = 0; i < message.value().getChildren( "param" ).size(); i++ ) {
@@ -321,6 +330,10 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 					Element d = doc.createElement( "double" );
 					d.appendChild( doc.createTextNode( message.value().getChildren( "param" ).get( i ).strValue() ) );
 					v.appendChild( d );
+				} else if ( message.value().getChildren( "param" ).get( i ).isBool() ) {
+					Element b = doc.createElement( "boolean" );
+					b.appendChild( doc.createTextNode( message.value().getChildren( "param" ).get( i ).boolValue() ? "1" : "0" ) );
+					v.appendChild( b );
 				} else if ( message.value().getChildren( "param" ).get( i ).hasChildren( "array" ) ) {
 					// array creation
 					Element a = doc.createElement( "array" );
@@ -330,10 +343,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 					}
 					a.appendChild( d );
 					v.appendChild( a );
-				} else if ( message.value().getChildren( "param" ).get( i ).hasChildren( "boolean" ) ) {
-					Element b = doc.createElement( "boolean" );
-					b.appendChild( doc.createTextNode( message.value().getChildren( "param" ).get( i ).getFirstChild( "boolean" ).strValue() ) );
-					v.appendChild( b );
 				} else if ( message.value().getChildren( "param" ).get( i ).hasChildren() ) {
 					for ( Entry<String, ValueVector> entry : message.value().getChildren( "param" ).get( i ).children().entrySet() ) {
 						if ( !entry.getKey().startsWith( "@" ) ) {
