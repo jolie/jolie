@@ -279,10 +279,14 @@ public class SoapProtocol extends SequentialCommProtocol {
         if (value.isDefined()) {
             if (value.isInt()) {
                 type = "int";
+            } else if (value.isLong()) {
+                type = "long";
             } else if (value.isString()) {
                 type = "string";
             } else if (value.isDouble()) {
                 type = "double";
+            } else if (value.isBool()) {
+                type = "boolean";
             }
             element.addAttribute(soapEnvelope.createName("type", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI), "xsd:" + type);
             element.addTextNode(value.strValue());
@@ -871,6 +875,8 @@ public class SoapProtocol extends SequentialCommProtocol {
 
         if ("xsd:int".equals(type)) {
             value.setValue(value.intValue());
+        } else if ("xsd:long".equals(type)) {
+            value.setValue(value.longValue());
         } else if ("xsd:double".equals(type)) {
             value.setValue(value.doubleValue());
         } else if ("xsd:boolean".equals(type)) {
