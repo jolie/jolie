@@ -1249,7 +1249,7 @@ public class HttpProtocol extends CommProtocol
 					oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
 				}
 
-				if ( oneWayTypeDescription != null && message.isResponse() == false ) {
+				if ( oneWayTypeDescription != null ) {
 					// We are receiving a One-Way message
 					oneWayTypeDescription.requestType().cast( retVal.value() );
 				} else {
