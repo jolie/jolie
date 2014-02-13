@@ -32,12 +32,14 @@ type XMLTransformationRequest:void {
 
 type XMLToValueRequest:any {
 	.options?:void {
-		.includeAttributes?:bool // Default: true
+		.includeAttributes?:bool // Default: false
+		.schemaUrl?:string // Default: none
+		.schemaLanguage?:string // Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
 	}
 }
 
 type ValueToXmlRequest: void {
-  .root: any { ? }  			
+  .root: any { ? }
   .rootNodeName: string
 }
 

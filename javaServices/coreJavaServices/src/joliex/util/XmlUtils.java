@@ -25,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +37,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -88,7 +92,6 @@ public class XmlUtils extends JavaService
 	{
 		try {
 			Value result = Value.create();
-			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src;
 			if ( request.isByteArray() ) {
 				src = new InputSource( new ByteArrayInputStream( request.byteArrayValue().getBytes() ) );
@@ -96,19 +99,32 @@ public class XmlUtils extends JavaService
 				src = new InputSource( new StringReader( request.strValue() ) );
 			}
 
-			Document doc = builder.parse( src );
 			boolean includeAttributes = false;
 			if ( request.hasChildren( "options" ) ){
 				if ( request.getFirstChild( "options" ).hasChildren( "includeAttributes" ) ){
 					includeAttributes = request.getFirstChild( "options" ).getFirstChild( "includeAttributes" ).boolValue();
 				}
+				if ( request.getFirstChild( "options" ).hasChildren( "schemaUrl" ) ){
+					SchemaFactory schemaFactory = SchemaFactory.newInstance(
+					  request.getFirstChild( "options" ).hasChildren( "schemaLanguage" )
+					    ? request.getFirstChild( "options" ).getFirstChild( "schemaLanguage" ).strValue()
+					    : XMLConstants.W3C_XML_SCHEMA_NS_URI
+					);
+					Schema schema = schemaFactory.newSchema(new URL(
+					  request.getFirstChild( "options" ).getFirstChild( "schemaUrl" ).strValue()
+					));
+					documentBuilderFactory.setSchema(schema); // set schema
+				}
 			}
+
+			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+			Document doc = builder.parse( src );
 			if ( includeAttributes ) {
 				jolie.xml.XmlUtils.documentToValue( doc, result, includeAttributes );
 			} else {
 				jolie.xml.XmlUtils.storageDocumentToValue( doc, result );
 			}
-            return result;
+			return result;
 		} catch( ParserConfigurationException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
@@ -118,6 +134,8 @@ public class XmlUtils extends JavaService
 		} catch( IOException e ) {
 			e.printStackTrace();
 			throw new FaultException( e );
+		} finally {
+			documentBuilderFactory.setSchema(null); // reset schema
 		}
 	}
 
