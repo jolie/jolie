@@ -40,10 +40,24 @@ import org.json.simple.parser.ParseException;
 public class JsonUtils
 {
 	private final static String ROOT_SIGN = "$";
-	private final static String JSONARRAY_KEY = "_";
-	private final static String JSONULL = "__NULL__";
+	public final static String JSONARRAY_KEY = "_";
 
 	public static void valueToJsonString( Value value, Type type, StringBuilder builder )
+		throws IOException
+	{
+		if ( value.children().isEmpty() ) {
+			builder.append( '{' );
+			if ( value.isDefined() ) {
+				appendKeyColon( builder, ROOT_SIGN );
+				builder.append( nativeValueToJsonString( value ) );
+			}
+			builder.append( '}' );
+		} else {
+			valueToJsonStringInternal( value, type, builder );
+		}
+	}
+	
+	private static void valueToJsonStringInternal( Value value, Type type, StringBuilder builder )
 		throws IOException
 	{
 		// TODO: handle the case (type == null)
@@ -52,13 +66,12 @@ public class JsonUtils
 			if ( value.isDefined() ) {
 				builder.append( nativeValueToJsonString( value ) );
 			} else {
-				builder.append( "{}" );
+				builder.append( "null" );
 			}
 		} else {
 			if ( value.hasChildren( JSONARRAY_KEY ) ) {
 				valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
 			} else {
-                                
                                 int size = value.children().size();
 				builder.append( '{' );
 				if ( value.isDefined() ) {
@@ -94,14 +107,14 @@ public class JsonUtils
                                      || (type == null && vector.size() > 1 ) )  ) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
-				valueToJsonString( vector.get( i ), type, builder );
+				valueToJsonStringInternal( vector.get( i ), type, builder );
 				if ( i < vector.size() - 1 ) {
 					builder.append( ',' );
 				}
 			}
 			builder.append( ']' );
 		} else {
-			valueToJsonString( vector.first(), type, builder );
+			valueToJsonStringInternal( vector.first(), type, builder );
 		}
 	}
 
@@ -115,14 +128,10 @@ public class JsonUtils
 	private static String nativeValueToJsonString( Value value )
 		throws IOException
 	{
-		if ( value.isInt() || value.isDouble() ) {
+		if ( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
 			return value.strValue();
 		} else {
-			if ( value.strValue().equals( JSONULL ) ) {
-				return "null";
-			} else {
-				return '"' + JSONValue.escape( value.strValue() ) + '"';
-			}
+			return '"' + JSONValue.escape( value.strValue() ) + '"';
 		}
 	}
 
@@ -149,24 +158,7 @@ public class JsonUtils
 		ValueVector vec;
 		for( Entry< String, Object> entry : map.entrySet() ) {
 			if ( entry.getKey().equals( ROOT_SIGN ) ) {
-				if ( entry.getValue() instanceof String ) {
-					value.setValue( (String) entry.getValue() );
-				} else if ( entry.getValue() instanceof Double ) {
-					value.setValue( (Double) entry.getValue() );
-				} else if ( entry.getValue() instanceof Integer ) {
-					value.setValue( (Integer) entry.getValue() );
-				} else if ( entry.getValue() instanceof Long ) {
-					value.setValue( ((Long) entry.getValue()).intValue() );
-				} else if ( entry.getValue() instanceof Boolean ) {
-					Boolean b = (Boolean) entry.getValue();
-					if ( b ) {
-						value.setValue( 1 );
-					} else {
-						value.setValue( 0 );
-					}
-				} else {
-					value.setValue( entry.getValue().toString() );
-				}
+				getBasicValue( entry.getValue(), value );
 			} else {
 				vec = jsonObjectToValueVector( entry.getValue(), strictEncoding );
 				value.children().put( entry.getKey(), vec );
@@ -188,7 +180,9 @@ public class JsonUtils
 		} else if ( obj instanceof JSONArray && !strictEncoding ) {
 			vec = jsonArrayToValueVector( (JSONArray) obj, strictEncoding );
 		} else {
-			vec.add( getBasicValue( obj ) );
+			Value val = Value.create();
+			getBasicValue( obj, val );
+			vec.add( val );
 		}
 		return vec;
 	}
@@ -197,40 +191,39 @@ public class JsonUtils
 	{
 		ValueVector vec = ValueVector.create();
 		for( Object element : array ) {
+			Value val = Value.create();
 			if ( element instanceof JSONObject ) {
-				Value val = Value.create();
 				jsonObjectToValue( (JSONObject) element, val, strictEncoding );
-				vec.add( val );
 			} else {
-				vec.add( getBasicValue( element ) );
+				getBasicValue( element, val );
 			}
+			vec.add( val );
 		}
 		return vec;
 	}
 
-	private static Value getBasicValue( Object obj )
+ 	private static void getBasicValue( Object obj, Value val )
 	{
-		Value val = Value.create();
+		// json-simple never returns us an "Integer" (only "Long")
+		// As a workaround return an "Integer" if value fits,
+		// otherwise maintain it as "Long".
 		if ( obj instanceof String ) {
 			val.setValue( (String) obj );
 		} else if ( obj instanceof Double ) {
 			val.setValue( (Double) obj );
-		} else if ( obj instanceof Integer ) {
-			val.setValue( (Integer) obj );
 		} else if ( obj instanceof Long ) {
-			val.setValue( ((Long) obj).intValue() );
-		} else if ( obj instanceof Boolean ) {
-			Boolean b = (Boolean) obj;
-			if ( b ) {
-				val.setValue( 1 );
+			// As a workaround return an "Integer" if value fits,
+			// otherwise maintain it as "Long".
+			long lval = (Long) obj;
+			if (lval > Integer.MAX_VALUE || lval < Integer.MIN_VALUE) {
+				val.setValue( lval );
 			} else {
-				val.setValue( 0 );
+				val.setValue( (int) lval );
 			}
-		} else if ( obj == null ) {
-			val.setValue( JSONULL );
-		} else {
+		} else if ( obj instanceof Boolean ) {
+			val.setValue( (Boolean) obj );
+		} else if ( obj != null ) {
 			val.setValue( obj.toString() );
 		}
-		return val;
 	}
 }
