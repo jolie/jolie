@@ -254,6 +254,7 @@ public class WSDLConverter
 		} else if ( type.untypedSubTypes() ) {
 			builder.append( "undefined" );
 			writeLine( builder.toString() );
+			writeLine( "" );
 		} else {
 			builder.append( nativeTypeToString( type.nativeType() ) );
 			if ( type.hasSubTypes() ) {
@@ -266,9 +267,6 @@ public class WSDLConverter
 					writeType( entry.getValue(), true );
 				}
 				unindent();
-			}
-
-			if ( type.hasSubTypes() ) {
 				writeLine( "}" );
 			}
 			if ( subType == false ) {
@@ -484,7 +482,7 @@ public class WSDLConverter
 	private String convertOperationMessage( Message message, String operationName, Style style )
 		throws IOException
 	{
-		String typeName = "";
+		String typeName = null; // "void" datatype per default
 		Map< String, Part > parts = message.getParts();
 		if ( parts.size() > 1 || style == Style.RPC ) {
 			typeName = message.getQName().getLocalPart();
