@@ -580,8 +580,12 @@ public class Interpreter
 		} finally {
 			exitingLock.unlock();
 		}
+		// TODO: 
 		executorService.shutdown();
 		commCore.shutdown();
+		try {
+			executorService.awaitTermination( persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
+		} catch ( InterruptedException e ) {}
 		timer.cancel();
 	}
 
