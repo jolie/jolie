@@ -962,6 +962,9 @@ public class CommCore
 				channelHandlersLock.writeLock().tryLock( CHANNEL_HANDLER_TIMEOUT, TimeUnit.SECONDS );
 			} catch( InterruptedException e ) {}
 			executorService.shutdown();
+			try {
+				executorService.awaitTermination( interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
+			} catch( InterruptedException e ) {}
 			threadGroup.interrupt();
 		}
 	}
