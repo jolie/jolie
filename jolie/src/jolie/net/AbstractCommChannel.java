@@ -27,11 +27,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
 import java.util.TimerTask;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.runtime.FaultException;
+import jolie.runtime.TimeoutHandler;
 import jolie.runtime.Value;
 
 public abstract class AbstractCommChannel extends CommChannel
@@ -101,14 +103,14 @@ public abstract class AbstractCommChannel extends CommChannel
 		private final AbstractCommChannel parent;
 		private final ExecutionThread ethread;
 		private boolean keepRun;
-		private TimerTask timeoutTask;
+		private TimeoutHandler timeoutHandler;
 
 		private void timeout()
 		{
 			synchronized( parent.responseRecvMutex ) {
 				if ( keepRun == false ) {
 					if ( parent.waiters.isEmpty() ) {
-						timeoutTask = null;
+						timeoutHandler = null;
 						parent.responseReceiver = null;
 					} else {
 						keepRun = true;
@@ -120,8 +122,9 @@ public abstract class AbstractCommChannel extends CommChannel
 
 		private void wakeUp()
 		{
-			if ( timeoutTask != null ) {
-				timeoutTask.cancel();
+			// TODO: check race conditions on timeoutHandler, should we sync it?
+			if ( timeoutHandler != null ) {
+				timeoutHandler.cancel();
 			}
 			keepRun = true;
 			parent.responseRecvMutex.notify();
@@ -130,13 +133,13 @@ public abstract class AbstractCommChannel extends CommChannel
 		private void sleep()
 		{
 			final ResponseReceiver receiver = this;
-			timeoutTask = new TimerTask() {
-				public void run()
-				{
+			timeoutHandler = new TimeoutHandler( RECEIVER_KEEP_ALIVE ) {
+				@Override
+				public void onTimeout() {
 					receiver.timeout();
 				}
 			};
-			ethread.interpreter().schedule( timeoutTask, RECEIVER_KEEP_ALIVE );
+			ethread.interpreter().addTimeoutHandler( timeoutHandler );
 			try {
 				keepRun = false;
 				parent.responseRecvMutex.wait();
@@ -150,7 +153,7 @@ public abstract class AbstractCommChannel extends CommChannel
 			this.ethread = ethread;
 			this.parent = parent;
 			this.keepRun = true;
-			this.timeoutTask = null;
+			this.timeoutHandler = null;
 		}
 
 		private void handleGenericMessage( CommMessage response )

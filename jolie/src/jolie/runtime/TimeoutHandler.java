@@ -22,13 +22,15 @@
 package jolie.runtime;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Fabrizio Montesi
  */
-public abstract class TimeoutHandler
+public abstract class TimeoutHandler implements Runnable
 {
 	private final long time;
+	private volatile boolean cancelled = false;
 
 	public TimeoutHandler( long timeout )
 	{
@@ -39,8 +41,20 @@ public abstract class TimeoutHandler
 	{
 		return time;
 	}
+	
+	public void cancel()
+	{
+		cancelled = true;
+	}
+	
+	public void run()
+	{
+		if ( !cancelled ) {
+			onTimeout();
+		}
+	}
 
-	public abstract void onTimeout();
+	protected abstract void onTimeout();
 
 	/**
 	 * Note: this comparator imposes orderings that are inconsistent with equals.
