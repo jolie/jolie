@@ -249,7 +249,7 @@ public class Interpreter
 	private final boolean verbose;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private long persistentConnectionTimeout = 24 * 60 * 60 * 1000 * 10; // 10 days
+	private final long persistentConnectionTimeout = 24 * 60 * 60 * 1000 * 10; // 10 days
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -362,14 +362,9 @@ public class Interpreter
 			if ( handler == null ) {
 				timeoutHandlerQueue.remove();
 				whandler = timeoutHandlerQueue.peek();
-			} else if ( handler.time() < currentTime ) {
-				final TimeoutHandler h = handler;
-				timeoutHandlerExecutor.execute( new Runnable() {
-					public void run()
-					{
-						h.onTimeout();
-					}
-				} );
+			} else if ( handler.time() < currentTime || exiting ) {
+				// final TimeoutHandler h = handler;
+				timeoutHandlerExecutor.execute( handler );
 				timeoutHandlerQueue.remove();
 				whandler = timeoutHandlerQueue.peek();
 			} else {
@@ -580,13 +575,13 @@ public class Interpreter
 		} finally {
 			exitingLock.unlock();
 		}
-		// TODO: 
+		timer.cancel();
+		checkForExpiredTimeoutHandlers();
 		executorService.shutdown();
 		commCore.shutdown();
 		try {
 			executorService.awaitTermination( persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
-		timer.cancel();
 	}
 
 	/**
