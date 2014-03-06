@@ -47,7 +47,7 @@ public class Jolie2Java {
             
             String format = cmdParser.getFormat();
             if (format.equals("java")) {
-                JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, cmdParser.getNameSpace());
+                JavaDocumentCreator documentJava = new JavaDocumentCreator(inspector, cmdParser.getNameSpace(), cmdParser.getTargetPort());
                 documentJava.ConvertDocument();
             } else if (format.equals("gwt")) {
                 JavaGWTDocumentCreator documentJava = new JavaGWTDocumentCreator(inspector, cmdParser.getNameSpace(), cmdParser.getTargetPort());
