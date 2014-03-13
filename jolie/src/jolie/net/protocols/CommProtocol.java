@@ -128,6 +128,21 @@ public abstract class CommProtocol
 	}
 	
 	/**
+	 * Shortcut for checking if a string parameter has a given value
+	 * @param id the parameter identifier
+	 * @param value the value for checking the parameter with
+	 * @return {@code true} if the parameter has the expected value, {@code false} otherwise
+	 */
+	protected boolean checkStringParameter( String id, String value )
+	{
+		if ( hasParameter( id ) ) {
+			return getParameterFirstValue( id ).strValue().equals( value );
+		} else {
+			return false;
+		}
+	}
+	
+	/**
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
 	 * @param id the parameter identifier
 	 */
