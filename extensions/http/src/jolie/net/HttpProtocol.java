@@ -1,4 +1,4 @@
-/***************************************************************************
+ /***************************************************************************
  *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -1076,13 +1076,11 @@ public class HttpProtocol extends CommProtocol
 		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) ) {
-                        boolean strictEncoding = false;
-                        if ( hasParameter( "json_encoding" ) ) {
-                            if ( getParameterFirstValue("json_encoding").strValue().equals("strict")) {
-                                strictEncoding = true;
-                            }
-                        }
-                        parseJson( message, decodedMessage.value, strictEncoding );
+			boolean strictEncoding = false;			
+			if ( checkStringParameter( "json_encod ing", "strict" ) ) {
+					strictEncoding = true;
+			}
+			parseJson( message, decodedMessage.value, strictEncoding );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
 		} else if ( "json".equals( format ) ) {
