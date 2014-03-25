@@ -35,7 +35,7 @@ import jolie.jap.JapURLStreamHandler;
  */
 public class JolieURLStreamHandlerFactory implements URLStreamHandlerFactory
 {
-	private static AtomicBoolean registered = new AtomicBoolean( false );
+	private final static AtomicBoolean registered = new AtomicBoolean( false );
 
 	private final Map< String, URLStreamHandler > handlers = new HashMap< String, URLStreamHandler >();
 
