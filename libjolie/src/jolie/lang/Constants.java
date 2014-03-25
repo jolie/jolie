@@ -104,7 +104,7 @@ public final class Constants
 	public static final String PROTOCOL_NODE_NAME = "protocol";
 	public static final String LOCATION_NODE_NAME = "location";
 	public static final String LOCAL_LOCATION_KEYWORD = "local";
-	public static final String VERSION = "Jolie 1.0";
+	public static final String VERSION = "Jolie 1.0 [Trunk]";
 	public static final String COPYRIGHT = "(C) 2006-2013 the Jolie team";
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static final String fileSeparator = System.getProperty( "file.separator" );
