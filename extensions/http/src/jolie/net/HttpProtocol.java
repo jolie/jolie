@@ -1075,22 +1075,11 @@ public class HttpProtocol extends CommProtocol
 			parseMultiPartFormData( message, decodedMessage.value );
 		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" ) ) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if ( "application/json".equals( type ) ) {
-			boolean strictEncoding = false;			
-			if ( checkStringParameter( "json_encod ing", "strict" ) ) {
-					strictEncoding = true;
-			}
+		} else if ( "application/json".equals( type ) || "json".equals( format ) ) {
+			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );	
 			parseJson( message, decodedMessage.value, strictEncoding );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
 			parseXML( message, decodedMessage.value );
-		} else if ( "json".equals( format ) ) {
-			boolean strictEncoding = false;
-                        if ( hasParameter( "json_encoding" ) ) {
-                            if ( getParameterFirstValue("json_encoding").strValue().equals("strict")) {
-                                strictEncoding = true;
-                            }
-                        }
-                        parseJson( message, decodedMessage.value, strictEncoding );
 		} else {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		}
