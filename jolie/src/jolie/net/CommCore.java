@@ -659,7 +659,11 @@ public class CommCore
 	public void init()
 		throws IOException
 	{
+		CommListener listener;
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+			/*listener = entry.getValue();
+			listener.inputPort().
+				// use uri cache*/
 			entry.getValue().start();
 		}
 		active = true;
