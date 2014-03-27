@@ -1,0 +1,8 @@
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\bin\Debug\TestServer.exe.config
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\bin\Debug\TestServer.exe
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\bin\Debug\TestServer.pdb
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\bin\Debug\Jolie.dll
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\bin\Debug\Jolie.pdb
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\obj\Debug\TestServer.csprojResolveAssemblyReference.cache
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\obj\Debug\TestServer.exe
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\TestServer\obj\Debug\TestServer.pdb
