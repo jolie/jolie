@@ -1,0 +1,5 @@
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\Jolie\bin\Debug\Jolie.dll
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\Jolie\bin\Debug\Jolie.pdb
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\Jolie\obj\Debug\Jolie.csprojResolveAssemblyReference.cache
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\Jolie\obj\Debug\Jolie.dll
+c:\users\bergar\documents\visual studio 2013\Projects\JolieLib\Jolie\obj\Debug\Jolie.pdb
