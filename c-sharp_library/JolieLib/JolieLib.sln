@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jolie", "Jolie\Jolie.csproj", "{D8F8762F-D135-4852-81D2-CA6685CC09F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestClient", "TestClient\TestClient.csproj", "{F89A7C72-37FA-47FC-8241-B91ABE168F4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestServer", "TestServer\TestServer.csproj", "{B74E7ADD-CA64-4748-91EB-800DD87B6527}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D8F8762F-D135-4852-81D2-CA6685CC09F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8F8762F-D135-4852-81D2-CA6685CC09F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8F8762F-D135-4852-81D2-CA6685CC09F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8F8762F-D135-4852-81D2-CA6685CC09F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F89A7C72-37FA-47FC-8241-B91ABE168F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89A7C72-37FA-47FC-8241-B91ABE168F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89A7C72-37FA-47FC-8241-B91ABE168F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89A7C72-37FA-47FC-8241-B91ABE168F4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B74E7ADD-CA64-4748-91EB-800DD87B6527}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B74E7ADD-CA64-4748-91EB-800DD87B6527}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B74E7ADD-CA64-4748-91EB-800DD87B6527}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B74E7ADD-CA64-4748-91EB-800DD87B6527}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
