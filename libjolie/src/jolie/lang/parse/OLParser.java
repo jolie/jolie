@@ -23,6 +23,7 @@ package jolie.lang.parse;
 
 import jolie.lang.parse.context.ParsingContext;
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -1306,22 +1307,24 @@ public class OLParser extends AbstractParser
 		OLSyntaxNode ret = null;
 		List< Scanner.Token> tokens = new LinkedList< Scanner.Token>();
 
-		if ( withConstruct ) {
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			while( token.isNot( Scanner.TokenType.LCURLY ) ) {
-				tokens.add( token );
-				getToken();
-
+		try {
+			if ( withConstruct ) {
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				while( token.isNot( Scanner.TokenType.LCURLY ) ) {
+					tokens.add( token );
+					getTokenNotEOF();
+				}
+				//TODO transfer this whole buggy thing to the OOIT
+				tokens.remove( tokens.size() - 1 );
+				//getToken();
+			} else {
+				while( token.isNot( Scanner.TokenType.LCURLY ) ) {
+					tokens.add( token );
+					getTokenNotEOF();
+				}
 			}
-			//TODO transfer this whole buggy thing to the OOIT
-			tokens.remove( tokens.size() - 1 );
-			//getToken();
-		} else {
-			while( token.isNot( Scanner.TokenType.LCURLY ) ) {
-				tokens.add( token );
-				getToken();
-
-			}
+		} catch( EOFException eof ) {
+			throwException( "with clause requires a { at the beginning of its body" );
 		}
 		inVariablePaths.add( tokens );
 

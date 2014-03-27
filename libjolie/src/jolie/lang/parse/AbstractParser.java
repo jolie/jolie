@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -66,6 +67,20 @@ public abstract class AbstractParser
 			token = tokens.remove( 0 );
 		} else {
 			token = scanner.getToken();
+		}
+	}
+	
+	/** Gets a new token, and throws an {@link EOFException} if such token is of type {@link Scanner.TokenType.EOF}.
+	 * 
+	 * @throws IOException If the internal scanner raises one.
+	 * @throws EOFException If the next token is of type {@link Scanner.TokenType.EOF}
+	 */
+	protected void getTokenNotEOF()
+		throws IOException, EOFException
+	{
+		getToken();
+		if ( token.isEOF() ) {
+			throw new EOFException();
 		}
 	}
 	
