@@ -73,6 +73,8 @@ public class MetaJolie extends JavaService {
             response.getFirstChild("bool_type").setValue(true);
         } else if (type == NativeType.LONG) {
             response.getFirstChild("long_type").setValue(true);
+        } else if (type == NativeType.RAW) {
+            response.getFirstChild("raw_type").setValue(true);
         }
         return response;
     }
@@ -83,6 +85,7 @@ public class MetaJolie extends JavaService {
                 || type.equals("double")
                 || type.equals("int")
                 || type.equals("void")
+                || type.equals("raw")
                 //|| type.equals("undefined")
                 || type.equals("any")
                 || type.equals("bool")
