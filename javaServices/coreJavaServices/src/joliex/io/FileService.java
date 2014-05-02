@@ -30,7 +30,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 
 import java.io.Writer;
@@ -38,7 +37,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
