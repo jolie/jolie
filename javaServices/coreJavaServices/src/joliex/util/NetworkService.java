@@ -48,6 +48,11 @@ public class NetworkService extends JavaService  {
 			while (list.hasMoreElements()) {
 				NetworkInterface n = list.nextElement();
 				interfaces.get( index ).setValue( n.getName() );
+                                if ( n.getDisplayName() == null ) {
+                                        interfaces.get( index ).getFirstChild("displayName").setValue( "" );
+                                } else {
+                                        interfaces.get( index ).getFirstChild("displayName").setValue( n.getDisplayName() );
+                                }
 				index++;
 			}
 		} catch( SocketException e ) {
