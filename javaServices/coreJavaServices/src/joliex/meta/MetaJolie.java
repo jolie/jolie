@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
+import jolie.Interpreter;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
@@ -140,7 +141,7 @@ public class MetaJolie extends JavaService {
         return response;
     }
 
-    private void insertExtendedType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef, TypeDefinition extension ) {
+    private void insertExtendedType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef, TypeDefinition extension) {
         // to be optimized, similar code with addType
         if (!types.contains(typedef) && !isNativeType(typedef.id()) && !typedef.id().equals("undefined")) {
             types.add(typedef);
@@ -149,7 +150,7 @@ public class MetaJolie extends JavaService {
                 type.getFirstChild("name").deepCopy(setName(name));
                 type.getFirstChild("name").getFirstChild("name").setValue(typedef.id());
                 type.getFirstChild("root_type").getFirstChild("link").getFirstChild("name").setValue(((TypeDefinitionLink) typedef).linkedTypeName());
-                insertExtendedType(types, types_vector, name, ((TypeDefinitionLink) typedef).linkedType(), extension );
+                insertExtendedType(types, types_vector, name, ((TypeDefinitionLink) typedef).linkedType(), extension);
             } else {
                 TypeInlineDefinition td = (TypeInlineDefinition) typedef;
                 type.getFirstChild("name").deepCopy(setName(name));
@@ -160,22 +161,22 @@ public class MetaJolie extends JavaService {
                     for (Entry<String, TypeDefinition> entry : td.subTypes()) {
                         type.getChildren("sub_type").get(subtype_counter).deepCopy(addSubType(types, types_vector, name, entry.getValue()));
                         subtype_counter++;
-                    }                    
+                    }
                 }
                 // adding extension                
-                if ( extension != null && extension.hasSubTypes() ) {
+                if (extension != null && extension.hasSubTypes()) {
                     int subtype_counter = type.getChildren("sub_type").size();
                     for (Entry<String, TypeDefinition> entry : extension.subTypes()) {
                         type.getChildren("sub_type").get(subtype_counter).deepCopy(addSubType(types, types_vector, name, entry.getValue()));
                         subtype_counter++;
-                    } 
+                    }
                 }
 
             }
             types_vector.add(type);
         }
     }
-    
+
     private void insertType(ArrayList<TypeDefinition> types, ValueVector types_vector, Value name, TypeDefinition typedef) {
         // to be optimized, similar code with addType
         if (!types.contains(typedef) && !isNativeType(typedef.id()) && !typedef.id().equals("undefined")) {
@@ -414,25 +415,25 @@ public class MetaJolie extends JavaService {
             if (portInfo.aggregationList()[x].interfaceExtender() != null) {
                 // the interfaces of the outputPort must be extended
                 // only default extension is processed. TODO: extending also specific operation declaration
-                
-                extender = portInfo.aggregationList()[x].interfaceExtender();                
-                if ( extender.defaultOneWayOperation() != null ) {
+
+                extender = portInfo.aggregationList()[x].interfaceExtender();
+                if (extender.defaultOneWayOperation() != null) {
                     owExtender = extender.defaultOneWayOperation();
                 }
-                if ( extender.defaultRequestResponseOperation() != null ) {
+                if (extender.defaultRequestResponseOperation() != null) {
                     rrExtender = extender.defaultRequestResponseOperation();
                 }
             }
             for (InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList()) {
                 Value inputInterface = response.getChildren("interfaces").get(curItfIndex);
-                if ( extender != null ) {
+                if (extender != null) {
                     addExtendedInterfaceToPortInfo(inputInterface, interfaceDefinition, name, owExtender, rrExtender);
                 } else {
                     addInterfaceToPortInfo(inputInterface, interfaceDefinition, name);
                 }
                 curItfIndex++;
             }
-            
+
         }
 
         return response;
@@ -516,14 +517,14 @@ public class MetaJolie extends JavaService {
         return response;
 
     }
-    
+
     private void addExtendedInterfaceToPortInfo(
-            Value input_interface, 
-            InterfaceDefinition interfaceDefinition, 
-            Value name, 
+            Value input_interface,
+            InterfaceDefinition interfaceDefinition,
+            Value name,
             OneWayOperationDeclaration owExtender,
             RequestResponseOperationDeclaration rrExtender) {
-        
+
         ArrayList<TypeDefinition> types = new ArrayList<TypeDefinition>();
 
         input_interface.getFirstChild("name").deepCopy(setName(name));
@@ -543,7 +544,7 @@ public class MetaJolie extends JavaService {
                 current_operation.getFirstChild("input").deepCopy(setName(name));
                 current_operation.getFirstChild("input").getFirstChild("name").setValue(oneWayOperation.requestType().id());
                 if (!isNativeType(oneWayOperation.requestType().id())) {
-                    insertExtendedType(types, interface_types, name, oneWayOperation.requestType(), owExtender.requestType() );
+                    insertExtendedType(types, interface_types, name, oneWayOperation.requestType(), owExtender.requestType());
                 }
 
             } else {
@@ -554,10 +555,10 @@ public class MetaJolie extends JavaService {
                 current_operation.getFirstChild("output").deepCopy(setName(name));
                 current_operation.getFirstChild("output").getFirstChild("name").setValue(requestResponseOperation.responseType().id());
                 if (!isNativeType(requestResponseOperation.requestType().id())) {
-                    insertExtendedType(types, interface_types, name, requestResponseOperation.requestType(), rrExtender.requestType() );
+                    insertExtendedType(types, interface_types, name, requestResponseOperation.requestType(), rrExtender.requestType());
                 }
                 if (!isNativeType(requestResponseOperation.responseType().id())) {
-                    insertExtendedType(types, interface_types, name, requestResponseOperation.responseType(), rrExtender.responseType() );
+                    insertExtendedType(types, interface_types, name, requestResponseOperation.responseType(), rrExtender.responseType());
                 }
             }
             operations.add(current_operation);
@@ -656,6 +657,18 @@ public class MetaJolie extends JavaService {
 
         return response;
     }
+    
+    private String[] getArgs( String filename ) {
+        Interpreter interpreter = Interpreter.getInstance();
+        String[] interpreterIncludePaths = interpreter.includePaths();
+        String[] includePaths = new String[ interpreterIncludePaths.length * 2 + 1 ];
+        includePaths[ 0 ] = filename;
+        for( int i = 0; i < interpreterIncludePaths.length; i++ ) {                            
+              includePaths[ i*2 + 1 ] = "-i";              
+              includePaths[ i*2 + 2 ] = interpreterIncludePaths[ i ];              
+        }
+        return includePaths;
+    }
 
     @RequestResponse
     public Value checkNativeType(Value request) {
@@ -671,7 +684,7 @@ public class MetaJolie extends JavaService {
         try {
 
             response.getFirstChild("name").deepCopy(setName(request.getFirstChild("rolename")));
-            String[] args = new String[]{request.getFirstChild("filename").strValue(), "-i", "/opt/jolie/include"};
+            String[] args = getArgs( request.getFirstChild("filename").strValue() );
             CommandLineParser cmdParser = new CommandLineParser(args, MetaJolie.class.getClassLoader());
             args = cmdParser.arguments();
             Program program = ParsingUtils.parseProgram(
@@ -718,8 +731,8 @@ public class MetaJolie extends JavaService {
         List<InterfaceDefinition> interfaces = new ArrayList<InterfaceDefinition>();
         Value response = Value.create();
         try {
-
-            String[] args = new String[]{request.getFirstChild("filename").strValue(), "-i", "/opt/jolie/include"};
+            String[] args = getArgs( request.getFirstChild("filename").strValue() );
+            
             if (request.getFirstChild("name").getFirstChild("domain").isDefined()) {
                 domain = request.getFirstChild("name").getFirstChild("domain").strValue();
             }
@@ -798,7 +811,7 @@ public class MetaJolie extends JavaService {
         Value response = Value.create();
         try {
 
-            String[] args = new String[]{request.getFirstChild("filename").strValue(), "-i", "/opt/jolie/include"};
+            String[] args = getArgs( request.getFirstChild("filename").strValue() );
             if (request.getFirstChild("domain").isDefined()) {
                 domain = request.getFirstChild("domain").strValue();
             }
