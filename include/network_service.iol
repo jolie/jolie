@@ -22,7 +22,9 @@
 type GetNetworkInterfaceNamesRequest: void 
 
 type GetNetworkInterfaceNamesResponse: void {
-  .interfaceName*: string
+  .interfaceName*: string {
+	.displayName: string
+  }
 }
 
 type GetIPAddressesRequest: void {
