@@ -82,6 +82,10 @@ type GetOutputPortsResponse: void {
 	}
 }
 
+type HaltRequest: void {
+	.status?: int
+}
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
@@ -106,6 +110,8 @@ RequestResponse:
 	*	it returns the list of definitions of all the available outputPorts of the service
 	*/
 	getOutputPorts( void )( GetOutputPortsResponse ),
+	
+	halt(HaltRequest)(void),
 
 	removeOutputPort(string)(void),
 	callExit(any)(void),
