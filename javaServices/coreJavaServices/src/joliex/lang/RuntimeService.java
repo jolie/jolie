@@ -283,4 +283,14 @@ public class RuntimeService extends JavaService
 		} // Should never happen
 		return writer.toString();
 	}
+        
+        public void halt( Value request ) 
+        {
+            final String status_field = "status";
+            int status = 0;
+            if ( request.hasChildren( status_field ) ) {
+                status = request.getFirstChild( status_field ).intValue();
+            }
+            Runtime.getRuntime().halt(status);            
+        }
 }
