@@ -563,7 +563,7 @@ public class HttpProtocol extends CommProtocol
 			if ( message.isFault() ) {
 				Value jolieJSONFault = Value.create();
 				jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "faultName" ).setValue( message.fault().faultName() );
-				if ( !message.fault().value().hasChildren() && !message.fault().value().strValue().isEmpty() ) {
+				if ( message.fault().value().hasChildren() ) {
 					jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "data" ).deepCopy( message.fault().value() );
 				}
 				JsonUtils.valueToJsonString( jolieJSONFault, getSendType( message ), jsonStringBuilder );
@@ -1314,3 +1314,4 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 }
+ 
