@@ -27,8 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
