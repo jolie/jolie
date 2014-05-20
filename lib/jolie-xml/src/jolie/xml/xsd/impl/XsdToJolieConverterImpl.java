@@ -20,6 +20,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package jolie.xml.xsd.impl;
 
 import com.sun.xml.xsom.XSComplexType;
@@ -38,13 +39,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
