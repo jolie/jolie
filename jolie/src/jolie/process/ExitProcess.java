@@ -48,7 +48,7 @@ public class ExitProcess implements Process
 		final Interpreter interpreter = Interpreter.getInstance();
 		interpreter.execute( new Runnable() {
 			public void run() {
-				Interpreter.getInstance().exit();
+				interpreter.exit();
 			}
 		});
 	}
