@@ -1090,8 +1090,8 @@ public class SemanticVerifier implements OLVisitor
 		insideCourierOperationType = null;
 	}
 	
-	/**
-	 * @todo Check that the output port of the forward statement is right wrt the input port aggregation definition.
+	/*
+	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
 	public void visit( NotificationForwardStatement n )
 	{
@@ -1103,7 +1103,7 @@ public class SemanticVerifier implements OLVisitor
 	}
 	
 	/**
-	 * @todo Check that the output port of the forward statement is right wrt the input port aggregation definition.
+	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
 	public void visit( SolicitResponseForwardStatement n )
 	{
@@ -1115,7 +1115,7 @@ public class SemanticVerifier implements OLVisitor
 	}
 	
 	/**
-	 * @todo Must check if it's inside an install function
+	 * todo: Must check if it's inside an install function
 	 */
 	public void visit( CurrentHandlerStatement n )
 	{}

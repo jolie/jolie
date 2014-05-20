@@ -70,10 +70,10 @@ public abstract class AbstractParser
 		}
 	}
 	
-	/** Gets a new token, and throws an {@link EOFException} if such token is of type {@link Scanner.TokenType.EOF}.
+	/** Gets a new token, and throws an {@link EOFException} if such token is of type {@code jolie.lang.parse.Scanner.TokenType.EOF}.
 	 * 
 	 * @throws IOException If the internal scanner raises one.
-	 * @throws EOFException If the next token is of type {@link Scanner.TokenType.EOF}
+	 * @throws EOFException If the next token is of type {@code jolie.lang.parse.Scanner.Token.EOF}
 	 */
 	protected void getTokenNotEOF()
 		throws IOException, EOFException
