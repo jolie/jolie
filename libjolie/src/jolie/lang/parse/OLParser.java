@@ -2105,8 +2105,8 @@ public class OLParser extends AbstractParser
 		return ret;
 	}
 
-	/**
-	 * @todo Check if negative integer handling is appropriate
+	/*
+	 * todo: Check if negative integer handling is appropriate
 	 */
 	private OLSyntaxNode parseBasicExpression()
 		throws IOException, ParserException

@@ -344,7 +344,7 @@ public class Scanner
 	/**
 	 * Constructor
 	 * @param stream the <code>InputStream</code> to use for input reading
-	 * @param sourceName an arbitrary name
+	 * @param source the source URI of the stream
 	 * @throws java.io.IOException if the input reading initialization fails
 	 */
 	public Scanner( InputStream stream, URI source )
