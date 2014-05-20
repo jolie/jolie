@@ -45,7 +45,12 @@ public class ExitProcess implements Process
 	
 	public void run()
 	{
-		Interpreter.getInstance().exit();
+		final Interpreter interpreter = Interpreter.getInstance();
+		interpreter.execute( new Runnable() {
+			public void run() {
+				Interpreter.getInstance().exit();
+			}
+		});
 	}
 	
 	public boolean isKillable()
