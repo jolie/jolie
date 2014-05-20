@@ -21,7 +21,6 @@
 
 package jolie.net;
 
-import java.net.URI;
 import java.util.HashMap;
 import jolie.net.ports.OutputPort;
 import java.util.Map;
@@ -31,6 +30,8 @@ import jolie.lang.Constants;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.ClosedVariablePath;
+import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -42,12 +43,26 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
  * @author Fabrizio Montesi
  */
 public class LocalListener extends CommListener
-{
-	public LocalListener( Interpreter interpreter )
+{	
+	public static LocalListener create( Interpreter interpreter )
+	{
+		VariablePath locationPath =
+			new ClosedVariablePath(
+				new VariablePathBuilder( true )
+				.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
+				.add( Constants.LOCAL_INPUT_PORT_NAME, 0 )
+				.add( Constants.LOCATION_NODE_NAME, 0 )
+				.toVariablePath(),
+				interpreter.globalValue()
+			);
+		return new LocalListener( interpreter, locationPath );
+	}
+	
+	private LocalListener( Interpreter interpreter, VariablePath locationPath )
 	{
 		super( interpreter, new InputPort(
-				"LocalInputPort",
-				URI.create( Constants.LOCAL_LOCATION_KEYWORD ),
+				Constants.LOCAL_INPUT_PORT_NAME,
+				locationPath,
 				new VariablePathBuilder( true ).toVariablePath(),
 				new Interface(
 					new HashMap< String, OneWayTypeDescription >(),
@@ -57,6 +72,7 @@ public class LocalListener extends CommListener
 				new HashMap< String, OutputPort >()
 			)
 		);
+		locationPath.getValue().setValue( Constants.LOCAL_LOCATION_KEYWORD );
 	}
 	
 	public void mergeInterface( Interface iface )

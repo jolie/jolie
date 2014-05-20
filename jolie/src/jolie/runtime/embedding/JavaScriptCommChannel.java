@@ -34,8 +34,9 @@ import jolie.net.PollableCommChannel;
 import jolie.runtime.Value;
 
 /**
- * @TODO this shouldn't be polled
  * @author Fabrizio Montesi
+ * 
+ * TODO: this shouldn't be polled
  */
 public class JavaScriptCommChannel extends AbstractCommChannel implements PollableCommChannel
 {

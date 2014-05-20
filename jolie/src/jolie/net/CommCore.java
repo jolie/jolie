@@ -229,7 +229,7 @@ public class CommCore
 		throws IOException
 	{
 		this.interpreter = interpreter;
-		this.localListener = new LocalListener( interpreter );
+		this.localListener = LocalListener.create( interpreter );
 		this.connectionsLimit = connectionsLimit;
 		// this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
@@ -362,7 +362,7 @@ public class CommCore
 		return new LocalCommChannel( interpreter, listener );
 	}
 
-	private CommListenerFactory getCommListenerFactory( String name )
+	public CommListenerFactory getCommListenerFactory( String name )
 		throws IOException
 	{
 		CommListenerFactory factory = listenerFactories.get( name );

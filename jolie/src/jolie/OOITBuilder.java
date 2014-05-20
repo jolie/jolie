@@ -168,6 +168,7 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.InterfaceExtender;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
+import jolie.runtime.ClosedVariablePath;
 import jolie.runtime.expression.AndCondition;
 import jolie.runtime.expression.CastIntExpression;
 import jolie.runtime.expression.CastDoubleExpression;
@@ -536,26 +537,29 @@ public class OOITBuilder implements OLVisitor
 			error( n.context(), e );
 		}
 
-		VariablePath path =
+		VariablePath locationPath =
 			new VariablePathBuilder( true )
 			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
 			.add( n.id(), 0 )
 			.add( Constants.LOCATION_NODE_NAME, 0 )
 			.toVariablePath();
-		Process assignLocation = new AssignmentProcess( path, Value.create( n.location().toString() ) );
-		path =
+		locationPath = new ClosedVariablePath( locationPath, interpreter.globalValue() );
+		// Process assignLocation = new AssignmentProcess( locationPath, Value.create( n.location().toString() ) );
+		locationPath.getValue().setValue( n.location().toString() );
+
+		VariablePath protocolPath =
 			new VariablePathBuilder( true )
 			.add( Constants.INPUT_PORTS_NODE_NAME, 0 )
 			.add( n.id(), 0 )
 			.add( Constants.PROTOCOL_NODE_NAME, 0 )
 			.toVariablePath();
-		Process assignProtocol = new AssignmentProcess( path, Value.create( n.protocolId() ) );
-		Process[] confChildren = new Process[] { assignLocation, assignProtocol, buildProcess( n.protocolConfiguration() ) };
+		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ) );
+		Process[] confChildren = new Process[] { assignProtocol, buildProcess( n.protocolConfiguration() ) };
 		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
 
 		InputPort inputPort = new InputPort(
 			n.id(),
-			n.location(),
+			locationPath,
 			protocolConfigurationPath,
 			currentPortInterface,
 			aggregationMap,

@@ -39,12 +39,12 @@ public class InputPort implements Port
 	private final VariablePath protocolConfigurationPath;
 	private final Map< String, AggregatedOperation > aggregationMap;
 	private final Map< String, OutputPort > redirectionMap;
-	private final URI location;
+	private final VariablePath locationVariablePath;
 
 	/**
 	 * Constructor
 	 * @param name the name of the input port
-	 * @param location the location of the input port
+	 * @param locationVariablePath the location variable path of the input port
 	 * @param protocolConfigurationPath the protocol configuration variable path of this port
 	 * @param iface the interface of this input port
 	 * @param aggregationMap the aggregation map for this input port
@@ -52,14 +52,14 @@ public class InputPort implements Port
 	 */
 	public InputPort(
 		String name,
-		URI location,
+		VariablePath locationVariablePath,
 		VariablePath protocolConfigurationPath,
 		Interface iface,
 		Map< String, AggregatedOperation > aggregationMap,
 		Map< String, OutputPort > redirectionMap
 	) {
 		this.name = name;
-		this.location = location;
+		this.locationVariablePath = locationVariablePath;
 		this.iface = iface;
 		this.aggregationMap = aggregationMap;
 		this.redirectionMap = redirectionMap;
@@ -118,7 +118,12 @@ public class InputPort implements Port
 	 */
 	public URI location()
 	{
-		return location;
+		return URI.create( locationVariablePath.getValue().strValue() );
+	}
+	
+	public void setLocation( String location )
+	{
+		locationVariablePath.getValue().setValue( location );
 	}
 
 	/**

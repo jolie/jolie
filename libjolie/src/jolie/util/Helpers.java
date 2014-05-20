@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi                                *
+ *   Copyright (C) 2014 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,46 +19,31 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime;
+package jolie.util;
 
-import jolie.runtime.expression.Expression;
-import jolie.process.TransformationReason;
-import jolie.util.Pair;
+import java.io.IOException;
 
 /**
+ * A convenience class with some helper functions for cleaner coding.
  * @author Fabrizio Montesi
  */
-public class ClosedVariablePath extends VariablePath
+public class Helpers
 {
-	private final Value rootValue;
-
-	public ClosedVariablePath( Pair< Expression, Expression >[] path, Value rootValue )
+	public final static long serialVersionUID = jolie.lang.Constants.serialVersionUID();
+	
+	public static <B extends Comparable<Boolean>, T extends Throwable> void condThrow( B condition, T throwable )
+		throws T
 	{
-		super( path );
-		this.rootValue = rootValue;
+		if ( condition.compareTo( true ) == 0 ) {
+			throw throwable;
+		}
 	}
 	
-	public ClosedVariablePath( VariablePath otherPath, Value rootValue )
+	public static <B extends Comparable<Boolean>> void condThrowIOException( B condition, String message )
+		throws IOException
 	{
-		this( otherPath.path(), rootValue );
-	}
-
-	@Override
-	protected VariablePath _createVariablePath( Pair< Expression, Expression >[] path )
-	{
-		return new ClosedVariablePath( path, rootValue );
-	}
-
-	@Override
-	public Expression cloneExpression( TransformationReason reason )
-	{
-		Pair< Expression, Expression >[] clonedPath = cloneExpressionHelper( path(), reason );
-		return new ClosedVariablePath( clonedPath, rootValue );
-	}
-
-	@Override
-	protected Value getRootValue()
-	{
-		return rootValue;
+		if ( condition.compareTo( true ) == 0 ) {
+			throw new IOException( message );
+		}
 	}
 }
