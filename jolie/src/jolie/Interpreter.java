@@ -249,7 +249,7 @@ public class Interpreter
 	private final boolean verbose;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private final long persistentConnectionTimeout = 24 * 60 * 60 * 1000 * 10; // 10 days
+	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -580,7 +580,7 @@ public class Interpreter
 		executorService.shutdown();
 		commCore.shutdown();
 		try {
-			executorService.awaitTermination( persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
+			executorService.awaitTermination( persistentConnectionTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
 	}
 
