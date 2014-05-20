@@ -92,9 +92,9 @@ public class WSDLConverter
 	private final Writer writer;
 	private final Definition definition;
 	private int indentationLevel = 0;
-	private Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	private Map< String, Interface > interfaces = new HashMap< String, Interface >();
-	private List< TypeDefinition > typeDefinitions = new ArrayList< TypeDefinition >();
+	private final Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
+	private final Map< String, Interface > interfaces = new HashMap< String, Interface >();
+	private final List< TypeDefinition > typeDefinitions = new ArrayList< TypeDefinition >();
 	private final XSOMParser schemaParser;
 	private final TransformerFactory transformerFactory;
 
