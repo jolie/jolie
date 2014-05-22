@@ -180,6 +180,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String MULTIPART_HEADERS = "multipartHeaders";
 		private static final String CONCURRENT = "concurrent";
 		private static final String USER_AGENT = "userAgent";
+		private static final String HOST = "host";
 		private static final String HEADERS = "headers";
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
@@ -1139,13 +1140,17 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		recv_checkForCookies( message, decodedMessage );
-                recv_checkForGenericHeader( message, decodedMessage );
+		recv_checkForGenericHeader( message, decodedMessage );
 		recv_checkForMultiPartHeaders( decodedMessage );
 		if (
 			message.userAgent() != null &&
 			hasParameter( Parameters.USER_AGENT )
 		) {
 			getParameterFirstValue( Parameters.USER_AGENT ).setValue( message.userAgent() );     
+		}
+		
+		if ( hasParameter( Parameters.HOST ) ) {
+			getParameterFirstValue( Parameters.HOST ).setValue( message.getPropertyOrEmptyString( Parameters.HOST ) );
 		}
 	}
 
