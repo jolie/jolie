@@ -1149,7 +1149,7 @@ public class HttpProtocol extends CommProtocol
 			getParameterFirstValue( Parameters.USER_AGENT ).setValue( message.userAgent() );     
 		}
 		
-		if ( hasParameter( Parameters.HOST ) ) {
+		if ( getParameterVector( Parameters.HOST ) != null ) {
 			getParameterFirstValue( Parameters.HOST ).setValue( message.getPropertyOrEmptyString( Parameters.HOST ) );
 		}
 	}
@@ -1165,7 +1165,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		if ( hasParameter( Parameters.STATUS_CODE ) ) {
 			getParameterFirstValue( Parameters.STATUS_CODE ).setValue( message.statusCode() );
-		} 
+		}
 	}
 	
 	public CommMessage recv( InputStream istream, OutputStream ostream )
