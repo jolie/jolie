@@ -140,7 +140,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		return v;
 	}
 
-	public ValueImpl clone()
+	public synchronized ValueImpl clone()
 	{
 		ValueImpl ret = new ValueImpl();
 		ret._deepCopy( this, true );
@@ -265,7 +265,7 @@ class RootValueImpl extends Value implements Cloneable
 
 	private final Map< String, ValueVector > children = new HashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
 
-	public RootValueImpl clone()
+	public synchronized RootValueImpl clone()
 	{
 		RootValueImpl ret = new RootValueImpl();
 		ret._deepCopy( this, true );
@@ -378,7 +378,7 @@ class CSetValue extends ValueImpl
 	}
 
 	@Override
-	public CSetValue clone()
+	public synchronized CSetValue clone()
 	{
 		CSetValue ret = new CSetValue();
 		ret._deepCopy( this, true );
