@@ -116,17 +116,28 @@ main
 	};
 	indentify;
 	if ( rr_count > 0 ) {
-	  response = response + "RequestResponse:\n";
-	  for ( x = 0, x < rr_count, x++ ) {
-	    with ( rr[ x ] ) { 
-	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
-	      if ( x < ( rr_count - 1 ) ) {
-		response = response + ",\n"
-	      } else {
-		response = response + "\n"
-	      }
-	    }
-	  }
+		response = response + "RequestResponse:\n";
+		for ( x = 0, x < rr_count, x++ ) {
+			with ( rr[ x ] ) { 
+				response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
+				for ( f = 0, f < #.fault, f++ ) {
+					if ( f == 0 ) {
+					      response = response + " throws "
+					};
+					response = response + .fault[ f ].name.name;
+					if ( is_defined( .fault[ f ].type_name ) ) {
+						  response = response + "(" + .fault[ f ].type_name.name + ") " 
+					};
+					response = response + " " 
+				}
+				;
+				if ( x < ( rr_count - 1 ) ) {
+					response = response + ",\n"
+				} else {
+					response = response + "\n"
+				}
+			}
+		}		
 	};
 	if ( ow_count > 0 ) {
 	  response = response + "OneWay:";
@@ -180,17 +191,28 @@ main
 	};
 	indentify;
 	if ( rr_count > 0 ) {
-	  response = response + "RequestResponse:\n";
-	  for ( x = 0, x < rr_count, x++ ) {
-	    with ( rr[ x ] ) { 
-	      response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
-	      if ( x < ( rr_count - 1 ) ) {
-		response = response + ",\n"
-	      } else {
-		response = response + "\n"
-	      }
-	    }
-	  }
+		response = response + "RequestResponse:\n";
+		for ( x = 0, x < rr_count, x++ ) {
+		      with ( rr[ x ] ) { 
+				response = response + _indentation_string + .operation_name + "( " + .input.name + " )( " + .output.name + " )";
+				for ( f = 0, f < #.fault, f++ ) {
+					if ( f == 0 ) {
+						  response = response + " throws "
+					};
+					response = response + .fault[ f ].name.name;
+					if ( is_defined( .fault[ f ].type_name ) ) {
+						  response = response + "(" + .fault[ f ].type_name.name + ") " 
+					};
+					response = response + " " 
+				}
+				;
+				if ( x < ( rr_count - 1 ) ) {
+					response = response + ",\n"
+				} else {
+					response = response + "\n"
+				}
+		      }
+		}
 	};
 	if ( ow_count > 0 ) {
 	  response = response + "OneWay:";
@@ -317,6 +339,8 @@ main
 	  response = "double"
 	} else if ( is_defined( request.any_type ) ) {
 	  response = "any"
+	} else if ( is_defined( request.raw_type ) ) {
+	  response = "raw"
 	} else if ( is_defined( request.void_type ) ) {
 	  response = "void"
 	} else if ( is_defined( request.undefined_type ) ) {
