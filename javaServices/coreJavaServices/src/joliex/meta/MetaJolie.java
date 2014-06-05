@@ -236,7 +236,7 @@ public class MetaJolie extends JavaService {
             TypeInlineDefinition td = (TypeInlineDefinition) typedef;
             type.getFirstChild("root_type").deepCopy(getNativeType(td.nativeType()));
             if (td.hasSubTypes()) {
-                int subtype_counter = 0;
+                int subtype_counter = 0;               
                 for (Entry<String, TypeDefinition> entry : td.subTypes()) {
                     type.getChildren("sub_type").get(subtype_counter).deepCopy(getSubType(entry.getValue(), name));
                     subtype_counter++;
@@ -560,6 +560,19 @@ public class MetaJolie extends JavaService {
                 if (!isNativeType(requestResponseOperation.responseType().id())) {
                     insertExtendedType(types, interface_types, name, requestResponseOperation.responseType(), rrExtender.responseType());
                 }
+                Map<String, TypeDefinition> faults = requestResponseOperation.faults();
+                int faultCounter = 0;
+                for (Entry<String, TypeDefinition> f : faults.entrySet()) {
+                    current_operation.getChildren("fault").get(faultCounter).getFirstChild("name").getFirstChild("name").setValue(f.getKey());
+                    if (f.getValue() != null) {
+                        current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").deepCopy(setName(name));
+                        current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").getFirstChild("name").setValue(f.getValue().id());
+                        if (!isNativeType(f.getValue().id())) {
+                            addType(types, f.getValue());
+                        }
+                    }
+                    faultCounter++;
+                }
             }
             operations.add(current_operation);
         }
@@ -600,6 +613,19 @@ public class MetaJolie extends JavaService {
                 }
                 if (!isNativeType(requestResponseOperation.responseType().id())) {
                     insertType(types, interface_types, name, requestResponseOperation.responseType());
+                }
+                Map<String, TypeDefinition> faults = requestResponseOperation.faults();
+                int faultCounter = 0;
+                for (Entry<String, TypeDefinition> f : faults.entrySet()) {
+                    current_operation.getChildren("fault").get(faultCounter).getFirstChild("name").getFirstChild("name").setValue(f.getKey());
+                    if (f.getValue() != null) {
+                        current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").deepCopy(setName(name));
+                        current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").getFirstChild("name").setValue(f.getValue().id());
+                        if (!isNativeType(f.getValue().id())) {
+                            addType(types, f.getValue());
+                        }
+                    }
+                    faultCounter++;
                 }
             }
             operations.add(current_operation);
