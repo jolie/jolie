@@ -21,6 +21,13 @@
 
 include "types/role_types.iol"
 
+// FAULTS
+type InputPortMetaDataFault: void {
+  .message: string
+}
+
+// MESSAGE TYPES
+
 type CheckNativeTypeRequest: void {
   .type_name: string
 }
@@ -84,7 +91,8 @@ RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
 	    throws ParserException( ParserExceptionType ),
-	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse ),
+	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
+	    throws InputPortMetaDataFault,
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
 	    throws TypeMismatch,
 	parseRoles( ParseRoleRequest)( Role )
