@@ -568,7 +568,7 @@ public class MetaJolie extends JavaService {
                         current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").deepCopy(setName(name));
                         current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").getFirstChild("name").setValue(f.getValue().id());
                         if (!isNativeType(f.getValue().id())) {
-                            addType(types, f.getValue());
+                            insertExtendedType(types, interface_types, name, f.getValue(), rrExtender.faults().get( f.getKey() ));
                         }
                     }
                     faultCounter++;
@@ -622,7 +622,7 @@ public class MetaJolie extends JavaService {
                         current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").deepCopy(setName(name));
                         current_operation.getChildren("fault").get(faultCounter).getFirstChild("type_name").getFirstChild("name").setValue(f.getValue().id());
                         if (!isNativeType(f.getValue().id())) {
-                            addType(types, f.getValue());
+                            insertType(types, interface_types, name, f.getValue());
                         }
                     }
                     faultCounter++;
