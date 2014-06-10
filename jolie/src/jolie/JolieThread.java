@@ -54,6 +54,7 @@ public abstract class JolieThread extends Thread
 	{
 		super( threadGroup, interpreter.programFilename() + "-" + name );
 		this.interpreter = interpreter;
+		setContextClassLoader( interpreter.getClassLoader() );
 	}
 
 	/**
@@ -67,6 +68,7 @@ public abstract class JolieThread extends Thread
 	{
 		super( interpreter.programFilename() + "-" + createThreadName() );
 		this.interpreter = interpreter;
+		setContextClassLoader( interpreter.getClassLoader() );
 	}
 
 	/**
@@ -80,6 +82,7 @@ public abstract class JolieThread extends Thread
 	{
 		super( r, interpreter.programFilename() + "-" + createThreadName() );
 		this.interpreter = interpreter;
+		setContextClassLoader( interpreter.getClassLoader() );
 	}
 	
 	/**
