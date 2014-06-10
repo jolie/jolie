@@ -231,7 +231,7 @@ public class Interpreter
 	private final String[] arguments;
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
 			new LinkedList< EmbeddedServiceLoader >();
-	private final Logger logger = Logger.getLogger( "JOLIE" );
+	private static final Logger logger = Logger.getLogger( "Jolie" );
 	
 	private final Map< String, DefinitionProcess > definitions =
 				new HashMap< String, DefinitionProcess >();
