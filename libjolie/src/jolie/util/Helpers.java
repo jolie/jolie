@@ -46,4 +46,26 @@ public class Helpers
 			throw new IOException( message );
 		}
 	}
+	
+	public static enum OSType {	Windows, MacOS, Linux, Other }
+	
+	private static final OSType detectedOS;
+	
+	static {
+		final String os = System.getProperty( "os.name", "other" ).toLowerCase();
+		if ( os.contains("mac") || os.contains("darwin") ) {
+			detectedOS = OSType.MacOS;
+		} else if ( os.contains("win") ) {
+			detectedOS = OSType.Windows;
+		} else if ( os.contains("nux") ) {
+			detectedOS = OSType.Linux;
+		} else {
+			detectedOS = OSType.Other;
+		}
+	}
+	
+	public static OSType getOperatingSystemType()
+	{
+		return detectedOS;
+	}
 }
