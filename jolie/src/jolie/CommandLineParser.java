@@ -35,6 +35,7 @@ import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
 import jolie.lang.parse.Scanner;
 import jolie.runtime.correlation.CorrelationEngine;
+import jolie.util.Helpers;
 
 /**
  * A parser for JOLIE's command line arguments,
@@ -348,6 +349,10 @@ public class CommandLineParser
 					JarFile japFile = new JarFile( japFilename );
 					Manifest manifest = japFile.getManifest();
 					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
+                                        if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
+                                                olFilepath = olFilepath.replace( "\\", "/" ); 
+                                        }
+                                        
 					libList.add( japFilename );
 					Collection< String > japOptions = parseJapManifestForOptions( manifest );
 					argsList.addAll( i+1, japOptions );
