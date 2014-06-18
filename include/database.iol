@@ -28,6 +28,8 @@ type ConnectionInfo:void {
 	.password:string
 	.attributes?:string
 	.checkConnection?:int
+	.toLowerCase?: bool
+	.toUpperCase?: bool
 }
 
 type QueryResult:void {
