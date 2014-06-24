@@ -265,6 +265,7 @@ public class DatabaseService extends JavaService {
 
     private static void setValue(Value fieldValue, ResultSet result, int columnType, int index)
             throws SQLException {
+        ByteArray supportByteArray;
         switch (columnType) {
             case java.sql.Types.INTEGER:
             case java.sql.Types.SMALLINT:
@@ -298,14 +299,15 @@ public class DatabaseService extends JavaService {
                 fieldValue.setValue(result.getFloat(index));
                 break;
             case java.sql.Types.BLOB:
-                //fieldValue.setStrValue( result.getBlob( i ).toString() );
+                supportByteArray = new ByteArray(result.getBytes(index));
+                fieldValue.setValue(supportByteArray);
                 break;
             case java.sql.Types.CLOB:
                 Clob clob = result.getClob(index);
                 fieldValue.setValue(clob.getSubString(0L, (int) clob.length()));
                 break;
             case java.sql.Types.BINARY:
-                ByteArray supportByteArray = new ByteArray(result.getBytes(index));
+                supportByteArray = new ByteArray(result.getBytes(index));
                 fieldValue.setValue(supportByteArray);
                 break;
             case java.sql.Types.VARBINARY:
