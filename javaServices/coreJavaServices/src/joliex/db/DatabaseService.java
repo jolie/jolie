@@ -304,7 +304,7 @@ public class DatabaseService extends JavaService {
                 break;
             case java.sql.Types.CLOB:
                 Clob clob = result.getClob(index);
-                fieldValue.setValue(clob.getSubString(0L, (int) clob.length()));
+                fieldValue.setValue(clob.getSubString(1, (int) clob.length()));
                 break;
             case java.sql.Types.BINARY:
                 supportByteArray = new ByteArray(result.getBytes(index));
