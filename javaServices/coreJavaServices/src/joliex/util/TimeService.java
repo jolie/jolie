@@ -265,8 +265,7 @@ public class TimeService extends JavaService
 	{
             SimpleDateFormat sdf= null;
 		Value v = Value.create();
-		try {
-			System.out.println("getDateTimeValues");
+		try {			
                         String format;
 			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
 				format = "dd/MM/yyyy hh:ss:mm";
