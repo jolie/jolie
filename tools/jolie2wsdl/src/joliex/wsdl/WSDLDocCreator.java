@@ -249,6 +249,8 @@ public class WSDLDocCreator {
             suffix = "double";
         } else if (nType.equals(NativeType.INT)) {
             suffix = "int";
+        } else if (nType.equals(NativeType.BOOL )) {
+            suffix = "boolean";
         }
         if (suffix.isEmpty()) {
             return "";
