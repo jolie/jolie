@@ -120,6 +120,13 @@ public class JavaDocumentCreator {
                         if (!typeMap.containsKey(requestResponseOperation.responseType().id())) {
                             typeMap.put(requestResponseOperation.responseType().id(), requestResponseOperation.responseType());
                         }
+                        for (Entry<String, TypeDefinition> fault : requestResponseOperation.faults().entrySet()) {
+                            if (!typeMap.containsKey(fault.getValue().id())) {
+                                typeMap.put(fault.getValue().id(), fault.getValue());
+                            }
+
+                        }
+
                     } else {
                         OneWayOperationDeclaration oneWayOperationDeclaration = (OneWayOperationDeclaration) operation;
                         if (!typeMap.containsKey(oneWayOperationDeclaration.requestType().id())) {
@@ -531,6 +538,9 @@ public class JavaDocumentCreator {
                 String startingChar = nameVariable.substring(0, 1);
                 String remaningStr = nameVariable.substring(1, nameVariable.length());
                 String nameVariableOp = startingChar.toUpperCase() + remaningStr;
+                if ( nameVariableOp.equals("Value") ) {
+                    nameVariableOp = "__Value";
+                }
 
                 if (subType instanceof TypeDefinitionLink) {
                     //link
@@ -790,7 +800,6 @@ public class JavaDocumentCreator {
         stringBuilder.append("}\n");
     }
 
-    
     private void parseSubType(TypeDefinition typeDefinition) {
         if (typeDefinition.hasSubTypes()) {
             Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
