@@ -293,8 +293,7 @@ public class TimeService extends JavaService
 			v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
                         v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
                         v.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
-                        v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
-                        System.out.println("getDateTimeValues");
+                        v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );                        
                         
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );
