@@ -421,6 +421,9 @@ public class JavaDocumentCreator {
                                         + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isInt()){\n"
                                         + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").intValue();\n"
                                         + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isBool()){\n"
+                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").boolValue();\n"
+                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
                                         + "}\n");
                             }
                             stringBuilder.append("}\n");
@@ -439,6 +442,8 @@ public class JavaDocumentCreator {
                                         + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").strValue();\n"
                                         + "}else if(v.getFirstChild(\"" + subType.id() + "\").isInt()){\n"
                                         + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").intValue();\n"
+                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isBool()){\n"
+                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").boolValue();\n"
                                         + "}\n");
                             }
                             stringBuilder.append("}\n");
@@ -466,6 +471,8 @@ public class JavaDocumentCreator {
                         + "rootValue = v.strValue();\n"
                         + "}else if(v.isInt()){\n"
                         + "rootValue = v.intValue();\n"
+                        + "}else if(v.isBool()){\n"
+                        + "rootValue = v.boolValue();\n"
                         + "}\n");
             }
         }
@@ -749,6 +756,8 @@ public class JavaDocumentCreator {
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ".get(counter" + subType.id() + "))).doubleValue());\n");
                                 stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof String){\n");
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
+                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Boolean){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(Boolean)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
                                 stringBuilder.append("}");
                             }
                             stringBuilder.append("}");
@@ -765,6 +774,9 @@ public class JavaDocumentCreator {
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ")).doubleValue());\n");
                                 stringBuilder.append("}else if(_" + subType.id() + " instanceof String){\n");
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + "));\n");
+                                
+                                stringBuilder.append("}else if(_" + subType.id() + " instanceof Boolean){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(Boolean)(_" + subType.id() + "));\n");
                                 stringBuilder.append("}");
                             }
                             stringBuilder.append("}\n");
@@ -789,6 +801,8 @@ public class JavaDocumentCreator {
                 stringBuilder.append("vReturn.setValue(((Double)(rootValue)).doubleValue());\n");
                 stringBuilder.append("}else if(rootValue instanceof String){\n");
                 stringBuilder.append("vReturn.setValue(((String)(rootValue)));\n");
+                stringBuilder.append("}else if(rootValue instanceof Boolean){\n");
+                stringBuilder.append("vReturn.setValue(((Boolean)(rootValue)));\n");
                 stringBuilder.append("}");
             }
 
