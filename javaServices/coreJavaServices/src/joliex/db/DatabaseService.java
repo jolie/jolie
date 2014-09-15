@@ -282,7 +282,7 @@ public class DatabaseService extends JavaService
 			case java.sql.Types.DOUBLE:
 				fieldValue.setValue( result.getDouble( index ) );
 				break;
-			case java.sql.Types.DECIMAL: {
+			case java.sql.Types.DECIMAL:
 				BigDecimal dec = result.getBigDecimal( index );
 				if ( dec == null ) {
 					fieldValue.setValue( 0 );
@@ -295,9 +295,7 @@ public class DatabaseService extends JavaService
 						fieldValue.setValue( dec.doubleValue() );
 					}
 				}
-			}
-			break;
-
+				break;
 			case java.sql.Types.FLOAT:
 				fieldValue.setValue( result.getFloat( index ) );
 				break;
@@ -326,7 +324,7 @@ public class DatabaseService extends JavaService
 				}
 				fieldValue.setValue( s );
 				break;
-			case java.sql.Types.NUMERIC: {
+			case java.sql.Types.NUMERIC:
 				BigDecimal dec = result.getBigDecimal( index );
 
 				if ( dec == null ) {
@@ -340,18 +338,11 @@ public class DatabaseService extends JavaService
 						fieldValue.setValue( dec.doubleValue() );
 					}
 				}
-			}
-			break;
+				break;
 			case java.sql.Types.BIT:
-			case java.sql.Types.BOOLEAN: {
-				Boolean bool = result.getBoolean( index );
-				if ( bool == null ) {
-					fieldValue.setValue( false );
-				} else {
-					fieldValue.setValue( bool );
-				}
-			}
-			break;
+			case java.sql.Types.BOOLEAN:
+				fieldValue.setValue( result.getBoolean( index ) );
+				break;
 			case java.sql.Types.VARCHAR:
 			default:
 				String str = result.getString( index );
