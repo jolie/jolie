@@ -21,12 +21,25 @@
 
 package jolie;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -446,11 +459,7 @@ public class CommandLineParser
 			}
 		}
 
-		if ( olFilepath.endsWith( ".olc" ) ) {
-			isProgramCompiled = true;
-		} else {
-			isProgramCompiled = false;
-		}
+		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		programFilepath = olFilepath;
 		programStream = tmpProgramStream;
 
