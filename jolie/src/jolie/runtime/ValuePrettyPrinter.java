@@ -37,6 +37,7 @@ public class ValuePrettyPrinter
 	private final Writer writer;
 	private final String header;
 	private int indentation = 0;
+	private int byteTruncation = -1; // Default: no truncation
 
 	public ValuePrettyPrinter( Value root, Writer writer, String header )
 	{
@@ -54,6 +55,11 @@ public class ValuePrettyPrinter
 	{
 		indentation--;
 	}
+	
+	public void setByteTruncation( int truncation )
+	{
+		this.byteTruncation = truncation;
+	}
 
 	public void run()
 		throws IOException
@@ -64,6 +70,11 @@ public class ValuePrettyPrinter
 		writeChildren( root );
 		unindent();
 	}
+	
+	public void setIndentationOffset( int offset )
+	{
+		this.indentation = offset;
+	}
 
 	private void writeNativeValue( Value value )
 		throws IOException
@@ -73,7 +84,11 @@ public class ValuePrettyPrinter
 		}
 		if ( value.valueObject() != null ) {
 			writer.write( " = " );
-			writer.write( value.valueObject().toString() );
+			if ( byteTruncation > -1 && value.valueObject() instanceof ByteArray ) {
+				writer.write( value.valueObject().toString().substring( 0, byteTruncation ) + "..." );
+			} else {
+				writer.write( value.valueObject().toString() );
+			}
 			writer.write( " : " );
 			writer.write( value.valueObject().getClass().getName() );
 		}

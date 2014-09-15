@@ -23,7 +23,6 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
@@ -37,6 +36,8 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 
 /**
  * 
@@ -73,10 +74,16 @@ public class ForwardNotificationProcess implements Process
 			extenderTypeDescription
 		);
 	}
-
-	private void log( String message )
+	
+	private void log( String log, CommMessage message )
 	{
-		Interpreter.getInstance().logInfo( "[Forward notification operation " + operationName + "@" + outputPort.id() + "]: " + message );
+		Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( new MessageTraceAction(
+			MessageTraceAction.Type.COURIER_NOTIFICATION,
+			operationName + "@" + outputPort.id(),
+			log,
+			message
+		) );
 	}
 
 	public void run()
@@ -86,7 +93,6 @@ public class ForwardNotificationProcess implements Process
 			return;
 		}
 
-		boolean verbose = Interpreter.getInstance().verbose();
 		CommChannel channel = null;
 		try {
 			Value messageValue = outputVariablePath.evaluate();
@@ -97,20 +103,20 @@ public class ForwardNotificationProcess implements Process
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
 			channel = outputPort.getCommChannel();
-			if ( verbose ) {
-				log( "sending request " + message.id() );
-			}
+			
+			log( "SENDING", message );
+			
 			channel.send( message );
-			if ( verbose ) {
-				log( "request " + message.id() + " sent" );
-			}
+			
+			log( "SENT", message );
+			
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
 			} while( response == null );
-			if ( verbose ) {
-				log( "received response for request " + response.id() );
-			}
+			
+			log( "RECEIVED ACK", response );
+			
 			if ( response.isFault() ) {
 				if ( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )

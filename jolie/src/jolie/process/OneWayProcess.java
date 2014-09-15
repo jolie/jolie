@@ -25,8 +25,15 @@ import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.monitoring.events.OperationStartedEvent;
+import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
-import jolie.runtime.*;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.OneWayOperation;
+import jolie.runtime.VariablePath;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 
 public class OneWayProcess implements InputOperationProcess
 {
@@ -66,7 +73,7 @@ public class OneWayProcess implements InputOperationProcess
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), sessionMessage.message().value() ) );
 		}
 
-		log( "received message " + sessionMessage.message().id() );
+		log( "RECEIVED", sessionMessage.message() );
 		if ( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
@@ -101,12 +108,17 @@ public class OneWayProcess implements InputOperationProcess
 		}
 	}
 
-	private void log( String message )
+	private void log( String log, CommMessage message )
 	{
-		if ( Interpreter.getInstance().verbose() ) {
-			Interpreter.getInstance().logInfo( "[OneWay operation " + operation.id() + "]: " + message );
-		}
+		Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( new MessageTraceAction(
+			MessageTraceAction.Type.ONE_WAY,
+			operation.id(),
+			log,
+			message
+		) );
 	}
+
 	
 	public boolean isKillable()
 	{

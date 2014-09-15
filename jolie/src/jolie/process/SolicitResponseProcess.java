@@ -37,6 +37,8 @@ import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 
 public class SolicitResponseProcess implements Process
 {
@@ -75,9 +77,15 @@ public class SolicitResponseProcess implements Process
 				);
 	}
 
-	private void log( String message )
+	private void log( String log, CommMessage message )
 	{
-		Interpreter.getInstance().logInfo( "[SolicitResponse operation " + operationId + "@" + outputPort.id() + "]: " + message );
+		Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( new MessageTraceAction(
+			MessageTraceAction.Type.NOTIFICATION,
+			operationId + "@" + outputPort.id(),
+			log,
+			message
+		) );
 	}
 
 	public void run()
@@ -86,8 +94,6 @@ public class SolicitResponseProcess implements Process
 		if ( ExecutionThread.currentThread().isKilled() ) {
 			return;
 		}
-
-		boolean verbose = Interpreter.getInstance().verbose();
 		
 		CommChannel channel = null;
 		try {
@@ -103,21 +109,15 @@ public class SolicitResponseProcess implements Process
 			}
 
 			channel = outputPort.getCommChannel();
-			if ( verbose ) {
-				log( "sending request " + message.id() );
-			}
+			log( "SENDING", message );
 			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
-			if ( verbose ) {
-				log( "request " + message.id() + " sent" );
-			}
+			log( "SENT", message );
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
 			} while( response == null );
-			if ( verbose ) {
-				log( "received response for request " + response.id() );
-			}
+			log( "RECEIVED", response );
 			
 			if ( inputVarPath != null )	 {
 				inputVarPath.setValue( response.value() );

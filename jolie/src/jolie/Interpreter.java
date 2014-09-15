@@ -88,6 +88,9 @@ import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.tracer.DummyTracer;
+import jolie.tracer.PrintingTracer;
+import jolie.tracer.Tracer;
 
 /**
  * The Jolie interpreter engine.
@@ -246,7 +249,7 @@ public class Interpreter
 	private final String[] includePaths;
 	private final String[] optionArgs;
 	private final String logPrefix;
-	private final boolean verbose;
+	private final Tracer tracer;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
@@ -278,6 +281,16 @@ public class Interpreter
 	{
 		return inputMessageTimeout;
 	}*/
+	
+	public String logPrefix()
+	{
+		return logPrefix;
+	}
+	
+	public Tracer tracer()
+	{
+		return tracer;
+	}
 	
 	public void fireMonitorEvent( MonitoringEvent event )
 	{
@@ -724,10 +737,10 @@ public class Interpreter
 	 * Returns <code>true</code> if this interpreter is in verbose mode.
 	 * @return <code>true</code> if this interpreter is in verbose mode
 	 */
-	public boolean verbose()
+	/* public boolean verbose()
 	{
 		return verbose;
-	}
+	} */
 
 	/** Constructor.
 	 *
@@ -771,7 +784,14 @@ public class Interpreter
 		builder.append( "] " );
 		logPrefix = builder.toString();
 
-		verbose = cmdParser.verbose();
+		if ( cmdParser.tracer() ) {
+			tracer = new PrintingTracer( this );
+		} else {
+			tracer = new DummyTracer();
+		}
+		
+		logger.setLevel( cmdParser.logLevel() );
+		
 		timer = new Timer( programFilename + "-Timer" );
 		exitingLock = new ReentrantLock();
 		exitingCondition = exitingLock.newCondition();

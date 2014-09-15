@@ -22,10 +22,11 @@
 
 package jolie.runtime.embedding;
 
-import jolie.runtime.expression.Expression;
-import jolie.runtime.JavaService;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
+import jolie.runtime.JavaService;
+import jolie.runtime.expression.Expression;
+import jolie.tracer.EmbeddingTraceAction;
 
 
 public class JavaServiceLoader extends EmbeddedServiceLoader
@@ -55,9 +56,11 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			service.setInterpreter( Interpreter.getInstance() );
 			setChannel(	new JavaCommChannel( service ) );
 			
-			if ( interpreter.verbose() ) {
-				interpreter.logInfo( "Loaded Java service: " + c.getCanonicalName() );
-			}
+			interpreter.tracer().trace(	new EmbeddingTraceAction(
+				EmbeddingTraceAction.Type.SERVICE_LOAD,
+				"Java Service Loader",
+				c.getCanonicalName()
+			) );
 		} catch( InstantiationException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		} catch( IllegalAccessException e ) {

@@ -31,10 +31,17 @@ import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
-import jolie.runtime.*;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 
 public class RequestResponseProcess implements InputOperationProcess
 {
@@ -66,11 +73,15 @@ public class RequestResponseProcess implements InputOperationProcess
 		return operation;
 	}
 
-	private void log( String message )
+	private void log( String log, CommMessage message )
 	{
-		if ( Interpreter.getInstance().verbose() ) {
-			Interpreter.getInstance().logInfo( "[RequestResponse operation " + operation.id() + "]: " + message );
-		}
+		Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( new MessageTraceAction(
+			MessageTraceAction.Type.REQUEST_RESPONSE,
+			operation.id(),
+			log,
+			message
+		) );
 	}
 	
 	public boolean isKillable()
@@ -94,7 +105,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), sessionMessage.message().value() ) );
 		}
 
-		log( "received message " + sessionMessage.message().id() );
+		log( "RECEIVED", sessionMessage.message() );
 		if ( inputVarPath != null ) {
 			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
 		}
@@ -224,7 +235,7 @@ public class RequestResponseProcess implements InputOperationProcess
 
 		try {
 			channel.send( response );
-			log( "sent response for message " + message.id() );
+			log( "SENT", response );
 			if ( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, response.value() ));
 			}
