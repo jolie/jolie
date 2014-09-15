@@ -34,7 +34,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import jolie.runtime.ByteArray;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
@@ -101,17 +100,9 @@ public class DatabaseService extends JavaService
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
-		if ( request.getFirstChild( "toLowerCase" ).isDefined() && request.getFirstChild( "toLowerCase" ).boolValue() ) {
-			toLowerCase = true;
-		} else {
-			toLowerCase = false;
-		}
+		toLowerCase = request.getFirstChild( "toLowerCase" ).isDefined() && request.getFirstChild( "toLowerCase" ).boolValue();
 
-		if ( request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue() ) {
-			toUpperCase = true;
-		} else {
-			toUpperCase = false;
-		}
+		toUpperCase = request.getFirstChild( "toUpperCase" ).isDefined() && request.getFirstChild( "toUpperCase" ).boolValue();
 
 		driver = request.getChildren( "driver" ).first().strValue();
 		String host = request.getChildren( "host" ).first().strValue();
