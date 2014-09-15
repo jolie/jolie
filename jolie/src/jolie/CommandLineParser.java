@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import jolie.jap.JapURLConnection;
 import jolie.lang.Constants;
@@ -65,16 +66,16 @@ public class CommandLineParser
 	private final CorrelationEngine.Type correlationAlgorithmType;
 	private final String[] includePaths;
 	private final String[] optionArgs;
-	private final String[] whitepages;
 	private final URL[] libURLs;
 	private final InputStream programStream;
 	private final String programFilepath;
 	private final String[] arguments;
 	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
-	private final boolean verbose;
 	private final JolieClassLoader jolieClassLoader;
 	private final boolean isProgramCompiled;
 	private final boolean typeCheck;
+	private final boolean tracer;
+	private final Level logLevel;
 	private File programDirectory = null;
 	
 	/**
@@ -84,6 +85,24 @@ public class CommandLineParser
 	public String[] arguments()
 	{
 		return arguments;
+	}
+	
+	public Level logLevel()
+	{
+		return logLevel;
+	}
+	
+	/**
+	 * Returns
+	 * <code>true</code> if the tracer option has been specified, false
+	 * otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false
+	 * otherwise
+	 */
+	public boolean tracer()
+	{
+		return tracer;
 	}
 
 	/**
@@ -228,11 +247,12 @@ public class CommandLineParser
 	 * Returns <code>true</code> if the verbose option has been specified, false otherwise.
 	 * @return <code>true</code> if the verbose option has been specified, false otherwise
 	 */
-	public boolean verbose()
+/*	public boolean verbose()
 	{
 		return verbose;
 	}
-
+*/
+	
 	/**
 	 * Returns the type of correlation algorithm that has been specified.
 	 * @return the type of correlation algorithm that has been specified.
@@ -263,8 +283,9 @@ public class CommandLineParser
 
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
-		boolean bVerbose = false;
+		boolean bTracer = false;
 		boolean bTypeCheck = false; // Default for typecheck
+		Level lLogLevel = Level.SEVERE;
 		List< String > programArgumentsList = new ArrayList< String >();
 		List< String > whitepageList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
@@ -339,9 +360,17 @@ public class CommandLineParser
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
 				}
-			} else if ( "--verbose".equals( argsList.get( i ) ) ) {
+			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
-				bVerbose = true;
+				bTracer = true;
+			} else if ( "--log".equals( argsList.get( i ) ) ) {
+				i++;
+				String level = argsList.get( i );
+				if ( "severe".equals( level ) ) {
+					lLogLevel = Level.SEVERE;
+				} else if ( "warning".equals( level ) ) {
+					lLogLevel = Level.WARNING;
+				}
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
 			} else if (
@@ -391,8 +420,8 @@ public class CommandLineParser
 			}
 		}
 
-		verbose = bVerbose;
 		typeCheck = bTypeCheck;
+		logLevel = lLogLevel;
 
 		correlationAlgorithmType = CorrelationEngine.Type.fromString( csetAlgorithmName );
 		if ( correlationAlgorithmType == null ) {
@@ -400,7 +429,7 @@ public class CommandLineParser
 		}
 		optionArgs = optionsList.toArray( new String[ optionsList.size() ] );
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
-		whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
+		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
 		if ( olFilepath == null ) {
 			throw new CommandLineException( "Input file not specified." );
@@ -460,6 +489,7 @@ public class CommandLineParser
 		}
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
+		tracer = bTracer && !isProgramCompiled;
 		programFilepath = olFilepath;
 		programStream = tmpProgramStream;
 

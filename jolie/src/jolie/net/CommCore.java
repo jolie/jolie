@@ -22,7 +22,6 @@
 
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
-
 import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.JolieThread;
@@ -54,6 +52,7 @@ import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
 import jolie.runtime.FaultException;
@@ -817,9 +816,7 @@ public class CommCore
 									if ( channel.lock.isHeldByCurrentThread() ) {
 										channel.lock.unlock();
 									}
-									if ( interpreter.verbose() ) {
-										interpreter.logSevere( e );
-									}
+									interpreter.logWarning( e );
 								}
 							}
 						}

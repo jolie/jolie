@@ -23,18 +23,19 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
 
 public class NotificationProcess implements Process
 {
@@ -66,9 +67,15 @@ public class NotificationProcess implements Process
 				);
 	}
 
-	private void log( String message )
+	private void log( String log, CommMessage message )
 	{
-		Interpreter.getInstance().logInfo( "[Notification operation " + operationId + "@" + outputPort.id() + "]: " + message );
+		Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( new MessageTraceAction(
+			MessageTraceAction.Type.NOTIFICATION,
+			operationId + "@" + outputPort.id(),
+			log,
+			message
+		) );
 	}
 
 	public void run()
@@ -78,7 +85,6 @@ public class NotificationProcess implements Process
 			return;
 		}
 
-		boolean verbose = Interpreter.getInstance().verbose();
 		CommChannel channel = null;
 		try {
 			CommMessage message =
@@ -90,20 +96,19 @@ public class NotificationProcess implements Process
 			}
 			channel = outputPort.getCommChannel();
 
-			if ( verbose ) {
-				log( "sending request " + message.id() );
-			}
+			log( "SENDING", message );
+			
 			channel.send( message );
-			if ( verbose ) {
-				log( "request " + message.id() + " sent" );
-			}
+			
+			log( "SENT", message );
+			
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
 			} while( response == null );
-			if ( verbose ) {
-				log( "received response for request " + response.id() );
-			}
+			
+			log( "RECEIVED ACK", response );
+			
 			if ( response.isFault() ) {
 				if ( response.fault().faultName().equals( "CorrelationError" )
 					|| response.fault().faultName().equals( "IOException" )
