@@ -28,8 +28,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import jolie.lang.Constants;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
@@ -220,12 +220,7 @@ public abstract class JavaService
 
 		returnType = method.getReturnType();
 		if ( void.class.isAssignableFrom( returnType ) ) {
-			boolean isRequestResponse;
-			if ( method.getAnnotation( RequestResponse.class ) == null ) {
-				isRequestResponse = false;
-			} else {
-				isRequestResponse = true;
-			}
+			final boolean isRequestResponse = method.getAnnotation( RequestResponse.class ) != null;
 			exceptions = method.getExceptionTypes();
 			if ( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
 				operations.put(
