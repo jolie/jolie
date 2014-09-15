@@ -1103,7 +1103,7 @@ public class Interpreter
 			embeddedServiceLoaders.clear();
 			classLoader = null;
 			commCore = null;
-			//System.gc();
+			System.gc();
 		}
 	}
 	
