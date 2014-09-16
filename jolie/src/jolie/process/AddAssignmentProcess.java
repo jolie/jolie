@@ -22,9 +22,9 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Add an expression value to a VariablePath's value, assigning the resulting
@@ -42,7 +42,6 @@ public class AddAssignmentProcess implements Process, Expression
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression of which the evaluation will be added to the the variable's value
-	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public AddAssignmentProcess( VariablePath varPath, Expression expression )
 	{

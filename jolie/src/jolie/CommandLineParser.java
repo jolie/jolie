@@ -493,7 +493,7 @@ public class CommandLineParser
 		if ( tmpProgramStream == null ) {
 			if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
-				olFilepath = olFilepath + "c";
+				olFilepath += "c";
 				tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
 				if ( tmpProgramStream == null ) {
 					throw new FileNotFoundException( olFilepath );
@@ -668,7 +668,7 @@ public class CommandLineParser
 				includePaths.addFirst( f.getParent() );
 			} else if ( olURL != null ) {
 				String urlString = olURL.toString();
-				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( "/" ) + 1 ) );
+				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
 			}
 		}
 		return olStream;

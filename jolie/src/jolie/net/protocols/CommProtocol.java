@@ -47,7 +47,7 @@ public abstract class CommProtocol
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
-		private static DummyChannel dummyChannel = new DummyChannel();
+		private final static DummyChannel dummyChannel = new DummyChannel();
 	}
 
 	private static class Parameters {

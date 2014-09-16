@@ -93,5 +93,4 @@ public class MonitoringEvent implements ValueConverter
 		ret.getChildren( "data" ).add( e.data );
 		return ret;
 	}
-	
 }

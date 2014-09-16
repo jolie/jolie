@@ -51,7 +51,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	/** Constructor.
 	 * 
 	 * @param socketChannel the SocketChannel underlying this SocketCommChannel
+	 * @param location the location for this channel
 	 * @param protocol the CommProtocol to use to send and receive messages
+	 * @throws java.io.IOException
 	 * @see CommProtocol
 	 * @see SocketChannel
 	 */

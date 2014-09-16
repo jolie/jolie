@@ -88,7 +88,7 @@ public class JapURLConnection extends URLConnection
 							tmpFile = File.createTempFile( "jap_cache", null );
 							tmpFile.deleteOnExit();
 							out = new FileOutputStream( tmpFile );
-							int read = 0;
+							int read;
 							byte[] buf = new byte[ BUF_SIZE ];
 							while( (read = in.read(buf)) != -1 ) {
 								out.write( buf, 0, read );

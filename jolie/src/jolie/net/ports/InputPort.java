@@ -97,6 +97,7 @@ public class InputPort implements Port
 	/**
 	 * Returns the aggregation map for this input port.
 	 * The keys of the map are the names of the aggregated operations.
+	 * @return the aggregation map for this input port.
 	 */
 	public Map< String, AggregatedOperation > aggregationMap()
 	{
@@ -128,7 +129,7 @@ public class InputPort implements Port
 
 	/**
 	 * Returns <code>true</code> if this input port can handle a message for operation operationName (either directly or through aggregation), false otherwise.
-	 * @param operation the <code>InputOperation</code> name to check for
+	 * @param operationName the <code>InputOperation</code> name to check for
 	 * @return <code>true</code> if this CommListener can handle a message for the given operationName, <code>false</code> otherwise
 	 */
 	public boolean canHandleInputOperation( String operationName )
@@ -142,7 +143,7 @@ public class InputPort implements Port
 
 	/**
 	 * Returns <code>true</code> if this input port can handle a message for operation operationName directly (i.e. without recurring to aggregated output ports), <code>false</code> otherwise.
-	 * @param operation the input operation name to check for
+	 * @param operationName the input operation name to check for
 	 * @return <code>true</code> if this listener can handle a message for the given operationName directly, <code>false</code> otherwise.
 	 */
 	public boolean canHandleInputOperationDirectly( String operationName )

@@ -300,7 +300,7 @@ public class Interpreter
 			try {
 				channel = monitor.getCommChannel();
 				channel.send( m );
-				CommMessage response = null;
+				CommMessage response;
 				do {
 					response = channel.recvResponseFor( m );
 				} while( response == null );
@@ -435,9 +435,10 @@ public class Interpreter
 	public InputOperation getInputOperation( String key )
 		throws InvalidIdException
 	{
-		InputOperation ret;
-		if ( (ret=inputOperations.get( key )) == null )
+		InputOperation ret = inputOperations.get( key );
+		if ( ret == null ) {
 			throw new InvalidIdException( key );
+		}
 		return ret;
 	}
 	
