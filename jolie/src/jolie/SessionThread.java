@@ -204,7 +204,7 @@ public class SessionThread extends ExecutionThread
 			new Process() {
 				public void run() throws FaultException, ExitingException
 				{
-					interpreter.logWarning( typeMismatchPath.getValue().strValue() );
+					interpreter.logSevere( typeMismatchPath.getValue().strValue() );
 				}
 
 				public Process clone( TransformationReason reason )
