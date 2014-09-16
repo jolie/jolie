@@ -219,8 +219,6 @@ public class CommandLineParser
 		helpBuilder.append(
 				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
 		helpBuilder.append(
-				getOptionString( "-R [location]", "Add the service at [location] to the registry whitelist for this Jolie program" ) );
-		helpBuilder.append(
 				getOptionString( "--trace", "Activate tracer" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
@@ -275,15 +273,24 @@ public class CommandLineParser
 	/**
 	 * Constructor
 	 * @param args the command line arguments
-	 * @param classLoader the ClassLoader to use for finding resources
+	 * @param parentClassLoader the ClassLoader to use for finding resources
 	 * @throws jolie.CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws java.io.IOException
 	 */
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader )
 		throws CommandLineException, IOException
 	{
 		this( args, parentClassLoader, ArgumentHandler.DEFAULT_ARGUMENT_HANDLER );
 	}
-
+	
+	/**
+	 * Constructor
+	 * @param args the command line arguments
+	 * @param parentClassLoader the ClassLoader to use for finding resources
+	 * @param argHandler
+	 * @throws CommandLineException
+	 * @throws IOException 
+	 */
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler )
 		throws CommandLineException, IOException
 	{
@@ -296,7 +303,6 @@ public class CommandLineParser
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
 		List< String > programArgumentsList = new ArrayList< String >();
-		List< String > whitepageList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
 		int cLimit = -1;
@@ -320,11 +326,6 @@ public class CommandLineParser
 				} catch( IOException e ) {
 					throw new CommandLineException( "Invalid constant definition, reason: " + e.getMessage() );
 				}
-				optionsList.add( argsList.get( i ) );
-			} else if ( "-R".equals( argsList.get( i ) ) ) {
-				optionsList.add( argsList.get( i ) );
-				i++;
-				whitepageList.add( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "-i".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -373,6 +374,7 @@ public class CommandLineParser
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
 			} else if ( "--log".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
 				i++;
 				String level = argsList.get( i );
 				if ( "severe".equals( level ) ) {
@@ -384,6 +386,7 @@ public class CommandLineParser
 				} else if ( "info".equals( level ) ) {
 					lLogLevel = Level.INFO;
 				}
+				optionsList.add( argsList.get( i ) );
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
 			} else if (
@@ -527,22 +530,39 @@ public class CommandLineParser
 		}
 	}
 
+	/**
+	 * Returns the directory in which the main program is located.
+	 * @return the directory in which the main program is located.
+	 */
 	public File programDirectory()
 	{
 		return programDirectory;
 	}
 
+	/**
+	 * Returns the value of the --typecheck option.
+	 * @return the value of the --typecheck option.
+	 */
 	public boolean typeCheck()
 	{
 		return typeCheck;
 	}
 
+	/**
+	 * Returns the classloader to use for the program.
+	 * @return the classloader to use for the program.
+	 */
 	public JolieClassLoader jolieClassLoader()
 	{
 		return jolieClassLoader;
 	}
 
-	// TODO: What do optionArgs represent?
+	/**
+	 * Returns the command line options passed to this command line parser.
+	 * This does not include the name of the program.
+	 * 
+	 * @return the command line options passed to this command line parser.
+	 */
 	public String[] optionArgs()
 	{
 		return optionArgs;
@@ -671,6 +691,9 @@ public class CommandLineParser
 		public int onUnrecognizedArgument( List< String > argumentsList, int index )
 			throws CommandLineException;
 
+		/**
+		 * Default {@link ArgumentHandler}. It just throws a {@link CommandLineException} when it finds an unrecognised option.
+		 */
 		public static ArgumentHandler DEFAULT_ARGUMENT_HANDLER =
 			new ArgumentHandler() {
 				public int onUnrecognizedArgument( List< String > argumentsList, int index )
