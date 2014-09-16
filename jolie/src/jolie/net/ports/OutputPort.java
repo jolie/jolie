@@ -24,25 +24,24 @@ package jolie.net.ports;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import jolie.lang.Constants;
-import jolie.process.AssignmentProcess;
-import jolie.process.NullProcess;
-import jolie.process.Process;
-import jolie.runtime.AbstractIdentifiableObject;
-import jolie.runtime.Value;
-import jolie.runtime.VariablePath;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
+import jolie.process.AssignmentProcess;
+import jolie.process.NullProcess;
+import jolie.process.Process;
 import jolie.process.SequentialProcess;
-import jolie.runtime.expression.Expression;
+import jolie.runtime.AbstractIdentifiableObject;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.util.LocationParser;
 
@@ -109,6 +108,13 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	
 	/**
 	 * To be called by OOITBuilder
+	 * @param interpreter
+	 * @param id
+	 * @param protocolId
+	 * @param protocolConfigurationProcess
+	 * @param locationURI
+	 * @param iface
+	 * @param isConstant
 	 */
 	public OutputPort(
 			Interpreter interpreter,

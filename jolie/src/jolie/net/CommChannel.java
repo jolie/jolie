@@ -119,7 +119,7 @@ public abstract class CommChannel
 
 	/**
 	 * Sets the parent {@link InputPort} of this channel.
-	 * @param listener the parent {@link InputPort} of this channel.
+	 * @param inputPort the parent {@link InputPort} of this channel.
 	 */
 	public void setParentInputPort( InputPort inputPort )
 	{
@@ -137,7 +137,7 @@ public abstract class CommChannel
 
 	/**
 	 * Sets the parent {@link OutputPort} of this channel.
-	 * @param listener the parent {@link OutputPort} of this channel.
+	 * @param outputPort the parent {@link OutputPort} of this channel.
 	 */
 	public void setParentOutputPort( OutputPort outputPort )
 	{
@@ -328,7 +328,10 @@ public abstract class CommChannel
 		closeImpl();
 	}
 
-	/** Implements the communication channel closing operation. */
+	/**
+	 * Implements the communication channel closing operation.
+	 * @throws java.io.IOException
+	 */
 	protected abstract void closeImpl()
 		throws IOException;
 }

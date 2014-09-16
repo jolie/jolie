@@ -22,14 +22,13 @@
 package jolie;
 
 import java.lang.ref.WeakReference;
-import jolie.lang.Constants;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.Future;
-
+import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
@@ -373,10 +372,12 @@ public abstract class ExecutionThread extends JolieThread
 	private synchronized void mergeCompensations( Scope s )
 	{
 		if ( scopeStack.empty() ) {
-			if ( parent != null )
+			if ( parent != null ) {
 				parent.mergeCompensations( s );
-		} else
+			}
+		} else {
 			scopeStack.peek().mergeCompensations( s );
+		}
 	}
 	
 	/**
@@ -385,10 +386,11 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void installCompensation( Process process )
 	{
-		if ( scopeStack.empty() && parent != null )
+		if ( scopeStack.empty() && parent != null ) {
 			parent.installCompensation( process );
-		else
+		} else {
 			scopeStack.peek().installCompensation( process );
+		}
 	}
 	
 	/**

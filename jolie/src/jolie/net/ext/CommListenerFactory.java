@@ -48,12 +48,8 @@ public abstract class CommListenerFactory
 	/**
 	 * Creates and returns a valid communication listener.
 	 * @param interpreter the interpreter to refer to
-	 * @param location the location URI of the input port related to the listener to create
 	 * @param protocolFactory the protocol factory the listener has to use
-	 * @param protocolConfigurationPath the protocol configuration variable path the listener should use to configure the created protocols
-	 * @param operationNames the operation names the listener will handle
-	 * @param aggregationMap the aggregation map for the listener
-	 * @param redirectionMap the redirection map for the listener
+	 * @param inputPort the input port for this listener
 	 * @return a valid communication listener
 	 * @throws java.io.IOException if the listener could not be created
 	 */

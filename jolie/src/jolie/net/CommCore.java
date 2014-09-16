@@ -221,7 +221,6 @@ public class CommCore
 	 * Constructor.
 	 * @param interpreter the Interpreter to refer to for this CommCore operations
 	 * @param connectionsLimit if more than zero, specifies an upper bound to the connections handled in parallel.
-	 * @param connectionsCacheSize specifies an upper bound to the persistent output connection cache.
 	 * @throws java.io.IOException
 	 */
 	public CommCore( Interpreter interpreter, int connectionsLimit /*, int connectionsCacheSize */ )
@@ -391,14 +390,9 @@ public class CommCore
 	/**
 	 * Adds an input port to this <code>CommCore</code>.
 	 * This method is not thread-safe.
-	 * @param inputPortName the name of the input port to add
-	 * @param uri the <code>URI</code> of the input port to add
+	 * @param inputPort the {@link InputPort} to add
 	 * @param protocolFactory the <code>CommProtocolFactory</code> to use for the input port
-	 * @param protocolConfigurationPath the protocol configuration variable path to use for the input port
 	 * @param protocolConfigurationProcess the protocol configuration process to execute for configuring the created protocols
-	 * @param operationNames the operation names the input port can handle
-	 * @param aggregationMap the aggregation mapping of the input port
-	 * @param redirectionMap the redirection mapping of the input port
 	 * @throws java.io.IOException in case of some underlying implementation error
 	 * @see URI
 	 * @see CommProtocolFactory
@@ -412,14 +406,13 @@ public class CommCore
 	{
 		protocolConfigurations.add( protocolConfigurationProcess );
 
-		CommListener listener = null;
 		String medium = inputPort.location().getScheme();
 		CommListenerFactory factory = getCommListenerFactory( medium );
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
 		}
 
-		listener = factory.createListener(
+		CommListener listener = factory.createListener(
 			interpreter,
 			protocolFactory,
 			inputPort
@@ -436,7 +429,7 @@ public class CommCore
 		}
 	}
 
-	private static Pattern pathSplitPattern = Pattern.compile( "/" );
+	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
 
 	private class CommChannelHandlerRunnable implements Runnable {
 		private final CommChannel channel;
@@ -481,7 +474,7 @@ public class CommCore
 			throws IOException, URISyntaxException
 		{
 			// Redirection
-			String rPath = "";
+			String rPath;
 			if ( ss.length <= 2 ) {
 				rPath = "/";
 			} else {
@@ -756,7 +749,7 @@ public class CommCore
 	}
 	
 	private SelectorThread selectorThread = null;
-	private Object selectorThreadMonitor = new Object();
+	private final Object selectorThreadMonitor = new Object();
 	
 	private SelectorThread selectorThread()
 		throws IOException

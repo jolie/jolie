@@ -54,6 +54,7 @@ abstract public class CommProtocolFactory
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
 	 * @param location the location the returned CommProtocol must refer to
 	 * @return a CommProtocol instance
+	 * @throws java.io.IOException
 	 */
 	abstract public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException;
@@ -63,6 +64,7 @@ abstract public class CommProtocolFactory
 	 * @param configurationPath the configuration VariablePath the returned CommProtocol must refer to
 	 * @param location the location the returned CommProtocol must refer to
 	 * @return a CommProtocol instance
+	 * @throws java.io.IOException
 	 */
 	abstract public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException;

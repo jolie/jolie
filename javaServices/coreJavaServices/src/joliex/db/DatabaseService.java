@@ -61,7 +61,6 @@ import joliex.db.impl.NamedStatementParser;
 } )
 public class DatabaseService extends JavaService
 {
-
 	private Connection connection = null;
 	private String connectionString = null;
 	private String username = null;
@@ -163,9 +162,9 @@ public class DatabaseService extends JavaService
 				}
 			} else {
 				if ( driver.startsWith( "hsqldb" ) ) {
-					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( "_" ) + 1 ) + "//" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
+					connectionString = "jdbc:" + driver + ":" + driver.substring( driver.indexOf( '_' ) + 1 ) + "//" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
 				} else {
-					connectionString = "jdbc:" + driver + "://" + host + (port.equals( "" ) ? "" : ":" + port) + separator + databaseName;
+					connectionString = "jdbc:" + driver + "://" + host + (port.isEmpty() ? "" : ":" + port) + separator + databaseName;
 				}
 				connection = DriverManager.getConnection(
 					connectionString,

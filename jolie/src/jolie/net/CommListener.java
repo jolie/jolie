@@ -46,12 +46,8 @@ public abstract class CommListener extends JolieThread
 	/**
 	 * Constructor
 	 * @param interpreter the interpreter this listener will refer to
-	 * @param location the location of the input port related to this listener
 	 * @param protocolFactory the protocol factory for this listener
-	 * @param protocolConfigurationPath the protocol configuration variable path for configuring the generated protocol instances
-	 * @param operationNames the operation names this listener will have to handle
-	 * @param aggregationMap the aggregation map for this listener
-	 * @param redirectionMap the redirection map for this listener
+	 * @param inputPort the {@link InputPort} for this listener
 	 */
 	public CommListener(
 				Interpreter interpreter,
