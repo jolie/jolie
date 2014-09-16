@@ -285,7 +285,7 @@ public class CommandLineParser
 		List< String > optionsList = new ArrayList< String >();
 		boolean bTracer = false;
 		boolean bTypeCheck = false; // Default for typecheck
-		Level lLogLevel = Level.SEVERE;
+		Level lLogLevel = Level.INFO;
 		List< String > programArgumentsList = new ArrayList< String >();
 		List< String > whitepageList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
@@ -370,6 +370,8 @@ public class CommandLineParser
 					lLogLevel = Level.SEVERE;
 				} else if ( "warning".equals( level ) ) {
 					lLogLevel = Level.WARNING;
+				} else if ( "fine".equals( level ) ) {
+					lLogLevel = Level.FINE;
 				}
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
