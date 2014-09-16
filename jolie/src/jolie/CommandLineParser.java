@@ -87,6 +87,10 @@ public class CommandLineParser
 		return arguments;
 	}
 	
+	/**
+	 * Returns the {@link Level} of the logger of this interpreter.
+	 * @return the {@link Level} of the logger of this interpreter.
+	 */
 	public Level logLevel()
 	{
 		return logLevel;
@@ -189,7 +193,10 @@ public class CommandLineParser
 		return constants;
 	}
 
-        
+	/**
+	 * Returns the usage help message of Jolie.
+	 * @return the usage help message of Jolie.
+	 */
 	protected String getHelpString()
 	{
 		StringBuilder helpBuilder = new StringBuilder();
@@ -208,11 +215,13 @@ public class CommandLineParser
 		helpBuilder.append(
 				getOptionString( "--correlationAlgorithm [simple|hash]", "Set the algorithm to use for message correlation" ) );
 		helpBuilder.append(
+				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
+		helpBuilder.append(
 				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
 		helpBuilder.append(
 				getOptionString( "-R [location]", "Add the service at [location] to the registry whitelist for this Jolie program" ) );
 		helpBuilder.append(
-				getOptionString( "--verbose", "Activate verbose mode" ) );
+				getOptionString( "--trace", "Activate tracer" ) );
 		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		return helpBuilder.toString();
