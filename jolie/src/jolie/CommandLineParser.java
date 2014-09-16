@@ -381,6 +381,8 @@ public class CommandLineParser
 					lLogLevel = Level.WARNING;
 				} else if ( "fine".equals( level ) ) {
 					lLogLevel = Level.FINE;
+				} else if ( "info".equals( level ) ) {
+					lLogLevel = Level.INFO;
 				}
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );
@@ -402,13 +404,12 @@ public class CommandLineParser
 					JarFile japFile = new JarFile( japFilename );
 					Manifest manifest = japFile.getManifest();
 					olFilepath = parseJapManifestForMainProgram( manifest, japFile );
-                                        if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
-                                                olFilepath = olFilepath.replace( "\\", "/" ); 
-                                        }
-                                        
+					if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
+						olFilepath = olFilepath.replace( "\\", "/" );
+					}
 					libList.add( japFilename );
-					Collection< String > japOptions = parseJapManifestForOptions( manifest );
-					argsList.addAll( i+1, japOptions );
+					Collection< String> japOptions = parseJapManifestForOptions( manifest );
+					argsList.addAll( i + 1, japOptions );
 					japUrl = japFilename + "!";
 					programDirectory = new File( japFilename ).getParentFile();
 				} else {
