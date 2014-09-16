@@ -615,7 +615,7 @@ public class Interpreter
 	 */
 	public void logUnhandledFault( FaultException fault )
 	{
-		logger.info( logPrefix + "Thrown unhandled fault: " + fault.faultName() );
+		logInfo( "Thrown unhandled fault: " + fault.faultName() );
 	}
 
 	/**
