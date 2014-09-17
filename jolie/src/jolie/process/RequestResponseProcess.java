@@ -160,6 +160,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	private CommMessage createFaultMessage( CommMessage request, FaultException f )
 		throws TypeCheckingException
 	{
+		
 		if ( operation.typeDescription().faults().containsKey( f.faultName() ) ) {
 			Type faultType = operation.typeDescription().faults().get( f.faultName() );
 			if ( faultType != null ) {
@@ -235,7 +236,11 @@ public class RequestResponseProcess implements InputOperationProcess
 
 		try {
 			channel.send( response );
-			log( "SENT", response );
+			if ( response.isFault() ) {
+					log( "SENT FAULT", response );
+			} else {
+					log( "SENT", response );
+			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, response.value() ));
 			}

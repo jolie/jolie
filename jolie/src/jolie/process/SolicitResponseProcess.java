@@ -81,7 +81,7 @@ public class SolicitResponseProcess implements Process
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( new MessageTraceAction(
-			MessageTraceAction.Type.NOTIFICATION,
+			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,
 			message
@@ -123,7 +123,7 @@ public class SolicitResponseProcess implements Process
 				inputVarPath.setValue( response.value() );
 			}
 			
-			if ( response.isFault() ) {
+			if ( response.isFault() ) {				
 				Type faultType = types.getFaultType( response.fault().faultName() );
 				if ( faultType != null ) {
 					try {
