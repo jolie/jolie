@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import jolie.Interpreter;
+import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 
 /**
@@ -105,8 +106,12 @@ public class PrintingTracer implements Tracer
 		if ( action.message() != null ) {
 			stBuilder.append( "\tMSG_ID:" ).append( action.message().id() ).append( "\n" );
 			Writer writer = new StringWriter();
+			Value messageValue = action.message().value();
+			if ( action.message().isFault() ) {
+				messageValue = action.message().fault().value();
+			}
 			ValuePrettyPrinter printer = new ValuePrettyPrinter(
-				action.message().value(),
+				messageValue,
 				writer,
 				"Value:"
 			);
