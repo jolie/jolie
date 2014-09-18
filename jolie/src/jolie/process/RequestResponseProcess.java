@@ -260,8 +260,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				Interpreter.getInstance().logWarning( typeMismatch.value().strValue() );
 			}
 			throw fault;
-		} else if ( typeMismatch != null ) {		
-			Interpreter.getInstance().logSevere( typeMismatch.value().strValue() );
+		} else if ( typeMismatch != null ) {
 			throw typeMismatch;
 		}
 	}
