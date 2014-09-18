@@ -166,7 +166,7 @@ public class RequestResponseProcess implements InputOperationProcess
 			if ( faultType != null ) {
 				faultType.check( f.value() );
 			}
-		} else {
+		} else {			
 			Interpreter.getInstance().logSevere(
 				"Request-Response process for " + operation.id() +
 				" threw an undeclared fault for that operation (" + f.faultName() + "), throwing TypeMismatch" );
@@ -212,8 +212,8 @@ public class RequestResponseProcess implements InputOperationProcess
 				if ( operation.typeDescription().responseType() != null ) {
 					try {
 						operation.typeDescription().responseType().check( response.value() );
-					} catch( TypeCheckingException e ) {
-						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );
+					} catch( TypeCheckingException e ) {						
+						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
 						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
 						responseStatus = OperationEndedEvent.ERROR;
 						details =  Constants.TYPE_MISMATCH_FAULT_NAME;
@@ -226,7 +226,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				responseStatus = OperationEndedEvent.FAULT;
 				details = f.faultName();
 			} catch( TypeCheckingException e ) {
-				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );				
 				response = CommMessage.createFaultResponse( message, typeMismatch );
 				responseStatus = OperationEndedEvent.ERROR;
 				details = typeMismatch.faultName();
@@ -260,7 +260,8 @@ public class RequestResponseProcess implements InputOperationProcess
 				Interpreter.getInstance().logWarning( typeMismatch.value().strValue() );
 			}
 			throw fault;
-		} else if ( typeMismatch != null ) {
+		} else if ( typeMismatch != null ) {		
+			Interpreter.getInstance().logSevere( typeMismatch.value().strValue() );
 			throw typeMismatch;
 		}
 	}
