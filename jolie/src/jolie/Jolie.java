@@ -35,6 +35,8 @@ public class Jolie
 	}
 	
 	private Jolie() {}
+	
+	private static final long TERMINATION_TIMEOUT = 500; // 0.5 seconds
 
 	/** 
 	 * Entry point of program execution.
@@ -51,7 +53,7 @@ public class Jolie
 				@Override
 				public void run()
 				{
-					interpreter.exit();
+					interpreter.exit( TERMINATION_TIMEOUT );
 				}
 			} );
 			interpreter.run();

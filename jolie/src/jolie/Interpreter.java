@@ -253,6 +253,7 @@ public class Interpreter
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
+	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -561,7 +562,7 @@ public class Interpreter
 	{
 		return embeddedServiceLoaders;
 	}
-
+	
 	/**
 	 * Makes this <code>Interpreter</code> entering in exiting mode.
 	 * When in exiting mode, an interpreter waits for each session to finish
@@ -575,6 +576,24 @@ public class Interpreter
 	 * message to finish its execution. Use this method with caution.
 	 */
 	public void exit()
+	{
+		exit( awaitTerminationTimeout );
+	}
+
+	/**
+	 * Makes this <code>Interpreter</code> entering in exiting mode.
+	 * When in exiting mode, an interpreter waits for each session to finish
+	 * its execution and then terminates gracefully the execution of the entire program.
+	 * An interpreter in exiting mode cannot receive any more messages.
+	 *
+	 * Multiple calls of this method are redundant.
+	 *
+	 * The fact that the interpreter cannot receive any more messages after
+	 * entering exiting mode can cause deadlocks if a session is waiting for a
+	 * message to finish its execution. Use this method with caution.
+	 * @param terminationTimeout the timeout for the wait of the termination of running processes
+	 */
+	public void exit( long terminationTimeout )
 	{
 		synchronized( this ) {
 			if ( exiting ) {
@@ -594,7 +613,7 @@ public class Interpreter
 		executorService.shutdown();
 		commCore.shutdown();
 		try {
-			executorService.awaitTermination( persistentConnectionTimeout, TimeUnit.MILLISECONDS );
+			executorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
 	}
 
@@ -626,6 +645,15 @@ public class Interpreter
 	public void logInfo( String message )
 	{
 		logger.info( logPrefix + message );
+	}
+	
+	/**
+	 * Logs an information message using the logger of this interpreter (logger level: fine).
+	 * @param message the message to log
+	 */
+	public void logFine( String message )
+	{
+		logger.fine( logPrefix + message );
 	}
 
 	/**
