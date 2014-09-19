@@ -326,7 +326,11 @@ public class HttpParser
 	public HttpMessage parse()
 		throws IOException
 	{
-		getToken();
+		try {
+			getToken();
+		} catch( IOException e ) {
+			return null;
+		}
 		HttpMessage message = parseMessageType();
 		parseHeaderProperties( message );
 		readContent( message );
