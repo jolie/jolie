@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
-
 import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,17 +54,15 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
-import jolie.net.http.json.JsonUtils;
-import joliex.gwt.server.JolieGWTConverter;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
+import jolie.net.http.json.JsonUtils;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
@@ -78,9 +75,9 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.util.LocationParser;
-
 import jolie.xml.XmlUtils;
 import joliex.gwt.client.JolieService;
+import joliex.gwt.server.JolieGWTConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -1174,6 +1171,11 @@ public class HttpProtocol extends CommProtocol
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
+
+		if ( message == null ) {
+			Interpreter.getInstance().logFine( "[http] Remote host closed connection." );
+			return null; // It's not a real message, the client is just closing a connection.
+		}
 
 		if ( message.isSupported() == false ) {
 			ostream.write( NOT_IMPLEMENTED_HEADER );
