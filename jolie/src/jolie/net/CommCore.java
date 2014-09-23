@@ -602,6 +602,8 @@ public class CommCore
 						forwardResponse( response );
 					}
 				}
+			} catch( ChannelClosingException e ) {
+				interpreter.logFine( e );
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
 			} finally {

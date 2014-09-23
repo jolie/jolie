@@ -1174,7 +1174,7 @@ public class HttpProtocol extends CommProtocol
 
 		if ( message == null ) {
 			Interpreter.getInstance().logFine( "[http] Remote host closed connection." );
-			return null; // It's not a real message, the client is just closing a connection.
+			throw new ChannelClosingException(); // It's not a real message, the client is just closing a connection.
 		}
 
 		if ( message.isSupported() == false ) {

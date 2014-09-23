@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import jolie.lang.parse.Scanner;
+import jolie.net.ChannelClosingException;
 
 public class HttpParser
 {
@@ -329,7 +330,7 @@ public class HttpParser
 		try {
 			getToken();
 		} catch( IOException e ) {
-			return null;
+                        return null;
 		}
 		HttpMessage message = parseMessageType();
 		parseHeaderProperties( message );

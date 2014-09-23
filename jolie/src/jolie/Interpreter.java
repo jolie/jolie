@@ -655,6 +655,17 @@ public class Interpreter
 	{
 		logger.fine( logPrefix + message );
 	}
+	
+	/**
+	 * Logs an information message using the logger of this interpreter (logger level: fine).
+	 * @param t the <code>Throwable</code> object whose stack trace has to be logged
+	 */
+	public void logFine( Throwable t )
+	{
+		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+		t.printStackTrace( new PrintStream( bs ) );
+		logger.severe( logPrefix + bs.toString() );
+	}
 
 	/**
 	 * Logs a severe error message using the logger of this interpreter.
