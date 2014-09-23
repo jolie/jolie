@@ -107,7 +107,7 @@ jolie %joliepath%tools\wsdl2jolie.ol %params%
         We need to use cp instead, to preserve executable file permissions.
         -->
         <exec executable="cp">
-            <arg line="-Rp ${dist.launchers.unix}/ ${private.install.launcher_dir}" />
+            <arg line="-R --preserve=mode ${dist.launchers.unix}/. ${private.install.launcher_dir}" />
         </exec>
     </target>
     
