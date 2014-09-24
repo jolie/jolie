@@ -1172,11 +1172,6 @@ public class HttpProtocol extends CommProtocol
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
 
-		if ( message == null ) {
-			Interpreter.getInstance().logFine( "[http] Remote host closed connection." );
-			throw new ChannelClosingException(); // It's not a real message, the client is just closing a connection.
-		}
-
 		if ( message.isSupported() == false ) {
 			ostream.write( NOT_IMPLEMENTED_HEADER );
 			ostream.write( CRLF.getBytes() );
