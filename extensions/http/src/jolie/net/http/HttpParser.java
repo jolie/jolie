@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import jolie.Interpreter;
 import jolie.lang.parse.Scanner;
 import jolie.net.ChannelClosingException;
 
@@ -161,13 +162,16 @@ public class HttpParser
 		} else if ( token.isKeyword( POST ) ) {
 			message = new HttpMessage( HttpMessage.Type.POST );
 		} else if ( token.isKeyword( HEAD ) ) {
-                    message = new HttpMessage( HttpMessage.Type.HEAD );
-                } else if (
+			message = new HttpMessage( HttpMessage.Type.HEAD );
+		} else if (
 			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
 			token.isKeyword( PUT ) || token.isKeyword( DELETE ) || 
-                        token.isKeyword( TRACE )
+			token.isKeyword( TRACE )
 		) {
 			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
+		} else if ( token.is( Scanner.TokenType.EOF ) ) {
+			Interpreter.getInstance().logFine( "[http] Remote host closed connection." );
+			throw new ChannelClosingException(); // It's not a real message, the client is just closing a connection.
 		} else {
 			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
 		}
