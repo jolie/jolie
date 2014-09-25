@@ -58,6 +58,7 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
@@ -1177,8 +1178,11 @@ public class Interpreter
 				program = optimizer.optimize();
 			}
 			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-			if ( !semanticVerifier.validate() ) {
-				throw new InterpreterException( "Exiting" );
+			try {
+				semanticVerifier.validate(); 
+			} catch( SemanticException e ) {
+				logger.severe( e.getErrorMessages() );
+				throw new InterpreterException( "Exiting"  );
 			}
 
 			if ( cmdParser.typeCheck() ) {
