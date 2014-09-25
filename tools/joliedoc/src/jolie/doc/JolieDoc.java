@@ -27,6 +27,7 @@ import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
@@ -67,6 +68,11 @@ public class JolieDoc
 			System.out.println( e.getMessage() );
 			/*} catch( DocumentCreationException e ) {
 			e.printStackTrace();*/
+		} catch( SemanticException e ) {
+			System.out.println( e.getMessage() );
+			/*} catch( DocumentCreationException e ) {
+			e.printStackTrace();*/
 		}
+		
 	}
 }
