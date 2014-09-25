@@ -22,7 +22,6 @@
 package jolie.lang.parse;
 
 import java.util.Collection;
-import jolie.lang.parse.context.ParsingContext;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -141,7 +140,7 @@ public class SemanticVerifier implements OLVisitor
 	
 	private final Program program;
 	private boolean valid = true;
-	private SemanticException semanticException = new SemanticException();
+	private final SemanticException semanticException = new SemanticException();
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
@@ -365,7 +364,8 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	public void validate() throws SemanticException
+	public void validate()
+		throws SemanticException
 	{
 		program.accept( this );
 		resolveLazyLinks();
@@ -380,7 +380,6 @@ public class SemanticVerifier implements OLVisitor
 			logger.severe( "Aborting: input file semantically invalid." );
 			throw semanticException;
 		}
-		
 	}
 
 	private boolean isTopLevelType = true;
