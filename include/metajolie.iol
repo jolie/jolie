@@ -81,6 +81,14 @@ type ParserExceptionType: void {
   .sourceName: string
 }
 
+type SemanticExceptionType: void {
+  .error*: void {
+      .message: string
+      .line: int
+      .sourceName: string
+  }
+}
+
 type ParseRoleRequest: void {
   .rolename: Name
   .filename: string
@@ -90,9 +98,12 @@ interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
 	getMetaData( GetMetaDataRequest )( GetMetaDataResponse )
-	    throws ParserException( ParserExceptionType ),
+	    throws ParserException( ParserExceptionType )
+		   SemanticException( SemanticExceptionType ),
 	getInputPortMetaData( GetInputPortMetaDataRequest )( GetInputPortMetaDataResponse )
-	    throws InputPortMetaDataFault,
+	    throws InputPortMetaDataFault
+		   ParserException( ParserExceptionType )
+		   SemanticException( SemanticExceptionType ),
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
 	    throws TypeMismatch,
 	parseRoles( ParseRoleRequest)( Role )
