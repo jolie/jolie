@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -64,6 +65,8 @@ public class JolieDummyCreator {
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
+			e.printStackTrace();
+		} catch( SemanticException e ) {
 			e.printStackTrace();
 		}
     }
