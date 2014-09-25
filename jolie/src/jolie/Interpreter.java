@@ -664,7 +664,7 @@ public class Interpreter
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
-		logger.severe( logPrefix + bs.toString() );
+		logger.fine( logPrefix + bs.toString() );
 	}
 
 	/**
