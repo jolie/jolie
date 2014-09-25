@@ -539,9 +539,12 @@ public class WSDLConverter
 		if ( operation.getDocumentationElement() != null ) {
 			operation.getDocumentationElement().getNodeValue();
 		}
-
+        String responseTypeName = null;
+                
 		String requestTypeName = convertOperationMessage( operation.getInput().getMessage(), operation.getName(), style );
-		String responseTypeName = convertOperationMessage( operation.getOutput().getMessage(), operation.getName(), style );
+		if ( operation.getOutput() != null ) {
+				responseTypeName = convertOperationMessage( operation.getOutput().getMessage(), operation.getName(), style );
+		}
 
 		Map< String, Part > parts;
 		List< Pair< String, String > > faultList = new ArrayList< Pair< String, String > >();
