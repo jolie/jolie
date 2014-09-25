@@ -62,7 +62,7 @@ public class ParsingUtils
 		program = optimizer.optimize();
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
 		semanticVerifier.validate();
-			
+
 		return program;
 	}
 	
@@ -82,7 +82,7 @@ public class ParsingUtils
 		program = optimizer.optimize();
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 		semanticVerifier.validate();
-			
+
 		return program;
 	}
 
