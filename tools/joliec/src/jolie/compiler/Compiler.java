@@ -29,6 +29,7 @@ import java.net.URI;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 
@@ -49,7 +50,7 @@ public class Compiler
 	}
 	
 	public void compile( OutputStream ostream )
-		throws IOException, ParserException
+		throws IOException, ParserException, SemanticException
 	{
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
@@ -65,7 +66,7 @@ public class Compiler
 	}
 	
 	public void compile()
-		throws IOException, ParserException
+		throws IOException, ParserException, SemanticException
 	{
 		compile( new FileOutputStream( cmdParser.programFilepath() + "c" ) );
 	}
