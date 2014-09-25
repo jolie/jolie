@@ -21,10 +21,17 @@
 
 package joliex.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map.Entry;
+import jolie.jap.JapURLConnection;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -41,9 +48,28 @@ public class IniUtils extends JavaService
 	public Value parseIniFile( Value request )
 		throws FaultException
 	{
+		String filename = request.strValue();
+		File file = new File( filename );
+		InputStream istream = null;
 		try {
-			Reader reader = new FileReader( request.strValue() );
-			Ini ini = new Ini( reader );
+			if (file.exists()) {
+				istream = new FileInputStream(file);
+			} else {
+				URL fileURL = interpreter().getClassLoader().findResource( filename );
+				if (fileURL != null && fileURL.getProtocol().equals("jap")) {
+					URLConnection conn = fileURL.openConnection();
+					if (conn instanceof JapURLConnection) {
+						JapURLConnection jarConn = (JapURLConnection) conn;                                    
+						istream = jarConn.getInputStream();
+					} else {
+						throw new FileNotFoundException( filename );
+					}
+				} else {
+					throw new FileNotFoundException( filename );
+				}
+			}
+			//Reader reader = new FileReader( istream );
+			Ini ini = new Ini( istream );
 			Value response = Value.create();
 			Value sectionValue;
 			for( Entry< String, Ini.Section > sectionEntry : ini.entrySet() ) {
