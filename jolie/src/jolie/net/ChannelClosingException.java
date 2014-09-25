@@ -39,4 +39,13 @@ public class ChannelClosingException extends IOException
 	{
 		super();
 	}
+	
+	/**
+	 * Constructor.
+	 * @param message the message for this exception
+	 */
+	public ChannelClosingException( String message )
+	{
+		super( message );
+	}
 }

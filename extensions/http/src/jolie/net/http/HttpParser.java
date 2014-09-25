@@ -170,8 +170,7 @@ public class HttpParser
 		) {
 			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
 		} else if ( token.is( Scanner.TokenType.EOF ) ) {
-			Interpreter.getInstance().logFine( "[http] Remote host closed connection." );
-			throw new ChannelClosingException(); // It's not a real message, the client is just closing a connection.
+			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message, the client is just closing a connection.
 		} else {
 			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
 		}
