@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import jolie.CommandLineException;
 
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 import jolie.lang.parse.util.ProgramInspector;
@@ -66,6 +67,8 @@ public class Jolie2Java {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParserException e) {
+            e.printStackTrace();
+        } catch (SemanticException e) {
             e.printStackTrace();
         } catch( FaultException e ) {
             e.printStackTrace();
