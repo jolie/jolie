@@ -189,7 +189,7 @@ public abstract class AbstractParser
 			m += ", token content " + token.content();
 		}
 
-		throw new ParserException( scanner.sourceName(), scanner.line(), m );
+		throw new ParserException( getContext(), m );
 	}
 	
 	/**
@@ -200,6 +200,6 @@ public abstract class AbstractParser
 	protected void throwException( Exception exception )
 		throws ParserException
 	{
-		throw new ParserException( scanner.sourceName(), scanner.line(), exception.getMessage() );
+		throw new ParserException( getContext(), exception.getMessage() );
 	}
 }

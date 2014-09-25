@@ -827,16 +827,17 @@ public class MetaJolie extends JavaService {
         } catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());
-            fault.getFirstChild("line").setValue(e.getLine());
-            fault.getFirstChild("sourceName").setValue(e.getSourceName());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
             throw new FaultException("ParserException", fault);
         } catch (SemanticException e) {
             Value fault = Value.create();
-			List<SemanticException.SemanticError> errorList = e.getErrorList();
-			for( int i = 0; i < errorList.size(); i++ ) {
-					fault.getChildren( "error").get( i ).getFirstChild("message").setValue(errorList.get(i).getMessage());
-					fault.getChildren( "error").get( i ).getFirstChild("line").setValue(errorList.get(i).getLine());
-					fault.getChildren( "error").get( i ).getFirstChild("sourceName").setValue(errorList.get( i ).getSourceName());
+			int i = 0;
+			for( SemanticException.SemanticError error : e.getErrorList() ) {
+					fault.getChildren( "error").get( i ).getFirstChild("message").setValue(error.getMessage());
+					fault.getChildren( "error").get( i ).getFirstChild("line").setValue(error.context().line());
+					fault.getChildren( "error").get( i ).getFirstChild("sourceName").setValue(error.context().sourceName());
+					i++;
 			}
             throw new FaultException("SemanticException", fault);
         }
@@ -883,16 +884,16 @@ public class MetaJolie extends JavaService {
         } catch (ParserException e) {
             Value fault = Value.create();
             fault.getFirstChild("message").setValue(e.getMessage());
-            fault.getFirstChild("line").setValue(e.getLine());
-            fault.getFirstChild("sourceName").setValue(e.getSourceName());
+            fault.getFirstChild("line").setValue(e.context().line());
+            fault.getFirstChild("sourceName").setValue(e.context().sourceName());
             throw new FaultException("ParserException", fault);
         } catch (SemanticException e) {
             Value fault = Value.create();
 			List<SemanticException.SemanticError> errorList = e.getErrorList();
 			for( int i = 0; i < errorList.size(); i++ ) {
 					fault.getChildren( "error").get( i ).getFirstChild("message").setValue(errorList.get(i).getMessage());
-					fault.getChildren( "error").get( i ).getFirstChild("line").setValue(errorList.get(i).getLine());
-					fault.getChildren( "error").get( i ).getFirstChild("sourceName").setValue(errorList.get( i ).getSourceName());
+					fault.getChildren( "error").get( i ).getFirstChild("line").setValue(errorList.get(i).context().line());
+					fault.getChildren( "error").get( i ).getFirstChild("sourceName").setValue(errorList.get( i ).context().sourceName());
 			}
             throw new FaultException("SemanticException", fault);
         }

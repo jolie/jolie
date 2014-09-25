@@ -23,19 +23,18 @@
 package jolie.lang.parse;
 
 import jolie.lang.Constants;
+import jolie.lang.parse.context.ParsingContext;
 
 public class ParserException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	
-	private final String sourceName;
-	private final int line;
+	private final ParsingContext context;
 	private final String mesg;
 	
-	public ParserException( String sourceName, int line, String mesg )
+	public ParserException( ParsingContext context, String mesg )
 	{
-		this.sourceName = sourceName;
-		this.line = line;
+		this.context = context;
 		this.mesg = mesg;
 	}
 	
@@ -43,19 +42,16 @@ public class ParserException extends Exception
 	public String getMessage()
 	{
 		return new StringBuilder()
-			.append( this.sourceName )
+			.append( context.sourceName() )
 			.append( ':' )
-			.append( line )
+			.append( context.line() )
 			.append( ": error: " )
 			.append( mesg )
 			.toString();
 	}
-        
-        public int getLine() {
-            return line;
-        }
-        
-        public String getSourceName() {
-            return sourceName;
-        }
+	
+	public ParsingContext context()
+	{
+		return context;
+	}
 }
