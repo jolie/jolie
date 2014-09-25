@@ -52,6 +52,14 @@ public class JsonUtils
 				builder.append( nativeValueToJsonString( value ) );
 			}
 			builder.append( '}' );
+		} else if ( value.getChildren("jolieFault").size() > 0 ) {
+				// fault case
+				builder.append( "{\"jolieFault\":{\"faultName\":\"" );
+				builder.append( value.getFirstChild( "jolieFault" ).getFirstChild( "faultName").strValue() );
+				builder.append( "\",\"data\":");
+				valueToJsonStringInternal( value.getFirstChild( "jolieFault" ).getFirstChild( "data"), type, builder );
+				builder.append( "}}");
+				
 		} else {
 			valueToJsonStringInternal( value, type, builder );
 		}
@@ -72,7 +80,7 @@ public class JsonUtils
 			if ( value.hasChildren( JSONARRAY_KEY ) ) {
 				valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
 			} else {
-                                int size = value.children().size();
+                int size = value.children().size();
 				builder.append( '{' );
 				if ( value.isDefined() ) {
 					appendKeyColon( builder, ROOT_SIGN );
