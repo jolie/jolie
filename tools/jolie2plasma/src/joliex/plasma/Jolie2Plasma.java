@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
 
@@ -68,6 +69,8 @@ public class Jolie2Plasma
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
+			e.printStackTrace();
+		} catch( SemanticException e ) {
 			e.printStackTrace();
 		} catch( InterfaceVisitor.InterfaceNotFound e ) {
 			e.printStackTrace();
