@@ -86,7 +86,7 @@ public class ValuePrettyPrinter
 			writer.write( " = " );
 			if ( value.valueObject() instanceof ByteArray && byteTruncation > -1 ) {
 				ByteArray ba = value.byteArrayValue();
-				writer.write( ba.toString().substring( 0, Math.min( byteTruncation, ba.size() ) ) + "..." );
+				writer.write( ba.toString().substring( 0, Math.min( byteTruncation, ba.toString().length()) ) + "..." );
 			} else {
 				writer.write( value.valueObject().toString() );
 			}
