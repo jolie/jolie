@@ -29,6 +29,7 @@ import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
+import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.impl.ProgramInspectorCreatorVisitor;
@@ -52,7 +53,7 @@ public class ParsingUtils
 		Map< String, Scanner.Token > definedConstants,
 		SemanticVerifier.Configuration configuration
 	)
-		throws IOException, ParserException
+		throws IOException, ParserException, SemanticException
 	{
 		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
@@ -60,9 +61,8 @@ public class ParsingUtils
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 		program = optimizer.optimize();
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
-		if ( !semanticVerifier.validate() ) {
-			throw new IOException( "Input file semantically invalid" );
-		}
+		semanticVerifier.validate();
+			
 		return program;
 	}
 	
@@ -73,7 +73,7 @@ public class ParsingUtils
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants
 	)
-		throws IOException, ParserException
+		throws IOException, ParserException, SemanticException
 	{
 		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
@@ -81,9 +81,8 @@ public class ParsingUtils
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 		program = optimizer.optimize();
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
-		if ( !semanticVerifier.validate() ) {
-			throw new IOException( "Input file semantically invalid" );
-		}
+		semanticVerifier.validate();
+			
 		return program;
 	}
 

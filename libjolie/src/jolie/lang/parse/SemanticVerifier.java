@@ -141,6 +141,7 @@ public class SemanticVerifier implements OLVisitor
 	
 	private final Program program;
 	private boolean valid = true;
+	private SemanticException semanticException = new SemanticException();
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
@@ -267,12 +268,7 @@ public class SemanticVerifier implements OLVisitor
 	private void error( OLSyntaxNode node, String message )
 	{
 		valid = false;
-		if ( node != null ) {
-			ParsingContext context = node.context();
-			logger.severe( context.sourceName() + ":" + context.line() + ": " + message );
-		} else {
-			logger.severe( message );
-		}
+		semanticException.addSemanticError( node, message);		
 	}
 
 	private void resolveLazyLinks()
@@ -369,7 +365,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	public boolean validate()
+	public void validate() throws SemanticException
 	{
 		program.accept( this );
 		resolveLazyLinks();
@@ -382,10 +378,9 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
-			return false;
+			throw semanticException;
 		}
-
-		return valid;
+		
 	}
 
 	private boolean isTopLevelType = true;
