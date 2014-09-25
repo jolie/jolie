@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *   Copyright (C) 2014 by Claudio Guidi <guidiclaudio@gmail.com>          *
  *                                                                         *
@@ -19,74 +18,79 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package jolie.lang.parse;
 
 import java.util.ArrayList;
 import java.util.List;
+import jolie.lang.Constants;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.context.URIParsingContext;
 
 /**
  *
  * @author claudio
+ * Sep 2014, Fabrizio Montesi: use ParsingContext instead of custom fields
  */
-public class SemanticException extends Exception {
-	ArrayList<SemanticError> errorList = new ArrayList();
+public class SemanticException extends Exception
+{
+	private static final long serialVersionUID = Constants.serialVersionUID();
 	
-	public static class SemanticError {
-			private final String sourceName;
-			private final int line;
-			private final String mesg;		
-			
-			public SemanticError( String sourceName, int line, String mesg ) {
-				this.sourceName = sourceName;
-				this.line = line;
-				this.mesg = mesg;
-			}
-			
-			public String getMessage()
-			{
-				return new StringBuilder()
-					.append( this.sourceName )
+	private final List< SemanticError > errorList = new ArrayList( 0 );
+
+	public static class SemanticError
+	{
+		private final ParsingContext context;
+		private final String mesg;
+
+		public SemanticError( ParsingContext context, String mesg )
+		{
+			this.context = context;
+			this.mesg = mesg;
+		}
+
+		public String getMessage()
+		{
+			return new StringBuilder()
+					.append( context.sourceName() )
 					.append( ':' )
-					.append( line )
+					.append( context.line() )
 					.append( ": error: " )
 					.append( mesg )
 					.toString();
-			}
-        
-			public int getLine() {
-				return line;
-			}
-
-			public String getSourceName() {
-				return sourceName;
-			}
-	}
-
-	public SemanticException( ) {}
-	
-	public void addSemanticError( OLSyntaxNode node, String message ) {
-			if ( node != null ) {
-			ParsingContext context = node.context();
-			errorList.add(  new SemanticError( context.sourceName(), context.line(), message ));			
-		} else {
-			errorList.add(  new SemanticError( "", 0, message));
 		}
-			
+
+		public ParsingContext context()
+		{
+			return context;
+		}
 	}
-	
-	public List<SemanticError> getErrorList() {
-			return errorList;
+
+	public SemanticException() {}
+
+	public void addSemanticError( OLSyntaxNode node, String message )
+	{
+		if ( node != null ) {
+			ParsingContext context = node.context();
+			errorList.add( new SemanticError( context, message ) );
+		} else {
+			errorList.add( new SemanticError( URIParsingContext.DEFAULT, message ) );
+		}
+
 	}
-	
-	public String getErrorMessages() {
+
+	public List< SemanticError > getErrorList()
+	{
+		return errorList;
+	}
+
+	public String getErrorMessages()
+	{
 		StringBuilder message = new StringBuilder();
-		for( int i = 0; i < errorList.size(); i++ ) {
-			message.append( errorList.get( i).getMessage() ).append( "\n");
+		for( SemanticError error : errorList ) {
+			message.append( error.getMessage() ).append( '\n' );
 		}
 		return message.toString();
 	}
-	
-	
 }
