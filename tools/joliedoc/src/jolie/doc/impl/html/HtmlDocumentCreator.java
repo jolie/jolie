@@ -1,6 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>  *
- *    Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>    *
+ *   Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,6 +19,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package jolie.doc.impl.html;
 
 import java.io.BufferedWriter;
@@ -67,47 +68,45 @@ public class HtmlDocumentCreator
 		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, filenameIndex );
 
 		// scanning inputPorts. For each inputPort will be generated an html file
-
 		InputPortInfo[] inputPorts = inspector.getInputPorts( directorySourceFile );
-		
-		
-		for( InputPortInfo inputPort : inputPorts ) {
-			
-                        if ( inputPortName.isEmpty() || inputPortName.equals( inputPort.id() )) {
-                                types = new ArrayList<String>();
-                                writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
-                                jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
-                                jolieDocWriter.addPort( inputPort );
-                                List<InterfaceDefinition> interfacesList = inputPort.getInterfaceList();
-                                for( InterfaceDefinition interfaceDefintion : interfacesList ) {
-                                        jolieDocWriter.addInterface( interfaceDefintion );
-                                        addOperations( interfaceDefintion );
-                                }
 
-                                // scanning aggregation
-                                OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
-                                // extracts interfaces from aggregated outputPorts
-                                for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
-                                        int i = 0;
-                                        while( !inputPort.aggregationList()[x].outputPortList()[0].equals( outputPortList[i].id() ) ) {
-                                                i++;
-                                        }
-                                        for( InterfaceDefinition interfaceDefinition : outputPortList[i].getInterfaceList() ) {
-                                                jolieDocWriter.addInterface( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ));
-                                                addOperations( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[x].interfaceExtender(), inputPort.id() ) );
-                                        }
-                                }
-                                jolieDocWriter.write();
-                                System.out.println( "Generated joliedoc " + directorySOA + inputPort.id() + ".html" );
-                        }
-			
+		for( InputPortInfo inputPort : inputPorts ) {
+
+			if ( inputPortName.isEmpty() || inputPortName.equals( inputPort.id() ) ) {
+				types = new ArrayList<String>();
+				writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
+				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
+				jolieDocWriter.addPort( inputPort );
+				List<InterfaceDefinition> interfacesList = inputPort.getInterfaceList();
+				for( InterfaceDefinition interfaceDefintion : interfacesList ) {
+					jolieDocWriter.addInterface( interfaceDefintion );
+					addOperations( interfaceDefintion );
+				}
+
+				// scanning aggregation
+				OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
+				// extracts interfaces from aggregated outputPorts
+				for( int x = 0; x < inputPort.aggregationList().length; x++ ) {
+					int i = 0;
+					while( !inputPort.aggregationList()[ x ].outputPortList()[ 0 ].equals( outputPortList[ i ].id() ) ) {
+						i++;
+					}
+					for( InterfaceDefinition interfaceDefinition : outputPortList[ i ].getInterfaceList() ) {
+						jolieDocWriter.addInterface( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[ x ].interfaceExtender(), inputPort.id() ) );
+						addOperations( Interfaces.extend( interfaceDefinition, inputPort.aggregationList()[ x ].interfaceExtender(), inputPort.id() ) );
+					}
+				}
+				jolieDocWriter.write();
+				System.out.println( "Generated joliedoc " + directorySOA + inputPort.id() + ".html" );
+			}
+
 		}
 		if ( outputPortConversionEnabled ) {
 			//System.out.println( "JolieDoc: no inputPort found, generated joliedocs for outputPorts." );
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
 			for( OutputPortInfo outputPort : outputPortList ) {
 				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );
-				types = new ArrayList< String >();
+				types = new ArrayList< String>();
 				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( outputPort );
 				List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
