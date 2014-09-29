@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
  *   Copyright (C) 2010 by Balint Maschio <bmaschio@italianasoftware.com>  *
+ *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,12 +19,12 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package jolie.doc;
 
 import java.io.IOException;
 import java.net.URI;
 import jolie.CommandLineException;
-import jolie.CommandLineParser;
 import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
@@ -52,26 +52,19 @@ public class JolieDoc
 				configuration
 			);			
 			
-			ProgramInspector inspector=ParsingUtils.createInspector( program );
+			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
 			HtmlDocumentCreator document = new HtmlDocumentCreator( inspector, program.context().source() );
-			document.ConvertDocument( cmdParser.getOutputPortEnabled(), cmdParser.getInputPortName() );
-			/*
-			HTMLDocumentCreator document = new HTMLDocumentCreator();
-			document.createDocument( program, cmdParser.programFilepath() );*/
+			document.ConvertDocument( cmdParser.outputPortEnabled(), cmdParser.inputPortName() );
 		} catch( CommandLineException e ) {
 			System.out.println( e.getMessage() );
-			System.out.println( "Syntax is: joliedoc [jolie options] <jolie filename> [interface name list]" );
+			// System.out.println( "Syntax is: joliedoc [jolie options] <jolie filename> [interface name list]" );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		} catch( ParserException e ) {
 			System.out.println( e.getMessage() );
-			/*} catch( DocumentCreationException e ) {
-			e.printStackTrace();*/
 		} catch( SemanticException e ) {
 			System.out.println( e.getMessage() );
-			/*} catch( DocumentCreationException e ) {
-			e.printStackTrace();*/
 		}
 		
 	}
