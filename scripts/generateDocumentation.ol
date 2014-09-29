@@ -43,11 +43,13 @@ main
 	} else {
 		execRequest.workingDirectory = "."
 	};
+	execRequest.args[0] = "--outputPortEnabled";
+	execRequest.args[1] = "true";
 	for( i = 0, i < #paths.path, i++ ) {
 		listRequest.directory = paths.path[i];
 		list@File( listRequest )( listResult );
 		for( j = 0, j < #listResult.result, j++ ) {
-			execRequest.args = //paths.path[i] + sep +
+			execRequest.args[2] = //paths.path[i] + sep +
 				listResult.result[j];
 			exec@Exec( execRequest )( execResult );
 			println@Console( execResult )()
