@@ -236,13 +236,16 @@ public class RequestResponseProcess implements InputOperationProcess
 
 		try {
 			channel.send( response );
+			Value monitorValue = null;
 			if ( response.isFault() ) {
-					log( "SENT FAULT", response );
+					log( "SENT FAULT", response );					
+					monitorValue = response.fault().value();
 			} else {
 					log( "SENT", response );
+					monitorValue = response.value();
 			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, response.value() ));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, monitorValue ));
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
