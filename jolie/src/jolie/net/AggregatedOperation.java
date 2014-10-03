@@ -30,6 +30,7 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
+import jolie.net.ports.Interface;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
 import jolie.runtime.FaultException;
@@ -208,7 +209,7 @@ public abstract class AggregatedOperation
 	private static class DirectAggregatedOperation extends AggregatedOperation {
 		private final OutputPort outputPort;
 		private final Constants.OperationType type;
-                private final String name;
+		private final String name;
 		
 		public DirectAggregatedOperation( String name, Constants.OperationType type, OutputPort outputPort )
 		{
@@ -249,7 +250,11 @@ public abstract class AggregatedOperation
 
 		public OperationTypeDescription getOperationTypeDescription()
 		{
-			return outputPort.getInterface().requestResponseOperations().get( name );
+			if ( type == OperationType.ONE_WAY ) {
+				return outputPort.getInterface().oneWayOperations().get( name );
+			} else {
+				return outputPort.getInterface().requestResponseOperations().get( name );
+			}
 		}
 	}
 
