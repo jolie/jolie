@@ -1,5 +1,5 @@
  /***************************************************************************
- *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -181,6 +181,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String HEADERS = "headers";
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
+		private static final String DEFAULT_OPERATION = "default";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -1077,6 +1078,27 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.value.setValue( new String( message.content() ) );
 		}
 	}
+	
+	private String getDefaultOperation( HttpMessage.Type t )
+	{
+		if ( hasParameter( Parameters.DEFAULT_OPERATION ) ) {
+			Value dParam = getParameterFirstValue( Parameters.DEFAULT_OPERATION );
+			String method =
+				t == HttpMessage.Type.GET ? "get"
+				: t == HttpMessage.Type.POST ? "post"
+				: t == HttpMessage.Type.HEAD ? "head"
+				: t == HttpMessage.Type.DELETE ? "delete"
+				: t == HttpMessage.Type.PUT ? "put"
+				: null;
+			if ( method == null || dParam.hasChildren( method ) == false ) {
+				return dParam.strValue();
+			} else {
+				return dParam.getFirstChild( method ).strValue();
+			}
+		}
+		
+		return null;
+	}
 
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
@@ -1094,7 +1116,7 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( decodedMessage.resourcePath.equals( "/" ) && !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
-			String defaultOpId = getStringParameter( "default" );
+			String defaultOpId = getDefaultOperation( message.type() );
 			if ( defaultOpId.length() > 0 ) {
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
@@ -1215,7 +1237,7 @@ public class HttpProtocol extends CommProtocol
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
 
-		if ( "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
+		if ( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
 			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
 			|| channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null) ) {
 			try {

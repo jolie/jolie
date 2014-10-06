@@ -32,7 +32,7 @@ import java.util.Map.Entry;
 public class HttpMessage
 {
 	public enum Type {
-		RESPONSE, POST, GET, HEAD, UNSUPPORTED, ERROR
+		RESPONSE, GET, HEAD, POST, DELETE, PUT, UNSUPPORTED, ERROR
 	}
 	
 	public enum Version {
@@ -104,7 +104,7 @@ public class HttpMessage
 	}
 
 	private Version version;
-	private Type type;
+	private final Type type;
 	private byte[] content = null;
 	final private Map< String, String > propMap = new HashMap< String, String > ();
 	final private List< Cookie > setCookies = new ArrayList< Cookie > ();
@@ -224,10 +224,10 @@ public class HttpMessage
 		return userAgent;
 	}
 
-	/*public Type type()
+	public Type type()
 	{
 		return type;
-	}*/
+	}
 	
 	public boolean isResponse()
 	{
