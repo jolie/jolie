@@ -1087,8 +1087,8 @@ public class HttpProtocol extends CommProtocol
 				t == HttpMessage.Type.GET ? "get"
 				: t == HttpMessage.Type.HEAD ? "head"
 				: t == HttpMessage.Type.POST ? "post"
-				: t == HttpMessage.Type.DELETE ? "delete"
 				: t == HttpMessage.Type.PUT ? "put"
+				: t == HttpMessage.Type.DELETE ? "delete"
 				: null;
 			if ( method == null || dParam.hasChildren( method ) == false ) {
 				return dParam.strValue();
