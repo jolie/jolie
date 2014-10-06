@@ -188,7 +188,7 @@ public class HttpProtocol extends CommProtocol
 	}
 
 	private static class Headers {
-		private static String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
+		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
 	}
 
 	private String inputId = null;
@@ -699,14 +699,13 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		try {
-			Method method;
-			if ( hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ) {
-				method = Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() );
-			} else if ( hasParameter( Parameters.METHOD ) ) {
-				method = Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() );
-			} else {
-				method = Method.POST;
-			}
+			Method method = 
+				hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
+					Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() )
+				: hasParameter( Parameters.METHOD ) ?
+					Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() )
+				:
+					Method.POST;
 			return method;
 		} catch( Method.UnsupportedMethodException e ) {
 			throw new IOException( e );
@@ -839,7 +838,6 @@ public class HttpProtocol extends CommProtocol
 	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding )
 		throws IOException
 	{
-                
 		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ) ), value, strictEncoding );
 	}
 	
@@ -847,10 +845,9 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		String line = new String( message.content(), "UTF8" );
-		String[] s, pair;
-		s = line.split( "&" );
-		for( int i = 0; i < s.length; i++ ) {
-			pair = s[i].split( "=", 2 );
+		String[] pair;
+		for( String item : line.split( "&" ) ) {
+			pair = item.split( "=", 2 );
 			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], charset ) );
 		}		
 	}
@@ -885,11 +882,11 @@ public class HttpProtocol extends CommProtocol
 					cookieConfig = cookies.getFirstChild( cookie.name() );
 					if ( cookieConfig.isString() ) {
 						v = value.getFirstChild( cookieConfig.strValue() );
-						if ( cookieConfig.hasChildren( "type" ) ) {
-							type = cookieConfig.getFirstChild( "type" ).strValue();
-						} else {
-							type = "string";
-						}
+						type =
+							cookieConfig.hasChildren( "type" ) ?
+								cookieConfig.getFirstChild( "type" ).strValue()
+							:
+								"string";
 						recv_assignCookieValue( cookie.value(), v, type );
 					}
 				}
@@ -969,19 +966,17 @@ public class HttpProtocol extends CommProtocol
 	private void recv_checkForGenericHeader( HttpMessage message, DecodedMessage decodedMessage )
 		throws IOException
 	{
-		Value header = null;
+		Value headers = null;
 		if ( hasOperationSpecificParameter( decodedMessage.operationName, Parameters.HEADERS ) ) {
-			header = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
+			headers = getOperationSpecificParameterFirstValue( decodedMessage.operationName, Parameters.HEADERS );
 		} else if ( hasParameter( Parameters.HEADERS ) ) {
-			header = getParameterFirstValue( Parameters.HEADERS );
+			headers = getParameterFirstValue( Parameters.HEADERS );
 		}
-		if ( header != null ) {
-			Iterator<String> iterator = header.children().keySet().iterator();
-			while( iterator.hasNext() ) {
-				String name = iterator.next();
-				String val = header.getFirstChild( name ).strValue();
-				name = name.replace( "_", "-" );
-				decodedMessage.value.getFirstChild( val ).setValue( message.getPropertyOrEmptyString( name ) );
+		if ( headers != null ) {
+			for( String headerName : headers.children().keySet() ) {
+				String headerAlias = headers.getFirstChild( headerName ).strValue();
+				headerName = headerName.replace( "_", "-" );
+				decodedMessage.value.getFirstChild( headerAlias ).setValue( message.getPropertyOrEmptyString( headerName ) );
 			}
 		}
 	}
