@@ -1085,8 +1085,8 @@ public class HttpProtocol extends CommProtocol
 			Value dParam = getParameterFirstValue( Parameters.DEFAULT_OPERATION );
 			String method =
 				t == HttpMessage.Type.GET ? "get"
-				: t == HttpMessage.Type.POST ? "post"
 				: t == HttpMessage.Type.HEAD ? "head"
+				: t == HttpMessage.Type.POST ? "post"
 				: t == HttpMessage.Type.DELETE ? "delete"
 				: t == HttpMessage.Type.PUT ? "put"
 				: null;
