@@ -163,9 +163,12 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.POST );
 		} else if ( token.isKeyword( HEAD ) ) {
 			message = new HttpMessage( HttpMessage.Type.HEAD );
+		} else if ( token.isKeyword( DELETE ) ) {
+			message = new HttpMessage( HttpMessage.Type.DELETE );
+		} else if ( token.isKeyword( PUT ) ) {
+			message = new HttpMessage( HttpMessage.Type.PUT );
 		} else if (
 			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
-			token.isKeyword( PUT ) || token.isKeyword( DELETE ) || 
 			token.isKeyword( TRACE )
 		) {
 			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
