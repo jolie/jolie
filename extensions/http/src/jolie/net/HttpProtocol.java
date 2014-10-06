@@ -1117,7 +1117,7 @@ public class HttpProtocol extends CommProtocol
 
 		if ( decodedMessage.resourcePath.equals( "/" ) && !channel().parentInputPort().canHandleInputOperation( decodedMessage.operationName ) ) {
 			String defaultOpId = getDefaultOperation( message.type() );
-			if ( defaultOpId.length() > 0 ) {
+			if ( defaultOpId != null ) {
 				Value body = decodedMessage.value;
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
