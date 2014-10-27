@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -165,6 +166,9 @@ public class SessionThread extends ExecutionThread
 		}
 	}
 
+	private static final AtomicLong idCounter = new AtomicLong( 1L );
+	
+	private final long id = idCounter.getAndIncrement();
 	private final jolie.State state;
 	private final List< SessionListener > listeners = new LinkedList< SessionListener >();
 	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues =
@@ -496,7 +500,6 @@ public class SessionThread extends ExecutionThread
 
 	public String getSessionId()
 	{
-		//return new Long(this.getId()).toString();
-		return this.getName();
+		return Long.toString( id );
 	}
 }
