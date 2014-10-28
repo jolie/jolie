@@ -254,7 +254,7 @@ public class SessionThread extends ExecutionThread
 	public SessionThread( Process process, jolie.State state, ExecutionThread parent )
 	{
 		super( parent.interpreter(), process );
-		this.state = state;
+		this.state = state;		
 		for( Scope s : parent.scopeStack ) {
 			scopeStack.push( s.clone() );
 		}

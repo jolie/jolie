@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.monitoring.events.OperationCallEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -92,7 +93,14 @@ public class NotificationProcess implements Process
 						CommMessage.createRequest( operationId, outputPort.getResourcePath(), Value.UNDEFINED_VALUE ) :
 						CommMessage.createRequest( operationId, outputPort.getResourcePath(), outputExpression.evaluate() );
 			if ( oneWayDescription != null ) {
+				try  {
 				oneWayDescription.requestType().check( message.value() );
+				} catch( TypeCheckingException e ) {
+					if ( Interpreter.getInstance().isMonitoring() ) {
+						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+					}
+					throw( e );
+				}
 			}
 			channel = outputPort.getCommChannel();
 
@@ -101,6 +109,9 @@ public class NotificationProcess implements Process
 			channel.send( message );
 			
 			log( "SENT", message );
+			if ( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+			}
 			
 			CommMessage response = null;
 			do {

@@ -18,12 +18,12 @@ import jolie.runtime.Value;
  */
 public class SessionEndedEvent extends MonitoringEvent {
 	
-	public SessionEndedEvent( String operation_name, String session_id )
+	public SessionEndedEvent( String operationName, String processId )
 	{
 		super( "SessionEnded", Value.create() );
 
-		data().getFirstChild( "session_id" ).setValue( session_id );
-		data().getFirstChild( "operation_name" ).setValue( operation_name );
+		data().getFirstChild( "processId" ).setValue( processId );
+		data().getFirstChild( "operationName" ).setValue( operationName );
 
 	}
 }

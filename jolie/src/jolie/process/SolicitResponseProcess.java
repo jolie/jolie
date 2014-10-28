@@ -26,6 +26,8 @@ import java.net.URISyntaxException;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.monitoring.events.OperationCallEvent;
+import jolie.monitoring.events.OperationReplyEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
@@ -105,7 +107,14 @@ public class SolicitResponseProcess implements Process
 				);
 
 			if ( types.requestType() != null ) {
-				types.requestType().check( message.value() );
+				try {
+					types.requestType().check( message.value() );
+				} catch ( TypeCheckingException e ) {
+					if ( Interpreter.getInstance().isMonitoring() ) {
+						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+					}
+					throw( e );
+				}
 			}
 
 			channel = outputPort.getCommChannel();
@@ -113,6 +122,10 @@ public class SolicitResponseProcess implements Process
 			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
+			if ( Interpreter.getInstance().isMonitoring() ) {
+				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+			}
+			
 			CommMessage response = null;
 			do {
 				response = channel.recvResponseFor( message );
@@ -128,8 +141,18 @@ public class SolicitResponseProcess implements Process
 				if ( faultType != null ) {
 					try {
 						faultType.check( response.fault().value() );
+						if ( Interpreter.getInstance().isMonitoring() ) {
+							Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
+						}
 					} catch( TypeCheckingException e ) {
+						if ( Interpreter.getInstance().isMonitoring() ) {
+							Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.FAULT, "TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(), outputPort.id(), response.fault().value() ) );
+						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
+					}
+				} else {
+					if ( Interpreter.getInstance().isMonitoring() ) {
+						Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
 					}
 				}
 				throw response.fault();
@@ -137,9 +160,19 @@ public class SolicitResponseProcess implements Process
 				if ( types.responseType() != null ) {
 					try {
 						types.responseType().check( response.value() );
+						if ( Interpreter.getInstance().isMonitoring() ) {
+							Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
+						}
 					} catch( TypeCheckingException e ) {
+						if ( Interpreter.getInstance().isMonitoring() ) {
+							Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.FAULT, e.getMessage(), outputPort.id(), response.value() ) );
+						}
 						throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
-					}
+					}					
+				} else {
+					if ( Interpreter.getInstance().isMonitoring() ) {
+				        Interpreter.getInstance().fireMonitorEvent( new OperationReplyEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
+			        }
 				}
 			}
 
@@ -150,7 +183,7 @@ public class SolicitResponseProcess implements Process
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
-		} catch( TypeCheckingException e ) {
+		} catch( TypeCheckingException e ) {			
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
 			if ( channel != null ) {
