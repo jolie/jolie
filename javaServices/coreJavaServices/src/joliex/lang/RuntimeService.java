@@ -152,6 +152,13 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
+	
+	@RequestResponse
+	public Value getProcessId( Value request ) {
+		Value response = Value.create();
+		response.setValue( ExecutionThread.currentThread().getSessionId() );
+		return response;
+	}
 
 	@RequestResponse
 	public void removeOutputPort( String outputPortName )

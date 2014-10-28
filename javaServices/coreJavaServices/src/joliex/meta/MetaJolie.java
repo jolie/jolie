@@ -821,7 +821,7 @@ public class MetaJolie extends JavaService {
                 response.getChildren("embeddedServices").get(es).getFirstChild("servicepath").setValue(embeddedServices[ es].servicePath());
                 response.getChildren("embeddedServices").get(es).getFirstChild("portId").setValue(embeddedServices[ es].portId());
             }
-
+ 
         } catch (CommandLineException e) {
         } catch (IOException e) {
         } catch (ParserException e) {
@@ -882,7 +882,7 @@ public class MetaJolie extends JavaService {
         } catch (IOException e) {
             throw new FaultException("InputPortMetaDataFault", e);
         } catch (ParserException e) {
-            Value fault = Value.create();
+            Value fault = Value.create();			
             fault.getFirstChild("message").setValue(e.getMessage());
             fault.getFirstChild("line").setValue(e.context().line());
             fault.getFirstChild("sourceName").setValue(e.context().sourceName());
