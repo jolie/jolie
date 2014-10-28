@@ -111,6 +111,8 @@ RequestResponse:
 	*/
 	getOutputPorts( void )( GetOutputPortsResponse ),
 	
+	getProcessId( void )( string ),
+	
 	halt(HaltRequest)(void),
 
 	removeOutputPort(string)(void),
