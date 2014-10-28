@@ -102,7 +102,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
 	{
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), sessionMessage.message().value() ) );
+			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
@@ -245,7 +245,7 @@ public class RequestResponseProcess implements InputOperationProcess
 					monitorValue = response.value();
 			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), responseStatus, details, monitorValue ));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), responseStatus, details, monitorValue ));
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
