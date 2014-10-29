@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class NamedStatementParser
 
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
 	private final PreparedStatement statement;
+	private GregorianCalendar cal = new GregorianCalendar();
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
 		throws SQLException
@@ -118,7 +120,10 @@ public class NamedStatementParser
 					}
 				} else if ( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
 					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );
-					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue() );
+					// transforming timestamp without timezone and dst
+					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue() 
+						- cal.getTimeZone().getDSTSavings() 
+						- cal.getTimeZone().getRawOffset()  );
 					for( Integer index : entry.getValue() ) {
 						statement.setTimestamp( index, timestamp );
 					}
