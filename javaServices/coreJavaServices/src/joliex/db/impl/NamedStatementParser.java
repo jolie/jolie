@@ -119,11 +119,8 @@ public class NamedStatementParser
 							+ ":" + second ) );
 					}
 				} else if ( v.hasChildren( TypeKeywords.TIMESTAMP ) ) {
-					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );
-					// transforming timestamp without timezone and dst
-					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue() 
-						- cal.getTimeZone().getDSTSavings() 
-						- cal.getTimeZone().getRawOffset()  );
+					Value timestampValue = v.getFirstChild( TypeKeywords.TIMESTAMP );					
+					Timestamp timestamp = new Timestamp( timestampValue.getFirstChild( "epoch" ).longValue()  );
 					for( Integer index : entry.getValue() ) {
 						statement.setTimestamp( index, timestamp );
 					}
