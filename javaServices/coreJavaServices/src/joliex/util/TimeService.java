@@ -199,14 +199,15 @@ public class TimeService extends JavaService
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date timestamp = new Date( tm );
 			result.setValue(sdf.format( timestamp ));
-                        GregorianCalendar cal = new GregorianCalendar();
-		        cal.setTimeInMillis( timestamp.getTime() );
-                        result.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
-                        result.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
-                        result.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
-                        result.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
-                        result.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
-                        result.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
+			GregorianCalendar cal = new GregorianCalendar();
+			cal.setTimeInMillis( timestamp.getTime() );
+			cal.set( Calendar.AM_PM, 1 );
+			result.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
+			result.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
+			result.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
+			result.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR_OF_DAY ) );
+			result.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
+			result.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
 		} catch( Exception e ) {
 			e.printStackTrace(); // TODO FaultException
 		}
