@@ -28,7 +28,7 @@ import jolie.lang.parse.context.ParsingContext;
 public abstract class OperationDeclaration extends OLSyntaxNode implements DocumentedNode
 {
 	private final String id;
-	private String document;
+	private String document = null;
 
 	public OperationDeclaration( ParsingContext context, String id )
 	{
@@ -41,11 +41,13 @@ public abstract class OperationDeclaration extends OLSyntaxNode implements Docum
 		return id;
 	}
 
+	@Override
 	public void setDocumentation( String document )
 	{
 		this.document = document;
 	}
 
+	@Override
 	public String getDocumentation()
 	{
 		return this.document;
