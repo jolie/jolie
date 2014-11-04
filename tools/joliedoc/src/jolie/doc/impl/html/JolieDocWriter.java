@@ -1,24 +1,20 @@
-/***************************************************************************
- *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>  *
- *    Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com>    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/**
+ * *************************************************************************
+ * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com> *
+ * Copyright (C) 2011 by Claudio Guidi <cguidi@italianasoftware.com> * * This
+ * program is free software; you can redistribute it and/or modify * it under
+ * the terms of the GNU Library General Public License as * published by the
+ * Free Software Foundation; either version 2 of the * License, or (at your
+ * option) any later version. * * This program is distributed in the hope that
+ * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
+ * GNU General Public License for more details. * * You should have received a
+ * copy of the GNU Library General Public * License along with this program; if
+ * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
+ * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
+ * software, see the AUTHORS file. *
+ **************************************************************************
+ */
 package jolie.doc.impl.html;
 
 import java.io.IOException;
@@ -28,8 +24,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.SortedSet;
-import java.util.Vector;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -49,42 +43,37 @@ import jolie.lang.parse.ast.types.TypeDefinitionLink;
 public class JolieDocWriter
 {
 	private PortInfo port;
-	private Vector<String> typeDefintionNameVector;
-	private Vector<TypeDefinition> typeDefinitionVector;
-	private Vector<TypeDefinitionLink> typeDefinitionLinkVector;
-	private Vector<String> typeDefintionLinkNameVector;
-	private Vector<InterfaceDefinition> interfaceDefintionVector;
-	private Writer writer;
+	private final List<String> typeDefintionNameVector;
+	private final List<TypeDefinition> typeDefinitionVector;
+	private final List<TypeDefinitionLink> typeDefinitionLinkVector;
+	private final List<String> typeDefintionLinkNameVector;
+	private final List<InterfaceDefinition> interfaceDefintionVector;
+	private final Writer writer;
 	private final String originalFilename;
 
 	public JolieDocWriter( Writer writer, String originalFilename )
 	{
 		this.writer = writer;
-		typeDefinitionLinkVector = new Vector<TypeDefinitionLink>();
-		typeDefintionLinkNameVector = new Vector<String>();
-		typeDefinitionVector = new Vector<TypeDefinition>();
-		typeDefintionNameVector = new Vector<String>();
-		interfaceDefintionVector = new Vector<InterfaceDefinition>();
+		typeDefinitionLinkVector = new ArrayList<TypeDefinitionLink>();
+		typeDefintionLinkNameVector = new ArrayList<String>();
+		typeDefinitionVector = new ArrayList<TypeDefinition>();
+		typeDefintionNameVector = new ArrayList<String>();
+		interfaceDefintionVector = new ArrayList<InterfaceDefinition>();
 		this.originalFilename = originalFilename;
 	}
 
 	public void addPort( PortInfo port )
 	{
-
 		this.port = port;
-
 	}
 
 	public void addInterface( InterfaceDefinition interfaceDefinition )
 	{
-
 		interfaceDefintionVector.add( interfaceDefinition );
-
 	}
 
 	public void addType( TypeDefinition typeDefinition )
 	{
-
 		if ( (!NativeType.isNativeTypeKeyword( typeDefinition.id() )) && (!typeDefinition.id().equals( "undefined" )) ) {
 			if ( !(typeDefintionLinkNameVector.contains( typeDefinition.id() )) && !(typeDefintionNameVector.contains( typeDefinition.id() )) ) {
 				typeDefinitionVector.add( typeDefinition );
@@ -267,7 +256,7 @@ public class JolieDocWriter
 							writer.write( " throws" );
 							faultExist = true;
 						}
-						writer.write( "\n" + indent(4) );
+						writer.write( "\n" + indent( 4 ) );
 						if ( !fault.getValue().id().equals( "undefined" ) ) {
 							writer.write( fault.getKey() + "( <a href=\"#" + fault.getValue().id() + "\">" + fault.getValue().id() + "</a> )" );
 						} else {
@@ -288,12 +277,11 @@ public class JolieDocWriter
 
 		writer.write( "<hr>" );
 		writer.write( "<h2>Message type list</h2>" );
-		
-		
+
 		// scanning type list
 		for( TypeDefinition typesDefinition : typeDefinitionVector ) {
 			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3>" + typesDefinition.id() + "</h3>" );
-			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinition, false, 0 ) + "</div>");
+			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinition, false, 0 ) + "</div>" );
 		}
 
 		writer.write( "<hr>" );
