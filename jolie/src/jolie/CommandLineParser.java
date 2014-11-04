@@ -23,6 +23,7 @@ package jolie;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,7 +57,7 @@ import jolie.util.Helpers;
  * providing methods for accessing them.
  * @author Fabrizio Montesi
  */
-public class CommandLineParser
+public class CommandLineParser implements Closeable
 {
 	private final static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
 	private final static Pattern optionSeparatorPattern = Pattern.compile( " " );
@@ -134,6 +135,15 @@ public class CommandLineParser
 	public InputStream programStream()
 	{
 		return programStream;
+	}
+	
+	/**
+	 * Closes the underlying {@link InputStream} to the target Jolie program.
+	 */
+	public void close()
+		throws IOException
+	{
+		programStream.close();
 	}
 
 	/**
