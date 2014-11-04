@@ -55,7 +55,7 @@ RequestResponse:
 
 	/**!
 	*  it enables the console for input listening
-	*  parameter session_listener_enabled enables console input listening for more than one service session (default=false)
+	*  parameter enableSessionListener enables console input listening for more than one service session (default=false)
 	*/
 	registerForInput( RegisterForInputRequest )( void ),
 
