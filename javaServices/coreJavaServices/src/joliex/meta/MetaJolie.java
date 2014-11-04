@@ -776,6 +776,8 @@ public class MetaJolie extends JavaService {
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
             URI originalFile = program.context().source();
+			
+			cmdParser.close();
 
             response.getFirstChild("service").getFirstChild("name").deepCopy(setName(request.getFirstChild("name")));
 
@@ -875,6 +877,7 @@ public class MetaJolie extends JavaService {
                     input.get(ip).deepCopy(getInputPort(inputPort, request.getFirstChild("name"), inspector.getOutputPorts()));
                 }
             }
+			cmdParser.close();
 
 
         } catch (CommandLineException e) {
