@@ -616,6 +616,7 @@ public class Interpreter
 		try {
 			executorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
+		free();
 	}
 
 	/**
@@ -1123,29 +1124,29 @@ public class Interpreter
 			}
 			runCode();
 			//commCore.shutdown();
+			// final boolean proceed;
 			exit();
-			free();
 		}
-
-		private void free()
-		{
-			/* We help the Java(tm) Garbage Collector.
-			 * Looks like it needs this or the Interpreter
-			 * does not get collected.
-			 */
-			definitions.clear();
-			inputOperations.clear();
-			locksMap.clear();
-			initExecutionThread = null;
-			sessionStarters = new HashMap< String, SessionStarter >();
-			outputPorts.clear();
-			correlationSets.clear();
-			globalValue.erase();
-			embeddedServiceLoaders.clear();
-			classLoader = null;
-			commCore = null;
-			System.gc();
-		}
+	}
+	
+	private void free()
+	{
+		/* We help the Java(tm) Garbage Collector.
+		 * Looks like it needs this or the Interpreter
+		 * does not get collected.
+		 */
+		definitions.clear();
+		inputOperations.clear();
+		locksMap.clear();
+		initExecutionThread = null;
+		sessionStarters = new HashMap< String, SessionStarter>();
+		outputPorts.clear();
+		correlationSets.clear();
+		globalValue.erase();
+		embeddedServiceLoaders.clear();
+		classLoader = null;
+		commCore = null;
+		System.gc();
 	}
 	
 	/**
