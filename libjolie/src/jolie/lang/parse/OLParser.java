@@ -226,26 +226,45 @@ public class OLParser extends AbstractParser
 
 		program.addChild( TypeDefinitionUndefined.getInstance() );
 
-		while( token.isKeyword( "type" ) ) {
-			getToken();
-			typeName = token.content();
-			eat( Scanner.TokenType.ID, "expected type name" );
-			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-			NativeType nativeType = readNativeType();
-			if ( nativeType == null ) { // It's a user-defined type
-				currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
+		boolean keepRun = true;
+		boolean haveComment = false;
+		while( keepRun ) {
+			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+				haveComment = true;
+				commentToken = token;
 				getToken();
+			} else if ( token.isKeyword( "type" ) ) {
+				getToken();
+				typeName = token.content();
+				eat( Scanner.TokenType.ID, "expected type name" );
+				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+				NativeType nativeType = readNativeType();
+				if ( nativeType == null ) { // It's a user-defined type
+					currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
+					getToken();
+				} else {
+					currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+					getToken();
+					if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
+						parseSubTypes( (TypeInlineDefinition) currentType );
+					}
+				}
+
+				if ( haveComment ) {
+					currentType.setDocumentation( commentToken.content() );
+					haveComment = false;
+				}
+
+				// Keep track of the root types to support them in successive type declarations
+				definedTypes.put( typeName, currentType );
+				program.addChild( currentType );
 			} else {
-				currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-				getToken();
-				if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
-					parseSubTypes( (TypeInlineDefinition)currentType );
+				keepRun = false;
+				if ( haveComment ) {
+					addToken( commentToken );
 				}
 			}
-
-			// Keep track of the root types to support them in successive type declarations
-			definedTypes.put( typeName, currentType );
-			program.addChild( currentType );
 		}
 	}
 

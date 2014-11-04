@@ -32,6 +32,7 @@ import java.util.Set;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
+import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.VariablePathNode;
 import jolie.util.Pair;
@@ -41,10 +42,11 @@ import jolie.util.Range;
  * Representation for a type definition.
  * @author Fabrizio Montesi
  */
-public abstract class TypeDefinition extends OLSyntaxNode
+public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedNode
 {
 	private final String id;
 	private final Range cardinality;
+	private String document = null;
 
 	/**
 	 * Constructor
@@ -67,6 +69,18 @@ public abstract class TypeDefinition extends OLSyntaxNode
 	public Range cardinality()
 	{
 		return cardinality;
+	}
+	
+	@Override
+	public void setDocumentation( String document )
+	{
+		this.document = document;
+	}
+
+	@Override
+	public String getDocumentation()
+	{
+		return this.document;
 	}
 
 	public boolean containsPath( VariablePathNode variablePath )

@@ -56,6 +56,11 @@ public abstract class AbstractParser
 		this.tokens.addAll( tokens );
 	}
 	
+	protected void addToken( Scanner.Token token )
+	{
+		this.tokens.add( token );
+	}
+	
 	/** Gets a new token.
 	 * 
 	 * @throws IOException If the internal scanner raises one.

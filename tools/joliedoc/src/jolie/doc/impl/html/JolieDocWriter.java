@@ -281,7 +281,10 @@ public class JolieDocWriter
 		// scanning type list
 		for( TypeDefinition typesDefinition : typeDefinitionVector ) {
 			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3>" + typesDefinition.id() + "</h3>" );
-			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinition, false, 0 ) + "</div>" );
+			if ( typesDefinition.getDocumentation() != null ) {
+				writer.write( "<span class=\"opdoc\"><p>" + typesDefinition.getDocumentation().trim().replace( "\n", "<br/>" ) + "</p></span>" );
+			}
+			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinition, false, 0 ) + "</div>" );
 		}
 
 		writer.write( "<hr>" );
@@ -289,7 +292,7 @@ public class JolieDocWriter
 		for( TypeDefinitionLink typesDefinitionLink : typeDefinitionLinkVector ) {
 			writer.write( "<h3 id=\"" + typesDefinitionLink.linkedTypeName() + "\">" + typesDefinitionLink.linkedTypeName() + "</h3>" );
 			writer.write( "<a name=\"" + typesDefinitionLink.linkedTypeName() + "\"></a>" );
-			writer.write( "<div class='code' lang='jolie'>" + writeType( typesDefinitionLink.linkedType(), false, 0 ) + "</div>" );
+			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinitionLink.linkedType(), false, 0 ) + "</div>" );
 		}
 
 		// document ending
