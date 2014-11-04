@@ -1178,6 +1178,9 @@ public class Interpreter
 				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 				program = optimizer.optimize();
 			}
+			
+			cmdParser.close();
+			
 			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 			try {
 				semanticVerifier.validate(); 
