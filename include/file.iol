@@ -24,6 +24,10 @@ include "types/IOException.iol"
 
 type FileNotFoundType:WeakJavaExceptionType
 
+/**!
+from: the source directory to copy
+to: the target directory to copy into
+*/
 type CopyDirRequest: void {
 	.from: string
 	.to: string
