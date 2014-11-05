@@ -263,6 +263,8 @@ public class OLParser extends AbstractParser
 				keepRun = false;
 				if ( haveComment ) {
 					addToken( commentToken );
+					addToken( token );
+					getToken();
 				}
 			}
 		}
@@ -730,14 +732,14 @@ public class OLParser extends AbstractParser
 	private void parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		String comment = "";
+		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
 		boolean keepRun = true;
 		DocumentedNode node = null;
-		boolean commentsPreset = false;
+		boolean haveDocumentation = false;
 		while( keepRun ) {
 			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentsPreset = true;
-				comment = token.content();
+				haveDocumentation = true;
+				commentToken = token;
 				getToken();
 			} else if ( token.isKeyword( "interface" ) ) {
 				getToken();
@@ -747,27 +749,24 @@ public class OLParser extends AbstractParser
 				} else {
 					node = parseInterface();
 				}
-				if ( commentsPreset && node != null ) {
-					node.setDocumentation( comment );
-					commentsPreset = false;
-					node = null;
-				}
 			} else if ( token.isKeyword( "inputPort" ) ) {
 				node = parsePort();
-				if ( commentsPreset && node != null ) {
-					node.setDocumentation( comment );
-					commentsPreset = false;
-					node = null;
-				}
 			} else if ( token.isKeyword( "outputPort" ) ) {
 				node = parsePort();
-				if ( commentsPreset && node != null ) {
-					node.setDocumentation( comment );
-					commentsPreset = false;
-					node = null;
-				}
 			} else {
 				keepRun = false;
+				
+				if ( haveDocumentation ) {
+					addToken( commentToken );
+					addToken( token );
+					getToken();
+				}
+			}
+			
+			if ( haveDocumentation && node != null ) {
+				node.setDocumentation( commentToken.content() );
+				haveDocumentation = false;
+				node = null;
 			}
 		}
 	}
