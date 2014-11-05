@@ -82,6 +82,9 @@ type ContainsRequest:string {
 	.substring:string
 }
 
+/**!
+ * An interface for supporting string manipulation operations.
+ */
 interface StringUtilsInterface {
 RequestResponse:
 	/**!
