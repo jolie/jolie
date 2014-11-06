@@ -160,9 +160,12 @@ public class XmlUtils
 			}
 		}
 	}
-public static void documentToValue( Document document, Value value ) {
-documentToValue( document, value, true );
-}
+
+	public static void documentToValue( Document document, Value value )
+	{
+		documentToValue( document, value, true );
+	}
+	
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type )
 	{
 		if ( type.isSimpleType() ) {
@@ -181,11 +184,11 @@ documentToValue( document, value, true );
 				}
 			}
 
-			XSParticle particle;
 			XSContentType contentType = complexType.getContentType();
+			XSParticle particle = contentType.asParticle();
 			if ( contentType.asSimpleType() != null ) {
 				element.appendChild( doc.createTextNode( value.strValue() ) );
-			} else if ( (particle=contentType.asParticle()) != null ) {
+			} else if ( particle != null ) {
 				XSTerm term = particle.getTerm();
 				XSModelGroupDecl modelGroupDecl;
 				XSModelGroup modelGroup = null;
@@ -252,9 +255,9 @@ documentToValue( document, value, true );
 			element.appendChild( doc.createTextNode( new Long( value.longValue() ).toString() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "long" );
 		} else if ( value.isBool() ) {
-                        element.appendChild( doc.createTextNode( new Boolean( value.boolValue() ).toString() ) );
+			element.appendChild( doc.createTextNode( new Boolean( value.boolValue() ).toString() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "bool" );
-                } else {
+		} else {
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "void" );
 		}
 
@@ -418,6 +421,7 @@ documentToValue( document, value, true );
 					break;
 			}
 		}
+		
 		if ( builder.length() > 0 ) {
 			if ( type.equals( "string" ) ) {
 				value.setValue( builder.toString() );
@@ -427,10 +431,9 @@ documentToValue( document, value, true );
 				value.setValue( new Long( builder.toString() ) );
 			} else if ( type.equals( "double" ) ) {
 				value.setValue( new Double( builder.toString() ) );
-			} else if ( type.equals("bool") ) {
-                                value.setValue( new Boolean( builder.toString() ));
-                        }
-                
+			} else if ( type.equals( "bool" ) ) {
+				value.setValue( new Boolean( builder.toString() ) );
+			}
 		}
 	}
 
