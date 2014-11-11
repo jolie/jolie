@@ -558,31 +558,47 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private static IncludeFile retrieveIncludeFile( final String path, final String filename )
+	private IncludeFile tryAccessIncludeFile( final String includeStr )
 	{
 		IncludeFile ret = null;
-
-		File f = new File(
+		URL includeURL = classLoader.getResource( includeStr );
+		if ( includeURL != null ) {
+			File f = new File( includeURL.toString() );
+			try {
+				ret = new IncludeFile( includeURL.openStream(), f.getParent(), f.toURI() );
+			} catch( IOException e ) {
+				e.printStackTrace();
+			}
+		}
+		return ret;
+	}
+	
+	private IncludeFile retrieveIncludeFile( final String path, final String filename )
+	{
+		IncludeFile ret = null;
+		
+		/* File f = new File(
 				new StringBuilder()
 					.append( path )
 					.append( Constants.fileSeparator )
 					.append( filename )
 					.toString()
 				);
-		try {
-			ret = new IncludeFile(
+		*/
+		String urlStr =
+			new StringBuilder()
+				.append( path )
+				.append( Constants.fileSeparator )
+				.append( filename )
+				.toString();
+		/* ret = new IncludeFile(
 					new BufferedInputStream( new FileInputStream( f ) ),
 					f.getParent(),
 					f.toURI()
-				);
-		} catch( FileNotFoundException e ) {
+				); */
+		ret = tryAccessIncludeFile( urlStr );
+		if ( ret == null ) {
 			try {
-				String urlStr =
-					new StringBuilder()
-						.append( path )
-						.append( Constants.fileSeparator )
-						.append( filename )
-						.toString();
 				URL url = null;
 				if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
 					// Try hard to resolve names, even in Windows
@@ -627,14 +643,14 @@ public class OLParser extends AbstractParser
 				} else {
 					url = new URL( new URI( urlStr ).normalize().toString() );
 				}
-				File f2 = new File( url.toString() );
-				ret = new IncludeFile(
+				//File f2 = new File( url.toString() );
+				/* ret = new IncludeFile(
 					url.openStream(),
 					f2.getParent(),
 					f2.toURI() //path
-				);
+				); */
+				ret = tryAccessIncludeFile( url.toString() );
 			} catch( MalformedURLException mue ) {
-			} catch( IOException ioe ) {
 			} catch( URISyntaxException use ) {}
 		}
 		return ret;
@@ -653,31 +669,29 @@ public class OLParser extends AbstractParser
 			includeFile = null;
 
 			// Try the same directory of the program file first.
-			if ( includePaths.length > 1 ) {
+			/* if ( includePaths.length > 1 ) {
 				includeFile = retrieveIncludeFile( includePaths[0], includeStr );
-			}
+			} */
 
-			if ( includeFile == null ) {
+			/* if ( includeFile == null ) {
 				URL includeURL = classLoader.getResource( includeStr );
 				if ( includeURL != null ) {
-                                        File f = new File( includeURL.toString() );
+					File f = new File( includeURL.toString() );
 					includeFile = new IncludeFile( includeURL.openStream(), f.getParent(), f.toURI() );
 				}
-			}
+			} */
 
-			for ( int i = 1; i < includePaths.length && includeFile == null; i++ ) {
+			for ( int i = 0; i < includePaths.length && includeFile == null; i++ ) {
 				includeFile = retrieveIncludeFile( includePaths[i], includeStr );
 			}
-
+			
 			if ( includeFile == null ) {
 				throwException( "File not found: " + includeStr );
 			}
 
 			origIncludePaths = includePaths;
+			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI() ) );
 			
-                        setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI() ) );
-			
-
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );
 			} else {

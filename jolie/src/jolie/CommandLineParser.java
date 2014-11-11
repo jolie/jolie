@@ -492,9 +492,12 @@ public class CommandLineParser implements Closeable
 			} else {
 				try {
 					urls.add( new URL( path ) );
-				} catch( MalformedURLException e ) {}
+				} catch( MalformedURLException e ) {
+//					e.printStackTrace();
+				}
 			}
 		}
+		urls.add( new URL( "file:/" ) );
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
