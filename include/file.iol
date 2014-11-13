@@ -77,7 +77,7 @@ type ListResponse:void {
 interface FileInterface {
 RequestResponse:
 	/**!
-	  it returns if a filename is a directtory or not. False if the file does not exist.
+	  it returns if a filename is a directory or not. False if the file does not exist.
 	*/
 	isDirectory( string )( bool ) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
