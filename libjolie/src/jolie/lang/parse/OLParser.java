@@ -21,11 +21,8 @@
 
 package jolie.lang.parse;
 
-import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -570,6 +567,7 @@ public class OLParser extends AbstractParser
 				e.printStackTrace();
 			}
 		}
+
 		return ret;
 	}
 	
@@ -686,7 +684,10 @@ public class OLParser extends AbstractParser
 			}
 			
 			if ( includeFile == null ) {
-				throwException( "File not found: " + includeStr );
+				includeFile = tryAccessIncludeFile( includeStr );
+				if ( includeFile == null ) {
+					throwException( "File not found: " + includeStr );
+				}
 			}
 
 			origIncludePaths = includePaths;
