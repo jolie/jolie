@@ -238,11 +238,11 @@ public class RequestResponseProcess implements InputOperationProcess
 			channel.send( response );
 			Value monitorValue = null;
 			if ( response.isFault() ) {
-					log( "SENT FAULT", response );					
-					monitorValue = response.fault().value();
+				log( "SENT FAULT", response );					
+				monitorValue = response.fault().value();
 			} else {
-					log( "SENT", response );
-					monitorValue = response.value();
+				log( "SENT", response );
+				monitorValue = response.value();
 			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
 				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), responseStatus, details, monitorValue ));
