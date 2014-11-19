@@ -23,6 +23,7 @@ include "TestUnit.iol"
 include "console.iol"
 include "file.iol"
 include "runtime.iol"
+include "string_utils.iol"
 
 outputPort TestUnit {
 Interfaces: TestUnitInterface
@@ -34,15 +35,41 @@ init
 	dirs[1] = "library"
 }
 
+define calcMaxLength
+{
+	maxLength = 0;
+	for( i = 0, i < #dirs, i++ ) {
+		list@File( listRequest )( list );
+		for( k = 0, k < #list.result, k++ ) {
+			length@StringUtils( list.result[k] )( len );
+			if ( len > maxLength ) {
+				maxLength = len
+			}
+		}
+	}
+}
+
+define printTestName
+{
+	testName += "...";
+	length@StringUtils( testName )( len );
+	for( j = 0, j < maxLength + 5 - len, j++ ) {
+		testName += " "
+	};
+	print@Console( testName )()
+}
+
 main
 {
 	loadRequest.type = "Jolie";
 	listRequest.regex = ".*\\.ol";
 	listRequest.directory -> dirs[i];
+	calcMaxLength;
 	for( i = 0, i < #dirs, i++ ) {
 		list@File( listRequest )( list );
 		for( k = 0, k < #list.result, k++ ) {
-			print@Console( list.result[k] + "\t...\t" )();
+			testName = list.result[k];
+			printTestName;
 			loadRequest.filepath = listRequest.directory + "/" + list.result[k];
 			scope( s ) {
 				install( RuntimeException => println@Console( s.RuntimeException.stackTrace )() );
