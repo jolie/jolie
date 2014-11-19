@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2013 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -42,6 +42,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -106,29 +107,35 @@ public class Interpreter
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
 			super( interpreter, process );
-		}
-		
-		@Override
-		public boolean isInitialisingThread()
-		{
-			return true;
-		}
-		
-		@Override
-		public void run()
-		{
-			super.run();
-
-			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
-				try {
-					mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
-					correlationEngine.onSingleExecutionSessionStart( mainSession );
-					mainSession.addSessionListener( correlationEngine );
-				} catch( InvalidIdException e ) {
-					assert false;
+			addSessionListener( new SessionListener() {
+				public void onSessionExecuted( SessionThread session )
+				{
+					onSuccessfulInitExecution();
 				}
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
+					exit();
+				}
+			});
+		}
+		
+		private void onSuccessfulInitExecution()
+		{
+			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+				synchronized( correlationEngine ) {
+					try {
+						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+						correlationEngine.onSingleExecutionSessionStart( mainSession );
+						mainSession.addSessionListener( correlationEngine );
+						correlationEngine.onSessionExecuted( this );
+					} catch( InvalidIdException e ) {
+						assert false;
+					}
+				}
+			} else {
+				correlationEngine.onSessionExecuted( this );
 			}
-			
+
 			/*
 			 * We need to relay the messages we did not consume during the init procedure.
 			 * We do this asynchronously, because calling correlationEngine.onMessageReceive
@@ -160,6 +167,12 @@ public class Interpreter
 					pushMessages( uncorrelatedMessageQueue );
 				}
 			});
+		}
+		
+		@Override
+		public boolean isInitialisingThread()
+		{
+			return true;
 		}
 	}
 	
@@ -380,7 +393,7 @@ public class Interpreter
 			} else if ( handler.time() < currentTime || exiting ) {
 				// final TimeoutHandler h = handler;
 				timeoutHandlerExecutor.execute( handler );
-				timeoutHandlerQueue.remove();
+				timeoutHandlerQueue.poll();
 				whandler = timeoutHandlerQueue.peek();
 			} else {
 				keepRun = false;
@@ -920,17 +933,9 @@ public class Interpreter
 	
 	private static class InterpreterStartFuture implements Future< Exception >
 	{
-		private final Lock lock;
-		private final Condition initCompleted;
+		private final CountDownLatch cl = new CountDownLatch( 1 );
 		private Exception result;
-		private boolean isDone = false;
-		
-		public InterpreterStartFuture()
-		{
-			lock = new ReentrantLock();
-			initCompleted = lock.newCondition();
-		}
-		
+
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
 			return false;
@@ -939,15 +944,8 @@ public class Interpreter
 		public Exception get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
-			try {
-				lock.lock();
-				if ( !isDone ) {
-					if ( !initCompleted.await( timeout, unit ) ) {
-						throw new TimeoutException();
-					}
-				}
-			} finally {
-				lock.unlock();
+			if ( !cl.await( timeout, unit ) ) {
+				throw new TimeoutException();
 			}
 			return result;
 		}
@@ -955,14 +953,7 @@ public class Interpreter
 		public Exception get()
 			throws InterruptedException
 		{
-			try {
-				lock.lock();
-				if ( !isDone ) {
-					initCompleted.await();
-				}
-			} finally {
-				lock.unlock();
-			}
+			cl.await();
 			return result;
 		}
 		
@@ -973,19 +964,13 @@ public class Interpreter
 		
 		public boolean isDone()
 		{
-			return isDone;
+			return cl.getCount() == 0;
 		}
 		
 		private void setResult( Exception e )
 		{
-			lock.lock();
-			try {
-				result = e;
-				isDone = true;
-				initCompleted.signalAll();
-			} finally {
-				lock.unlock();
-			}
+			result = e;
+			cl.countDown();
 		}
 	}
 	
@@ -1027,17 +1012,17 @@ public class Interpreter
 				jArgs.add( Value.create( s ) );
 			}
 			initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
-			initExecutionThread.addSessionListener( new SessionListener() {
+			/* initExecutionThread.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session )
 				{}
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					exit();
 				}
-			});
+			}); */
 
 			correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
-			initExecutionThread.addSessionListener( correlationEngine );
+			// initExecutionThread.addSessionListener( correlationEngine );
 			initExecutionThread.start();
 		} catch( InvalidIdException e ) { assert false; }
 	}

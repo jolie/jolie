@@ -21,6 +21,8 @@
 
 package jolie.runtime.correlation;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
@@ -94,7 +96,7 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 	}
 
-	public synchronized void onMessageReceive( final CommMessage message, final CommChannel channel )
+	public void onMessageReceive( final CommMessage message, final CommChannel channel )
 		throws CorrelationError
 	{
 		if ( routeMessage( message, channel ) ) {
