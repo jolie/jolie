@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2010 by Fabrizio Montesi                           *
+ *   Copyright (C) 2008-2014 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -45,8 +45,8 @@ public class Compiler
 	public Compiler( String[] args )
 		throws CommandLineException, IOException
 	{
-		cmdParser = new CommandLineParser( args, this.getClass().getClassLoader() );
-		classLoader = this.getClass().getClassLoader();
+		cmdParser = new CommandLineParser( args, Compiler.class.getClassLoader() );
+		classLoader = Compiler.class.getClassLoader();
 	}
 	
 	public void compile( OutputStream ostream )
@@ -55,7 +55,7 @@ public class Compiler
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
 			URI.create( "file:" + cmdParser.programFilepath() ),
-			cmdParser.includePaths(), classLoader, cmdParser.definedConstants()
+			cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants()
 		);
 		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );
 		ObjectOutputStream oos = new ObjectOutputStream( ostream );
