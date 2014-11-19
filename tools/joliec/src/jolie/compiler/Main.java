@@ -1,7 +1,5 @@
-package jolie.compiler;
-
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008-2014 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,7 +19,7 @@ package jolie.compiler;
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
+package jolie.compiler;
 
 import java.io.IOException;
 import jolie.CommandLineException;
