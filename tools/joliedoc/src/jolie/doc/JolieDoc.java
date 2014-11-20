@@ -47,7 +47,7 @@ public class JolieDoc
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
 				cmdParser.includePaths(), 
-				JolieDoc.class.getClassLoader(), 
+				cmdParser.jolieClassLoader(), 
 				cmdParser.definedConstants(),
 				configuration
 			);			
