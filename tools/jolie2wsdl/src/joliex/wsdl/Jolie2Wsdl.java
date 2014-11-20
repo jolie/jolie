@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
-import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.util.ParsingUtils;
@@ -36,7 +35,7 @@ public class Jolie2Wsdl {
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     URI.create("file:" + cmdParser.programFilepath()),
-                    cmdParser.includePaths(), Jolie2Wsdl.class.getClassLoader(), cmdParser.definedConstants());
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
 
             //Program program = parser.parse();
             ProgramInspector inspector = ParsingUtils.createInspector(program);
