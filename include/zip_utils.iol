@@ -28,10 +28,20 @@ type ReadEntryRequest:void {
 
 type ZipRequest:void { ? }
 
+type UnzipRequest: void {
+	.filename: string
+	.targetPath: string
+}
+
+type UnzipResponse: void {
+	.entry*: string
+}
+
 interface ZipUtilsInterface {
 RequestResponse:
 	readEntry(ReadEntryRequest)(any) throws IOException(IOExceptionType),
-	zip(ZipRequest)(raw) throws IOException(IOExceptionType)
+	zip(ZipRequest)(raw) throws IOException(IOExceptionType),
+	unzip( UnzipRequest )( UnzipResponse ) throws FileNotFound, IOException
 }
 
 outputPort ZipUtils {
