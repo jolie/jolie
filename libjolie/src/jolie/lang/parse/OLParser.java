@@ -561,6 +561,10 @@ public class OLParser extends AbstractParser
 		IncludeFile ret = null;
 		if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
 			includeStr = includeStr.replace( "\\", "/" );
+			if ( includeStr.charAt( 1 ) == ':' ) {
+				// Remove the drive name if present
+				includeStr = includeStr.substring( 2 );
+			}
 		}
 		URL includeURL = classLoader.getResource( includeStr );
 		if ( includeURL != null ) {
