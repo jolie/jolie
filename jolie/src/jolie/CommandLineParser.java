@@ -343,7 +343,6 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				argsList.set( i, argsList.get( i ).replace( "\\", "/" ) );
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				Collections.addAll( includeList, tmp );
 				optionsList.add( argsList.get( i ) );
@@ -353,7 +352,6 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				argsList.set( i, argsList.get( i ).replace( "\\", "/" ) );
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				Collections.addAll( libList, tmp );
 				optionsList.add( argsList.get( i ) );
