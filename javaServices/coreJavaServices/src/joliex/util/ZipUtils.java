@@ -23,11 +23,18 @@ package joliex.util;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -63,6 +70,7 @@ public class ZipUtils extends JavaService
 			ZipFile file = new ZipFile(
 				request.getFirstChild( "filename" ).strValue()
 			);
+			
 			ZipEntry entry = file.getEntry(
 				request.getFirstChild( "entry" ).strValue()
 			);
@@ -97,5 +105,45 @@ public class ZipUtils extends JavaService
 			throw new FaultException( e );
 		}
 		return new ByteArray( bbstream.toByteArray() );
+	}
+	
+	public  Value unzip( Value request ) throws FaultException {
+		String targetPath = request.getFirstChild( "targetPath" ).strValue();
+		String filename = request.getFirstChild( "filename" ).strValue();
+		
+		Value response = Value.create();
+		
+		byte[] buffer = new byte[ BUFFER_SIZE ];
+		ZipInputStream zipInputStream;
+		try {
+			zipInputStream = new ZipInputStream(new FileInputStream( filename ));				
+			ZipEntry zipEntry = zipInputStream.getNextEntry();
+			int entryCounter = 0;
+			while( zipEntry != null ) {
+				if ( !zipEntry.isDirectory() ) {
+					String fileName = zipEntry.getName();
+					response.getChildren( "entry" ).get( entryCounter ).setValue( fileName );
+					File newFile = new File(targetPath + File.separator + fileName);
+					new File(newFile.getParent()).mkdirs();
+					FileOutputStream fileOutputStream = new FileOutputStream(newFile);             
+					int len;
+					while ((len = zipInputStream.read(buffer)) > 0) {
+							fileOutputStream.write(buffer, 0, len);
+					}
+					fileOutputStream.close();   
+				}
+				zipEntry = zipInputStream.getNextEntry();
+				entryCounter++;
+    	}
+ 
+        zipInputStream.closeEntry();
+    	zipInputStream.close();
+				
+		} catch( FileNotFoundException ex ) {
+			throw new FaultException("FileNotFound");
+		} catch( IOException ex ) {
+			throw new FaultException("IOException");
+		}
+		return response;
 	}
 }
