@@ -40,7 +40,7 @@ public class JolieDummyCreator {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException  {
+    public static void main(String[] args) {
        try{
 //		CommandLineParser cmdParser =  new CommandLineParser( args, JolieDummyCreator.class.getClassLoader() );
 //			args = cmdParser.arguments();
@@ -55,7 +55,7 @@ public class JolieDummyCreator {
            Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), JolieDummyCreator.class.getClassLoader(), cmdParser.definedConstants());
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
 			ProgramInspector inspector=ParsingUtils.createInspector( program );
             JolieDummyDocumentCreator document= new JolieDummyDocumentCreator( inspector,cmdParser.programFilepath());
             document.createDocument();
