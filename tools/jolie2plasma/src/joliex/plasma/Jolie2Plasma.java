@@ -56,7 +56,7 @@ public class Jolie2Plasma
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), Jolie2Plasma.class.getClassLoader(), cmdParser.definedConstants()
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants()
 			);
 			new InterfaceConverter(
 				program,

@@ -34,12 +34,11 @@ public class Jolie2Java {
         try {
 
             Jolie2JavaCommandLineParser cmdParser = Jolie2JavaCommandLineParser.create(args, Jolie2Java.class.getClassLoader());
-            args = cmdParser.arguments();
 
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
                     URI.create("file:" + cmdParser.programFilepath()),
-                    cmdParser.includePaths(), Jolie2Java.class.getClassLoader(), cmdParser.definedConstants());
+                    cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
 
             //Program program = parser.parse();
             ProgramInspector inspector = ParsingUtils.createInspector(program);

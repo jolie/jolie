@@ -49,7 +49,7 @@ public class GetSurface
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
-				cmdParser.includePaths(), GetSurface.class.getClassLoader(), cmdParser.definedConstants() );
+				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
                        
