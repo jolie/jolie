@@ -119,6 +119,7 @@ import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
+import jolie.util.Helpers;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -555,9 +556,12 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private IncludeFile tryAccessIncludeFile( final String includeStr )
+	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
 		IncludeFile ret = null;
+		if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
+			includeStr = includeStr.replace( "\\", "/" );
+		}
 		URL includeURL = classLoader.getResource( includeStr );
 		if ( includeURL != null ) {
 			File f = new File( includeURL.toString() );
