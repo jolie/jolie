@@ -123,6 +123,7 @@ public class ZipUtils extends JavaService
 				if ( !zipEntry.isDirectory() ) {
 					String fileName = zipEntry.getName();
 					response.getChildren( "entry" ).get( entryCounter ).setValue( fileName );
+					entryCounter++;
 					File newFile = new File(targetPath + File.separator + fileName);
 					new File(newFile.getParent()).mkdirs();
 					FileOutputStream fileOutputStream = new FileOutputStream(newFile);             
@@ -132,8 +133,7 @@ public class ZipUtils extends JavaService
 					}
 					fileOutputStream.close();   
 				}
-				zipEntry = zipInputStream.getNextEntry();
-				entryCounter++;
+				zipEntry = zipInputStream.getNextEntry();				
     	}
  
         zipInputStream.closeEntry();
@@ -142,7 +142,7 @@ public class ZipUtils extends JavaService
 		} catch( FileNotFoundException ex ) {
 			throw new FaultException("FileNotFound");
 		} catch( IOException ex ) {
-			throw new FaultException("IOException");
+				throw new FaultException("IOException");
 		}
 		return response;
 	}
