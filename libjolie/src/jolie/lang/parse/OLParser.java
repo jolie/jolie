@@ -709,6 +709,7 @@ public class OLParser extends AbstractParser
 			}
 			_parse();
 			includePaths = origIncludePaths;
+			includeFile.getInputStream().close();
 			setScanner( oldScanner );
 			getToken();
 		}
