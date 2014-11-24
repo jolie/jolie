@@ -1512,11 +1512,16 @@ public class OOITBuilder implements OLVisitor
 				extendedFaultMap.putAll( extenderDesc.faults() );
 			}
 		}
+		
+		
+		
 		return new RequestResponseOperation(
 			operationName,
 			new RequestResponseTypeDescription(
-				Type.merge( desc.requestType(), requestExtenderType ),
-				Type.merge( desc.responseType(), responseExtenderType ),
+				( requestExtenderType == null ) ?
+					desc.requestType() : Type.merge( desc.requestType(), requestExtenderType ),
+				( responseExtenderType == null ) ?
+					desc.responseType() : Type.merge( desc.responseType(), responseExtenderType ),
 				extendedFaultMap
 			)
 		);
