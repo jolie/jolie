@@ -608,6 +608,7 @@ public class FileService extends JavaService
 
 	public Value list( Value request )
 	{
+		String [] files = new String[]{};
 		File dir = new File( request.getFirstChild( "directory" ).strValue() );
 		String regex;
 		if ( request.hasChildren( "regex" ) ) {
@@ -623,11 +624,12 @@ public class FileService extends JavaService
 			dirsOnly = false;
 		}
 
-		String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
-
+		files = dir.list( new ListFilter( regex, dirsOnly ) );
+		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
-			if ( order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
+			
+			if ( files != null && order.hasChildren( "byname" ) && order.getFirstChild( "byname" ).boolValue() ) {
 				Arrays.sort( files );
 			}
 		}
