@@ -200,8 +200,7 @@ public class TimeService extends JavaService
 			final Date timestamp = new Date( tm );
 			result.setValue(sdf.format( timestamp ));
 			GregorianCalendar cal = new GregorianCalendar();
-			cal.setTimeInMillis( timestamp.getTime() );
-			cal.set( Calendar.AM_PM, 1 );
+			cal.setTimeInMillis( timestamp.getTime() );			
 			result.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
 			result.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
 			result.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
