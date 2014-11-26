@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Jolie" default="build">
-    <property name="dist" value="dist"/>
-    <property name="dist.jolie" value="dist/jolie"/>
-    <property name="dist.launchers" value="${dist}/launchers"/>
-    <property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
-    <property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
+	<property name="dist" value="dist"/>
+	<property name="dist.jolie" value="dist/jolie"/>
+	<property name="dist.launchers" value="${dist}/launchers"/>
+	<property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
+	<property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
     
 	<condition property="isWindows" value="true">
 		<os family="windows" />
