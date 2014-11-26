@@ -81,7 +81,7 @@ public class SSLProtocol extends SequentialCommProtocol
 
 	private class SSLOutputStream extends OutputStream
 	{
-		private ByteArrayOutputStream internalStreamBuffer = new ByteArrayOutputStream();
+		private final ByteArrayOutputStream internalStreamBuffer = new ByteArrayOutputStream();
 
 		public void write( int b )
 			throws IOException
@@ -262,23 +262,26 @@ public class SSLProtocol extends SequentialCommProtocol
 
 		SSLResult result;
 		Runnable runnable;
-		while ( sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING && sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED ) {
+		while (
+			sslEngine.getHandshakeStatus() != HandshakeStatus.NOT_HANDSHAKING
+			&& sslEngine.getHandshakeStatus() != HandshakeStatus.FINISHED
+		) {
 			switch ( sslEngine.getHandshakeStatus() ) {
-				case NEED_TASK:
-					while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
-						runnable.run();
-					}
-					break;
-				case NEED_WRAP:
-					result = wrap( EMPTY_BYTE_BUFFER );
-					if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
-						outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
-						outputStream.flush();
-					}
-					break;
-				case NEED_UNWRAP:
-					unwrapFromInputStream( true );
-					break;
+			case NEED_TASK:
+				while ( (runnable = sslEngine.getDelegatedTask()) != null ) {
+					runnable.run();
+				}
+				break;
+			case NEED_WRAP:
+				result = wrap( EMPTY_BYTE_BUFFER );
+				if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
+					outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
+					outputStream.flush();
+				}
+				break;
+			case NEED_UNWRAP:
+				unwrapFromInputStream( true );
+				break;
 			}
 		}
 	}
