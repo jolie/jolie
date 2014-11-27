@@ -52,7 +52,7 @@ public class JsonUtils
 				builder.append( nativeValueToJsonString( value ) );
 			}
 			builder.append( '}' );
-		} else if ( value.getChildren("jolieFault").size() > 0 ) {
+		} else if ( value.hasChildren( "jolieFault" ) ) {
 				// fault case
 				builder.append( "{\"jolieFault\":{\"faultName\":\"" );
 				builder.append( value.getFirstChild( "jolieFault" ).getFirstChild( "faultName").strValue() );
