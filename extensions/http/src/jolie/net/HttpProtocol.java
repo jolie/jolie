@@ -723,7 +723,7 @@ public class HttpProtocol extends CommProtocol
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
-                send_appendHeader( message, headerBuilder );
+		send_appendHeader( message, headerBuilder );
 	}
 	
 	private void send_appendGenericHeaders(
