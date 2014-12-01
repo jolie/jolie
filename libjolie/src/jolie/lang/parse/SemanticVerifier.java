@@ -357,9 +357,7 @@ public class SemanticVerifier implements OLVisitor
 		TypeDefinition type = definedTypes.get( alias.guardName() );
 		if ( type == null ) {
 			error( alias.variablePath(), "type " + alias.guardName() + " is undefined" );
-		}
-
-		if ( type.containsPath( alias.variablePath() ) == false ) {
+		} else if ( type.containsPath( alias.variablePath() ) == false ) {
 			error( alias.variablePath(), "type " + alias.guardName() + " does not contain the specified path" );
 		}
 	}
