@@ -211,7 +211,7 @@ public class CommandLineParser implements Closeable
 	{
 		StringBuilder helpBuilder = new StringBuilder();
 		helpBuilder.append( getVersionString() );
-		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [options] [program arguments]\n\n" );
+		helpBuilder.append( "\n\nUsage: jolie [options] behaviour_file [program arguments]\n\n" );
 		helpBuilder.append( "Available options:\n" );
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
@@ -325,7 +325,9 @@ public class CommandLineParser implements Closeable
 		libList.add( "lib" );
 		String olFilepath = null;
 		String japUrl = null;
-		for( int i = 0; i < argsList.size(); i++ ) {
+		int i = 0;
+		// First parse Jolie arguments with the Jolie program argument
+		for( ; i < argsList.size() && olFilepath == null; i++ ) {
 			if ( "--help".equals( argsList.get( i ) ) || "-h".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getHelpString() );
 			} else if ( "-C".equals( argsList.get( i ) ) ) {
@@ -429,20 +431,19 @@ public class CommandLineParser implements Closeable
 					programArgumentsList.add( argsList.get( i ) );
 				}
 			} else {
-				if ( olFilepath == null ) { // It's an unrecognized argument
-					int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
-					if ( newIndex == i ) {
-						// The handler didn't change the index.
-						// We abort so to avoid infinite looping.
-						throw new CommandLineException( "Unrecognized command line option: " + argsList.get( i ) );
-					}
-					i = newIndex;
-				} else { // They are command line arguments for the Jolie program
-					for( ; i < argsList.size(); i++ ) {
-						programArgumentsList.add( argsList.get( i ) );
-					}
+				// It's an unrecognized argument
+				int newIndex = argHandler.onUnrecognizedArgument( argsList, i );
+				if ( newIndex == i ) {
+					// The handler didn't change the index.
+					// We abort so to avoid infinite looping.
+					throw new CommandLineException( "Unrecognized command line option: " + argsList.get( i ) );
 				}
+				i = newIndex;
 			}
+		}
+		// Now parse the command line arguments for the Jolie program
+		for( ; i < argsList.size() && olFilepath != null; i++ ) {
+			programArgumentsList.add( argsList.get( i ) );
 		}
 
 		typeCheck = bTypeCheck;
