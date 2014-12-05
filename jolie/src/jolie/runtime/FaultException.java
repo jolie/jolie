@@ -89,7 +89,6 @@ public class FaultException extends Exception
 	 * Constructor.
 	 * Shortcut for {@code FaultException( faultName, Value.create() )}
 	 * @param faultName
-	 * @param message
 	 */
 	public FaultException( String faultName )
 	{

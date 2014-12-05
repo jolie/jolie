@@ -301,8 +301,6 @@ public class SessionThread extends ExecutionThread
 	 * 
 	 * @param process the Process this thread has to execute
 	 * @param parent the ExecutionThread to copy
-	 * @param notifyProc the CorrelatedProcess to notify when this session expires
-	 * @see CorrelatedProcess
 	 */
 	public SessionThread( Process process, ExecutionThread parent )
 	{

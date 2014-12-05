@@ -422,7 +422,7 @@ public class Interpreter
 	/**
 	 * Registers a session starter on this <code>Interpreter</code>.
 	 * @param guard the input guard for this session starter
-	 * @param process the body of this session starter
+	 * @param body the body of this session starter
 	 */
 	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body )
 	{
@@ -560,8 +560,7 @@ public class Interpreter
 
 	/**
 	 * Registers an <code>EmbeddedServiceLoader</code> on this interpreter.
-	 * @param key the name of the <code>EmbeddedServiceLoader</code> to register
-	 * @param value the <code>EmbeddedServiceLoader</code> to register
+	 * @param n the <code>EmbeddedServiceLoader</code> to register
 	 */
 	public void addEmbeddedServiceLoader( EmbeddedServiceLoader n )
 	{

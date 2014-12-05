@@ -42,7 +42,6 @@ public class SubtractAssignmentProcess implements Process, Expression
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and subtracted from the variable's value
-	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public SubtractAssignmentProcess( VariablePath varPath, Expression expression )
 	{

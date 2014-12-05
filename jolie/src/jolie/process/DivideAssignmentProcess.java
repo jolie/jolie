@@ -42,7 +42,6 @@ public class DivideAssignmentProcess implements Process, Expression
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and used to divide the variable's value
-	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public DivideAssignmentProcess( VariablePath varPath, Expression expression )
 	{

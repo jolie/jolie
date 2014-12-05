@@ -37,7 +37,7 @@ public class CallProcess implements Process
 	
 	/** Constructor
 	 * 
-	 * @param definition the definition to execute.
+	 * @param definitionName the name of the definition to execute.
 	 */
 	public CallProcess( String definitionName )
 	{
