@@ -273,7 +273,7 @@ public class CommandLineParser implements Closeable
 	/**
 	 * Returns the type of correlation algorithm that has been specified.
 	 * @return the type of correlation algorithm that has been specified.
-	 * @see CorrelationAlgorithm
+	 * @see CorrelationEngine
 	 */
 	public CorrelationEngine.Type correlationAlgorithmType()
 	{

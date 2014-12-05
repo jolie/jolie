@@ -41,7 +41,6 @@ public class AssignmentProcess implements Process, Expression
 	 * 
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression of which the evaluation will be stored in the variable
-	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public AssignmentProcess( VariablePath varPath, Expression expression )
 	{

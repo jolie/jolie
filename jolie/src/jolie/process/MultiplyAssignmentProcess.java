@@ -42,7 +42,6 @@ public class MultiplyAssignmentProcess implements Process, Expression
 	 *
 	 * @param varPath the variable which will receive the value
 	 * @param expression the expression to be evaluated and multiplied to the the variable's value
-	 * @throws InvalidIdException if varId does not identify a variable
 	 */
 	public MultiplyAssignmentProcess( VariablePath varPath, Expression expression )
 	{
