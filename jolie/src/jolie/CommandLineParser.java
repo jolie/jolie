@@ -502,14 +502,14 @@ public class CommandLineParser implements Closeable
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
 		
-		InputStream tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
+		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
 
-		if ( tmpProgramStream == null ) {
+		if ( olResult.stream == null ) {
 			if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				tmpProgramStream = getOLStream( olFilepath, includeList, jolieClassLoader );
-				if ( tmpProgramStream == null ) {
+				olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
+				if ( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
 				}
 			} else {
@@ -519,11 +519,13 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-		programFilepath = olFilepath;
-		programStream = tmpProgramStream;
+		programFilepath = olResult.source;
+		programStream = olResult.stream;
 
 		includePaths = includeList.toArray( new String[]{} );
 	}
+	
+	
 	
 	/**
 	 * Adds the standard include and library subdirectories of the program to
@@ -631,17 +633,24 @@ public class CommandLineParser implements Closeable
 		return optionList;
 	}
 	
-	private InputStream getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
+	private static class GetOLStreamResult {
+		private String source;
+		private InputStream stream;
+	}
+	
+	private GetOLStreamResult getOLStream( String olFilepath, LinkedList< String > includePaths, ClassLoader classLoader )
 		throws FileNotFoundException, IOException
 	{
-		InputStream olStream = null;
+		GetOLStreamResult result = new GetOLStreamResult();
+
 		URL olURL = null;
 		File f = new File( olFilepath ).getAbsoluteFile();
 		if ( f.exists() ) {
-			olStream = new FileInputStream( f );
+			result.stream = new FileInputStream( f );
+			result.source = f.toURI().toString();
 			programDirectory = f.getParentFile();
 		} else {
-			for( int i = 0; i < includePaths.size() && olStream == null; i++ ) {
+			for( int i = 0; i < includePaths.size() && result.stream == null; i++ ) {
 				f = new File(
 							includePaths.get( i ) +
 							jolie.lang.Constants.fileSeparator +
@@ -649,21 +658,24 @@ public class CommandLineParser implements Closeable
 						);
 				if ( f.exists() ) {
 					f = f.getAbsoluteFile();
-					olStream = new BufferedInputStream( new FileInputStream( f ) );
+					result.stream = new BufferedInputStream( new FileInputStream( f ) );
+					result.source = f.toURI().toString();
 					programDirectory = f.getParentFile();
 				}
 			}
-			if ( olStream == null ) {
+			if ( result.stream == null ) {
 				try {
 					olURL = new URL( olFilepath );
-					olStream = olURL.openStream();
-					if ( olStream == null ) {
+					result.stream = olURL.openStream();
+					result.source = olFilepath;
+					if ( result.stream == null ) {
 						throw new MalformedURLException();
 					}
 				} catch( MalformedURLException e ) {
 					olURL = classLoader.getResource( olFilepath );
 					if ( olURL != null ) {
-						olStream = olURL.openStream();
+						result.stream = olURL.openStream();
+						result.source = olFilepath;
 					}
 				}
 				if ( programDirectory == null && olURL != null && olURL.getPath() != null ) {
@@ -677,7 +689,7 @@ public class CommandLineParser implements Closeable
 				}
 			}
 		}
-		if ( olStream != null ) {
+		if ( result.stream != null ) {
 			if ( f.exists() && f.getParent() != null ) {
 				includePaths.addFirst( f.getParent() );
 			} else if ( olURL != null ) {
@@ -685,7 +697,7 @@ public class CommandLineParser implements Closeable
 				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
 			}
 		}
-		return olStream;
+		return result;
 	}
 
 	/**
