@@ -106,9 +106,6 @@ public class JavaDocumentCreator {
 
                 Collection<OperationDeclaration> operations = inputPort.operations();
 
-                String sourceString = inputPort.context().source().toString();
-
-
                 Iterator<OperationDeclaration> operatorIterator = operations.iterator();
                 while (operatorIterator.hasNext()) {
                     operation = operatorIterator.next();

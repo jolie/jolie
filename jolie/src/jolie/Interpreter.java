@@ -1156,7 +1156,7 @@ public class Interpreter
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
 			} else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), new URI( "file:" + cmdParser.programFilepath() ) ), includePaths, classLoader );
+				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), new URI( cmdParser.programFilepath() ) ), includePaths, classLoader );
 				olParser.putConstants( cmdParser.definedConstants() );
 				program = olParser.parse();
 				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
