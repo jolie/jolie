@@ -858,7 +858,7 @@ public class MetaJolie extends JavaService {
             if (request.getFirstChild("domain").isDefined()) {
                 domain = request.getFirstChild("domain").strValue();
             }
-            CommandLineParser cmdParser = new CommandLineParser(args, MetaJolie.class.getClassLoader());
+            CommandLineParser cmdParser = new CommandLineParser(args, interpreter().getClassLoader());
             args = cmdParser.arguments();
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
