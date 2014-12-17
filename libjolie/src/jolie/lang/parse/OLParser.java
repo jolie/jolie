@@ -655,7 +655,9 @@ public class OLParser extends AbstractParser
 					f2.getParent(),
 					f2.toURI() //path
 				); */
-				ret = tryAccessIncludeFile( url.toString() );
+				if ( url != null ) {
+					ret = tryAccessIncludeFile( url.toString() );
+				}
 			} catch( MalformedURLException mue ) {
 			} catch( URISyntaxException use ) {}
 		}
