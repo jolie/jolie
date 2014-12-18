@@ -594,6 +594,8 @@ public class CommCore
 					CommMessage message = channel.recv();
 					if ( message != null ) {
 						handleMessage( message );
+					} else {
+						channel.disposeForInput();
 					}
 				} else {
 					channel.lock.unlock();
