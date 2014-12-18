@@ -19,16 +19,13 @@ package joliex.meta;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
-import jolie.Interpreter;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
@@ -702,9 +699,19 @@ public class MetaJolie extends JavaService
 	
 	private String[] getArgs( String filename )
 	{
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		for( String s : interpreter().includePaths() ) {
+			builder.append( s );
+			if ( ++i < interpreter().includePaths().length ) {
+				builder.append( jolie.lang.Constants.pathSeparator );
+			}
+		}
+		
 		return new String[] {
 			"-i",
-			String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths() ),
+			builder.toString(),
+			// String.join( jolie.lang.Constants.pathSeparator, interpreter().includePaths() ),
 			filename
 		};
 	}
