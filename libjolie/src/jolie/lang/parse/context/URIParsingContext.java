@@ -39,11 +39,13 @@ public class URIParsingContext extends AbstractParsingContext
 		this.uri = uri;
 	}
 
+	@Override
 	public URI source()
 	{
 		return uri;
 	}
 
+	@Override
 	public String sourceName()
 	{
 		return uri.getSchemeSpecificPart();

@@ -114,7 +114,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap< URI, List< InputPortInfo > >();
 	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap< URI, List< OutputPortInfo > >();
 	private final Map< URI, List< TypeDefinition > > types = new HashMap< URI, List< TypeDefinition > >();
-        private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap< URI, List< EmbeddedServiceNode > >();
+	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap< URI, List< EmbeddedServiceNode > >();
 	private final Set< URI > sources = new HashSet< URI >();
 
 	public ProgramInspectorCreatorVisitor( Program program )
@@ -130,7 +130,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 			interfaces,
 			inputPorts,
 			outputPorts,
-                        embeddedServices
+			embeddedServices
 		);
 	}
 
@@ -204,17 +204,18 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 
 		encounteredNode( n );
 	}
-        
-        public void visit( EmbeddedServiceNode n ) {
-                List< EmbeddedServiceNode > list = embeddedServices.get( n.context().source() );
-                if ( list == null ) {
-                    list = new LinkedList< EmbeddedServiceNode >();
-                    embeddedServices.put( n.context().source(), list );
-                }
-                list.add( n );
-                
-                encounteredNode( n );
-        }
+
+	public void visit( EmbeddedServiceNode n )
+	{
+		List< EmbeddedServiceNode> list = embeddedServices.get( n.context().source() );
+		if ( list == null ) {
+			list = new LinkedList< EmbeddedServiceNode>();
+			embeddedServices.put( n.context().source(), list );
+		}
+		list.add( n );
+
+		encounteredNode( n );
+	}
 
 	public void visit( OneWayOperationDeclaration decl ) {}
 	public void visit( RequestResponseOperationDeclaration decl ) {}
