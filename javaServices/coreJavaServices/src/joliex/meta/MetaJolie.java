@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.NativeType;
@@ -695,8 +694,6 @@ public class MetaJolie extends JavaService
 		return response;
 	}
 
-	private final static Pattern servicePathSplitPattern = Pattern.compile( " " );
-	
 	private String[] getArgs( String filename )
 	{
 		StringBuilder builder = new StringBuilder();
