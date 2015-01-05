@@ -1067,7 +1067,10 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
 		} else if ( "multipart/form-data".equals( type ) ) {
 			parseMultiPartFormData( message, decodedMessage.value );
-		} else if ( "application/octet-stream".equals( type ) || type.startsWith( "image/" ) ) {
+		} else if (
+			"application/octet-stream".equals( type ) || type.startsWith( "image/" )
+			|| "application/zip".equals( type )
+		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) || "json".equals( format ) ) {
 			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );	
