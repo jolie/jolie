@@ -23,6 +23,7 @@
 package jolie.doc.impl.html;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -65,7 +66,8 @@ public class HtmlDocumentCreator
 		throws IOException
 	{
 		int filenameIndex = directorySourceFile.getRawSchemeSpecificPart().lastIndexOf( "/" ) + 1;
-		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, filenameIndex );
+		directorySOA = new File( directorySourceFile ).toString().substring( 0, filenameIndex );
+//		directorySOA = directorySourceFile.getSchemeSpecificPart().substring( 0, filenameIndex );
 
 		// scanning inputPorts. For each inputPort will be generated an html file
 		InputPortInfo[] inputPorts = inspector.getInputPorts( directorySourceFile );
@@ -74,7 +76,7 @@ public class HtmlDocumentCreator
 
 			if ( inputPortName.isEmpty() || inputPortName.equals( inputPort.id() ) ) {
 				types = new ArrayList<String>();
-				writer = new BufferedWriter( new FileWriter( directorySOA + inputPort.id() + ".html" ) );
+				writer = new BufferedWriter( new FileWriter( inputPort.id() + ".html" ) );
 				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( inputPort );
 				List<InterfaceDefinition> interfacesList = inputPort.getInterfaceList();
@@ -97,7 +99,7 @@ public class HtmlDocumentCreator
 					}
 				}
 				jolieDocWriter.write();
-				System.out.println( "Generated joliedoc " + directorySOA + inputPort.id() + ".html" );
+				System.out.println( "Generated joliedoc " + inputPort.id() + ".html" );
 			}
 
 		}
@@ -105,7 +107,7 @@ public class HtmlDocumentCreator
 			//System.out.println( "JolieDoc: no inputPort found, generated joliedocs for outputPorts." );
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
 			for( OutputPortInfo outputPort : outputPortList ) {
-				writer = new BufferedWriter( new FileWriter( directorySOA + outputPort.id() + ".html" ) );
+				writer = new BufferedWriter( new FileWriter( outputPort.id() + ".html" ) );
 				types = new ArrayList< String>();
 				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( outputPort );
@@ -115,7 +117,7 @@ public class HtmlDocumentCreator
 					addOperations( interfaceDefintion );
 				}
 				jolieDocWriter.write();
-				System.out.println( "Generated joliedoc " + directorySOA + outputPort.id() + ".html" );
+				System.out.println( "Generated joliedoc " + outputPort.id() + ".html" );
 			}
 		}
 	}
