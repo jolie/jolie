@@ -176,7 +176,7 @@ public class JolieDocWriter
 
 		// interface tables
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
-			writer.write( "<h2>" + "Interface " + interfaceDefinition.name() + "</h2>" );
+			writer.write( "<h2 id=" + interfaceDefinition.name() + ">" + "Interface " + interfaceDefinition.name() + "</h2>" );
 			writer.write( "<a name=\"" + interfaceDefinition.name() + "\"></a>" );
 			if ( !(interfaceDefinition.getDocumentation() == null) ) {
 				writer.write( interfaceDefinition.getDocumentation().trim().replace( "\n", "<br>" ) );
@@ -245,7 +245,7 @@ public class JolieDocWriter
 		for( InterfaceDefinition interfaceDefinition : interfaceDefintionVector ) {
 			for( Entry<String, OperationDeclaration> entry : interfaceDefinition.operationsMap().entrySet() ) {
 				OperationDeclaration operation = entry.getValue();
-				writer.write( "<div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><h3>" + operation.id() + "</h3></div>" );
+				writer.write( "<div class=\"operation-title\"><a name=\"" + operation.id() + "\"></a><h3 id=\"" + operation.id() + "\">" + operation.id() + "</h3></div>" );
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
 					RequestResponseOperationDeclaration rrOperation = (RequestResponseOperationDeclaration) operation;
 					writer.write( "<pre>" + operation.id() + "( <a href=\"#" + rrOperation.requestType().id() + "\">" + rrOperation.requestType().id()
@@ -280,7 +280,7 @@ public class JolieDocWriter
 
 		// scanning type list
 		for( TypeDefinition typesDefinition : typeDefinitionVector ) {
-			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3>" + typesDefinition.id() + "</h3>" );
+			writer.write( "<a name=\"" + typesDefinition.id() + "\"></a><h3 id=\"" + typesDefinition.id() + "\">" + typesDefinition.id() + "</h3>" );
 			if ( typesDefinition.getDocumentation() != null ) {
 				writer.write( "<span class=\"opdoc\"><p>" + typesDefinition.getDocumentation().trim().replace( "\n", "<br/>" ) + "</p></span>" );
 			}
