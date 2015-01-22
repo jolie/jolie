@@ -45,7 +45,7 @@ public class JolieDoc
 			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( cmdParser.programFilepath() ),
+				URI.create( "file:" + cmdParser.programFilepath() ),
 				cmdParser.includePaths(), 
 				cmdParser.jolieClassLoader(), 
 				cmdParser.definedConstants(),
