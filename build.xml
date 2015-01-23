@@ -47,7 +47,7 @@
 		<echo message="Creating Jolie Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie.bat">@echo off
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -Xmx1G -jar %JOLIE_HOME%jolie.jar -l .\lib\*;%JOLIE_HOME%lib;%JOLIE_HOME%javaServices\*;%JOLIE_HOME%extensions\* -i %JOLIE_HOME%include %params%
+java -ea:jolie... -ea:joliex... -jar %JOLIE_HOME%jolie.jar -l .\lib\*;%JOLIE_HOME%lib;%JOLIE_HOME%javaServices\*;%JOLIE_HOME%extensions\* -i %JOLIE_HOME%include %params%
 		</echo>
 		<echo message="Creating JolieC (Jolie Compiler) Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/joliec.bat">@echo off
@@ -107,7 +107,7 @@ jolie %JOLIE_HOME%tools\wsdl2jolie.ol %params%
 		<echo message="Creating Jolie Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie">#!/bin/sh
 
-java -ea:jolie... -ea:joliex... -Xmx4G -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie" perm="a+x"/>
 
