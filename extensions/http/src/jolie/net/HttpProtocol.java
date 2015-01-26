@@ -777,7 +777,7 @@ public class HttpProtocol extends CommProtocol
 				"compressionTypes",
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript"
 			);
-			if ( compressionTypes.length() > 0 && !compressionTypes.contains( encodedContent.contentType ) ) {
+			if ( !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
 			if ( compression ) {
