@@ -773,7 +773,10 @@ public class HttpProtocol extends CommProtocol
 			}
 			
 			boolean compression = ( encoding != null ) && checkBooleanParameter( "compression", true );
-			String compressionTypes = getStringParameter( "compressionTypes" );
+			String compressionTypes = getStringParameter(
+				"compressionTypes",
+				"text/html text/css text/plain text/xml application/json application/javascript"
+			);
 			if ( compressionTypes.length() > 0 && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
