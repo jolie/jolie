@@ -22,6 +22,7 @@
 package jolie.net.http;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -30,6 +31,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.zip.InflaterInputStream;
+import java.util.zip.GZIPInputStream;
 import jolie.Interpreter;
 import jolie.lang.parse.Scanner;
 import jolie.net.ChannelClosingException;
@@ -327,6 +330,17 @@ public class HttpParser
 			}
 		}
 		
+		p = message.getProperty( "content-encoding" );
+		if ( p != null ) {
+			if ( p.equals( "deflate" ) ) {
+				buffer = readAll( new InflaterInputStream( new ByteArrayInputStream( buffer ) ) );
+			} else if ( p.equals( "gzip" ) ) {
+				buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
+			} else {
+				throw new IOException( "Unrecognized Content-Encoding: " + p );
+			}
+		}
+
 		message.setContent( buffer );
 	}
 

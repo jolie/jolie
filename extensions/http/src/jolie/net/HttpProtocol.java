@@ -42,6 +42,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -343,6 +345,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
+	private String encoding = null;
 	private String requestFormat = null;
 
 	private void send_appendQuerystring( Value value, String charset, StringBuilder headerBuilder )
@@ -723,6 +726,9 @@ public class HttpProtocol extends CommProtocol
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
+		if ( checkBooleanParameter( "compression", true ) ) {
+			headerBuilder.append( "Accept-Encoding: gzip, deflate" + CRLF );
+		}
 		send_appendHeader( message, headerBuilder );
 	}
 	
@@ -732,6 +738,7 @@ public class HttpProtocol extends CommProtocol
 		String charset,
 		StringBuilder headerBuilder
 	)
+		throws IOException
 	{
 		String param;
 		if ( checkBooleanParameter( "keepAlive", true ) == false || channel().toBeClosed() ) {
@@ -765,6 +772,29 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
 			}
 			
+			boolean compression = ( encoding != null ) && checkBooleanParameter( "compression", true );
+			String compressionTypes = getStringParameter( "compressionTypes" );
+			if ( compressionTypes.length() > 0 && !compressionTypes.contains( encodedContent.contentType ) ) {
+				compression = false;
+			}
+			if ( compression ) {
+				if ( encoding.contains( "gzip" ) ) {
+					ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+					GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
+					outStream.write( encodedContent.content.getBytes() );
+					outStream.close();
+					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
+					headerBuilder.append( "Content-Encoding: gzip" + CRLF );
+				} else if ( encoding.contains( "deflate" ) ) {
+					ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+					DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
+					outStream.write( encodedContent.content.getBytes() );
+					outStream.close();
+					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
+					headerBuilder.append( "Content-Encoding: deflate" + CRLF );
+				}
+			}
+
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + CRLF );
@@ -1034,7 +1064,7 @@ public class HttpProtocol extends CommProtocol
 		}
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
-	
+
 	private void recv_parseRequestFormat( HttpMessage message )
 		throws IOException
 	{
@@ -1200,8 +1230,6 @@ public class HttpProtocol extends CommProtocol
 			return null;
 		}
 
-		String charset = getCharset();
-
 		if ( message.getProperty( "connection" ) != null ) {
 			HttpUtils.recv_checkForChannelClosing( message, channel() );
 		} else {
@@ -1214,6 +1242,9 @@ public class HttpProtocol extends CommProtocol
 		
 		recv_checkForStatusCode( message );
 		
+		String charset = getCharset();
+		encoding = message.getProperty( "accept-encoding" );
+
 		recv_parseRequestFormat( message );
 		if ( message.size() > 0 ) {
 			recv_parseMessage( message, decodedMessage, charset );
@@ -1336,4 +1367,3 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 }
- 
