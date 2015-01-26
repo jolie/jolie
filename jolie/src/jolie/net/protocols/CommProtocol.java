@@ -148,7 +148,12 @@ public abstract class CommProtocol
 	 */
 	protected String getStringParameter( String id )
 	{
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : "" );
+		return getStringParameter( id, "" );
+	}
+	
+	protected String getStringParameter( String id, String defaultValue )
+	{
+		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue );
 	}
 
 	protected boolean hasOperationSpecificParameter( String operationName, String parameterName )
