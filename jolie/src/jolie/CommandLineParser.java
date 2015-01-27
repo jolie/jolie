@@ -647,7 +647,7 @@ public class CommandLineParser implements Closeable
 		File f = new File( olFilepath ).getAbsoluteFile();
 		if ( f.exists() ) {
 			result.stream = new FileInputStream( f );
-			result.source = f.toString();
+			result.source = f.toURI().getSchemeSpecificPart();
 			programDirectory = f.getParentFile();
 		} else {
 			for( int i = 0; i < includePaths.size() && result.stream == null; i++ ) {
@@ -659,7 +659,7 @@ public class CommandLineParser implements Closeable
 				if ( f.exists() ) {
 					f = f.getAbsoluteFile();
 					result.stream = new BufferedInputStream( new FileInputStream( f ) );
-					result.source = f.toString();
+					result.source = f.toURI().getSchemeSpecificPart();
 					programDirectory = f.getParentFile();
 				}
 			}
