@@ -336,7 +336,7 @@ public class HttpParser
 				buffer = readAll( new InflaterInputStream( new ByteArrayInputStream( buffer ) ) );
 			} else if ( p.equals( "gzip" ) ) {
 				buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
-			} else {
+			} else if ( !p.equals( "identity" ) ) {
 				throw new IOException( "Unrecognized Content-Encoding: " + p );
 			}
 		}
