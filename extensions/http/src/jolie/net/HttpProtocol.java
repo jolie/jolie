@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -93,8 +95,6 @@ import org.xml.sax.SAXException;
  */
 public class HttpProtocol extends CommProtocol
 {
-	private static final byte[] NOT_IMPLEMENTED_HEADER = "HTTP/1.1 501 Not Implemented".getBytes();
-	private static final byte[] UNSUPPORTED_MEDIA_TYPE = "HTTP/1.1 415 Unsupported Media Type".getBytes();
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
@@ -1238,19 +1238,14 @@ public class HttpProtocol extends CommProtocol
 			recv_logDebugInfo( message );
 		}
 
-		if ( message.isSupported() == false ) {
-			ostream.write( NOT_IMPLEMENTED_HEADER );
-			ostream.write( CRLF.getBytes() );
-			ostream.write( CRLF.getBytes() );
-			ostream.flush();
-			return null;
-		}
-
-		if ( message.content() == null ) {
-			ostream.write( UNSUPPORTED_MEDIA_TYPE );
-			ostream.write( CRLF.getBytes() );
-			ostream.write( CRLF.getBytes() );
-			ostream.flush();
+		if ( !message.isSupported() ) {
+			int error = 501;
+			Writer writer = new OutputStreamWriter(ostream);
+			writer.write( "HTTP/1.1 " + error + " " + statusCodeDescriptions.get( error ) + CRLF );
+			writer.write( "Content-Type: text/plain; charset=\"utf-8\"" + CRLF );
+			writer.write( "Content-Length: " + statusCodeDescriptions.get( error ).length() + CRLF + CRLF );
+			writer.write( statusCodeDescriptions.get( error ) );
+			writer.flush();
 			return null;
 		}
 

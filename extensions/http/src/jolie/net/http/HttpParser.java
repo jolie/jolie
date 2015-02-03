@@ -49,6 +49,7 @@ public class HttpParser
 	private static final String TRACE = "TRACE";
 	private static final String CONNECT = "CONNECT";
 	private static final String OPTIONS = "OPTIONS";
+	private static final String PATCH = "PATCH";
 
 	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
 	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
@@ -172,7 +173,7 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.PUT );
 		} else if (
 			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
-			token.isKeyword( TRACE )
+			token.isKeyword( TRACE ) || token.isKeyword ( PATCH )
 		) {
 			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
 		} else if ( token.is( Scanner.TokenType.EOF ) ) {
