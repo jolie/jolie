@@ -728,7 +728,13 @@ public class HttpProtocol extends CommProtocol
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
 		if ( checkBooleanParameter( "compression", true ) ) {
-			headerBuilder.append( "Accept-Encoding: gzip, deflate" + CRLF );
+			String requestCompression = getStringParameter( "requestCompression" );
+			if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
+				encoding = requestCompression;
+				headerBuilder.append( "Accept-Encoding: " + encoding + CRLF );
+			} else {
+				headerBuilder.append( "Accept-Encoding: gzip, deflate" + CRLF );
+			}
 		}
 		send_appendHeader( message, headerBuilder );
 	}
