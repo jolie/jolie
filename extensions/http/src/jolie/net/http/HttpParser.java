@@ -333,9 +333,9 @@ public class HttpParser
 		
 		p = message.getProperty( "content-encoding" );
 		if ( p != null ) {
-			if ( p.equals( "deflate" ) ) {
+			if ( p.contains( "deflate" ) ) {
 				buffer = readAll( new InflaterInputStream( new ByteArrayInputStream( buffer ) ) );
-			} else if ( p.equals( "gzip" ) ) {
+			} else if ( p.contains( "gzip" ) ) {
 				buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
 			} else if ( !p.equals( "identity" ) ) {
 				buffer = null;
