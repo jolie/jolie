@@ -1232,6 +1232,12 @@ public class HttpProtocol extends CommProtocol
 		DecodedMessage decodedMessage = new DecodedMessage();
 		HttpMessage message = new HttpParser( istream ).parse();
 
+		HttpUtils.recv_checkForChannelClosing( message, channel() );
+
+		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
+			recv_logDebugInfo( message );
+		}
+
 		if ( message.isSupported() == false ) {
 			ostream.write( NOT_IMPLEMENTED_HEADER );
 			ostream.write( CRLF.getBytes() );
@@ -1248,16 +1254,6 @@ public class HttpProtocol extends CommProtocol
 			return null;
 		}
 
-		if ( message.getProperty( "connection" ) != null ) {
-			HttpUtils.recv_checkForChannelClosing( message, channel() );
-		} else {
-			channel().setToBeClosed( checkBooleanParameter( "keepAlive", true ) == false );
-		}
-				
-		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-			recv_logDebugInfo( message );
-		}
-		
 		recv_checkForStatusCode( message );
 		
 		String charset = getCharset();
