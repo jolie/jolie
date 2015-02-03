@@ -185,6 +185,9 @@ public class HttpProtocol extends CommProtocol
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
 		private static final String DEFAULT_OPERATION = "default";
+		private static final String COMPRESSION = "compression";
+		private static final String COMPRESSION_TYPES = "compressionTypes";
+		private static final String REQUEST_COMPRESSION = "requestCompression";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -727,8 +730,8 @@ public class HttpProtocol extends CommProtocol
 		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
-		if ( checkBooleanParameter( "compression", true ) ) {
-			String requestCompression = getStringParameter( "requestCompression" );
+		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
+			String requestCompression = getStringParameter( Parameters.REQUEST_COMPRESSION );
 			if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 				encoding = requestCompression;
 				headerBuilder.append( "Accept-Encoding: " + encoding + CRLF );
@@ -779,9 +782,9 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
 			}
 			
-			boolean compression = ( encoding != null ) && checkBooleanParameter( "compression", true );
+			boolean compression = ( encoding != null ) && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
-				"compressionTypes",
+				Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript"
 			);
 			if ( !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
