@@ -460,8 +460,9 @@ public class HttpProtocol extends CommProtocol
 			// We are building a GET request
 			return ret;
 		}
-                
+
 		if ( "xml".equals( format ) ) {
+			ret.contentType = "text/xml";
 			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement( message.operationName() + (( inInputPort ) ? "Response" : "") );
 			doc.appendChild( root );
@@ -481,16 +482,24 @@ public class HttpProtocol extends CommProtocol
 				throw new IOException( e );
 			}
 			ret.content = new ByteArray( tmpStream.toByteArray() );
-
-			ret.contentType = "text/xml";
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
 				ret.content = (ByteArray) message.value().valueObject();
 				ret.contentType = "application/octet-stream";
 			}
 		} else if ( "html".equals( format ) ) {
-			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
 			ret.contentType = "text/html";
+			if ( message.isFault() ) {
+				StringBuilder builder = new StringBuilder();
+				builder.append( "<html><head><title>" );
+				builder.append( message.fault().faultName() );
+				builder.append( "</title></head><body>" );
+				builder.append( message.fault().value().strValue() );
+				builder.append( "</body></html>" );
+				ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+			} else {
+				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+			}
 		} else if ( "multipart/form-data".equals( format ) ) {
 			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
 			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
@@ -538,15 +547,22 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "application/x-www-form-urlencoded";
 			Iterator< Entry< String, ValueVector > > it =
 				message.value().children().entrySet().iterator();
-			Entry< String, ValueVector > entry;
 			StringBuilder builder = new StringBuilder();
-			while( it.hasNext() ) {
-				entry = it.next();
-				builder.append( entry.getKey() )
-					.append( "=" )
-					.append( URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
-				if ( it.hasNext() ) {
-					builder.append( '&' );
+			if ( message.isFault() ) {
+				builder.append( "faultName=" );
+				builder.append( URLEncoder.encode( message.fault().faultName(), "UTF-8" ) );
+				builder.append( "&data=" );
+				builder.append( URLEncoder.encode( message.fault().value().strValue(), "UTF-8" ) );
+			} else {
+				Entry< String, ValueVector > entry;
+				while( it.hasNext() ) {
+					entry = it.next();
+					builder.append( entry.getKey() )
+						.append( "=" )
+						.append( URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
+					if ( it.hasNext() ) {
+						builder.append( '&' );
+					}
 				}
 			}
 			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
@@ -582,7 +598,11 @@ public class HttpProtocol extends CommProtocol
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
-			ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+			if ( message.isFault() ) {
+				ret.content = new ByteArray( message.fault().value().strValue().getBytes( charset ) );
+			} else {
+				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+			}
 		}
 		return ret;
 	}
