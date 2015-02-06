@@ -852,9 +852,6 @@ public class HttpProtocol extends CommProtocol
 		send_logDebugInfo( headerBuilder, encodedContent );
 		inputId = message.operationName();
 		
-		/*if ( charset == null ) {
-			charset = "UTF8";
-		}*/
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
