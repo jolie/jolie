@@ -327,19 +327,21 @@ public class HttpParser
 				buffer = readAll( scanner.inputStream() );
 			}
 		}
-		
-		p = message.getProperty( "content-encoding" );
-		if ( p != null ) {
-			if ( p.contains( "deflate" ) ) {
-				buffer = readAll( new InflaterInputStream( new ByteArrayInputStream( buffer ) ) );
-			} else if ( p.contains( "gzip" ) ) {
-				buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
-			} else if ( !p.equals( "identity" ) ) {
-				throw new UnsupportedEncodingException( "Unrecognized Content-Encoding: " + p );
-			}
-		}
 
-		message.setContent( buffer );
+		if ( buffer != null ) {
+			p = message.getProperty( "content-encoding" );
+			if ( p != null ) {
+				if ( p.contains( "deflate" ) ) {
+					buffer = readAll( new InflaterInputStream( new ByteArrayInputStream( buffer ) ) );
+				} else if ( p.contains( "gzip" ) ) {
+					buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
+				} else if ( !p.equals( "identity" ) ) {
+					throw new UnsupportedEncodingException( "Unrecognized Content-Encoding: " + p );
+				}
+			}
+
+			message.setContent( buffer );
+		}
 	}
 
 	public HttpMessage parse()
