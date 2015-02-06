@@ -914,6 +914,9 @@ public class HttpProtocol extends CommProtocol
 		String[] pair;
 		for( String item : line.split( "&" ) ) {
 			pair = item.split( "=", 2 );
+			if ( pair.length != 2 ) {
+				throw new IOException( "Item " + item + " not in x-www-form-urlencoded" );
+			}
 			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], charset ) );
 		}		
 	}
