@@ -1373,7 +1373,7 @@ public class HttpProtocol extends CommProtocol
 				Writer writer = new OutputStreamWriter( ostream );
 				writer.write( "HTTP/1.1 " + error + " " + statusCodeDescriptions.get( error ) + CRLF );
 				writer.write( "Server: Jolie" + CRLF );
-				writer.write( "Content-Type: text/plain; charset=\"utf-8\"" + CRLF );
+				writer.write( "Content-Type: text/plain; charset=utf-8" + CRLF );
 				writer.write( "Content-Length: " + e.getMessage().length() + CRLF + CRLF );
 				writer.write( e.getMessage() );
 				writer.flush();
