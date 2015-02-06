@@ -640,6 +640,10 @@ public class HttpProtocol extends CommProtocol
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
 		}
 		
+		if ( message.isFault() ) {
+			statusCode = DEFAULT_ERROR_STATUS_CODE;
+		}
+		
 		if ( statusDescription == null ) {
 			statusDescription = statusCodeDescriptions.get( statusCode );
 		}
