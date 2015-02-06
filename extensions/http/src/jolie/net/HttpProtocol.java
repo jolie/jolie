@@ -639,7 +639,7 @@ public class HttpProtocol extends CommProtocol
 		} else if ( hasParameter( Parameters.REDIRECT ) ) {
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
 		}
-		
+
 		if ( message.isFault() ) {
 			statusCode = DEFAULT_ERROR_STATUS_CODE;
 		}
@@ -782,12 +782,13 @@ public class HttpProtocol extends CommProtocol
 		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( CRLF );
 		}
-		
+
 		if ( encodedContent.content != null ) {
 			String contentType = getStringParameter( "contentType" );
 			if ( contentType.length() > 0 ) {
 				encodedContent.contentType = contentType;
 			}
+			encodedContent.contentType = encodedContent.contentType.toLowerCase();
 
  			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
 			if ( charset != null ) {
@@ -810,7 +811,7 @@ public class HttpProtocol extends CommProtocol
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript"
-			);
+			).toLowerCase();
 			if ( !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
@@ -1120,7 +1121,7 @@ public class HttpProtocol extends CommProtocol
 			format = getStringParameter( "format" );
 		}
 
-		String type = message.getProperty( "content-type" ).split( ";" )[0];
+		String type = message.getProperty( "content-type" ).split( ";" )[0].toLowerCase();
 		if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
