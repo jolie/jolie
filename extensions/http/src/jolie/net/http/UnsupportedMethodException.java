@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) by Matthias Dieter Wallnöfer                            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,45 +21,24 @@
 
 package jolie.net.http;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
+import jolie.lang.Constants;
 
 /**
- *
- * @author Fabrizio Montesi
+ * An exception for invalid/unsupported HTTP requests
+ * @author Matthias Dieter Wallnöfer
  */
-public enum Method
+public class UnsupportedMethodException extends IOException
 {
-	POST( "POST" ),
-	GET( "GET" );
+	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final static Map< String, Method > idMap = new ConcurrentHashMap< String, Method >();
-
-	static {
-		for( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
-		}
-	}
-
-	private final String id;
-	
-	Method( String id )
+	/**
+	 * Constructor.
+	 *
+	 * @param message
+	 */
+	public UnsupportedMethodException( String message )
 	{
-		this.id = id;
-	}
-
-	public String id()
-	{
-		return id;
-	}
-
-	public static Method fromString( String id )
-		throws UnsupportedMethodException
-	{
-		Method m = idMap.get( id );
-		if ( m == null ) {
-			throw new UnsupportedMethodException( id );
-		}
-		return m;
+		super( message );
 	}
 }

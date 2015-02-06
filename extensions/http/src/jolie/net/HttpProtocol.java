@@ -27,6 +27,7 @@ import com.google.gwt.user.server.rpc.RPCRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -67,6 +68,8 @@ import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
 import jolie.net.http.json.JsonUtils;
+import jolie.net.http.UnsupportedMethodException;
+import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
@@ -97,6 +100,7 @@ public class HttpProtocol extends CommProtocol
 {
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
+	private static final int DEFAULT_ERROR_STATUS_CODE = 500;
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
 	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
 	
@@ -706,18 +710,14 @@ public class HttpProtocol extends CommProtocol
 	private Method send_getRequestMethod( CommMessage message )
 		throws IOException
 	{
-		try {
-			Method method = 
-				hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
-					Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() )
-				: hasParameter( Parameters.METHOD ) ?
-					Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() )
-				:
-					Method.POST;
-			return method;
-		} catch( Method.UnsupportedMethodException e ) {
-			throw new IOException( e );
-		}
+		Method method =
+			hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
+				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() )
+			: hasParameter( Parameters.METHOD ) ?
+				Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() )
+			:
+				Method.POST;
+		return method;
 	}
 	
 	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
@@ -1228,28 +1228,16 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	private CommMessage recv_internal( InputStream istream, OutputStream ostream, HttpMessage message )
 		throws IOException
 	{
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-		HttpMessage message = new HttpParser( istream ).parse();
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message );
-		}
-
-		if ( !message.isSupported() ) {
-			int error = 501;
-			Writer writer = new OutputStreamWriter(ostream);
-			writer.write( "HTTP/1.1 " + error + " " + statusCodeDescriptions.get( error ) + CRLF );
-			writer.write( "Content-Type: text/plain; charset=\"utf-8\"" + CRLF );
-			writer.write( "Content-Length: " + statusCodeDescriptions.get( error ).length() + CRLF + CRLF );
-			writer.write( statusCodeDescriptions.get( error ) );
-			writer.flush();
-			return null;
 		}
 
 		recv_checkForStatusCode( message );
@@ -1339,7 +1327,36 @@ public class HttpProtocol extends CommProtocol
 
 		return retVal;
 	}
-	
+
+	public CommMessage recv( InputStream istream, OutputStream ostream )
+		throws IOException
+	{
+		HttpMessage message = null;
+		try {
+			message = new HttpParser( istream ).parse();
+			return recv_internal( istream, ostream, message );
+		} catch ( IOException e ) {
+			if ( inInputPort ) {
+				int error = DEFAULT_ERROR_STATUS_CODE; // Intenal server error
+				if ( e instanceof UnsupportedEncodingException ) {
+					error = 415; // Unsupported media type
+				} else if ( e instanceof UnsupportedMethodException ) {
+					error = 501; // Not Implemented
+				} else if ( e instanceof UnsupportedHttpVersionException ) {
+					error = 505; // HTTP Version Not Supported
+				}
+				Writer writer = new OutputStreamWriter( ostream );
+				writer.write( "HTTP/1.1 " + error + " " + statusCodeDescriptions.get( error ) + CRLF );
+				writer.write( "Server: Jolie" + CRLF );
+				writer.write( "Content-Type: text/plain; charset=\"utf-8\"" + CRLF );
+				writer.write( "Content-Length: " + e.getMessage().length() + CRLF + CRLF );
+				writer.write( e.getMessage() );
+				writer.flush();
+			}
+			throw e;
+		}
+	}
+
 	private Type getSendType( CommMessage message )
 		throws IOException
 	{
