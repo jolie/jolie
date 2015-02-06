@@ -24,6 +24,7 @@ package jolie.net.http;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -171,25 +172,21 @@ public class HttpParser
 			message = new HttpMessage( HttpMessage.Type.DELETE );
 		} else if ( token.isKeyword( PUT ) ) {
 			message = new HttpMessage( HttpMessage.Type.PUT );
-		} else if (
-			token.isKeyword( OPTIONS ) || token.isKeyword( CONNECT ) ||
-			token.isKeyword( TRACE ) || token.isKeyword ( PATCH )
-		) {
-			message = new HttpMessage( HttpMessage.Type.UNSUPPORTED );
 		} else if ( token.is( Scanner.TokenType.EOF ) ) {
 			throw new ChannelClosingException( "[http] Remote host closed connection." ); // It's not a real message, the client is just closing a connection.
 		} else {
-			throw new IOException( "Unknown HTTP request type: " + token.content() + "(" + token.type() + ")" );
+			throw new UnsupportedMethodException( "Unknown/Unsupported HTTP request type: "
+				+ token.content() + "(" + token.type() + ")" );
 		}
 
 		message.setRequestPath( URLDecoder.decode( scanner.readWord().substring( 1 ), URL_DECODER_ENC ) );
 
 		getToken();
 		if ( !token.isKeyword( HTTP ) )
-			throw new IOException( "Invalid HTTP header: expected HTTP version" );
+			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 		
 		if ( (char)scanner.currentCharacter() != '/' )
-			throw new IOException( "Expected HTTP version" );
+			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
 		if ( "1.0".equals( version ) )
@@ -197,7 +194,7 @@ public class HttpParser
 		else if ( "1.1".equals( version ) )
 			message.setVersion( HttpMessage.Version.HTTP_1_1 );
 		else
-			throw new IOException( "Unsupported HTTP version specified: " + version );
+			throw new UnsupportedHttpVersionException( "Unsupported HTTP version specified: " + version );
 		
 		return message;
 	}
@@ -338,7 +335,7 @@ public class HttpParser
 			} else if ( p.contains( "gzip" ) ) {
 				buffer = readAll( new GZIPInputStream( new ByteArrayInputStream( buffer ) ) );
 			} else if ( !p.equals( "identity" ) ) {
-				throw new IOException( "Unrecognized Content-Encoding: " + p );
+				throw new UnsupportedEncodingException( "Unrecognized Content-Encoding: " + p );
 			}
 		}
 
