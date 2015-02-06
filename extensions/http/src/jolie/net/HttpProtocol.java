@@ -448,7 +448,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private static class EncodedContent {
 		private ByteArray content = null;
-		private String contentType = "";
+		private String contentType = "application/octet-stream"; // default content type per RFC 2616#7.2.1
 		private String contentDisposition = "";
 	}
 
