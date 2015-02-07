@@ -193,6 +193,9 @@ public class HttpProtocol extends CommProtocol
 		private static final String COMPRESSION = "compression";
 		private static final String COMPRESSION_TYPES = "compressionTypes";
 		private static final String REQUEST_COMPRESSION = "requestCompression";
+		private static final String FORMAT = "format";
+		private static final String CHARSET = "charset";
+		private static final String CONTENT_TYPE = "contentType";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -428,8 +431,8 @@ public class HttpProtocol extends CommProtocol
 	private String getCharset()
 	{
 		String charset = "UTF-8";
-		if ( hasParameter( "charset" ) ) {
-			charset = getStringParameter( "charset" );
+		if ( hasParameter( Parameters.CHARSET ) ) {
+			charset = getStringParameter( Parameters.CHARSET );
 		}
 		return charset;
 	}
@@ -440,8 +443,8 @@ public class HttpProtocol extends CommProtocol
 		if ( inInputPort && requestFormat != null ) {
 			format = requestFormat;
 			requestFormat = null;
-		} else if ( hasParameter( "format" ) ) {
-			format = getStringParameter( "format" );
+		} else if ( hasParameter( Parameters.FORMAT ) ) {
+			format = getStringParameter( Parameters.FORMAT );
 		}
 		return format;
                 
@@ -785,7 +788,7 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( encodedContent.content != null ) {
-			String contentType = getStringParameter( "contentType" );
+			String contentType = getStringParameter( Parameters.CONTENT_TYPE );
 			if ( contentType.length() > 0 ) {
 				encodedContent.contentType = contentType;
 			}
@@ -842,7 +845,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent )
 	{
-		if ( checkBooleanParameter( "debug" ) ) {
+		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			StringBuilder debugSB = new StringBuilder();
 			debugSB.append( "[HTTP debug] Sending:\n" );
 			debugSB.append( header );
@@ -1120,8 +1123,8 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		String format = "xml";
-		if ( hasParameter( "format" ) ) {
-			format = getStringParameter( "format" );
+		if ( hasParameter( Parameters.FORMAT ) ) {
+			format = getStringParameter( Parameters.FORMAT );
 		}
 
 		if ( "text/html".equals( type ) ) {
