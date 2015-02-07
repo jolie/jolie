@@ -147,8 +147,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			messageString += "Connection: close" + CRLF;
 		}
 
-		//messageString += "Content-Type: application/json-rpc; charset=\"utf-8\"" + CRLF;
-		messageString += "Content-Type: application/json; charset=\"utf-8\"" + CRLF;
+		//messageString += "Content-Type: application/json-rpc; charset=utf-8" + CRLF;
+		messageString += "Content-Type: application/json; charset=utf-8" + CRLF;
 		messageString += "Content-Length: " + builder.length() + CRLF;
 		messageString += CRLF + builder.toString();
 
@@ -183,7 +183,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			if (inInputPort) {
 				Writer writer = new OutputStreamWriter(ostream);
 				writer.write("HTTP/1.1 500 Internal Server Error" + CRLF);
-				writer.write("Content-Type: text/plain; charset=\"utf-8\"" + CRLF);
+				writer.write("Content-Type: text/plain; charset=utf-8" + CRLF);
 				writer.write("Content-Length: " + e.getMessage().length() + CRLF + CRLF);
 				writer.write(e.getMessage());
 				writer.flush();
