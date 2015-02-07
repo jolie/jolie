@@ -407,8 +407,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			messageString += "Connection: close" + CRLF;
 		}
 
-		//messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
-		messageString += "Content-Type: text/xml; charset=\"utf-8\"" + CRLF;
+		messageString += "Content-Type: text/xml; charset=utf-8" + CRLF;
 		messageString += "Content-Length: " + xmlrpcString.length() + CRLF;
 
 		messageString += xmlrpcString + CRLF;

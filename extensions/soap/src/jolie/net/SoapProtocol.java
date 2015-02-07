@@ -814,8 +814,8 @@ public class SoapProtocol extends SequentialCommProtocol {
                 messageString += "Connection: close" + CRLF;
             }
 
-            //messageString += "Content-Type: application/soap+xml; charset=\"utf-8\"\n";
-            messageString += "Content-Type: text/xml; charset=\"utf-8\"" + CRLF;
+            //messageString += "Content-Type: application/soap+xml; charset=utf-8" + CRLF;
+            messageString += "Content-Type: text/xml; charset=utf-8" + CRLF;
             messageString += "Content-Length: " + soapString.length() + CRLF;
             if (soapAction != null) {
                 messageString += soapAction;
