@@ -188,6 +188,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String USER_AGENT = "userAgent";
 		private static final String HOST = "host";
 		private static final String HEADERS = "headers";
+		private static final String ADD_HEADERS = "addHeader";
 		private static final String STATUS_CODE = "statusCode";
 		private static final String REDIRECT = "redirect";
 		private static final String DEFAULT_OPERATION = "default";
@@ -688,17 +689,17 @@ public class HttpProtocol extends CommProtocol
 		}
 		headerBuilder.append( uri.getPath() );
 
-		String alias = getOperationSpecificStringParameter( message.operationName(), Parameters.ALIAS );
-		if ( alias.isEmpty() ) {
-			headerBuilder.append( message.operationName() );
-		} else {
+		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
+			String alias = getOperationSpecificStringParameter( message.operationName(), Parameters.ALIAS );
 			send_appendParsedAlias( alias, message.value(), charset, headerBuilder );
+		} else {
+			headerBuilder.append( message.operationName() );
 		}
 
 		if ( method == Method.GET ) {
 			boolean jsonFormat = false;
-			if ( getParameterFirstValue( "method" ).hasChildren( "queryFormat" ) ) {
-				if ( getParameterFirstValue( "method" ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
+			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
+				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					jsonFormat = true;
 					send_appendJsonQueryString( message, charset, headerBuilder );
 				}
@@ -725,7 +726,7 @@ public class HttpProtocol extends CommProtocol
         
         private void send_appendHeader( CommMessage message, StringBuilder headerBuilder )
 	{
-                Value v = getParameterFirstValue( "addHeader" );
+                Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
 		if ( v != null ) {
                     if ( v.hasChildren("header") ) {
                         for( Value head : v.getChildren("header") ) {
