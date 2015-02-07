@@ -178,6 +178,7 @@ public class HttpProtocol extends CommProtocol
 	}
 	
 	private static class Parameters {
+		private static final String KEEP_ALIVE = "keepAlive";
 		private static final String DEBUG = "debug";
 		private static final String COOKIES = "cookies";
 		private static final String METHOD = "method";
@@ -196,6 +197,8 @@ public class HttpProtocol extends CommProtocol
 		private static final String FORMAT = "format";
 		private static final String CHARSET = "charset";
 		private static final String CONTENT_TYPE = "contentType";
+		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
+		private static final String CONTENT_DISPOSITION = "contentDisposition";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -778,8 +781,7 @@ public class HttpProtocol extends CommProtocol
 	)
 		throws IOException
 	{
-		String param;
-		if ( checkBooleanParameter( "keepAlive", true ) == false || channel().toBeClosed() ) {
+		if ( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
 			headerBuilder.append( "Connection: close" + CRLF );
 		}
@@ -800,12 +802,12 @@ public class HttpProtocol extends CommProtocol
 			}
 			headerBuilder.append( CRLF );
 
-			param = getStringParameter( "contentTransferEncoding" );
-			if ( !param.isEmpty() ) {
-				headerBuilder.append( "Content-Transfer-Encoding: " + param + CRLF );
+			String transferEncoding = getStringParameter( Parameters.CONTENT_TRANSFER_ENCODING );
+			if ( transferEncoding.length() > 0 ) {
+				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + CRLF );
 			}
 			
-			String contentDisposition = getStringParameter( "contentDisposition" );
+			String contentDisposition = getStringParameter( Parameters.CONTENT_DISPOSITION );
 			if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
@@ -850,7 +852,7 @@ public class HttpProtocol extends CommProtocol
 			debugSB.append( "[HTTP debug] Sending:\n" );
 			debugSB.append( header );
 			if (
-				getParameterVector( "debug" ).first().getFirstChild( "showContent" ).intValue() > 0
+				getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
 				&& encodedContent.content != null
 				) {
 				debugSB.append( encodedContent.content.toString() );
