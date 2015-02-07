@@ -101,6 +101,7 @@ public class HttpProtocol extends CommProtocol
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final int DEFAULT_ERROR_STATUS_CODE = 500;
+	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
 	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
 	
@@ -448,7 +449,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private static class EncodedContent {
 		private ByteArray content = null;
-		private String contentType = "application/octet-stream"; // default content type per RFC 2616#7.2.1
+		private String contentType = DEFAULT_CONTENT_TYPE;
 		private String contentDisposition = "";
 	}
 
@@ -1103,12 +1104,11 @@ public class HttpProtocol extends CommProtocol
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 
-	private void recv_parseRequestFormat( HttpMessage message )
+	private void recv_parseRequestFormat( HttpMessage message, String type )
 		throws IOException
 	{
 		requestFormat = null;
 		
-		String type = message.getPropertyOrEmptyString( "content-type" ).split( ";" )[0];
 		if ( "text/x-gwt-rpc".equals( type ) ) {
 			requestFormat = "text/x-gwt-rpc";
 		} else if ( "application/json".equals( type ) ) {
@@ -1116,7 +1116,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String charset )
+	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
 		String format = "xml";
@@ -1124,7 +1124,6 @@ public class HttpProtocol extends CommProtocol
 			format = getStringParameter( "format" );
 		}
 
-		String type = message.getProperty( "content-type" ).split( ";" )[0].toLowerCase();
 		if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content() ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
@@ -1269,10 +1268,14 @@ public class HttpProtocol extends CommProtocol
 		
 		String charset = getCharset();
 		encoding = message.getProperty( "accept-encoding" );
+		String contentType = DEFAULT_CONTENT_TYPE;
+		if ( message.getProperty( "content-type" ) != null ) {
+			contentType = message.getProperty( "content-type" ).split( ";" )[0].toLowerCase();
+		}
 
-		recv_parseRequestFormat( message );
+		recv_parseRequestFormat( message, contentType );
 		if ( message.size() > 0 ) {
-			recv_parseMessage( message, decodedMessage, charset );
+			recv_parseMessage( message, decodedMessage, contentType, charset );
 		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
