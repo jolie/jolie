@@ -1258,9 +1258,10 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private CommMessage recv_internal( InputStream istream, OutputStream ostream, HttpMessage message )
+	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
+		HttpMessage message = new HttpParser( istream ).parse();
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
@@ -1365,10 +1366,8 @@ public class HttpProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		HttpMessage message = null;
 		try {
-			message = new HttpParser( istream ).parse();
-			return recv_internal( istream, ostream, message );
+			return recv_internal( istream, ostream );
 		} catch ( IOException e ) {
 			if ( inInputPort ) {
 				int error = DEFAULT_ERROR_STATUS_CODE; // Intenal server error
