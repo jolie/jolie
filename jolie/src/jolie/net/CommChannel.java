@@ -220,15 +220,20 @@ public abstract class CommChannel
 	public void send( CommMessage message )
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
-			sendImpl( message );
-		} else {
-			lock.lock();
-			try {
+		try {
+			if ( lock.isHeldByCurrentThread() ) {
 				sendImpl( message );
-			} finally {
-				lock.unlock();
+			} else {
+				lock.lock();
+				try {
+					sendImpl( message );
+				} finally {
+					lock.unlock();
+				}
 			}
+		} catch( IOException e ) {
+			setToBeClosed( true );
+			throw e;
 		}
 	}
 	
