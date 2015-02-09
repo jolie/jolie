@@ -24,6 +24,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -39,6 +40,8 @@ import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.UnsupportedMethodException;
+import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -93,7 +96,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			// JSON-RPC notification mechanism (method call with dropped result)
 			// we just send HTTP status code 204
 			Writer writer = new OutputStreamWriter(ostream);
-			writer.write("HTTP/1.1 204 No Content" + CRLF + CRLF);
+			writer.write("HTTP/1.1 204 No Content" + CRLF);
+			writer.write("Server: Jolie" + CRLF + CRLF);
 			writer.flush();
 			return;
 		}
@@ -126,12 +130,10 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		JsonUtils.valueToJsonString( value, Type.UNDEFINED, builder );
 				
 		String messageString = "";
-		if (message.isFault()) {
-			// We're responding to a request as an error
-			messageString += "HTTP/1.1 500 Internal Server Error" + CRLF;
-		} else if (inInputPort) {
-			// We're responding to a successful request
+		if (inInputPort) {
+			// We're responding to a request
 			messageString += "HTTP/1.1 200 OK" + CRLF;
+			messageString += "Server: Jolie" + CRLF;
 		} else {
 			// We're sending a request
 			String path = uri.getPath(); // TODO: fix this to consider resourcePaths
@@ -161,7 +163,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		writer.flush();
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpParser parser = new HttpParser( istream );
@@ -171,26 +173,16 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		if (message.isError()) {
 			throw new IOException("HTTP error: " + new String(message.content()));
 		}
-		
+		if (inInputPort && message.type() != HttpMessage.Type.POST) {
+			throw new UnsupportedMethodException("Only HTTP method POST allowed!", HttpMessage.Type.POST);
+		}
+
 		if (checkBooleanParameter("debug", false)) {
 			interpreter.logInfo("[JSON-RPC debug] Receiving:\n" + new String(message.content()));
 		}
 		
 		Value value = Value.create();
-		try {
-			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content())), value, false);
-		} catch (IOException e) {
-			if (inInputPort) {
-				Writer writer = new OutputStreamWriter(ostream);
-				writer.write("HTTP/1.1 500 Internal Server Error" + CRLF);
-				writer.write("Content-Type: text/plain; charset=utf-8" + CRLF);
-				writer.write("Content-Length: " + e.getMessage().length() + CRLF + CRLF);
-				writer.write(e.getMessage());
-				writer.flush();
-			}
-			throw e;
-		}
-
+		JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content())), value, false);
 		if (!value.hasChildren("id")) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			if (!inInputPort) {
@@ -216,6 +208,19 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			// Certain implementations do not provide a result if it is "void"
 			String operationName = jsonRpcOpMap.get(jsonRpcId);
 			return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
+		}
+	}
+
+	public CommMessage recv( InputStream istream, OutputStream ostream )
+		throws IOException
+	{
+		try {
+			return recv_internal( istream, ostream );
+		} catch ( IOException e ) {
+			if ( inInputPort ) {
+				HttpUtils.recv_error_generator( ostream, e );
+			}
+			throw e;
 		}
 	}
 }

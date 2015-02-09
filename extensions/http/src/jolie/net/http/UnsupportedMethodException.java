@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Matthias Dieter Wallnöfer                            *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -32,6 +32,8 @@ public class UnsupportedMethodException extends IOException
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
+	private final HttpMessage.Type[] allowedMethods;
+
 	/**
 	 * Constructor.
 	 *
@@ -39,6 +41,26 @@ public class UnsupportedMethodException extends IOException
 	 */
 	public UnsupportedMethodException( String message )
 	{
+		this( message, null );
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param message
+	 * @param allowedMethods
+	 */
+	public UnsupportedMethodException( String message, HttpMessage.Type... allowedMethods )
+	{
 		super( message );
+		this.allowedMethods = allowedMethods;
+	}
+
+	/**
+	 * Returns the allowed methods if they have been specified
+	 */
+	public HttpMessage.Type[] allowedMethods()
+	{
+		return allowedMethods;
 	}
 }

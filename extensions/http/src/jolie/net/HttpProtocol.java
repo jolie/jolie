@@ -1159,13 +1159,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		if ( hasParameter( Parameters.DEFAULT_OPERATION ) ) {
 			Value dParam = getParameterFirstValue( Parameters.DEFAULT_OPERATION );
-			String method =
-				t == HttpMessage.Type.GET ? "get"
-				: t == HttpMessage.Type.HEAD ? "head"
-				: t == HttpMessage.Type.POST ? "post"
-				: t == HttpMessage.Type.PUT ? "put"
-				: t == HttpMessage.Type.DELETE ? "delete"
-				: null;
+			String method = HttpUtils.httpMessageTypeToString( t );
 			if ( method == null || dParam.hasChildren( method ) == false ) {
 				return dParam.strValue();
 			} else {
@@ -1370,21 +1364,7 @@ public class HttpProtocol extends CommProtocol
 			return recv_internal( istream, ostream );
 		} catch ( IOException e ) {
 			if ( inInputPort ) {
-				int error = DEFAULT_ERROR_STATUS_CODE; // Intenal server error
-				if ( e instanceof UnsupportedEncodingException ) {
-					error = 415; // Unsupported media type
-				} else if ( e instanceof UnsupportedMethodException ) {
-					error = 501; // Not Implemented
-				} else if ( e instanceof UnsupportedHttpVersionException ) {
-					error = 505; // HTTP Version Not Supported
-				}
-				Writer writer = new OutputStreamWriter( ostream );
-				writer.write( "HTTP/1.1 " + error + " " + statusCodeDescriptions.get( error ) + CRLF );
-				writer.write( "Server: Jolie" + CRLF );
-				writer.write( "Content-Type: text/plain; charset=utf-8" + CRLF );
-				writer.write( "Content-Length: " + e.getMessage().length() + CRLF + CRLF );
-				writer.write( e.getMessage() );
-				writer.flush();
+				HttpUtils.recv_error_generator( ostream, e );
 			}
 			throw e;
 		}

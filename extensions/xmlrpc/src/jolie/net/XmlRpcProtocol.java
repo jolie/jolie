@@ -22,6 +22,7 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -48,6 +49,8 @@ import javax.xml.transform.dom.DOMSource;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.UnsupportedMethodException;
+import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.net.protocols.SequentialCommProtocol;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -92,6 +95,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	final private DocumentBuilderFactory docBuilderFactory;
 	final private DocumentBuilder docBuilder;
 	final private URI uri;
+	private final boolean inInputPort;
 	private boolean received = false;
 	final private static String CRLF = new String( new char[]{13, 10} );
 
@@ -103,6 +107,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	public XmlRpcProtocol(
 		VariablePath configurationPath,
 		URI uri,
+		boolean inInputPort,
 		Transformer transformer,
 		DocumentBuilderFactory docBuilderFactory,
 		DocumentBuilder docBuilder,
@@ -111,6 +116,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		super( configurationPath );
 		this.uri = uri;
 		this.transformer = transformer;
+		this.inInputPort = inInputPort;
 		this.interpreter = interpreter;
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
@@ -388,6 +394,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		if ( received ) {
 			// We're responding to a request
 			messageString += "HTTP/1.1 200 OK" + CRLF;
+			messageString += "Server: Jolie" + CRLF;
 
 			received = false;
 		} else {
@@ -421,7 +428,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		writer.flush();
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
+	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpParser parser = new HttpParser( istream );
@@ -432,6 +439,13 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		FaultException fault = null;
 		Value value = Value.create();
 		Document doc = null;
+
+		if ( message.isError() ) {
+			throw new IOException( "HTTP error: " + new String( message.content() ) );
+		}
+		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
+			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", HttpMessage.Type.POST );
+		}
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content() ) );
@@ -484,5 +498,18 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 
 		received = true;
 		return retVal;
+	}
+
+	public CommMessage recv( InputStream istream, OutputStream ostream )
+		throws IOException
+	{
+		try {
+			return recv_internal( istream, ostream );
+		} catch ( IOException e ) {
+			if ( inInputPort ) {
+				HttpUtils.recv_error_generator( ostream, e );
+			}
+			throw e;
+		}
 	}
 }
