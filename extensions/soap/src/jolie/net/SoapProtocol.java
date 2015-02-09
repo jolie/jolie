@@ -108,8 +108,8 @@ import javax.xml.validation.SchemaFactory;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
@@ -929,7 +929,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         HttpUtils.recv_checkForChannelClosing(message, channel());
 
         if (inInputPort && message.type() != HttpMessage.Type.POST) {
-             throw new UnsupportedMethodException("Only HTTP method POST allowed!", HttpMessage.Type.POST);
+            throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
         }
 
         CommMessage retVal = null;

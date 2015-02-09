@@ -32,7 +32,7 @@ public class UnsupportedMethodException extends IOException
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 
-	private final HttpMessage.Type[] allowedMethods;
+	private final Method[] allowedMethods;
 
 	/**
 	 * Constructor.
@@ -50,7 +50,7 @@ public class UnsupportedMethodException extends IOException
 	 * @param message
 	 * @param allowedMethods
 	 */
-	public UnsupportedMethodException( String message, HttpMessage.Type... allowedMethods )
+	public UnsupportedMethodException( String message, Method... allowedMethods )
 	{
 		super( message );
 		this.allowedMethods = allowedMethods;
@@ -59,7 +59,7 @@ public class UnsupportedMethodException extends IOException
 	/**
 	 * Returns the allowed methods if they have been specified
 	 */
-	public HttpMessage.Type[] allowedMethods()
+	public Method[] allowedMethods()
 	{
 		return allowedMethods;
 	}

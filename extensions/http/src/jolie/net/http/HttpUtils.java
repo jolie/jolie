@@ -88,12 +88,9 @@ public class HttpUtils
 			} else {
 				writer.write( "HTTP/1.1 405 Method Not Allowed" + CRLF );
 				writer.write( "Allowed: " );
-				HttpMessage.Type[] methods = ex.allowedMethods();
+				Method[] methods = ex.allowedMethods();
 				for ( int i = 0; i < methods.length; i++ ) {
-					String method = httpMessageTypeToString( methods[i] );
-					if ( method != null ) {
-						writer.write( method.toUpperCase() + ( i+1 < methods.length ? ", " : "" ) );
-					}
+					writer.write( methods[i].id() + ( i+1 < methods.length ? ", " : "" ) );
 				}
 				writer.write( CRLF );
 			}

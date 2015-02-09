@@ -56,7 +56,7 @@ public enum Method
 	public static Method fromString( String id )
 		throws UnsupportedMethodException
 	{
-		Method m = idMap.get( id );
+		Method m = idMap.get( id.toUpperCase() );
 		if ( m == null ) {
 			throw new UnsupportedMethodException( id );
 		}
