@@ -166,22 +166,23 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	{
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
+		String charset = HttpUtils.getCharset( null, message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if (message.isError()) {
-			throw new IOException("HTTP error: " + new String(message.content()));
+			throw new IOException("HTTP error: " + new String(message.content(), charset));
 		}
 		if (inInputPort && message.type() != HttpMessage.Type.POST) {
 			throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
 		}
 
 		if (checkBooleanParameter("debug", false)) {
-			interpreter.logInfo("[JSON-RPC debug] Receiving:\n" + new String(message.content()));
+			interpreter.logInfo("[JSON-RPC debug] Receiving:\n" + new String(message.content(), charset));
 		}
 		
 		Value value = Value.create();
 		if (message.content() != null)
-			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content())), value, false);
+			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
 		if (!value.hasChildren("id")) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			if (!inInputPort) {

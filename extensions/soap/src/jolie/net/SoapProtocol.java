@@ -926,6 +926,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             throws IOException {
         HttpParser parser = new HttpParser(istream);
         HttpMessage message = parser.parse();
+        String charset = HttpUtils.getCharset(null, message);
         HttpUtils.recv_checkForChannelClosing(message, channel());
 
         if (inInputPort && message.type() != HttpMessage.Type.POST) {
@@ -940,7 +941,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         try {
             if (message.content() != null && message.content().length > 0) {
                 if (checkBooleanParameter("debug")) {
-                    interpreter.logInfo("[SOAP debug] Receiving:\n" + new String(message.content(), "UTF8"));
+                    interpreter.logInfo("[SOAP debug] Receiving:\n" + new String(message.content(), charset));
                 }
 
                 SOAPMessage soapMessage = messageFactory.createMessage();
@@ -954,6 +955,7 @@ public class SoapProtocol extends SequentialCommProtocol {
                 factory.setNamespaceAware(true);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 InputSource src = new InputSource(new ByteArrayInputStream(message.content()));
+                src.setEncoding(charset);
                 Document doc = builder.parse(src);
                 DOMSource dom = new DOMSource(doc);
                 soapMessage.getSOAPPart().setContent(dom);
