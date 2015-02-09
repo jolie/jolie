@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -44,6 +44,7 @@ public class PreBufferedInputStream extends InputStream
 		return count > 0;
 	}
 
+	@Override
 	public synchronized int read()
 		throws IOException
 	{
@@ -72,7 +73,7 @@ public class PreBufferedInputStream extends InputStream
 
 		count++;
 		if ( count >= buffer.length ) { // We need to enlarge the buffer
-			byte[] newBuffer = new byte[ buffer.length * 2 ];
+			byte[] newBuffer = new byte[ buffer.length * 2] ;
 			System.arraycopy( buffer, 0, newBuffer, 0, buffer.length );
 			buffer = newBuffer;
 		}
