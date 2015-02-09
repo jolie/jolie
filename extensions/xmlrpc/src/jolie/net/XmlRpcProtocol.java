@@ -97,7 +97,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	final private URI uri;
 	private final boolean inInputPort;
 	private boolean received = false;
-	final private static String CRLF = new String( new char[]{13, 10} );
 
 	public String name()
 	{
@@ -386,15 +385,15 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 
 
 
-		String xmlrpcString = CRLF + "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+		String xmlrpcString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 			new String( tmpStream.toByteArray() );
 
 		String messageString = "";
 
 		if ( received ) {
 			// We're responding to a request
-			messageString += "HTTP/1.1 200 OK" + CRLF;
-			messageString += "Server: Jolie" + CRLF;
+			messageString += "HTTP/1.1 200 OK" + HttpUtils.CRLF;
+			messageString += "Server: Jolie" + HttpUtils.CRLF;
 
 			received = false;
 		} else {
@@ -403,21 +402,21 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			if ( path == null || path.length() == 0 ) {
 				path = "*";
 			}
-			messageString += "POST " + path + " HTTP/1.1" + CRLF;
-			messageString += "User-Agent: Jolie" + CRLF;
-			messageString += "Host: " + uri.getHost() + CRLF;
+			messageString += "POST " + path + " HTTP/1.1" + HttpUtils.CRLF;
+			messageString += "User-Agent: Jolie" + HttpUtils.CRLF;
+			messageString += "Host: " + uri.getHost() + HttpUtils.CRLF;
 
 		}
 
 		if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 			channel().setToBeClosed( true );
-			messageString += "Connection: close" + CRLF;
+			messageString += "Connection: close" + HttpUtils.CRLF;
 		}
 
-		messageString += "Content-Type: text/xml; charset=utf-8" + CRLF;
-		messageString += "Content-Length: " + xmlrpcString.length() + CRLF;
+		messageString += "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF;
+		messageString += "Content-Length: " + xmlrpcString.length() + HttpUtils.CRLF + HttpUtils.CRLF;
 
-		messageString += xmlrpcString + CRLF;
+		messageString += xmlrpcString;
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + messageString );

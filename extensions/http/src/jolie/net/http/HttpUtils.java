@@ -36,7 +36,7 @@ import jolie.net.CommChannel;
  */
 public class HttpUtils
 {
-	private final static String CRLF = new String(new char[]{13, 10});
+	public final static String CRLF = new String(new char[]{13, 10});
 
 	// Checks if the message requests the channel to be closed or kept open
 	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel )
