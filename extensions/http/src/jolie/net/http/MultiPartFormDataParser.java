@@ -37,10 +37,10 @@ import jolie.runtime.Value;
 
 public class MultiPartFormDataParser
 {
-	private final static String URL_DECODER_ENC = "UTF-8";
 	private final String boundary;
 	private final Value value;
 	private final HttpMessage message;
+	private final String charset;
 	private final Map< String, PartProperties > partPropertiesMap = new HashMap< String, PartProperties >();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
@@ -58,7 +58,7 @@ public class MultiPartFormDataParser
 		}
 	}
 	
-	public MultiPartFormDataParser( HttpMessage message, Value value )
+	public MultiPartFormDataParser( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
 		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
@@ -80,6 +80,7 @@ public class MultiPartFormDataParser
 		this.value = value;
 		this.boundary = b;
 		this.message = message;
+		this.charset = charset;
 	}
 
 	private PartProperties getPartProperties( String partName )
@@ -102,7 +103,7 @@ public class MultiPartFormDataParser
 	{
 		boolean hasContentType;
 		// Split header from content
-		String[] hc = part.split( HttpProtocol.CRLF + HttpProtocol.CRLF );
+		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF );
 		BufferedReader reader =
 			new BufferedReader(
 			new StringReader( hc[0] ) );
@@ -119,7 +120,7 @@ public class MultiPartFormDataParser
 					try {
 						name = keyValueSplitPattern.split( param )[1];
 						// Names are surronded by "": cut them.
-						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), URL_DECODER_ENC );
+						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid name specified in multipart form data element" );
 					}
@@ -127,7 +128,7 @@ public class MultiPartFormDataParser
 					try {
 						filename = keyValueSplitPattern.split( param )[1];
 						// Filenames are surronded by quotes "": cut them.
-						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), URL_DECODER_ENC );
+						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
 						throw new IOException( "Invalid filename specified in multipart form data element" );
 					}
@@ -162,8 +163,8 @@ public class MultiPartFormDataParser
 	public void parse()
 		throws IOException
 	{
-		String[] parts = (HttpProtocol.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
-		parts = (parts[0] + boundary + HttpProtocol.CRLF).split( HttpProtocol.CRLF + boundary + HttpProtocol.CRLF );
+		String[] parts = (HttpUtils.CRLF + new String( message.content(), charset )).split( boundary + "--" );
+		parts = (parts[0] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1
 		int offset = boundary.length() + 2;

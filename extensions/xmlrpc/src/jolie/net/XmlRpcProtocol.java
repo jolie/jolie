@@ -432,6 +432,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	{
 		HttpParser parser = new HttpParser( istream );
 		HttpMessage message = parser.parse();
+		String charset = HttpUtils.getCharset( null, message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;
@@ -440,14 +441,14 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		Document doc = null;
 
 		if ( message.isError() ) {
-			throw new IOException( "HTTP error: " + new String( message.content() ) );
+			throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
 		}
 		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content() ) );
+			interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
 		}
 
 		if ( message.content() != null ) {
@@ -455,6 +456,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 				if ( message.size() > 0 ) {
 					DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 					InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+					src.setEncoding( charset );
 					doc = builder.parse( src );
 					if ( message.isResponse() ) {
 						// test if the message contains a fault

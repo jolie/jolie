@@ -37,6 +37,7 @@ import jolie.net.CommChannel;
 public class HttpUtils
 {
 	public final static String CRLF = new String(new char[]{13, 10});
+	public final static String URL_DECODER_ENC = "UTF-8";
 
 	// Checks if the message requests the channel to be closed or kept open
 	public static void recv_checkForChannelClosing( HttpMessage message, CommChannel channel )
@@ -104,5 +105,24 @@ public class HttpUtils
 		writer.write( "Content-Length: " + e.getMessage().length() + CRLF + CRLF );
 		writer.write( e.getMessage() );
 		writer.flush();
+	}
+
+	public static String getCharset( String defaultCharset, HttpMessage message )
+	{
+		if ( message != null && message.getProperty( "content-type" ) != null ) {
+			String[] contentType = message.getProperty( "content-type" ).split( ";" );
+			for ( int i = 1; i < contentType.length; i++ ) {
+				if ( contentType[i].toLowerCase().contains( "charset" ) ) {
+					String pair[] = contentType[i].split( "=", 2 );
+					if ( pair.length == 2 ) {
+						return pair[1];
+					}
+				}
+			}
+		}
+		if ( defaultCharset != null && !defaultCharset.isEmpty() ) {
+			return defaultCharset;
+		}
+		return "utf-8"; // Jolie's default charset which is today's standard
 	}
 }

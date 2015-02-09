@@ -429,16 +429,7 @@ public class HttpProtocol extends CommProtocol
 		}
 		headerBuilder.append( result );
 	}
-	
-	private String getCharset()
-	{
-		String charset = "UTF-8";
-		if ( hasParameter( Parameters.CHARSET ) ) {
-			charset = getStringParameter( Parameters.CHARSET );
-		}
-		return charset;
-	}
-	
+
 	private String send_getFormat()
 	{
 		String format = "xml";
@@ -556,16 +547,16 @@ public class HttpProtocol extends CommProtocol
 			StringBuilder builder = new StringBuilder();
 			if ( message.isFault() ) {
 				builder.append( "faultName=" );
-				builder.append( URLEncoder.encode( message.fault().faultName(), "UTF-8" ) );
+				builder.append( URLEncoder.encode( message.fault().faultName(), HttpUtils.URL_DECODER_ENC ) );
 				builder.append( "&data=" );
-				builder.append( URLEncoder.encode( message.fault().value().strValue(), "UTF-8" ) );
+				builder.append( URLEncoder.encode( message.fault().value().strValue(), HttpUtils.URL_DECODER_ENC ) );
 			} else {
 				Entry< String, ValueVector > entry;
 				while( it.hasNext() ) {
 					entry = it.next();
 					builder.append( entry.getKey() )
 						.append( "=" )
-						.append( URLEncoder.encode( entry.getValue().first().strValue(), "UTF-8" ) );
+						.append( URLEncoder.encode( entry.getValue().first().strValue(), HttpUtils.URL_DECODER_ENC ) );
 					if ( it.hasNext() ) {
 						builder.append( '&' );
 					}
@@ -864,7 +855,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		Method method = send_getRequestMethod( message );
-		String charset = getCharset();
+		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET ), null );
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
@@ -889,13 +880,14 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 
-	private void parseXML( HttpMessage message, Value value )
+	private void parseXML( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
 		try {
 			if ( message.size() > 0 ) {
 				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				src.setEncoding( charset );
 				Document doc = builder.parse( src );
 				XmlUtils.documentToValue( doc, value );
 			}
@@ -906,37 +898,37 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 
-	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding )
+	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
 		throws IOException
 	{
-		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ) ), value, strictEncoding );
+		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
 	}
 	
 	private static void parseForm( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
-		String line = new String( message.content(), "UTF8" );
+		String line = new String( message.content(), charset );
 		String[] pair;
 		for( String item : line.split( "&" ) ) {
 			pair = item.split( "=", 2 );
 			if ( pair.length != 2 ) {
 				throw new IOException( "Item " + item + " not in x-www-form-urlencoded" );
 			}
-			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], charset ) );
+			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
 		}		
 	}
 	
-	private void parseMultiPartFormData( HttpMessage message, Value value )
+	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
-		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
+		multiPartFormDataParser = new MultiPartFormDataParser( message, value, charset );
 		multiPartFormDataParser.parse();
 	}
 	
-	private static String parseGWTRPC( HttpMessage message, Value value )
+	private static String parseGWTRPC( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
-		RPCRequest request = RPC.decodeRequest( new String( message.content(), "UTF8" ) );
+		RPCRequest request = RPC.decodeRequest( new String( message.content(), charset ) );
 		String operationName = (String)request.getParameters()[0];
 		joliex.gwt.client.Value requestValue = (joliex.gwt.client.Value)request.getParameters()[1];
 		JolieGWTConverter.gwtToJolieValue( requestValue, value );
@@ -1082,7 +1074,8 @@ public class HttpProtocol extends CommProtocol
 	/*
 	 * Prints debug information about a received message
 	 */
-	private void recv_logDebugInfo( HttpMessage message )
+	private void recv_logDebugInfo( HttpMessage message, String charset )
+		throws IOException
 	{
 		StringBuilder debugSB = new StringBuilder();
 		debugSB.append( "[HTTP debug] Receiving:\n" );
@@ -1103,7 +1096,7 @@ public class HttpProtocol extends CommProtocol
 			&& message.content() != null
 		) {
 			debugSB.append( "--> Message content\n" );
-			debugSB.append( new String( message.content() ) );
+			debugSB.append( new String( message.content(), charset ) );
 		}
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
@@ -1129,27 +1122,27 @@ public class HttpProtocol extends CommProtocol
 		}
 
 		if ( "text/html".equals( type ) ) {
-			decodedMessage.value.setValue( new String( message.content() ) );
+			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value, charset );
 		} else if ( "text/xml".equals( type ) ) {
-			parseXML( message, decodedMessage.value );
+			parseXML( message, decodedMessage.value, charset );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
-			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value );
+			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value, charset );
 		} else if ( "multipart/form-data".equals( type ) ) {
-			parseMultiPartFormData( message, decodedMessage.value );
+			parseMultiPartFormData( message, decodedMessage.value, charset );
 		} else if (
 			"application/octet-stream".equals( type ) || type.startsWith( "image/" )
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) || "json".equals( format ) ) {
-			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );	
-			parseJson( message, decodedMessage.value, strictEncoding );
+			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );
+			parseJson( message, decodedMessage.value, strictEncoding, charset );
 		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
-			parseXML( message, decodedMessage.value );
+			parseXML( message, decodedMessage.value, charset );
 		} else {
-			decodedMessage.value.setValue( new String( message.content() ) );
+			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		}
 	}
 	
@@ -1254,18 +1247,18 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		HttpMessage message = new HttpParser( istream ).parse();
+		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET ), message );
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
-			recv_logDebugInfo( message );
+			recv_logDebugInfo( message, charset );
 		}
 
 		recv_checkForStatusCode( message );
 		
-		String charset = getCharset();
 		encoding = message.getProperty( "accept-encoding" );
 		String contentType = DEFAULT_CONTENT_TYPE;
 		if ( message.getProperty( "content-type" ) != null ) {
