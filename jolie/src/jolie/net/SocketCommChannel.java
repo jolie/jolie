@@ -136,6 +136,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			 * towards this channel and this method is called by
 			 * CommCore. 
 			 */
+			return false;
 		}
 		socketChannel.configureBlocking( oldBlockingConfig );
 		if ( read == -1 ) {
@@ -167,6 +168,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			}
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );
+			return false;
 		}
 		return ret;
 	}
