@@ -17,6 +17,7 @@
 package jolie.net;
 
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.io.UnsupportedEncodingException;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,6 +108,8 @@ import javax.xml.validation.SchemaFactory;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.UnsupportedMethodException;
+import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
@@ -134,7 +139,8 @@ public class SoapProtocol extends SequentialCommProtocol {
     private final Interpreter interpreter;
     private final MessageFactory messageFactory;
     private XSSchemaSet schemaSet = null;
-    private URI uri = null;
+    private final URI uri;
+    private final boolean inInputPort;
     private Definition wsdlDefinition = null;
     private Port wsdlPort = null;
     private final TransformerFactory transformerFactory;
@@ -175,10 +181,15 @@ public class SoapProtocol extends SequentialCommProtocol {
         return "soap";
     }
 
-    public SoapProtocol(VariablePath configurationPath, URI uri, Interpreter interpreter)
+    public SoapProtocol(
+            VariablePath configurationPath,
+            URI uri,
+            boolean inInputPort,
+            Interpreter interpreter)
             throws SOAPException {
         super(configurationPath);
         this.uri = uri;
+        this.inInputPort = inInputPort;
         this.transformerFactory = TransformerFactory.newInstance();
         this.interpreter = interpreter;
         this.messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
@@ -792,7 +803,12 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             if (received) {
                 // We're responding to a request
-                messageString += "HTTP/1.1 200 OK" + CRLF;
+                if ( message.isFault() ) {
+                    messageString += "HTTP/1.1 500 Internal Server Error" + CRLF;
+                } else {
+                    messageString += "HTTP/1.1 200 OK" + CRLF;
+                }
+                messageString += "Server: Jolie" + CRLF;
                 received = false;
             } else {
                 // We're sending a notification or a solicit
@@ -907,11 +923,15 @@ public class SoapProtocol extends SequentialCommProtocol {
      * schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
      * } catch( SAXException e ) { throw new IOException( e ); } }
      */
-    public CommMessage recv(InputStream istream, OutputStream ostream)
+    private CommMessage recv_internal(InputStream istream, OutputStream ostream)
             throws IOException {
         HttpParser parser = new HttpParser(istream);
         HttpMessage message = parser.parse();
         HttpUtils.recv_checkForChannelClosing(message, channel());
+
+        if (inInputPort && message.type() != HttpMessage.Type.POST) {
+             throw new UnsupportedMethodException("Only HTTP method POST allowed!", HttpMessage.Type.POST);
+        }
 
         CommMessage retVal = null;
         String messageId = message.getPropertyOrEmptyString("soapaction");
@@ -1041,6 +1061,19 @@ public class SoapProtocol extends SequentialCommProtocol {
         }
 
         return retVal;
+    }
+
+    public CommMessage recv(InputStream istream, OutputStream ostream)
+        throws IOException
+    {
+        try {
+            return recv_internal(istream, ostream);
+        } catch (IOException e) {
+            if (inInputPort) {
+            	HttpUtils.recv_error_generator(ostream, e);
+            }
+            throw e;
+        }
     }
 
     private String recv_getResourcePath(HttpMessage message) {

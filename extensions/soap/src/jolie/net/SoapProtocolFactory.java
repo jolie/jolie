@@ -41,7 +41,7 @@ public class SoapProtocolFactory extends CommProtocolFactory
 		throws IOException
 	{
 		try {
-			return new SoapProtocol( configurationPath, location, commCore().interpreter() );
+			return new SoapProtocol( configurationPath, location, true, commCore().interpreter() );
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		}
@@ -51,7 +51,7 @@ public class SoapProtocolFactory extends CommProtocolFactory
 		throws IOException
 	{
 		try {
-			return new SoapProtocol( configurationPath, location, commCore().interpreter() );
+			return new SoapProtocol( configurationPath, location, false, commCore().interpreter() );
 		} catch( SOAPException e ) {
 			throw new IOException( e );
 		}

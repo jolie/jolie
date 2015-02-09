@@ -61,6 +61,7 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 		return new XmlRpcProtocol(
 			configurationPath,
 			location,
+			true,
 			transformer,
 			docBuilderFactory,
 			docBuilder,
@@ -74,6 +75,7 @@ public class XmlRpcProtocolFactory extends CommProtocolFactory
 		return new XmlRpcProtocol(
 			configurationPath,
 			location,
+			false,
 			transformer,
 			docBuilderFactory,
 			docBuilder,
