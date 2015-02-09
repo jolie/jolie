@@ -218,8 +218,6 @@ public class HttpProtocol extends CommProtocol
 	private final boolean inInputPort;
 	private MultiPartFormDataParser multiPartFormDataParser = null;
 	
-	public final static String CRLF = new String( new char[] { 13, 10 } );
-
 	public String name()
 	{
 		return "http";
@@ -324,7 +322,7 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder
 					.append( "Cookie: " )
 					.append( cookieSB )
-					.append( CRLF );
+					.append( HttpUtils.CRLF );
 			}
 		}
 	}
@@ -355,7 +353,7 @@ public class HttpProtocol extends CommProtocol
 					if ( cookieConfig.hasChildren( "secure" ) && cookieConfig.getFirstChild( "secure" ).intValue() > 0 ) {
 						headerBuilder.append( "; secure" );
 					}
-					headerBuilder.append( CRLF );
+					headerBuilder.append( HttpUtils.CRLF );
 				}
 			}
 		}
@@ -514,7 +512,7 @@ public class HttpProtocol extends CommProtocol
                         StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
-					builder.append( "--" ).append( BOUNDARY ).append( CRLF );
+					builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
 					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
 					boolean isBinary = false;
 					if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
@@ -529,7 +527,7 @@ public class HttpProtocol extends CommProtocol
 											builder.append( "; filename=\"" ).append( partNames.get( p ).getFirstChild( "filename" ).strValue() ).append( "\"" );
 										}
 										if ( partNames.get( p ).hasChildren( "contentType" ) ) {
-											builder.append( CRLF ).append( "Content-Type:" ).append( partNames.get( p ).getFirstChild( "contentType" ).strValue() );
+											builder.append( HttpUtils.CRLF ).append( "Content-Type:" ).append( partNames.get( p ).getFirstChild( "contentType" ).strValue() );
 										}
 									}
 								}
@@ -537,14 +535,14 @@ public class HttpProtocol extends CommProtocol
 						}
 					}
 
-					builder.append( CRLF ).append( CRLF );
+					builder.append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
 					if ( isBinary ) {
 						bStream.write( builder.toString().getBytes( charset ) );
 						bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
 						builder.delete( 0, builder.length() - 1 );
-						builder.append( CRLF );
+						builder.append( HttpUtils.CRLF );
 					} else {
-						builder.append( entry.getValue().first().strValue() ).append( CRLF );
+						builder.append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
 					}
 				}
 			}
@@ -655,15 +653,15 @@ public class HttpProtocol extends CommProtocol
 		if ( statusDescription == null ) {
 			statusDescription = statusCodeDescriptions.get( statusCode );
 		}
-		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + CRLF );
+		headerBuilder.append( "HTTP/1.1 " + statusCode + " " + statusDescription + HttpUtils.CRLF );
 		
 		// if redirect has been set, the redirect location parameter is set
 		if ( hasParameter( Parameters.REDIRECT ) ) {
-			headerBuilder.append( "Location: " + getStringParameter( Parameters.REDIRECT ) + CRLF );
+			headerBuilder.append( "Location: " + getStringParameter( Parameters.REDIRECT ) + HttpUtils.CRLF );
 		}
 		
 		send_appendSetCookieHeader( message, headerBuilder );
-		headerBuilder.append( "Server: Jolie" ).append( CRLF );
+		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 		StringBuilder cacheControlHeader = new StringBuilder();
 		if ( hasParameter( "cacheControl" ) ) {
 			Value cacheControl = getParameterFirstValue( "cacheControl" );
@@ -672,7 +670,7 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 		if ( cacheControlHeader.length() > 0 ) {
-			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( CRLF );
+			headerBuilder.append( "Cache-Control: " ).append( cacheControlHeader ).append( HttpUtils.CRLF );
 		}
 	}
 	
@@ -720,7 +718,7 @@ public class HttpProtocol extends CommProtocol
 				v.getFirstChild( "password" ).strValue();
 			sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 			userpass = encoder.encode( userpass.getBytes() );
-			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( CRLF );
+			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 		}
 	}
         
@@ -733,7 +731,7 @@ public class HttpProtocol extends CommProtocol
                                 String header =
                                         head.strValue() + ": " +
                                         head.getFirstChild( "value" ).strValue();
-                                headerBuilder.append( header ).append( CRLF );
+                                headerBuilder.append( header ).append( HttpUtils.CRLF );
                         }
                     }
 		}
@@ -758,17 +756,17 @@ public class HttpProtocol extends CommProtocol
 		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
 		send_appendRequestPath( message, method, headerBuilder, charset );
-		headerBuilder.append( " HTTP/1.1" + CRLF );
-		headerBuilder.append( "Host: " + uri.getHost() + CRLF );
+		headerBuilder.append( " HTTP/1.1" + HttpUtils.CRLF );
+		headerBuilder.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
 		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
 			String requestCompression = getStringParameter( Parameters.REQUEST_COMPRESSION );
 			if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 				encoding = requestCompression;
-				headerBuilder.append( "Accept-Encoding: " + encoding + CRLF );
+				headerBuilder.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
 			} else {
-				headerBuilder.append( "Accept-Encoding: gzip, deflate" + CRLF );
+				headerBuilder.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
 			}
 		}
 		send_appendHeader( message, headerBuilder );
@@ -784,10 +782,10 @@ public class HttpProtocol extends CommProtocol
 	{
 		if ( checkBooleanParameter( Parameters.KEEP_ALIVE, true ) == false || channel().toBeClosed() ) {
 			channel().setToBeClosed( true );
-			headerBuilder.append( "Connection: close" + CRLF );
+			headerBuilder.append( "Connection: close" + HttpUtils.CRLF );
 		}
 		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
-			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( CRLF );
+			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( HttpUtils.CRLF );
 		}
 
 		if ( encodedContent.content != null ) {
@@ -801,17 +799,17 @@ public class HttpProtocol extends CommProtocol
 			if ( charset != null ) {
 				headerBuilder.append( "; charset=" + charset.toLowerCase() );
 			}
-			headerBuilder.append( CRLF );
+			headerBuilder.append( HttpUtils.CRLF );
 
 			String transferEncoding = getStringParameter( Parameters.CONTENT_TRANSFER_ENCODING );
 			if ( transferEncoding.length() > 0 ) {
-				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + CRLF );
+				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + HttpUtils.CRLF );
 			}
 			
 			String contentDisposition = getStringParameter( Parameters.CONTENT_DISPOSITION );
 			if ( contentDisposition.length() > 0 ) {
 				encodedContent.contentDisposition = contentDisposition;
-				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + CRLF );
+				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + HttpUtils.CRLF );
 			}
 			
 			boolean compression = ( encoding != null ) && checkBooleanParameter( Parameters.COMPRESSION, true );
@@ -829,20 +827,20 @@ public class HttpProtocol extends CommProtocol
 					outStream.write( encodedContent.content.getBytes() );
 					outStream.close();
 					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
-					headerBuilder.append( "Content-Encoding: gzip" + CRLF );
+					headerBuilder.append( "Content-Encoding: gzip" + HttpUtils.CRLF );
 				} else if ( encoding.contains( "deflate" ) ) {
 					ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
 					DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
 					outStream.write( encodedContent.content.getBytes() );
 					outStream.close();
 					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
-					headerBuilder.append( "Content-Encoding: deflate" + CRLF );
+					headerBuilder.append( "Content-Encoding: deflate" + HttpUtils.CRLF );
 				}
 			}
 
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + CRLF );
+			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + HttpUtils.CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + HttpUtils.CRLF );
 		} else {
-			headerBuilder.append( "Content-Length: 0" + CRLF );
+			headerBuilder.append( "Content-Length: 0" + HttpUtils.CRLF );
 		}
 	}
 	
@@ -879,7 +877,7 @@ public class HttpProtocol extends CommProtocol
 			send_appendRequestHeaders( message, method, headerBuilder, charset );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
-		headerBuilder.append( CRLF );
+		headerBuilder.append( HttpUtils.CRLF );
 		
 		send_logDebugInfo( headerBuilder, encodedContent );
 		inputId = message.operationName();
@@ -887,7 +885,7 @@ public class HttpProtocol extends CommProtocol
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
-			//ostream.write( CRLF.getBytes( charset ) );
+			//ostream.write( HttpUtils.CRLF.getBytes( charset ) );
 		}
 	}
 

@@ -60,9 +60,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	private final URI uri;
 	private final Interpreter interpreter;
 	private final boolean inInputPort;
-	
-	private final static String CRLF = new String(new char[]{13, 10});
-	
+
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 	
@@ -96,8 +94,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			// JSON-RPC notification mechanism (method call with dropped result)
 			// we just send HTTP status code 204
 			Writer writer = new OutputStreamWriter(ostream);
-			writer.write("HTTP/1.1 204 No Content" + CRLF);
-			writer.write("Server: Jolie" + CRLF + CRLF);
+			writer.write("HTTP/1.1 204 No Content" + HttpUtils.CRLF);
+			writer.write("Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF);
 			writer.flush();
 			return;
 		}
@@ -132,27 +130,27 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		String messageString = "";
 		if (inInputPort) {
 			// We're responding to a request
-			messageString += "HTTP/1.1 200 OK" + CRLF;
-			messageString += "Server: Jolie" + CRLF;
+			messageString += "HTTP/1.1 200 OK" + HttpUtils.CRLF;
+			messageString += "Server: Jolie" + HttpUtils.CRLF;
 		} else {
 			// We're sending a request
 			String path = uri.getPath(); // TODO: fix this to consider resourcePaths
 			if (path == null || path.length() == 0) {
 				path = "*";
 			}
-			messageString += "POST " + path + " HTTP/1.1" + CRLF;
-			messageString += "User-Agent: Jolie" + CRLF;
-			messageString += "Host: " + uri.getHost() + CRLF;
+			messageString += "POST " + path + " HTTP/1.1" + HttpUtils.CRLF;
+			messageString += "User-Agent: Jolie" + HttpUtils.CRLF;
+			messageString += "Host: " + uri.getHost() + HttpUtils.CRLF;
 		}
 
 		if (channel().toBeClosed()) {
-			messageString += "Connection: close" + CRLF;
+			messageString += "Connection: close" + HttpUtils.CRLF;
 		}
 
-		//messageString += "Content-Type: application/json-rpc; charset=utf-8" + CRLF;
-		messageString += "Content-Type: application/json; charset=utf-8" + CRLF;
-		messageString += "Content-Length: " + builder.length() + CRLF;
-		messageString += CRLF + builder.toString();
+		//messageString += "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF;
+		messageString += "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF;
+		messageString += "Content-Length: " + builder.length() + HttpUtils.CRLF + HttpUtils.CRLF;
+		messageString += builder.toString();
 
 		if (checkBooleanParameter("debug", false)) {
 			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + messageString);
