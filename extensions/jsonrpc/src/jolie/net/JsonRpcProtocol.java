@@ -180,7 +180,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		}
 		
 		Value value = Value.create();
-		JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content())), value, false);
+		if (message.content() != null)
+			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content())), value, false);
 		if (!value.hasChildren("id")) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			if (!inInputPort) {
