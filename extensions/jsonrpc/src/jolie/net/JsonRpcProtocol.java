@@ -40,8 +40,8 @@ import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -172,7 +172,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			throw new IOException("HTTP error: " + new String(message.content()));
 		}
 		if (inInputPort && message.type() != HttpMessage.Type.POST) {
-			throw new UnsupportedMethodException("Only HTTP method POST allowed!", HttpMessage.Type.POST);
+			throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
 		}
 
 		if (checkBooleanParameter("debug", false)) {

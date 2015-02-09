@@ -49,8 +49,8 @@ import javax.xml.transform.dom.DOMSource;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
+import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.http.UnsupportedHttpVersionException;
 import jolie.net.protocols.SequentialCommProtocol;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -443,7 +443,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			throw new IOException( "HTTP error: " + new String( message.content() ) );
 		}
 		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
-			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", HttpMessage.Type.POST );
+			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
