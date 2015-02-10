@@ -478,7 +478,7 @@ public class HttpProtocol extends CommProtocol
 			} catch( TransformerException e ) {
 				throw new IOException( e );
 			}
-			ret.content = new ByteArray( tmpStream.toByteArray() );
+			ret.content = new ByteArray( tmpStream.toString().getBytes( charset ) );
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
 				ret.content = (ByteArray) message.value().valueObject();
