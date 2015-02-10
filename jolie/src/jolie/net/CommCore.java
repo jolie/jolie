@@ -608,6 +608,11 @@ public class CommCore
 				interpreter.logFine( e );
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
+				try {
+					channel.closeImpl();
+				} catch( IOException e2 ) {
+					interpreter.logSevere( e2 );
+				}
 			} finally {
 				channelHandlersLock.readLock().unlock();
 				if ( channel.lock.isHeldByCurrentThread() ) {
@@ -856,7 +861,7 @@ public class CommCore
 						selector.wakeup();
 						synchronized( selectingMutex ) {
 							c.register( selector, SelectionKey.OP_READ, channel );
-							selector.selectNow();
+							selector.wakeup();
 						}
 					}
 				}
