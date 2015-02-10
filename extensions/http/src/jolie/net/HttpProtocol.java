@@ -1092,7 +1092,7 @@ public class HttpProtocol extends CommProtocol
 			debugSB.append( "\tcookie: " + entry.getKey() + '=' + entry.getValue() + '\n' );
 		}
 		if (
-			getParameterFirstValue( "debug" ).getFirstChild( "showContent" ).intValue() > 0
+			getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
 			&& message.content() != null
 		) {
 			debugSB.append( "--> Message content\n" );
