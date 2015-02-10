@@ -23,25 +23,24 @@
 
 package jolie.net;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.ByteArrayInputStream;
 import java.io.Writer;
-import java.util.Map;
-import java.util.HashMap;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import jolie.Interpreter;
-import jolie.net.http.json.JsonUtils;
-import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
+import jolie.net.http.json.JsonUtils;
+import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -64,8 +63,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 	
-	private Map<Long, String> jsonRpcIdMap;
-	private Map<String, String> jsonRpcOpMap;
+	private final Map< Long, String > jsonRpcIdMap;
+	private final Map< String, String > jsonRpcOpMap;
 	
 	public String name()
 	{
