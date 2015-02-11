@@ -41,6 +41,7 @@ import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
 import jolie.net.http.json.JsonUtils;
 import jolie.net.protocols.ConcurrentCommProtocol;
+import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -125,6 +126,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		}
 		StringBuilder json = new StringBuilder();
 		JsonUtils.valueToJsonString( value, Type.UNDEFINED, json );
+		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 				
 		StringBuilder httpMessage = new StringBuilder();
 		if (inInputPort) {
@@ -148,16 +150,16 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 
 		//httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
 		httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Length: " + json.length() + HttpUtils.CRLF + HttpUtils.CRLF );
-		httpMessage.append( json );
+		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
 		if (checkBooleanParameter("debug", false)) {
-			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString());
+			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString());
 		}
 
 		Writer writer = new OutputStreamWriter(ostream);
 		writer.write( httpMessage.toString() );
 		writer.flush();
+		ostream.write( content.getBytes() );
 	}
 
 	private CommMessage recv_internal( InputStream istream, OutputStream ostream )

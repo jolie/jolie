@@ -52,6 +52,7 @@ import javax.xml.soap.SOAPMessage;
 
 import jolie.lang.Constants;
 import jolie.Interpreter;
+import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -661,6 +662,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             }
 
             SOAPMessage soapMessage = messageFactory.createMessage();
+            soapMessage.setProperty(SOAPMessage.WRITE_XML_DECLARATION, "true");
             SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
             setOutputEncodingStyle(soapEnvelope, message.operationName());
             SOAPBody soapBody = soapEnvelope.getBody();
@@ -793,9 +795,7 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
             soapMessage.writeTo(tmpStream);
-
-            String soapString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-                    + new String(tmpStream.toByteArray());
+            ByteArray content = new ByteArray( tmpStream.toByteArray() );
 
             StringBuilder httpMessage = new StringBuilder();
             String soapAction = null;
@@ -831,14 +831,14 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             //httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
             httpMessage.append("Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF);
-            httpMessage.append("Content-Length: " + soapString.length() + HttpUtils.CRLF);
+            httpMessage.append("Content-Length: " + content.size() + HttpUtils.CRLF);
             if (soapAction != null) {
                 httpMessage.append(soapAction);
             }
-            httpMessage.append(HttpUtils.CRLF + soapString);
+            httpMessage.append(HttpUtils.CRLF);
 
             if (getParameterVector("debug").first().intValue() > 0) {
-                interpreter.logInfo("[SOAP debug] Sending:\n" + httpMessage.toString());
+                interpreter.logInfo("[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString());
             }
 
             inputId = message.operationName();
@@ -846,6 +846,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             Writer writer = new OutputStreamWriter(ostream);
             writer.write(httpMessage.toString());
             writer.flush();
+            ostream.write(content.getBytes());
         } catch (SOAPException se) {
             throw new IOException(se);
         } catch (SAXException saxe) {
