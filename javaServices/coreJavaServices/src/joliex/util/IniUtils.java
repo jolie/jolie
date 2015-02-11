@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Fabrizio Montesi                                *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -24,13 +24,12 @@ package joliex.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map.Entry;
+import jolie.Interpreter;
 import jolie.jap.JapURLConnection;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
@@ -81,6 +80,14 @@ public class IniUtils extends JavaService
 			return response;
 		} catch( IOException e ) {
 			throw new FaultException( "IOException", e );
+		} finally {
+			try {
+				if ( istream != null ) {
+					istream.close();
+				}
+			} catch( IOException e ) {
+				Interpreter.getInstance().logWarning( e );
+			}
 		}
 	}
 }
