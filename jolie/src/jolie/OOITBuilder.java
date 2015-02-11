@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
@@ -235,7 +236,9 @@ public class OOITBuilder implements OLVisitor
 		new HashMap< String, Map< String, AggregationConfiguration > >(); // Input port name -> (operation name -> aggregation configuration)
 	private final Map< String, InterfaceExtender > interfaceExtenders =
 		new HashMap< String, InterfaceExtender >();
-	
+	private final Queue< OLSyntaxNode > lazyVisits = new LinkedList< OLSyntaxNode >();	
+	private boolean firstPass = true;
+
 	private static class AggregationConfiguration {
 		private final OutputPort defaultOutputPort;
 		private final Interface aggregatedInterface;
@@ -301,9 +304,23 @@ public class OOITBuilder implements OLVisitor
 		visit( program );
 		checkForInit();
 		resolveTypeLinks();
+		lazyVisits();
 		buildCorrelationSets();
 		
 		return valid;
+	}
+	
+	private void lazyVisits()
+	{
+		firstPass = false;
+		while( !lazyVisits.isEmpty() ) {
+			lazyVisits.remove().accept( this );
+		}
+	}
+	
+	private void visitLater( OLSyntaxNode n )
+	{
+		lazyVisits.add( n );
 	}
 
 	private void checkForInit()
@@ -1463,16 +1480,20 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( CourierDefinitionNode n )
 	{
-		currCourierInputPort = inputPorts.get( n.inputPortName() );
-		if ( currCourierInputPort == null ) {
-			error( n.context(), "cannot find input port: " + n.inputPortName() );
+		if ( firstPass ) {
+			visitLater( n );
 		} else {
-			n.body().accept( this );
-			if ( currCourierInputPort.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
-				interpreter.commCore().localListener().inputPort().aggregationMap().putAll( currCourierInputPort.aggregationMap() );
+			currCourierInputPort = inputPorts.get( n.inputPortName() );
+			if ( currCourierInputPort == null ) {
+				error( n.context(), "cannot find input port: " + n.inputPortName() );
+			} else {
+				n.body().accept( this );
+				if ( currCourierInputPort.location().toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+					interpreter.commCore().localListener().inputPort().aggregationMap().putAll( currCourierInputPort.aggregationMap() );
+				}
 			}
+			currCourierInputPort = null;
 		}
-		currCourierInputPort = null;
 	}
 	
 	private OneWayOperation getExtendedOneWayOperation( String inputPortName, String operationName )
