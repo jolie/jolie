@@ -33,7 +33,9 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.OutputKeys;
 import jolie.Interpreter;
+import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -119,6 +121,9 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		this.interpreter = interpreter;
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
+
+		this.transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+		this.transformer.setOutputProperty(OutputKeys.ENCODING,"utf-8");
 	}
 
 	private static Element getFirstElement( Element element, String name )
@@ -382,11 +387,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		} catch ( TransformerException e ) {
 			throw new IOException( e );
 		}
-
-
-
-		String xmlrpcString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-			new String( tmpStream.toByteArray() );
+		ByteArray content = new ByteArray( tmpStream.toByteArray() );
 
 		StringBuilder httpMessage = new StringBuilder();
 
@@ -414,16 +415,16 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		}
 
 		httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Length: " + xmlrpcString.length() + HttpUtils.CRLF + HttpUtils.CRLF );
-		httpMessage.append( xmlrpcString );
+		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() );
+			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString() );
 		}
 
 		Writer writer = new OutputStreamWriter( ostream );
 		writer.write( httpMessage.toString() );
 		writer.flush();
+		ostream.write( content.getBytes() );
 	}
 
 	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
