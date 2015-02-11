@@ -123,40 +123,40 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 				value.getFirstChild( "id" ).setValue( message.id() );
 			}
 		}
-		StringBuilder builder = new StringBuilder();
-		JsonUtils.valueToJsonString( value, Type.UNDEFINED, builder );
+		StringBuilder json = new StringBuilder();
+		JsonUtils.valueToJsonString( value, Type.UNDEFINED, json );
 				
-		String messageString = "";
+		StringBuilder httpMessage = new StringBuilder();
 		if (inInputPort) {
 			// We're responding to a request
-			messageString += "HTTP/1.1 200 OK" + HttpUtils.CRLF;
-			messageString += "Server: Jolie" + HttpUtils.CRLF;
+			httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
+			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
 		} else {
 			// We're sending a request
 			String path = uri.getPath(); // TODO: fix this to consider resourcePaths
 			if (path == null || path.length() == 0) {
 				path = "*";
 			}
-			messageString += "POST " + path + " HTTP/1.1" + HttpUtils.CRLF;
-			messageString += "User-Agent: Jolie" + HttpUtils.CRLF;
-			messageString += "Host: " + uri.getHost() + HttpUtils.CRLF;
+			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
+			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
+			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 		}
 
 		if (channel().toBeClosed()) {
-			messageString += "Connection: close" + HttpUtils.CRLF;
+			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
 		}
 
-		//messageString += "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF;
-		messageString += "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF;
-		messageString += "Content-Length: " + builder.length() + HttpUtils.CRLF + HttpUtils.CRLF;
-		messageString += builder.toString();
+		//httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
+		httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
+		httpMessage.append( "Content-Length: " + json.length() + HttpUtils.CRLF + HttpUtils.CRLF );
+		httpMessage.append( json );
 
 		if (checkBooleanParameter("debug", false)) {
-			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + messageString);
+			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString());
 		}
 
 		Writer writer = new OutputStreamWriter(ostream);
-		writer.write(messageString);
+		writer.write( httpMessage.toString() );
 		writer.flush();
 	}
 
