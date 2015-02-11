@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,19 +21,19 @@
 
 package joliex.lang;
 
+import com.sun.management.UnixOperatingSystemMXBean;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import jolie.lang.Constants;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
 import jolie.net.LocalCommChannel;
 import jolie.net.ports.OutputPort;
-import jolie.runtime.embedding.EmbeddedServiceLoader;
-import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
-import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
@@ -41,6 +41,9 @@ import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
+import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
@@ -295,14 +298,42 @@ public class RuntimeService extends JavaService
 		} // Should never happen
 		return writer.toString();
 	}
-        
-        public void halt( Value request ) 
-        {
-            final String status_field = "status";
-            int status = 0;
-            if ( request.hasChildren( status_field ) ) {
-                status = request.getFirstChild( status_field ).intValue();
-            }
-            Runtime.getRuntime().halt(status);            
-        }
+	
+	public void halt( Value request )
+	{
+		final String status_field = "status";
+		int status = 0;
+		if ( request.hasChildren( status_field ) ) {
+			status = request.getFirstChild( status_field ).intValue();
+		}
+		Runtime.getRuntime().halt( status );
+	}
+	
+	public Value stats()
+	{
+		final Value stats = Value.create();
+		stats_files( stats.getFirstChild( "files" ) );
+		stats_os( stats.getFirstChild( "os" ) );
+		return stats;
+	}
+	
+	private void stats_os( Value stats )
+	{
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		stats.setFirstChild( "arch", osBean.getArch() );
+		stats.setFirstChild( "availableProcessors", osBean.getAvailableProcessors() );
+		stats.setFirstChild( "name", osBean.getName() );
+		stats.setFirstChild( "systemLoadAverage", osBean.getSystemLoadAverage() );
+		stats.setFirstChild( "version", osBean.getVersion() );
+	}
+	
+	private void stats_files( Value stats )
+	{
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		if ( osBean instanceof UnixOperatingSystemMXBean ) {
+			UnixOperatingSystemMXBean unixBean = (UnixOperatingSystemMXBean) osBean;
+			stats.setFirstChild( "openCount", unixBean.getOpenFileDescriptorCount() );
+			stats.setFirstChild( "maxCount", unixBean.getMaxFileDescriptorCount() );
+		}
+	}
 }

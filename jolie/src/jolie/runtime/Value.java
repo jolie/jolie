@@ -21,7 +21,6 @@
 
 package jolie.runtime;
 
-import jolie.runtime.expression.Expression;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -32,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.TypeCastingException;
 
 class ValueLink extends Value implements Cloneable
@@ -516,6 +516,11 @@ public abstract class Value implements Expression, Cloneable
 	public final synchronized Value getFirstChild( String childId )
 	{
 		return getChildren( childId ).get( 0 );
+	}
+	
+	public final synchronized void setFirstChild( String childId, Object object )
+	{
+		getFirstChild( childId ).setValue( object );
 	}
 	
 	public abstract Value evaluate();

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *   Copyright (C) 2013      by Claudio Guidi    <guidiclaudio@gmail.com>  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -86,6 +86,20 @@ type HaltRequest: void {
 	.status?: int
 }
 
+type Stats:void {
+	.files:void {
+		.openCount?:long
+		.maxCount?:long
+	}
+	.os:void {
+		.arch:string
+		.availableProcessors:int
+		.name:string
+		.systemLoadAverage:double
+		.version:string
+	}
+}
+
 interface RuntimeInterface {
 RequestResponse:
 	getLocalLocation(void)(any),
@@ -118,7 +132,11 @@ RequestResponse:
 	removeOutputPort(string)(void),
 	callExit(any)(void),
 	dumpState(void)(string),
-	loadLibrary(string)(void) throws IOException(IOExceptionType)
+	loadLibrary(string)(void) throws IOException(IOExceptionType),
+	/**!
+	 * Get information about the runtime state of the Jolie interpreter.
+	 */
+	stats(void)(Stats)
 }
 
 outputPort Runtime {
