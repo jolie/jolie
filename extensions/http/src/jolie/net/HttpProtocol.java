@@ -100,7 +100,6 @@ public class HttpProtocol extends CommProtocol
 {
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
-	private static final int DEFAULT_ERROR_STATUS_CODE = 500;
 	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
 	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
@@ -637,10 +636,6 @@ public class HttpProtocol extends CommProtocol
 			statusCode = DEFAULT_REDIRECTION_STATUS_CODE;
 		}
 
-		if ( message.isFault() ) {
-			statusCode = DEFAULT_ERROR_STATUS_CODE;
-		}
-		
 		if ( statusDescription == null ) {
 			statusDescription = statusCodeDescriptions.get( statusCode );
 		}
