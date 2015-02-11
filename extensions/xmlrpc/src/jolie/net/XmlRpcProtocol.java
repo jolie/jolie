@@ -388,12 +388,12 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		String xmlrpcString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 			new String( tmpStream.toByteArray() );
 
-		String messageString = "";
+		StringBuilder httpMessage = new StringBuilder();
 
 		if ( received ) {
 			// We're responding to a request
-			messageString += "HTTP/1.1 200 OK" + HttpUtils.CRLF;
-			messageString += "Server: Jolie" + HttpUtils.CRLF;
+			httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
+			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
 
 			received = false;
 		} else {
@@ -402,28 +402,27 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			if ( path == null || path.length() == 0 ) {
 				path = "*";
 			}
-			messageString += "POST " + path + " HTTP/1.1" + HttpUtils.CRLF;
-			messageString += "User-Agent: Jolie" + HttpUtils.CRLF;
-			messageString += "Host: " + uri.getHost() + HttpUtils.CRLF;
+			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
+			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
+			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 
 		}
 
 		if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 			channel().setToBeClosed( true );
-			messageString += "Connection: close" + HttpUtils.CRLF;
+			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
 		}
 
-		messageString += "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF;
-		messageString += "Content-Length: " + xmlrpcString.length() + HttpUtils.CRLF + HttpUtils.CRLF;
-
-		messageString += xmlrpcString;
+		httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
+		httpMessage.append( "Content-Length: " + xmlrpcString.length() + HttpUtils.CRLF + HttpUtils.CRLF );
+		httpMessage.append( xmlrpcString );
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + messageString );
+			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() );
 		}
 
 		Writer writer = new OutputStreamWriter( ostream );
-		writer.write( messageString );
+		writer.write( httpMessage.toString() );
 		writer.flush();
 	}
 

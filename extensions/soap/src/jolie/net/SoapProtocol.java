@@ -797,17 +797,17 @@ public class SoapProtocol extends SequentialCommProtocol {
             String soapString = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
                     + new String(tmpStream.toByteArray());
 
-            String messageString = "";
+            StringBuilder httpMessage = new StringBuilder();
             String soapAction = null;
 
             if (received) {
                 // We're responding to a request
                 if ( message.isFault() ) {
-                    messageString += "HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF;
+                    httpMessage.append("HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF);
                 } else {
-                    messageString += "HTTP/1.1 200 OK" + HttpUtils.CRLF;
+                    httpMessage.append("HTTP/1.1 200 OK" + HttpUtils.CRLF);
                 }
-                messageString += "Server: Jolie" + HttpUtils.CRLF;
+                httpMessage.append("Server: Jolie" + HttpUtils.CRLF);
                 received = false;
             } else {
                 // We're sending a notification or a solicit
@@ -815,8 +815,8 @@ public class SoapProtocol extends SequentialCommProtocol {
                 if (path == null || path.length() == 0) {
                     path = "*";
                 }
-                messageString += "POST " + path + " HTTP/1.1" + HttpUtils.CRLF;
-                messageString += "Host: " + uri.getHost() + HttpUtils.CRLF;
+                httpMessage.append("POST " + path + " HTTP/1.1" + HttpUtils.CRLF);
+                httpMessage.append("Host: " + uri.getHost() + HttpUtils.CRLF);
                 /*
                  * soapAction = "SOAPAction: \"" + messageNamespace + "/" +
                  * message.operationName() + '\"' + HttpUtils.CRLF;
@@ -826,25 +826,25 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             if (getParameterVector("keepAlive").first().intValue() != 1) {
                 channel().setToBeClosed(true);
-                messageString += "Connection: close" + HttpUtils.CRLF;
+                httpMessage.append("Connection: close" + HttpUtils.CRLF);
             }
 
-            //messageString += "Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF;
-            messageString += "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF;
-            messageString += "Content-Length: " + soapString.length() + HttpUtils.CRLF;
+            //httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
+            httpMessage.append("Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF);
+            httpMessage.append("Content-Length: " + soapString.length() + HttpUtils.CRLF);
             if (soapAction != null) {
-                messageString += soapAction;
+                httpMessage.append(soapAction);
             }
-            messageString += HttpUtils.CRLF + soapString;
+            httpMessage.append(HttpUtils.CRLF + soapString);
 
             if (getParameterVector("debug").first().intValue() > 0) {
-                interpreter.logInfo("[SOAP debug] Sending:\n" + messageString);
+                interpreter.logInfo("[SOAP debug] Sending:\n" + httpMessage.toString());
             }
 
             inputId = message.operationName();
 
             Writer writer = new OutputStreamWriter(ostream);
-            writer.write(messageString);
+            writer.write(httpMessage.toString());
             writer.flush();
         } catch (SOAPException se) {
             throw new IOException(se);
