@@ -47,18 +47,17 @@ public class MessageDigestService extends JavaService
 		if ( (radix=request.getFirstChild( "radix" ).intValue()) < 2 ) {
 			radix = 16;
 		}
-                
-                String response = new BigInteger( 1, md.digest() ).toString( radix );
-                if ( response.length() < 32 ) {
-                        int paddingLength = 32 - response.length();
-                        StringBuilder sb = new StringBuilder();
-                        for( int i = 0; i < paddingLength; i++ ) {
-                            sb.append("0");
-                        }
-                        sb.append( response );
-                        response = sb.toString();
-                }
+
+		String response = new BigInteger( 1, md.digest() ).toString( radix );
+		if ( response.length() < 32 ) {
+			int paddingLength = 32 - response.length();
+			StringBuilder sb = new StringBuilder();
+			for( int i = 0; i < paddingLength; i++ ) {
+				sb.append( "0" );
+			}
+			sb.append( response );
+			response = sb.toString();
+		}
 		return response;
-                
 	}
 }
