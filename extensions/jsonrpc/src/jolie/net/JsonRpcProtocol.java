@@ -107,7 +107,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			Value error = value.getFirstChild( "error" );
 			error.getFirstChild( "code" ).setValue( -32000 );
 			error.getFirstChild( "message" ).setValue( message.fault().faultName() );
-			error.getFirstChild( "data" ).setValue( message.fault().value() );
+			error.getChildren( "data" ).set( 0, message.fault().value() );
 			String jsonRpcId = jsonRpcIdMap.get( message.id() );
 			error.getFirstChild( "id" ).setValue( jsonRpcId );
 		} else {
