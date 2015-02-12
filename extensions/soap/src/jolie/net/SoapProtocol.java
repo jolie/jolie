@@ -147,6 +147,7 @@ public class SoapProtocol extends SequentialCommProtocol {
     private final TransformerFactory transformerFactory;
     private final Map< String, String> namespacePrefixMap = new HashMap< String, String>();
     private boolean received = false;
+    private String encoding;
 
     private static class Parameters {
 
@@ -822,11 +823,25 @@ public class SoapProtocol extends SequentialCommProtocol {
                  * message.operationName() + '\"' + HttpUtils.CRLF;
                  */
                 soapAction = "SOAPAction: \"" + getSoapActionForOperation(message.operationName()) + '\"' + HttpUtils.CRLF;
+
+                if (checkBooleanParameter("compression", true)) {
+                    String requestCompression = getStringParameter("requestCompression");
+                    if (requestCompression.equals("gzip") || requestCompression.equals("deflate")) {
+                        encoding = requestCompression;
+                        httpMessage.append("Accept-Encoding: " + encoding + HttpUtils.CRLF);
+                    } else {
+                        httpMessage.append("Accept-Encoding: gzip, deflate" + HttpUtils.CRLF);
+                    }
+                }
             }
 
             if (getParameterVector("keepAlive").first().intValue() != 1) {
                 channel().setToBeClosed(true);
                 httpMessage.append("Connection: close" + HttpUtils.CRLF);
+            }
+
+            if (encoding != null && checkBooleanParameter("compression", true)) {
+                content = HttpUtils.encode(encoding, content, httpMessage);
             }
 
             //httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
@@ -933,6 +948,8 @@ public class SoapProtocol extends SequentialCommProtocol {
         if (inInputPort && message.type() != HttpMessage.Type.POST) {
             throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
         }
+
+        encoding = message.getProperty("accept-encoding");
 
         CommMessage retVal = null;
         String messageId = message.getPropertyOrEmptyString("soapaction");

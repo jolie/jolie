@@ -99,6 +99,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	final private URI uri;
 	private final boolean inInputPort;
 	private boolean received = false;
+	private String encoding;
 
 	public String name()
 	{
@@ -407,11 +408,24 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
 			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 
+			if ( checkBooleanParameter( "compression", true ) ) {
+				String requestCompression = getStringParameter( "requestCompression" );
+				if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
+					encoding = requestCompression;
+					httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+				} else {
+					httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+				}
+			}
 		}
 
 		if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 			channel().setToBeClosed( true );
 			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+		}
+
+		if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
+			content = HttpUtils.encode( encoding, content, httpMessage );
 		}
 
 		httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
@@ -446,6 +460,8 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
+
+		encoding = message.getProperty( "accept-encoding" );
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
