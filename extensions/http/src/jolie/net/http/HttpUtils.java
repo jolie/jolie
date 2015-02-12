@@ -106,11 +106,14 @@ public class HttpUtils
 		} else {
 			writer.write( "HTTP/1.1 500 Internal Server Error" + CRLF );
 		}
+		String message = e.getMessage() != null ? e.getMessage() : e.toString();
+		ByteArray content = new ByteArray( message.getBytes( "utf-8" ) );
 		writer.write( "Server: Jolie" + CRLF );
 		writer.write( "Content-Type: text/plain; charset=utf-8" + CRLF );
-		writer.write( "Content-Length: " + e.getMessage().length() + CRLF + CRLF );
-		writer.write( e.getMessage() );
+		writer.write( "Content-Length: " + content.size() + CRLF + CRLF );
 		writer.flush();
+		ostream.write( content.getBytes() );
+		ostream.flush();
 	}
 
 	public static String getCharset( String defaultCharset, HttpMessage message )
