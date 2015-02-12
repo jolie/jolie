@@ -476,11 +476,11 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 
 		encoding = message.getProperty( "accept-encoding" );
 
-		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
-		}
-
 		if ( message.content() != null ) {
+			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
+			}
+
 			try {
 				if ( message.size() > 0 ) {
 					DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();

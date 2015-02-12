@@ -207,13 +207,14 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 
 		encoding = message.getProperty( "accept-encoding" );
 
-		if (checkBooleanParameter("debug", false)) {
-			interpreter.logInfo("[JSON-RPC debug] Receiving:\n" + new String(message.content(), charset));
-		}
-		
 		Value value = Value.create();
-		if (message.content() != null)
+		if ( message.content() != null ) {
+			if ( checkBooleanParameter( "debug", false ) ) {
+				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
+			}
+
 			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+		}
 		if (!value.hasChildren("id")) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			if (!inInputPort) {
