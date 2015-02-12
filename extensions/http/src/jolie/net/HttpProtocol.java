@@ -581,15 +581,12 @@ public class HttpProtocol extends CommProtocol
 			ret.contentType = "application/json";
 			StringBuilder jsonStringBuilder = new StringBuilder();
 			if ( message.isFault() ) {
-				Value jolieJSONFault = Value.create();
-				jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "faultName" ).setValue( message.fault().faultName() );
-				if ( message.fault().value().hasChildren() ) {
-					jolieJSONFault.getFirstChild( "jolieFault" ).getFirstChild( "data" ).deepCopy( message.fault().value() );
-				}
-				JsonUtils.valueToJsonString( jolieJSONFault, getSendType( message ), jsonStringBuilder );
-			} else {
-				JsonUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+				Value error = message.value().getFirstChild( "error" );
+				error.getFirstChild( "code" ).setValue( -32000 );
+				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
+				error.getFirstChild( "data" ).setValue( message.fault().value() );
 			}
+			JsonUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
 			if ( message.isFault() ) {
@@ -1365,7 +1362,7 @@ public class HttpProtocol extends CommProtocol
 		OperationTypeDescription opDesc = channel().parentPort().getOperationTypeDescription( message.operationName(), Constants.ROOT_RESOURCE_PATH );
 		
 		if ( opDesc == null ) {
-			throw new IOException( "Operation " + message.operationName() + " not declared in port interface for HTTP protocol" );
+			return null;
 		}
 		
 		if ( opDesc.asOneWayTypeDescription() != null ) {
@@ -1385,8 +1382,6 @@ public class HttpProtocol extends CommProtocol
 			} else {
 				ret = ( inInputPort ) ? rr.responseType() : rr.requestType();
 			}
-		} else {
-			throw new IOException( "Internal error" );
 		}
 
 		return ret;

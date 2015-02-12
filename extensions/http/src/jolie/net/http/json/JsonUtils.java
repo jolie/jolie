@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -45,65 +46,36 @@ public class JsonUtils
 	public static void valueToJsonString( Value value, Type type, StringBuilder builder )
 		throws IOException
 	{
-		if ( value.children().isEmpty() ) {
+		// TODO: handle the case (type == null)
+
+		if ( value.hasChildren( JSONARRAY_KEY ) ) {
+			valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
+			return;
+		}
+
+		int size = value.children().size();
+		if ( size == 0 ) {
+			builder.append( nativeValueToJsonString( value ) );
+		} else {
 			builder.append( '{' );
 			if ( value.isDefined() ) {
 				appendKeyColon( builder, ROOT_SIGN );
 				builder.append( nativeValueToJsonString( value ) );
+				builder.append( ',' );
+			}
+			int i = 0;
+			for( Entry< String, ValueVector> child : value.children().entrySet() ) {
+				Type subType = null;
+				if ( type != null && type.subTypes() != null ) {
+				    subType = type.subTypes().get( child.getKey() );
+				}
+				appendKeyColon( builder, child.getKey() );
+				valueVectorToJsonString( child.getValue(), builder, false, subType );
+				if ( i++ < size - 1 ) {
+					builder.append( ',' );
+				}
 			}
 			builder.append( '}' );
-		} else if ( value.hasChildren( "jolieFault" ) ) {
-				// fault case
-				builder.append( "{\"jolieFault\":{\"faultName\":\"" );
-				builder.append( value.getFirstChild( "jolieFault" ).getFirstChild( "faultName").strValue() );
-				builder.append( "\",\"data\":");
-				valueToJsonStringInternal( value.getFirstChild( "jolieFault" ).getFirstChild( "data"), type, builder );
-				builder.append( "}}");
-				
-		} else {
-			valueToJsonStringInternal( value, type, builder );
-		}
-	}
-	
-	private static void valueToJsonStringInternal( Value value, Type type, StringBuilder builder )
-		throws IOException
-	{
-		// TODO: handle the case (type == null)
-		
-		if ( value.children().isEmpty() ) {
-			if ( value.isDefined() ) {
-				builder.append( nativeValueToJsonString( value ) );
-			} else {
-				builder.append( "null" );
-			}
-		} else {
-			if ( value.hasChildren( JSONARRAY_KEY ) ) {
-				valueVectorToJsonString( value.children().get( JSONARRAY_KEY ), builder, true, null );
-			} else {
-                int size = value.children().size();
-				builder.append( '{' );
-				if ( value.isDefined() ) {
-					appendKeyColon( builder, ROOT_SIGN );
-					builder.append( nativeValueToJsonString( value ) );
-					if ( size > 0 ) {
-						builder.append( ',' );
-					}
-				}
-
-				int i = 0;
-				for( Entry< String, ValueVector> child : value.children().entrySet() ) {
-                                        Type subType = null;
-                                        if ( type != null && type.subTypes() != null ) {
-                                            subType = type.subTypes().get( child.getKey() );
-                                        }
-					appendKeyColon( builder, child.getKey() );
-					valueVectorToJsonString( child.getValue(), builder, false, subType );
-					if ( i++ < size - 1 ) {
-						builder.append( ',' );
-					}
-				}
-				builder.append( '}' );
-			}
 		}
 	}
 
@@ -115,14 +87,14 @@ public class JsonUtils
                                      || (type == null && vector.size() > 1 ) )  ) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
-				valueToJsonStringInternal( vector.get( i ), type, builder );
+				valueToJsonString( vector.get( i ), type, builder );
 				if ( i < vector.size() - 1 ) {
 					builder.append( ',' );
 				}
 			}
 			builder.append( ']' );
 		} else {
-			valueToJsonStringInternal( vector.first(), type, builder );
+			valueToJsonString( vector.first(), type, builder );
 		}
 	}
 
@@ -136,7 +108,9 @@ public class JsonUtils
 	private static String nativeValueToJsonString( Value value )
 		throws IOException
 	{
-		if ( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
+		if ( !value.isDefined() ) {
+			return "null";
+		} else if ( value.isInt() || value.isLong() || value.isBool() || value.isDouble() ) {
 			return value.strValue();
 		} else {
 			return '"' + JSONValue.escape( value.strValue() ) + '"';
