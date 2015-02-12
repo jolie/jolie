@@ -435,7 +435,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
 
-		Writer writer = new OutputStreamWriter( ostream );
+		Writer writer = new OutputStreamWriter( ostream, "utf-8" );
 		writer.write( httpMessage.toString() );
 		writer.flush();
 		ostream.write( content.getBytes() );

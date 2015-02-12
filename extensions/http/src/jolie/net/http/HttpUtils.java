@@ -85,7 +85,7 @@ public class HttpUtils
 	}
 
 	public static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
-		Writer writer = new OutputStreamWriter( ostream );
+		Writer writer = new OutputStreamWriter( ostream, "utf-8" );
 		if ( e instanceof UnsupportedEncodingException ) {
 			writer.write( "HTTP/1.1 415 Unsupported Media Type" + CRLF );
 		} else if ( e instanceof UnsupportedMethodException ) {

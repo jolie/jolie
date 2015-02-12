@@ -858,7 +858,7 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             inputId = message.operationName();
 
-            Writer writer = new OutputStreamWriter(ostream);
+            Writer writer = new OutputStreamWriter(ostream, "utf-8");
             writer.write(httpMessage.toString());
             writer.flush();
             ostream.write(content.getBytes());
