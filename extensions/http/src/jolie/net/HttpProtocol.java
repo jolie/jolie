@@ -831,7 +831,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+	private void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		Method method = send_getRequestMethod( message );
@@ -856,6 +856,19 @@ public class HttpProtocol extends CommProtocol
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
+		}
+	}
+
+	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+		throws IOException
+	{
+		try {
+			send_internal( ostream, message, istream );
+		} catch ( IOException e ) {
+			if ( inInputPort ) {
+				HttpUtils.errorGenerator( ostream, e );
+			}
+			throw e;
 		}
 	}
 
@@ -1334,7 +1347,7 @@ public class HttpProtocol extends CommProtocol
 			return recv_internal( istream, ostream );
 		} catch ( IOException e ) {
 			if ( inInputPort ) {
-				HttpUtils.recv_error_generator( ostream, e );
+				HttpUtils.errorGenerator( ostream, e );
 			}
 			throw e;
 		}

@@ -86,7 +86,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
 	}
 
-	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+	private void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
@@ -177,6 +177,19 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		ostream.write( content.getBytes() );
 	}
 
+	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+		throws IOException
+	{
+		try {
+			send_internal( ostream, message, istream );
+		} catch ( IOException e ) {
+			if ( inInputPort ) {
+				HttpUtils.errorGenerator( ostream, e );
+			}
+			throw e;
+		}
+	}
+
 	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -236,7 +249,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			return recv_internal( istream, ostream );
 		} catch ( IOException e ) {
 			if ( inInputPort ) {
-				HttpUtils.recv_error_generator( ostream, e );
+				HttpUtils.errorGenerator( ostream, e );
 			}
 			throw e;
 		}
