@@ -45,8 +45,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.GZIPOutputStream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -798,30 +796,16 @@ public class HttpProtocol extends CommProtocol
 				headerBuilder.append( "Content-Disposition: " + encodedContent.contentDisposition + HttpUtils.CRLF );
 			}
 			
-			boolean compression = ( encoding != null ) && checkBooleanParameter( Parameters.COMPRESSION, true );
+			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js application/json application/javascript"
 			).toLowerCase();
-			if ( !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
+			if ( compression && !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
 			if ( compression ) {
-				if ( encoding.contains( "gzip" ) ) {
-					ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
-					GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
-					outStream.write( encodedContent.content.getBytes() );
-					outStream.close();
-					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
-					headerBuilder.append( "Content-Encoding: gzip" + HttpUtils.CRLF );
-				} else if ( encoding.contains( "deflate" ) ) {
-					ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
-					DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
-					outStream.write( encodedContent.content.getBytes() );
-					outStream.close();
-					encodedContent.content = new ByteArray( baOutStream.toByteArray() );
-					headerBuilder.append( "Content-Encoding: deflate" + HttpUtils.CRLF );
-				}
+				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
 			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + HttpUtils.CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + HttpUtils.CRLF );

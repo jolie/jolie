@@ -60,6 +60,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	private final URI uri;
 	private final Interpreter interpreter;
 	private final boolean inInputPort;
+	private String encoding;
 
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
@@ -142,10 +143,24 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
 			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
 			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+
+			if ( checkBooleanParameter( "compression", true ) ) {
+				String requestCompression = getStringParameter( "requestCompression" );
+				if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
+					encoding = requestCompression;
+					httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+				} else {
+					httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+				}
+			}
 		}
 
 		if (channel().toBeClosed()) {
 			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+		}
+
+		if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
+			content = HttpUtils.encode( encoding, content, httpMessage );
 		}
 
 		//httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
@@ -176,6 +191,8 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		if (inInputPort && message.type() != HttpMessage.Type.POST) {
 			throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
 		}
+
+		encoding = message.getProperty( "accept-encoding" );
 
 		if (checkBooleanParameter("debug", false)) {
 			interpreter.logInfo("[JSON-RPC debug] Receiving:\n" + new String(message.content(), charset));

@@ -27,8 +27,14 @@ import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.io.OutputStreamWriter;
+import java.io.ByteArrayOutputStream;
+
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPOutputStream;
 
 import jolie.net.CommChannel;
+
+import jolie.runtime.ByteArray;
 
 /**
  * Utilities for handling HTTP messages.
@@ -124,5 +130,25 @@ public class HttpUtils
 			return defaultCharset;
 		}
 		return "utf-8"; // Jolie's default charset which is today's standard
+	}
+
+	public static ByteArray encode( String encoding, ByteArray content, StringBuilder headerBuilder ) throws IOException
+	{
+		if ( encoding.contains( "gzip" ) ) {
+			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+			GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
+			outStream.write( content.getBytes() );
+			outStream.close();
+			content = new ByteArray( baOutStream.toByteArray() );
+			headerBuilder.append( "Content-Encoding: gzip" + HttpUtils.CRLF );
+		} else if ( encoding.contains( "deflate" ) ) {
+			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
+			DeflaterOutputStream outStream = new DeflaterOutputStream( baOutStream );
+			outStream.write( content.getBytes() );
+			outStream.close();
+			content = new ByteArray( baOutStream.toByteArray() );
+			headerBuilder.append( "Content-Encoding: deflate" + HttpUtils.CRLF );
+		}
+		return content;
 	}
 }
