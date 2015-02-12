@@ -23,6 +23,8 @@ package jolie.runtime;
 
 import java.util.Arrays;
 
+import java.io.UnsupportedEncodingException;
+
 public class ByteArray
 {
 	final private byte[] buffer;
@@ -51,5 +53,10 @@ public class ByteArray
 	public String toString()
 	{
 		return new String( buffer );
+	}
+
+	public String toString( String charset ) throws UnsupportedEncodingException
+	{
+		return new String( buffer, charset );
 	}
 }

@@ -418,7 +418,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
 		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString() );
+			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
 
 		Writer writer = new OutputStreamWriter( ostream );

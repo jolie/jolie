@@ -153,7 +153,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
 
 		if (checkBooleanParameter("debug", false)) {
-			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString());
+			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
 		}
 
 		Writer writer = new OutputStreamWriter(ostream);

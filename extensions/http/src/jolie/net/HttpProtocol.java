@@ -830,7 +830,8 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent )
+	private void send_logDebugInfo( CharSequence header, EncodedContent encodedContent, String charset )
+		throws IOException
 	{
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			StringBuilder debugSB = new StringBuilder();
@@ -840,7 +841,7 @@ public class HttpProtocol extends CommProtocol
 				getParameterVector( Parameters.DEBUG ).first().getFirstChild( "showContent" ).intValue() > 0
 				&& encodedContent.content != null
 				) {
-				debugSB.append( encodedContent.content.toString() );
+				debugSB.append( encodedContent.content.toString( charset ) );
 			}
 			Interpreter.getInstance().logInfo( debugSB.toString() );
 		}
@@ -865,13 +866,12 @@ public class HttpProtocol extends CommProtocol
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
 		
-		send_logDebugInfo( headerBuilder, encodedContent );
+		send_logDebugInfo( headerBuilder, encodedContent, charset );
 		inputId = message.operationName();
 		
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
 		if ( encodedContent.content != null ) {
 			ostream.write( encodedContent.content.getBytes() );
-			//ostream.write( HttpUtils.CRLF.getBytes( charset ) );
 		}
 	}
 

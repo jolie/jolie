@@ -838,7 +838,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             httpMessage.append(HttpUtils.CRLF);
 
             if (getParameterVector("debug").first().intValue() > 0) {
-                interpreter.logInfo("[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString());
+                interpreter.logInfo("[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString("utf-8"));
             }
 
             inputId = message.operationName();
