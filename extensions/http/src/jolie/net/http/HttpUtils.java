@@ -84,7 +84,7 @@ public class HttpUtils
 		return null;
 	}
 
-	public static void recv_error_generator( OutputStream ostream, IOException e ) throws IOException {
+	public static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
 		Writer writer = new OutputStreamWriter( ostream );
 		if ( e instanceof UnsupportedEncodingException ) {
 			writer.write( "HTTP/1.1 415 Unsupported Media Type" + CRLF );

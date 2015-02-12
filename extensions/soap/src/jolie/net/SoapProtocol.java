@@ -651,7 +651,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         }
     }
 
-    public void send(OutputStream ostream, CommMessage message, InputStream istream)
+    private void send_internal(OutputStream ostream, CommMessage message, InputStream istream)
             throws IOException {
         try {
             inputId = message.operationName();
@@ -866,6 +866,18 @@ public class SoapProtocol extends SequentialCommProtocol {
             throw new IOException(se);
         } catch (SAXException saxe) {
             throw new IOException(saxe);
+        }
+    }
+
+    public void send(OutputStream ostream, CommMessage message, InputStream istream)
+            throws IOException {
+        try {
+            send_internal(ostream, message, istream);
+        } catch (IOException e) {
+            if (inInputPort) {
+                HttpUtils.errorGenerator(ostream, e);
+            }
+            throw e;
         }
     }
 
@@ -1089,7 +1101,7 @@ public class SoapProtocol extends SequentialCommProtocol {
             return recv_internal(istream, ostream);
         } catch (IOException e) {
             if (inInputPort) {
-            	HttpUtils.recv_error_generator(ostream, e);
+            	HttpUtils.errorGenerator(ostream, e);
             }
             throw e;
         }
