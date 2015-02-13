@@ -36,9 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
 import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -274,17 +271,9 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		if ( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
-		GZIPOutputStream gzip = null;
-		String compression = getStringParameter( "compression" );
-		if ( "gzip".equals( compression ) ) {
-			gzip = new GZIPOutputStream( ostream );
-			ostream = gzip;
-		}
 		
-		DataOutputStream oos = new DataOutputStream( ostream );
+		final DataOutputStream oos = new DataOutputStream( ostream );
 		writeMessage( oos, message );
-		if ( gzip != null )
-			gzip.finish();
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
@@ -296,12 +285,8 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		if ( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
-		String compression = getStringParameter( "compression" );
-		if ( "gzip".equals( compression ) ) {
-			istream = new GZIPInputStream( istream );
-		}
 		
-		DataInputStream ios = new DataInputStream( istream );
+		final DataInputStream ios = new DataInputStream( istream );
 		return readMessage( ios );
 	}
 }
