@@ -801,15 +801,17 @@ public class CommCore
 									if ( channel.lock.tryLock() ) {
 										try {
 											key.cancel();
-											key.channel().configureBlocking( true );
-											if ( channel.isOpen() ) {
-												/*if ( channel.selectionTimeoutHandler() != null ) {
-													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
-												}*/
-												taskQueue.add( channel );
-											} else {
-												channel.closeImpl();
-											}
+											try {
+												key.channel().configureBlocking( true );
+												if ( channel.isOpen() ) {
+													/*if ( channel.selectionTimeoutHandler() != null ) {
+														interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
+													}*/
+													taskQueue.add( channel );
+												} else {
+													channel.closeImpl();
+												}
+											} catch( ClosedChannelException e ) {}
 										} catch( IOException e ) {
 											throw e;
 										} finally {
