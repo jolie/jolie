@@ -536,7 +536,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		try {
 			return recv_internal( istream, ostream );
 		} catch ( IOException e ) {
-			if ( inInputPort ) {
+			if ( inInputPort && channel().isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
 			}
 			throw e;
