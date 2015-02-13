@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -786,6 +787,7 @@ public class CommCore
 		public void run()
 		{
 			SelectableStreamingCommChannel channel;
+			final Queue< SelectableStreamingCommChannel > taskQueue = new LinkedList< SelectableStreamingCommChannel >();
 			while( active ) {
 				try {
 					synchronized( selectingMutex ) {
@@ -804,7 +806,7 @@ public class CommCore
 												/*if ( channel.selectionTimeoutHandler() != null ) {
 													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
 												}*/
-												scheduleReceive( channel, channel.parentInputPort() );
+												taskQueue.add( channel );
 											} else {
 												channel.closeImpl();
 											}
@@ -830,6 +832,10 @@ public class CommCore
 						}
 						synchronized( selectingMutex ) {
 							selector.selectNow(); // Clean up the cancelled keys
+						}
+						while( !taskQueue.isEmpty() ) {
+							channel = taskQueue.remove();
+							scheduleReceive( channel, channel.parentInputPort() );
 						}
 					}
 				} catch( IOException e ) {
