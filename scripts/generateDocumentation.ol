@@ -20,7 +20,8 @@ outputPort Self {
 	Interfaces: DocumentationGenerator
 }
 
-init { getLocalLocation@Runtime()( Self.location );
+init { 
+	getLocalLocation@Runtime()( Self.location );
 	getFileSeparator@File()( sep );
 	generateDocumentation@Self() 
 }
@@ -61,7 +62,7 @@ main
 		undef( listRequest );
 	  // add result to current folder files
 		listRequest.directory = path;
-		listRequest.regex = ".+\\.i?ol";
+		listRequest.regex = ".+\\.iol";
 		list@File( listRequest )( listResult );
 		for( i = 0, i < #listResult.result, i++ ){	
 			getResult.result[ #getResult.result ] = listResult.result[ i ]
