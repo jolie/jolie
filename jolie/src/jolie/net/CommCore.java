@@ -811,7 +811,9 @@ public class CommCore
 												} else {
 													channel.closeImpl();
 												}
-											} catch( ClosedChannelException e ) {}
+											} catch( ClosedChannelException e ) {
+												channel.closeImpl();
+											}
 										} catch( IOException e ) {
 											throw e;
 										} finally {
