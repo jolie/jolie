@@ -969,7 +969,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         Value value = Value.create();
 
         try {
-            if (message.content() != null && message.content().length > 0) {
+            if (message.size() > 0) {
                 if (checkBooleanParameter("debug")) {
                     interpreter.logInfo("[SOAP debug] Receiving:\n" + new String(message.content(), charset));
                 }

@@ -476,37 +476,35 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 
 		encoding = message.getProperty( "accept-encoding" );
 
-		if ( message.content() != null ) {
+		if ( message.size() > 0 ) {
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
 			}
 
 			try {
-				if ( message.size() > 0 ) {
-					DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
-					InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
-					src.setEncoding( charset );
-					doc = builder.parse( src );
-					if ( message.isResponse() ) {
-						// test if the message contains a fault
-						try {
-							Element faultElement = getFirstElement( doc.getDocumentElement(), "fault" );
-							Element struct = getFirstElement( getFirstElement( faultElement, "value" ), "struct" );
-							NodeList members = struct.getChildNodes();
-							if ( members.getLength() != 2 || members.item( 1 ).getNodeType() != Node.ELEMENT_NODE ) {
-								throw new IOException( "Malformed fault data" );
-							}
-							Element faultMember = (Element)members.item( 1 );
-							//Element valueElement = getFirstElement( getFirstElement( struct, "value" ), "string" );
-							String faultName = getFirstElement( faultMember, "name" ).getTextContent();
-							String faultString = getFirstElement( getFirstElement( faultMember, "value" ), "string" ).getTextContent();
-							fault = new FaultException( faultName, Value.create( faultString ) );
-						} catch( IOException e ) {
-							documentToValue( value, doc );
+				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
+				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				src.setEncoding( charset );
+				doc = builder.parse( src );
+				if ( message.isResponse() ) {
+					// test if the message contains a fault
+					try {
+						Element faultElement = getFirstElement( doc.getDocumentElement(), "fault" );
+						Element struct = getFirstElement( getFirstElement( faultElement, "value" ), "struct" );
+						NodeList members = struct.getChildNodes();
+						if ( members.getLength() != 2 || members.item( 1 ).getNodeType() != Node.ELEMENT_NODE ) {
+							throw new IOException( "Malformed fault data" );
 						}
-					} else {
+						Element faultMember = (Element)members.item( 1 );
+						//Element valueElement = getFirstElement( getFirstElement( struct, "value" ), "string" );
+						String faultName = getFirstElement( faultMember, "name" ).getTextContent();
+						String faultString = getFirstElement( getFirstElement( faultMember, "value" ), "string" ).getTextContent();
+						fault = new FaultException( faultName, Value.create( faultString ) );
+					} catch( IOException e ) {
 						documentToValue( value, doc );
 					}
+				} else {
+					documentToValue( value, doc );
 				}
 			} catch ( ParserConfigurationException pce ) {
 				throw new IOException( pce );
