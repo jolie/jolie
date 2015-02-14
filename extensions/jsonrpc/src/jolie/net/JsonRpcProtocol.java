@@ -208,7 +208,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		encoding = message.getProperty( "accept-encoding" );
 
 		Value value = Value.create();
-		if ( message.content() != null ) {
+		if ( message.size() > 0 ) {
 			if ( checkBooleanParameter( "debug", false ) ) {
 				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
 			}

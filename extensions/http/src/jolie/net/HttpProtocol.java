@@ -1077,7 +1077,7 @@ public class HttpProtocol extends CommProtocol
 		}
 		if (
 			getParameterFirstValue( Parameters.DEBUG ).getFirstChild( "showContent" ).intValue() > 0
-			&& message.content() != null
+			&& message.size() > 0
 		) {
 			debugSB.append( "--> Message content\n" );
 			debugSB.append( new String( message.content(), charset ) );
