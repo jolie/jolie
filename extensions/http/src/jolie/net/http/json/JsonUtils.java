@@ -124,8 +124,10 @@ public class JsonUtils
 			Object obj = JSONValue.parseWithException( reader );
 			if ( obj instanceof JSONArray ) {
 				value.children().put( JSONARRAY_KEY, jsonArrayToValueVector( (JSONArray) obj, strictEncoding ) );
-			} else {
+			} else if ( obj instanceof JSONObject ) {
 				jsonObjectToValue( (JSONObject) obj, value, strictEncoding );
+			} else {
+				getBasicValue( obj, value );
 			}
 		} catch( ParseException e ) {
 			throw new IOException( e );
