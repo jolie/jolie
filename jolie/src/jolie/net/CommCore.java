@@ -819,12 +819,6 @@ public class CommCore
 										} finally {
 											channel.lock.unlock();
 										}
-									} else {
-										/*
-										 * Make the selector give us this channel
-										 * again at the next iteration.
-										 */
-										selector.wakeup();
 									}
 								} catch( IOException e ) {
 									if ( channel.lock.isHeldByCurrentThread() ) {
