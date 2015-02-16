@@ -94,6 +94,7 @@ public class HttpProtocol extends CommProtocol
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
+	private static final String DEFAULT_FORMAT = "xml";
 	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
 	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
 	
@@ -352,7 +353,7 @@ public class HttpProtocol extends CommProtocol
 	}
 	
 	private String encoding = null;
-	private String requestFormat = null;
+	private String responseFormat = null;
 
 	private void send_appendQuerystring( Value value, String charset, StringBuilder headerBuilder )
 		throws IOException
@@ -424,15 +425,14 @@ public class HttpProtocol extends CommProtocol
 
 	private String send_getFormat()
 	{
-		String format = "xml";
-		if ( inInputPort && requestFormat != null ) {
-			format = requestFormat;
-			requestFormat = null;
+		String format = DEFAULT_FORMAT;
+		if ( inInputPort && responseFormat != null ) {
+			format = responseFormat;
+			responseFormat = null;
 		} else if ( hasParameter( Parameters.FORMAT ) ) {
 			format = getStringParameter( Parameters.FORMAT );
 		}
 		return format;
-                
 	}
 	
 	private static class EncodedContent {
@@ -572,7 +572,7 @@ public class HttpProtocol extends CommProtocol
 			} catch( SerializationException e ) {
 				throw new IOException( e );
 			}
-		} else if ( "json".equals( format ) || "application/json".equals( format ) ) {
+		} else if ( "json".equals( format ) ) {
 			ret.contentType = "application/json";
 			StringBuilder jsonStringBuilder = new StringBuilder();
 			if ( message.isFault() ) {
@@ -1088,23 +1088,20 @@ public class HttpProtocol extends CommProtocol
 	private void recv_parseRequestFormat( HttpMessage message, String type )
 		throws IOException
 	{
-		requestFormat = null;
+		responseFormat = null;
 		
-		if ( "text/x-gwt-rpc".equals( type ) ) {
-			requestFormat = "text/x-gwt-rpc";
+		if ( "text/xml".equals( type ) ) {
+			responseFormat = "xml";
+		} else if ( "text/x-gwt-rpc".equals( type ) ) {
+			responseFormat = "text/x-gwt-rpc";
 		} else if ( "application/json".equals( type ) ) {
-			requestFormat = "application/json";
+			responseFormat = "json";
 		}
 	}
 	
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		String format = "xml";
-		if ( hasParameter( Parameters.FORMAT ) ) {
-			format = getStringParameter( Parameters.FORMAT );
-		}
-
 		if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
@@ -1120,11 +1117,9 @@ public class HttpProtocol extends CommProtocol
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if ( "application/json".equals( type ) || "json".equals( format ) ) {
+		} else if ( "application/json".equals( type ) ) {
 			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
-		} else if ( "xml".equals( format ) || "rest".equals( format ) ) {
-			parseXML( message, decodedMessage.value, charset );
 		} else {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		}
