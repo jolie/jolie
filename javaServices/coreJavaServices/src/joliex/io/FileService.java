@@ -53,7 +53,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.jap.JapURLConnection;
-import jolie.net.http.json.JsonUtils;
+import jolie.js.JsUtils;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -69,7 +69,7 @@ import org.xml.sax.SAXException;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
 public class FileService extends JavaService
 {
 
@@ -146,7 +146,7 @@ public class FileService extends JavaService
 			isr = new InputStreamReader( istream, charset );
 		}
 		Reader r = new BufferedReader( isr );
-		JsonUtils.parseJsonIntoValue( r, value, strictEncoding );
+		JsUtils.parseJsonIntoValue( r, value, strictEncoding );
 	}
 
 	private void readXMLIntoValue( InputStream istream, Value value )

@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2013 by Claudio Guidi                                   *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,12 +20,13 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-// TO BE USED only with http protocol 
-
-
 type GetJsonStringRequest: undefined
-
 type GetJsonStringResponse: string
+
+type GetJsonValueRequest: string {
+	.strictEncoding?: bool
+}
+type GetJsonValueResponse: undefined
 
 interface JsonUtilsInterface {
 RequestResponse:
@@ -32,6 +34,12 @@ RequestResponse:
 	    it returns the value converted into a JSON string
 	*/
 	getJsonString( GetJsonStringRequest )( GetJsonStringResponse )
+	      throws JSONCreationError,
+
+	/**!
+	    it returns the JSON string converted into a value
+	*/
+	getJsonValue( GetJsonValueRequest )( GetJsonValueResponse )
 	      throws JSONCreationError
 }
 

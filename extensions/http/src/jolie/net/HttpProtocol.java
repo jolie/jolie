@@ -62,7 +62,6 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.MultiPartFormDataParser;
-import jolie.net.http.json.JsonUtils;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ByteArray;
@@ -76,6 +75,7 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
+import jolie.js.JsUtils;
 import joliex.gwt.client.JolieService;
 import joliex.gwt.server.JolieGWTConverter;
 import org.w3c.dom.Document;
@@ -377,7 +377,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		if ( message.value().hasChildren() == false ) {
 			headerBuilder.append( "?=" );
-			JsonUtils.valueToJsonString( message.value(), getSendType( message ), headerBuilder );
+			JsUtils.valueToJsonString( message.value(), getSendType( message ), headerBuilder );
 		}
 	}
 	
@@ -581,7 +581,7 @@ public class HttpProtocol extends CommProtocol
 				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 				error.getChildren( "data" ).set( 0, message.fault().value() );
 			}
-			JsonUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+			JsUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
 			if ( message.isFault() ) {
@@ -885,7 +885,7 @@ public class HttpProtocol extends CommProtocol
 	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
 		throws IOException
 	{
-		JsonUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
+		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
 	}
 	
 	private static void parseForm( HttpMessage message, Value value, String charset )
