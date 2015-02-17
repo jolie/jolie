@@ -39,13 +39,13 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.http.json.JsonUtils;
 import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
+import jolie.js.JsUtils;
 
 /**
  * 
@@ -120,13 +120,13 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 				value.getFirstChild( "method" ).setValue( message.operationName() );
 				if ( message.value().isDefined() ) {
 					// some implementations need an array here
-					value.getFirstChild( "params" ).getChildren( JsonUtils.JSONARRAY_KEY ).set( 0, message.value() );
+					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
 				}
 				value.getFirstChild( "id" ).setValue( message.id() );
 			}
 		}
 		StringBuilder json = new StringBuilder();
-		JsonUtils.valueToJsonString( value, Type.UNDEFINED, json );
+		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 				
 		StringBuilder httpMessage = new StringBuilder();
@@ -213,7 +213,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
 			}
 
-			JsonUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+			JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
 		}
 		if (!value.hasChildren("id")) {
 			// JSON-RPC notification mechanism (method call with dropped result)

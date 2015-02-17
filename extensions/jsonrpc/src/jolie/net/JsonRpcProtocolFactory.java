@@ -28,7 +28,7 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"json_simple.jar"})
+@AndJarDeps({"jolie-js.jar","json_simple.jar"})
 public class JsonRpcProtocolFactory extends CommProtocolFactory
 {
 	public JsonRpcProtocolFactory( CommCore commCore )

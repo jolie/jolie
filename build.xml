@@ -224,6 +224,7 @@ Please make sure that:
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jolie-js}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-java}/build.xml" inheritall="false" target="jar"/>
@@ -253,6 +254,7 @@ Please make sure that:
 		<ant antfile="${project.jolie}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.xsom}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-xml}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jolie-js}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-java}/build.xml" inheritall="false" target="clean"/>
@@ -293,6 +295,7 @@ Please make sure that:
 				<file file="${project.libjolie}/dist/libjolie.jar"/>
 				<file file="${project.xsom}/dist/xsom.jar"/>
 				<file file="${project.jolie-xml}/dist/jolie-xml.jar"/>
+				<file file="${project.jolie-js}/dist/jolie-js.jar"/>
 				<file file="${project.jolie-ssl}/dist/jolie-ssl.jar"/>
 				<file file="${project.jolie-gwt}/dist/jolie-gwt.jar"/>
 				<file file="${project.jolie-java}/dist/jolie-java.jar"/>
