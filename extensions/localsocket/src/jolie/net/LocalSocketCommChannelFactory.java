@@ -24,6 +24,7 @@ import jolie.net.ports.OutputPort;
 import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import jolie.net.ext.CommChannelFactory;
@@ -40,7 +41,11 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{
-		UnixSocket socket = new UnixSocket( new UnixSocketAddress( location.getPath(), location.getScheme().equals( "abs" ) ) );
+		String path = location.getPath();
+		if ( path == null ) {
+			throw new FileNotFoundException( "Local socket path not specified!" );
+		}
+		UnixSocket socket = new UnixSocket( new UnixSocketAddress( path, location.getScheme().equals( "abs" ) ) );
 		CommChannel ret = null;
 		try {
 			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );
