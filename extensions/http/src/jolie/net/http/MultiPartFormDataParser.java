@@ -163,7 +163,8 @@ public class MultiPartFormDataParser
 	public void parse()
 		throws IOException
 	{
-		String[] parts = (HttpUtils.CRLF + new String( message.content(), charset )).split( boundary + "--" );
+		// this needs to be strictly parsed with US-ASCII, since we are dealing with raw data
+		String[] parts = (HttpUtils.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
 		parts = (parts[0] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1
