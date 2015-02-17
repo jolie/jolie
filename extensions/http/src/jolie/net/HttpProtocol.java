@@ -1117,7 +1117,7 @@ public class HttpProtocol extends CommProtocol
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if ( "application/json".equals( type ) ) {
+		} else if ( "application/json".equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
 		} else {
