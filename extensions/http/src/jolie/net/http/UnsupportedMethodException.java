@@ -41,7 +41,7 @@ public class UnsupportedMethodException extends IOException
 	 */
 	public UnsupportedMethodException( String message )
 	{
-		this( message, null );
+		this( message, (Method[])null );
 	}
 
 	/**
