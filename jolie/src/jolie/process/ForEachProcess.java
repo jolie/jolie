@@ -60,7 +60,13 @@ public class ForEachProcess implements Process
 
 		Value v = targetPath.getValueOrNull();
 		if ( v != null && v.hasChildren() ) {
-			for( String id : v.children().keySet() ) {
+			String keys[];
+			synchronized( v ) {
+				keys = new String[ v.children().keySet().size() ];
+				keys = v.children().keySet().toArray( keys );
+			}
+			
+			for( String id : keys ) {
 				keyPath.getValue().setValue( id );
 				process.run();
 			}
