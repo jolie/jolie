@@ -1106,7 +1106,7 @@ public class HttpProtocol extends CommProtocol
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value, charset );
-		} else if ( "text/xml".equals( type ) ) {
+		} else if ( "text/xml".equals( type ) || type.contains( "xml" ) ) {
 			parseXML( message, decodedMessage.value, charset );
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
 			decodedMessage.operationName = parseGWTRPC( message, decodedMessage.value, charset );
