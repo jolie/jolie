@@ -26,6 +26,7 @@ import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
 import java.io.File;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.nio.channels.ClosedByInterruptException;
 
 import jolie.Interpreter;
@@ -45,7 +46,11 @@ public class LocalSocketListener extends CommListener
 	{
 		super( interpreter, protocolFactory, inputPort );
 
-		socketAddress = new UnixSocketAddress( inputPort.location().getPath(), inputPort.location().getScheme().equals( "abs" ) );
+		String path = inputPort.location().getPath();
+		if ( path == null ) {
+			throw new FileNotFoundException( "Local socket path not specified!" );
+		}
+		socketAddress = new UnixSocketAddress( path, inputPort.location().getScheme().equals( "abs" ) );
 		serverSocket = new UnixServerSocket( socketAddress );
 	}
 	
