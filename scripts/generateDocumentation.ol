@@ -70,7 +70,8 @@ main
 	}]{ nullProcess }
 	[ generateDocumentation() ] {
 		install( IOException => println@Console( main.IOException )() );
-		getIncludePaths@Runtime()( paths );
+		// getIncludePaths@Runtime()( paths );
+		paths.path[0] = args[1];
 		listRequest.regex = "[^\\.]+.*";
 		execRequest = "joliedoc";
 		execRequest.waitFor = 1;
