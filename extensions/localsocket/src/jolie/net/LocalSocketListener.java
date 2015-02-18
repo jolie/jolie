@@ -47,10 +47,10 @@ public class LocalSocketListener extends CommListener
 		super( interpreter, protocolFactory, inputPort );
 
 		String path = inputPort.location().getPath();
-		if ( path == null ) {
+		if ( path == null || path.isEmpty() ) {
 			throw new FileNotFoundException( "Local socket path not specified!" );
 		}
-		socketAddress = new UnixSocketAddress( path, inputPort.location().getScheme().equals( "abs" ) );
+		socketAddress = new UnixSocketAddress( path, inputPort.location().getHost() != null ? inputPort.location().getHost().equals( "abs" ) : false );
 		serverSocket = new UnixServerSocket( socketAddress );
 	}
 	
