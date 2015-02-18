@@ -189,6 +189,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String COMPRESSION_TYPES = "compressionTypes";
 		private static final String REQUEST_COMPRESSION = "requestCompression";
 		private static final String FORMAT = "format";
+		private static final String JSON_ENCODING = "json_encoding";
 		private static final String CHARSET = "charset";
 		private static final String CONTENT_TYPE = "contentType";
 		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
@@ -1118,7 +1119,7 @@ public class HttpProtocol extends CommProtocol
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
 		} else if ( "application/json".equals( type ) || type.contains( "json" ) ) {
-			boolean strictEncoding = checkStringParameter( "json_encoding", "strict" );
+			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
 		} else {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
