@@ -38,12 +38,85 @@ import org.json.simple.parser.ParseException;
  */
 public class JsUtils
 {
+    /**
+     * Jolie values consist of a root value with optional attribute/child values.
+     * JSON defines primitive values, arrays and objects. JSON objects may contain
+     * attributes, but no root value. For this reason Jolie introduces a
+     * "ROOT_SIGN" named attribute on each mapped Jolie value with a root value
+     * set.
+     */
     private static final String ROOT_SIGN = "$";
+
+    /**
+     * Jolie values do not support multi-dimensional arrays as JSON, hence
+     * val[i][j] in Jolie becomes val._[i]._[j] with two nested single-
+     * dimensional arrays "JSONARRAY_KEY".
+     */
     public static final String JSONARRAY_KEY = "_";
+
+    // Jolie value -> JSON string
 
     private static void appendKeyColon(StringBuilder builder, String key) {
         builder.append('"').append(key).append("\":");
     }
+
+    private static String nativeValueToJsonString(Value value) throws IOException {
+        if (!value.isDefined()) {
+            return "null";
+        } else if (value.isInt() || value.isLong() || value.isBool() || value.isDouble()) {
+            return value.strValue();
+        } else {
+            return '"' + JSONValue.escape(value.strValue()) + '"';
+        }
+    }
+
+    private static void valueVectorToJsonString(ValueVector vector, StringBuilder builder, boolean isArray, Type type) throws IOException {
+        if (isArray || (!isArray && ((type != null && type.cardinality().max() > 1) || (type == null && vector.size() > 1)))) {
+            builder.append('[');
+            for (int i = 0; i < vector.size(); i++) {
+                valueToJsonString(vector.get(i), type, builder);
+                if (i < vector.size() - 1) {
+                    builder.append(',');
+                }
+            }
+            builder.append(']');
+        } else {
+            valueToJsonString(vector.first(), type, builder);
+        }
+    }
+
+    public static void valueToJsonString(Value value, Type type, StringBuilder builder) throws IOException {
+        if (value.hasChildren(JSONARRAY_KEY)) {
+            valueVectorToJsonString(value.children().get(JSONARRAY_KEY), builder, true, null);
+            return;
+        }
+        int size = value.children().size();
+        if (size == 0) {
+            builder.append(nativeValueToJsonString(value));
+        } else {
+            builder.append('{');
+            if (value.isDefined()) {
+                appendKeyColon(builder, ROOT_SIGN);
+                builder.append(nativeValueToJsonString(value));
+                builder.append(',');
+            }
+            int i = 0;
+            for (Map.Entry<String, ValueVector> child : value.children().entrySet()) {
+                Type subType = null;
+                if (type != null && type.subTypes() != null) {
+                    subType = type.subTypes().get(child.getKey());
+                }
+                appendKeyColon(builder, child.getKey());
+                valueVectorToJsonString(child.getValue(), builder, false, subType);
+                if (i++ < size - 1) {
+                    builder.append(',');
+                }
+            }
+            builder.append('}');
+        }
+    }
+
+    // JSON string -> Jolie value
 
     private static void getBasicValue(Object obj, Value val) {
         if (obj instanceof String) {
@@ -113,37 +186,6 @@ public class JsUtils
         return vec;
     }
 
-    public static void valueToJsonString(Value value, Type type, StringBuilder builder) throws IOException {
-        if (value.hasChildren(JSONARRAY_KEY)) {
-            valueVectorToJsonString(value.children().get(JSONARRAY_KEY), builder, true, null);
-            return;
-        }
-        int size = value.children().size();
-        if (size == 0) {
-            builder.append(nativeValueToJsonString(value));
-        } else {
-            builder.append('{');
-            if (value.isDefined()) {
-                appendKeyColon(builder, ROOT_SIGN);
-                builder.append(nativeValueToJsonString(value));
-                builder.append(',');
-            }
-            int i = 0;
-            for (Map.Entry<String, ValueVector> child : value.children().entrySet()) {
-                Type subType = null;
-                if (type != null && type.subTypes() != null) {
-                    subType = type.subTypes().get(child.getKey());
-                }
-                appendKeyColon(builder, child.getKey());
-                valueVectorToJsonString(child.getValue(), builder, false, subType);
-                if (i++ < size - 1) {
-                    builder.append(',');
-                }
-            }
-            builder.append('}');
-        }
-    }
-
     public static void parseJsonIntoValue(Reader reader, Value value, boolean strictEncoding) throws IOException {
         try {
             Object obj = JSONValue.parseWithException(reader);
@@ -158,31 +200,6 @@ public class JsUtils
             throw new IOException(e);
         } catch (ClassCastException e) {
             throw new IOException(e);
-        }
-    }
-
-    private static String nativeValueToJsonString(Value value) throws IOException {
-        if (!value.isDefined()) {
-            return "null";
-        } else if (value.isInt() || value.isLong() || value.isBool() || value.isDouble()) {
-            return value.strValue();
-        } else {
-            return '"' + JSONValue.escape(value.strValue()) + '"';
-        }
-    }
-
-    private static void valueVectorToJsonString(ValueVector vector, StringBuilder builder, boolean isArray, Type type) throws IOException {
-        if (isArray || (!isArray && ((type != null && type.cardinality().max() > 1) || (type == null && vector.size() > 1)))) {
-            builder.append('[');
-            for (int i = 0; i < vector.size(); i++) {
-                valueToJsonString(vector.get(i), type, builder);
-                if (i < vector.size() - 1) {
-                    builder.append(',');
-                }
-            }
-            builder.append(']');
-        } else {
-            valueToJsonString(vector.first(), type, builder);
         }
     }
 }
