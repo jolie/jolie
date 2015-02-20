@@ -100,13 +100,15 @@ public class JsUtils
     private static ValueVector jsonArrayToValueVector(JSONArray array, boolean strictEncoding) {
         ValueVector vec = ValueVector.create();
         for (Object element : array) {
-            Value val = Value.create();
-            if (element instanceof JSONObject) {
-                jsonObjectToValue((JSONObject) element, val, strictEncoding);
+            Value value = Value.create();
+            if (element instanceof JSONArray) {
+                value.children().put(JSONARRAY_KEY, jsonArrayToValueVector((JSONArray) element, strictEncoding));
+            } else if (element instanceof JSONObject) {
+                jsonObjectToValue((JSONObject) element, value, strictEncoding);
             } else {
-                getBasicValue(element, val);
+                getBasicValue(element, value);
             }
-            vec.add(val);
+            vec.add(value);
         }
         return vec;
     }
