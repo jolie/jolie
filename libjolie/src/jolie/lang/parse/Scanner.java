@@ -47,7 +47,7 @@ public class Scanner
 		INT,				///< [0-9]+
 		TRUE,				///< true
 		FALSE,				///< false
-		LONG,				///< [0-9]+L
+		LONG,				///< [0-9]+(l|L)
 		DOUBLE,				///< [0-9]*"."[0-9]+(e|E)[0-9]+
 		LPAREN,				///< (
 		RPAREN,				///< )
@@ -608,7 +608,7 @@ public class Scanner
 					if ( ch == 'e'|| ch == 'E' ){
 						state = 19;
 					} else if ( !Character.isDigit( ch ) && ch != '.' ) {
-						if ( ch == 'L' ) {
+						if ( ch == 'l' || ch == 'L' ) {
 							retval = new Token( TokenType.LONG, builder.toString() );
 							readChar();
 						} else {
