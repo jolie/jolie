@@ -144,7 +144,7 @@ public class DatabaseService extends JavaService
 			} else if ( "db2".equals( driver ) ) {
 				Class.forName( "com.ibm.db2.jcc.DB2Driver" );
 			} else {
-				throw new FaultException( "InvalidDriver", "Unknown driver: " + driver );
+				throw new FaultException( "InvalidDriver", "Unknown type of driver: " + driver );
 			}
 
 			if ( isEmbedded ) {
@@ -176,7 +176,7 @@ public class DatabaseService extends JavaService
 				throw new FaultException( "ConnectionError" );
 			}
 		} catch( ClassNotFoundException e ) {
-			throw new FaultException( "InvalidDriver", e );
+			throw new FaultException( "DriverClassNotFound", e );
 		} catch( SQLException e ) {
 			throw new FaultException( "ConnectionError", e );
 		}
