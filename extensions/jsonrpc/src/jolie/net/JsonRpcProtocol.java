@@ -118,7 +118,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			} else {
 				jsonRpcOpMap.put( message.id() + "", message.operationName() );
 				value.getFirstChild( "method" ).setValue( message.operationName() );
-				if ( message.value().isDefined() ) {
+				if ( message.value().isDefined() || message.value().hasChildren() ) {
 					// some implementations need an array here
 					value.getFirstChild( "params" ).getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
 				}
