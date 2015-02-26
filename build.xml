@@ -93,14 +93,17 @@ jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %params%
 
     <target name="-install-unix-launchers" unless="isWindows">
         <echo message="Installing Jolie Unix launcher scripts to ${private.install.launcher_dir} ..." />
-        <!-- <copy todir="${private.install.launcher_dir}" overwrite="true">
-			<fileset dir="${dist.launchers.unix}"/>
-		</copy>
-        We need to use cp instead, to preserve executable file permissions.
-        -->
-        <exec executable="cp">
-            <arg line="-R --preserve=mode ${dist.launchers.unix}/. ${private.install.launcher_dir}" />
-        </exec>
+        <copy todir="${private.install.launcher_dir}" overwrite="true">
+          <fileset dir="${dist.launchers.unix}"/>
+        </copy>
+        <!-- mode permission is not preserved with copy task. using cp command with preserve mode parameter does not work on mac -->
+        <fileset id="launcher.files" dir="${dist.launchers.unix}" includes="**"/>
+        <pathconvert property="launcher.filename" pathsep="," refid="launcher.files">
+          <map from="${user.dir}/${dist.launchers.unix}/" to=""/>
+        </pathconvert>
+        <chmod perm="775">
+          <fileset dir="${private.install.launcher_dir}" includes="${launcher.filename}"/>
+        </chmod>
     </target>
     
 	<target name="-create-unix-launchers" unless="isWindows">
