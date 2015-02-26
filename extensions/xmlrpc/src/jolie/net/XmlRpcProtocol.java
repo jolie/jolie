@@ -250,24 +250,28 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			node.appendChild( v );
 		} else if ( value.isString() ) {
 
-			Element i = doc.createElement( "string" );
-			i.appendChild( doc.createTextNode( value.strValue() ) );
-			v.appendChild( i );
+			Element s = doc.createElement( "string" );
+			s.appendChild( doc.createTextNode( value.strValue() ) );
+			v.appendChild( s );
 			node.appendChild( v );
 		} else if ( value.isDouble() ) {
 
-			Element i = doc.createElement( "double" );
-			i.appendChild( doc.createTextNode( value.strValue() ) );
-			v.appendChild( i );
+			Element d = doc.createElement( "double" );
+			d.appendChild( doc.createTextNode( value.strValue() ) );
+			v.appendChild( d );
 			node.appendChild( v );
-
 		} else if ( value.isBool() ) {
 		
 			Element b = doc.createElement( "boolean" );
 			b.appendChild( doc.createTextNode( value.boolValue() ? "1" : "0" ) );
 			v.appendChild( b );
 			node.appendChild( v );
-			
+		} else if ( value.isByteArray() ) {
+
+			Element b = doc.createElement( "base64" );
+			b.appendChild( doc.createTextNode( new sun.misc.BASE64Encoder().encodeBuffer( value.byteArrayValue().getBytes() ) ) );
+			v.appendChild( b );
+			node.appendChild( v );
 		} else if ( value.hasChildren( ARRAY_KEY ) ) {
 			// array creation
 
