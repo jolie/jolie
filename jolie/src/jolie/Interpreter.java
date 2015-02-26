@@ -826,7 +826,7 @@ public class Interpreter
 		cmdParser = new CommandLineParser( args, parentClassLoader );
 		classLoader = cmdParser.jolieClassLoader();
 		optionArgs = cmdParser.optionArgs();
-		programFilename = new File( cmdParser.programFilepath() ).getName();
+		programFilename = cmdParser.programFilepath();
 		arguments = cmdParser.arguments();
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
