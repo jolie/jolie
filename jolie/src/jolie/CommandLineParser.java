@@ -519,7 +519,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-		programFilepath = olResult.source;
+		programFilepath = new File( olResult.source ).getName();
 		programStream = olResult.stream;
 
 		includePaths = includeList.toArray( new String[]{} );
