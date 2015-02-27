@@ -49,7 +49,7 @@ public class PreBufferedInputStream extends InputStream
 		throws IOException
 	{
 		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
+			return -1; // Java's EOF semantic for read()
 		}
 
 		if ( count < 1 ) { // No bytes to read
