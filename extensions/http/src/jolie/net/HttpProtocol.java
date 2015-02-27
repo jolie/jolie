@@ -194,6 +194,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String CONTENT_TYPE = "contentType";
 		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
 		private static final String CONTENT_DISPOSITION = "contentDisposition";
+		private static final String DROP_URI_PATH = "dropURIPath";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -659,10 +660,14 @@ public class HttpProtocol extends CommProtocol
 	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
 		throws IOException
 	{
-		if ( uri.getPath().length() < 1 || uri.getPath().charAt( 0 ) != '/' ) {
+		if ( uri.getPath() == null || uri.getPath().isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
 			headerBuilder.append( '/' );
+		} else {
+			if ( uri.getPath().charAt( 0 ) != '/' ) {
+				headerBuilder.append( '/' );
+			}
+			headerBuilder.append( uri.getPath() );
 		}
-		headerBuilder.append( uri.getPath() );
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
 			String alias = getOperationSpecificStringParameter( message.operationName(), Parameters.ALIAS );
