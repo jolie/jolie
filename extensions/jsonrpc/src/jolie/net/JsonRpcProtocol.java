@@ -214,33 +214,35 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			}
 
 			JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
-		}
-		if (!value.hasChildren("id")) {
-			// JSON-RPC notification mechanism (method call with dropped result)
-			if (!inInputPort) {
-				throw new IOException("A JSON-RPC notification needs to be a request!");
+
+			if (!value.hasChildren("id")) {
+				// JSON-RPC notification mechanism (method call with dropped result)
+				if (!inInputPort) {
+					throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
+				}
+				return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null);
 			}
-			return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
-					       "/", value.getFirstChild("params"), null);
+			String jsonRpcId = value.getFirstChild("id").strValue();
+			if ( inInputPort ) {
+				jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
+				return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null);
+			} else if (value.hasChildren("error")) {
+				String operationName = jsonRpcOpMap.get(jsonRpcId);
+				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
+					new FaultException(
+						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
+						value.getFirstChild( "error" ).getFirstChild( "data" )
+					)
+				);
+			} else {
+				// Certain implementations do not provide a result if it is "void"
+				String operationName = jsonRpcOpMap.get(jsonRpcId);
+				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
+			}
 		}
-		String jsonRpcId = value.getFirstChild("id").strValue();
-		if ( inInputPort ) {
-			jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
-			return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
-					       "/", value.getFirstChild("params"), null);
-		} else if (value.hasChildren("error")) {
-			String operationName = jsonRpcOpMap.get(jsonRpcId);
-			return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
-				new FaultException(
-					value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
-					value.getFirstChild( "error" ).getFirstChild( "data" )
-				)
-			);
-		} else {
-			// Certain implementations do not provide a result if it is "void"
-			String operationName = jsonRpcOpMap.get(jsonRpcId);
-			return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
-		}
+		return null; // error situation
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
