@@ -76,8 +76,6 @@ import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
 import jolie.process.SequentialProcess;
-import jolie.process.TransformationReason;
-import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -920,7 +918,7 @@ public class Interpreter
 	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
-	private final LinkedList< SessionThread > sessionThreads = new LinkedList<SessionThread>();
+	private final Queue< SessionThread > waitingSessionThreads = new LinkedList< SessionThread >();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
@@ -1240,7 +1238,7 @@ public class Interpreter
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
-							Long.valueOf( message.id()).toString(), message.value() );
+							Long.valueOf( message.id() ).toString(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session )
 				{
@@ -1257,58 +1255,42 @@ public class Interpreter
 			/*
 			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
-        State state = initExecutionThread.state().clone();
-				jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+			State state = initExecutionThread.state().clone();
+			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
 				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
-				starter.body,
-				new jolie.process.Process() {
-					public void run()
-						throws FaultException, ExitingException
-					{
-						synchronized( sessionThreads ){
-							if( sessionThreads.size() > 0 ){
-								sessionThreads.poll();
-									if( sessionThreads.size() > 0 ){
-									SessionThread st = sessionThreads.peek();
-									st.start();
-								}
-							}
+				starter.body
+			} );
+			spawnedSession = new SessionThread(
+				sequence, state, initExecutionThread
+			);
+			correlationEngine.onSessionStart( spawnedSession, starter, message );
+			spawnedSession.addSessionListener( correlationEngine );
+			spawnedSession.addSessionListener( new SessionListener() {
+				public void onSessionExecuted( SessionThread session )
+				{
+					synchronized( waitingSessionThreads ) {
+						if ( !waitingSessionThreads.isEmpty() ) {
+							waitingSessionThreads.poll().start();
 						}
 					}
+					logSessionEnd( message.operationName(), session.getSessionId() );
+				}
 
-					public jolie.process.Process clone( TransformationReason reason )
-					{
-						return this;
+				public void onSessionError( SessionThread session, FaultException fault )
+				{
+					synchronized( waitingSessionThreads ) {
+						if ( !waitingSessionThreads.isEmpty() ) {
+							waitingSessionThreads.poll().start();
+						}
 					}
-
-					public boolean isKillable()
-					{
-						return false;
-					}
+					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 			} );
-		spawnedSession = new SessionThread(
-			sequence, state, initExecutionThread
-		);
-		correlationEngine.onSessionStart( spawnedSession, starter, message );
-		spawnedSession.addSessionListener( correlationEngine );
-		spawnedSession.addSessionListener( new SessionListener() {
-			public void onSessionExecuted( SessionThread session )
-			{
-				logSessionEnd( message.operationName(), session.getSessionId() );
-			}
-			
-			public void onSessionError( SessionThread session, FaultException fault )
-			{
-				logSessionEnd( message.operationName(), session.getSessionId() );
-			}
-		} );
-			synchronized( sessionThreads ){
-				if( sessionThreads.isEmpty() ) {
-					sessionThreads.add( spawnedSession );
-					sessionThreads.peek().start();
-				}	else {
-					sessionThreads.add( spawnedSession );
+			synchronized ( waitingSessionThreads ) {
+				if ( waitingSessionThreads.isEmpty() ) {
+					spawnedSession.start();
+				} else {
+					waitingSessionThreads.add( spawnedSession );
 				}
 			}
 		}
