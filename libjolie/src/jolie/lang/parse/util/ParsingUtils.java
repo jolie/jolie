@@ -48,6 +48,7 @@ public class ParsingUtils
 	public static Program parseProgram(
 		InputStream inputStream,
 		URI source,
+		String charset,
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants,
@@ -55,7 +56,7 @@ public class ParsingUtils
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
@@ -69,13 +70,14 @@ public class ParsingUtils
 	public static Program parseProgram(
 		InputStream inputStream,
 		URI source,
+		String charset,
 		String[] includePaths,
 		ClassLoader classLoader,
 		Map< String, Scanner.Token > definedConstants
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );

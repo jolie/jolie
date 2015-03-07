@@ -24,7 +24,6 @@ package jolie.lang.parse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -334,7 +333,7 @@ public class Scanner
 	
 
 	private final InputStream stream;		// input stream
-	private final Reader reader;			// data input
+	private final InputStreamReader reader;			// data input
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
 	protected int state;					// current state
@@ -345,13 +344,14 @@ public class Scanner
 	 * Constructor
 	 * @param stream the <code>InputStream</code> to use for input reading
 	 * @param source the source URI of the stream
+	 * @param charset the character encoding
 	 * @throws java.io.IOException if the input reading initialization fails
 	 */
-	public Scanner( InputStream stream, URI source )
+	public Scanner( InputStream stream, URI source, String charset )
 		throws IOException
 	{
 		this.stream = stream;
-		this.reader = new InputStreamReader( stream );
+		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
 		line = 1;
 		readChar();
@@ -398,6 +398,15 @@ public class Scanner
 	public InputStream inputStream()
 	{
 		return stream;
+	}
+
+	/**
+	 * Returns character encoding
+	 * @return character encoding
+	 */
+	public String charset()
+	{
+		return reader.getEncoding();
 	}
 	
 	/**
