@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2009 by Fabrizio Montesi                           *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -1977,11 +1977,15 @@ public class OLParser extends AbstractParser
 				throwException( "expected input guard" );
 			}
 
-			eat( Scanner.TokenType.RSQUARE, "] expected" );
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			process =
-				parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			eat( Scanner.TokenType.RSQUARE, "expected ]" );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) {
+				eat( Scanner.TokenType.LCURLY, "expected {" );
+				process = parseProcess();
+				eat( Scanner.TokenType.RCURLY, "expected }" );
+			} else {
+				process = new NullProcessStatement( getContext() );
+			}
+			
 			stm.addChild( new Pair<OLSyntaxNode, OLSyntaxNode>( inputGuard, process ) );
 		}
 
