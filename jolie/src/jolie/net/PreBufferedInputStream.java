@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -44,12 +45,47 @@ public class PreBufferedInputStream extends InputStream
 		return count > 0;
 	}
 
+	public synchronized void append( byte b )
+		throws IOException
+	{
+		if ( buffer == null ) {
+			throw new IOException( "Stream closed" );
+		}
+
+		if ( count < 0 ) {
+			count = 0;
+		}
+		count++;
+		if ( count >= buffer.length ) { // We need to enlarge the buffer
+			byte[] newBuffer = new byte[ buffer.length * 2] ;
+			System.arraycopy( buffer, 0, newBuffer, 0, buffer.length );
+			buffer = newBuffer;
+		}
+		if ( writePos >= buffer.length ) {
+			writePos = 0;
+		}
+
+		buffer[ writePos++ ] = b;
+	}
+
+	@Override
+	public synchronized int available()
+		throws IOException
+	{
+		if ( buffer == null ) {
+			throw new IOException( "Stream closed" );
+		}
+		// works only on the underlying stream, not on our cached data
+		// for which we have hasCachedData()
+		return istream.available();
+	}
+
 	@Override
 	public synchronized int read()
 		throws IOException
 	{
 		if ( buffer == null ) {
-			return -1; // Java's EOF semantic for read()
+			throw new IOException( "Stream closed" );
 		}
 
 		if ( count < 1 ) { // No bytes to read
@@ -64,25 +100,64 @@ public class PreBufferedInputStream extends InputStream
 		return buffer[ readPos++ ];
 	}
 
-	public synchronized void append( byte b )
+	@Override
+	public synchronized int read( byte[] b )
+		throws IOException
+	{
+		return read( b, 0, b.length );
+	}
+
+	@Override
+	public synchronized int read( byte[] b, int off, int len )
 		throws IOException
 	{
 		if ( buffer == null ) {
 			throw new IOException( "Stream closed" );
 		}
 
-		count++;
-		if ( count >= buffer.length ) { // We need to enlarge the buffer
-			byte[] newBuffer = new byte[ buffer.length * 2] ;
-			System.arraycopy( buffer, 0, newBuffer, 0, buffer.length );
-			buffer = newBuffer;
+		int lenFromBuffer = count >= len ? len : count;
+		if ( lenFromBuffer > 0 ) {
+			// match implementation of read()
+			count -= lenFromBuffer;
+			if ( readPos >= buffer.length ) {
+				readPos = 0;
+			}
+			System.arraycopy( buffer, readPos, b, off, lenFromBuffer );
+			readPos += lenFromBuffer;
+		} else {
+			// count could have been negative, so reset lenFromBuffer to 0
+			lenFromBuffer = 0;
 		}
-		if ( writePos >= buffer.length ) {
-			writePos = 0;
-		}
-		buffer[ writePos ] = b;
 
-		writePos++;
+		int lenFromStream = 0;
+		if ( lenFromBuffer != len ) {
+			lenFromStream = istream.read( b, off+lenFromBuffer, len-lenFromBuffer );
+			if ( lenFromStream < 0 && lenFromBuffer > 0 ) {
+				// we return -1 (EOF) only when lenFromBuffer == 0
+				lenFromStream = 0;
+			}
+		}
+
+		return lenFromBuffer + lenFromStream;
+	}
+
+	@Override
+	public synchronized long skip( long n )
+		throws IOException
+	{
+		if ( buffer == null ) {
+			throw new IOException( "Stream closed" );
+		}
+
+		if ( n < 0 ) {
+			return 0;
+		}
+		count -= n;
+		if ( count >= 0 ) {
+			return n;
+		}
+
+		return count + n + istream.skip( -count );
 	}
 
 	@Override
@@ -90,5 +165,7 @@ public class PreBufferedInputStream extends InputStream
 		throws IOException
 	{
 		buffer = null;
+		// Java's semantic: a stream closes also its underlying ones
+		istream.close();
 	}
 }
