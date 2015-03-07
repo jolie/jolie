@@ -1270,7 +1270,10 @@ public class Interpreter
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {
-							waitingSessionThreads.poll().start();
+							waitingSessionThreads.poll();
+							if ( !waitingSessionThreads.isEmpty() ) {
+								waitingSessionThreads.peek().start();
+							}
 						}
 					}
 					logSessionEnd( message.operationName(), session.getSessionId() );
@@ -1280,7 +1283,10 @@ public class Interpreter
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {
-							waitingSessionThreads.poll().start();
+							waitingSessionThreads.poll();
+							if( !waitingSessionThreads.isEmpty() ){
+								waitingSessionThreads.peek().start();
+							}
 						}
 					}
 					logSessionEnd( message.operationName(), session.getSessionId() );
@@ -1288,7 +1294,8 @@ public class Interpreter
 			} );
 			synchronized ( waitingSessionThreads ) {
 				if ( waitingSessionThreads.isEmpty() ) {
-					spawnedSession.start();
+					waitingSessionThreads.add( spawnedSession );
+					waitingSessionThreads.peek().start();
 				} else {
 					waitingSessionThreads.add( spawnedSession );
 				}
