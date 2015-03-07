@@ -69,6 +69,7 @@ public class CommandLineParser implements Closeable
 	private final String[] optionArgs;
 	private final URL[] libURLs;
 	private final InputStream programStream;
+	private String charset = null;
 	private final String programFilepath;
 	private final String[] arguments;
 	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
@@ -135,6 +136,15 @@ public class CommandLineParser implements Closeable
 	public InputStream programStream()
 	{
 		return programStream;
+	}
+
+	/**
+	 * Returns the program's character encoding
+	 * @return the program's character encoding
+	 */
+	public String charset()
+	{
+		return charset;
 	}
 	
 	/**
@@ -231,6 +241,8 @@ public class CommandLineParser implements Closeable
 		helpBuilder.append(
 				getOptionString( "--trace", "Activate tracer" ) );
 		helpBuilder.append(
+				getOptionString( "--charset [character encoding, eg. UTF-8]", "Character encoding of the source *.ol/*.iol (default: system-dependent, on GNU/Linux UTF-8)" ) );
+		helpBuilder.append(
 				getOptionString( "--version", "Display this program version information" ) );
 		return helpBuilder.toString();
 	}
@@ -239,7 +251,8 @@ public class CommandLineParser implements Closeable
 		throws IOException
 	{
 		try {
-			Scanner scanner = new Scanner( new ByteArrayInputStream( input.getBytes() ), new URI( "urn:CommandLine" ) );
+			// for command line options use the system's default charset (null)
+			Scanner scanner = new Scanner( new ByteArrayInputStream( input.getBytes() ), new URI( "urn:CommandLine" ), null );
 			Scanner.Token token = scanner.getToken();
 			if ( token.is( Scanner.TokenType.ID ) ) {
 				String id = token.content();
@@ -398,6 +411,11 @@ public class CommandLineParser implements Closeable
 				} else if ( "info".equals( level ) ) {
 					lLogLevel = Level.INFO;
 				}
+				optionsList.add( argsList.get( i ) );
+			} else if ( "--charset".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				charset = argsList.get( i );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--version".equals( argsList.get( i ) ) ) {
 				throw new CommandLineException( getVersionString() );

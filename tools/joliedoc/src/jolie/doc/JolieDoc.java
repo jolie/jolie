@@ -46,6 +46,7 @@ public class JolieDoc
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
 				URI.create( "file:" + cmdParser.programFilepath() ),
+				cmdParser.charset(),
 				cmdParser.includePaths(), 
 				cmdParser.jolieClassLoader(), 
 				cmdParser.definedConstants(),

@@ -701,7 +701,7 @@ public class OLParser extends AbstractParser
 			}
 
 			origIncludePaths = includePaths;
-			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI() ) );
+			setScanner( new Scanner( includeFile.getInputStream(), includeFile.getURI(), oldScanner.charset() ) );
 			
 			if ( includeFile.getParentPath() == null ) {
 				includePaths = Arrays.copyOf( origIncludePaths, origIncludePaths.length );

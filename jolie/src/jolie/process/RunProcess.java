@@ -49,9 +49,10 @@ public class RunProcess implements Process
 		if ( val.isString() ) {
 			try {
 				String codeStr = val.strValue();
+				// for run-time code use the system's default charset (null)
 				OLParser parser =
 					new OLParser(
-							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown" ),
+							new Scanner( new ByteArrayInputStream( codeStr.getBytes() ), "unknown", null ),
 							Interpreter.getInstance().includePaths(),
 							Interpreter.getInstance().parentClassLoader()
 						);
