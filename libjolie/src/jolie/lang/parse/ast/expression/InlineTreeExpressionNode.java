@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,36 +19,38 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.lang.parse.ast.expression;
 
 import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Pair;
 
 
-public class DeepCopyStatement extends OLSyntaxNode
+public class InlineTreeExpressionNode extends OLSyntaxNode
 {
-	private final VariablePathNode leftPath;
-	private final OLSyntaxNode rightExpression;
+	private final OLSyntaxNode rootExpression;
+	private final Pair< VariablePathNode, OLSyntaxNode >[] assignments;
 
-	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression )
-	{
+	public InlineTreeExpressionNode(
+		ParsingContext context,
+		OLSyntaxNode rootExpression,
+		Pair< VariablePathNode, OLSyntaxNode >[] assignments
+	) {
 		super( context );
-		if ( rightExpression instanceof VariableExpressionNode ) {
-			VariablePathNode.levelPaths( leftPath, ((VariableExpressionNode) rightExpression).variablePath() );
-		}
-		this.leftPath = leftPath;
-		this.rightExpression = rightExpression;
+		this.rootExpression = rootExpression;
+		this.assignments = assignments;
 	}
 	
-	public VariablePathNode leftPath()
+	public OLSyntaxNode rootExpression()
 	{
-		return leftPath;
+		return rootExpression;
 	}
 	
-	public OLSyntaxNode rightExpression()
+	public Pair< VariablePathNode, OLSyntaxNode >[] assignments()
 	{
-		return rightExpression;
+		return assignments;
 	}
 	
 	public void accept( OLVisitor visitor )

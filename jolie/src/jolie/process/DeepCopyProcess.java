@@ -23,22 +23,24 @@ package jolie.process;
 
 import jolie.ExecutionThread;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 public class DeepCopyProcess implements Process
 {
-	final private VariablePath leftPath, rightPath;
+	private final VariablePath leftPath;
+	private final Expression rightExpression;
 
-	public DeepCopyProcess( VariablePath leftPath, VariablePath rightPath )
+	public DeepCopyProcess( VariablePath leftPath, Expression rightExpression )
 	{
 		this.leftPath = leftPath;
-		this.rightPath = rightPath;
+		this.rightExpression = rightExpression;
 	}
 
 	public Process clone( TransformationReason reason )
 	{
 		return new DeepCopyProcess(
 					(VariablePath)leftPath.cloneExpression( reason ),
-					(VariablePath)rightPath.cloneExpression( reason )
+					rightExpression.cloneExpression( reason )
 				);
 	}
 
@@ -47,7 +49,11 @@ public class DeepCopyProcess implements Process
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 
-		leftPath.deepCopy( rightPath );
+		if ( rightExpression instanceof VariablePath ) {
+			leftPath.deepCopy( (VariablePath) rightExpression );
+		} else {
+			leftPath.getValue().deepCopy( rightExpression.evaluate() );
+		}
 	}
 	
 	public boolean isKillable()

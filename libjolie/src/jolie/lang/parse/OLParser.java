@@ -106,6 +106,7 @@ import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
@@ -113,6 +114,7 @@ import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
@@ -1787,8 +1789,7 @@ public class OLParser extends AbstractParser
 				new PointerStatement( getContext(), path, parseVariablePath() );
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
-			retVal =
-				new DeepCopyStatement( getContext(), path, parseVariablePath() );
+			retVal = new DeepCopyStatement( getContext(), path, parseExpression() );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}
@@ -2398,12 +2399,52 @@ public class OLParser extends AbstractParser
 			);
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 		}
-
+		
 		if ( retVal == null ) {
-			throwException( "expected expression" );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) {
+				retVal = new VoidExpressionNode( getContext() );
+			} else {
+				throwException( "expected expression" );
+			}
+		}
+		
+		if ( token.is( Scanner.TokenType.LCURLY ) ) {
+			retVal = parseInlineTreeExpression( retVal );
 		}
 
 		return retVal;
+	}
+	
+	private OLSyntaxNode parseInlineTreeExpression( OLSyntaxNode rootExpression )
+		throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+		
+		boolean keepRun = true;
+		VariablePathNode path;
+		OLSyntaxNode expression;
+		
+		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new LinkedList< Pair< VariablePathNode, OLSyntaxNode > >();
+		
+		while( keepRun ) {
+			eat( Scanner.TokenType.DOT, "expected ." );
+			
+			path = parseVariablePath();
+			eat( Scanner.TokenType.ASSIGN, "expected =" );
+			expression = parseExpression();
+			
+			assignments.add( new Pair< VariablePathNode, OLSyntaxNode >( path, expression ) );
+			
+			if ( token.is( Scanner.TokenType.COMMA ) ) {
+				getToken();
+			} else {
+				keepRun = false;
+			}
+		}
+		
+		eat( Scanner.TokenType.RCURLY, "expected }" );
+		
+		return new InlineTreeExpressionNode( rootExpression.context(), rootExpression, assignments.toArray( new Pair[0] ) );
 	}
 
 	private OLSyntaxNode parseProductExpression()

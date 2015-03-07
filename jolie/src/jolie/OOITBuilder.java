@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -110,6 +110,7 @@ import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import jolie.lang.parse.ast.expression.ConstantLongExpression;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
+import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
 import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
 import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
 import jolie.lang.parse.ast.expression.NotExpressionNode;
@@ -117,6 +118,7 @@ import jolie.lang.parse.ast.expression.OrConditionNode;
 import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
+import jolie.lang.parse.ast.expression.VoidExpressionNode;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -194,6 +196,7 @@ import jolie.runtime.expression.CompareCondition;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.expression.Expression.Operand;
 import jolie.runtime.expression.FreshValueExpression;
+import jolie.runtime.expression.InlineTreeExpression;
 import jolie.runtime.expression.InstanceOfExpression;
 import jolie.runtime.expression.IsBoolExpression;
 import jolie.runtime.expression.IsDefinedExpression;
@@ -205,6 +208,7 @@ import jolie.runtime.expression.NotExpression;
 import jolie.runtime.expression.OrCondition;
 import jolie.runtime.expression.ProductExpression;
 import jolie.runtime.expression.SumExpression;
+import jolie.runtime.expression.VoidExpression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
@@ -1124,8 +1128,8 @@ public class OOITBuilder implements OLVisitor
 		currProcess =
 			new DeepCopyProcess(
 				buildVariablePath( n.leftPath() ),
-				buildVariablePath( n.rightPath() )
-				);
+				buildExpression( n.rightExpression() )
+			);
 	}
 
 	public void visit( IfStatement n )
@@ -1303,6 +1307,11 @@ public class OOITBuilder implements OLVisitor
 		currProcess = ExitProcess.getInstance();
 	}
 	
+	public void visit( VoidExpressionNode n )
+	{
+		currExpression = new VoidExpression();
+	}
+	
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
 		currExpression = new ValueVectorSizeExpression( buildVariablePath( n.variablePath() ) );
@@ -1346,6 +1355,22 @@ public class OOITBuilder implements OLVisitor
 			currExpression =
 				new IsStringExpression( buildVariablePath( n.variablePath() ) );
 		}
+	}
+	
+	public void visit( InlineTreeExpressionNode n )
+	{
+		Expression rootExpression = buildExpression( n.rootExpression() );
+
+		Pair< VariablePath, Expression >[] assignments = new Pair[ n.assignments().length ];
+		int i = 0;
+		for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
+			assignments[ i++ ] = new Pair< VariablePath, Expression >(
+				buildVariablePath( pair.key() ),
+				buildExpression( pair.value() )
+			);
+		}
+		
+		currExpression = new InlineTreeExpression( rootExpression, assignments );
 	}
 	
 	public void visit( InstanceOfExpressionNode n )
