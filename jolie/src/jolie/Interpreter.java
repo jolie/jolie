@@ -920,6 +920,7 @@ public class Interpreter
 	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
+	private final LinkedList< SessionThread > sessionThreads = new LinkedList<SessionThread>();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
@@ -1201,7 +1202,7 @@ public class Interpreter
 			cmdParser = null; // Free memory
 		}
 	}
-
+	
 	/**
 	 * Starts a service session.
 	 * @param message the message triggering the session start
@@ -1238,7 +1239,8 @@ public class Interpreter
 			);
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(), Long.valueOf( message.id()).toString(), message.value() );
+			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
+							Long.valueOf( message.id()).toString(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session )
 				{
@@ -1253,21 +1255,23 @@ public class Interpreter
 			spawnedSession.start();
 		} else if ( executionMode == Constants.ExecutionMode.SEQUENTIAL ) {
 			/*
-			 * We use mainSession as a reference to the latest arrived
-			 * sequential session spawn request.
+			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
-			final SessionThread currentMainSession = mainSession;
-			State state = initExecutionThread.state().clone();
-			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+        State state = initExecutionThread.state().clone();
+				jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+				starter.body,
 				new jolie.process.Process() {
 					public void run()
 						throws FaultException, ExitingException
 					{
-						if ( currentMainSession != null ) {
-							try {
-								currentMainSession.join();
-							} catch( InterruptedException e ) {
-								logSevere( e );
+						synchronized( sessionThreads ){
+							if( sessionThreads.size() > 0 ){
+								sessionThreads.poll();
+									if( sessionThreads.size() > 0 ){
+									SessionThread st = sessionThreads.peek();
+									st.start();
+								}
 							}
 						}
 					}
@@ -1281,31 +1285,33 @@ public class Interpreter
 					{
 						return false;
 					}
-				},
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
-				starter.body
+				}
 			} );
+		spawnedSession = new SessionThread(
+			sequence, state, initExecutionThread
+		);
+		correlationEngine.onSessionStart( spawnedSession, starter, message );
+		spawnedSession.addSessionListener( correlationEngine );
+		spawnedSession.addSessionListener( new SessionListener() {
+			public void onSessionExecuted( SessionThread session )
+			{
+				logSessionEnd( message.operationName(), session.getSessionId() );
+			}
 			
-			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread
-			);
-			correlationEngine.onSessionStart( spawnedSession, starter, message );
-			spawnedSession.addSessionListener( correlationEngine );
-			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
-				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
+			public void onSessionError( SessionThread session, FaultException fault )
+			{
+				logSessionEnd( message.operationName(), session.getSessionId() );
+			}
+		} );
+			synchronized( sessionThreads ){
+				if( sessionThreads.isEmpty() ) {
+					sessionThreads.add( spawnedSession );
+					sessionThreads.peek().start();
+				}	else {
+					sessionThreads.add( spawnedSession );
 				}
-				
-				public void onSessionError( SessionThread session, FaultException fault )
-				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
-				}
-			} );
-			mainSession = spawnedSession;
-			mainSession.start();
+			}
 		}
-
 		return true;
 	}
 	
@@ -1324,4 +1330,3 @@ public class Interpreter
 		}
 	}
 }
-
