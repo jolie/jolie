@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,40 +19,23 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.context.ParsingContext;
+package jolie.runtime.expression;
 
+import jolie.process.TransformationReason;
+import jolie.runtime.Value;
 
-public class DeepCopyStatement extends OLSyntaxNode
-{
-	private final VariablePathNode leftPath;
-	private final OLSyntaxNode rightExpression;
-
-	public DeepCopyStatement( ParsingContext context, VariablePathNode leftPath, OLSyntaxNode rightExpression )
+public class VoidExpression implements Expression
+{	
+	public VoidExpression() {}
+	
+	public Expression cloneExpression( TransformationReason reason )
 	{
-		super( context );
-		if ( rightExpression instanceof VariableExpressionNode ) {
-			VariablePathNode.levelPaths( leftPath, ((VariableExpressionNode) rightExpression).variablePath() );
-		}
-		this.leftPath = leftPath;
-		this.rightExpression = rightExpression;
+		return new VoidExpression();
 	}
 	
-	public VariablePathNode leftPath()
+	public Value evaluate()
 	{
-		return leftPath;
-	}
-	
-	public OLSyntaxNode rightExpression()
-	{
-		return rightExpression;
-	}
-	
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return Value.create();
 	}
 }
