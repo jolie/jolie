@@ -119,11 +119,12 @@ public class PreBufferedInputStream extends InputStream
 		if ( lenFromBuffer > 0 ) {
 			// match implementation of read()
 			count -= lenFromBuffer;
-			if ( readPos >= buffer.length ) {
-				readPos = 0;
+			for ( int i = 0; i < lenFromBuffer; i++ ) {
+				if ( readPos >= buffer.length ) {
+					readPos = 0;
+				}
+				b[ off + i ] = buffer[ readPos++ ];
 			}
-			System.arraycopy( buffer, readPos, b, off, lenFromBuffer );
-			readPos += lenFromBuffer;
 		} else {
 			// count could have been negative, so reset lenFromBuffer to 0
 			lenFromBuffer = 0;
