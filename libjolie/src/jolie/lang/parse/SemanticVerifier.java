@@ -75,6 +75,7 @@ import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -1129,4 +1130,21 @@ public class SemanticVerifier implements OLVisitor
 	{}
 	
 	public void visit( VoidExpressionNode n ) {}
+	
+	public void visit( ProvideUntilStatement n )
+	{	
+		if ( !( n.provide() instanceof NDChoiceStatement ) ) {
+			error( n, "provide branch is not an input choice" );
+		} else if ( !( n.until() instanceof NDChoiceStatement ) ) {
+			error( n, "until branch is not an input choice" );
+		}
+		
+		NDChoiceStatement provide = (NDChoiceStatement) n.provide();
+		NDChoiceStatement until = (NDChoiceStatement) n.until();
+		
+		NDChoiceStatement total = new NDChoiceStatement( n.context() );
+		total.children().addAll( provide.children() );
+		total.children().addAll( until.children() );
+		total.accept( this );
+	}
 }

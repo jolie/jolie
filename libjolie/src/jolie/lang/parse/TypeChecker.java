@@ -70,6 +70,7 @@ import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -948,4 +949,10 @@ public class TypeChecker implements OLVisitor
 	public void visit( SolicitResponseForwardStatement n ) {}
 	
 	public void visit( VoidExpressionNode n ) {}
+	
+	public void visit( ProvideUntilStatement n )
+	{
+		n.provide().accept( this );
+		n.until().accept( this );
+	}
 }

@@ -63,6 +63,7 @@ import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -823,6 +824,15 @@ public class OLParseTreeOptimizer
 				optAssignments[i++] = new Pair< VariablePathNode, OLSyntaxNode >( currVarPath, currExpr );
 			}
 			currNode = new InlineTreeExpressionNode( n.context(), optimizeNode( n.rootExpression() ), optAssignments );
+		}
+		
+		public void visit( ProvideUntilStatement n )
+		{
+			currNode = new ProvideUntilStatement(
+				n.context(),
+				optimizeNode( n.provide() ),
+				optimizeNode( n.until() )
+			);
 		}
 
 		public void visit( DocumentationComment n ) {}
