@@ -150,15 +150,32 @@ public class PreBufferedInputStream extends InputStream
 			throw new IOException( "Stream closed" );
 		}
 
-		if ( n < 0 ) {
+		if ( n <= 0 ) {
 			return 0;
 		}
-		count -= n;
-		if ( count >= 0 ) {
-			return n;
+
+		long skipFromBuffer = count >= n ? n : count;
+		if ( skipFromBuffer > 0 ) {
+			// match implementation of read()
+			// skipFromBuffer <= count
+			count -= (int)skipFromBuffer;
+			for ( int i = 0; i < (int)skipFromBuffer; i++ ) {
+				if ( readPos >= buffer.length ) {
+					readPos = 0;
+				}
+				readPos++;
+			}
+		} else {
+			// count could have been negative, so reset skipFromBuffer to 0
+			skipFromBuffer = 0;
 		}
 
-		return count + n + istream.skip( -count );
+		long skipFromStream = 0;
+		if ( skipFromBuffer != n ) {
+			skipFromStream = istream.skip( n-skipFromBuffer );
+		}
+
+		return skipFromBuffer + skipFromStream;
 	}
 
 	@Override
