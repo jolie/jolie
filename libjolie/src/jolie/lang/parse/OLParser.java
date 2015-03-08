@@ -80,6 +80,7 @@ import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.Scope;
@@ -1429,9 +1430,12 @@ public class OLParser extends AbstractParser
 			checkConstant();
 			String id = token.content();
 			getToken();
-
-			if ( token.is( Scanner.TokenType.COLON ) || token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
+			
+			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
+			} else if ( id.equals( "provide" ) && token.is( Scanner.TokenType.COLON ) ) {
+				getToken();
+				retVal = parseProvideUntilStatement();
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -1689,6 +1693,22 @@ public class OLParser extends AbstractParser
 		}
 
 		return retVal;
+	}
+	
+	private OLSyntaxNode parseProvideUntilStatement()
+		throws IOException, ParserException
+	{
+		ParsingContext context = getContext();
+		NDChoiceStatement provide = parseNDChoiceStatement();
+		if ( !token.isIdentifier() || !token.content().equals( "until" ) ) {
+			throwException( "expected until" );
+		}
+		getToken();
+		eat( Scanner.TokenType.COLON, "expected :" );
+		
+		NDChoiceStatement until = parseNDChoiceStatement();
+		
+		return new ProvideUntilStatement( context, provide, until );
 	}
 	
 	private OLSyntaxNode parseForwardStatement()

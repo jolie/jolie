@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -35,63 +35,29 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.util.Pair;
 
-/** Implements a non-deterministic choice.
- * An NDChoiceProcess instance collects pairs which couple an 
- * InputOperationProcess object with a Process object.
- * When the ChoiceProcess object is run, it waits for 
- * the receiving of a communication on one of its InputProcess objects.
- * When a communication is received, the following happens:
- * \li the communication is resolved by the corresponding InputProcess instance.
- * \li the paired Process object is executed.
- * 
- * After that, the ChoiceProcess terminates, so the other pairs are ignored.
- * 
+/** 
  * @author Fabrizio Montesi
  */
-public class NDChoiceProcess implements Process
+public class ProvideUntilProcess implements Process
 {
-	private Map< String, Pair< InputOperationProcess, Process > > branches =
-		new HashMap< String, Pair< InputOperationProcess, Process > >();
+	private final NDChoiceProcess provide, until;
 	private Map< String, InputOperation > inputOperationsMap =
 		new HashMap< String, InputOperation >();
 	
-	/** Constructor
-	 * @param branches
-	 */
-	public NDChoiceProcess( Pair< InputOperationProcess, Process >[] branches )
+	public ProvideUntilProcess( NDChoiceProcess provide, NDChoiceProcess until )
 	{
-		for( Pair< InputOperationProcess, Process > pair : branches ) {
-			this.branches.put( pair.key().inputOperation().id(), pair );
-			this.inputOperationsMap.put( pair.key().inputOperation().id(), pair.key().inputOperation() );
-		}
-		this.branches = Collections.unmodifiableMap( this.branches );
+		this.provide = provide;
+		this.until = until;
+		this.inputOperationsMap.putAll( provide.inputOperations() );
+		this.inputOperationsMap.putAll( until.inputOperations() );
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
-	}
-	
-	protected Map< String, Pair< InputOperationProcess, Process > > branches()
-	{
-		return branches;
-	}
-	
-	protected Map< String, InputOperation > inputOperations()
-	{
-		return inputOperationsMap;
 	}
 	
 	public Process clone( TransformationReason reason )
 	{
-		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
-		int i = 0;
-		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().clone( reason ) );
-		}
-		return new NDChoiceProcess( b );
+		return new ProvideUntilProcess( (NDChoiceProcess)provide.clone( reason ), (NDChoiceProcess)until.clone( reason ) );
 	}
-	
-	/** Runs the non-deterministic choice behaviour.
-	 * @throws jolie.runtime.FaultException
-	 * @throws jolie.runtime.ExitingException
-	 */
+
 	public void run()
 		throws FaultException, ExitingException
 	{
@@ -99,13 +65,23 @@ public class NDChoiceProcess implements Process
 		if ( ethread.isKilled() ) {
 			return;
 		}
+		
+		boolean keepRun = true;
 
-		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
 		try {
-			SessionMessage m = f.get();
-			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
-			branch.key().receiveMessage( m, ethread.state() ).run();
-			branch.value().run();
+			while( keepRun ) {
+				Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
+
+				SessionMessage m = f.get();
+				Pair< InputOperationProcess, Process > branch = provide.branches().get( m.message().operationName() );
+				if ( branch == null ) {
+					// It is an until branch
+					branch = until.branches().get( m.message().operationName() );
+					keepRun = false;
+				}
+				branch.key().receiveMessage( m, ethread.state() ).run();
+				branch.value().run();
+			}
 		} catch( CancellationException e ) {
 			Interpreter.getInstance().logSevere( e );
 		} catch( ExecutionException e ) {

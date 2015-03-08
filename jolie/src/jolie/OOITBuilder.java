@@ -84,6 +84,7 @@ import jolie.lang.parse.ast.PostIncrementStatement;
 import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.ast.ProvideUntilStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -158,6 +159,7 @@ import jolie.process.PostIncrementProcess;
 import jolie.process.PreDecrementProcess;
 import jolie.process.PreIncrementProcess;
 import jolie.process.Process;
+import jolie.process.ProvideUntilProcess;
 import jolie.process.RequestResponseProcess;
 import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
@@ -1654,6 +1656,11 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
+	}
+	
+	public void visit( ProvideUntilStatement n )
+	{
+		currProcess = new ProvideUntilProcess( (NDChoiceProcess)buildProcess( n.provide() ), (NDChoiceProcess)buildProcess( n.until() ) );
 	}
 
 	public void visit( SolicitResponseForwardStatement n )
