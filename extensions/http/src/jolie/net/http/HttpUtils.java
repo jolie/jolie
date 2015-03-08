@@ -25,8 +25,6 @@ package jolie.net.http;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
-import java.io.Writer;
-import java.io.OutputStreamWriter;
 import java.io.ByteArrayOutputStream;
 
 import java.util.zip.DeflaterOutputStream;
@@ -85,33 +83,33 @@ public class HttpUtils
 	}
 
 	public static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
-		Writer writer = new OutputStreamWriter( ostream, "utf-8" );
+		StringBuilder httpMessage = new StringBuilder();
 		if ( e instanceof UnsupportedEncodingException ) {
-			writer.write( "HTTP/1.1 415 Unsupported Media Type" + CRLF );
+			httpMessage.append( "HTTP/1.1 415 Unsupported Media Type" + CRLF );
 		} else if ( e instanceof UnsupportedMethodException ) {
 			UnsupportedMethodException ex = ( UnsupportedMethodException ) e;
 			if ( ex.allowedMethods() == null ) {
-				writer.write( "HTTP/1.1 501 Not Implemented" + CRLF );
+				httpMessage.append( "HTTP/1.1 501 Not Implemented" + CRLF );
 			} else {
-				writer.write( "HTTP/1.1 405 Method Not Allowed" + CRLF );
-				writer.write( "Allowed: " );
+				httpMessage.append( "HTTP/1.1 405 Method Not Allowed" + CRLF );
+				httpMessage.append( "Allowed: " );
 				Method[] methods = ex.allowedMethods();
 				for ( int i = 0; i < methods.length; i++ ) {
-					writer.write( methods[i].id() + ( i+1 < methods.length ? ", " : "" ) );
+					httpMessage.append( methods[i].id() + ( i+1 < methods.length ? ", " : "" ) );
 				}
-				writer.write( CRLF );
+				httpMessage.append( CRLF );
 			}
 		} else if ( e instanceof UnsupportedHttpVersionException ) {
-			writer.write( "HTTP/1.1 505 HTTP Version Not Supported" + CRLF );
+			httpMessage.append( "HTTP/1.1 505 HTTP Version Not Supported" + CRLF );
 		} else {
-			writer.write( "HTTP/1.1 500 Internal Server Error" + CRLF );
+			httpMessage.append( "HTTP/1.1 500 Internal Server Error" + CRLF );
 		}
 		String message = e.getMessage() != null ? e.getMessage() : e.toString();
 		ByteArray content = new ByteArray( message.getBytes( "utf-8" ) );
-		writer.write( "Server: Jolie" + CRLF );
-		writer.write( "Content-Type: text/plain; charset=utf-8" + CRLF );
-		writer.write( "Content-Length: " + content.size() + CRLF + CRLF );
-		writer.flush();
+		httpMessage.append( "Server: Jolie" + CRLF );
+		httpMessage.append( "Content-Type: text/plain; charset=utf-8" + CRLF );
+		httpMessage.append( "Content-Length: " + content.size() + CRLF + CRLF );
+		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
 		ostream.flush();
 	}
