@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URI;
 import java.util.Map.Entry;
 import javax.xml.transform.Result;
@@ -431,9 +429,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
 
-		Writer writer = new OutputStreamWriter( ostream, "utf-8" );
-		writer.write( httpMessage.toString() );
-		writer.flush();
+		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
 	}
 

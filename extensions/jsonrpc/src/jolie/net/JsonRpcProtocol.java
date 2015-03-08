@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,10 +92,10 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		if (!message.isFault() && message.hasGenericId() && inInputPort) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			// we just send HTTP status code 204
-			Writer writer = new OutputStreamWriter( ostream, "utf-8" );
-			writer.write("HTTP/1.1 204 No Content" + HttpUtils.CRLF);
-			writer.write("Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF);
-			writer.flush();
+			StringBuilder httpMessage = new StringBuilder();
+			httpMessage.append( "HTTP/1.1 204 No Content" + HttpUtils.CRLF );
+			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF );
+			ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 			return;
 		}
 				
@@ -171,9 +169,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
 		}
 
-		Writer writer = new OutputStreamWriter( ostream, "utf-8" );
-		writer.write( httpMessage.toString() );
-		writer.flush();
+		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
 	}
 
