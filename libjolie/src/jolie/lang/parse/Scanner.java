@@ -94,41 +94,42 @@ public class Scanner
 		THROW,				///< throw
 		DOCUMENTATION_COMMENT,
 		INSTALL,				///< install
-		SCOPE,					///< scope
-		SPAWN,					///< spawn
-		THIS,					///< this
-		COMPENSATE,				///< comp
-		EXIT,					///< exit
-		INCLUDE,				///< include
-		CONSTANTS,				///< constants
-		POINTS_TO,				///< ->
-		QUESTION_MARK,			///< ?
-		ARROW,					///< =>
-		DEEP_COPY_LEFT,			///< <<
-		RUN,					///< run
-		UNDEF,					///< undef
-		HASH,					///< #
-		PERCENT_SIGN,			///< %
-		FOR,					///< for
-		FOREACH,				///< foreach
-		WITH,					///< with
-		DECREMENT,				///< --
-		IS_STRING,				///< is_string
-		IS_INT,					///< is_int
-		IS_DOUBLE,				///< is_double
+		SCOPE,				///< scope
+		SPAWN,				///< spawn
+		THIS,				///< this
+		COMPENSATE,			///< comp
+		EXIT,				///< exit
+		INCLUDE,			///< include
+		CONSTANTS,			///< constants
+		POINTS_TO,			///< ->
+		QUESTION_MARK,		///< ?
+		ARROW,				///< =>
+		DEEP_COPY_LEFT,		///< <<
+		RUN,				///< run
+		UNDEF,				///< undef
+		HASH,				///< #
+		PERCENT_SIGN,		///< %
+		FOR,				///< for
+		FOREACH,			///< foreach
+		WITH,				///< with
+		DECREMENT,			///< --
+		IS_STRING,			///< is_string
+		IS_INT,				///< is_int
+		IS_DOUBLE,			///< is_double
 		IS_BOOL,				///< is_bool
-		IS_LONG,				///< is_long
-		IS_DEFINED,				///< is_defined
-		CAST_INT,				///< int
-		CAST_STRING,			///< string
-		CAST_DOUBLE,				///< double
-		CAST_BOOL,				///< bool
-		CAST_LONG,				///< long
-		SYNCHRONIZED,			///< synchronized
-		THROWS,					///< throws
-		CURRENT_HANDLER,		///< cH
-		INIT,					///< init
-		ERROR					///< Scanner error
+		IS_LONG,			///< is_long
+		IS_DEFINED,			///< is_defined
+		CAST_INT,			///< int
+		CAST_STRING,		///< string
+		CAST_DOUBLE,		///< double
+		CAST_BOOL,			///< bool
+		CAST_LONG,			///< long
+		SYNCHRONIZED,		///< synchronized
+		THROWS,				///< throws
+		CURRENT_HANDLER,	///< cH
+		INIT,				///< init
+		PROVIDE,			///< provide
+		ERROR				///< Scanner error
 	}
 	
 	/*
@@ -173,13 +174,14 @@ public class Scanner
 		unreservedKeywords.put( NativeType.STRING.id(), TokenType.CAST_STRING );
 		unreservedKeywords.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
 		unreservedKeywords.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
-                unreservedKeywords.put( NativeType.LONG.id(), TokenType.CAST_LONG );
+		unreservedKeywords.put( NativeType.LONG.id(), TokenType.CAST_LONG );
 		unreservedKeywords.put( "throws", TokenType.THROWS );
 		unreservedKeywords.put( "cH", TokenType.CURRENT_HANDLER );
 		unreservedKeywords.put( "init", TokenType.INIT );
 		unreservedKeywords.put( "with", TokenType.WITH );
 		unreservedKeywords.put( "true", TokenType.TRUE );
 		unreservedKeywords.put( "false", TokenType.FALSE );
+		unreservedKeywords.put( "provide", TokenType.PROVIDE );
 	}
 	
 	/**

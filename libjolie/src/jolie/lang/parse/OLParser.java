@@ -1426,6 +1426,9 @@ public class OLParser extends AbstractParser
 
 		if ( token.is( Scanner.TokenType.LSQUARE ) ) {
 			retVal = parseNDChoiceStatement();
+		} else if ( token.is( Scanner.TokenType.PROVIDE ) ) {
+			getToken();
+			retVal = parseProvideUntilStatement();
 		} else if ( token.is( Scanner.TokenType.ID ) ) {
 			checkConstant();
 			String id = token.content();
@@ -1433,9 +1436,6 @@ public class OLParser extends AbstractParser
 			
 			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
-			} else if ( id.equals( "provide" ) && token.is( Scanner.TokenType.COLON ) ) {
-				getToken();
-				retVal = parseProvideUntilStatement();
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
 			} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
@@ -1700,11 +1700,10 @@ public class OLParser extends AbstractParser
 	{
 		ParsingContext context = getContext();
 		NDChoiceStatement provide = parseNDChoiceStatement();
-		if ( !token.isIdentifier() || !token.content().equals( "until" ) ) {
+		if ( !token.isKeyword( "until" ) ) {
 			throwException( "expected until" );
 		}
 		getToken();
-		eat( Scanner.TokenType.COLON, "expected :" );
 		
 		NDChoiceStatement until = parseNDChoiceStatement();
 		
