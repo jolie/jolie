@@ -356,6 +356,7 @@ public class HttpProtocol extends CommProtocol
 	
 	private String encoding = null;
 	private String responseFormat = null;
+	private boolean headRequest = false;
 
 	private void send_appendQuerystring( Value value, String charset, StringBuilder headerBuilder )
 		throws IOException
@@ -852,7 +853,7 @@ public class HttpProtocol extends CommProtocol
 		inputId = message.operationName();
 		
 		ostream.write( headerBuilder.toString().getBytes( charset ) );
-		if ( encodedContent.content != null ) {
+		if ( encodedContent.content != null && !headRequest ) {
 			ostream.write( encodedContent.content.getBytes() );
 		}
 	}
@@ -1254,6 +1255,8 @@ public class HttpProtocol extends CommProtocol
 		if ( message.size() > 0 ) {
 			recv_parseMessage( message, decodedMessage, contentType, charset );
 		}
+
+		headRequest = message.isHead();
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
 			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
