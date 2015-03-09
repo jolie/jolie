@@ -126,6 +126,11 @@ public class HttpMessage
 		return type == Type.GET;
 	}
 
+	public boolean isHead()
+	{
+		return type == Type.HEAD;
+	}
+
 	public void addCookie( String name, String value )
 	{
 		cookies.put( name, value);
