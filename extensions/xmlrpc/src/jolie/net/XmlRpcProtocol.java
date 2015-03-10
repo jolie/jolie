@@ -429,7 +429,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
 
-		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		ostream.write( content.getBytes() );
 	}
 

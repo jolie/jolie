@@ -856,7 +856,7 @@ public class SoapProtocol extends SequentialCommProtocol {
 
             inputId = message.operationName();
 
-            ostream.write(httpMessage.toString().getBytes("utf-8"));
+            ostream.write(httpMessage.toString().getBytes(HttpUtils.URL_DECODER_ENC));
             ostream.write(content.getBytes());
         } catch (SOAPException se) {
             throw new IOException(se);
