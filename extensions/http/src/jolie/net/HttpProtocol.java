@@ -856,6 +856,7 @@ public class HttpProtocol extends CommProtocol
 		if ( encodedContent.content != null && !headRequest ) {
 			ostream.write( encodedContent.content.getBytes() );
 		}
+		headRequest = false;
 	}
 
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
@@ -1256,7 +1257,7 @@ public class HttpProtocol extends CommProtocol
 			recv_parseMessage( message, decodedMessage, contentType, charset );
 		}
 
-		headRequest = message.isHead();
+		headRequest = inInputPort && message.isHead();
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
 			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
