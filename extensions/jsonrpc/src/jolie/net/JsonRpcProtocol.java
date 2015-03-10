@@ -169,7 +169,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
 		}
 
-		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
+		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		ostream.write( content.getBytes() );
 	}
 
