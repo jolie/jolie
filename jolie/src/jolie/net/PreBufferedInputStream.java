@@ -75,9 +75,7 @@ public class PreBufferedInputStream extends InputStream
 		if ( buffer == null ) {
 			throw new IOException( "Stream closed" );
 		}
-		// works only on the underlying stream, not on our cached data
-		// for which we have hasCachedData()
-		return istream.available();
+		return ( count >= 0 ? count : 0 ) + istream.available();
 	}
 
 	@Override
