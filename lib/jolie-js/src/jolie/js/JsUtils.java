@@ -85,7 +85,7 @@ public class JsUtils
         }
     }
 
-    public static void valueToJsonString(Value value, Type type, StringBuilder builder) throws IOException {
+    public static void valueToJsonString(Value value, Type type, StringBuilder builder ) throws IOException {
         if (value.hasChildren(JSONARRAY_KEY)) {
             valueVectorToJsonString(value.children().get(JSONARRAY_KEY), builder, true, null);
             return;
@@ -115,6 +115,18 @@ public class JsUtils
             builder.append('}');
         }
     }
+	
+	public static void faultValueToJsonString(Value value, Type type, StringBuilder builder ) throws IOException {
+        
+		builder.append("{\"error\":{\"message\":\"");
+		builder.append( value.getFirstChild( "error" ).getFirstChild( "message").strValue() );
+		builder.append("\",\"code\":");
+		builder.append( value.getFirstChild( "error" ).getFirstChild( "code").intValue() );
+		builder.append(",\"data\":");
+		valueToJsonString( value.getFirstChild( "error" ).getFirstChild( "data" ), type, builder);
+		builder.append("}}");
+				
+	}
 
     // JSON string -> Jolie value
 
