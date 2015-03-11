@@ -23,7 +23,6 @@ package jolie.net.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import jolie.lang.parse.Scanner;
 
@@ -33,7 +32,6 @@ import jolie.lang.parse.Scanner.TokenType;
 public class HttpScanner
 {
 	private final InputStream stream;
-	private final InputStreamReader reader;
 	private int state; // current state
 	private int currInt;
 	private char ch;
@@ -44,7 +42,6 @@ public class HttpScanner
 		throws IOException
 	{
 		this.stream = stream;
-		this.reader = new InputStreamReader( stream, HttpUtils.URL_DECODER_ENC );
 		readChar();
 	}
 	
@@ -95,7 +92,7 @@ public class HttpScanner
 	public void eatSeparatorsUntilEOF()
 		throws IOException
 	{
-		while( Scanner.isSeparator( ch ) && reader.ready() ) {
+		while( Scanner.isSeparator( ch ) && stream.available() > 0 ) {
 			readChar();
 		}
 	}
@@ -113,8 +110,8 @@ public class HttpScanner
 	public final void readChar()
 		throws IOException
 	{
-		currInt = reader.read();
-		ch = (char)currInt;
+		currInt = stream.read();
+		ch = (char)currInt;            
 	}
 
 	public Token getToken()
