@@ -22,11 +22,12 @@
 package jolie;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.concurrent.Future;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
@@ -153,7 +154,7 @@ public abstract class ExecutionThread extends JolieThread
 	}
 
 	protected final Process process;
-	protected final Stack< Scope > scopeStack = new Stack< Scope >();
+	protected final Deque< Scope > scopeStack = new ArrayDeque< Scope >();
 	protected final ExecutionThread parent;
 	private final List< WeakReference< Future< ? > > > futureToCancel =
 			new LinkedList< WeakReference< Future< ? > > >();
@@ -249,7 +250,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized Process getCurrentScopeCompensation()
 	{
-		if( scopeStack.empty() && parent != null ) {
+		if( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCurrentScopeCompensation();
 		}
 		
@@ -263,7 +264,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized Process getCompensation( String id )
 	{
-		if ( scopeStack.empty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCompensation( id );
 		}
 		
@@ -279,7 +280,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized boolean hasScope()
 	{
-		return !scopeStack.empty();
+		return !scopeStack.isEmpty();
 	}
 	
 	/**
@@ -288,7 +289,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized String currentScopeId()
 	{
-		if( scopeStack.empty() && parent != null ) {
+		if( scopeStack.isEmpty() && parent != null ) {
 			return parent.currentScopeId();
 		}
 		
@@ -331,7 +332,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized Process getFaultHandler( String id, boolean erase )
 	{
-		if ( scopeStack.empty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getFaultHandler( id, erase );
 		}
 		
@@ -371,7 +372,7 @@ public abstract class ExecutionThread extends JolieThread
 	
 	private synchronized void mergeCompensations( Scope s )
 	{
-		if ( scopeStack.empty() ) {
+		if ( scopeStack.isEmpty() ) {
 			if ( parent != null ) {
 				parent.mergeCompensations( s );
 			}
@@ -386,7 +387,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void installCompensation( Process process )
 	{
-		if ( scopeStack.empty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			parent.installCompensation( process );
 		} else {
 			scopeStack.peek().installCompensation( process );
@@ -400,7 +401,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void installFaultHandler( String id, Process process )
 	{
-		if ( scopeStack.empty() && parent != null ) {
+		if ( scopeStack.isEmpty() && parent != null ) {
 			parent.installFaultHandler( id, process );
 		} else {
 			scopeStack.peek().installFaultHandler( id, process );
