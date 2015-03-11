@@ -184,7 +184,7 @@ public class HttpParser
 		if ( !token.isKeyword( HTTP ) )
 			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 		
-		if ( (char)scanner.currentCharacter() != '/' )
+		if ( scanner.currentCharacter() != '/' )
 			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
@@ -212,7 +212,7 @@ public class HttpParser
 		throws IOException
 	{
 		HttpMessage message = new HttpMessage( HttpMessage.Type.RESPONSE );
-		if ( (char)scanner.currentCharacter() != '/' )
+		if ( scanner.currentCharacter() != '/' )
 			throw new IOException( "Expected HTTP version" );
 
 		String version = scanner.readWord();
