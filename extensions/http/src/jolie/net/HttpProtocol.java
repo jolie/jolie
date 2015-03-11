@@ -583,8 +583,10 @@ public class HttpProtocol extends CommProtocol
 				error.getFirstChild( "code" ).setValue( -32000 );
 				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
 				error.getChildren( "data" ).set( 0, message.fault().value() );
+				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+			} else {
+				JsUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			}
-			JsUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
 			if ( message.isFault() ) {
