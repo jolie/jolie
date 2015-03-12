@@ -461,7 +461,7 @@ public class Scanner
 	 * @param c the character to check as a whitespace
 	 * @return <code>true</code> if <code>c</code> is a separator (whitespace)
 	 */
-	public static boolean isSeparator( int c )
+	public static boolean isSeparator( char c )
 	{
 		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
@@ -471,7 +471,7 @@ public class Scanner
 	 * @param c the character to check
 	 * @return <code>true</code> if <code>c</code> is a newline character
 	 */
-	public static boolean isNewLineChar( int c )
+	public static boolean isNewLineChar( char c )
 	{
 		return ( c == '\n' || c == '\r' );
 	}
