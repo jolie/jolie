@@ -824,7 +824,7 @@ public class Interpreter
 		cmdParser = new CommandLineParser( args, parentClassLoader );
 		classLoader = cmdParser.jolieClassLoader();
 		optionArgs = cmdParser.optionArgs();
-		programFilename = cmdParser.programFilepath();
+		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
@@ -1155,7 +1155,7 @@ public class Interpreter
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
 			} else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), new URI( "file:" + cmdParser.programFilepath() ), cmdParser.charset() ), includePaths, classLoader );
+				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
 				olParser.putConstants( cmdParser.definedConstants() );
 				program = olParser.parse();
 				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
@@ -1189,8 +1189,6 @@ public class Interpreter
 				semanticVerifier.isConstantMap(),
 				semanticVerifier.correlationFunctionInfo() )).build();
 		} catch( IOException e ) {
-			throw new InterpreterException( e );
-		} catch( URISyntaxException e ) {
 			throw new InterpreterException( e );
 		} catch( ParserException e ) {
 			throw new InterpreterException( e );

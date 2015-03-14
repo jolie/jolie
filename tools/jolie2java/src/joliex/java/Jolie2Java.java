@@ -5,7 +5,6 @@
 package joliex.java;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
@@ -37,7 +36,7 @@ public class Jolie2Java {
 
             Program program = ParsingUtils.parseProgram(
                     cmdParser.programStream(),
-                    URI.create("file:" + cmdParser.programFilepath()), cmdParser.charset(),
+                    cmdParser.programFilepath().toURI(), cmdParser.charset(),
                     cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
 
             //Program program = parser.parse();

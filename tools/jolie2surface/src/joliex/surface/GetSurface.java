@@ -22,7 +22,6 @@
 package joliex.surface;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
@@ -48,7 +47,7 @@ public class GetSurface
 			CommandLineParser cmdParser = new CommandLineParser( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );

@@ -25,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
 import jolie.lang.parse.ParserException;
@@ -54,7 +53,7 @@ public class Compiler
 	{
 		Program program = ParsingUtils.parseProgram(
 			cmdParser.programStream(),
-			URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+			cmdParser.programFilepath().toURI(), cmdParser.charset(),
 			cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants()
 		);
 		//GZIPOutputStream gzipstream = new GZIPOutputStream( ostream );

@@ -48,12 +48,12 @@ public class JolieDummyDocumentCreator
 	private StringBuilder stringBuilder;
 	private String nameSourceFile;
 
-	public JolieDummyDocumentCreator( ProgramInspector inspector, String directorySourceFile )
+	public JolieDummyDocumentCreator( ProgramInspector inspector, File directorySourceFile )
 	{
 
 		this.inspector = inspector;
-		this.directorySourceFile = directorySourceFile.substring( 0, directorySourceFile.lastIndexOf( "/" ) + 1 );
-		this.nameSourceFile = directorySourceFile.substring( directorySourceFile.lastIndexOf( "/" ) + 1 );
+		this.directorySourceFile = directorySourceFile.getParent() + File.separator;
+		this.nameSourceFile = directorySourceFile.getName();
 		stringBuilder = new StringBuilder();
 	}
 
@@ -69,6 +69,8 @@ public class JolieDummyDocumentCreator
 			stringBuilder.append( lineOriginalFile + "\n" );
 
 			lineOriginalFile = reader.readLine();
+			if ( lineOriginalFile == null )
+				break;
 			if ( (lineOriginalFile.contains( "include" )) && (lineOriginalFile.contains( "/" )) ) {
 
 				int indexSlash = lineOriginalFile.indexOf( "/" );
