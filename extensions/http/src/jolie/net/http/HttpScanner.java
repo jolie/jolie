@@ -54,6 +54,13 @@ public class HttpScanner
 			buffer.append( ch );
 			readChar();
 		}
+		// okay, we have met \r now parse also \n (HTTP specification)
+		if ( ch == '\r' ) {
+			readChar();
+			if ( ch != '\n' ) {
+				throw new IOException( "malformed CR-LF sequence" );
+			}
+		}
 		return buffer.toString();
 	}
 	
@@ -118,23 +125,21 @@ public class HttpScanner
 		throws IOException
 	{
 		state = 1;
-		
+
 		StringBuilder builder = new StringBuilder();
 		builder.append( ch );
-		int i;
-		String tmp;
 		while ( currInt != -1 && Scanner.isSeparator( ch ) ) {
 			readChar();
 			builder.append( ch );
-			tmp = builder.toString();
-			if ( (i=tmp.indexOf( '\n', 0 )) < tmp.indexOf( '\n', i + 1 ) ) {
+			String tmp = builder.toString();
+			if ( tmp.indexOf( '\n' ) < tmp.lastIndexOf( '\n' ) ) {
 				return new Token( TokenType.EOF );
 			}
 		}
-		
+
 		if ( currInt == -1 )
 			return new Token( TokenType.EOF );
-		
+
 		boolean stopOneChar = false;
 		Token retval = null;
 		builder = new StringBuilder();
