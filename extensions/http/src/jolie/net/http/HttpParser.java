@@ -232,14 +232,14 @@ public class HttpParser
 		throws IOException
 	{
 		int r = 0;
-		while( (r+=stream.read( buffer, offset+r, length-r )) < length ); 
+		while( (r+=stream.read( buffer, offset+r, length-r )) < length );
 	}
-	
+
 	private static final int BLOCK_SIZE = 1024;
 	
 	public static byte[] readAll( InputStream stream )
 	{
-		int r = 0;
+		int r = -1;
 		ByteArrayOutputStream c = new ByteArrayOutputStream();
 		byte[] tmp = new byte[ BLOCK_SIZE ];
 		try {
@@ -256,29 +256,31 @@ public class HttpParser
 	private void readContent( HttpMessage message )
 		throws IOException
 	{
-		String p;
-		int contentLength = 0;
-		p = message.getProperty( "content-length" );
-		if ( p != null && !p.isEmpty() ) {
-			try {
-				contentLength = Integer.parseInt( p );
-				if ( contentLength == 0 ) {
-					message.setContent( new byte[0] );
-					return;
+		boolean chunked = false;
+		int contentLength = -1;
+
+		String p = message.getProperty( "transfer-encoding" );
+		if ( p != null && p.startsWith( "chunked" ) ) {
+			// Transfer-encoding has the precedence over Content-Length
+			chunked = true;
+		} else {
+			p = message.getProperty( "content-length" );
+			if ( p != null && !p.isEmpty() ) {
+				try {
+					contentLength = Integer.parseInt( p );
+					if ( contentLength == 0 ) {
+						message.setContent( new byte[0] );
+						return;
+					}
+				} catch( NumberFormatException e ) {
+					throw new IOException( "Illegal Content-Length value " + p );
 				}
-			} catch( NumberFormatException e ) {
-				contentLength = 0;
 			}
 		}
-		
-		boolean chunked = false;
-		p = message.getProperty( "transfer-encoding" );
-		if ( p != null && p.equals( "chunked" ) )
-			chunked = true;
-		
+
 		byte buffer[] = null;
+		InputStream stream = scanner.inputStream();
 		if ( chunked ) {
-			InputStream stream = scanner.inputStream();
 			List< byte[] > chunks = new ArrayList< byte[] > ();
 			byte[] chunk;
 			
@@ -307,7 +309,6 @@ public class HttpParser
 			buffer = b.array();
 		} else if ( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
-			InputStream stream = scanner.inputStream();
 			blockingRead( stream, buffer, 0, contentLength );
 		} else {
 			HttpMessage.Version version = message.version();
