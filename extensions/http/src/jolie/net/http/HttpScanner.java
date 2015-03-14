@@ -44,12 +44,20 @@ public class HttpScanner
 		this.stream = stream;
 		readChar();
 	}
-	
+
 	public String readLine()
 		throws IOException
 	{
+		return readLine( true );
+	}
+
+	public String readLine( boolean readChar )
+		throws IOException
+	{
 		StringBuilder buffer = new StringBuilder();
-		readChar();
+		if ( readChar ) {
+			readChar();
+		}
 		while( !Scanner.isNewLineChar( ch ) ) {
 			buffer.append( ch );
 			readChar();
