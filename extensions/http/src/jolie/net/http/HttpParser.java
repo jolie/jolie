@@ -239,17 +239,14 @@ public class HttpParser
 	private static final int BLOCK_SIZE = 1024;
 	
 	public static byte[] readAll( InputStream stream )
+		throws IOException
 	{
 		int r = -1;
 		ByteArrayOutputStream c = new ByteArrayOutputStream();
 		byte[] tmp = new byte[ BLOCK_SIZE ];
-		try {
-			while( (r=stream.read( tmp, 0, BLOCK_SIZE )) != -1 ) {
-				c.write( tmp, 0, r );
-				tmp = new byte[ BLOCK_SIZE ];
-			}
-		} catch( IOException e ) {
-			// End of stream
+		while( (r=stream.read( tmp, 0, BLOCK_SIZE )) != -1 ) {
+			c.write( tmp, 0, r );
+			tmp = new byte[ BLOCK_SIZE ];
 		}
 		return c.toByteArray();
 	}
