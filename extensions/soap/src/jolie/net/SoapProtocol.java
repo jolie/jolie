@@ -810,7 +810,7 @@ public class SoapProtocol extends SequentialCommProtocol {
                 received = false;
             } else {
                 // We're sending a notification or a solicit
-                String path = uri.getPath(); // TODO: fix this to consider resourcePaths
+                String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
                 if (path == null || path.length() == 0) {
                     path = "*";
                 }

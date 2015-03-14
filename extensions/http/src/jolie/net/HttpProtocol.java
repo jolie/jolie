@@ -368,7 +368,7 @@ public class HttpProtocol extends CommProtocol
 					headerBuilder
 						.append( entry.getKey() )
 						.append( '=' )
-						.append( URLEncoder.encode( v.strValue(), charset ) )
+						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) )
 						.append( '&' );
 				}
 			}
@@ -398,9 +398,9 @@ public class HttpProtocol extends CommProtocol
 			if ( m.group( 1 ) == null ) { // We have to use URLEncoder
 				currKey = alias.substring( m.start() + 2, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
-					currStrValue = URLEncoder.encode( value.strValue(), charset );
+					currStrValue = URLEncoder.encode( value.strValue(), HttpUtils.URL_DECODER_ENC );
 				} else {
-					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), charset );
+					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), HttpUtils.URL_DECODER_ENC );
 					aliasKeys.add( currKey );
 				}
 			} else { // We have to insert the string raw
@@ -663,13 +663,14 @@ public class HttpProtocol extends CommProtocol
 	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
 		throws IOException
 	{
-		if ( uri.getPath() == null || uri.getPath().isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
+		String path = uri.getRawPath();
+		if ( path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
 			headerBuilder.append( '/' );
 		} else {
-			if ( uri.getPath().charAt( 0 ) != '/' ) {
+			if ( path.charAt( 0 ) != '/' ) {
 				headerBuilder.append( '/' );
 			}
-			headerBuilder.append( uri.getPath() );
+			headerBuilder.append( path );
 		}
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
@@ -1042,6 +1043,7 @@ public class HttpProtocol extends CommProtocol
 	}
 
 	private static void recv_parseQueryString( HttpMessage message, Value value )
+		throws IOException
 	{
 		Map< String, Integer > indexes = new HashMap< String, Integer >();
 		String queryString = message.requestPath() == null ? "" : message.requestPath();
@@ -1058,7 +1060,7 @@ public class HttpProtocol extends CommProtocol
 						index = 0;
 						indexes.put( kv[0], index );
 					}
-					value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
+					value.getChildren( kv[0] ).get( index ).setValue( URLDecoder.decode( kv[1], HttpUtils.URL_DECODER_ENC ) );
 					indexes.put( kv[0], index + 1 );
 				}
 			}

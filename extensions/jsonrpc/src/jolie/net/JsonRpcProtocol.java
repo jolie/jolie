@@ -134,7 +134,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
 		} else {
 			// We're sending a request
-			String path = uri.getPath(); // TODO: fix this to consider resourcePaths
+			String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
 			if (path == null || path.length() == 0) {
 				path = "*";
 			}
