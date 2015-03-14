@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -281,29 +282,33 @@ public class HttpParser
 		byte buffer[] = null;
 		InputStream stream = scanner.inputStream();
 		if ( chunked ) {
+			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1
 			List< byte[] > chunks = new ArrayList< byte[] > ();
-			byte[] chunk;
-			
-			int l;
-			int total = 0;
-			boolean keepRun = true;
-			String lStr = scanner.readWord();
-			while( keepRun ) {
-				l = Integer.parseInt( lStr, 16 );
+			int l = -1, totalLen = 0;
+			scanner.readChar();
+			do {
+				// the chunk header contains the size in hex format
+				// and could contain additional parameters which we ignore atm
+				String chunkHeader = scanner.readLine( false );
+				String chunkSize = chunkHeader.split( ";" )[0];
+				try {
+					l = Integer.parseInt( chunkSize, 16 );
+				} catch ( NumberFormatException e ) {
+					throw new IOException( "Illegal chunk size " + chunkSize );
+				}
+				// parses the real chunk with the specified size, follwed by CR-LF
 				if ( l > 0 ) {
-					scanner.eatSeparators();
-					total += l;
-					chunk = new byte[ l ];
-					chunk[0] = (byte) (scanner.currentCharacter());
-					blockingRead( stream, chunk, 1, l - 1 );
+					totalLen += l;
+					byte[] chunk = new byte[ l ];
+					blockingRead( stream, chunk, 0, l );
 					chunks.add( chunk );
 					scanner.readChar();
 					scanner.eatSeparators();
-					lStr = scanner.readWord( false );
-				} else
-					keepRun = false;
-			}
-			ByteBuffer b = ByteBuffer.allocate( total );
+				}
+			} while ( l > 0 );
+			// parse optional trailer (additional HTTP headers)
+			parseHeaderProperties( message );
+			ByteBuffer b = ByteBuffer.allocate( totalLen );
 			for( byte[] c : chunks )
 				b.put( c );
 			buffer = b.array();
