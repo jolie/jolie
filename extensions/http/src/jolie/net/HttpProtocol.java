@@ -380,7 +380,9 @@ public class HttpProtocol extends CommProtocol
 	{
 		if ( message.value().hasChildren() == false ) {
 			headerBuilder.append( "?=" );
-			JsUtils.valueToJsonString( message.value(), getSendType( message ), headerBuilder );
+			StringBuilder builder = new StringBuilder();
+			JsUtils.valueToJsonString( message.value(), getSendType( message ), builder );
+			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
 	
