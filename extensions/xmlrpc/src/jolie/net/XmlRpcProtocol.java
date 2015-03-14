@@ -394,7 +394,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 			received = false;
 		} else {
 			// We're sending a notification or a solicit
-			String path = uri.getPath();
+			String path = uri.getRawPath();
 			if ( path == null || path.length() == 0 ) {
 				path = "*";
 			}
