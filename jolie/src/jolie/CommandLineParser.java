@@ -70,7 +70,7 @@ public class CommandLineParser implements Closeable
 	private final URL[] libURLs;
 	private final InputStream programStream;
 	private String charset = null;
-	private final String programFilepath;
+	private final File programFilepath;
 	private final String[] arguments;
 	private final Map< String, Scanner.Token > constants = new HashMap< String, Scanner.Token >();
 	private final JolieClassLoader jolieClassLoader;
@@ -124,7 +124,7 @@ public class CommandLineParser implements Closeable
 	 * Returns the file path of the JOLIE program to execute.
 	 * @return the file path of the JOLIE program to execute
 	 */
-	public String programFilepath()
+	public File programFilepath()
 	{
 		return programFilepath;
 	}
@@ -537,7 +537,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-		programFilepath = new File( olResult.source ).getName();
+		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
 		includePaths = includeList.toArray( new String[]{} );

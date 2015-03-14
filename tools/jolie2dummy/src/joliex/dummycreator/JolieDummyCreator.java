@@ -22,7 +22,6 @@
 package joliex.dummycreator;
 
 import java.io.IOException;
-import java.net.URI;
 import jolie.CommandLineException;
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.SemanticException;
@@ -44,7 +43,7 @@ public class JolieDummyCreator {
         try{
             JolieDummyCommandLineParser cmdParser= JolieDummyCommandLineParser.create( args, JolieDummyCommandLineParser.class.getClassLoader() );
             Program program = ParsingUtils.parseProgram( cmdParser.programStream(),
-                URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+                cmdParser.programFilepath().toURI(), cmdParser.charset(),
                 cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
             ProgramInspector inspector=ParsingUtils.createInspector( program );
             JolieDummyDocumentCreator document= new JolieDummyDocumentCreator( inspector,cmdParser.programFilepath());

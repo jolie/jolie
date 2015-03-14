@@ -733,7 +733,7 @@ public class MetaJolie extends JavaService
 			CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
@@ -787,7 +787,7 @@ public class MetaJolie extends JavaService
 			CommandLineParser cmdParser = new CommandLineParser( args, MetaJolie.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 
@@ -871,7 +871,7 @@ public class MetaJolie extends JavaService
 			CommandLineParser cmdParser = new CommandLineParser( args, interpreter().getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants() );
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 

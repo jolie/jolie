@@ -26,7 +26,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import jolie.CommandLineException;
@@ -55,7 +54,7 @@ public class Jolie2Plasma
 
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ), cmdParser.charset(),
+				cmdParser.programFilepath().toURI(), cmdParser.charset(),
 				cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants()
 			);
 			new InterfaceConverter(

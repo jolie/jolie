@@ -23,7 +23,6 @@
 package jolie.doc;
 
 import java.io.IOException;
-import java.net.URI;
 import jolie.CommandLineException;
 import jolie.doc.impl.html.HtmlDocumentCreator;
 import jolie.lang.parse.ParserException;
@@ -45,7 +44,7 @@ public class JolieDoc
 			configuration.setCheckForMain( false );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
-				URI.create( "file:" + cmdParser.programFilepath() ),
+				cmdParser.programFilepath().toURI(),
 				cmdParser.charset(),
 				cmdParser.includePaths(), 
 				cmdParser.jolieClassLoader(), 
