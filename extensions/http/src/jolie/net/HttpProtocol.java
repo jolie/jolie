@@ -471,12 +471,13 @@ public class HttpProtocol extends CommProtocol
 			Source src = new DOMSource( doc );
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
 			Result dest = new StreamResult( tmpStream );
+			transformer.setOutputProperty( OutputKeys.ENCODING, charset );
 			try {
 				transformer.transform( src, dest );
 			} catch( TransformerException e ) {
 				throw new IOException( e );
 			}
-			ret.content = new ByteArray( tmpStream.toString().getBytes( charset ) );
+			ret.content = new ByteArray( tmpStream.toByteArray() );
 		} else if ( "binary".equals( format ) ) {
 			if ( message.value().isByteArray() ) {
 				ret.content = (ByteArray) message.value().valueObject();
