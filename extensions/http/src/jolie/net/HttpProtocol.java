@@ -366,7 +366,7 @@ public class HttpProtocol extends CommProtocol
 			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 				for( Value v : entry.getValue() ) {
 					headerBuilder
-						.append( entry.getKey() )
+						.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
 						.append( '=' )
 						.append( URLEncoder.encode( v.strValue(), HttpUtils.URL_DECODER_ENC ) )
 						.append( '&' );
@@ -551,7 +551,7 @@ public class HttpProtocol extends CommProtocol
 				Entry< String, ValueVector > entry;
 				while( it.hasNext() ) {
 					entry = it.next();
-					builder.append( entry.getKey() )
+					builder.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
 						.append( "=" )
 						.append( URLEncoder.encode( entry.getValue().first().strValue(), HttpUtils.URL_DECODER_ENC ) );
 					if ( it.hasNext() ) {
@@ -911,7 +911,7 @@ public class HttpProtocol extends CommProtocol
 			if ( pair.length != 2 ) {
 				throw new IOException( "Item " + item + " not in x-www-form-urlencoded" );
 			}
-			value.getChildren( pair[0] ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
+			value.getChildren( URLDecoder.decode( pair[0], HttpUtils.URL_DECODER_ENC ) ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
 		}		
 	}
 	
@@ -1062,7 +1062,8 @@ public class HttpProtocol extends CommProtocol
 						index = 0;
 						indexes.put( kv[0], index );
 					}
-					value.getChildren( kv[0] ).get( index ).setValue( URLDecoder.decode( kv[1], HttpUtils.URL_DECODER_ENC ) );
+					// the query string was already URL decoded by the HttpParser
+					value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
 					indexes.put( kv[0], index + 1 );
 				}
 			}
