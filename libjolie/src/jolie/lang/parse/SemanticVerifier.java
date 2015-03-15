@@ -378,6 +378,9 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
+			for( SemanticException.SemanticError e : semanticException.getErrorList() ){
+				logger.severe( e.getMessage() );
+			}
 			throw semanticException;
 		}
 	}
