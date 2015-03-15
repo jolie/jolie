@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -242,7 +243,7 @@ public class HttpProtocol extends CommProtocol
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 	}
 		
-	private void valueToDocument(
+	private static void valueToDocument(
 			Value value,
 			Node node,
 			Document doc
@@ -358,10 +359,10 @@ public class HttpProtocol extends CommProtocol
 	private String responseFormat = null;
 	private boolean headRequest = false;
 
-	private void send_appendQuerystring( Value value, String charset, StringBuilder headerBuilder )
+	private static void send_appendQuerystring( Value value, StringBuilder headerBuilder )
 		throws IOException
 	{
-		if ( value.children().isEmpty() == false ) {
+		if ( !value.children().isEmpty() ) {
 			headerBuilder.append( '?' );
 			for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
 				for( Value v : entry.getValue() ) {
@@ -375,10 +376,10 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
         
-	private void send_appendJsonQueryString( CommMessage message, String charset, StringBuilder headerBuilder )
+	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
 		throws IOException
 	{
-		if ( message.value().hasChildren() == false ) {
+		if ( !message.value().children().isEmpty() ) {
 			headerBuilder.append( "?=" );
 			StringBuilder builder = new StringBuilder();
 			JsUtils.valueToJsonString( message.value(), getSendType( message ), builder );
@@ -386,7 +387,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void send_appendParsedAlias( String alias, Value value, String charset, StringBuilder headerBuilder )
+	private static void send_appendParsedAlias( String alias, Value value, StringBuilder headerBuilder )
 		throws IOException
 	{
 		int offset = 0;
@@ -600,7 +601,7 @@ public class HttpProtocol extends CommProtocol
 		return ret;
 	}
 
-	private boolean isLocationNeeded( int statusCode )
+	private static boolean isLocationNeeded( int statusCode )
 	{
 		return locationRequiredStatusCodes.contains( statusCode );
 	}
@@ -657,12 +658,12 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void send_appendRequestMethod( Method method, StringBuilder headerBuilder )
+	private static void send_appendRequestMethod( Method method, StringBuilder headerBuilder )
 	{
 		headerBuilder.append( method.id() );
 	}
 	
-	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
+	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder )
 		throws IOException
 	{
 		String path = uri.getRawPath();
@@ -677,7 +678,7 @@ public class HttpProtocol extends CommProtocol
 
 		if ( hasOperationSpecificParameter( message.operationName(), Parameters.ALIAS ) ) {
 			String alias = getOperationSpecificStringParameter( message.operationName(), Parameters.ALIAS );
-			send_appendParsedAlias( alias, message.value(), charset, headerBuilder );
+			send_appendParsedAlias( alias, message.value(), headerBuilder );
 		} else {
 			headerBuilder.append( message.operationName() );
 		}
@@ -687,11 +688,11 @@ public class HttpProtocol extends CommProtocol
 			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					jsonFormat = true;
-					send_appendJsonQueryString( message, charset, headerBuilder );
+					send_appendJsonQueryString( message, headerBuilder );
 				}
 			}
 			if ( !jsonFormat ) {
-				send_appendQuerystring( message.value(), charset, headerBuilder );
+				send_appendQuerystring( message.value(), headerBuilder );
 			}
 		}
 	}
@@ -738,12 +739,12 @@ public class HttpProtocol extends CommProtocol
 		return method;
 	}
 	
-	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder, String charset )
+	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder )
 		throws IOException
 	{
 		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
-		send_appendRequestPath( message, method, headerBuilder, charset );
+		send_appendRequestPath( message, method, headerBuilder );
 		headerBuilder.append( " HTTP/1.1" + HttpUtils.CRLF );
 		headerBuilder.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
@@ -849,7 +850,7 @@ public class HttpProtocol extends CommProtocol
 			send_appendResponseHeaders( message, headerBuilder );
 		} else {
 			// We're sending a notification or a solicit
-			send_appendRequestHeaders( message, method, headerBuilder, charset );
+			send_appendRequestHeaders( message, method, headerBuilder );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
@@ -966,7 +967,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 
-	private void recv_assignCookieValue( String cookieValue, Value value, String typeKeyword )
+	private static void recv_assignCookieValue( String cookieValue, Value value, String typeKeyword )
 		throws IOException
 	{
 		NativeType type = NativeType.fromString( typeKeyword );
@@ -1048,7 +1049,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		Map< String, Integer > indexes = new HashMap< String, Integer >();
-		String queryString = message.requestPath() == null ? "" : message.requestPath();
+		String queryString = message.requestPath();
 		String[] kv = queryString.split( "\\?" );
 		Integer index;
 		if ( kv.length > 1 ) {
@@ -1069,7 +1070,20 @@ public class HttpProtocol extends CommProtocol
 			}
 		}
 	}
-	
+
+	private static void recv_parseJsonQueryString( HttpMessage message, Value value, boolean strictEncoding )
+		throws IOException
+	{
+		Map< String, Integer > indexes = new HashMap< String, Integer >();
+		String queryString = message.requestPath();
+		String[] kv = queryString.split( "\\?=" );
+		if ( kv.length > 1 ) {
+			// the query string was already URL decoded by the HttpParser
+			queryString = kv[1];
+			JsUtils.parseJsonIntoValue( new StringReader( queryString ), value, strictEncoding );
+		}
+	}
+
 	/*
 	 * Prints debug information about a received message
 	 */
@@ -1280,7 +1294,12 @@ public class HttpProtocol extends CommProtocol
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
 			if ( message.isGet() ) {
-				recv_parseQueryString( message, decodedMessage.value );
+				if ( message.requestPath().contains( "?=" ) ) {
+					boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+					recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
+				} else {
+					recv_parseQueryString( message, decodedMessage.value );
+				}
 			}
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
