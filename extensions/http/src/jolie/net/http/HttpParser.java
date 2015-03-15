@@ -102,7 +102,7 @@ public class HttpParser
 			} else if ( "cookie".equals( name ) ) {
 				String ss[] = value.split(  ";" );
 				for( String s : ss ) {
-					String nv[] = s.trim().split( "=" );
+					String nv[] = s.trim().split( "=", 2 );
 					if ( nv.length > 1 ) {
 						message.addCookie( nv[0], nv[1] );
 					}
@@ -287,7 +287,7 @@ public class HttpParser
 				// the chunk header contains the size in hex format
 				// and could contain additional parameters which we ignore atm
 				String chunkHeader = scanner.readLine( false );
-				String chunkSize = chunkHeader.split( ";" )[0];
+				String chunkSize = chunkHeader.split( ";", 2 )[0];
 				try {
 					l = Integer.parseInt( chunkSize, 16 );
 				} catch ( NumberFormatException e ) {

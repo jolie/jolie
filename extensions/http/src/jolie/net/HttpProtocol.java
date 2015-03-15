@@ -909,10 +909,9 @@ public class HttpProtocol extends CommProtocol
 		String[] pair;
 		for( String item : line.split( "&" ) ) {
 			pair = item.split( "=", 2 );
-			if ( pair.length != 2 ) {
-				throw new IOException( "Item " + item + " not in x-www-form-urlencoded" );
+			if ( pair.length > 1 ) {
+				value.getChildren( URLDecoder.decode( pair[0], HttpUtils.URL_DECODER_ENC ) ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
 			}
-			value.getChildren( URLDecoder.decode( pair[0], HttpUtils.URL_DECODER_ENC ) ).first().setValue( URLDecoder.decode( pair[1], HttpUtils.URL_DECODER_ENC ) );
 		}		
 	}
 	
@@ -1050,7 +1049,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		Map< String, Integer > indexes = new HashMap< String, Integer >();
 		String queryString = message.requestPath();
-		String[] kv = queryString.split( "\\?" );
+		String[] kv = queryString.split( "\\?", 2 );
 		Integer index;
 		if ( kv.length > 1 ) {
 			queryString = kv[1];
@@ -1076,7 +1075,7 @@ public class HttpProtocol extends CommProtocol
 	{
 		Map< String, Integer > indexes = new HashMap< String, Integer >();
 		String queryString = message.requestPath();
-		String[] kv = queryString.split( "\\?=" );
+		String[] kv = queryString.split( "\\?=", 2 );
 		if ( kv.length > 1 ) {
 			// the query string was already URL decoded by the HttpParser
 			queryString = kv[1];
@@ -1172,7 +1171,7 @@ public class HttpProtocol extends CommProtocol
 	private void recv_checkReceivingOperation( HttpMessage message, DecodedMessage decodedMessage )
 	{
 		if ( decodedMessage.operationName == null ) {
-			String requestPath = message.requestPath().split( "\\?" )[0];
+			String requestPath = message.requestPath().split( "\\?", 2 )[0];
 			decodedMessage.operationName = requestPath;
 			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
 			if ( m.find() ) {
@@ -1270,7 +1269,7 @@ public class HttpProtocol extends CommProtocol
 		encoding = message.getProperty( "accept-encoding" );
 		String contentType = DEFAULT_CONTENT_TYPE;
 		if ( message.getProperty( "content-type" ) != null ) {
-			contentType = message.getProperty( "content-type" ).split( ";" )[0].toLowerCase();
+			contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
 		}
 
 		recv_parseRequestFormat( message, contentType );
@@ -1297,7 +1296,7 @@ public class HttpProtocol extends CommProtocol
 				if ( message.requestPath().contains( "?=" ) ) {
 					boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 					recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-				} else {
+				} else if ( message.requestPath().contains( "?" ) ) {
 					recv_parseQueryString( message, decodedMessage.value );
 				}
 			}
