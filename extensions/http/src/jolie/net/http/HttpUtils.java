@@ -130,7 +130,7 @@ public class HttpUtils
 		if ( defaultCharset != null && !defaultCharset.isEmpty() ) {
 			return defaultCharset;
 		}
-		return "utf-8"; // Jolie's default charset which is today's standard
+		return "iso-8859-1"; // this follows RFC 2616 3.4.1 Missing Charset
 	}
 
 	public static ByteArray encode( String encoding, ByteArray content, StringBuilder headerBuilder ) throws IOException
