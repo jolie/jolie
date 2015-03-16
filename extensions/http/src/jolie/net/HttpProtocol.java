@@ -841,7 +841,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		Method method = send_getRequestMethod( message );
-		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET ), null );
+		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
 		String format = send_getFormat();
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 		StringBuilder headerBuilder = new StringBuilder();
@@ -1255,7 +1255,7 @@ public class HttpProtocol extends CommProtocol
 		throws IOException
 	{
 		HttpMessage message = new HttpParser( istream ).parse();
-		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET ), message );
+		String charset = HttpUtils.getCharset( null, message );
 		CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
 
