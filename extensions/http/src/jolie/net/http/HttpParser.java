@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.EOFException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -228,17 +229,22 @@ public class HttpParser
 		return message;
 	}
 	
-	@SuppressWarnings( "empty-statement" )
-	public static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
+	private static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
 		throws IOException
 	{
-		int r = 0;
-		while( (r+=stream.read( buffer, offset+r, length-r )) < length );
+		int s = 0;
+		do {
+			int r = stream.read( buffer, offset+s, length-s );
+			if ( r == -1 ) {
+				throw new EOFException();
+			}
+			s += r;
+		} while ( s < length );
 	}
 
 	private static final int BLOCK_SIZE = 1024;
 	
-	public static byte[] readAll( InputStream stream )
+	private static byte[] readAll( InputStream stream )
 		throws IOException
 	{
 		int r = -1;
