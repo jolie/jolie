@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -175,24 +174,27 @@ public class Interpreter
 	}
 	
 	private static class JolieExecutionThreadFactory implements ThreadFactory {
-		private final Interpreter interpreter;
-
-		private static class JolieExecutionThread extends JolieThread
+		public Thread newThread( Runnable r )
 		{
-			public JolieExecutionThread( Interpreter interpreter, Runnable r )
-			{
-				super( interpreter, r );
+			JolieExecutorThread t = new JolieExecutorThread( r );
+			if ( r instanceof ExecutionThread ) {
+				t.setExecutionThread( (ExecutionThread)r );
 			}
+			return t;
 		}
+	}
+	
+	private static class NativeJolieThreadFactory implements ThreadFactory {
+		private final Interpreter interpreter;
 		
-		public JolieExecutionThreadFactory( Interpreter interpreter )
+		public NativeJolieThreadFactory( Interpreter interpreter )
 		{
 			this.interpreter = interpreter;
 		}
 		
 		public Thread newThread( Runnable r )
 		{
-			return new JolieExecutionThread( interpreter, r );
+			return new NativeJolieThread( interpreter, r );
 		}
 	}
 	
@@ -621,10 +623,14 @@ public class Interpreter
 		}
 		timer.cancel();
 		checkForExpiredTimeoutHandlers();
-		executorService.shutdown();
+		nativeExecutorService.shutdown();
+		processExecutorService.shutdown();
 		commCore.shutdown();
 		try {
-			executorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
+			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
+		} catch ( InterruptedException e ) {}
+		try {
+			processExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
 		free();
 	}
@@ -773,7 +779,11 @@ public class Interpreter
 	 */
 	public static Interpreter getInstance()
 	{
-		return ((JolieThread)Thread.currentThread()).interpreter();
+		Thread t = Thread.currentThread();
+		if ( t instanceof InterpreterThread ) {
+			return ((InterpreterThread)t).interpreter();
+		}
+		return null;
 	}
 	
 	/**
@@ -1068,7 +1078,8 @@ public class Interpreter
 		runCode();
 	}
 
-	private final ExecutorService executorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
+	private final ExecutorService nativeExecutorService = Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService processExecutorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory() );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
@@ -1076,7 +1087,12 @@ public class Interpreter
 	 */
 	public void execute( Runnable r )
 	{
-		executorService.execute( r );
+		nativeExecutorService.execute( r );
+	}
+	
+	public Future<?> runJolieThread( Runnable task )
+	{
+		return processExecutorService.submit( task );
 	}
 
 	private static final AtomicInteger starterThreadCounter = new AtomicInteger();

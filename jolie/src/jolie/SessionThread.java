@@ -457,7 +457,7 @@ public class SessionThread extends ExecutionThread
 		}
 	}
 
-	public void run()
+	public void runProcess()
 	{
 		try {
 			try {
