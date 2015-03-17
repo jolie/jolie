@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
@@ -160,6 +161,12 @@ public abstract class ExecutionThread extends JolieThread
 			new LinkedList< WeakReference< Future< ? > > >();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
+	private Future<?> taskFuture;
+	
+	public void setTaskFuture( Future<?> taskFuture )
+	{
+		this.taskFuture = taskFuture;
+	}
 	
 	/**
 	 * Sets if this thread can be interrupted by a fault signal or not.
@@ -211,7 +218,7 @@ public abstract class ExecutionThread extends JolieThread
 		}
 		
 		if( canBeInterrupted ) {
-			interrupt();
+			taskFuture.cancel( canBeInterrupted );
 		}
 	}
 	
@@ -240,10 +247,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		return (killerFault != null);
 	}
-	
-	@Override
-	public abstract void run();
-	
+
 	/**
 	 * Returns the compensator of the current executing scope.
 	 * @return the compensator of the current executing scope.
@@ -417,8 +421,8 @@ public abstract class ExecutionThread extends JolieThread
 	public static ExecutionThread currentThread()
 	{
 		Thread currThread = Thread.currentThread();
-		if ( currThread instanceof ExecutionThread ) {
-			return ((ExecutionThread) currThread);
+		if ( currThread instanceof JolieExecutorThread ) {
+			return ((JolieExecutorThread)currThread).executionThread();
 		} else if ( currThread instanceof CommChannelHandler ) {
 			return ((CommChannelHandler)currThread).executionThread();
 		}
@@ -453,4 +457,29 @@ public abstract class ExecutionThread extends JolieThread
 	}
 
 	public abstract String getSessionId();
+	
+	public abstract void runProcess();
+	
+	public void run()
+	{
+		JolieExecutorThread t = JolieExecutorThread.currentThread();
+		t.setExecutionThread( this );
+		t.setContextClassLoader( interpreter().getClassLoader() );
+		runProcess();
+	}
+	
+	public void start()
+	{
+		setTaskFuture( interpreter().runJolieThread( this ) );
+	}
+	
+	public void join()
+		throws InterruptedException
+	{
+		try {
+			taskFuture.get();
+		} catch( ExecutionException e ) {
+			throw new InterruptedException( e.getMessage() );
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,58 +19,57 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+package jolie;
 
-package jolie.net;
-
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.InterpreterThread;
-import jolie.JolieThread;
-
-/**
- * <code>CommChannelHandler</code> is a <code>JolieThread</code> used by
- * <code>CommCore</code> to handle incoming communications.
- * @see JolieThread
- * @see CommCore
- * @author fmontesi
- */
-public class CommChannelHandler extends Thread implements InterpreterThread
+public class NativeJolieThread extends Thread implements InterpreterThread
 {
-	private ExecutionThread executionThread;
-	
-	public CommChannelHandler( Runnable r )
-	{
-		super( r );
-	}
+	private final Interpreter interpreter;
 	
 	/**
-	 * Returns the current <code>CommChannelHandler</code> thread.
-	 * This method must be called only if the caller is sure that the current
-	 * thread is a <code>CommChannelHandler</code>.
-	 * @return the current <code>CommChannelHandler</code> thread
+	 * Constructor
 	 */
-	public static CommChannelHandler currentThread()
+	public NativeJolieThread( Interpreter interpreter, ThreadGroup group, String name )
 	{
-		return ((CommChannelHandler)Thread.currentThread());
+		super( group, interpreter.programFilename() + "-" + name );
+		this.interpreter = interpreter;
 	}
 
 	/**
-	 * Sets the <code>ExecutionThread</code> this thread must refer to.
-	 * This is needed to refer to the right variable state when in this thread.
-	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state resolution
+	 * Constructor
+	 * @param interpreter the <code>Interpreter</code> this thread will refer to
+	 * @param name the suffix name for this thread
+	 * @see Interpreter
 	 */
-	public void setExecutionThread( ExecutionThread thread )
+	public NativeJolieThread( Interpreter interpreter, String name )
 	{
-		executionThread = thread;
+		super( interpreter.programFilename() + "-" + name );
+		this.interpreter = interpreter;
+	}
+
+	/**
+	 * Constructor
+	 * @param interpreter the <code>Interpreter</code> this thread will refer to
+	 * @see Interpreter
+	 */
+	public NativeJolieThread( Interpreter interpreter )
+	{
+		this( interpreter, JolieThread.createThreadName() );
 	}
 	
-	public ExecutionThread executionThread()
+	/**
+	 * Constructor
+	 */
+	public NativeJolieThread( Interpreter interpreter, Runnable r )
 	{
-		return executionThread;
+		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
+		this.interpreter = interpreter;
 	}
 	
+	/**
+	 * Returns the interpreter that this thread refers to.
+	 */
 	public Interpreter interpreter()
 	{
-		return executionThread.interpreter();
+		return interpreter;
 	}
 }

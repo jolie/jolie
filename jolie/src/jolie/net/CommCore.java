@@ -47,7 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
-import jolie.JolieThread;
+import jolie.NativeJolieThread;
 import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
@@ -426,7 +426,7 @@ public class CommCore
 	private class CommThreadFactory implements ThreadFactory {
 		public Thread newThread( Runnable r )
 		{
-			return new CommChannelHandler( interpreter, r );
+			return new CommChannelHandler( r );
 		}
 	}
 
@@ -773,7 +773,7 @@ public class CommCore
 		return selectorThread;
 	}
 
-	private class SelectorThread extends JolieThread {
+	private class SelectorThread extends NativeJolieThread {
 		private final Selector selector;
 		private final Object selectingMutex = new Object();
 		public SelectorThread( Interpreter interpreter )

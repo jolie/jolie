@@ -55,7 +55,7 @@ public class ParallelExecution
 		}
 
 		@Override
-		public void run()
+		public void runProcess()
 		{
 			try {
 				process().run();

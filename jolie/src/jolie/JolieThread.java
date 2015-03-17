@@ -30,59 +30,42 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see Interpreter
  * @author Fabrizio Montesi
  */
-public abstract class JolieThread
+public abstract class JolieThread implements Runnable
 {
 	private final Interpreter interpreter;
-
+	private final String name;
 	private static final AtomicInteger counter = new AtomicInteger( 0 );
 
-	private static String createThreadName()
+	protected static String createThreadName()
 	{
 		return "JolieThread-" + counter.getAndIncrement();
 	}
+	
+	public String name()
+	{
+		return name;
+	}
 
 	/**
 	 * Constructor
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
-	 * @param threadGroup the <code>ThreadGroup</code> for this thread
 	 * @param name the suffix name for this thread
 	 * @see Interpreter
-	 * @see java.lang.Thread
-	 * @see java.lang.ThreadGroup
 	 */
-	public JolieThread( Interpreter interpreter, ThreadGroup threadGroup, String name )
+	public JolieThread( Interpreter interpreter, String name )
 	{
-		// super( threadGroup, interpreter.programFilename() + "-" + name );
 		this.interpreter = interpreter;
-		// setContextClassLoader( interpreter.getClassLoader() );
+		this.name = interpreter.programFilename() + "-" + name;
 	}
 
 	/**
 	 * Constructor
 	 * @param interpreter the <code>Interpreter</code> this thread will refer to
 	 * @see Interpreter
-	 * @see java.lang.Thread
-	 * @see java.lang.ThreadGroup
 	 */
 	public JolieThread( Interpreter interpreter )
 	{
-		// super( interpreter.programFilename() + "-" + createThreadName() );
-		this.interpreter = interpreter;
-		// setContextClassLoader( interpreter.getClassLoader() );
-	}
-
-	/**
-	 * Constructor
-	 * @param interpreter the <code>Interpreter</code> this thread will refer to
-	 * @see Interpreter
-	 * @see java.lang.Thread
-	 * @see java.lang.ThreadGroup
-	 */
-	public JolieThread( Interpreter interpreter, Runnable r )
-	{
-		// super( r, interpreter.programFilename() + "-" + createThreadName() );
-		this.interpreter = interpreter;
-		// setContextClassLoader( interpreter.getClassLoader() );
+		this( interpreter, createThreadName() );
 	}
 	
 	/**

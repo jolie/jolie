@@ -24,7 +24,7 @@ package jolie.net;
 
 import java.io.IOException;
 import jolie.Interpreter;
-import jolie.JolieThread;
+import jolie.NativeJolieThread;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.CommProtocol;
@@ -36,7 +36,7 @@ import jolie.net.protocols.CommProtocol;
  * an input receiving loop. See {@link SocketListener <code>SocketListener</code>} as an example.
  * @author Fabrizio Montesi
  */
-public abstract class CommListener extends JolieThread
+public abstract class CommListener extends NativeJolieThread
 {
 	private static int index = 0;
 
