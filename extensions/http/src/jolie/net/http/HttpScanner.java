@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import jolie.lang.parse.Scanner;
-
 import jolie.lang.parse.Scanner.Token;
 import jolie.lang.parse.Scanner.TokenType;
 
@@ -128,19 +127,25 @@ public class HttpScanner
 		currInt = stream.read();
 		ch = (char)currInt;            
 	}
+	
+	private final StringBuilder tokenBuilder = new StringBuilder();
 
+	private void resetTokenBuilder()
+	{
+		tokenBuilder.setLength( 0 );
+	}
+	
 	public Token getToken()
 		throws IOException
 	{
 		state = 1;
-
-		StringBuilder builder = new StringBuilder();
-		builder.append( ch );
+		
+		tokenBuilder.append( ch );
 		while ( currInt != -1 && Scanner.isSeparator( ch ) ) {
 			readChar();
-			builder.append( ch );
-			String tmp = builder.toString();
-			if ( tmp.indexOf( '\n' ) < tmp.lastIndexOf( '\n' ) ) {
+			tokenBuilder.append( ch );
+
+			if ( tokenBuilder.indexOf( "\n" ) < tokenBuilder.lastIndexOf( "\n" ) ) {
 				return new Token( TokenType.EOF );
 			}
 		}
@@ -150,7 +155,7 @@ public class HttpScanner
 
 		boolean stopOneChar = false;
 		Token retval = null;
-		builder = new StringBuilder();
+		resetTokenBuilder();
 
 		while ( currInt != -1 && retval == null ) {
 			switch( state ) {
@@ -221,27 +226,27 @@ public class HttpScanner
 							ch != '_' &&
 							ch != '-' &&
 							ch != '+' ) {
-						retval = new Token( TokenType.ID, builder.toString() );
+						retval = new Token( TokenType.ID, tokenBuilder.toString() );
 					}
 					break;	
 				case 3: // INT
 					if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.INT, builder.toString() );
+						retval = new Token( TokenType.INT, tokenBuilder.toString() );
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
-						retval = new Token( TokenType.STRING, builder.substring( 1 ) );
+						retval = new Token( TokenType.STRING, tokenBuilder.substring( 1 ) );
 						readChar();
 					} else if ( ch == '\\' ) { // Parse special characters
 						readChar();
 						if ( ch == '\\' )
-							builder.append( '\\' );
+							tokenBuilder.append( '\\' );
 						else if ( ch == 'n' )
-							builder.append( '\n' );
+							tokenBuilder.append( '\n' );
 						else if ( ch == 't' )
-							builder.append( '\t' );
+							tokenBuilder.append( '\t' );
 						else if ( ch == '"' )
-							builder.append( '"' );
+							tokenBuilder.append( '"' );
 						else
 							throw new IOException( "malformed string: bad \\ usage" );
 						
@@ -338,16 +343,16 @@ public class HttpScanner
 				if ( stopOneChar ) {
 					stopOneChar = false;
 				} else {
-					if ( builder.length() > OVERFLOW_NET ) {
+					if ( tokenBuilder.length() > OVERFLOW_NET ) {
 						throw new IOException(
 							"Token length exceeds maximum allowed limit ("
 							+ OVERFLOW_NET +
 							" bytes). First 10 characters: "
-							+ builder.toString().substring( 0, 10 )
-							+ " Last 10 characters: " + builder.toString().substring( builder.length() - 10, builder.length() )
+							+ tokenBuilder.toString().substring( 0, 10 )
+							+ " Last 10 characters: " + tokenBuilder.toString().substring( tokenBuilder.length() - 10, tokenBuilder.length() )
 						);
 					}
-					builder.append( ch );
+					tokenBuilder.append( ch );
 					readChar();
 				}
 			}
