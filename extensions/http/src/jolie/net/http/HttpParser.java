@@ -22,21 +22,20 @@
 
 package jolie.net.http;
 
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.zip.InflaterInputStream;
 import java.util.zip.GZIPInputStream;
-import jolie.Interpreter;
+import java.util.zip.InflaterInputStream;
 import jolie.lang.parse.Scanner;
 import jolie.net.ChannelClosingException;
 
@@ -242,7 +241,7 @@ public class HttpParser
 		} while ( s < length );
 	}
 
-	private static final int BLOCK_SIZE = 1024;
+	private static final int BLOCK_SIZE = 0x1000; // 4K
 	
 	private static byte[] readAll( InputStream stream )
 		throws IOException
