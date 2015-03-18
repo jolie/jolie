@@ -179,7 +179,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		try {
 			send_internal( ostream, message, istream );
 		} catch ( IOException e ) {
-			if ( inInputPort ) {
+			if ( inInputPort && channel().isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
 			}
 			throw e;
