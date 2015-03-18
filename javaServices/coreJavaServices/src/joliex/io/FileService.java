@@ -62,6 +62,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.runtime.typing.Type;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -533,6 +534,23 @@ public class FileService extends JavaService
 		writer.close();
 	}
 
+	private static void writeJson( File file, Value value, boolean append, String encoding )
+		throws IOException
+	{
+		StringBuilder json = new StringBuilder();
+		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
+
+		OutputStreamWriter writer;
+		if ( encoding != null ) {
+			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
+		} else {
+			writer = new FileWriter( file, append );
+		}
+		writer.write( json.toString() );
+		writer.flush();
+		writer.close();
+	}
+
 	@RequestResponse
 	public void writeFile( Value request )
 		throws FaultException
@@ -571,6 +589,8 @@ public class FileService extends JavaService
 				writeXML( file, content, append, schemaFilename, doctypePublic, encoding, indent );
 			} else if ( "xml_store".equals( format ) ) {
 				writeStorageXML( file, content, encoding );
+			} else if ( "json".equals( format ) ) {
+				writeJson( file, content, append, encoding );
 			} else if ( format.isEmpty() ) {
 				if ( content.isByteArray() ) {
 					writeBinary( file, content, append );
