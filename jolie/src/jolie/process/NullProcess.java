@@ -30,8 +30,7 @@ public class NullProcess implements Process
 	private NullProcess() {}
 	
 	private static class LazyHolder {
-		private LazyHolder() {}
-		static final NullProcess instance = new NullProcess();
+		private static final NullProcess instance = new NullProcess();
 	}
 	
 	static public NullProcess getInstance()

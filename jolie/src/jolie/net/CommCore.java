@@ -237,6 +237,8 @@ public class CommCore
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
+		
+		selectorThread = new SelectorThread( interpreter );
 
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new SocketListenerFactory( this );
@@ -652,7 +654,7 @@ public class CommCore
 	 * Initializes the communication core, starting its communication listeners.
 	 * This method is asynchronous. When it returns, every communication listener has
 	 * been issued to start, but they are not guaranteed to be ready to receive messages.
-	 * This method throws an exception if some listener can not be issued to start;
+	 * This method throws an exception if some listener cannot be issued to start;
 	 * other errors will be logged by the listener through the interpreter logger.
 	 *
 	 * @throws IOException in case of some underlying <code>CommListener</code> initialization error
@@ -661,10 +663,11 @@ public class CommCore
 	public void init()
 		throws IOException
 	{
+		active = true;
+		selectorThread.start();
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 			entry.getValue().start();
 		}
-		active = true;
 	}
 	
 	private PollingThread pollingThread = null;
@@ -758,24 +761,18 @@ public class CommCore
 		pollingThread().register( channel );
 	}
 	
-	private SelectorThread selectorThread = null;
-	private final Object selectorThreadMonitor = new Object();
+	private final SelectorThread selectorThread;
 	
 	private SelectorThread selectorThread()
-		throws IOException
 	{
-		synchronized( selectorThreadMonitor ) {
-			if ( selectorThread == null ) {
-				selectorThread = new SelectorThread( interpreter );
-				selectorThread.start();
-			}
-		}
 		return selectorThread;
 	}
 
 	private class SelectorThread extends NativeJolieThread {
 		private final Selector selector;
 		private final Object selectingMutex = new Object();
+		// private final Queue< Runnable > actionQueue = new ConcurrentLinkedQueue< Runnable >();
+		
 		public SelectorThread( Interpreter interpreter )
 			throws IOException
 		{
@@ -831,10 +828,10 @@ public class CommCore
 						synchronized( selectingMutex ) {
 							selector.selectNow(); // Clean up the cancelled keys
 						}
-						while( !taskQueue.isEmpty() ) {
-							channel = taskQueue.remove();
-							scheduleReceive( channel, channel.parentInputPort() );
-						}
+					}
+					while( !taskQueue.isEmpty() ) {
+						channel = taskQueue.remove();
+						scheduleReceive( channel, channel.parentInputPort() );
 					}
 				} catch( IOException e ) {
 					interpreter.logSevere( e );
@@ -850,32 +847,29 @@ public class CommCore
 			}
 		}
 		
-		public boolean register( SelectableStreamingCommChannel channel )
+		public void register( SelectableStreamingCommChannel channel )
 		{
 			try {
 				if ( channel.inputStream().available() > 0 ) {
 					scheduleReceive( channel, channel.parentInputPort() );
-					return false;
+					return;
 				}
 
 				synchronized( this ) {
-					if ( isSelecting( channel ) == false ) {
+					if ( !isSelecting( channel ) ) {
+						selector.wakeup();
 						SelectableChannel c = channel.selectableChannel();
 						c.configureBlocking( false );
-						selector.wakeup();
 						synchronized( selectingMutex ) {
 							c.register( selector, SelectionKey.OP_READ, channel );
-							selector.wakeup();
+							// selector.wakeup();
 						}
 					}
 				}
-				return true;
 			} catch( ClosedChannelException e ) {
 				interpreter.logWarning( e );
-				return false;
 			} catch( IOException e ) {
 				interpreter.logSevere( e );
-				return false;
 			}
 		}
 
@@ -883,7 +877,7 @@ public class CommCore
 			throws IOException
 		{
 			synchronized( this ) {
-				if ( isSelecting( channel ) ) {
+				if ( isSelecting( channel ) ) { // Called by the only client anyway
 					selector.wakeup();
 					synchronized( selectingMutex ) {
 						SelectionKey key = channel.selectableChannel().keyFor( selector );
@@ -903,21 +897,17 @@ public class CommCore
 			if ( c == null ) {
 				return false;
 			}
-			return c.keyFor( selector ) != null;
+			boolean ret;
+			synchronized( this ) {
+				ret = c.keyFor( selector ) != null;
+			}
+			return ret;
 		}
 	}
 
 	protected boolean isSelecting( SelectableStreamingCommChannel channel )
-	{
-		synchronized( this ) {
-			if ( selectorThread == null ) {
-				return false;
-			}
-		}
-		final SelectorThread t = selectorThread;
-		synchronized( t ) {
-			return t.isSelecting( channel );
-		}
+	{	
+		return selectorThread.isSelecting( channel );
 	}
 
 	protected void unregisterForSelection( SelectableStreamingCommChannel channel )

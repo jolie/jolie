@@ -128,7 +128,7 @@ public class HttpScanner
 		ch = (char)currInt;            
 	}
 	
-	private final StringBuilder tokenBuilder = new StringBuilder();
+	private final StringBuilder tokenBuilder = new StringBuilder( 64 );
 
 	private void resetTokenBuilder()
 	{
