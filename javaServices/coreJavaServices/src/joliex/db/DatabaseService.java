@@ -84,8 +84,7 @@ public class DatabaseService extends JavaService
 	}
 
 	@RequestResponse
-	public void connect( Value request )
-		throws FaultException
+	public void close()
 	{
 		if ( connection != null ) {
 			try {
@@ -96,6 +95,13 @@ public class DatabaseService extends JavaService
 			} catch( SQLException e ) {
 			}
 		}
+	}
+
+	@RequestResponse
+	public void connect( Value request )
+		throws FaultException
+	{
+		close();
 
 		mustCheckConnection = request.getFirstChild( "checkConnection" ).intValue() > 0;
 
