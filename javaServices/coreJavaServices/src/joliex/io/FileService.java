@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -61,6 +62,7 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.runtime.typing.Type;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -136,7 +138,7 @@ public class FileService extends JavaService
 		value.setValue( new ByteArray( buffer ) );
 	}
 
-	private void readJsonIntoValue( InputStream istream, Value value, Charset charset, boolean strictEncoding )
+	private static void readJsonIntoValue( InputStream istream, Value value, Charset charset, boolean strictEncoding )
 		throws IOException
 	{
 		InputStreamReader isr;
@@ -149,12 +151,15 @@ public class FileService extends JavaService
 		JsUtils.parseJsonIntoValue( r, value, strictEncoding );
 	}
 
-	private void readXMLIntoValue( InputStream istream, Value value )
+	private void readXMLIntoValue( InputStream istream, Value value, Charset charset )
 		throws IOException
 	{
 		try {
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src = new InputSource( new InputStreamReader( istream ) );
+			if ( charset != null ) {
+				src.setEncoding( charset.name() );
+			}
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.documentToValue( doc, value );
@@ -165,12 +170,15 @@ public class FileService extends JavaService
 		}
 	}
 
-	private void readXMLIntoValueForStoring( InputStream istream, Value value )
+	private void readXMLIntoValueForStoring( InputStream istream, Value value, Charset charset )
 		throws IOException
 	{
 		try {
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			InputSource src = new InputSource( new InputStreamReader( istream ) );
+			if ( charset != null ) {
+				src.setEncoding( charset.name() );
+			}
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
@@ -185,20 +193,27 @@ public class FileService extends JavaService
 		throws IOException
 	{
 		byte[] buffer = new byte[ (int) size ];
-		istream.read( buffer );
+		int len = istream.read( buffer );
+		if ( len < 0 ) {
+			len = 0; // EOF handled as empty string
+		}
 		istream.close();
 		if ( charset == null ) {
-			value.setValue( new String( buffer ) );
+			value.setValue( new String( buffer, 0, len ) );
 		} else {
-			value.setValue( new String( buffer, charset ) );
+			value.setValue( new String( buffer, 0, len, charset ) );
 		}
 	}
 
-	private void readPropertiesFile( InputStream istream, Value value )
+	private void readPropertiesFile( InputStream istream, Value value, Charset charset )
 		throws IOException
 	{
 		Properties properties = new Properties();
-		properties.load( new InputStreamReader( istream ) );
+		if ( charset == null ) {
+			properties.load( new InputStreamReader( istream ) );
+		} else {
+			properties.load( new InputStreamReader( istream, charset ) );
+		}
 		Enumeration< String> names = (Enumeration< String>) properties.propertyNames();
 		String name;
 		String propertyValue;
@@ -229,7 +244,7 @@ public class FileService extends JavaService
 		}
 	}
 
-	private void __copyDir( File src, File dest ) throws FileNotFoundException, IOException
+	private static void __copyDir( File src, File dest ) throws FileNotFoundException, IOException
 	{
 		if ( src.isDirectory() ) {
 			if ( !dest.exists() ) {
@@ -255,6 +270,7 @@ public class FileService extends JavaService
 		}
 	}
 
+	@RequestResponse
 	public Value copyDir( Value request ) throws FaultException
 	{
 		Value retValue = Value.create();
@@ -273,6 +289,7 @@ public class FileService extends JavaService
 		return retValue;
 	}
 
+	@RequestResponse
 	public Value readFile( Value request )
 		throws FaultException
 	{
@@ -280,6 +297,12 @@ public class FileService extends JavaService
 
 		Value retValue = Value.create();
 		String format = request.getFirstChild( "format" ).strValue();
+		Charset charset = null;
+		Value formatValue = request.getFirstChild( "format" );
+		if ( formatValue.hasChildren( "charset" ) ) {
+			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
+		}
+
 		File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
@@ -314,17 +337,12 @@ public class FileService extends JavaService
 				} else if ( "binary".equals( format ) ) {
 					readBinaryIntoValue( istream, size, retValue );
 				} else if ( "xml".equals( format ) ) {
-					readXMLIntoValue( istream, retValue );
+					readXMLIntoValue( istream, retValue, charset );
 				} else if ( "xml_store".equals( format ) ) {
-					readXMLIntoValueForStoring( istream, retValue );
+					readXMLIntoValueForStoring( istream, retValue, charset );
 				} else if ( "properties".equals( format ) ) {
-					readPropertiesFile( istream, retValue );
+					readPropertiesFile( istream, retValue, charset );
 				} else if ( "json".equals( format ) ) {
-					Charset charset = null;
-					Value formatValue = request.getFirstChild( "format" );
-					if ( formatValue.hasChildren( "charset" ) ) {
-						charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
-					}
 					boolean strictEncoding = false;
 					if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
 						if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
@@ -333,11 +351,6 @@ public class FileService extends JavaService
 					}
 					readJsonIntoValue( istream, retValue, charset, strictEncoding );
 				} else {
-					Charset charset = null;
-					Value formatValue = request.getFirstChild( "format" );
-					if ( formatValue.hasChildren( "charset" ) ) {
-						charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
-					}
 					readTextIntoValue( istream, size, retValue, charset );
 				}
 			} finally {
@@ -352,16 +365,19 @@ public class FileService extends JavaService
 		return retValue;
 	}
 
+	@RequestResponse
 	public Boolean exists( String filename )
 	{
-		return (new File( filename ).exists()) ? true : false;
+		return new File( filename ).exists();
 	}
 
+	@RequestResponse
 	public Boolean mkdir( String directory )
 	{
-		return (new File( directory ).mkdirs()) ? true : false;
+		return new File( directory ).mkdirs();
 	}
 
+	@RequestResponse
 	public String getMimeType( String filename )
 		throws FaultException
 	{
@@ -372,13 +388,15 @@ public class FileService extends JavaService
 		return fileTypeMap.getContentType( file );
 	}
 
+	@RequestResponse
 	public String getServiceDirectory()
+		throws FaultException
 	{
 		String dir = null;
 		try {
 			dir = interpreter().programDirectory().getCanonicalPath();
 		} catch( IOException e ) {
-			e.printStackTrace();
+			throw new FaultException( "IOException", e );
 		}
 		if ( dir == null || dir.isEmpty() ) {
 			dir = ".";
@@ -387,6 +405,7 @@ public class FileService extends JavaService
 		return dir;
 	}
 
+	@RequestResponse
 	public String getFileSeparator()
 	{
 		return jolie.lang.Constants.fileSeparator;
@@ -461,7 +480,7 @@ public class FileService extends JavaService
 		}
 	}
 
-	private void writeStorageXML( File file, Value value )
+	private void writeStorageXML( File file, Value value, String encoding )
 		throws IOException
 	{
 		if ( value.children().isEmpty() ) {
@@ -476,6 +495,9 @@ public class FileService extends JavaService
 				doc );
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			if ( encoding != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
+			}
 			Writer writer = new FileWriter( file, false );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
@@ -498,11 +520,33 @@ public class FileService extends JavaService
 		os.close();
 	}
 
-	private static void writeText( File file, Value value, boolean append )
+	private static void writeText( File file, Value value, boolean append, String encoding )
 		throws IOException
 	{
-		FileWriter writer = new FileWriter( file, append );
+		OutputStreamWriter writer;
+		if ( encoding != null ) {
+			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
+		} else {
+			writer = new FileWriter( file, append );
+		}
 		writer.write( value.strValue() );
+		writer.flush();
+		writer.close();
+	}
+
+	private static void writeJson( File file, Value value, boolean append, String encoding )
+		throws IOException
+	{
+		StringBuilder json = new StringBuilder();
+		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
+
+		OutputStreamWriter writer;
+		if ( encoding != null ) {
+			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
+		} else {
+			writer = new FileWriter( file, append );
+		}
+		writer.write( json.toString() );
 		writer.flush();
 		writer.close();
 	}
@@ -518,10 +562,14 @@ public class FileService extends JavaService
 		if ( request.getFirstChild( "append" ).intValue() > 0 ) {
 			append = true;
 		}
+		String encoding = null;
+		if ( request.getFirstChild( "format" ).hasChildren( "encoding" ) ) {
+			encoding = request.getFirstChild( "format" ).getFirstChild( "encoding" ).strValue();
+		}
 
 		try {
 			if ( "text".equals( format ) ) {
-				writeText( file, content, append );
+				writeText( file, content, append, encoding );
 			} else if ( "binary".equals( format ) ) {
 				writeBinary( file, content, append );
 			} else if ( "xml".equals( format ) ) {
@@ -538,18 +586,16 @@ public class FileService extends JavaService
 				if ( request.getFirstChild( "format" ).hasChildren( "doctype_system" ) ) {
 					doctypePublic = request.getFirstChild( "format" ).getFirstChild( "doctype_system" ).strValue();
 				}
-				String encoding = null;
-				if ( request.getFirstChild( "format" ).hasChildren( "encoding" ) ) {
-					encoding = request.getFirstChild( "format" ).getFirstChild( "encoding" ).strValue();
-				}
 				writeXML( file, content, append, schemaFilename, doctypePublic, encoding, indent );
 			} else if ( "xml_store".equals( format ) ) {
-				writeStorageXML( file, content );
+				writeStorageXML( file, content, encoding );
+			} else if ( "json".equals( format ) ) {
+				writeJson( file, content, append, encoding );
 			} else if ( format.isEmpty() ) {
 				if ( content.isByteArray() ) {
 					writeBinary( file, content, append );
 				} else {
-					writeText( file, content, append );
+					writeText( file, content, append, encoding );
 				}
 			}
 		} catch( IOException e ) {
@@ -557,6 +603,7 @@ public class FileService extends JavaService
 		}
 	}
 
+	@RequestResponse
 	public Boolean delete( Value request )
 	{
 		String filename = request.strValue();
@@ -605,6 +652,7 @@ public class FileService extends JavaService
 		return retValue;
 	}
 
+	@RequestResponse
 	public Value list( Value request )
 	{
 		String [] files = new String[]{};
@@ -643,6 +691,7 @@ public class FileService extends JavaService
 		return response;
 	}
 
+	@RequestResponse
 	public Value isDirectory( Value request )
 	{
 		File dir = new File( request.strValue() );
@@ -652,7 +701,7 @@ public class FileService extends JavaService
 
 	}
 
-	private boolean __deleteDir( File file )
+	private static boolean __deleteDir( File file )
 	{
 		if ( file.isDirectory() ) {
 			String[] children = file.list();

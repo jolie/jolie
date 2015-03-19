@@ -35,19 +35,19 @@ type CopyDirRequest: void {
 
 type ReadFileRequest:void {
 	.filename:string
-	.format?:string { // Can be "base64", "binary", "text" or "xml" (defaults to "text")
-		.charset?:string
+	.format?:string { // Can be "base64", "binary", "text", "xml" or "json" (defaults to "text")
+		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification (XML)
 	}
 }
 
 type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
-	.format?:string { // Can be "binary", "text" or "xml" (defaults to "text")
+	.format?:string { // Can be "binary", "text", "xml" or "json" (defaults to "text")
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
 		.indent?:bool // if true, indentation is applied to file (default: false)
-		.encoding? : string // set the encoding. Default UTF-8
+		.encoding?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or format's default (for XML UTF-8)
 	}
 	.append?:int // Default: 0
 }
@@ -113,7 +113,7 @@ RequestResponse:
 	* it tests if the specified file or directory exists or not.
 	*/
 	exists( string )( bool ),
-	getServiceDirectory(void)(string),
+	getServiceDirectory(void)(string) throws IOException(IOExceptionType),
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
 	setMimeTypeFile(string)(void) throws IOException(IOExceptionType),
