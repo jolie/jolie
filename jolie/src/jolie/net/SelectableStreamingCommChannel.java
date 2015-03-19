@@ -37,6 +37,18 @@ import jolie.net.protocols.CommProtocol;
  */
 public abstract class SelectableStreamingCommChannel extends StreamingCommChannel
 {
+	private int selectorIndex;
+	
+	public int selectorIndex()
+	{
+		return selectorIndex;
+	}
+	
+	public void setSelectorIndex( int selectorIndex )
+	{
+		this.selectorIndex = selectorIndex;
+	}
+	
 	public SelectableStreamingCommChannel( URI location, CommProtocol protocol )
 	{
 		super( location, protocol );

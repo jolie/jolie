@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
@@ -238,7 +239,10 @@ public class CommCore
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
 		
-		selectorThread = new SelectorThread( interpreter );
+		selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
+		for( int i = 0; i < selectorThreads.length; i++ ) {
+			selectorThreads[ i ] = new SelectorThread( interpreter );
+		}
 
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new SocketListenerFactory( this );
@@ -664,7 +668,9 @@ public class CommCore
 		throws IOException
 	{
 		active = true;
-		selectorThread.start();
+		for( SelectorThread t : selectorThreads ) {
+			t.start();
+		}
 		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 			entry.getValue().start();
 		}
@@ -761,12 +767,7 @@ public class CommCore
 		pollingThread().register( channel );
 	}
 	
-	private final SelectorThread selectorThread;
-	
-	private SelectorThread selectorThread()
-	{
-		return selectorThread;
-	}
+	private final SelectorThread[] selectorThreads;
 
 	private class SelectorThread extends NativeJolieThread {
 		private final Selector selector;
@@ -780,31 +781,26 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
-		@Override
-		public void run()
+		private void runKeys( Set< SelectionKey > selectedKeys, Queue< Runnable > taskQueue )
+			throws IOException
 		{
-			SelectableStreamingCommChannel channel;
-			final Queue< SelectableStreamingCommChannel > taskQueue = new LinkedList< SelectableStreamingCommChannel >();
-			while( active ) {
-				try {
-					synchronized( selectingMutex ) {
-						selector.select();
-					}
-					synchronized( this ) {
-						for( SelectionKey key : selector.selectedKeys() ) {
-							if ( key.isValid() ) {
-								channel = (SelectableStreamingCommChannel)key.attachment();
-								try {
-									if ( channel.lock.tryLock() ) {
+			synchronized( this ) {
+				for( final SelectionKey key : selectedKeys ) {
+					if ( key.isValid() ) {
+						final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
+						if ( channel.lock.tryLock() ) {
+							key.cancel();
+							taskQueue.add( new Runnable() {
+								public void run() {
+									try {
 										try {
-											key.cancel();
 											try {
 												key.channel().configureBlocking( true );
 												if ( channel.isOpen() ) {
 													/*if ( channel.selectionTimeoutHandler() != null ) {
 														interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
 													}*/
-													taskQueue.add( channel );
+													scheduleReceive( channel, channel.parentInputPort() );
 												} else {
 													channel.closeImpl();
 												}
@@ -816,23 +812,43 @@ public class CommCore
 										} finally {
 											channel.lock.unlock();
 										}
+									} catch( IOException e ) {
+										if ( channel.lock.isHeldByCurrentThread() ) {
+											channel.lock.unlock();
+										}
+										interpreter.logWarning( e );
 									}
-								} catch( IOException e ) {
-									if ( channel.lock.isHeldByCurrentThread() ) {
-										channel.lock.unlock();
-									}
-									interpreter.logWarning( e );
 								}
-							}
-						}
-						synchronized( selectingMutex ) {
-							selector.selectNow(); // Clean up the cancelled keys
+							});
 						}
 					}
-					while( !taskQueue.isEmpty() ) {
-						channel = taskQueue.remove();
-						scheduleReceive( channel, channel.parentInputPort() );
+				}
+				synchronized( selectingMutex ) {
+					selector.selectNow(); // Clean up the cancelled keys
+				}
+			}
+		}
+		
+		private void runTasks( Queue< Runnable > taskQueue )
+		{
+			while( !taskQueue.isEmpty() ) {
+				taskQueue.remove().run();
+			}
+		}
+		
+		@Override
+		public void run()
+		{
+			final Queue< Runnable > taskQueue = new LinkedList< Runnable >();
+			while( active ) {
+				try {
+					Set< SelectionKey > selectedKeys;
+					synchronized( selectingMutex ) {
+						selector.select();
+						selectedKeys = new HashSet< SelectionKey >( selector.selectedKeys() );
 					}
+					runKeys( selectedKeys, taskQueue );
+					runTasks( taskQueue );
 				} catch( IOException e ) {
 					interpreter.logSevere( e );
 				}
@@ -847,7 +863,7 @@ public class CommCore
 			}
 		}
 		
-		public void register( SelectableStreamingCommChannel channel )
+		public void register( SelectableStreamingCommChannel channel, int index )
 		{
 			try {
 				if ( channel.inputStream().available() > 0 ) {
@@ -862,7 +878,8 @@ public class CommCore
 						c.configureBlocking( false );
 						synchronized( selectingMutex ) {
 							c.register( selector, SelectionKey.OP_READ, channel );
-							// selector.wakeup();
+							selector.wakeup();
+							channel.setSelectorIndex( index );
 						}
 					}
 				}
@@ -877,7 +894,7 @@ public class CommCore
 			throws IOException
 		{
 			synchronized( this ) {
-				if ( isSelecting( channel ) ) { // Called by the only client anyway
+				if ( isSelecting( channel ) ) {
 					selector.wakeup();
 					synchronized( selectingMutex ) {
 						SelectionKey key = channel.selectableChannel().keyFor( selector );
@@ -890,36 +907,27 @@ public class CommCore
 				}
 			}
 		}
-
-		private boolean isSelecting( SelectableStreamingCommChannel channel )
-		{
-			SelectableChannel c = channel.selectableChannel();
-			if ( c == null ) {
-				return false;
-			}
-			boolean ret;
-			synchronized( this ) {
-				ret = c.keyFor( selector ) != null;
-			}
-			return ret;
-		}
 	}
 
 	protected boolean isSelecting( SelectableStreamingCommChannel channel )
-	{	
-		return selectorThread.isSelecting( channel );
+	{
+		SelectableChannel c = channel.selectableChannel();
+		return c != null && c.isRegistered();
 	}
 
 	protected void unregisterForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		selectorThread().unregister( channel );
+		selectorThreads[ channel.selectorIndex() ].unregister( channel );
 	}
+	
+	private final AtomicInteger nextSelector = new AtomicInteger( 0 );
 	
 	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		selectorThread().register( channel );
+		int i = nextSelector.getAndIncrement() % selectorThreads.length;
+		selectorThreads[ i ].register( channel, i );
 		/*final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
 			public void onTimeout()
@@ -951,12 +959,14 @@ public class CommCore
 			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 				entry.getValue().shutdown();
 			}
-			if ( selectorThread != null ) {
-				selectorThread.selector.wakeup();
+			
+			for( SelectorThread t : selectorThreads ) {
+				t.selector.wakeup();
 				try {
-					selectorThread.join();
+					t.join();
 				} catch( InterruptedException e ) {}
 			}
+			
 			try {
 				channelHandlersLock.writeLock().tryLock( CHANNEL_HANDLER_TIMEOUT, TimeUnit.SECONDS );
 			} catch( InterruptedException e ) {}

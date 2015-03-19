@@ -120,14 +120,16 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	{
 		socketChannel.close();
 	}
-
+	
 	private boolean _isOpenImpl()
 		throws IOException
 	{
-		boolean oldBlockingConfig = socketChannel.isBlocking();
+		boolean wasBlocking = socketChannel.isBlocking();
 		ByteBuffer buffer = ByteBuffer.allocate( 1 );
-		socketChannel.configureBlocking( false );
-		int read = -1;
+		if ( wasBlocking ) {
+			socketChannel.configureBlocking( false );
+		}
+		int read;
 		try {
 			read = socketChannel.read( buffer );
 		} catch( IOException e ) {
@@ -139,7 +141,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			 */
 			return false;
 		}
-		socketChannel.configureBlocking( oldBlockingConfig );
+		if ( wasBlocking ) {
+			socketChannel.configureBlocking( true );
+		}
 		if ( read == -1 ) {
 			return false;
 		} else if ( read > 0 ) {
