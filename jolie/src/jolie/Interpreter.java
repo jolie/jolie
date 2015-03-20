@@ -174,9 +174,14 @@ public class Interpreter
 	}
 	
 	private static class JolieExecutionThreadFactory implements ThreadFactory {
+		private final Interpreter interpreter;
+		public JolieExecutionThreadFactory( Interpreter interpreter )
+		{
+			this.interpreter = interpreter;
+		}
 		public Thread newThread( Runnable r )
 		{
-			JolieExecutorThread t = new JolieExecutorThread( r );
+			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
 			if ( r instanceof ExecutionThread ) {
 				t.setExecutionThread( (ExecutionThread)r );
 			}
@@ -1079,7 +1084,7 @@ public class Interpreter
 	}
 
 	private final ExecutorService nativeExecutorService = Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
-	private final ExecutorService processExecutorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory() );
+	private final ExecutorService processExecutorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.

@@ -30,9 +30,9 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 {
 	private ExecutionThread executionThread;
 	
-	public JolieExecutorThread( Runnable r )
+	public JolieExecutorThread( Runnable r, Interpreter interpreter )
 	{
-		super( r );
+		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
 	}
 	
 	/**
