@@ -109,7 +109,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 			}
 		}
 		return ret;*/
-		return messages.get( request.id() );
+		return messages.remove( request.id() );
 	}
 
 	/*protected CommMessage recvImpl()

@@ -53,12 +53,14 @@ public class HttpScanner
 	public String readLine( boolean readChar )
 		throws IOException
 	{
-		StringBuilder buffer = new StringBuilder();
 		if ( readChar ) {
 			readChar();
 		}
+		
+		resetTokenBuilder();
+		
 		while( !Scanner.isNewLineChar( ch ) ) {
-			buffer.append( ch );
+			tokenBuilder.append( ch );
 			readChar();
 		}
 		// okay, we have met \r now parse also \n (HTTP specification)
@@ -68,7 +70,7 @@ public class HttpScanner
 				throw new IOException( "malformed CR-LF sequence" );
 			}
 		}
-		return buffer.toString();
+		return tokenBuilder.toString();
 	}
 	
 	/*
@@ -83,16 +85,17 @@ public class HttpScanner
 	public String readWord( boolean readChar )
 		throws IOException
 	{
-		StringBuilder buffer = new StringBuilder();
 		if ( readChar ) {
 			readChar();
 		}
+		
+		resetTokenBuilder();
 
 		do {
-			buffer.append( ch );
+			tokenBuilder.append( ch );
 			readChar();
 		} while( !Scanner.isSeparator( ch ) );
-		return buffer.toString();
+		return tokenBuilder.toString();
 	}
 	
 	public void eatSeparators()
