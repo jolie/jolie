@@ -130,14 +130,15 @@ public abstract class ValueVector implements Iterable< Value >
 	
 	public static ValueVector createClone( ValueVector vec )
 	{
-		ValueVector retVec = null;
+		ValueVector retVec;
 		
 		if ( vec.isLink() ) {
 			retVec = ((ValueVectorLink)vec).clone();
 		} else {
 			retVec = create();
-			for( Value v : vec )
+			for( Value v : vec ) {
 				retVec.add( Value.createClone( v ) );
+			}
 		}
 		
 		return retVec;
@@ -148,7 +149,7 @@ public abstract class ValueVector implements Iterable< Value >
 		return get( 0 );
 	}
 	
-	public synchronized boolean isEmpty()
+	public boolean isEmpty()
 	{
 		return values().isEmpty();
 	}
@@ -174,8 +175,9 @@ public abstract class ValueVector implements Iterable< Value >
 	// TODO: improve performance
 	public synchronized void deepCopy( ValueVector vec )
 	{
-		for( int i = 0; i < vec.size(); i++ )
+		for( int i = 0; i < vec.size(); i++ ) {
 			get( i ).deepCopy( vec.get( i ) );
+		}
 	}
 
 	protected abstract List< Value > values();

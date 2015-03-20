@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
@@ -101,22 +102,24 @@ public abstract class JavaService
 	}
 
 	private Interpreter interpreter;
-	private final Map< String, JavaOperation > operations =
-					new HashMap< String, JavaOperation >();
+	private final Map< String, JavaOperation > operations;
 
 	public JavaService()
 	{
+		Map< String, JavaOperation > ops  = new HashMap< String, JavaOperation >();
+		
 		Class<?>[] params;
 		for( Method method : this.getClass().getDeclaredMethods() ) {
 			if ( Modifier.isPublic( method.getModifiers() ) ) {
 				params = method.getParameterTypes();
 				if ( params.length == 1 ) {
-					checkMethod( method, getFromValueConverter( params[0] ) );
+					checkMethod( ops, method, getFromValueConverter( params[0] ) );
 				} else if ( params.length == 0 ) {
-					checkMethod( method, null );
+					checkMethod( ops, method, null );
 				}
 			}
 		}
+		this.operations = Collections.unmodifiableMap( ops );
 	}
 
 	private static String getMethodName( Method method )
@@ -212,7 +215,7 @@ public abstract class JavaService
 		return null;
 	}
 
-	private void checkMethod( Method method, Method parameterConstructor )
+	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor )
 	{
 		Class<?> returnType;
 		Class<?>[] exceptions;
@@ -223,12 +226,12 @@ public abstract class JavaService
 			final boolean isRequestResponse = method.getAnnotation( RequestResponse.class ) != null;
 			exceptions = method.getExceptionTypes();
 			if ( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
-				operations.put(
+				ops.put(
 					method.getName(),
 					new JavaOperation( Constants.OperationType.REQUEST_RESPONSE, method, parameterConstructor, null )
 				);
 			} else if ( exceptions.length == 0 ) {
-				operations.put(
+				ops.put(
 					method.getName(),
 					new JavaOperation( Constants.OperationType.ONE_WAY, method, parameterConstructor, null )
 				);
@@ -241,7 +244,7 @@ public abstract class JavaService
 					( exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0] ) )
 					)
 				{
-					operations.put(
+					ops.put(
 						getMethodName( method ),
 						new JavaOperation( Constants.OperationType.REQUEST_RESPONSE, method, parameterConstructor, returnValueConstructor )
 					);
