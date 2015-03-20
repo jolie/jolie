@@ -30,6 +30,7 @@ import jolie.runtime.AndJarDeps;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.typing.Type;
 
 /**
  *
@@ -45,7 +46,7 @@ public class JsonUtilsService extends JavaService
 
 		StringBuilder stringBuilder = new StringBuilder();
 		try {
-			JsUtils.valueToJsonString( request, null, stringBuilder );
+			JsUtils.valueToJsonString( request, Type.UNDEFINED, stringBuilder );
 			ret.setValue( stringBuilder.toString() );
 		} catch( IOException e ) {
 			throw new FaultException( "JSON string generation from Jolie value failed" );
