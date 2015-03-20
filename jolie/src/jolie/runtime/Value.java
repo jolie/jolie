@@ -644,7 +644,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 
-	public final synchronized String strValueStrict()
+	public final String strValueStrict()
 		throws TypeCastingException
 	{
 		Object o = valueObject();
@@ -665,7 +665,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 
-	public final synchronized ByteArray byteArrayValueStrict()
+	public ByteArray byteArrayValueStrict()
 		throws TypeCastingException
 	{
 		ByteArray r = null;
@@ -725,7 +725,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public final synchronized int intValueStrict()
+	public final int intValueStrict()
 		throws TypeCastingException
 	{
 		int r = 0;
@@ -759,7 +759,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public synchronized boolean boolValueStrict()
+	public boolean boolValueStrict()
 		throws TypeCastingException
 	{
 		boolean r = false;
@@ -788,7 +788,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public final synchronized long longValueStrict()
+	public final long longValueStrict()
 		throws TypeCastingException
 	{
 		long r = 0;
@@ -822,7 +822,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public final synchronized double doubleValueStrict()
+	public final double doubleValueStrict()
 		throws TypeCastingException
 	{
 		double r = 0;

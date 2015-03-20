@@ -22,8 +22,8 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 
 /**
@@ -31,6 +31,12 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
+	private static class ResponseContainer
+	{
+		private ResponseContainer() {}
+		private CommMessage response = null;
+	}
+	
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
@@ -55,9 +61,10 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 		protected void sendImpl( CommMessage message )
 		{
-			synchronized( senderChannel.messages ) {
-				senderChannel.messages.put( message.id(), message );
-				senderChannel.messages.notifyAll();
+			ResponseContainer c = senderChannel.responseWaiters.get( message.id() );
+			synchronized( c ) {
+				c.response = message;
+				c.notify();
 			}
 		}
 
@@ -78,7 +85,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	private final Interpreter interpreter;
 	private final CommListener listener;
-	private final Map< Long, CommMessage > messages = new HashMap< Long, CommMessage >();
+	private final Map< Long, ResponseContainer > responseWaiters = new ConcurrentHashMap< Long, ResponseContainer >();
 	
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
@@ -105,32 +112,29 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	protected void sendImpl( CommMessage message )
 	{
+		responseWaiters.put( message.id(), new ResponseContainer() );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
 	public CommMessage recvResponseFor( CommMessage request )
 	{
-		boolean keepRun = true;
-		CommMessage ret = null;
-		synchronized( messages ) {
-			while( keepRun ) {
-				if ( (ret=messages.remove( request.id() )) == null ) {
-					try {
-						messages.wait();
-					} catch( InterruptedException e ) {}
-				} else {
-					keepRun = false;
-				}
+		ResponseContainer c = responseWaiters.get( request.id() );
+		synchronized( c ) {
+			while( c.response == null ) {
+				try {
+					c.wait();
+				} catch( InterruptedException e ) {}
 			}
 		}
-		return ret;
+		responseWaiters.remove( request.id() );
+		return c.response;
 	}
 	
 	public boolean isReady()
 	{
 		boolean isReady;
-		synchronized( messages ) {
-			isReady = messages.isEmpty() == false;
+		synchronized( responseWaiters ) {
+			isReady = responseWaiters.isEmpty() == false;
 		}
 		return isReady;
 	}
