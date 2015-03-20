@@ -186,7 +186,6 @@ public class FileService extends JavaService
 	{
 		byte[] buffer = new byte[ (int) size ];
 		istream.read( buffer );
-		istream.close();
 		if ( charset == null ) {
 			value.setValue( new String( buffer ) );
 		} else {
