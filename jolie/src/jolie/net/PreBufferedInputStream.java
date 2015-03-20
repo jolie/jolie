@@ -75,7 +75,7 @@ public class PreBufferedInputStream extends InputStream
 		if ( buffer == null ) {
 			throw new IOException( "Stream closed" );
 		}
-		return ( count >= 0 ? count : 0 ) + istream.available();
+		return Math.max( count, 0 ) + istream.available();
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class PreBufferedInputStream extends InputStream
 	}
 
 	@Override
-	public synchronized int read( byte[] b )
+	public int read( byte[] b )
 		throws IOException
 	{
 		return read( b, 0, b.length );

@@ -21,16 +21,15 @@
 
 package jolie.runtime.embedding;
 
-import jolie.runtime.JavaService;
 import java.io.IOException;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
 import jolie.runtime.InvalidIdException;
+import jolie.runtime.JavaService;
 
 
 // TODO: this should not be polled
@@ -41,8 +40,8 @@ import jolie.runtime.InvalidIdException;
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final JavaService javaService;
-	private final Map< Long, CommMessage > messages = new HashMap< Long, CommMessage >();
-
+	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
+	
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
@@ -78,10 +77,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	{
 		try {
 			CommMessage response = javaService.callOperation( message );
-			synchronized( messages ) {
-				messages.put( message.id(), response );
-				messages.notifyAll();
-			}
+			messages.put( message.id(), response );
 		} catch( IllegalAccessException e ) {
 			throw new IOException( e );
 		} catch( InvalidIdException e ) {
@@ -99,7 +95,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		boolean keepRun = true;
+		/* boolean keepRun = true;
 		CommMessage ret = null;
 		synchronized( messages ) {
 			while( keepRun ) {
@@ -112,7 +108,8 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 				}
 			}
 		}
-		return ret;
+		return ret;*/
+		return messages.get( request.id() );
 	}
 
 	/*protected CommMessage recvImpl()
