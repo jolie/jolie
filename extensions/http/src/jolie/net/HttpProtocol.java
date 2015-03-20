@@ -196,6 +196,7 @@ public class HttpProtocol extends CommProtocol
 		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
 		private static final String CONTENT_DISPOSITION = "contentDisposition";
 		private static final String DROP_URI_PATH = "dropURIPath";
+		private static final String CACHE_CONTROL = "cacheControl";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -648,8 +649,8 @@ public class HttpProtocol extends CommProtocol
 		send_appendSetCookieHeader( message, headerBuilder );
 		headerBuilder.append( "Server: Jolie" ).append( HttpUtils.CRLF );
 		StringBuilder cacheControlHeader = new StringBuilder();
-		if ( hasParameter( "cacheControl" ) ) {
-			Value cacheControl = getParameterFirstValue( "cacheControl" );
+		if ( hasParameter( Parameters.CACHE_CONTROL ) ) {
+			Value cacheControl = getParameterFirstValue( Parameters.CACHE_CONTROL );
 			if ( cacheControl.hasChildren( "maxAge" ) ) {
 				cacheControlHeader.append( "max-age=" ).append( cacheControl.getFirstChild( "maxAge" ).intValue() );
 			}

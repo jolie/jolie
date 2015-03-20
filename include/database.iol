@@ -55,6 +55,7 @@ type UpdateRequest:string { ? }
 interface DatabaseInterface {
 RequestResponse:
 	connect(ConnectionInfo)(void) throws ConnectionError InvalidDriver DriverClassNotFound,
+	close(void)(void),
 	
 	/**!
 	* Queries the database.

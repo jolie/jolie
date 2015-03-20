@@ -27,3 +27,5 @@
 /jolie/build/
 /libjolie/dist/
 /jolie/dist/
+dist/
+build/
