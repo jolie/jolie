@@ -76,12 +76,16 @@ class ValueVectorImpl extends ValueVector implements Serializable
 		return values;
 	}
 
-	public synchronized Value get( int i )
+	public Value get( int i )
 	{
 		if ( i >= values.size() ) {
-			values.ensureCapacity( i + 1 );
-			for( int k = values.size(); k <= i; k++ ) {
-				values.add( Value.create() );
+			synchronized( this ) {
+				if ( i >= values.size() ) {
+					values.ensureCapacity( i + 1 );
+					for( int k = values.size(); k <= i; k++ ) {
+						values.add( Value.create() );
+					}
+				}
 			}
 		}
 		return values.get( i );

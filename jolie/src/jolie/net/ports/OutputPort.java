@@ -199,7 +199,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
 	 */
-	public synchronized CommProtocol getProtocol()
+	public CommProtocol getProtocol()
 		throws IOException, URISyntaxException
 	{
 		String protocolId = protocolVariablePath.getValue().strValue();
@@ -214,7 +214,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	}
 
 	
-	private synchronized CommChannel getCommChannel( boolean forceNew )
+	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
 		CommChannel ret;
@@ -274,9 +274,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		}
 		String s = location.strValue();
 		URI ret;
-		if ( (ret=uriCache.get( s )) == null ) {
-			ret = new URI( s );
-			uriCache.put( s, ret );
+		synchronized( uriCache ) {
+			if ( (ret=uriCache.get( s )) == null ) {
+				ret = new URI( s );
+				uriCache.put( s, ret );
+			}
 		}
 		return ret;
 	}
