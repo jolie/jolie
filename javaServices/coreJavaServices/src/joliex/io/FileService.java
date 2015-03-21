@@ -20,7 +20,6 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -147,8 +146,7 @@ public class FileService extends JavaService
 		} else {
 			isr = new InputStreamReader( istream, charset );
 		}
-		Reader r = new BufferedReader( isr );
-		JsUtils.parseJsonIntoValue( r, value, strictEncoding );
+		JsUtils.parseJsonIntoValue( isr, value, strictEncoding );
 	}
 
 	private void readXMLIntoValue( InputStream istream, Value value, Charset charset )
