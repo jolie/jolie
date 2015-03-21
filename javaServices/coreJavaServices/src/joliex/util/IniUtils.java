@@ -26,6 +26,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map.Entry;
@@ -50,6 +53,11 @@ public class IniUtils extends JavaService
 		String filename = request.strValue();
 		File file = new File( filename );
 		InputStream istream = null;
+		String charset = null;
+		if ( request.hasChildren( "charset" ) ) {
+			charset = request.getFirstChild( "charset" ).strValue();
+		}
+
 		try {
 			if (file.exists()) {
 				istream = new FileInputStream(file);
@@ -58,7 +66,7 @@ public class IniUtils extends JavaService
 				if (fileURL != null && fileURL.getProtocol().equals("jap")) {
 					URLConnection conn = fileURL.openConnection();
 					if (conn instanceof JapURLConnection) {
-						JapURLConnection jarConn = (JapURLConnection) conn;                                    
+						JapURLConnection jarConn = (JapURLConnection) conn;
 						istream = jarConn.getInputStream();
 					} else {
 						throw new FileNotFoundException( filename );
@@ -67,8 +75,14 @@ public class IniUtils extends JavaService
 					throw new FileNotFoundException( filename );
 				}
 			}
-			//Reader reader = new FileReader( istream );
-			Ini ini = new Ini( istream );
+			Reader reader;
+			if ( charset != null ) {
+				reader = new InputStreamReader( istream, charset );
+			} else {
+				reader = new InputStreamReader( istream );
+			}
+			reader = new BufferedReader( reader );
+			Ini ini = new Ini( reader );
 			Value response = Value.create();
 			Value sectionValue;
 			for( Entry< String, Ini.Section > sectionEntry : ini.entrySet() ) {

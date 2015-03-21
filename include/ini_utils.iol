@@ -19,12 +19,15 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+type parseIniFileRequest:string {
+	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8)
+}
 
 type IniData:void { ? }
 
 interface IniUtilsInterface {
 RequestResponse:
-	parseIniFile(string)(IniData)
+	parseIniFile(parseIniFileRequest)(IniData)
 }
 
 outputPort IniUtils {
