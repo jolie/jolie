@@ -124,7 +124,10 @@ RequestResponse:
 	getFileSeparator(void)(string),
 	getMimeType(string)(string) throws FileNotFound(FileNotFoundType),
 	setMimeTypeFile(string)(void) throws IOException(IOExceptionType),
+
+	/**! deprecated, please use rawToBase64@Converter()() from converter.iol */
 	convertFromBinaryToBase64Value( raw )( string ),
+	/**! deprecated, please use base64ToRaw@Converter()() from converter.iol */
 	convertFromBase64ToBinaryValue( string )( raw ) throws IOException(IOExceptionType)
 }
 
