@@ -96,8 +96,15 @@ RequestResponse:
 	deleteDir( string )( bool ) throws IOException(IOExceptionType),
 	
 	/**!
-	  it takes a file content and returns the size
-	*/
+	 * The size of any basic type variable.
+	 * - raw: buffer size
+	 * - void: 0
+	 * - boolean: 1
+	 * - integer types: int 4, long 8
+	 * - double: 8
+	 * - string: size in the respective platform encoding, on ASCII and latin1
+	 *   equal to the string's length, on Unicode (UTF-8 etc.) >= string's length
+	 */
 	getSize( any )( int ),
 	
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
