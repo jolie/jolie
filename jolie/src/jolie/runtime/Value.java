@@ -705,7 +705,7 @@ public abstract class Value implements Expression, Cloneable
 			r = new ByteArray( ((String)o).getBytes() );
 		} else if ( o instanceof Double ) {
 			// TODO: This is slow
-			ByteArrayOutputStream bbstream = new ByteArrayOutputStream();
+			ByteArrayOutputStream bbstream = new ByteArrayOutputStream( 8 );
 			try {
 				new DataOutputStream( bbstream ).writeDouble( (Double)o );
 				r = new ByteArray( bbstream.toByteArray() );

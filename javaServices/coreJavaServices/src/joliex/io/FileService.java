@@ -88,6 +88,7 @@ public class FileService extends JavaService
 	@RequestResponse
 	public String convertFromBinaryToBase64Value( Value value )
 	{
+		System.out.println("convertFromBinaryToBase64Value@FileService()() became rawToBase64@Converter()()");
 		byte[] buffer = value.byteArrayValue().getBytes();
 		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
 		return encoder.encode( buffer );
@@ -97,6 +98,7 @@ public class FileService extends JavaService
 	public ByteArray convertFromBase64ToBinaryValue( Value value )
 		throws FaultException
 	{
+		System.out.println("convertFromBase64ToBinaryValue@FileService()() became base64ToRaw@Converter()()");
 		ByteArray returnValue = null;
 		try {
 			String stringValue = value.strValue();
