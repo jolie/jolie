@@ -44,9 +44,10 @@ import jolie.runtime.embedding.RequestResponse;
 import joliex.db.impl.NamedStatementParser;
 
 /**
- * @author Fabrizio Montesi 2008 - Marco Montesi: connection string fix for
- * Microsoft SQL Server 2009 - Claudio Guidi: added support for SQLite 2013 -
- * Matthias Dieter Wallnöfer: added support for HSQLDB
+ * @author Fabrizio Montesi 2008
+ * - Marco Montesi: connection string fix for Microsoft SQL Server (2009)
+ * - Claudio Guidi: added support for SQLite (2013)
+ * - Matthias Dieter Wallnöfer: added support for HSQLDB (2013)
  */
 @CanUseJars( {
 	"derby.jar", // Java DB - Embedded
@@ -216,7 +217,7 @@ public class DatabaseService extends JavaService
 					}
 				}
 			} catch( SQLException e ) {
-				throw createFaultException( e );
+				throw new FaultException( "ConnectionError", e );
 			}
 		}
 	}
@@ -241,7 +242,7 @@ public class DatabaseService extends JavaService
 				}
 			}
 		} catch( SQLException e ) {
-			throw new FaultException( "ConnectionError" );
+			throw new FaultException( "ConnectionError", e );
 		}
 	}
 
