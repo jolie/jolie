@@ -33,7 +33,7 @@ public class SpawnExecution
 {
 	private class SpawnedThread extends SessionThread
 	{
-		final private int index;
+		private final int index;
 
 		public SpawnedThread(
 			ExecutionThread parentThread,
@@ -46,29 +46,26 @@ public class SpawnExecution
 		}
 
 		@Override
-		public void run()
+		public void runProcess()
 		{
 			parentSpawnProcess.indexPath().getValue().setValue( index );
 			try {
 				process().run();
 			} catch( FaultException f ) {}
 			catch( ExitingException e ) {}
-			if ( parentSpawnProcess.inPath() != null ) {
-				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( index )
-					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
-			}
+			
 			terminationNotify( this );
 		}
 	}
 	
-	final private Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
-	final private SpawnProcess parentSpawnProcess;
-	final private ExecutionThread ethread = ExecutionThread.currentThread();
+	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
+	private final SpawnProcess parentSpawnProcess;
+	private final ExecutionThread ethread;
 
 	public SpawnExecution( SpawnProcess parent )
 	{
 		this.parentSpawnProcess = parent;
-		//this.ethread = ExecutionThread.currentThread();
+		this.ethread = ExecutionThread.currentThread();
 	}
 	
 	public void run()
@@ -105,6 +102,11 @@ public class SpawnExecution
 	private void terminationNotify( SpawnedThread thread )
 	{
 		synchronized( this ) {
+			if ( parentSpawnProcess.inPath() != null ) {
+				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( thread.index )
+					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
+			}
+			
 			threads.remove( thread );
 			
 			if ( threads.isEmpty() ) {

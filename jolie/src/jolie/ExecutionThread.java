@@ -460,7 +460,7 @@ public abstract class ExecutionThread extends JolieThread
 	
 	public abstract void runProcess();
 	
-	public void run()
+	public final void run()
 	{
 		JolieExecutorThread t = JolieExecutorThread.currentThread();
 		t.setExecutionThread( this );

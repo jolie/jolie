@@ -22,24 +22,23 @@
 package jolie.process;
 
 import jolie.runtime.FaultException;
-import jolie.runtime.expression.Expression;
 import jolie.runtime.SpawnExecution;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 public class SpawnProcess implements Process
 {
-	final private VariablePath indexPath;
-	final private VariablePath inPath; // may be null
-	final private Expression upperBound;
-	final private Process process;
+	private final VariablePath indexPath;
+	private final VariablePath inPath; // may be null
+	private final Expression upperBound;
+	private final Process process;
 
 	public SpawnProcess(
 			VariablePath indexPath,
 			Expression upperBound,
 			VariablePath inPath,
 			Process process
-	)
-	{
+	) {
 		this.indexPath = indexPath;
 		this.inPath = inPath;
 		this.upperBound = upperBound;

@@ -22,7 +22,6 @@
 include "../AbstractTestUnit.iol"
 include "math.iol"
 
-
 define doTest
 {
 	for( i = 0, i < 10, i++ ) {
@@ -34,7 +33,7 @@ define doTest
 	};
 
 	if ( #result != 10 ) {
-		throw( TestFailed, "result vector does not have expected size" )
+		throw( TestFailed, "result vector (size: " + #result + ") does not have expected size (" + #vec + ")" )
 	};
 
 	for( i = 0, i < #result, i++ ) {
