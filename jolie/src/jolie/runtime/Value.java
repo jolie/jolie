@@ -627,12 +627,13 @@ public abstract class Value implements Expression, Cloneable
 		setValueObject( value );
 	}
 	
-	public synchronized CommChannel channelValue()
+	public CommChannel channelValue()
 	{
-		if( isChannel() == false ) {
+		Object o = valueObject();
+		if ( o instanceof CommChannel == false ) {
 			return null;
 		}
-		return (CommChannel)valueObject();
+		return (CommChannel)o;
 	}
 	
 	public String strValue()
