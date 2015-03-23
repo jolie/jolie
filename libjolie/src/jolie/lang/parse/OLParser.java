@@ -559,6 +559,8 @@ public class OLParser extends AbstractParser
 			return uri;
 		}
 	}
+	
+	private final Map< String, URL > resourceCache = new HashMap< String, URL >();
 
 	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
@@ -570,7 +572,16 @@ public class OLParser extends AbstractParser
 				includeStr = includeStr.substring( 2 );
 			}
 		}
-		URL includeURL = classLoader.getResource( includeStr );
+		
+		URL includeURL = resourceCache.get( includeStr );
+		
+		if ( includeURL == null ) {
+			includeURL = classLoader.getResource( includeStr );
+			if ( includeURL != null ) {
+				resourceCache.put( includeStr, includeURL );
+			}
+		}
+		
 		if ( includeURL != null ) {
 			File f = new File( includeURL.toString() );
 			try {
