@@ -34,7 +34,7 @@ import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.VariablePath;
 
-@AndJarDeps({"jolie-xml.jar","jolie-js.jar","json_simple.jar","uri-templates.jar"})
+@AndJarDeps({"jolie-xml.jar","jolie-js.jar","json_simple.jar"})
 @CanUseJars({"gwt-servlet.jar","jolie-gwt.jar","servletapi5.jar"})
 public class HttpProtocolFactory extends CommProtocolFactory
 {
