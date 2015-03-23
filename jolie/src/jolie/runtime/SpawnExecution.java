@@ -24,7 +24,9 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.SessionThread;
 import jolie.process.Process;
 import jolie.process.SpawnProcess;
@@ -34,15 +36,18 @@ public class SpawnExecution
 	private class SpawnedThread extends SessionThread
 	{
 		private final int index;
+		private final CountDownLatch latch;
 
 		public SpawnedThread(
 			ExecutionThread parentThread,
 			Process process,
-			int index
+			int index,
+			CountDownLatch latch
 		)
 		{
 			super( process, parentThread );
 			this.index = index;
+			this.latch = latch;
 		}
 
 		@Override
@@ -61,6 +66,7 @@ public class SpawnExecution
 	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
 	private final SpawnProcess parentSpawnProcess;
 	private final ExecutionThread ethread;
+	private CountDownLatch latch;
 
 	public SpawnExecution( SpawnProcess parent )
 	{
@@ -70,32 +76,33 @@ public class SpawnExecution
 	
 	public void run()
 		throws FaultException
-	{
+	{		
 		if ( parentSpawnProcess.inPath() != null ) {
 			parentSpawnProcess.inPath().undef();
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
+		latch = new CountDownLatch( upperBound );
 		SpawnedThread thread;
-		synchronized( this ) {
-			for( int i = 0; i < upperBound; i++ ) {
-				thread = new SpawnedThread(
-					ethread,
-					parentSpawnProcess.body(),
-					i
-				);
-				threads.add( thread );
-			}
+		
+		for( int i = 0; i < upperBound; i++ ) {
+			thread = new SpawnedThread(
+				ethread,
+				parentSpawnProcess.body(),
+				i,
+				latch
+			);
+			threads.add( thread );
+		}
 
-			for( SpawnedThread t : threads ) {
-				// We start threads in this other cycle to avoid race conditions on inPath
-				t.start();
-			}
-
-			while( !threads.isEmpty() ) {
-				try {
-					wait();
-				} catch( InterruptedException e ) {}
-			}
+		for( SpawnedThread t : threads ) {
+			// We start threads in this other cycle to avoid race conditions on inPath
+			t.start();
+		}
+		
+		try {
+			latch.await();
+		} catch( InterruptedException e ) {
+			Interpreter.getInstance().logWarning( e );
 		}
 	}
 	
@@ -107,11 +114,7 @@ public class SpawnExecution
 					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
 			}
 			
-			threads.remove( thread );
-			
-			if ( threads.isEmpty() ) {
-				notify();
-			}
+			latch.countDown();
 		}
 	}
 }
