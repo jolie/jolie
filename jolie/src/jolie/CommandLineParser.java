@@ -676,7 +676,7 @@ public class CommandLineParser implements Closeable
 						);
 				if ( f.exists() ) {
 					f = f.getAbsoluteFile();
-					result.stream = new BufferedInputStream( new FileInputStream( f ) );
+					result.stream = new FileInputStream( f );
 					result.source = f.toURI().getSchemeSpecificPart();
 					programDirectory = f.getParentFile();
 				}
@@ -714,6 +714,8 @@ public class CommandLineParser implements Closeable
 				String urlString = olURL.toString();
 				includePaths.addFirst( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
 			}
+			
+			result.stream = new BufferedInputStream( result.stream );
 		}
 		return result;
 	}

@@ -19,6 +19,7 @@ package joliex.io;
 import java.io.BufferedReader;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
@@ -77,7 +78,13 @@ public class ConsoleService extends JavaService {
             } catch (ClosedByInterruptException ce) {
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            } finally {
+				try {
+					stdin.close();
+				} catch( IOException e ) {
+					interpreter().logWarning( e );
+				}
+			}
         }
     }
     private ConsoleInputThread consoleInputThread;

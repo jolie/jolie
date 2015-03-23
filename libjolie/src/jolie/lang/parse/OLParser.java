@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -573,7 +574,7 @@ public class OLParser extends AbstractParser
 		if ( includeURL != null ) {
 			File f = new File( includeURL.toString() );
 			try {
-				ret = new IncludeFile( includeURL.openStream(), f.getParent(), f.toURI() );
+				ret = new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), f.toURI() );
 			} catch( IOException e ) {
 				e.printStackTrace();
 			}
