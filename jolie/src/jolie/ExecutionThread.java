@@ -21,6 +21,8 @@
 
 package jolie;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -479,7 +481,9 @@ public abstract class ExecutionThread extends JolieThread
 		try {
 			taskFuture.get();
 		} catch( ExecutionException e ) {
-			throw new InterruptedException( e.getMessage() );
+			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+			e.printStackTrace( new PrintStream( bs ) );
+			throw new InterruptedException( bs.toString() );
 		}
 	}
 }
