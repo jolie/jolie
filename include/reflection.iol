@@ -5,6 +5,11 @@ type InvokeRequest:void {
 	.data?:undefined
 }
 
+type InvocationFaultType:void {
+	.name:string
+	.data:string
+}
+
 /**!
 WARNING: the API of this service is experimental. Use it at your own risk.
 */
@@ -14,7 +19,7 @@ RequestResponse:
 	Invokes the specified .operation at .outputPort.
 	If the operation is a OneWay, the invocation returns no value.
 	*/
-	invoke(InvokeRequest)(undefined) throws OperationNotFound(string) InvocationFault(undefined)
+	invoke(InvokeRequest)(undefined) throws OperationNotFound(string) InvocationFault(InvocationFaultType)
 }
 
 outputPort Reflection {
