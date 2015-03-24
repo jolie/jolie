@@ -1,5 +1,5 @@
- /***************************************************************************
- *   Copyright (C) 2008-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
+ /**************************************************************************
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -56,6 +56,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.Interpreter;
+import jolie.js.JsUtils;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.net.http.HttpMessage;
@@ -76,7 +77,6 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import jolie.util.LocationParser;
 import jolie.xml.XmlUtils;
-import jolie.js.JsUtils;
 import joliex.gwt.client.JolieService;
 import joliex.gwt.server.JolieGWTConverter;
 import org.w3c.dom.Document;

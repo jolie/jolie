@@ -380,16 +380,23 @@ public class Scanner
 		return buffer.toString();
 	}
 	
+	private final StringBuilder tokenBuilder = new StringBuilder( 64 );
+
+	private void resetTokenBuilder()
+	{
+		tokenBuilder.setLength( 0 );
+	}
+	
 	public String readLine()
 		throws IOException
 	{
-		StringBuilder buffer = new StringBuilder();
+		resetTokenBuilder();
 		readChar();
 		while( !isNewLineChar( ch ) ) {
-			buffer.append( ch );
+			tokenBuilder.append( ch );
 			readChar();
 		}
-		return buffer.toString();
+		return tokenBuilder.toString();
 	}
 	
 	public static String addStringTerminator( String str )
@@ -522,8 +529,8 @@ public class Scanner
 
 		boolean stopOneChar = false;
 		Token retval = null;
-		StringBuilder builder = new StringBuilder();
-
+		resetTokenBuilder();
+		
 		while ( keepRun ) {
 			if ( currInt == -1 && retval == null ) {
 				keepRun = false; // We *need* a token at this point
@@ -604,7 +611,7 @@ public class Scanner
 					break;
 				case 2:	// ID (or unreserved keyword)
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
-						String str = builder.toString();
+						String str = tokenBuilder.toString();
 						TokenType tt = unreservedKeywords.get( str );
 						if ( tt != null ) {
 							// It is an unreserved keyword
@@ -620,38 +627,38 @@ public class Scanner
 						state = 19;
 					} else if ( !Character.isDigit( ch ) && ch != '.' ) {
 						if ( ch == 'l' || ch == 'L' ) {
-							retval = new Token( TokenType.LONG, builder.toString() );
+							retval = new Token( TokenType.LONG, tokenBuilder.toString() );
 							readChar();
 						} else {
-							retval = new Token( TokenType.INT, builder.toString() );
+							retval = new Token( TokenType.INT, tokenBuilder.toString() );
 						}
 					} else if ( ch == '.' ) {
-						builder.append( ch );
+						tokenBuilder.append( ch );
 						readChar();
 						if ( !Character.isDigit( ch ) ) {
-							retval =  new Token( TokenType.ERROR, builder.toString() );
+							retval =  new Token( TokenType.ERROR, tokenBuilder.toString() );
 						}
 						else state = 17; // recognized a DOUBLE
 					}
 					break;
 				case 4:	// STRING
 					if ( ch == '"' ) {
-						retval = new Token( TokenType.STRING, builder.toString().substring( 1 ) );
+						retval = new Token( TokenType.STRING, tokenBuilder.toString().substring( 1 ) );
 						readChar();
 					} else if ( ch == '\\' ) { // Parse special characters
 						readChar();
 						if ( ch == '\\' )
-							builder.append( '\\' );
+							tokenBuilder.append( '\\' );
 						else if ( ch == 'n' )
-							builder.append( '\n' );
+							tokenBuilder.append( '\n' );
 						else if ( ch == 't' )
-							builder.append( '\t' );
+							tokenBuilder.append( '\t' );
 						else if ( ch == 'r' )
-							builder.append( '\r' );
+							tokenBuilder.append( '\r' );
 						else if ( ch == '"' )
-							builder.append( '"' );
+							tokenBuilder.append( '"' );
 						else if ( ch == 'u' )
-							builder.append( 'u' );
+							tokenBuilder.append( 'u' );
 						else
 							throw new IOException( "malformed string: bad \\ usage" );
 						
@@ -744,7 +751,7 @@ public class Scanner
 							readChar();
 							retval = getToken();
 						} else if ( ch == '!' ) {
-							builder = new StringBuilder();
+							resetTokenBuilder();
 							readChar();
 							state = 21;
 						}
@@ -763,7 +770,7 @@ public class Scanner
 						retval = new Token( TokenType.MINUS_ASSIGN );
 						readChar();
 					} else if ( ch == '.' ) {
-						builder.append( ch );
+						tokenBuilder.append( ch );
 						readChar();
 						if ( !Character.isDigit( ch ) )
 							retval = new Token( TokenType.ERROR, "-." );
@@ -788,7 +795,7 @@ public class Scanner
 					if ( ch == 'E' || ch == 'e' )
 						state = 18;
 					else if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.DOUBLE, builder.toString() );
+						retval = new Token( TokenType.DOUBLE, tokenBuilder.toString() );
 					break;
 				case 18: // Scientific notation, first char after 'E'
 					if ( ch == '-' || ch == '+' )
@@ -806,7 +813,7 @@ public class Scanner
 					break;
 				case 20: // Scientific notation: from second digit to end
 					if ( !Character.isDigit( ch ) )
-						retval = new Token( TokenType.DOUBLE, builder.toString() );
+						retval = new Token( TokenType.DOUBLE, tokenBuilder.toString() );
 					break;
 				case 21: // Documentation comment
 					if ( ch == '*' ) {
@@ -814,12 +821,12 @@ public class Scanner
 						stopOneChar = true;
 						if ( ch == '/' ) {
 							readChar();
-							retval = new Token( TokenType.DOCUMENTATION_COMMENT, builder.toString() );
+							retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
 						}
 					}
 					break;
 				default:
-					retval = new Token( TokenType.ERROR, builder.toString() );
+					retval = new Token( TokenType.ERROR, tokenBuilder.toString() );
 					break;
 			}
 			
@@ -827,7 +834,7 @@ public class Scanner
 				if ( stopOneChar )
 					stopOneChar = false;
 				else {
-					builder.append( ch );
+					tokenBuilder.append( ch );
 					readChar();
 				}
 			} else {
