@@ -94,6 +94,10 @@ type ParseRoleRequest: void {
   .filename: string
 }
 
+
+/**!
+WARNING: the API of this service is experimental. Use it at your own risk.
+*/
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
