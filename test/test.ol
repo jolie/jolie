@@ -62,7 +62,11 @@ define printTestName
 main
 {
 	loadRequest.type = "Jolie";
-	listRequest.regex = ".*\\.ol";
+	if ( is_defined( args[0] ) ) {
+		listRequest.regex = args[0]
+	} else {
+		listRequest.regex = ".*\\.ol"
+	};
 	listRequest.directory -> dirs[i];
 	calcMaxLength;
 	for( i = 0, i < #dirs, i++ ) {

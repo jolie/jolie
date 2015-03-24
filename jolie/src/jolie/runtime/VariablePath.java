@@ -22,9 +22,9 @@
 package jolie.runtime;
 
 
-import jolie.runtime.expression.Expression;
 import jolie.ExecutionThread;
 import jolie.process.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 /**
@@ -203,29 +203,33 @@ public class VariablePath implements Expression, Cloneable
 		int index;
 		String keyStr;
 
-		for( int i = 0; i < path.length; i++ ) {
-			pair = path[i];
-			keyStr = pair.key().evaluate().strValue();
-			currVector = currValue.getChildren( keyStr );
-			if ( pair.value() == null ) {
-				if ( (i+1) < path.length ) {
-					currValue = currVector.get( 0 );
-				} else { // We're finished
-					if ( currVector.get( 0 ).isUsedInCorrelation() ) {
-						currVector.get( 0 ).refCopy( value );
-					} else {
-						currVector.set( 0, value );
+		if ( path.length == 0 ) {
+			currValue.refCopy( value );
+		} else {
+			for( int i = 0; i < path.length; i++ ) {
+				pair = path[i];
+				keyStr = pair.key().evaluate().strValue();
+				currVector = currValue.getChildren( keyStr );
+				if ( pair.value() == null ) {
+					if ( (i+1) < path.length ) {
+						currValue = currVector.get( 0 );
+					} else { // We're finished
+						if ( currVector.get( 0 ).isUsedInCorrelation() ) {
+							currVector.get( 0 ).refCopy( value );
+						} else {
+							currVector.set( 0, value );
+						}
 					}
-				}
-			} else {
-				index = pair.value().evaluate().intValue();
-				if ( (i+1) < path.length ) {
-					currValue = currVector.get( index );
 				} else {
-					if ( currVector.get( index ).isUsedInCorrelation() ) {
-						currVector.get( index ).refCopy( value );
+					index = pair.value().evaluate().intValue();
+					if ( (i+1) < path.length ) {
+						currValue = currVector.get( index );
 					} else {
-						currVector.set( index, value );
+						if ( currVector.get( index ).isUsedInCorrelation() ) {
+							currVector.get( index ).refCopy( value );
+						} else {
+							currVector.set( index, value );
+						}
 					}
 				}
 			}
