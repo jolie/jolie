@@ -2,6 +2,7 @@ include "storage.iol"
 
 type ConnectRequest:void {
 	.filename:string
+	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 }
 
 interface XmlStorageInterface {

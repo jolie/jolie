@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -53,6 +54,7 @@ import org.xml.sax.InputSource;
 public class XmlStorage extends AbstractStorageService
 {	
 	private File xmlFile = null;
+	private Charset charset = null;
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 
@@ -71,6 +73,10 @@ public class XmlStorage extends AbstractStorageService
 				xmlFile.createNewFile();
 				valueToFile( Value.create() );
 			}
+
+			if ( request.hasChildren( "charset" ) ) {
+				charset = Charset.forName( request.getFirstChild( "charset" ).strValue() );
+			}
 		} catch( Exception e ) {
 			throw new FaultException( "StorageFault", e.getMessage() );
 		}
@@ -85,6 +91,9 @@ public class XmlStorage extends AbstractStorageService
 			try {
 				DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 				InputSource src = new InputSource( new InputStreamReader( istream ) );
+				if ( charset != null ) {
+					src.setEncoding( charset.name() );
+				}
 				Document doc = builder.parse( src );
 				jolie.xml.XmlUtils.documentToValue( doc, value );
 			} finally {
@@ -105,6 +114,9 @@ public class XmlStorage extends AbstractStorageService
 			jolie.xml.XmlUtils.valueToDocument( value, "storage", doc );
 			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			if ( charset != null ) {
+				transformer.setOutputProperty( OutputKeys.ENCODING, charset.name() );
+			}
 			Writer writer = new FileWriter( xmlFile );
 			StreamResult result = new StreamResult( writer );
 			transformer.transform( new DOMSource( doc ), result );
@@ -121,6 +133,7 @@ public class XmlStorage extends AbstractStorageService
 		}
 	}
 
+	@RequestResponse
 	public Value load( LoadRequest request )
 		throws FaultException
 	{
