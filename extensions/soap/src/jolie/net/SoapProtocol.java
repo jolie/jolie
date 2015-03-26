@@ -998,7 +998,8 @@ public class SoapProtocol extends SequentialCommProtocol {
                 if (soapFault == null) {
                     Element soapValueElement = getFirstElement(soapMessage.getSOAPBody());
                     messageId = soapValueElement.getLocalName();
-                    xmlNodeToValue(value, soapValueElement, true);
+                    // explanation: https://github.com/jolie/jolie/issues/5
+                    xmlNodeToValue(value, soapValueElement, checkBooleanParameter("dropRootValue", false));
 
                     ValueVector schemaPaths = getParameterVector("schema");
                     if (schemaPaths.size() > 0) {
