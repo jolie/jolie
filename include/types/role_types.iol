@@ -61,6 +61,7 @@ type Fault: void {
 
 type Operation: void {
   .operation_name: string
+  .documentation?: any
   .input: Name
   .output?: Name
   .fault*: Fault
