@@ -23,7 +23,7 @@
 type GetJsonStringRequest: undefined
 type GetJsonStringResponse: string
 
-type GetJsonValueRequest: string {
+type GetJsonValueRequest: any {
 	.strictEncoding?: bool
 	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 }
