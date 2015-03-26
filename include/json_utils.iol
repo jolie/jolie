@@ -25,6 +25,7 @@ type GetJsonStringResponse: string
 
 type GetJsonValueRequest: string {
 	.strictEncoding?: bool
+	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 }
 type GetJsonValueResponse: undefined
 
