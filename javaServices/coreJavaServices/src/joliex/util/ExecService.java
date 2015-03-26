@@ -29,7 +29,6 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -86,7 +85,9 @@ public class ExecService extends JavaService
 						response.getFirstChild( "stderr" ).setValue( new String( buffer ) );
 					}
 				}
-
+				if ( outputStreamGobbler.isAlive() ) {
+					outputStreamGobbler.join();
+				}
 				p.getInputStream().close();
 				p.getErrorStream().close();
 				p.getOutputStream().close();
