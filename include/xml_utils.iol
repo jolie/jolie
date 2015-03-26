@@ -35,6 +35,7 @@ type XMLToValueRequest:any {
 		.includeAttributes?:bool // Default: false
 		.schemaUrl?:string // Default: none
 		.schemaLanguage?:string // Default: "http://www.w3.org/2001/XMLSchema" (see class "SchemaFactory")
+		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 	}
 }
 
