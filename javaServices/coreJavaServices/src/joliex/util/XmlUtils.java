@@ -115,6 +115,9 @@ public class XmlUtils extends JavaService
 					));
 					documentBuilderFactory.setSchema(schema); // set schema
 				}
+				if ( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
+					src.setEncoding( request.getFirstChild( "options" ).getFirstChild( "charset" ).strValue() );
+				}
 			}
 
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
