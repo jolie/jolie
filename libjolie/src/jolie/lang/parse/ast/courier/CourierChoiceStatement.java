@@ -21,8 +21,10 @@
 
 package jolie.lang.parse.ast.courier;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -35,7 +37,8 @@ import jolie.lang.parse.context.ParsingContext;
  */
 public class CourierChoiceStatement extends OLSyntaxNode
 {
-	public static class InterfaceOneWayBranch {
+	public static class InterfaceOneWayBranch implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final InterfaceDefinition interfaceDefinition;
 		public final VariablePathNode inputVariablePath;
 		public final OLSyntaxNode body;
@@ -50,7 +53,8 @@ public class CourierChoiceStatement extends OLSyntaxNode
 		}
 	}
 	
-	public static class InterfaceRequestResponseBranch {
+	public static class InterfaceRequestResponseBranch implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final InterfaceDefinition interfaceDefinition;
 		public final VariablePathNode inputVariablePath;
 		public final VariablePathNode outputVariablePath;
@@ -68,7 +72,8 @@ public class CourierChoiceStatement extends OLSyntaxNode
 		}
 	}
 	
-	public static class OperationOneWayBranch {
+	public static class OperationOneWayBranch implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final String operation;
 		public final VariablePathNode inputVariablePath;
 		public final OLSyntaxNode body;
@@ -83,7 +88,8 @@ public class CourierChoiceStatement extends OLSyntaxNode
 		}
 	}
 	
-	public static class OperationRequestResponseBranch {
+	public static class OperationRequestResponseBranch implements Serializable {
+		private static final long serialVersionUID = Constants.serialVersionUID();
 		public final String operation;
 		public final VariablePathNode inputVariablePath;
 		public final VariablePathNode outputVariablePath;
