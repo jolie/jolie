@@ -19,32 +19,18 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.util;
+package com.damnhandy.uri.template;
 
-import com.damnhandy.uri.template.UriTemplate;
-import com.damnhandy.uri.template.UriTemplateMatcherFactory;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
 
-@AndJarDeps({"uri-templates.jar"})
-public class UriTemplates extends JavaService
+/**
+ * Helper class for accessing reverse matchers for uri templates.
+ * @author Fabrizio Montesi
+ */
+public class UriTemplateMatcherFactory
 {
-	public Value match( Value request )
+	public static Pattern getReverseMatchPattern( UriTemplate t )
 	{
-		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
-		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern( t );
-		Matcher m = p.matcher( request.getFirstChild( "uri" ).strValue() );
-		Value response = Value.create();
-		boolean matches = m.matches();
-		response.setValue( matches );
-		if ( matches ) {
-			for( String param : t.getVariables() ) {
-				response.setFirstChild( param, m.group( param ) );
-			}
-		}
-		return response;
+		return t.getReverseMatchPattern();
 	}
 }
