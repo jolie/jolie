@@ -854,6 +854,8 @@ public abstract class Value implements Expression, Cloneable
 			r = ((Integer)o).doubleValue();
 		} else if ( o instanceof Double ) {
 			r = ((Double)o).doubleValue();
+		} else if ( o instanceof Long ) {
+			r = ((Long)o).doubleValue();
 		} else if ( o instanceof Boolean ) {
 			r = ( ((Boolean) o).booleanValue() == true ) ? 1.0 : 0.0;
 		} else if ( o instanceof String ) {
@@ -897,9 +899,13 @@ public abstract class Value implements Expression, Cloneable
 	{
 		if ( !isDefined() ) {
 			if ( val.isDouble() ) {
-				setValue( 0.0 - val.doubleValue() );
+				setValue( -val.doubleValue() );
 			} else if ( val.isInt() ) {
-				setValue( 0 - val.intValue() );
+				setValue( -val.intValue() );
+			} else if ( val.isLong() ) {
+				setValue( -val.longValue() );
+			} else if ( val.isBool() ) {
+				setValue( !val.boolValue() );
 			} else {
 				assignValue( val );
 			}
