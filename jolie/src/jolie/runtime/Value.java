@@ -22,7 +22,9 @@
 package jolie.runtime;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
@@ -747,6 +749,12 @@ public abstract class Value implements Expression, Cloneable
 			} catch( NumberFormatException nfe ) {
 				throw new TypeCastingException();
 			}
+		} else if ( o instanceof ByteArray ) {
+			try {
+				return new DataInputStream( new ByteArrayInputStream( ((ByteArray)o).getBytes() ) ).readInt();
+			} catch( IOException e ) {
+				throw new TypeCastingException();
+			}
 		}
 		return r;
 	}
@@ -775,6 +783,12 @@ public abstract class Value implements Expression, Cloneable
 			}
 		} else if ( o instanceof String ) {
 			r = Boolean.parseBoolean( ((String)o).trim() );
+		} else if ( o instanceof ByteArray ) {
+			try {
+				return new DataInputStream( new ByteArrayInputStream( ((ByteArray)o).getBytes() ) ).readBoolean();
+			} catch( IOException e ) {
+				throw new TypeCastingException();
+			}
 		}
 		
 		return r;
@@ -792,7 +806,7 @@ public abstract class Value implements Expression, Cloneable
 	public final long longValueStrict()
 		throws TypeCastingException
 	{
-		long r = 0;
+		long r = 0L;
 		Object o = valueObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
@@ -808,6 +822,12 @@ public abstract class Value implements Expression, Cloneable
 			try {
 				r = Long.parseLong( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
+				throw new TypeCastingException();
+			}
+		} else if ( o instanceof ByteArray ) {
+			try {
+				return new DataInputStream( new ByteArrayInputStream( ((ByteArray)o).getBytes() ) ).readLong();
+			} catch( IOException e ) {
 				throw new TypeCastingException();
 			}
 		}
@@ -826,10 +846,10 @@ public abstract class Value implements Expression, Cloneable
 	public final double doubleValueStrict()
 		throws TypeCastingException
 	{
-		double r = 0;
+		double r = 0.0;
 		Object o = valueObject();
 		if ( o == null ) {
-			return 0;
+			throw new TypeCastingException();
 		} else if ( o instanceof Integer ) {
 			r = ((Integer)o).doubleValue();
 		} else if ( o instanceof Double ) {
@@ -840,6 +860,12 @@ public abstract class Value implements Expression, Cloneable
 			try {
 				r = Double.parseDouble( ((String)o).trim() );
 			} catch( NumberFormatException nfe ) {
+				throw new TypeCastingException();
+			}
+		} else if ( o instanceof ByteArray ) {
+			try {
+				return new DataInputStream( new ByteArrayInputStream( ((ByteArray)o).getBytes() ) ).readDouble();
+			} catch( IOException e ) {
 				throw new TypeCastingException();
 			}
 		}
