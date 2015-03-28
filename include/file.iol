@@ -35,7 +35,7 @@ type CopyDirRequest: void {
 
 type ReadFileRequest:void {
 	.filename:string
-	.format?:string { // Can be "base64", "binary", "text", "xml" or "json" (defaults to "text")
+	.format?:string { // "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml", "xml_store", "properties" (Java properties file), "json" or "text" (defaults to "text")
 		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification (XML)
 	}
 }
@@ -43,7 +43,7 @@ type ReadFileRequest:void {
 type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
-	.format?:string { // Can be "binary", "text", "xml" or "json" (defaults to "text")
+	.format?:string { // "text", "binary", "xml", "xml_store" or "json" (defaults to "binary" if contents' base value is raw, "text" otherwise)
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
 		.indent?:bool // if true, indentation is applied to file (default: false)
