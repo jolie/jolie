@@ -813,7 +813,7 @@ public class HttpProtocol extends CommProtocol
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + HttpUtils.CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Length: " + encodedContent.content.size() + HttpUtils.CRLF );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + HttpUtils.CRLF );
 		}
