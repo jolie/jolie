@@ -81,6 +81,17 @@ public class XmlUtils
 	}
 
 	/**
+	 * Transforms a jolie.Value object to an XML Document instance.
+	 * @see Document
+	 * @param value the source Value
+	 * @param element the root element where to start
+	 * @param document the XML document receiving the transformation
+	 */
+	public static void valueToDocument( Value value, Element element, Document document ) {
+		_valueToDocument( value, element, document );
+	}
+
+	/**
 	 * Transforms a jolie.Value object to an XML Document instance following a given XML Type Definition.
 	 * @see Document
 	 * @param value the source Value

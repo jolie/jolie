@@ -81,7 +81,6 @@ import joliex.gwt.client.JolieService;
 import joliex.gwt.server.JolieGWTConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -242,35 +241,6 @@ public class HttpProtocol extends CommProtocol
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
-	}
-		
-	private static void valueToDocument(
-			Value value,
-			Node node,
-			Document doc
-			)
-	{
-		node.appendChild( doc.createTextNode( value.strValue() ) );
-
-		Element currentElement;
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			if ( !entry.getKey().startsWith( "@" ) ) {
-				for( Value val : entry.getValue() ) {
-					currentElement = doc.createElement( entry.getKey() );
-					node.appendChild( currentElement );
-					Map< String, ValueVector > attrs = jolie.xml.XmlUtils.getAttributesOrNull( val );
-					if ( attrs != null ) {
-						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
-							currentElement.setAttribute(
-								attrEntry.getKey(),
-								attrEntry.getValue().first().strValue()
-								);
-						}
-					}
-					valueToDocument( val, currentElement, doc );
-				}
-			}
-		}
 	}
 
 	public String getMultipartHeaderForPart( String operationName, String partName )
@@ -465,9 +435,9 @@ public class HttpProtocol extends CommProtocol
 			if ( message.isFault() ) {
 				Element faultElement = doc.createElement( message.fault().faultName() );
 				root.appendChild( faultElement );
-				valueToDocument( message.fault().value(), faultElement, doc );
+				XmlUtils.valueToDocument( message.fault().value(), faultElement, doc );
 			} else {
-				valueToDocument( message.value(), root, doc );
+				XmlUtils.valueToDocument( message.value(), root, doc );
 			}
 			Source src = new DOMSource( doc );
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
