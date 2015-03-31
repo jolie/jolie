@@ -46,7 +46,7 @@ public class JsonUtilsService extends JavaService
 
 		StringBuilder stringBuilder = new StringBuilder();
 		try {
-			JsUtils.valueToJsonString( request, Type.UNDEFINED, stringBuilder );
+			JsUtils.valueToJsonString( request, true, Type.UNDEFINED, stringBuilder );
 			ret.setValue( stringBuilder.toString() );
 		} catch( IOException e ) {
 			throw new FaultException( "JSON string generation from Jolie value failed" );
