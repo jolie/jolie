@@ -318,7 +318,7 @@ public class StringUtils extends JavaService
 		char padChar = request.getFirstChild( "char" ).strValue().charAt( 0 );
 
 		StringBuilder builder = new StringBuilder();
-        builder.append( orig );
+		builder.append( orig );
 		int padLength = length - orig.length();
 		for( int i = 0; i < padLength; i++ ) {
 			builder.append( padChar );

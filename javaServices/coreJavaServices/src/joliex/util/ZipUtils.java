@@ -132,15 +132,13 @@ public class ZipUtils extends JavaService
 					fileOutputStream.close();   
 				}
 				zipEntry = zipInputStream.getNextEntry();				
-    	}
- 
-        zipInputStream.closeEntry();
-    	zipInputStream.close();
-				
+			}
+			zipInputStream.closeEntry();
+			zipInputStream.close();
 		} catch( FileNotFoundException ex ) {
 			throw new FaultException("FileNotFound");
 		} catch( IOException ex ) {
-				throw new FaultException("IOException");
+			throw new FaultException("IOException");
 		}
 		return response;
 	}
