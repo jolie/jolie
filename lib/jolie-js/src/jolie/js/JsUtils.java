@@ -74,25 +74,34 @@ public class JsUtils
         if (isArray || (!isArray && ((type != null && type.cardinality().max() > 1) || (type == null && vector.size() > 1)))) {
             builder.append('[');
             for (int i = 0; i < vector.size(); i++) {
-                valueToJsonString(vector.get(i), type, builder);
+                valueToJsonString(vector.get(i), false, type, builder);
                 if (i < vector.size() - 1) {
                     builder.append(',');
                 }
             }
             builder.append(']');
         } else {
-            valueToJsonString(vector.first(), type, builder);
+            valueToJsonString(vector.first(), false, type, builder);
         }
     }
 
-    public static void valueToJsonString(Value value, Type type, StringBuilder builder ) throws IOException {
+    public static void valueToJsonString(Value value, boolean extendedRoot, Type type, StringBuilder builder) throws IOException {
         if (value.hasChildren(JSONARRAY_KEY)) {
             valueVectorToJsonString(value.children().get(JSONARRAY_KEY), builder, true, null);
             return;
         }
         int size = value.children().size();
         if (size == 0) {
-            builder.append(nativeValueToJsonString(value));
+            if (extendedRoot) {
+                builder.append('{');
+                if (value.isDefined()) {
+                    appendKeyColon(builder, ROOT_SIGN);
+                    builder.append(nativeValueToJsonString(value));
+                }
+                builder.append('}');
+            } else {
+                builder.append(nativeValueToJsonString(value));
+            }
         } else {
             builder.append('{');
             if (value.isDefined()) {
@@ -123,7 +132,7 @@ public class JsUtils
 		builder.append("\",\"code\":");
 		builder.append( value.getFirstChild( "error" ).getFirstChild( "code").intValue() );
 		builder.append(",\"data\":");
-		valueToJsonString( value.getFirstChild( "error" ).getFirstChild( "data" ), type, builder);
+		valueToJsonString( value.getFirstChild( "error" ).getFirstChild( "data" ), false, type, builder);
 		builder.append("}}");
 				
 	}
