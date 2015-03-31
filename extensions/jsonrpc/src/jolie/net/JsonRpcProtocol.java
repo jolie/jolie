@@ -124,7 +124,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 			}
 		}
 		StringBuilder json = new StringBuilder();
-		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
+		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 				
 		StringBuilder httpMessage = new StringBuilder();
