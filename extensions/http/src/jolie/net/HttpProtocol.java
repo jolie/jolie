@@ -353,7 +353,7 @@ public class HttpProtocol extends CommProtocol
 		if ( !message.value().children().isEmpty() ) {
 			headerBuilder.append( "?=" );
 			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( message.value(), getSendType( message ), builder );
+			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
@@ -558,7 +558,7 @@ public class HttpProtocol extends CommProtocol
 				error.getChildren( "data" ).set( 0, message.fault().value() );
 				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			} else {
-				JsUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+				JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {

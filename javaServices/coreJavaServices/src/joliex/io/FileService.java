@@ -538,7 +538,7 @@ public class FileService extends JavaService
 		throws IOException
 	{
 		StringBuilder json = new StringBuilder();
-		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
+		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 
 		OutputStreamWriter writer;
 		if ( encoding != null ) {
