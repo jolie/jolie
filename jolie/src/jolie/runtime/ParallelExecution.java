@@ -24,34 +24,17 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.Future;
 import jolie.ExecutionThread;
-import jolie.net.SessionMessage;
+import jolie.TransparentExecutionThread;
 import jolie.process.Process;
 
 public class ParallelExecution
 {
-	class ParallelThread extends ExecutionThread
+	class ParallelThread extends TransparentExecutionThread
 	{
 		public ParallelThread( Process process )
 		{
 			super( process, ExecutionThread.currentThread() );
-		}
-
-		public jolie.State state()
-		{
-			return parent.state();
-		}
-
-		public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread )
-		{
-			return parent.requestMessage( operation, ethread );
-		}
-
-		public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
-		{
-			return parent.requestMessage( operations, ethread );
 		}
 
 		@Override
@@ -65,12 +48,6 @@ public class ParallelExecution
 			} catch( ExitingException f ) {
 				terminationNotify( this );
 			}
-		}
-
-		@Override
-		public String getSessionId()
-		{
-			return parent.getSessionId();
 		}
 	}
 	
