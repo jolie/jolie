@@ -1190,6 +1190,7 @@ public class HttpProtocol extends CommProtocol
 				decodedMessage.value = Value.create();
 				decodedMessage.value.getChildren( "data" ).add( body );
 				decodedMessage.value.getFirstChild( "operation" ).setValue( decodedMessage.operationName );
+				decodedMessage.value.setFirstChild( "requestUri", message.requestPath() );
 				if ( message.userAgent() != null ) {
 					decodedMessage.value.getFirstChild( Parameters.USER_AGENT ).setValue( message.userAgent() );
 				}
