@@ -36,7 +36,7 @@ type CopyDirRequest: void {
 type ReadFileRequest:void {
 	.filename:string
 	.format?:string { // "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml", "xml_store", "properties" (Java properties file), "json" or "text" (defaults to "text")
-		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification (XML)
+		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8), header specification (XML) or format's default (for XML and JSON UTF-8)
 	}
 }
 
@@ -47,7 +47,7 @@ type WriteFileRequest:void {
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
 		.indent?:bool // if true, indentation is applied to file (default: false)
-		.encoding?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or format's default (for XML UTF-8)
+		.encoding?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or format's default (for XML and JSON UTF-8)
 	}
 	.append?:int // Default: 0
 }

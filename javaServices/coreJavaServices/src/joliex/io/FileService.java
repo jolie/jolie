@@ -144,7 +144,8 @@ public class FileService extends JavaService
 	{
 		InputStreamReader isr;
 		if ( charset == null ) {
-			isr = new InputStreamReader( istream );
+			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
+			isr = new InputStreamReader( istream, "UTF-8" );
 		} else {
 			isr = new InputStreamReader( istream, charset );
 		}
@@ -537,13 +538,14 @@ public class FileService extends JavaService
 		throws IOException
 	{
 		StringBuilder json = new StringBuilder();
-		JsUtils.valueToJsonString( value, Type.UNDEFINED, json );
+		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 
 		OutputStreamWriter writer;
 		if ( encoding != null ) {
 			writer = new OutputStreamWriter( new FileOutputStream( file, append ), encoding );
 		} else {
-			writer = new FileWriter( file, append );
+			// UTF-8 is JSON's default charset: https://tools.ietf.org/html/rfc7159#section-8.1
+			writer = new OutputStreamWriter( new FileOutputStream( file, append ), "UTF-8" );
 		}
 		writer.write( json.toString() );
 		writer.flush();

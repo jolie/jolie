@@ -81,7 +81,6 @@ import joliex.gwt.client.JolieService;
 import joliex.gwt.server.JolieGWTConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -243,35 +242,6 @@ public class HttpProtocol extends CommProtocol
 		this.docBuilder = docBuilder;
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 	}
-		
-	private static void valueToDocument(
-			Value value,
-			Node node,
-			Document doc
-			)
-	{
-		node.appendChild( doc.createTextNode( value.strValue() ) );
-
-		Element currentElement;
-		for( Entry< String, ValueVector > entry : value.children().entrySet() ) {
-			if ( !entry.getKey().startsWith( "@" ) ) {
-				for( Value val : entry.getValue() ) {
-					currentElement = doc.createElement( entry.getKey() );
-					node.appendChild( currentElement );
-					Map< String, ValueVector > attrs = jolie.xml.XmlUtils.getAttributesOrNull( val );
-					if ( attrs != null ) {
-						for( Entry< String, ValueVector > attrEntry : attrs.entrySet() ) {
-							currentElement.setAttribute(
-								attrEntry.getKey(),
-								attrEntry.getValue().first().strValue()
-								);
-						}
-					}
-					valueToDocument( val, currentElement, doc );
-				}
-			}
-		}
-	}
 
 	public String getMultipartHeaderForPart( String operationName, String partName )
 	{
@@ -383,7 +353,7 @@ public class HttpProtocol extends CommProtocol
 		if ( !message.value().children().isEmpty() ) {
 			headerBuilder.append( "?=" );
 			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( message.value(), getSendType( message ), builder );
+			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
 		}
 	}
@@ -465,9 +435,9 @@ public class HttpProtocol extends CommProtocol
 			if ( message.isFault() ) {
 				Element faultElement = doc.createElement( message.fault().faultName() );
 				root.appendChild( faultElement );
-				valueToDocument( message.fault().value(), faultElement, doc );
+				XmlUtils.valueToDocument( message.fault().value(), faultElement, doc );
 			} else {
-				valueToDocument( message.value(), root, doc );
+				XmlUtils.valueToDocument( message.value(), root, doc );
 			}
 			Source src = new DOMSource( doc );
 			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
@@ -588,7 +558,7 @@ public class HttpProtocol extends CommProtocol
 				error.getChildren( "data" ).set( 0, message.fault().value() );
 				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
 			} else {
-				JsUtils.valueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+				JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
@@ -813,7 +783,7 @@ public class HttpProtocol extends CommProtocol
 				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headerBuilder );
 			}
 
-			headerBuilder.append( "Content-Length: " + (encodedContent.content.size()) + HttpUtils.CRLF ); //headerBuilder.append( "Content-Length: " + (encodedContent.content.size() + 2) + HttpUtils.CRLF );
+			headerBuilder.append( "Content-Length: " + encodedContent.content.size() + HttpUtils.CRLF );
 		} else {
 			headerBuilder.append( "Content-Length: 0" + HttpUtils.CRLF );
 		}
