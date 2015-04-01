@@ -162,7 +162,7 @@ public class RuntimeService extends JavaService
 	}
 	
 	@RequestResponse
-	public Value getProcessId( Value request ) {
+	public Value getProcessId() {
 		Value response = Value.create();
 		response.setValue( ExecutionThread.currentThread().getSessionId() );
 		return response;
