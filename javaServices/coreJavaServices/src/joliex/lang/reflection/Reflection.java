@@ -22,14 +22,17 @@
 package joliex.lang.reflection;
 
 import java.io.IOException;
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
+import jolie.TransparentExecutionThread;
 import jolie.net.ports.OutputPort;
 import jolie.process.NotificationProcess;
 import jolie.process.NullProcess;
 import jolie.process.SolicitResponseProcess;
 import jolie.runtime.ClosedVariablePath;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
@@ -65,17 +68,18 @@ public class Reflection extends JavaService
 			NullProcess.getInstance(),
 			desc
 		);
-		SessionThread t = new SessionThread( p, interpreter.initThread() );
 		final FaultReference ref = new FaultReference();
-		t.addSessionListener( new SessionListener() {
-			public void onSessionExecuted( SessionThread session )
-			{}
-
-			public void onSessionError( SessionThread session, FaultException fault )
+		ExecutionThread t = new TransparentExecutionThread( p, ExecutionThread.currentThread() ) {
+			@Override
+			public void runProcess()
 			{
-				ref.fault = fault;
+				try {
+					process().run();
+				} catch( FaultException f ) {
+					ref.fault = f;
+				} catch( ExitingException e ) {}
 			}
-		} );
+		};
 		t.start();
 		t.join();
 		if ( ref.fault != null ) {
