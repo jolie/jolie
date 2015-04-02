@@ -36,7 +36,7 @@ import jolie.runtime.ValueVector;
  */
 public class NetworkService extends JavaService  {
 
-	public Value getNetworkInterfaceNames( Value request )
+	public Value getNetworkInterfaceNames()
 		throws FaultException {
 
 		Value response = Value.create();
