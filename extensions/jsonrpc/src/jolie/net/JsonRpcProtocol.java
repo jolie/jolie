@@ -53,7 +53,7 @@ import jolie.js.JsUtils;
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
-public class JsonRpcProtocol extends ConcurrentCommProtocol
+public class JsonRpcProtocol extends ConcurrentCommProtocol implements HttpUtils.HttpProtocol
 {
 	private final URI uri;
 	private final Interpreter interpreter;
@@ -84,7 +84,7 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
 	}
 
-	private void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
@@ -176,17 +176,10 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		try {
-			send_internal( ostream, message, istream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
-	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpParser parser = new HttpParser( istream );
@@ -244,13 +237,6 @@ public class JsonRpcProtocol extends ConcurrentCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		try {
-			return recv_internal( istream, ostream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
 }
