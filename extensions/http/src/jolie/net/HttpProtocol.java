@@ -89,7 +89,7 @@ import org.xml.sax.SAXException;
  * @author Fabrizio Montesi
  * 14 Nov 2012 - Saverio Giallorenzo - Fabrizio Montesi: support for status codes
  */
-public class HttpProtocol extends CommProtocol
+public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 {
 	private static final int DEFAULT_STATUS_CODE = 200;
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
@@ -806,7 +806,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		Method method = send_getRequestMethod( message );
@@ -838,14 +838,7 @@ public class HttpProtocol extends CommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		try {
-			send_internal( ostream, message, istream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
 	private void parseXML( HttpMessage message, Value value, String charset )
@@ -1221,7 +1214,7 @@ public class HttpProtocol extends CommProtocol
 		}
 	}
 	
-	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpMessage message = new HttpParser( istream ).parse();
@@ -1336,14 +1329,7 @@ public class HttpProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		try {
-			return recv_internal( istream, ostream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
 
 	private Type getSendType( CommMessage message )

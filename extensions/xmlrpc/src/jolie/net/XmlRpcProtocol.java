@@ -85,7 +85,7 @@ import org.w3c.dom.NodeList;
  * All the array in an input XMLRPC message will be translated into Jolie by means of arrays of the keyword array.
  * 
  */
-public class XmlRpcProtocol extends SequentialCommProtocol
+public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
 	private String inputId = null;
 	final private Transformer transformer;
@@ -300,7 +300,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 		}
 	}
 
-	private void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
 		Document doc = docBuilder.newDocument();
@@ -436,17 +436,10 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
-		try {
-			send_internal( ostream, message, istream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
-	private CommMessage recv_internal( InputStream istream, OutputStream ostream )
+	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
 		HttpParser parser = new HttpParser( istream );
@@ -523,13 +516,6 @@ public class XmlRpcProtocol extends SequentialCommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
-		try {
-			return recv_internal( istream, ostream );
-		} catch ( IOException e ) {
-			if ( inInputPort && channel().isOpen() ) {
-				HttpUtils.errorGenerator( ostream, e );
-			}
-			throw e;
-		}
+		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
 }
