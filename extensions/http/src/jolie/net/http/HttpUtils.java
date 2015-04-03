@@ -24,6 +24,7 @@ package jolie.net.http;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
 
@@ -31,6 +32,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import jolie.net.CommChannel;
+import jolie.net.CommMessage;
 
 import jolie.runtime.ByteArray;
 
@@ -82,7 +84,7 @@ public class HttpUtils
 		return null;
 	}
 
-	public static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
+	private static void errorGenerator( OutputStream ostream, IOException e ) throws IOException {
 		StringBuilder httpMessage = new StringBuilder();
 		if ( e instanceof UnsupportedEncodingException ) {
 			httpMessage.append( "HTTP/1.1 415 Unsupported Media Type" + CRLF );
@@ -111,7 +113,39 @@ public class HttpUtils
 		httpMessage.append( "Content-Length: " + content.size() + CRLF + CRLF );
 		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
-		ostream.flush();
+	}
+
+	public static interface HttpProtocol
+	{
+		CommMessage recv_internal( InputStream istream, OutputStream ostream ) throws IOException;
+		void send_internal( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException;
+	}
+
+	public static CommMessage recv( InputStream istream, OutputStream ostream, boolean inInputPort, CommChannel channel, HttpProtocol service )
+		throws IOException
+	{
+		try {
+			return service.recv_internal( istream, ostream );
+		} catch ( IOException e ) {
+			if ( inInputPort && channel.isOpen() ) {
+				HttpUtils.errorGenerator( ostream, e );
+				ostream.flush();
+			}
+			throw e;
+		}
+	}
+
+	public static void send( OutputStream ostream, CommMessage message, InputStream istream, boolean inInputPort, CommChannel channel, HttpProtocol service )
+		throws IOException
+	{
+		try {
+			service.send_internal( ostream, message, istream );
+		} catch ( IOException e ) {
+			if ( inInputPort && channel.isOpen() ) {
+				HttpUtils.errorGenerator( ostream, e );
+			}
+			throw e;
+		}
 	}
 
 	public static String getCharset( String defaultCharset, HttpMessage message )

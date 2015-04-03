@@ -132,7 +132,7 @@ import org.xml.sax.InputSource;
  * documents.
  *
  */
-public class SoapProtocol extends SequentialCommProtocol {
+public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol {
 
     private String inputId = null;
     private final Interpreter interpreter;
@@ -649,7 +649,7 @@ public class SoapProtocol extends SequentialCommProtocol {
         }
     }
 
-    private void send_internal(OutputStream ostream, CommMessage message, InputStream istream)
+    public void send_internal(OutputStream ostream, CommMessage message, InputStream istream)
             throws IOException {
         try {
             inputId = message.operationName();
@@ -867,14 +867,7 @@ public class SoapProtocol extends SequentialCommProtocol {
 
     public void send(OutputStream ostream, CommMessage message, InputStream istream)
             throws IOException {
-        try {
-            send_internal(ostream, message, istream);
-        } catch (IOException e) {
-            if (inInputPort && channel().isOpen()) {
-                HttpUtils.errorGenerator(ostream, e);
-            }
-            throw e;
-        }
+        HttpUtils.send(ostream, message, istream, inInputPort, channel(), this);
     }
 
     private void xmlNodeToValue(Value value, Node node, boolean isRecRoot) {
@@ -946,7 +939,7 @@ public class SoapProtocol extends SequentialCommProtocol {
      * schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
      * } catch( SAXException e ) { throw new IOException( e ); } }
      */
-    private CommMessage recv_internal(InputStream istream, OutputStream ostream)
+    public CommMessage recv_internal(InputStream istream, OutputStream ostream)
             throws IOException {
         HttpParser parser = new HttpParser(istream);
         HttpMessage message = parser.parse();
@@ -1094,14 +1087,7 @@ public class SoapProtocol extends SequentialCommProtocol {
     public CommMessage recv(InputStream istream, OutputStream ostream)
         throws IOException
     {
-        try {
-            return recv_internal(istream, ostream);
-        } catch (IOException e) {
-            if (inInputPort && channel().isOpen()) {
-            	HttpUtils.errorGenerator(ostream, e);
-            }
-            throw e;
-        }
+        return HttpUtils.recv(istream, ostream, inInputPort, channel(), this);
     }
 
     private String recv_getResourcePath(HttpMessage message) {
