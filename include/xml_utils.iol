@@ -40,8 +40,10 @@ type XMLToValueRequest:any {
 }
 
 type ValueToXmlRequest: void {
-  .root: any { ? }
-  .rootNodeName: string
+	.root: any { ? }
+	.rootNodeName: string
+	.plain?:bool // Default: false (= storage XML)
+	.omitXmlDeclaration?:bool // Default: false (with XML declaration)
 }
 
 interface XmlUtilsInterface{
