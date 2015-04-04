@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -27,7 +28,8 @@ include "runtime.iol"
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	.method = "get"
+	.method = "get";
+	.method.queryFormat -> queryFormat
 }
 Interfaces: ServerInterface
 }
@@ -40,14 +42,25 @@ Jolie:
 define doTest
 {
 	with( person ) {
+		.id = 123456789123456789L;
 		.firstName = "John";
-		.lastName = "Smith";
-		.age = "30"
+		.lastName = "Döner";
+		.age = 30;
+		.size = 90.5;
+		.male = true;
+		.unknown = "Hey";
+		.unknown2 = void
 	};
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+		queryFormat = undefined; // URL-encoded
 		echoPerson@Server( person )( response );
-		if ( response.firstName != "John" ) {
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+		queryFormat = "json"; // JSON
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
 			throw( TestFailed, "Data <=> Querystring value mismatch" )
 		}
 	}
