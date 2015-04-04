@@ -36,9 +36,6 @@ define doTest
 	if ( !is_defined( x ) ) {
 		throw( TestFailed, "Variable has been defined" )
 	};
-	if ( !is_defined( true ) ) {
-		throw( TestFailed, "Constant has been defined" )
-	};
 
 	x = undefined;
 	if ( is_defined( x ) ) {
