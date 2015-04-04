@@ -113,6 +113,7 @@ public class HttpUtils
 		httpMessage.append( "Content-Length: " + content.size() + CRLF + CRLF );
 		ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
 		ostream.write( content.getBytes() );
+		ostream.flush();
 	}
 
 	public static interface HttpProtocol
@@ -129,7 +130,6 @@ public class HttpUtils
 		} catch ( IOException e ) {
 			if ( inInputPort && channel.isOpen() ) {
 				HttpUtils.errorGenerator( ostream, e );
-				ostream.flush();
 			}
 			throw e;
 		}
