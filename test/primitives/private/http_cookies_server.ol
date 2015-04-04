@@ -20,8 +20,6 @@
  ***************************************************************************/
 
 include "http_cookies_server.iol"
-include "console.iol"
-include "runtime.iol"
 
 execution { single }
 

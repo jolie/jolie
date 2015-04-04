@@ -19,9 +19,6 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-include "console.iol"
-include "runtime.iol"
-
 execution { sequential }
 
 interface ServerIface {

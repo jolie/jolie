@@ -20,8 +20,6 @@
  ***************************************************************************/
 
 include "http_querystring_server.iol"
-include "console.iol"
-include "runtime.iol"
 
 execution { single }
 

@@ -20,8 +20,6 @@
  ***************************************************************************/
 
 include "types_server.iol"
-include "console.iol"
-include "runtime.iol"
 
 inputPort ServerInput {
 Location: "local"
