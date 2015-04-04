@@ -24,6 +24,30 @@ define check
 	}
 }
 
+define check2
+{
+	if ( #v != 2 ) {
+		throw( TestFailed, "getJsonValue: invalid vector size" )
+	} else if ( v[0].firstName != "John" ) {
+		throw( TestFailed, "getJsonValue: first person's firstName is wrong" )
+	} else if ( v[0].lastName != "Doe" ) {
+		throw( TestFailed, "getJsonValue: first person's lastName is wrong" )
+	} else if ( v[1].firstName != "Donald" ) {
+		throw( TestFailed, "getJsonValue: second person's firstName is wrong" )
+	} else if ( v[1].lastName != "Duck" ) {
+		throw( TestFailed, "getJsonValue: second person's lastName is wrong" )
+	}
+}
+
+define check3
+{
+	if (#v != 1 ) {
+		throw( TestFailed, "getJsonValue: invalid vector size" )
+	} else if ( v != "Hi" ) {
+		throw( TestFailed, "getJsonValue: wrong value" )
+	}
+}
+
 define doTest
 {
 	json = "
@@ -50,6 +74,92 @@ define doTest
 	check;
 	getJsonString@JsonUtils( v )( str2 );
 	if ( str != str2 ) {
-		throw( TestFailed, "getJsonValue: JSON strings should match" )
+		throw( TestFailed, "getJsonString: JSON strings should match" )
+	};
+
+	undef( v );
+	v[0] << { .firstName = "John", .lastName = "Doe" };
+	v[1] << { .firstName = "Donald", .lastName = "Duck" };
+	check2;
+
+	getJsonString@JsonUtils( v )( str );
+	getJsonValue@JsonUtils( str )( v );
+	check2;
+	getJsonString@JsonUtils( v )( str2 );
+	if ( str != str2 ) {
+		throw( TestFailed, "getJsonString: JSON strings should match" )
+	};
+
+	undef( v );
+	v = "Hi";
+	check3;
+
+	getJsonString@JsonUtils( v )( str );
+	getJsonValue@JsonUtils( str )( v );
+	check3;
+	getJsonString@JsonUtils( v )( str2 );
+	if ( str != str2 ) {
+		throw( TestFailed, "getJsonString: JSON strings should match" )
+	};
+	if ( str != "{\"$\":\"Hi\"}" ) {
+		throw( TestFailed, "getJsonString: expected long root value" )
+	};
+
+	undef( v );
+	getJsonString@JsonUtils( v )( str );
+	getJsonValue@JsonUtils( str )( v );
+	if ( is_defined( v ) ) {
+		throw( TestFailed, "getJsonValue: expected undefined" )
+	};
+	getJsonString@JsonUtils( v )( str2 );
+	if ( str != str2 ) {
+		throw( TestFailed, "getJsonString: JSON strings should match" )
+	};
+	if ( str != "{}" ) {
+		throw( TestFailed, "getJsonString: expected null" )
+	};
+
+	// Null values
+
+	json = "null";
+	getJsonValue@JsonUtils( json )( v );
+	if ( v != undefined ) {
+		throw( TestFailed, "getJsonValue: expected undefined: null" )
+	};
+	json = "{}";
+	getJsonValue@JsonUtils( json )( v );
+	if ( v != undefined ) {
+		throw( TestFailed, "getJsonValue: expected undefined: {}" )
+	};
+	json = "[]";
+	getJsonValue@JsonUtils( json )( v );
+	if ( v != undefined ) {
+		throw( TestFailed, "getJsonValue: expected undefined: []" )
+	};
+
+	// Basic values
+
+	json = "true";
+	getJsonValue@JsonUtils( json )( v );
+	if ( !(v instanceof bool) || v != true ) {
+		throw( TestFailed, "getJsonValue: expected true" )
+	};
+	json = "10"; // in JSON: long == int
+	getJsonValue@JsonUtils( json )( v );
+	if ( !(v instanceof int) || v != 10 ) {
+		throw( TestFailed, "getJsonValue: expected 10" )
+	};
+	if ( !(v instanceof long) || v != 10L ) {
+		throw( TestFailed, "getJsonValue: expected 10" )
+	};
+	json = "10.0";
+	getJsonValue@JsonUtils( json )( v );
+	if ( !(v instanceof double) || v != 10.0 ) {
+		throw( TestFailed, "getJsonValue: expected 10.0" )
+	};
+	json = "\"Hi\"";
+	getJsonValue@JsonUtils( json )( v );
+	if ( !(v instanceof string) || v != "Hi" ) {
+		throw( TestFailed, "getJsonValue: expected \"Hi\"" )
 	}
 }
