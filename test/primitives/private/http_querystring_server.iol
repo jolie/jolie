@@ -24,9 +24,14 @@ constants {
 }
 
 type Person:void {
+	.id:long
 	.firstName:string
 	.lastName:string
-	.age:string
+	.age:int
+	.size:double
+	.male:bool
+	.unknown:any
+	.unknown2:undefined
 }
 
 interface ServerInterface {

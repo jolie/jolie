@@ -37,5 +37,8 @@ main
 {
 	echoPerson( request )( response ) {
 		response << request
+	};
+	echoPerson( request )( response ) {
+		response << request
 	}
 }
