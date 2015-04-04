@@ -30,6 +30,7 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -65,12 +66,23 @@ public class XmlUtils extends JavaService
 		try {
 			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
 			String rootNodeName = request.getFirstChild( "rootNodeName" ).strValue();
-			jolie.xml.XmlUtils.valueToStorageDocument(
-				request.getFirstChild( "root" ),
-				rootNodeName,
-				doc
-			);
+			if ( request.getFirstChild( "plain" ).boolValue() ) {
+				jolie.xml.XmlUtils.valueToDocument(
+					request.getFirstChild( "root" ),
+					rootNodeName,
+					doc
+				);
+			} else {
+				jolie.xml.XmlUtils.valueToStorageDocument(
+					request.getFirstChild( "root" ),
+					rootNodeName,
+					doc
+				);
+			}
 			Transformer t = transformerFactory.newTransformer();
+			if ( request.getFirstChild( "omitXmlDeclaration" ).boolValue() ) {
+				t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+			}
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( new DOMSource( doc ), result );
