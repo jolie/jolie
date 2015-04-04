@@ -20,8 +20,6 @@
  ***************************************************************************/
 
 include "cset_server.iol"
-include "console.iol"
-include "runtime.iol"
 
 execution { concurrent }
 

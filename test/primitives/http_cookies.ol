@@ -22,7 +22,6 @@
 include "../AbstractTestUnit.iol"
 
 include "private/http_cookies_server.iol"
-include "runtime.iol"
 
 outputPort Server {
 Location: Location_HTTPServer

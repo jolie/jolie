@@ -22,7 +22,6 @@
 include "../AbstractTestUnit.iol"
 
 include "private/types_server.iol"
-include "runtime.iol"
 
 outputPort Server {
 Interfaces: ServerInterface
