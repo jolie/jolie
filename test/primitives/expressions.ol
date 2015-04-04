@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -37,6 +38,37 @@ define testBooleans
 	}
 }
 
+define testCasts
+{
+	if ( 1 != int(true) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( 1L != long(true) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( 1.0 != double(true) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( "true" != string(true) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( !bool(1) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( !bool(1L) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( !bool(1.0) ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( !bool("true") ) {
+		throw( TestFailed, "casting error" )
+	};
+	if ( true != bool(string(bool(int(long(double(long(int(bool(string(bool(true))))))))))) ) {
+		throw( TestFailed, "casting error" )
+	}
+}
+
 define doTest
 {
 	if ( "Hello, " + "World!" != "Hello, World!" ) {
@@ -54,6 +86,7 @@ define doTest
 		throw( TestFailed, "compact inline arithmetic operators do not work correctly" )
 	};
 
-	testBooleans
+	testBooleans;
+	testCasts
 }
 

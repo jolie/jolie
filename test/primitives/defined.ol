@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -27,9 +28,40 @@ define doTest
 	if ( #x != 0 ) {
 		throw( TestFailed, "Undefined variable size is not zero" )
 	};
-
 	if ( is_defined( x ) ) {
 		throw( TestFailed, "Vector size operator defines an undefined variable" )
+	};
+
+	x = true;
+	if ( !is_defined( x ) ) {
+		throw( TestFailed, "Variable has been defined" )
+	};
+	if ( !is_defined( true ) ) {
+		throw( TestFailed, "Constant has been defined" )
+	};
+
+	x = undefined;
+	if ( is_defined( x ) ) {
+		throw( TestFailed, "Variable has been undefined" )
+	};
+	if ( is_defined( undefined ) ) {
+		throw( TestFailed, "Constant has been defined" )
+	};
+
+	x = any;
+	if ( is_defined( x ) ) {
+		throw( TestFailed, "Variable has been undefined" )
+	};
+	if ( is_defined( any ) ) {
+		throw( TestFailed, "Constant has been defined" )
+	};
+
+	x = void;
+	if ( is_defined( x ) ) {
+		throw( TestFailed, "Variable has been undefined" )
+	};
+	if ( is_defined( void ) ) {
+		throw( TestFailed, "Constant has been defined" )
 	}
 }
 
