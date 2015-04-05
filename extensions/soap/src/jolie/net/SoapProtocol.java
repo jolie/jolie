@@ -94,6 +94,7 @@ import javax.wsdl.extensions.soap.SOAPOperation;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -198,7 +199,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
             throws IOException {
         try {
             Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty("indent", "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             StringWriter sw = new StringWriter();
             StreamResult result = new StreamResult(sw);
             DOMSource source = new DOMSource(element);
