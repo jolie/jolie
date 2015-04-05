@@ -83,6 +83,11 @@ public class XmlUtils extends JavaService
 			if ( request.getFirstChild( "omitXmlDeclaration" ).boolValue() ) {
 				t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 			}
+			if ( request.getFirstChild( "indent" ).boolValue() ) {
+				t.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				t.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
 			StringWriter writer = new StringWriter();
 			StreamResult result = new StreamResult( writer );
 			t.transform( new DOMSource( doc ), result );

@@ -480,7 +480,7 @@ public class FileService extends JavaService
 		}
 	}
 
-	private void writeStorageXML( File file, Value value, String encoding )
+	private void writeStorageXML( File file, Value value, String encoding, boolean indent )
 		throws IOException
 	{
 		if ( value.children().isEmpty() ) {
@@ -494,7 +494,11 @@ public class FileService extends JavaService
 				rootName,
 				doc );
 			Transformer transformer = transformerFactory.newTransformer();
-			transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			if ( indent ) {
+				transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+			} else {
+				transformer.setOutputProperty( OutputKeys.INDENT, "no" );
+			}
 			if ( encoding != null ) {
 				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
 			}
@@ -589,7 +593,11 @@ public class FileService extends JavaService
 				}
 				writeXML( file, content, append, schemaFilename, doctypePublic, encoding, indent );
 			} else if ( "xml_store".equals( format ) ) {
-				writeStorageXML( file, content, encoding );
+				boolean indent = false;
+				if ( request.getFirstChild( "format" ).hasChildren( "indent" ) ) {
+					indent = request.getFirstChild( "format" ).getFirstChild( "indent" ).boolValue();
+				}
+				writeStorageXML( file, content, encoding, indent );
 			} else if ( "json".equals( format ) ) {
 				writeJson( file, content, append, encoding );
 			} else if ( format.isEmpty() ) {
