@@ -9,19 +9,27 @@ define doTest
 
 	str = "Matthias Dieter Wallnöfer";
 	length@StringUtils(str)(len);
-	getSize@File(str)(size);
-	if (len != 25 || size != 26) {
+	if (len != 25) {
 		throw( TestFailed, "strings invalid length/size" )
 	};
 	stringToRaw@Converter(str { .charset="latin1" })(buf);
 	getSize@File(buf)(size);
-	if (len != 25 || size != 25) {
+	if (size != 25) {
 		throw( TestFailed, "strings invalid length/size" )
 	};
 	rawToString@Converter(buf { .charset="latin1" })(str2);
 	length@StringUtils(str2)(len);
-	getSize@File(str2)(size);
-	if (len != 25 || size != 26) {
+	if (len != 25) {
+		throw( TestFailed, "strings invalid length/size" )
+	};
+	if (str2 != str) {
+		throw( TestFailed, "strings do not match" )
+	};
+
+	stringToRaw@Converter(str)(buf);
+	str2 = string(buf);
+	length@StringUtils(str2)(len);
+	if (len != 25) {
 		throw( TestFailed, "strings invalid length/size" )
 	};
 	if (str2 != str) {
@@ -40,8 +48,7 @@ define doTest
 	base64ToRaw@Converter(base64)(buf2);
 	rawToString@Converter(buf2 { .charset="latin1" })(str2);
 	length@StringUtils(str2)(len);
-	getSize@File(str2)(size);
-	if (len != 25 || size != 26) {
+	if (len != 25) {
 		throw( TestFailed, "base64 invalid length/size" )
 	};
 	if (str2 != str) {
