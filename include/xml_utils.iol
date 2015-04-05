@@ -44,6 +44,7 @@ type ValueToXmlRequest: void {
 	.rootNodeName: string
 	.plain?:bool // Default: false (= storage XML)
 	.omitXmlDeclaration?:bool // Default: false (with XML declaration)
+	.indent?:bool // Default: false
 }
 
 interface XmlUtilsInterface{
