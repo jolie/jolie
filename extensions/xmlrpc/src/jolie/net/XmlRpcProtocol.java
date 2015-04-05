@@ -137,8 +137,9 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
 
-		this.transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-		this.transformer.setOutputProperty(OutputKeys.ENCODING,"utf-8");
+		transformer.setOutputProperty( OutputKeys.ENCODING, "utf-8" );
+		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
+		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
 
 	private static Element getFirstElement( Element element, String name )

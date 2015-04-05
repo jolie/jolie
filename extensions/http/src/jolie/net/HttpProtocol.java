@@ -240,7 +240,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		this.transformer = transformerFactory.newTransformer();
 		this.docBuilderFactory = docBuilderFactory;
 		this.docBuilder = docBuilder;
+
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
 
 	public String getMultipartHeaderForPart( String operationName, String partName )
