@@ -37,6 +37,9 @@ main
 			for (i = 0, i < #request.param[2].array.value.array, i++)
 				response.param += request.param[2].array.value.array[i]
 		}]
+		[ identity( request )( response ) {
+			response << request
+		}]
 	until
 		[ shutdown() ]
 }
