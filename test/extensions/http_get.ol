@@ -40,18 +40,21 @@ Jolie:
 	"private/http_server.ol"
 }
 
+define checkResponse
+{
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	}
+}
+
 define test
 {
 	queryFormat = undefined; // URL-encoded
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	};
+	checkResponse;
 	queryFormat = "json"; // JSON
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	}
+	checkResponse
 }
 
 

@@ -40,34 +40,31 @@ Jolie:
 	"private/http_server.ol"
 }
 
+define checkResponse
+{
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	}
+}
+
 define test
 {
 	format = undefined; // default
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	};
+	checkResponse;
 	format = "x-www-form-urlencoded"; // URL-encoded
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	};
+	checkResponse;
 	format = "xml"; // XML
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	};
+	checkResponse;
 	format = "json"; // JSON
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	}
+	checkResponse
 /* FIXME: GWT-RPC
 	format = "text/x-gwt-rpc"; // GWT-RPC
 	echoPerson@Server( person )( response );
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-		throw( TestFailed, "Data <=> Querystring value mismatch" )
-	}
+	checkResponse
 */
 }
 
