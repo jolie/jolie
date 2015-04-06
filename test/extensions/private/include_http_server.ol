@@ -38,7 +38,7 @@ Interfaces: ServerIface
 main
 {
 	[ getIncludeFile()( response ) {
-		response = "include \"console.iol\"\n"		
+		response = "include \"console.iol\"\n"
 	} ] { nullProcess }
 }
 
