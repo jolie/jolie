@@ -28,7 +28,9 @@ outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
 	.method = "get";
-	.method.queryFormat -> queryFormat
+	.method.queryFormat -> queryFormat;
+	.compression -> compression;
+	.requestCompression -> requestCompression
 }
 Interfaces: ServerInterface
 }
@@ -37,6 +39,21 @@ embedded {
 Jolie:
 	"private/http_server.ol"
 }
+
+define test
+{
+	queryFormat = undefined; // URL-encoded
+	echoPerson@Server( person )( response );
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	};
+	queryFormat = "json"; // JSON
+	echoPerson@Server( person )( response );
+	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	}
+}
+
 
 define doTest
 {
@@ -52,16 +69,17 @@ define doTest
 	};
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
-		queryFormat = undefined; // URL-encoded
-		echoPerson@Server( person )( response );
-		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-			throw( TestFailed, "Data <=> Querystring value mismatch" )
-		};
-		queryFormat = "json"; // JSON
-		echoPerson@Server( person )( response );
-		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
-			throw( TestFailed, "Data <=> Querystring value mismatch" )
-		};
+
+		// compression on (default), but no request compression
+		test;
+		// request compression
+		requestCompression = "deflate";
+		test;
+		requestCompression = "gzip";
+		test;
+		// no compression at all
+		compression = false;
+		test;
 
 		shutdown@Server()
 	}
