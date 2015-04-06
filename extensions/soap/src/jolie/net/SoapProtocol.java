@@ -1059,9 +1059,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
                 // The message is for this service
                 Interface iface = channel().parentPort().getInterface();
                 OneWayTypeDescription oneWayTypeDescription = iface.oneWayOperations().get(retVal.operationName());
-                if (oneWayTypeDescription != null && message.isResponse() == false) {
+                if (oneWayTypeDescription != null) {
                     // We are receiving a One-Way message
-                    oneWayTypeDescription.requestType().cast(retVal.value());
+                    if (message.isResponse() == false) {
+                        oneWayTypeDescription.requestType().cast(retVal.value());
+                    }
                 } else {
                     RequestResponseTypeDescription rrTypeDescription = iface.requestResponseOperations().get(retVal.operationName());
                     if (retVal.isFault()) {
