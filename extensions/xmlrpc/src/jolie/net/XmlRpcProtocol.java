@@ -222,9 +222,12 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 	private void documentToValue( Value value, Document document )
 		throws IOException
 	{
+		NodeList children = document.getDocumentElement().getElementsByTagName( "params" );
+		if ( children.getLength() < 1 ) {
+			return;
+		}
+		NodeList params = ((Element)children.item( 0 )).getElementsByTagName( "param" );
 		ValueVector paramsValueVector = value.getChildren( PARAMS_KEY );
-
-		NodeList params = getFirstElement( document.getDocumentElement(), "params" ).getElementsByTagName( "param" );
 		for( int i = 0; i < params.getLength(); i++ ) {
 			Element param = (Element)params.item( i );
 			Value paramValue = Value.create();
