@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "security_utils.iol"
 
 include "private/xmlrpc_server.iol"
 
@@ -47,6 +48,37 @@ define test
 	request.param[2].array.value.array[3] = 1;
 	sum@Server( request )( response );
 	if ( response.param != 6 ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+
+	req2.param = true; // bool
+	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+
+	req2.param = 10; // int
+	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+
+	req2.param = 10.0; // double
+	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+
+	req2.param = "Döner"; // string
+	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
+		throw ( TestFailed, "Wrong result" )
+	};
+
+	secReq.size = 50; // raw
+	secureRandom@SecurityUtils( secReq )( req2.param );
+	identity@Server( req2 )( response );
+	if ( req2.param != response.param ) {
 		throw ( TestFailed, "Wrong result" )
 	}
 }

@@ -26,14 +26,21 @@ constants {
 type SumRequest:void {
 	.param*:undefined
 }
-
 type SumResponse:void {
 	.param:int
+}
+
+type IdentityRequest:void {
+	.param:any
+}
+type IdentityResponse:void {
+	.param:any
 }
 
 interface ServerInterface {
 OneWay:
 	shutdown(void)
 RequestResponse:
-	sum(SumRequest)(SumResponse)
+	sum(SumRequest)(SumResponse),
+	identity(IdentityRequest)(IdentityResponse)
 }
