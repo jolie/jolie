@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,24 +20,22 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-include "http_querystring_server.iol"
+include "http_server.iol"
 
 execution { single }
 
 inputPort ServerInput {
 Location: Location_HTTPServer
-Protocol: http {
-	.method = "get"
-}
+Protocol: http
 Interfaces: ServerInterface
 }
 
 main
 {
-	echoPerson( request )( response ) {
-		response << request
-	};
-	echoPerson( request )( response ) {
-		response << request
-	}
+	provide
+		[ echoPerson( request )( response ) {
+			response << request
+		} ]
+	until
+		[ shutdown() ]
 }

@@ -22,20 +22,20 @@
 
 include "../AbstractTestUnit.iol"
 
-include "private/http_querystring_server.iol"
+include "private/http_server.iol"
 
 outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
-	.method = "get";
-	.method.queryFormat -> queryFormat
+	.method = "post";
+	.format -> format
 }
 Interfaces: ServerInterface
 }
 
 embedded {
 Jolie:
-	"private/http_querystring_server.ol"
+	"private/http_server.ol"
 }
 
 define doTest
@@ -52,16 +52,35 @@ define doTest
 	};
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
-		queryFormat = undefined; // URL-encoded
+		format = undefined; // default
 		echoPerson@Server( person )( response );
 		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
 			throw( TestFailed, "Data <=> Querystring value mismatch" )
 		};
-		queryFormat = "json"; // JSON
+		format = "x-www-form-urlencoded"; // URL-encoded
 		echoPerson@Server( person )( response );
 		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
 			throw( TestFailed, "Data <=> Querystring value mismatch" )
-		}
+		};
+		format = "xml"; // XML
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+		format = "json"; // JSON
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+/* FIXME: GWT-RPC
+		format = "text/x-gwt-rpc"; // GWT-RPC
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+*/
+
+		shutdown@Server()
 	}
 }
 
