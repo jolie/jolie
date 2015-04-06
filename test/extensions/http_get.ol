@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,23 +20,50 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-constants {
-	Location_HTTPServer = "socket://localhost:10101"
+include "../AbstractTestUnit.iol"
+
+include "private/http_server.iol"
+
+outputPort Server {
+Location: Location_HTTPServer
+Protocol: http {
+	.method = "get";
+	.method.queryFormat -> queryFormat
+}
+Interfaces: ServerInterface
 }
 
-type Person:void {
-	.id:long
-	.firstName:string
-	.lastName:string
-	.age:int
-	.size:double
-	.male:bool
-	.unknown:any
-	.unknown2:undefined
+embedded {
+Jolie:
+	"private/http_server.ol"
 }
 
-interface ServerInterface {
-RequestResponse:
-	echoPerson(Person)(Person)
+define doTest
+{
+	with( person ) {
+		.id = 123456789123456789L;
+		.firstName = "John";
+		.lastName = "Döner";
+		.age = 30;
+		.size = 90.5;
+		.male = true;
+		.unknown = "Hey";
+		.unknown2 = void
+	};
+	scope( s ) {
+		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+		queryFormat = undefined; // URL-encoded
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+		queryFormat = "json"; // JSON
+		echoPerson@Server( person )( response );
+		if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void ) {
+			throw( TestFailed, "Data <=> Querystring value mismatch" )
+		};
+
+		shutdown@Server()
+	}
 }
 
