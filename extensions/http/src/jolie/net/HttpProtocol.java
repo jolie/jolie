@@ -776,7 +776,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
-				"text/html text/css text/plain text/xml text/x-js application/json application/javascript"
+				"text/html text/css text/plain text/xml text/x-js application/json application/javascript application/x-www-form-urlencoded text/x-gwt-rpc"
 			).toLowerCase();
 			if ( compression && !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
