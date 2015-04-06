@@ -63,6 +63,7 @@ public class WSDLCache
 		Definition definition = cache.get( url );
 		if ( definition == null ) {
 			WSDLReader reader = factory.newWSDLReader();
+			reader.setFeature( "javax.wsdl.verbose", false );
 			definition = reader.readWSDL( url );
 			cache.put( url, definition );
 		}
