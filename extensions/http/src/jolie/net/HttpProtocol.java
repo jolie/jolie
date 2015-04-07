@@ -352,7 +352,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void send_appendJsonQueryString( CommMessage message, StringBuilder headerBuilder )
 		throws IOException
 	{
-		if ( !message.value().children().isEmpty() ) {
+		if ( message.value().isDefined() || message.value().hasChildren() ) {
 			headerBuilder.append( "?=" );
 			StringBuilder builder = new StringBuilder();
 			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
