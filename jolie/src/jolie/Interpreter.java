@@ -269,6 +269,7 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
+        private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
@@ -1005,66 +1006,72 @@ public class Interpreter
 	private void init()
 		throws InterpreterException, IOException
 	{
-		/**
-		 * Order is important.
-		 * 1 - CommCore needs the OOIT to be initialized.
-		 * 2 - initExec must be instantiated before we can receive communications.
-		 */
-		if ( buildOOIT() == false ) {
-			throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
-		}
-		sessionStarters = Collections.unmodifiableMap( sessionStarters );
-		try {
-			initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
+            /**
+            * Order is important.
+             * 1 - CommCore needs the OOIT to be initialized.
+             * 2 - initExec must be instantiated before we can receive communications.
+             */
+            if ( buildOOIT() == false && !check ) {
+                throw new InterpreterException( "Error: the interpretation environment couldn't have been initialized" );
+            }
+            if ( check ){
+                exit();
+            } else {
+                sessionStarters = Collections.unmodifiableMap( sessionStarters );
+                try {
+                    initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
 
-			commCore.init();
+                    commCore.init();
 
-			// Initialize program arguments in the args variabile.
-			ValueVector jArgs = ValueVector.create();
-			for( String s : arguments ) {
-				jArgs.add( Value.create( s ) );
-			}
-			initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
-			/* initExecutionThread.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
-				{}
-				public void onSessionError( SessionThread session, FaultException fault )
-				{
-					exit();
-				}
-			}); */
+                    // Initialize program arguments in the args variabile.
+                    ValueVector jArgs = ValueVector.create();
+                    for( String s : arguments ) {
+                        jArgs.add( Value.create( s ) );
+                    }
+                    initExecutionThread.state().root().getChildren( "args" ).deepCopy( jArgs );
+                    /* initExecutionThread.addSessionListener( new SessionListener() {
+                            public void onSessionExecuted( SessionThread session )
+                            {}
+                            public void onSessionError( SessionThread session, FaultException fault )
+                            {
+                                    exit();
+                            }
+                    }); */
 
-			correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
-			// initExecutionThread.addSessionListener( correlationEngine );
-			initExecutionThread.start();
-		} catch( InvalidIdException e ) { assert false; }
+                    correlationEngine.onSingleExecutionSessionStart( initExecutionThread );
+                    // initExecutionThread.addSessionListener( correlationEngine );
+                    initExecutionThread.start();
+                } catch( InvalidIdException e ) { assert false; }
+            }
 	}
 	
 	private void runCode()
 	{
+            if( !check ){
 		try {
-			initExecutionThread.join();
+                    initExecutionThread.join();
 		} catch( InterruptedException e ) {
-			logSevere( e );
+                    logSevere( e );
 		}
 
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
-			try {
-				mainSession.start();
-				mainSession.join();
-			} catch( InterruptedException e ) {
-				logSevere( e );
-			}
+                    try {
+                            mainSession.start();
+                            mainSession.join();
+                    } catch( InterruptedException e ) {
+                        logSevere( e );
+                    }
 		} else {
-			exitingLock.lock();
-			try {
-				exitingCondition.await();
-			} catch( InterruptedException e ) {
-				logSevere( e );
-			} finally {
-				exitingLock.unlock();
-			}
+                    exitingLock.lock();
+                    try {
+                            exitingCondition.await();
+                    } catch( InterruptedException e ) {
+                        logSevere( e );
+                    } finally {
+                        exitingLock.unlock();
+                    }
 		}
+            }
 	}
 	
 	/**
@@ -1184,8 +1191,18 @@ public class Interpreter
 			}
 			
 			cmdParser.close();
+                        check = cmdParser.check();
+                           
+                        SemanticVerifier semanticVerifier = null;
+                        
+                        if ( check ){
+                            SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+                            conf.setCheckForMain( false );
+                            semanticVerifier = new SemanticVerifier( program, conf );
+                        } else {
+                            semanticVerifier = new SemanticVerifier( program );
+                        }
 			
-			SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 			try {
 				semanticVerifier.validate(); 
 			} catch( SemanticException e ) {
@@ -1203,12 +1220,18 @@ public class Interpreter
 					throw new InterpreterException( "Exiting" );
 				}
 			}
-
-			return (new OOITBuilder(
-				this,
-				program,
-				semanticVerifier.isConstantMap(),
-				semanticVerifier.correlationFunctionInfo() )).build();
+                        
+                        if ( cmdParser.check() ){
+                            return false;
+                        } else {
+                           return (new OOITBuilder(
+                            this,
+                            program,
+                            semanticVerifier.isConstantMap(),
+                            semanticVerifier.correlationFunctionInfo() )).build();
+                        }
+                        
+			
 		} catch( IOException e ) {
 			throw new InterpreterException( e );
 		} catch( ParserException e ) {
