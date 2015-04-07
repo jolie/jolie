@@ -77,6 +77,7 @@ public class CommandLineParser implements Closeable
 	private final boolean isProgramCompiled;
 	private final boolean typeCheck;
 	private final boolean tracer;
+        private final boolean check;
 	private final Level logLevel;
 	private File programDirectory = null;
 	
@@ -109,6 +110,19 @@ public class CommandLineParser implements Closeable
 	public boolean tracer()
 	{
 		return tracer;
+	}
+        
+        	/**
+	 * Returns
+	 * <code>true</code> if the check option has been specified, false
+	 * otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false
+	 * otherwise
+	 */
+	public boolean check()
+	{
+            return check;
 	}
 
 	/**
@@ -238,6 +252,8 @@ public class CommandLineParser implements Closeable
 				getOptionString( "--log [severe|warning|info|fine]", "Set the logging level (default: info)" ) );
 		helpBuilder.append(
 				getOptionString( "--typecheck [true|false]", "Check for correlation and other data related typing errors (default: false)" ) );
+                helpBuilder.append(
+				getOptionString( "--check", "Check for syntactic and semantic errors." ) );
 		helpBuilder.append(
 				getOptionString( "--trace", "Activate tracer" ) );
 		helpBuilder.append(
@@ -323,6 +339,7 @@ public class CommandLineParser implements Closeable
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList< String >();
 		boolean bTracer = false;
+                boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
 		List< String > programArgumentsList = new ArrayList< String >();
@@ -395,6 +412,9 @@ public class CommandLineParser implements Closeable
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
 				}
+                        } else if ( "--check".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				bCheck = true;
 			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
@@ -537,6 +557,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
+                check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
