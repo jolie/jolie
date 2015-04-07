@@ -21,10 +21,10 @@
 
 package jolie.runtime;
 
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
-import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
@@ -564,7 +564,7 @@ public abstract class Value implements Expression, Cloneable
 		if ( val.isDefined() ) {
 			if ( isByteArray() ) {
 				r = byteArrayValue().equals( val.byteArrayValue() );
-			} if ( isString() ) {
+			} else if ( isString() ) {
 				r = strValue().equals( val.strValue() );
 			} else if ( isInt() ) {
 				r = intValue() == val.intValue();
