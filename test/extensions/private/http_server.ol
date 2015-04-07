@@ -34,6 +34,7 @@ main
 {
 	provide
 		[ echoPerson( request )( response ) {
+			undef( response );
 			response << request
 		} ]
 	until
