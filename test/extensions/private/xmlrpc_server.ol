@@ -33,11 +33,13 @@ main
 {
 	provide
 		[ sum( request )( response ) {
+			undef( response );
 			response.param = request.param[0] + request.param[1];
 			for (i = 0, i < #request.param[2].array.value.array, i++)
 				response.param += request.param[2].array.value.array[i]
 		}]
 		[ identity( request )( response ) {
+			undef( response );
 			response << request
 		}]
 	until
