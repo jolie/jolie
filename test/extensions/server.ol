@@ -51,7 +51,8 @@ Interfaces: ServerInterface
 outputPort HTTPServer {
 Location: Location_HTTPServer
 Protocol: http {
-	// default method POST
+	.method -> method;
+	.method.queryFormat = "json";
 	.format -> format;
 	.compression -> compression;
 	.requestCompression -> requestCompression
@@ -91,11 +92,16 @@ define test
 	identity@JSONRPCServer( reqVal )( response2 );
 	checkResponse;
 
+	method = "post";
 	format = "xml";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
 	format = "json";
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse
