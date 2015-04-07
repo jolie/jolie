@@ -48,11 +48,23 @@ Protocol: jsonrpc {
 Interfaces: ServerInterface
 }
 
+outputPort HTTPServer {
+Location: Location_HTTPServer
+Protocol: http {
+	// default method POST
+	.format -> format;
+	.compression -> compression;
+	.requestCompression -> requestCompression
+}
+Interfaces: ServerInterface
+}
+
 embedded {
 Jolie:
 	"private/sodep_server.ol",
 	"private/soap_server.ol",
-	"private/jsonrpc_server.ol"
+	"private/jsonrpc_server.ol",
+	"private/http_server2.ol"
 }
 
 define checkResponse
@@ -77,6 +89,15 @@ define test
 
 	echoPerson@JSONRPCServer( person )( response );
 	identity@JSONRPCServer( reqVal )( response2 );
+	checkResponse;
+
+	format = "xml";
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	format = "json";
+	echoPerson@HTTPServer( person )( response );
+	identity@HTTPServer( reqVal )( response2 );
 	checkResponse
 }
 
@@ -113,6 +134,7 @@ define doTest
 
 		shutdown@SODEPServer();
 		shutdown@SOAPServer();
-		shutdown@JSONRPCServer()
+		shutdown@JSONRPCServer();
+		shutdown@HTTPServer()
 	}
 }
