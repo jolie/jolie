@@ -47,6 +47,13 @@ define checkResponse
 	}
 }
 
+define checkResponse2
+{
+	if ( response2 != reqVal ) {
+		throw( TestFailed, "Data <=> Querystring value mismatch" )
+	}
+}
+
 define test
 {
 	format = undefined; // default
@@ -60,12 +67,22 @@ define test
 	checkResponse;
 	format = "json"; // JSON
 	echoPerson@Server( person )( response );
-	checkResponse
+	checkResponse;
 /* FIXME: GWT-RPC
 	format = "text/x-gwt-rpc"; // GWT-RPC
 	echoPerson@Server( person )( response );
-	checkResponse
+	checkResponse;
 */
+
+	format = "html"; // HTML
+	identity@Server( reqVal )( response2 );
+	checkResponse2;
+	format = "raw"; // plain-text
+	identity@Server( reqVal )( response2 );
+	checkResponse2;
+	format = "binary"; // binary
+	identity@Server( reqVal )( response2 );
+	checkResponse2
 }
 
 define doTest
@@ -80,6 +97,7 @@ define doTest
 		.unknown = "Hey";
 		.unknown2 = void
 	};
+	reqVal = "Döner";
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
 

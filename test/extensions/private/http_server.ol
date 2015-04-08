@@ -37,6 +37,10 @@ main
 			undef( response );
 			response << request
 		} ]
+		[ identity( request )( response ) {
+			undef( response );
+			response << request
+		} ]
 	until
 		[ shutdown() ]
 }
