@@ -564,6 +564,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			}
 			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
 		} else if ( "raw".equals( format ) ) {
+			ret.contentType = "text/plain";
 			if ( message.isFault() ) {
 				ret.content = new ByteArray( message.fault().value().strValue().getBytes( charset ) );
 			} else {
