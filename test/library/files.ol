@@ -11,8 +11,8 @@ define checkResult
 
 define doTest
 {
-	// INI file (GIT)
-	parseIniFile@IniUtils( "../.git/config" )( data );
+	// INI file
+	parseIniFile@IniUtils( "library/private/odbc.ini" )( data );
 	checkResult;
 
 	// Plain
