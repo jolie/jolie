@@ -2046,12 +2046,11 @@ public class OLParser extends AbstractParser
 
 		if ( token.is( Scanner.TokenType.LPAREN ) ) { // Request Response operation
 			OLSyntaxNode outputExpression = parseOperationExpressionParameter();
-			OLSyntaxNode process;
-
-			eat( Scanner.TokenType.LCURLY, "expected {" );
-			process =
-				parseProcess();
-			eat( Scanner.TokenType.RCURLY, "expected }" );
+			OLSyntaxNode process = new NullProcessStatement( getContext() );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Request Response body
+				process = parseProcess();
+				eat( Scanner.TokenType.RCURLY, "expected }" );
+			}
 			stm =
 				new RequestResponseOperationStatement(
 				context, id, inputVarPath, outputExpression, process );
