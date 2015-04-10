@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 public class Value implements Serializable, IsSerializable
 {
 	public enum Type implements IsSerializable {
-		UNDEFINED, STRING, INT, DOUBLE, LONG ,BOOLEAN, BYTEARRAY
+		UNDEFINED, STRING, INT, DOUBLE, LONG, BOOLEAN, BYTEARRAY
 	}
 
 	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
@@ -65,7 +65,12 @@ public class Value implements Serializable, IsSerializable
 	{
 		setValue( value );
 	}
-        //
+
+	public Value( ByteArray value )
+	{
+		setValue( value );
+	}
+
 	public boolean isString()
 	{
 		return type == Type.STRING;
@@ -91,6 +96,11 @@ public class Value implements Serializable, IsSerializable
 	public boolean isBool()
 	{
 		return type == Type.BOOLEAN;
+	}
+
+	public boolean isByteArray()
+	{
+		return type == Type.BYTEARRAY;
 	}
 
 	public boolean isDefined()
