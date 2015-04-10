@@ -21,7 +21,6 @@
 
 package joliex.gwt.client;
 
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public abstract class JolieCallback implements AsyncCallback< Value >
