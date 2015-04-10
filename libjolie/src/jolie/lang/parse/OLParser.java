@@ -2048,6 +2048,7 @@ public class OLParser extends AbstractParser
 			OLSyntaxNode outputExpression = parseOperationExpressionParameter();
 			OLSyntaxNode process = new NullProcessStatement( getContext() );
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Request Response body
+				getToken();
 				process = parseProcess();
 				eat( Scanner.TokenType.RCURLY, "expected }" );
 			}
