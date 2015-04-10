@@ -1,4 +1,3 @@
 <module>
 	<inherits name="com.google.gwt.user.User"/>
-	<!--<servlet path="/JolieService" class="joliex.gwt.server.JolieServiceImpl"/>-->
 </module>
