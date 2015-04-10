@@ -188,7 +188,7 @@ public class HttpMessage
 
 	public void setProperty( String name, String value )
 	{
-		propMap.put( name, value );
+		propMap.put( name.toLowerCase(), value );
 	}
 	
 	public String getProperty( String name )
@@ -198,7 +198,7 @@ public class HttpMessage
 	
 	public String getPropertyOrEmptyString( String name )
 	{
-		String ret = propMap.get( name );
+		String ret = propMap.get( name.toLowerCase() );
 		return ( ret == null ) ? "" : ret;
 	}
 	
