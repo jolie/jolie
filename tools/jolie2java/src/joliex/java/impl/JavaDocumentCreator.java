@@ -1,19 +1,25 @@
-/**
- * *************************************************************************
- * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com> * * This
- * program is free software; you can redistribute it and/or modify * it under
- * the terms of the GNU Library General Public License as * published by the
- * Free Software Foundation; either version 2 of the * License, or (at your
- * option) any later version. * * This program is distributed in the hope that
- * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
- * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
- * GNU General Public License for more details. * * You should have received a
- * copy of the GNU Library General Public * License along with this program; if
- * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
- * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
- * *************************************************************************
- */
+/***************************************************************************
+ *   Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>  *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
 package joliex.java.impl;
 
 import java.io.BufferedWriter;
@@ -64,6 +70,7 @@ public class JavaDocumentCreator {
     ProgramInspector inspector;
     private static HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
     private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
+    private static HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
 
     public JavaDocumentCreator(ProgramInspector inspector, String namespace, String targetPort) {
 
@@ -86,6 +93,13 @@ public class JavaDocumentCreator {
         javaNativeMethod.put(NativeType.LONG, "longValue()");
         javaNativeMethod.put(NativeType.STRING, "strValue()");
         javaNativeMethod.put(NativeType.RAW, "byteArrayValue()");
+
+        javaNativeChecker.put(NativeType.INT, "isInt()");
+        javaNativeChecker.put(NativeType.BOOL, "isBool()");
+        javaNativeChecker.put(NativeType.DOUBLE, "isDouble()");
+        javaNativeChecker.put(NativeType.LONG, "isLong()");
+        javaNativeChecker.put(NativeType.STRING, "isString()");
+        javaNativeChecker.put(NativeType.RAW, "isByteArray()");
     }
 
     public void ConvertDocument() {
@@ -336,8 +350,7 @@ public class JavaDocumentCreator {
 
         //constructor with parameters
 
-        stringBuilder.append("public " + type.id() + "(Value v){\n");
-        stringBuilder.append("\n");
+        stringBuilder.append("public " + type.id() + "( Value v ){\n");
         //stringBuilder.append("this.v=v;\n");
 
         if (type.hasSubTypes()) {
@@ -357,8 +370,8 @@ public class JavaDocumentCreator {
                         //to check:
                         stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                         stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
-                        stringBuilder.append("" + ((TypeDefinitionLink) subType).linkedTypeName() + " support").append(subType.id()).append(" = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
-                        stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                        stringBuilder.append(((TypeDefinitionLink) subType).linkedTypeName() + " support").append(subType.id()).append(" = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                        stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                         stringBuilder.append("}\n");
                         //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
                         stringBuilder.append("}\n");
@@ -383,8 +396,8 @@ public class JavaDocumentCreator {
                             //to check:
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
-                            stringBuilder.append("" + subType.id() + " support").append(subType.id()).append("=new " + subType.id() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
-                            stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                            stringBuilder.append(subType.id() + " support").append(subType.id()).append("=new " + subType.id() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                            stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             stringBuilder.append("}\n");
                             //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
                             stringBuilder.append("}\n");
@@ -406,22 +419,18 @@ public class JavaDocumentCreator {
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0; " + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size(); counter" + subType.id() + "++){\n");
                             if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
-                                stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                                stringBuilder.append(javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
+                                stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             } else {
-                                stringBuilder.append("if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isDouble()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").doubleValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isString()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").strValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isInt()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").intValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isBool()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").boolValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+	                        for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
+                                        + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
+                                        + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
                                         + "}\n");
+                                }
                             }
                             stringBuilder.append("}\n");
                             //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
@@ -433,15 +442,14 @@ public class JavaDocumentCreator {
                             if (subType.nativeType() != NativeType.ANY) {
                                 stringBuilder.append("_" + subType.id() + "= v.getFirstChild(\"" + subType.id() + "\")." + javaMethod + ";" + "\n");
                             } else {
-                                stringBuilder.append("if(v.getFirstChild(\"" + subType.id() + "\").isDouble()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").doubleValue();\n"
-                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isString()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").strValue();\n"
-                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isInt()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").intValue();\n"
-                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isBool()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").boolValue();\n"
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
+                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
                                         + "}\n");
+                                }
                             }
                             stringBuilder.append("}\n");
                         }
@@ -462,15 +470,14 @@ public class JavaDocumentCreator {
             if (type.nativeType() != NativeType.ANY) {
                 stringBuilder.append("rootValue = v." + javaMethod + ";" + "\n");
             } else {
-                stringBuilder.append("if(v.isDouble()){\n"
-                        + "rootValue = v.doubleValue();\n"
-                        + "}else if(v.isString()){\n"
-                        + "rootValue = v.strValue();\n"
-                        + "}else if(v.isInt()){\n"
-                        + "rootValue = v.intValue();\n"
-                        + "}else if(v.isBool()){\n"
-                        + "rootValue = v.boolValue();\n"
+                for (NativeType t : NativeType.class.getEnumConstants()) {
+                    if (!javaNativeChecker.containsKey(t))
+                        continue;
+                    stringBuilder.append(
+                        "if(v." + javaNativeChecker.get(t) + "){\n"
+                        + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
                         + "}\n");
+                }
             }
         }
         stringBuilder.append("}\n");
@@ -480,7 +487,6 @@ public class JavaDocumentCreator {
         //constructor without parameters
 
         stringBuilder.append("public " + type.id() + "(){\n");
-        stringBuilder.append("\n");
 
         if (type.hasSubTypes()) {
             Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
@@ -551,31 +557,31 @@ public class JavaDocumentCreator {
 
                     if (subType.cardinality().max() > 1) {
 
-                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "Value(int index){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "Value( int index ){\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                         stringBuilder.append("}\n");
 
                         stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                         stringBuilder.append("}\n");
 
 
-                        stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
-                        stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                        stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("_" + nameVariable + ".add(value);\n");
                         stringBuilder.append("}\n");
 
                         stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                        stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                        stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                         stringBuilder.append("}\n");
 
                     } else {
 
                         stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "(){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ";\n");
                         stringBuilder.append("}\n");
 
-                        stringBuilder.append("public " + "void set" + nameVariableOp + "(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
-                        stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                        stringBuilder.append("public " + "void set" + nameVariableOp + "( " + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("_" + nameVariable + " = value;\n");
                         stringBuilder.append("}\n");
 
                     }
@@ -591,31 +597,31 @@ public class JavaDocumentCreator {
 
                         if (subType.cardinality().max() > 1) {
 
-                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "Value(int index){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "Value( int index ){\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
-                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + subType.id() + " value ){\n");
-                            stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + subType.id() + " value ){\n");
+                            stringBuilder.append("_" + nameVariable + ".add(value);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                            stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                             stringBuilder.append("}\n");
 
                         } else {
 
                             stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ";\n");
                             stringBuilder.append("}\n");
 
-                            stringBuilder.append("public " + "void set" + nameVariableOp + "(" + subType.id() + " value ){\n");
-                            stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                            stringBuilder.append("public " + "void set" + nameVariableOp + "( " + subType.id() + " value ){\n");
+                            stringBuilder.append("_" + nameVariable + " = value;\n");
                             stringBuilder.append("}\n");
 
                         }
@@ -631,29 +637,29 @@ public class JavaDocumentCreator {
                             if (subType.cardinality().max() > 1) {
 
                                 stringBuilder.append("public int get" + nameVariableOp + "Size(){\n");
-                                stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                                 stringBuilder.append("}\n");
 
-                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value(int index){\n");
+                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value( int index ){\n");
                                 stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                                 stringBuilder.append("}\n");
 
-                                stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + javaCode + " value ){\n");
-                                stringBuilder.append("" + javaCode + " support").append(nameVariable).append(" = value;\n");
-                                stringBuilder.append("" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                                stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + javaCode + " value ){\n");
+                                stringBuilder.append(javaCode + " support").append(nameVariable).append(" = value;\n");
+                                stringBuilder.append("_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
                                 stringBuilder.append("}\n");
 
                                 stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                                stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                                stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                                 stringBuilder.append("}\n");
 
                             } else {
                                 stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "(){\n");
-                                stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ";\n");
                                 stringBuilder.append("}\n");
 
-                                stringBuilder.append("public " + "void set" + nameVariableOp + "(" + javaCode + " value ){\n");
-                                stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                                stringBuilder.append("public " + "void set" + nameVariableOp + "( " + javaCode + " value ){\n");
+                                stringBuilder.append("_" + nameVariable + " = value;\n");
                                 stringBuilder.append("}\n");
                             }
 
@@ -672,11 +678,11 @@ public class JavaDocumentCreator {
                 String javaMethod = javaNativeMethod.get(type.nativeType());
 
                 stringBuilder.append("public " + javaCode + " getRootValue(){\n");
-                stringBuilder.append("\nreturn " + "rootValue;\n");
+                stringBuilder.append("return " + "rootValue;\n");
                 stringBuilder.append("}\n");
 
-                stringBuilder.append("public void setRootValue(" + javaCode + " value){\n");
-                stringBuilder.append("\nrootValue = value;\n");
+                stringBuilder.append("public void setRootValue( " + javaCode + " value ){\n");
+                stringBuilder.append("rootValue = value;\n");
                 stringBuilder.append("}\n");
 
             }
@@ -745,36 +751,33 @@ public class JavaDocumentCreator {
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
                             if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(" + "_" + subType.id() + ".get(counter" + subType.id() + "));\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n");
                             } else {
-                                stringBuilder.append("if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Integer){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ".get(counter" + subType.id() + "))).intValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Double){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ".get(counter" + subType.id() + "))).doubleValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof String){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
-                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Boolean){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(Boolean)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
-                                stringBuilder.append("}");
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
+                                        + "}\n");
+                                }
                             }
-                            stringBuilder.append("}");
+                            stringBuilder.append("}\n");
                             stringBuilder.append("}\n");
 
                         } else {
                             stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
                             if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "_" + subType.id() + ");\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n");
                             } else {
-                                stringBuilder.append("if(_" + subType.id() + " instanceof Integer){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ")).intValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + " instanceof Double){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ")).doubleValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + " instanceof String){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + "));\n");
-                                
-                                stringBuilder.append("}else if(_" + subType.id() + " instanceof Boolean){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(Boolean)(_" + subType.id() + "));\n");
-                                stringBuilder.append("}");
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
+                                        + "}\n");
+                                }
                             }
                             stringBuilder.append("}\n");
                         }
@@ -792,22 +795,21 @@ public class JavaDocumentCreator {
             if (type.nativeType() != NativeType.ANY) {
                 stringBuilder.append("vReturn.setValue(rootValue);\n");
             } else {
-                stringBuilder.append("if(rootValue instanceof Integer){\n");
-                stringBuilder.append("vReturn.setValue(((Integer)(rootValue)).intValue());\n");
-                stringBuilder.append("}else if(rootValue instanceof Double){\n");
-                stringBuilder.append("vReturn.setValue(((Double)(rootValue)).doubleValue());\n");
-                stringBuilder.append("}else if(rootValue instanceof String){\n");
-                stringBuilder.append("vReturn.setValue(((String)(rootValue)));\n");
-                stringBuilder.append("}else if(rootValue instanceof Boolean){\n");
-                stringBuilder.append("vReturn.setValue(((Boolean)(rootValue)));\n");
-                stringBuilder.append("}");
+                for (NativeType t : NativeType.class.getEnumConstants()) {
+                    if (!javaNativeChecker.containsKey(t))
+                        continue;
+                    stringBuilder.append(
+                        "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                        + "vReturn.setValue(rootValue);\n"
+                        + "}\n");
+                }
             }
 
             stringBuilder.append("}\n");
 
         }
 
-        stringBuilder.append("return vReturn ;\n");
+        stringBuilder.append("return vReturn;\n");
         stringBuilder.append("}\n");
     }
 
