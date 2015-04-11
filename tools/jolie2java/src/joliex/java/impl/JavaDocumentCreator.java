@@ -334,7 +334,7 @@ public class JavaDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
             stringBuilder.append("private " + javaNativeEquivalent.get(type.nativeType()) + " rootValue;\n");
         }
 
@@ -462,7 +462,7 @@ public class JavaDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
 
             String javaCode = javaNativeEquivalent.get(type.nativeType());
             String javaMethod = javaNativeMethod.get(type.nativeType());
@@ -672,7 +672,7 @@ public class JavaDocumentCreator {
                     System.out.println("WARNING: variable is not a Link or an Inline Definition!");
                 }
             }
-            if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+            if (type.nativeType() != NativeType.VOID) {
 
                 String javaCode = javaNativeEquivalent.get(type.nativeType());
                 String javaMethod = javaNativeMethod.get(type.nativeType());
@@ -789,7 +789,7 @@ public class JavaDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
 
             stringBuilder.append("if((rootValue!=null)){\n");
             if (type.nativeType() != NativeType.ANY) {
