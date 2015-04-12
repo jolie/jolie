@@ -341,7 +341,6 @@ Please make sure that:
 		
 		<copy file="${libs.bluetooth}" tofile="${dist.jolie}/lib/bluetooth.jar"/>
 		<copy file="${libs.gwt-servlet}" tofile="${dist.jolie}/lib/gwt-servlet.jar"/>
-		<copy file="${libs.gwt-dev}" tofile="${dist.jolie}/lib/gwt-dev.jar"/>
 		<copy file="${libs.javamail.smtp}" tofile="${dist.jolie}/lib/smtp.jar"/>
 		<copy file="${libs.javamail.mailapi}" tofile="${dist.jolie}/lib/mailapi.jar"/>
 		<copy file="${libs.libmatthew.unix}" tofile="${dist.jolie}/lib/unix.jar"/>
