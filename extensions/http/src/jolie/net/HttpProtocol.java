@@ -704,9 +704,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		Method method =
 			hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
-				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() )
+				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
 			: hasParameter( Parameters.METHOD ) ?
-				Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() )
+				Method.fromString( getStringParameter( Parameters.METHOD ) )
 			:
 				Method.POST;
 		return method;
