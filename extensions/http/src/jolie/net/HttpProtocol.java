@@ -1234,17 +1234,27 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		recv_checkForStatusCode( message );
 		
 		encoding = message.getProperty( "accept-encoding" );
-		String contentType = DEFAULT_CONTENT_TYPE;
-		if ( message.getProperty( "content-type" ) != null ) {
-			contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
-		}
-
-		recv_parseRequestFormat( message, contentType );
-		if ( message.size() > 0 ) {
-			recv_parseMessage( message, decodedMessage, contentType, charset );
-		}
-
 		headRequest = inInputPort && message.isHead();
+
+		if ( message.isGet() || message.isHead() ) {
+			if ( message.requestPath().contains( "?=" ) ) {
+				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
+			} else if ( message.requestPath().contains( "?" ) ) {
+				recv_parseQueryString( message, decodedMessage.value );
+			}
+		} else {
+			// != GET, HEAD
+			String contentType = DEFAULT_CONTENT_TYPE;
+			if ( message.getProperty( "content-type" ) != null ) {
+				contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
+			}
+
+			recv_parseRequestFormat( message, contentType );
+			if ( message.size() > 0 ) {
+				recv_parseMessage( message, decodedMessage, contentType, charset );
+			}
+		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
 			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
@@ -1259,14 +1269,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
-			if ( message.isGet() ) {
-				if ( message.requestPath().contains( "?=" ) ) {
-					boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-					recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-				} else if ( message.requestPath().contains( "?" ) ) {
-					recv_parseQueryString( message, decodedMessage.value );
-				}
-			}
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
