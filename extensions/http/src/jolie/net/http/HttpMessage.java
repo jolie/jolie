@@ -131,6 +131,11 @@ public class HttpMessage
 		return type == Type.HEAD;
 	}
 
+	public boolean isDelete()
+	{
+		return type == Type.DELETE;
+	}
+
 	public void addCookie( String name, String value )
 	{
 		cookies.put( name, value);
