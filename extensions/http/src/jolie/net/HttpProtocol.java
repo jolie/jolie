@@ -1236,15 +1236,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		encoding = message.getProperty( "accept-encoding" );
 		headRequest = inInputPort && message.isHead();
 
-		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
-		if ( message.isGet() || message.isHead() || message.isDelete() ) {
-			if ( message.requestPath().contains( "?=" ) ) {
+		// URI parameter parsing
+		if ( message.requestPath() != null ) {
+			String requestPath = message.requestPath();
+			if ( requestPath.contains( "?=" ) ) {
 				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-			} else if ( message.requestPath().contains( "?" ) ) {
+			} else if ( requestPath.contains( "?" ) ) {
 				recv_parseQueryString( message, decodedMessage.value );
 			}
-		} else {
+		}
+
+		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
+		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
 			// body parsing
 			String contentType = DEFAULT_CONTENT_TYPE;
 			if ( message.getProperty( "content-type" ) != null ) {
