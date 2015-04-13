@@ -1236,7 +1236,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		encoding = message.getProperty( "accept-encoding" );
 		headRequest = inInputPort && message.isHead();
 
-		if ( message.isGet() || message.isHead() ) {
+		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
+		if ( message.isGet() || message.isHead() || message.isDelete() ) {
 			if ( message.requestPath().contains( "?=" ) ) {
 				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
@@ -1244,7 +1245,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				recv_parseQueryString( message, decodedMessage.value );
 			}
 		} else {
-			// != GET, HEAD
+			// body parsing
 			String contentType = DEFAULT_CONTENT_TYPE;
 			if ( message.getProperty( "content-type" ) != null ) {
 				contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
