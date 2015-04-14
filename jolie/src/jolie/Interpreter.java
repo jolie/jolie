@@ -1257,7 +1257,7 @@ public class Interpreter
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
-							Long.valueOf( message.id() ).toString(), message.value() );
+							message.id(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
 				public void onSessionExecuted( SessionThread session )
 				{
@@ -1323,11 +1323,11 @@ public class Interpreter
 		return true;
 	}
 	
-	private void logSessionStart( String operationName, String sessionId, String messageId, Value message )
+	private void logSessionStart( String operationName, String sessionId, long messageId, Value message )
 	{
 		if ( isMonitoring() ) {
 			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
-			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId, messageId, message ) );
+			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,47 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+interface Operations {
+OneWay:
+	op(void)
+RequestResponse:
+	op2(any)(any)
+}
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+inputPort Self {
+	Location: "local"
+	Interfaces: Operations
+}
 
-/**
- *
- * @author Fabrizio Montesi
- */
-public enum Method
+execution { single }
+
+main
 {
-	POST( "POST" ),
-	GET( "GET" );
-
-	private final static Map< String, Method > idMap = new ConcurrentHashMap< String, Method >();
-
-	static {
-		for( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
-		}
-	}
-
-	private final String id;
-	
-	private Method( String id )
-	{
-		this.id = id;
-	}
-
-	public String id()
-	{
-		return id;
-	}
-
-	public static Method fromString( String id )
-		throws UnsupportedMethodException
-	{
-		Method m = idMap.get( id.toUpperCase() );
-		if ( m == null ) {
-			throw new UnsupportedMethodException( id );
-		}
-		return m;
-	}
+	op();
+	[ op() ];
+	[ op() ] { nullProcess };
+	op2(x)(x);
+	op2(x)(x) { nullProcess };
+	[ op2(x)(x) { nullProcess } ];
+	[ op2(x)(x) { nullProcess } ] { nullProcess }
 }

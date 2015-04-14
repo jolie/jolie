@@ -704,9 +704,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		Method method =
 			hasOperationSpecificParameter( message.operationName(), Parameters.METHOD ) ?
-				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ).toUpperCase() )
+				Method.fromString( getOperationSpecificStringParameter( message.operationName(), Parameters.METHOD ) )
 			: hasParameter( Parameters.METHOD ) ?
-				Method.fromString( getStringParameter( Parameters.METHOD ).toUpperCase() )
+				Method.fromString( getStringParameter( Parameters.METHOD ) )
 			:
 				Method.POST;
 		return method;
@@ -1234,17 +1234,32 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		recv_checkForStatusCode( message );
 		
 		encoding = message.getProperty( "accept-encoding" );
-		String contentType = DEFAULT_CONTENT_TYPE;
-		if ( message.getProperty( "content-type" ) != null ) {
-			contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
-		}
-
-		recv_parseRequestFormat( message, contentType );
-		if ( message.size() > 0 ) {
-			recv_parseMessage( message, decodedMessage, contentType, charset );
-		}
-
 		headRequest = inInputPort && message.isHead();
+
+		// URI parameter parsing
+		if ( message.requestPath() != null ) {
+			String requestPath = message.requestPath();
+			if ( requestPath.contains( "?=" ) ) {
+				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
+			} else if ( requestPath.contains( "?" ) ) {
+				recv_parseQueryString( message, decodedMessage.value );
+			}
+		}
+
+		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
+		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
+			// body parsing
+			String contentType = DEFAULT_CONTENT_TYPE;
+			if ( message.getProperty( "content-type" ) != null ) {
+				contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
+			}
+
+			recv_parseRequestFormat( message, contentType );
+			if ( message.size() > 0 ) {
+				recv_parseMessage( message, decodedMessage, contentType, charset );
+			}
+		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
 			String messageId = message.getProperty( Headers.JOLIE_MESSAGE_ID );
@@ -1259,14 +1274,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
-			if ( message.isGet() ) {
-				if ( message.requestPath().contains( "?=" ) ) {
-					boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-					recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-				} else if ( message.requestPath().contains( "?" ) ) {
-					recv_parseQueryString( message, decodedMessage.value );
-				}
-			}
 			recv_checkReceivingOperation( message, decodedMessage );
 			recv_checkForMessageProperties( message, decodedMessage );
 			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );

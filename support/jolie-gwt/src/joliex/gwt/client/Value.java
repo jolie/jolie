@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 public class Value implements Serializable, IsSerializable
 {
 	public enum Type implements IsSerializable {
-		UNDEFINED, STRING, INT, DOUBLE, LONG ,BOOLEAN, BYTEARRAY
+		UNDEFINED, STRING, INT, DOUBLE, LONG, BOOLEAN, BYTEARRAY
 	}
 
 	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
@@ -65,7 +65,12 @@ public class Value implements Serializable, IsSerializable
 	{
 		setValue( value );
 	}
-        //
+
+	public Value( ByteArray value )
+	{
+		setValue( value );
+	}
+
 	public boolean isString()
 	{
 		return type == Type.STRING;
@@ -93,6 +98,11 @@ public class Value implements Serializable, IsSerializable
 		return type == Type.BOOLEAN;
 	}
 
+	public boolean isByteArray()
+	{
+		return type == Type.BYTEARRAY;
+	}
+
 	public boolean isDefined()
 	{
 		return type != Type.UNDEFINED;
@@ -118,13 +128,6 @@ public class Value implements Serializable, IsSerializable
 	{
 		return children.get( id ) != null;
 	}
-	
-	public int intValue()
-	{
-		if ( valueObject == null )
-			return 0;
-		return Integer.valueOf( valueObject );
-	}
 
 	public void deepCopy( Value otherValue )
 	{
@@ -142,14 +145,7 @@ public class Value implements Serializable, IsSerializable
 			children.put( entry.getKey(), myVector );
 		}
 	}
-	
-	public double doubleValue()
-	{
-		if ( valueObject == null )
-			return 0;
-		return new Double( valueObject );
-	}
-	
+
 	public String strValue()
 	{
 		if ( valueObject == null )
@@ -157,12 +153,26 @@ public class Value implements Serializable, IsSerializable
 		return valueObject.toString();
 	}
 
+	public int intValue()
+	{
+		if ( valueObject == null )
+			return 0;
+		return Integer.valueOf( valueObject );
+	}
+
+	public double doubleValue()
+	{
+		if ( valueObject == null )
+			return 0.0;
+		return Double.valueOf( valueObject );
+	}
+
 	// Added by Balint Maschio
 	public long longValue()
 	{
 		if ( valueObject == null )
-			return 0;
-		return new Long( valueObject );
+			return 0L;
+		return Long.valueOf( valueObject );
 	}
 
 	public boolean boolValue()
@@ -171,7 +181,7 @@ public class Value implements Serializable, IsSerializable
 			return false;
 		return Boolean.valueOf( valueObject );
 	}
-        
+
         public ByteArray byteArrayValue() {
                 
                 ByteArray r = null;

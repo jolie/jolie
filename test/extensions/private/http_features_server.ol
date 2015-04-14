@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,47 +20,65 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+include "http_server.iol"
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+// New interface since Authorization header gets added on each request
+type HeaderPerson:void {
+	.id:long
+	.firstName:string
+	.lastName:string
+	.age:int
+	.size:double
+	.male:bool
+	.unknown:any
+	.unknown2:undefined
+	.Authorization:string
+}
 
-/**
- *
- * @author Fabrizio Montesi
- */
-public enum Method
+type HeaderIdentity:any {
+	.Authorization:string
+}
+
+interface HeadersServerInterface {
+OneWay:
+	shutdown(undefined)
+RequestResponse:
+	echoPerson(HeaderPerson)(undefined),
+	identity(HeaderIdentity)(undefined)
+}
+
+execution { single }
+
+inputPort ServerInput {
+Location: Location_HTTPServer
+Protocol: http {
+	.headers.Authorization = "Authorization";
+	.statusCode -> statusCode
+}
+Interfaces: HeadersServerInterface
+}
+
+define handleRequest
 {
-	POST( "POST" ),
-	GET( "GET" );
-
-	private final static Map< String, Method > idMap = new ConcurrentHashMap< String, Method >();
-
-	static {
-		for( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
-		}
+	statusCode = 200;
+	undef( response );
+	if ( request.Authorization != "TOP_SECRET" ) {
+		statusCode = 403 // Forbidden
+	} else {
+		response << request;
+		undef( response.Authorization )
 	}
+}
 
-	private final String id;
-	
-	private Method( String id )
-	{
-		this.id = id;
-	}
-
-	public String id()
-	{
-		return id;
-	}
-
-	public static Method fromString( String id )
-		throws UnsupportedMethodException
-	{
-		Method m = idMap.get( id.toUpperCase() );
-		if ( m == null ) {
-			throw new UnsupportedMethodException( id );
-		}
-		return m;
-	}
+main
+{
+	provide
+		[ echoPerson( request )( response ) {
+			handleRequest
+		} ]
+		[ identity( request )( response ) {
+			handleRequest
+		} ]
+	until
+		[ shutdown() ]
 }
