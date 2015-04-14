@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,47 +19,42 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.net.http;
+include "../AbstractTestUnit.iol"
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+interface Operations {
+OneWay:
+	op(void)
+RequestResponse:
+	op2(any)(any)
+}
 
-/**
- *
- * @author Fabrizio Montesi
- */
-public enum Method
+outputPort Operations {
+	Interfaces: Operations
+}
+
+embedded {
+Jolie: "private/operations.ol" in Operations
+}
+
+define doTest
 {
-	POST( "POST" ),
-	GET( "GET" );
-
-	private final static Map< String, Method > idMap = new ConcurrentHashMap< String, Method >();
-
-	static {
-		for( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
-		}
-	}
-
-	private final String id;
-	
-	private Method( String id )
-	{
-		this.id = id;
-	}
-
-	public String id()
-	{
-		return id;
-	}
-
-	public static Method fromString( String id )
-		throws UnsupportedMethodException
-	{
-		Method m = idMap.get( id.toUpperCase() );
-		if ( m == null ) {
-			throw new UnsupportedMethodException( id );
-		}
-		return m;
+	op@Operations();
+	op@Operations();
+	op@Operations();
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
 	}
 }

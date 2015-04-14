@@ -182,7 +182,7 @@ public class HttpParser
 		message.setRequestPath( URLDecoder.decode( scanner.readWord().substring( 1 ), HttpUtils.URL_DECODER_ENC ) );
 
 		getToken();
-		if ( !token.isKeyword( HTTP ) )
+		if ( !token.isKeywordIgnoreCase( HTTP ) )
 			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
 		
 		if ( scanner.currentCharacter() != '/' )
@@ -202,7 +202,7 @@ public class HttpParser
 	private HttpMessage parseMessageType()
 		throws IOException
 	{
-		if ( token.isKeyword( HTTP ) ) {
+		if ( token.isKeywordIgnoreCase( HTTP ) ) {
 			return parseResponse();
 		} else {
 			return parseRequest();
