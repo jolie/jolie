@@ -1,19 +1,24 @@
-/**
- * *************************************************************************
- * Copyright (C) by Claudio Guidi * * This program is free software; you can
- * redistribute it and/or modify * it under the terms of the GNU Library General
- * Public License as * published by the Free Software Foundation; either version
- * 2 of the * License, or (at your option) any later version. * * This program
- * is distributed in the hope that it will be useful, * but WITHOUT ANY
- * WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the * GNU General Public License for more
- * details. * * You should have received a copy of the GNU Library General
- * Public * License along with this program; if not, write to the * Free
- * Software Foundation, Inc., * 59 Temple Place - Suite 330, Boston, MA
- * 02111-1307, USA. * * For details about the authors of this software, see the
- * AUTHORS file. *
- * *************************************************************************
- */
+/***************************************************************************
+ *   Copyright (C) by Claudio Guidi                                        *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
+
 package joliex.meta;
 
 import java.io.IOException;
@@ -84,7 +89,7 @@ public class MetaJolie extends JavaService
 
 	private boolean isNativeType( String type )
 	{
-		if ( type.equals( "any" )
+		return type.equals( "any" )
 			|| type.equals( "string" )
 			|| type.equals( "double" )
 			|| type.equals( "int" )
@@ -93,11 +98,7 @@ public class MetaJolie extends JavaService
 			//|| type.equals("undefined")
 			|| type.equals( "any" )
 			|| type.equals( "bool" )
-			|| type.equals( "long" ) ) {
-			return true;
-		} else {
-			return false;
-		}
+			|| type.equals( "long" );
 	}
 
 	private Value addCardinality( Range range )
