@@ -53,7 +53,7 @@ public class NamedStatementParser
 
 	private final Map< String, List< Integer > > parameterPositions = new HashMap< String, List< Integer > >();
 	private final PreparedStatement statement;
-	private GregorianCalendar cal = new GregorianCalendar();
+	private final GregorianCalendar cal = new GregorianCalendar();
 
 	public NamedStatementParser( Connection connection, String sql, Value parameters )
 		throws SQLException
