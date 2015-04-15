@@ -21,19 +21,15 @@
 
 package joliex.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
-import jolie.runtime.embedding.RequestResponse;
 
 public class QueueUtils extends JavaService
 {
-	private HashMap< String, LinkedList< Value > > queue_map = new HashMap<String, LinkedList< Value > >();
+	private final Map< String, LinkedList< Value > > queue_map = new ConcurrentHashMap< String, LinkedList< Value > >();
 	
 	private boolean has_queue( String queue_name ){
 		return queue_map.containsKey( queue_name );
