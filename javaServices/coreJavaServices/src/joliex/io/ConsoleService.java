@@ -102,8 +102,7 @@ public class ConsoleService extends JavaService
 		if ( request.getFirstChild( "enableSessionListener" ).isDefined() ) {
 			if ( request.getFirstChild( "enableSessionListener" ).boolValue() ) {
 				sessionListeners = true;
-				sessionTokens = new HashMap<String, String>();
-
+				sessionTokens = new HashMap< String, String >();
 			}
 		}
 		consoleInputThread = new ConsoleInputThread();
@@ -112,8 +111,13 @@ public class ConsoleService extends JavaService
 
 	@Override
 	protected void finalize()
+		throws Throwable
 	{
-		consoleInputThread.kill();
+		try {
+			consoleInputThread.kill();
+		} finally {
+			super.finalize();
+		}
 	}
 
 	@RequestResponse
