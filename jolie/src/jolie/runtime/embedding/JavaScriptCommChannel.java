@@ -67,14 +67,20 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		CommMessage response;
 		if ( returnValue != null ) {
 			Value value = Value.create();
-			value.setValue( returnValue );
+			
+			if ( returnValue instanceof Value ) {
+				value.refCopy( (Value)returnValue );
+			} else {
+				value.setValue( returnValue );
+			}
+			
 			response = new CommMessage(
-						message.id(),
-						message.operationName(),
-						message.resourcePath(),
-						value,
-						null
-					);
+				message.id(),
+				message.operationName(),
+				message.resourcePath(),
+				value,
+				null
+			);
 		} else {
 			response = CommMessage.createEmptyResponse( message );
 		}
