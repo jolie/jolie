@@ -260,8 +260,8 @@ public abstract class JavaService
 		if ( javaOperation == null ) {
 			throw new InvalidIdException( message.operationName() );
 		}
-		CommMessage ret = null;
-		Object retObject = null;
+		CommMessage ret;
+		Object retObject;
 		final Object[] args;
 		if ( javaOperation.parameterConstructor == null ) {
 			args = new Object[0];
