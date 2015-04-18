@@ -1191,17 +1191,17 @@ public class Interpreter
 			}
 			
 			cmdParser.close();
-                        check = cmdParser.check();
-                           
-                        SemanticVerifier semanticVerifier = null;
-                        
-                        if ( check ){
-                            SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
-                            conf.setCheckForMain( false );
-                            semanticVerifier = new SemanticVerifier( program, conf );
-                        } else {
-                            semanticVerifier = new SemanticVerifier( program );
-                        }
+      check = cmdParser.check();
+         
+      SemanticVerifier semanticVerifier = null;
+      
+      if ( check ){
+          SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+          conf.setCheckForMain( false );
+          semanticVerifier = new SemanticVerifier( program, conf );
+      } else {
+          semanticVerifier = new SemanticVerifier( program );
+      }
 			
 			try {
 				semanticVerifier.validate(); 
@@ -1221,16 +1221,16 @@ public class Interpreter
 				}
 			}
                         
-                        if ( cmdParser.check() ){
-                            return false;
-                        } else {
-                           return (new OOITBuilder(
-                            this,
-                            program,
-                            semanticVerifier.isConstantMap(),
-                            semanticVerifier.correlationFunctionInfo() )).build();
-                        }
-                        
+			if ( cmdParser.check() ){
+				return false;
+			} else {
+				return (new OOITBuilder(
+					this,
+					program,
+					semanticVerifier.isConstantMap(),
+					semanticVerifier.correlationFunctionInfo() ))
+				.build();
+			}
 			
 		} catch( IOException e ) {
 			throw new InterpreterException( e );

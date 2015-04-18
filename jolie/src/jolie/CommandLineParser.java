@@ -122,7 +122,7 @@ public class CommandLineParser implements Closeable
 	 */
 	public boolean check()
 	{
-            return check;
+		return check;
 	}
 
 	/**
@@ -412,9 +412,9 @@ public class CommandLineParser implements Closeable
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
 				}
-                        } else if ( "--check".equals( argsList.get( i ) ) ) {
-				optionsList.add( argsList.get( i ) );
-				bCheck = true;
+        } else if ( "--check".equals( argsList.get( i ) ) ) {
+					optionsList.add( argsList.get( i ) );
+					bCheck = true;
 			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
@@ -557,7 +557,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-                check = bCheck && !isProgramCompiled;
+    check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
