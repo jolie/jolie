@@ -75,12 +75,17 @@ public class DatabaseService extends JavaService
 
 	@Override
 	protected void finalize()
+		throws Throwable
 	{
-		if ( connection != null ) {
-			try {
-				connection.close();
-			} catch( SQLException e ) {
+		try {
+			if ( connection != null ) {
+				try {
+					connection.close();
+				} catch( SQLException e ) {
+				}
 			}
+		} finally {
+			super.finalize();
 		}
 	}
 

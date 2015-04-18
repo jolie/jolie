@@ -213,7 +213,7 @@ public class RuntimeService extends JavaService
 	public Value getRedirection( Value request )
 			throws FaultException
 	{
-		Value ret = null;
+		Value ret;
 		String inputPortName = request.getChildren( "inputPortName" ).first().strValue();
 		CommListener listener =
 				interpreter.commCore().getListenerByInputPortName( inputPortName );
@@ -256,10 +256,8 @@ public class RuntimeService extends JavaService
 
 			return channel;
 		} catch ( EmbeddedServiceLoaderCreationException e ) {
-			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
 		} catch ( EmbeddedServiceLoadingException e ) {
-			e.printStackTrace();
 			throw new FaultException( "RuntimeException", e );
 		}
 	}

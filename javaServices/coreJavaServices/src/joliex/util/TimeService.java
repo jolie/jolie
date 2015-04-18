@@ -25,7 +25,11 @@ package joliex.util;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -72,9 +76,14 @@ public class TimeService extends JavaService
 
 	@Override
 	protected void finalize()
+		throws Throwable
 	{
-		if ( thread != null ) {
-			thread.interrupt();
+		try {
+			if ( thread != null ) {
+				thread.interrupt();
+			}
+		} finally {
+			super.finalize();
 		}
 	}
 
@@ -231,6 +240,9 @@ public class TimeService extends JavaService
 
 	/**
 	 * @author Claudio Guidi
+	 * @param request
+	 * @return 
+	 * @throws jolie.runtime.FaultException 
 	 */
 	public Value getDateValues( Value request )
 		throws FaultException
@@ -256,45 +268,48 @@ public class TimeService extends JavaService
 
 		return v;
 	}
-        /**
+
+	/**
 	 * @author Balint Maschio
+	 * @param request
+	 * @return
+	 * @throws jolie.runtime.FaultException
 	 */
-        
-        public Value getDateTimeValues( Value request )
+	public Value getDateTimeValues( Value request )
 		throws FaultException
 	{
-            SimpleDateFormat sdf= null;
+		SimpleDateFormat sdf;
 		Value v = Value.create();
-		try {			
-                        String format;
+		try {
+			String format;
 			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
 				format = "dd/MM/yyyy hh:ss:mm";
 			} else {
 				format = request.getFirstChild( "format" ).strValue();
 			}
-                        if ( request.getFirstChild( "language" ).strValue().isEmpty() ) {
-				 sdf = new SimpleDateFormat( format,Locale.US);
-			} else {
+			if ( request.hasChildren( "language" ) ) {
 				String language = request.getFirstChild( "language" ).strValue();
-                                if (language.equals("us")){
-                                    sdf = new SimpleDateFormat( format,Locale.ENGLISH);
-                                } else if(language.equals("it")){
-                                
-                                    sdf = new SimpleDateFormat( format,Locale.ITALIAN);
-                                }
-                                
+				if ( language.equals( "us" ) ) {
+					sdf = new SimpleDateFormat( format, Locale.ENGLISH );
+				} else if ( language.equals( "it" ) ) {
+					sdf = new SimpleDateFormat( format, Locale.ITALIAN );
+				} else {
+					sdf = new SimpleDateFormat( format, Locale.US );
+				}
+			} else {
+				sdf = new SimpleDateFormat( format, Locale.US );
 			}
-			
+
 			GregorianCalendar cal = new GregorianCalendar();
 			final Date dt = sdf.parse( request.strValue() );
 			cal.setTimeInMillis( dt.getTime() );
 			v.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
 			v.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
 			v.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
-                        v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
-                        v.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
-                        v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );                        
-                        
+			v.getFirstChild( "hour" ).setValue( cal.get( Calendar.HOUR ) );
+			v.getFirstChild( "minute" ).setValue( cal.get( Calendar.MINUTE ) );
+			v.getFirstChild( "second" ).setValue( cal.get( Calendar.SECOND ) );
+
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );
 		}
@@ -342,7 +357,7 @@ public class TimeService extends JavaService
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date dt1 = sdf.parse( request.getFirstChild( "date1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "date2" ).strValue() );
-			Long result = new Long( (dt1.getTime() - dt2.getTime()) / (1000 * 60 * 60 * 24) );
+			Long result = (dt1.getTime() - dt2.getTime()) / (1000 * 60 * 60 * 24);
 			v.setValue( result.intValue() );
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidDate", pe );

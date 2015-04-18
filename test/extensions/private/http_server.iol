@@ -38,5 +38,6 @@ interface ServerInterface {
 OneWay:
 	shutdown(void)
 RequestResponse:
-	echoPerson(Person)(Person)
+	echoPerson(Person)(Person),
+	identity(any)(any)
 }

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,12 +22,11 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.Interpreter;
-import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
@@ -38,10 +37,10 @@ import jolie.runtime.Value;
  * 
  * TODO: this shouldn't be polled
  */
-public class JavaScriptCommChannel extends AbstractCommChannel implements PollableCommChannel
+public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final Invocable invocable;
-	private final List< CommMessage > messages = new LinkedList< CommMessage >();
+	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
 
 	public JavaScriptCommChannel( Invocable invocable )
 	{
@@ -68,24 +67,34 @@ public class JavaScriptCommChannel extends AbstractCommChannel implements Pollab
 		CommMessage response;
 		if ( returnValue != null ) {
 			Value value = Value.create();
-			value.setValue( returnValue );
+			
+			if ( returnValue instanceof Value ) {
+				value.refCopy( (Value)returnValue );
+			} else {
+				value.setValue( returnValue );
+			}
+			
 			response = new CommMessage(
-						message.id(),
-						message.operationName(),
-						message.resourcePath(),
-						value,
-						null
-					);
+				message.id(),
+				message.operationName(),
+				message.resourcePath(),
+				value,
+				null
+			);
 		} else {
 			response = CommMessage.createEmptyResponse( message );
 		}
-		synchronized( messages ) {
-			messages.add( response );
-			messages.notifyAll();
-		}
+		
+		messages.put( message.id(), response );
+	}
+	
+	protected CommMessage recvImpl()
+		throws IOException
+	{
+		throw new IOException( "Unsupported operation" );
 	}
 
-	protected CommMessage recvImpl()
+	/* protected CommMessage recvImpl()
 		throws IOException
 	{
 		CommMessage ret = null;
@@ -101,6 +110,14 @@ public class JavaScriptCommChannel extends AbstractCommChannel implements Pollab
 			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
 		}
 		return ret;
+	}
+	*/
+	
+	@Override
+	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException
+	{
+		return messages.remove( request.id() );
 	}
 
 	@Override

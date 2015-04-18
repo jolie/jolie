@@ -46,7 +46,7 @@ import jolie.runtime.ValueVector;
  */
 public class ZipUtils extends JavaService
 {
-	private static int BUFFER_SIZE = 1024;
+	private static final int BUFFER_SIZE = 1024;
 
 	private static ByteArray inputStreamToByteArray( InputStream istream )
 		throws IOException

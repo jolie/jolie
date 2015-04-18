@@ -1,5 +1,6 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,22 +20,65 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.gwt.client;
+include "http_server.iol"
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
+// New interface since Authorization header gets added on each request
+type HeaderPerson:void {
+	.id:long
+	.firstName:string
+	.lastName:string
+	.age:int
+	.size:double
+	.male:bool
+	.unknown:any
+	.unknown2:undefined
+	.Authorization:string
+}
 
-public abstract class JolieCallback implements AsyncCallback< Value >
+type HeaderIdentity:any {
+	.Authorization:string
+}
+
+interface HeadersServerInterface {
+OneWay:
+	shutdown(undefined)
+RequestResponse:
+	echoPerson(HeaderPerson)(undefined),
+	identity(HeaderIdentity)(undefined)
+}
+
+execution { single }
+
+inputPort ServerInput {
+Location: Location_HTTPServer
+Protocol: http {
+	.headers.Authorization = "Authorization";
+	.statusCode -> statusCode
+}
+Interfaces: HeadersServerInterface
+}
+
+define handleRequest
 {
-	public final void onFailure( Throwable t )
-	{
-		if ( t instanceof FaultException ) {
-			onFault( (FaultException)t );
-		} else {
-			onError( t );
-		}
+	statusCode = 200;
+	undef( response );
+	if ( request.Authorization != "TOP_SECRET" ) {
+		statusCode = 403 // Forbidden
+	} else {
+		response << request;
+		undef( response.Authorization )
 	}
+}
 
-	protected abstract void onFault( FaultException fault );
-	protected abstract void onError( Throwable t );
-	public abstract void onSuccess( Value response );
+main
+{
+	provide
+		[ echoPerson( request )( response ) {
+			handleRequest
+		} ]
+		[ identity( request )( response ) {
+			handleRequest
+		} ]
+	until
+		[ shutdown() ]
 }

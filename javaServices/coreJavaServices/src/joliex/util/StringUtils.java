@@ -33,7 +33,6 @@ import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
 import jolie.runtime.ValueVector;
-import jolie.runtime.embedding.RequestResponse;
 
 public class StringUtils extends JavaService
 {
@@ -203,8 +202,8 @@ public class StringUtils extends JavaService
 				limit
 			);
 		Value value = Value.create();
-		for( int i = 0; i < ss.length; i++ ) {
-			value.getNewChild( "result" ).add( Value.create( ss[ i ] ) );
+		for( String s : ss ) {
+			value.getNewChild( "result" ).add( Value.create( s ) );
 		}
 
 		return value;
