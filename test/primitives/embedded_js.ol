@@ -6,7 +6,7 @@ type TwiceRequest:void {
 
 interface TwiceInterface {
 RequestResponse:
-	twice( TwiceRequest )( int )
+	twice( TwiceRequest )( double )
 }
 
 outputPort TwiceService {
@@ -22,7 +22,7 @@ define doTest
 {
 	request.number = 5;
 	twice@TwiceService( request )( response );
-	if ( response != 10 ) {
+	if ( int( response ) != 10 ) {
 		throw( TestFailed, "wrong result" )
 	}
 }

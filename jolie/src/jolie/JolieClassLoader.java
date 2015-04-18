@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright 2008-2015 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,7 +21,6 @@
 
 package jolie;
 
-import jolie.lang.Constants;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.JarURLConnection;
@@ -33,6 +32,7 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
+import jolie.lang.Constants;
 import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;

@@ -28,16 +28,15 @@ outputPort Server {
 Location: Location_HTTPServer
 Protocol: http {
 	.method = "post";
-	.format -> format;
-	.compression -> compression;
-	.requestCompression -> requestCompression
+	.addHeader.header[0] -> header;
+	.statusCode -> statusCode
 }
 Interfaces: ServerInterface
 }
 
 embedded {
 Jolie:
-	"private/http_server.ol"
+	"private/http_features_server.ol"
 }
 
 define checkResponse
@@ -54,37 +53,6 @@ define checkResponse2
 	}
 }
 
-define test
-{
-	format = undefined; // default
-	echoPerson@Server( person )( response );
-	checkResponse;
-	format = "x-www-form-urlencoded"; // URL-encoded
-	echoPerson@Server( person )( response );
-	checkResponse;
-	format = "xml"; // XML
-	echoPerson@Server( person )( response );
-	checkResponse;
-	format = "json"; // JSON
-	echoPerson@Server( person )( response );
-	checkResponse;
-/* FIXME: GWT-RPC
-	format = "text/x-gwt-rpc"; // GWT-RPC
-	echoPerson@Server( person )( response );
-	checkResponse;
-*/
-
-	format = "html"; // HTML
-	identity@Server( reqVal )( response2 );
-	checkResponse2;
-	format = "raw"; // plain-text
-	identity@Server( reqVal )( response2 );
-	checkResponse2;
-	format = "binary"; // binary
-	identity@Server( reqVal )( response2 );
-	checkResponse2
-}
-
 define doTest
 {
 	with( person ) {
@@ -98,21 +66,44 @@ define doTest
 		.unknown2 = void
 	};
 	reqVal = "Döner";
+	statusCode = 0; // important: initialise statusCode, otherwise it does not get set
+
+	header << "Authorization" { .value = "TOP_SECRET" };
 	scope( s ) {
 		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+		echoPerson@Server( person )( response );
+		checkResponse;
+		if ( statusCode != 200 ) { // OK
+			throw( TestFailed, "Wrong HTTP status code" )
+		};
+		identity@Server( reqVal )( response2 );
+		checkResponse2;
+		if ( statusCode != 200 ) { // OK
+			throw( TestFailed, "Wrong HTTP status code" )
+		}
+	};
 
-		// compression on (default), but no request compression
-		test;
-		// request compression
-		requestCompression = "deflate";
-		test;
-		requestCompression = "gzip";
-		test;
-		// no compression at all
-		compression = false;
-		test;
+	header << "Authorization" { .value = "WRONG_KEY" };
+	scope( s ) {
+		install( TypeMismatch => nullProcess );
+		echoPerson@Server( person )( response );
+		if ( is_defined( response ) ) {
+			throw( TestFailed, "Should not return data" )
+		}
+	};
+	if ( statusCode != 403 ) { // Forbidden
+		throw( TestFailed, "Wrong HTTP status code" )
+	};
+	scope( s ) {
+		install( TypeMismatch => nullProcess );
+		identity@Server( reqVal )( response2 );
+		if ( is_defined( response2 ) ) {
+			throw( TestFailed, "Should not return data" )
+		}
+	};
+	if ( statusCode != 403 ) { // Forbidden
+		throw( TestFailed, "Wrong HTTP status code" )
+	};
 
-		shutdown@Server()
-	}
+	shutdown@Server()
 }
-

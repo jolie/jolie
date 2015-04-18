@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,22 +19,27 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.gwt.client;
+interface Operations {
+OneWay:
+	op(void)
+RequestResponse:
+	op2(any)(any)
+}
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
+inputPort Self {
+	Location: "local"
+	Interfaces: Operations
+}
 
-public abstract class JolieCallback implements AsyncCallback< Value >
+execution { single }
+
+main
 {
-	public final void onFailure( Throwable t )
-	{
-		if ( t instanceof FaultException ) {
-			onFault( (FaultException)t );
-		} else {
-			onError( t );
-		}
-	}
-
-	protected abstract void onFault( FaultException fault );
-	protected abstract void onError( Throwable t );
-	public abstract void onSuccess( Value response );
+	op();
+	[ op() ];
+	[ op() ] { nullProcess };
+	op2(x)(x);
+	op2(x)(x) { nullProcess };
+	[ op2(x)(x) { nullProcess } ];
+	[ op2(x)(x) { nullProcess } ] { nullProcess }
 }

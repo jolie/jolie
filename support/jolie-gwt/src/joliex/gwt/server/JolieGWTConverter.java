@@ -33,10 +33,14 @@ public class JolieGWTConverter
 			retValue.setValue( value.intValue() );
 		} else if ( value.isDouble() ) {
 			retValue.setValue( value.doubleValue() );
+		} else if ( value.isLong() ) {
+			retValue.setValue( value.longValue() );
 		} else if ( value.isBool() ) {
-                        retValue.setValue( value.boolValue() );
-                }
-		
+			retValue.setValue( value.boolValue() );
+		} else if ( value.isByteArray() ) {
+			retValue.setValue( new jolie.runtime.ByteArray( value.byteArrayValue().getBytes() ) );
+		}
+
 		jolie.runtime.ValueVector vec;
 		jolie.runtime.Value valueToAdd;
 		for( Entry< String, joliex.gwt.client.ValueVector > entry : value.children().entrySet() ) {
@@ -66,6 +70,10 @@ public class JolieGWTConverter
 			retValue.setValue( value.intValue() );
 		} else if ( value.isDouble() ) {
 			retValue.setValue( value.doubleValue() );
+		} else if ( value.isLong() ) {
+			retValue.setValue( value.longValue() );
+		} else if ( value.isBool() ) {
+			retValue.setValue( value.boolValue() );
 		} else if ( value.valueObject() != null ) {
 			retValue.setValue( value.valueObject().toString() );
 		}

@@ -131,6 +131,11 @@ public class HttpMessage
 		return type == Type.HEAD;
 	}
 
+	public boolean isDelete()
+	{
+		return type == Type.DELETE;
+	}
+
 	public void addCookie( String name, String value )
 	{
 		cookies.put( name, value);
@@ -188,7 +193,7 @@ public class HttpMessage
 
 	public void setProperty( String name, String value )
 	{
-		propMap.put( name, value );
+		propMap.put( name.toLowerCase(), value );
 	}
 	
 	public String getProperty( String name )
@@ -198,7 +203,7 @@ public class HttpMessage
 	
 	public String getPropertyOrEmptyString( String name )
 	{
-		String ret = propMap.get( name );
+		String ret = propMap.get( name.toLowerCase() );
 		return ( ret == null ) ? "" : ret;
 	}
 	

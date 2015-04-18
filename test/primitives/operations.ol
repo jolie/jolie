@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,22 +19,42 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.gwt.client;
+include "../AbstractTestUnit.iol"
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
+interface Operations {
+OneWay:
+	op(void)
+RequestResponse:
+	op2(any)(any)
+}
 
-public abstract class JolieCallback implements AsyncCallback< Value >
+outputPort Operations {
+	Interfaces: Operations
+}
+
+embedded {
+Jolie: "private/operations.ol" in Operations
+}
+
+define doTest
 {
-	public final void onFailure( Throwable t )
-	{
-		if ( t instanceof FaultException ) {
-			onFault( (FaultException)t );
-		} else {
-			onError( t );
-		}
+	op@Operations();
+	op@Operations();
+	op@Operations();
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	op2@Operations(1)(x);
+	if ( x != 1 ) {
+		throw( TestFailed, "Unexpected result" )
 	}
-
-	protected abstract void onFault( FaultException fault );
-	protected abstract void onError( Throwable t );
-	public abstract void onSuccess( Value response );
 }
