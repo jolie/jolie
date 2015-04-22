@@ -476,6 +476,7 @@ public class DatabaseService extends JavaService
 							} else {
 								resultSetToValueVector( stm.getResultSet(), currResultValue.getChildren( "row" ) );
 							}
+							stm.getResultSet().close();
 						}
 					}
 					currResultValue.setValue( updateCount );
