@@ -50,15 +50,13 @@ public class ByteArray
 	@Override
 	public String toString()
 	{
-            char[] chars = new char[ buffer.length / 2];  // 2 bytes for each char
-            for (int i = 0; i < chars.length; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    int shift = (1 - j) * 8;
-                    chars[i] |= (0x000000FF << shift) & (((int) buffer[i * 2 + j]) << shift);
-                }
-            }
-        return new String(chars);
-        }
+		char[] chars = new char[ buffer.length / 2 ];  // 2 bytes for each char
+		for( int i = 0; i < chars.length; i++ ) {
+			for( int j = 0; j < 2; j++ ) {
+				int shift = (1 - j) * 8;
+				chars[ i ] |= (0x000000FF << shift) & (((int) buffer[ i * 2 + j ]) << shift);
+			}
+		}
+		return new String( chars );
+	}
 }
