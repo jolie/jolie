@@ -68,12 +68,9 @@ define test
 	format = "json"; // JSON
 	echoPerson@Server( person )( response );
 	checkResponse;
-/* FIXME: GWT-RPC
-	format = "text/x-gwt-rpc"; // GWT-RPC
+	/* format = "text/x-gwt-rpc"; // GWT-RPC
 	echoPerson@Server( person )( response );
-	checkResponse;
-*/
-
+	checkResponse; */ // Currently unsupported
 	format = "html"; // HTML
 	identity@Server( reqVal )( response2 );
 	checkResponse2;
