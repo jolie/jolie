@@ -536,16 +536,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if ( "text/x-gwt-rpc".equals( format ) ) {
 			ret.contentType = "text/x-gwt-rpc";
 			try {
-				if ( message.isFault() ) {
-					ret.content = new ByteArray(
-						RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
-					);
-				} else {
-					joliex.gwt.client.Value v = new joliex.gwt.client.Value();
-					JolieGWTConverter.jolieToGwtValue( message.value(), v );
-					ret.content = new ByteArray(
-						RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v ).getBytes( charset )
-					);
+				if ( inInputPort ) { // It's a response
+					if ( message.isFault() ) {
+						ret.content = new ByteArray(
+							RPC.encodeResponseForFailure( JolieService.class.getMethods()[0], JolieGWTConverter.jolieToGwtFault( message.fault() ) ).getBytes( charset )
+						);
+					} else {
+						joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+						JolieGWTConverter.jolieToGwtValue( message.value(), v );
+						ret.content = new ByteArray(
+							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[0], v ).getBytes( charset )
+						);
+					}
+				} else { // It's a request
+					throw new IOException( "Sending requests to a GWT server is currently unsupported." );
 				}
 			} catch( SerializationException e ) {
 				throw new IOException( e );
