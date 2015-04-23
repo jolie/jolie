@@ -34,7 +34,7 @@ public class Value implements Serializable, IsSerializable
 		UNDEFINED, STRING, INT, DOUBLE, LONG, BOOLEAN, BYTEARRAY
 	}
 
-	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
+	private final Map< String, ValueVector > children = new HashMap< String, ValueVector >();
 
 	private String valueObject = null;
 	private Type type = Type.UNDEFINED;
@@ -150,7 +150,7 @@ public class Value implements Serializable, IsSerializable
 	{
 		if ( valueObject == null )
 			return new String();
-		return valueObject.toString();
+		return valueObject;
 	}
 
 	public int intValue()
@@ -220,42 +220,43 @@ public class Value implements Serializable, IsSerializable
 		return getChildren( id ).first();
 	}
 	
-	public void setValue( String obj )
+	public final void setValue( String obj )
 	{
 		valueObject = obj;
 		type = Type.STRING;
 	}
 
-	public void setValue( Integer obj )
+	public final void setValue( Integer obj )
 	{
 		valueObject = obj.toString();
 		type = Type.INT;
 	}
 	
-	public void setValue( Double obj )
+	public final void setValue( Double obj )
 	{
 		valueObject = obj.toString();
 		type = Type.DOUBLE;
                 
 	}
-        // Added by Balint Maschio
-        public void setValue( Long obj )
+	
+	// Added by Balint Maschio
+	public final void setValue( Long obj )
 	{
 		valueObject = obj.toString();
 		type = Type.LONG;
                 
 	}
         
-        public void setValue( Boolean obj )
+	public final void setValue( Boolean obj )
 	{
 		valueObject = obj.toString();
 		type = Type.BOOLEAN;
-                
 	}
         
-        public void setValue( ByteArray obj ) {
-                valueObject = obj.toString();
-                type = Type.BYTEARRAY;
-        }
+	public final void setValue( ByteArray obj )
+	{
+		valueObject = obj.toString();
+		type = Type.BYTEARRAY;
+	}
         
 }
