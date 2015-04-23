@@ -683,19 +683,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 		}
 	}
-        
-        private void send_appendHeader( CommMessage message, StringBuilder headerBuilder )
+
+	private void send_appendHeader( StringBuilder headerBuilder )
 	{
-                Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
+		Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
 		if ( v != null ) {
-                    if ( v.hasChildren("header") ) {
-                        for( Value head : v.getChildren("header") ) {
-                                String header =
-                                        head.strValue() + ": " +
-                                        head.getFirstChild( "value" ).strValue();
-                                headerBuilder.append( header ).append( HttpUtils.CRLF );
-                        }
-                    }
+			if ( v.hasChildren( "header" ) ) {
+				for( Value head : v.getChildren( "header" ) ) {
+					String header
+						= head.strValue() + ": "
+						+ head.getFirstChild( "value" ).strValue();
+					headerBuilder.append( header ).append( HttpUtils.CRLF );
+				}
+			}
 		}
 	}
 
@@ -731,7 +731,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				headerBuilder.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
 			}
 		}
-		send_appendHeader( message, headerBuilder );
+		send_appendHeader( headerBuilder );
 	}
 	
 	private void send_appendGenericHeaders(
