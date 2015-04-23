@@ -1,21 +1,26 @@
-/**
- * *************************************************************************
- * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>
- * Copyright (C) 2012 by Michele Morgagni <mmorgagni@italianasoftware.com>
- * Copyright (C) 2013 by Claudio Guidi <guidiclaudio@gmail.com> This program is
- * free software; you can redistribute it and/or modify * it under the terms of
- * the GNU Library General Public License as * published by the Free Software
- * Foundation; either version 2 of the * License, or (at your option) any later
- * version. * * This program is distributed in the hope that it will be useful,
- * * but WITHOUT ANY WARRANTY; without even the implied warranty of *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General
- * Public License for more details. * * You should have received a copy of the
- * GNU Library General Public * License along with this program; if not, write
- * to the * Free Software Foundation, Inc., * 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
- * *************************************************************************
- */
+/***************************************************************************
+ * Copyright (C) 2011 by Balint Maschio <bmaschio@italianasoftware.com>    *
+ * Copyright (C) 2012 by Michele Morgagni <mmorgagni@italianasoftware.com> *
+ * Copyright (C) 2013 by Claudio Guidi <guidiclaudio@gmail.com>            *
+ * Copyright (C) 2015 by Matthias Dieter Wallnöfer                         *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *                                                                         *
+ *   For details about the authors of this software, see the AUTHORS file. *
+ ***************************************************************************/
 package joliex.java.impl;
 
 import java.io.BufferedWriter;
@@ -70,6 +75,7 @@ public class JavaGWTDocumentCreator {
     ProgramInspector inspector;
     private static HashMap<NativeType, String> javaNativeEquivalent = new HashMap<NativeType, String>();
     private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
+    private static HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
 
     public JavaGWTDocumentCreator(ProgramInspector inspector, String namespace, String targetPort) {
 
@@ -91,6 +97,13 @@ public class JavaGWTDocumentCreator {
         javaNativeMethod.put(NativeType.LONG, "longValue()");
         javaNativeMethod.put(NativeType.STRING, "strValue()");
         javaNativeMethod.put(NativeType.RAW, "byteArrayValue()");
+
+        javaNativeChecker.put(NativeType.INT, "isInt()");
+        javaNativeChecker.put(NativeType.BOOL, "isBool()");
+        javaNativeChecker.put(NativeType.DOUBLE, "isDouble()");
+        javaNativeChecker.put(NativeType.LONG, "isLong()");
+        javaNativeChecker.put(NativeType.STRING, "isString()");
+        javaNativeChecker.put(NativeType.RAW, "isByteArray()");
     }
 
     public void ConvertDocument() throws FaultException {
@@ -204,9 +217,9 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("package ").append(namespace).append(".").append(inputPortInfo.id()).append(";\n");
 
         // adding imports
-        stringBuilder.append("import joliex.gwt.client.JolieCallback;");
-        stringBuilder.append("import joliex.gwt.client.JolieService;");
-        stringBuilder.append("import joliex.gwt.client.Value;");
+        stringBuilder.append("import joliex.gwt.client.JolieCallback;\n");
+        stringBuilder.append("import joliex.gwt.client.JolieService;\n");
+        stringBuilder.append("import joliex.gwt.client.Value;\n");
         Map<String, OperationDeclaration> operations = inputPortInfo.operationsMap();
 
         for (int x = 0; x < inputPortInfo.aggregationList().length; x++) {
@@ -221,8 +234,8 @@ public class JavaGWTDocumentCreator {
                 }
             }
         }
-        
-         for (Entry<String, OperationDeclaration> operationEntry : operations.entrySet()) {
+
+        for (Entry<String, OperationDeclaration> operationEntry : operations.entrySet()) {
             OperationDeclaration operation;
             operation = operationEntry.getValue();
 
@@ -237,15 +250,16 @@ public class JavaGWTDocumentCreator {
                 System.out.println("OneWay operation not supported for GWT: " + oneWayOperationDeclaration.id());
             }
         }
+        stringBuilder.append("\n");
 
         // adding class
-        stringBuilder.append("public class ").append(inputPortInfo.id()).append("Port {");
+        stringBuilder.append("public class ").append(inputPortInfo.id()).append("Port {\n");
 
         // adding operation methods
         stringBuilder.append(operationCallBuilder);
 
         // adding private call method
-        stringBuilder.append("private void call( String operation_name, Value request, JolieCallback callback ) {JolieService.Util.getInstance().call( operation_name, request, callback );}");
+        stringBuilder.append("private void call( String operation_name, Value request, JolieCallback callback ) {\nJolieService.Util.getInstance().call( operation_name, request, callback );\n}\n");
         // closing class
         stringBuilder.append("}\n;");
 
@@ -323,12 +337,13 @@ public class JavaGWTDocumentCreator {
             stringBuilder.append("package ").append(namespace).append(".").append(portName).append(".callbacks;\n");
 
             // adding imports
-            stringBuilder.append("import joliex.gwt.client.FaultException;");
-            stringBuilder.append("import joliex.gwt.client.JolieCallback;");
-            stringBuilder.append("import joliex.gwt.client.Value;");
+            stringBuilder.append("import joliex.gwt.client.FaultException;\n");
+            stringBuilder.append("import joliex.gwt.client.JolieCallback;\n");
+            stringBuilder.append("import joliex.gwt.client.Value;\n");
             stringBuilder.append("import ").append(namespace).append(".types.").append(operation.responseType().id()).append(";\n");
+            stringBuilder.append("\n");
 
-            stringBuilder.append("public abstract class CallBack").append(operation.id()).append(" extends JolieCallback{");
+            stringBuilder.append("public abstract class CallBack").append(operation.id()).append(" extends JolieCallback{\n");
 
             //adding onFault method
             stringBuilder.append("@Override\nprotected void onFault(FaultException fault) {\n");
@@ -341,7 +356,7 @@ public class JavaGWTDocumentCreator {
 
             // adding onSuccessfullReply method
             stringBuilder.append("@Override\npublic void onSuccess(Value response) {\nonSuccessfullReply( new ");
-            stringBuilder.append(operation.responseType().id()).append("( response ) ); }");
+            stringBuilder.append(operation.responseType().id()).append("( response ) );\n}\n");
 
 
 
@@ -371,7 +386,7 @@ public class JavaGWTDocumentCreator {
         StringBuilder operationCallBuilder = new StringBuilder();
         operationCallBuilder.append("public void ").append(operationName).append("(").append(requestTypeName);
         operationCallBuilder.append(" message, CallBack").append(operationName).append(" callback ) {\n");
-        operationCallBuilder.append("call( \"").append(operationName).append("\", message.getValue(), callback );\n}\n;");
+        operationCallBuilder.append("call( \"").append(operationName).append("\", message.getValue(), callback );\n}\n");
         return operationCallBuilder;
     }
 
@@ -426,7 +441,7 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
             stringBuilder.append("private " + javaNativeEquivalent.get(type.nativeType()) + " rootValue;\n");
         }
 
@@ -444,8 +459,7 @@ public class JavaGWTDocumentCreator {
 
         //constructor with parameters
 
-        stringBuilder.append("public " + type.id() + "(Value v){\n");
-        stringBuilder.append("\n");
+        stringBuilder.append("public " + type.id() + "( Value v ){\n");
         //stringBuilder.append("this.v=v;\n");
 
         if (type.hasSubTypes()) {
@@ -465,8 +479,8 @@ public class JavaGWTDocumentCreator {
                         //to check:
                         stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                         stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
-                        stringBuilder.append("" + ((TypeDefinitionLink) subType).linkedTypeName() + " support").append(subType.id()).append(" = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
-                        stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                        stringBuilder.append(((TypeDefinitionLink) subType).linkedTypeName() + " support").append(subType.id()).append(" = new " + ((TypeDefinitionLink) subType).linkedTypeName() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                        stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                         stringBuilder.append("}\n");
                         //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
                         stringBuilder.append("}\n");
@@ -491,8 +505,8 @@ public class JavaGWTDocumentCreator {
                             //to check:
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size();counter" + subType.id() + "++){\n");
-                            stringBuilder.append("" + subType.id() + " support").append(subType.id()).append("=new " + subType.id() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
-                            stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                            stringBuilder.append(subType.id() + " support").append(subType.id()).append("=new " + subType.id() + "(v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append("));\n");
+                            stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             stringBuilder.append("}\n");
                             //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
                             stringBuilder.append("}\n");
@@ -515,18 +529,17 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("for(int counter" + subType.id() + "=0; " + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size(); counter" + subType.id() + "++){\n");
                             if (subType.nativeType() != NativeType.ANY) {
                                 stringBuilder.append("" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
-                                stringBuilder.append("" + "_" + subType.id() + ".add(support" + subType.id() + ");\n");
+                                stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             } else {
-                                stringBuilder.append("if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isDouble()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").doubleValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isString()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").strValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}else if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").isInt()){\n"
-                                        + "" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ").intValue();\n"
-                                        + "" + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+	                        for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
+                                        + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
+                                        + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
                                         + "}\n");
+                                }
                             }
                             stringBuilder.append("}\n");
                             //stringBuilder.append( nameVariable +"= new LinkedList<" +((TypeDefinitionLink) me.getValue()).linkedType().id() + ">();"+ "\n" );
@@ -538,13 +551,14 @@ public class JavaGWTDocumentCreator {
                             if (subType.nativeType() != NativeType.ANY) {
                                 stringBuilder.append("_" + subType.id() + "= v.getFirstChild(\"" + subType.id() + "\")." + javaMethod + ";" + "\n");
                             } else {
-                                stringBuilder.append("if(v.getFirstChild(\"" + subType.id() + "\").isDouble()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").doubleValue();\n"
-                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isString()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").strValue();\n"
-                                        + "}else if(v.getFirstChild(\"" + subType.id() + "\").isInt()){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\").intValue();\n"
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
+                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
                                         + "}\n");
+                                }
                             }
                             stringBuilder.append("}\n");
                         }
@@ -557,7 +571,7 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
 
             String javaCode = javaNativeEquivalent.get(type.nativeType());
             String javaMethod = javaNativeMethod.get(type.nativeType());
@@ -565,13 +579,14 @@ public class JavaGWTDocumentCreator {
             if (type.nativeType() != NativeType.ANY) {
                 stringBuilder.append("rootValue = v." + javaMethod + ";" + "\n");
             } else {
-                stringBuilder.append("if(v.isDouble()){\n"
-                        + "rootValue = v.doubleValue();\n"
-                        + "}else if(v.isString()){\n"
-                        + "rootValue = v.strValue();\n"
-                        + "}else if(v.isInt()){\n"
-                        + "rootValue = v.intValue();\n"
+                for (NativeType t : NativeType.class.getEnumConstants()) {
+                    if (!javaNativeChecker.containsKey(t))
+                        continue;
+                    stringBuilder.append(
+                        "if(v." + javaNativeChecker.get(t) + "){\n"
+                        + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
                         + "}\n");
+                }
             }
         }
         stringBuilder.append("}\n");
@@ -581,7 +596,6 @@ public class JavaGWTDocumentCreator {
         //constructor without parameters
 
         stringBuilder.append("public " + type.id() + "(){\n");
-        stringBuilder.append("\n");
 
         if (type.hasSubTypes()) {
             Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
@@ -678,35 +692,35 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
                             if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(" + "_" + subType.id() + ".get(counter" + subType.id() + "));\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n");
                             } else {
-                                stringBuilder.append("if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Integer){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ".get(counter" + subType.id() + "))).intValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof Double){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ".get(counter" + subType.id() + "))).doubleValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof String){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + ".get(counter" + subType.id() + ")));\n");
-                                stringBuilder.append("}");
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
+                                        + "}\n");
+                                }
                             }
-                            stringBuilder.append("}");
+                            stringBuilder.append("}\n");
                             stringBuilder.append("}\n");
 
                         } else {
                             stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
                             if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "_" + subType.id() + ");\n");
-                                stringBuilder.append("}\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n");
                             } else {
-                                stringBuilder.append("if(_" + subType.id() + " instanceof Integer){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Integer)(_" + subType.id() + ")).intValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + " instanceof Double){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "((Double)(_" + subType.id() + ")).doubleValue());\n");
-                                stringBuilder.append("}else if(_" + subType.id() + " instanceof String){\n");
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(" + "(String)(_" + subType.id() + "));\n");
-                                stringBuilder.append("}");
-                                stringBuilder.append("}\n");
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
+                                    if (!javaNativeChecker.containsKey(t))
+                                        continue;
+                                    stringBuilder.append(
+                                        "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
+                                        + "}\n");
+                                }
                             }
-
+                            stringBuilder.append("}\n");
                         }
                     }
 
@@ -716,26 +730,27 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+        if (type.nativeType() != NativeType.VOID) {
 
             stringBuilder.append("if((rootValue!=null)){\n");
             if (type.nativeType() != NativeType.ANY) {
                 stringBuilder.append("vReturn.setValue(rootValue);\n");
             } else {
-                stringBuilder.append("if(rootValue instanceof Integer){\n");
-                stringBuilder.append("vReturn.setValue(((Integer)(rootValue)).intValue());\n");
-                stringBuilder.append("}else if(rootValue instanceof Double){\n");
-                stringBuilder.append("vReturn.setValue(((Double)(rootValue)).doubleValue());\n");
-                stringBuilder.append("}else if(rootValue instanceof String){\n");
-                stringBuilder.append("vReturn.setValue(((String)(rootValue)));\n");
-                stringBuilder.append("}");
+                for (NativeType t : NativeType.class.getEnumConstants()) {
+                    if (!javaNativeChecker.containsKey(t))
+                        continue;
+                    stringBuilder.append(
+                        "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                        + "vReturn.setValue(rootValue);\n"
+                        + "}\n");
+                }
             }
 
             stringBuilder.append("}\n");
 
         }
 
-        stringBuilder.append("return vReturn ;\n");
+        stringBuilder.append("return vReturn;\n");
         stringBuilder.append("}\n");
     }
 
@@ -759,31 +774,31 @@ public class JavaGWTDocumentCreator {
 
                     if (subType.cardinality().max() > 1) {
 
-                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "Value(int index){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                        stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "Value( int index ){\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                         stringBuilder.append("}\n");
 
                         stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                         stringBuilder.append("}\n");
 
 
-                        stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
-                        stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                        stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("_" + nameVariable + ".add(value);\n");
                         stringBuilder.append("}\n");
 
                         stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                        stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                        stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                         stringBuilder.append("}\n");
 
                     } else {
 
                         stringBuilder.append("public " + ((TypeDefinitionLink) subType).linkedTypeName() + " get" + nameVariableOp + "(){\n");
-                        stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                        stringBuilder.append("return " + "_" + nameVariable + ";\n");
                         stringBuilder.append("}\n");
 
-                        stringBuilder.append("public " + "void set" + nameVariableOp + "(" + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
-                        stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                        stringBuilder.append("public " + "void set" + nameVariableOp + "( " + ((TypeDefinitionLink) subType).linkedTypeName() + " value ){\n");
+                        stringBuilder.append("_" + nameVariable + " = value;\n");
                         stringBuilder.append("}\n");
 
                     }
@@ -799,31 +814,31 @@ public class JavaGWTDocumentCreator {
 
                         if (subType.cardinality().max() > 1) {
 
-                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "Value(int index){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".get(index);\n");
+                            stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "Value( int index ){\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "int" + " get" + nameVariableOp + "Size(){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                             stringBuilder.append("}\n");
 
 
-                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + subType.id() + " value ){\n");
-                            stringBuilder.append("\n" + "_" + nameVariable + ".add(value);\n");
+                            stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + subType.id() + " value ){\n");
+                            stringBuilder.append("_" + nameVariable + ".add(value);\n");
                             stringBuilder.append("}\n");
 
                             stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                            stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                            stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                             stringBuilder.append("}\n");
 
                         } else {
 
                             stringBuilder.append("public " + subType.id() + " get" + nameVariableOp + "(){\n");
-                            stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                            stringBuilder.append("return " + "_" + nameVariable + ";\n");
                             stringBuilder.append("}\n");
 
-                            stringBuilder.append("public " + "void set" + nameVariableOp + "(" + subType.id() + " value ){\n");
-                            stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                            stringBuilder.append("public " + "void set" + nameVariableOp + "( " + subType.id() + " value ){\n");
+                            stringBuilder.append("_" + nameVariable + " = value;\n");
                             stringBuilder.append("}\n");
 
                         }
@@ -839,29 +854,29 @@ public class JavaGWTDocumentCreator {
                             if (subType.cardinality().max() > 1) {
 
                                 stringBuilder.append("public int get" + nameVariableOp + "Size(){\n");
-                                stringBuilder.append("\nreturn " + "_" + nameVariable + ".size();\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ".size();\n");
                                 stringBuilder.append("}\n");
 
-                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value(int index){\n");
+                                stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "Value( int index ){\n");
                                 stringBuilder.append("return " + "_" + nameVariable + ".get(index);\n");
                                 stringBuilder.append("}\n");
 
-                                stringBuilder.append("public " + "void add" + nameVariableOp + "Value(" + javaCode + " value ){\n");
-                                stringBuilder.append("" + javaCode + " support").append(nameVariable).append(" = value;\n");
-                                stringBuilder.append("" + "_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
+                                stringBuilder.append("public " + "void add" + nameVariableOp + "Value( " + javaCode + " value ){\n");
+                                stringBuilder.append(javaCode + " support").append(nameVariable).append(" = value;\n");
+                                stringBuilder.append("_" + nameVariable + ".add(" + "support" + nameVariable + " );\n");
                                 stringBuilder.append("}\n");
 
                                 stringBuilder.append("public " + "void remove" + nameVariableOp + "Value( int index ){\n");
-                                stringBuilder.append("" + "_" + nameVariable + ".remove(index);\n");
+                                stringBuilder.append("_" + nameVariable + ".remove(index);\n");
                                 stringBuilder.append("}\n");
 
                             } else {
                                 stringBuilder.append("public " + javaCode + " get" + nameVariableOp + "(){\n");
-                                stringBuilder.append("\nreturn " + "_" + nameVariable + ";\n");
+                                stringBuilder.append("return " + "_" + nameVariable + ";\n");
                                 stringBuilder.append("}\n");
 
                                 stringBuilder.append("public " + "void set" + nameVariableOp + "(" + javaCode + " value ){\n");
-                                stringBuilder.append("\n" + "_" + nameVariable + " = value;\n");
+                                stringBuilder.append("_" + nameVariable + " = value;\n");
                                 stringBuilder.append("}\n");
                             }
 
@@ -874,17 +889,17 @@ public class JavaGWTDocumentCreator {
                     System.out.println("WARNING: variable is not a Link or an Inline Definition!");
                 }
             }
-            if (type.hasSubTypes() && type.nativeType() != NativeType.VOID) {
+            if (type.nativeType() != NativeType.VOID) {
 
                 String javaCode = javaNativeEquivalent.get(type.nativeType());
                 String javaMethod = javaNativeMethod.get(type.nativeType());
 
                 stringBuilder.append("public " + javaCode + " getRootValue(){\n");
-                stringBuilder.append("\nreturn " + "rootValue;\n");
+                stringBuilder.append("return " + "rootValue;\n");
                 stringBuilder.append("}\n");
 
-                stringBuilder.append("public void setRootValue(" + javaCode + " value){\n");
-                stringBuilder.append("\nrootValue = value;\n");
+                stringBuilder.append("public void setRootValue( " + javaCode + " value ){\n");
+                stringBuilder.append("rootValue = value;\n");
                 stringBuilder.append("}\n");
 
             }
