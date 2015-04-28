@@ -23,6 +23,7 @@
 package joliex.java.impl;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -39,6 +40,15 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -54,6 +64,8 @@ import joliex.java.support.GeneralDocumentCreator;
 import joliex.java.support.GeneralProgramVisitor;
 import joliex.java.support.treeOLObject;
 import jolie.runtime.Value;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -63,8 +75,10 @@ public class JavaDocumentCreator {
 
     private Vector<TypeDefinition> subclass;
     private boolean subtypePresent = false;
-    private String namespace;
+    private String packageName;
     private String targetPort;
+    private boolean addSource;
+    private String directoryPath;
     private LinkedHashMap<String, TypeDefinition> typeMap;
     private LinkedHashMap<String, TypeDefinition> subTypeMap;
     ProgramInspector inspector;
@@ -72,11 +86,12 @@ public class JavaDocumentCreator {
     private static HashMap<NativeType, String> javaNativeMethod = new HashMap<NativeType, String>();
     private static HashMap<NativeType, String> javaNativeChecker = new HashMap<NativeType, String>();
 
-    public JavaDocumentCreator(ProgramInspector inspector, String namespace, String targetPort) {
+    public JavaDocumentCreator(ProgramInspector inspector, String packageName, String targetPort , boolean addSource) {
 
         this.inspector = inspector;
-        this.namespace = namespace;
+        this.packageName = packageName;
         this.targetPort = targetPort;
+	this.addSource = addSource;
 
 
         javaNativeEquivalent.put(NativeType.INT, "Integer");
@@ -163,13 +178,15 @@ public class JavaDocumentCreator {
 
         }
         typeMapIterator = typeMap.entrySet().iterator();
+        createPackageDirectory();
+	createBuildFile();
         while (typeMapIterator.hasNext()) {
             Entry<String, TypeDefinition> typeEntry = typeMapIterator.next();
             if (!(typeEntry.getKey().equals("undefined"))) {
                 subclass = new Vector<TypeDefinition>();
                 subtypePresent = false;
                 counterSubClass = 0;
-                String nameFile = typeEntry.getKey() + ".java";
+                String nameFile = this.directoryPath + "\\" + typeEntry.getKey() + ".java";
                 Writer writer;
                 try {
                     writer = new BufferedWriter(new FileWriter(nameFile));
@@ -188,6 +205,138 @@ public class JavaDocumentCreator {
 
         }
 
+    }
+    
+     private void createBuildFile() {
+	try {
+	    DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+	    DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+	    Document doc = docBuilder.newDocument();
+	    Element rootElement = doc.createElement("project");
+	    doc.appendChild(rootElement);
+	    rootElement.setAttribute("name", "JolieConnector");
+	    rootElement.setAttribute("default", "compile");
+	    rootElement.setAttribute("basedir", ".");
+	    /*Section that defines constants*/
+	    Element propertyElement = doc.createElement("property");
+	    propertyElement.setAttribute("name", "src");
+	    propertyElement.setAttribute("location", "src");
+	    rootElement.appendChild(propertyElement);
+	    propertyElement = doc.createElement("property");
+	    propertyElement.setAttribute("name", "dist");
+	    propertyElement.setAttribute("location", "dist");
+	    rootElement.appendChild(propertyElement);
+	    propertyElement = doc.createElement("property");
+	    propertyElement.setAttribute("name", "build");
+	    propertyElement.setAttribute("location", "built");
+	    rootElement.appendChild(propertyElement);
+	    propertyElement = doc.createElement("property");
+	    propertyElement.setAttribute("name", "lib");
+	    propertyElement.setAttribute("location", "lib");
+	    rootElement.appendChild(propertyElement);
+	    propertyElement = doc.createElement("property");
+	    propertyElement.setAttribute("environment", "env");
+	    rootElement.appendChild(propertyElement);
+
+	    /*
+	     This portion of the code is responsible for the dist target creation
+	     */
+	    Element initElement = doc.createElement("target");
+	    initElement.setAttribute("name", "init");
+	    rootElement.appendChild(initElement);
+	    Element mkDirElement = doc.createElement("mkdir");
+	    mkDirElement.setAttribute("dir", "${build}");
+	    initElement.appendChild(mkDirElement);
+	    mkDirElement = doc.createElement("mkdir");
+	    mkDirElement.setAttribute("dir", "${dist}");
+	    initElement.appendChild(mkDirElement);
+	    mkDirElement = doc.createElement("mkdir");
+	    mkDirElement.setAttribute("dir", "${lib}");
+	    initElement.appendChild(mkDirElement);
+	    mkDirElement = doc.createElement("mkdir");
+	    mkDirElement.setAttribute("dir", "${dist}/lib");
+	    initElement.appendChild(mkDirElement);
+	    Element copyLib = doc.createElement("copy");
+	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/jolie.jar");
+	    copyLib.setAttribute("tofile", "${lib}/jolie.jar");
+	    initElement.appendChild(copyLib);
+	    copyLib = doc.createElement("copy");
+	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/libjolie.jar");
+	    copyLib.setAttribute("tofile", "${lib}/libjolie.jar");
+	    initElement.appendChild(copyLib);
+	    copyLib = doc.createElement("copy");
+	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/jolie-java.jar");
+	    copyLib.setAttribute("tofile", "${lib}/jolie-java.jar");
+	    initElement.appendChild(copyLib);
+	    copyLib = doc.createElement("copy");
+	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/extensions/sodep.jar");
+	    copyLib.setAttribute("tofile", "${lib}/sodep.jar");
+	    initElement.appendChild(copyLib);
+	    Element compileElement = doc.createElement("target");
+	    rootElement.appendChild(compileElement);
+	    compileElement.setAttribute("name", "compile");
+	    compileElement.setAttribute("depends", "init");
+	    Element javacElement = doc.createElement("javac");
+	    compileElement.appendChild(javacElement);
+	    javacElement.setAttribute("srcdir", "${src}");
+	    javacElement.setAttribute("destdir", "${build}");
+	    Element classPathElement = doc.createElement("classpath");
+	    javacElement.appendChild(classPathElement);
+	    Element jolieJar = doc.createElement("pathelement");
+	    classPathElement.appendChild(jolieJar);
+	    jolieJar.setAttribute("path", "./lib/jolie.jar");
+	    Element libJolieJar = doc.createElement("pathelement");
+	    classPathElement.appendChild(libJolieJar);
+	    libJolieJar.setAttribute("path", "./lib/libjolie.jar");
+	    Element distElement = doc.createElement("target");
+	    rootElement.appendChild(distElement);
+	    distElement.setAttribute("name", "dist");
+	    distElement.setAttribute("depends", "compile");
+	    Element jarElement = doc.createElement("jar");
+	    distElement.appendChild(jarElement);
+	    jarElement.setAttribute("jarfile", "${dist}/JolieConnector.jar");
+	    jarElement.setAttribute("basedir", "${build}");
+	    if (addSource) {
+		Element filesetElement = doc.createElement("fileset");
+		filesetElement.setAttribute("dir", "${src}");
+		filesetElement.setAttribute("includes", "**/*.java");
+		jarElement.appendChild(filesetElement);
+	    }
+	    copyLib = doc.createElement("copy");
+	    copyLib.setAttribute("toDir", "${dist}/lib");
+	    Element filesetElement = doc.createElement("fileset");
+	    filesetElement.setAttribute("dir", "${lib}");
+	    copyLib.appendChild(filesetElement);
+	    distElement.appendChild(copyLib);
+	    TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	    Transformer transformer = transformerFactory.newTransformer();
+	    DOMSource source = new DOMSource(doc);
+	    StreamResult streamResult = new StreamResult(new File(".\\build.xml"));
+	    transformer.transform(source, streamResult);
+	} catch (ParserConfigurationException ex) {
+	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (TransformerConfigurationException ex) {
+	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (TransformerException ex) {
+	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+	}
+
+    }
+    
+    private void createPackageDirectory() {
+	String[] directoriesComponents = packageName.split("\\.");
+	File f = new File(".");
+
+	try {
+	    directoryPath = f.getCanonicalPath() + "\\src";
+	    for (int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++) {
+		directoryPath += "\\" + directoriesComponents[counterDirectories];
+	    }
+	    f = new File(directoryPath);
+	    f.mkdirs();
+	} catch (IOException ex) {
+	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+	}
     }
 
     public void ConvertInterface(InterfaceDefinition interfaceDefinition, Writer writer)
@@ -215,7 +364,7 @@ public class JavaDocumentCreator {
 
 
         StringBuilder builderHeaderclass = new StringBuilder();
-        builderHeaderclass.append("package " + namespace + ";\n");
+        builderHeaderclass.append("package " + packageName + ";\n");
         importsCreate(builderHeaderclass, typeDefinition);
         builderHeaderclass.append("public class " + typeDefinition.id() + " {" + "\n");
         if (typeDefinition.hasSubTypes()) {
