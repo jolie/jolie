@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2014 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -109,7 +109,7 @@ public final class Constants
 	public static final String LOCATION_NODE_NAME = "location";
 	public static final String LOCAL_LOCATION_KEYWORD = "local";
 	public static final String LOCAL_INPUT_PORT_NAME = "LocalInputPort";
-	public static final String VERSION = "Jolie 1.2.1";
+	public static final String VERSION = "Jolie 1.3";
 	public static final String COPYRIGHT = "(C) 2006-2015 the Jolie team";
 	//public static String newLineString = System.getProperty( "line.separator" );
 	public static final String fileSeparator = System.getProperty( "file.separator" );
