@@ -34,7 +34,8 @@ public class Value implements Serializable, IsSerializable
 		UNDEFINED, STRING, INT, DOUBLE, LONG, BOOLEAN, BYTEARRAY
 	}
 
-	private final Map< String, ValueVector > children = new HashMap< String, ValueVector >();
+	// This field must not be final or GWT will not serialize it correctly
+	private Map< String, ValueVector > children = new HashMap< String, ValueVector >();
 
 	private String valueObject = null;
 	private Type type = Type.UNDEFINED;
