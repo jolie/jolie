@@ -40,86 +40,14 @@ import org.quartz.impl.StdSchedulerFactory;
 @AndJarDeps( {"quartz-2.0.0.jar", "slf4j-api-1.6.1.jar", "jta-1.1.jar", "c3p0-0.9.1.1.jar"} ) //  c3po
 public class SchedulerService extends JavaService
 {
-	Date startDate = null;
-	String chron_config = null;
-
 	public SchedulerService()
 	{
 	}
-	/*
-	public void setScheduleByChronFormat(Value request) {
-	String callbackOperation = "timeout";
-	ValueVector vec;
-	if ((vec = request.children().get("operation")) != null) {
-	callbackOperation = vec.first().strValue();
-	}
-	//else { callbackValue = vec.first(); }
-
-	GregorianCalendar gc = new GregorianCalendar();
-	if ((vec = request.children().get("start_date")) != null) {
-	//System.out.println(" start_date=" + vec.first()); //TODO: chiarire come prendere il valore del campo start_date usando solo il nome
-	gc.add(GregorianCalendar.YEAR, vec.get(1).getChildren("year").get(0).intValue());
-	gc.add(GregorianCalendar.MONTH+1, vec.get(1).getChildren("month").get(0).intValue());
-	gc.add(GregorianCalendar.DAY_OF_MONTH, vec.get(1).getChildren("day").get(0).intValue());
-	gc.add(GregorianCalendar.MINUTE, vec.get(1).getChildren("min").get(0).intValue());
-	gc.add(GregorianCalendar.SECOND, vec.get(1).getChildren("sec").get(0).intValue());
-	gc.add(GregorianCalendar.MILLISECOND, vec.get(1).getChildren("msec").get(0).intValue());
-	} else {
-	System.out.println(" start_date not present:It will be set to currente date");
-	}
-	System.out.println(" start_date ="+startDate);
-	startDate=gc.getTime();
-	//else { callbackValue = new Date(); }
-
-	//GregorianCalendar cal = new GregorianCalendar();
-	//cal.setTimeInMillis( new Date().getTime() );
-
-	if ((vec = request.children().get("chron_config")) != null) {
-	chron_config=vec.get(0).strValue(); //TODO: chiarire come prendere il valore del campo chron_config usando solo il nome
-	System.out.println(" chron_config=" + chron_config);
-
-	} else {
-	System.out.println(" period not present: set to everyday day at 20");
-	chron_config="0 0 20 * * ?";
-	}
-	//else { callbackValue = vec.first(); }
-	try {
-	// Grab the Scheduler instance from the Factory
-	Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-	// and start it off
-	scheduler.start();
-	//-----------------------------------------
-	// define the job and tie it to our HelloJob class
-	JobDetail chronTriggeredJob = org.quartz.JobBuilder.newJob(JolieDefaultJob.class).withIdentity("job1", "group1").build();
-	chronTriggeredJob.getJobDataMap().put("operation", callbackOperation);
-	chronTriggeredJob.getJobDataMap().put("javaSchedulerService", this);
-	//job.getJobDataMap().put("operation", callbackOperation);
-	//SimpleTrigger trigger = (SimpleTrigger) newTrigger().withDescription("holatriger").withIdentity("trigger_" + count, "group1").startAt(startTime).build();
-	// Trigger the job to run now, and then repeat every 40 seconds
-	Trigger chronTrigger = null;
-	try {
-	chronTrigger = newTrigger().withIdentity("chronTrigger1", "chronGroup")
-	//.startAt(startDate)
-	//.endAt(endDate)
-	.withSchedule(cronSchedule(chron_config))
-	.forJob(chronTriggeredJob)
-	.build();
-	} catch (ParseException ex) {
-	Logger.getLogger(SchedulerService.class.getName()).log(Level.SEVERE, null, ex);
-	}
-	// Tell quartz to schedule the job using our trigger
-	scheduler.scheduleJob(chronTriggeredJob, chronTrigger);
-	//------------------------------------------
-	//scheduler.shutdown();//TODO chiarire se ci va
-	} catch (SchedulerException se) {
-	se.printStackTrace();
-	System.out.println(" Exception msg=" + se.getMessage());
-	}
-	}
-	 */
 
 	public void setDailySchedule( Value request )
 	{
+		System.out.println( "setDailySchedule() has been deprecated and could be removed in future" );
+
 		String callbackOperation = "timeout";
 		int start_hour = 21;
 		int start_min = 0;
@@ -174,28 +102,32 @@ public class SchedulerService extends JavaService
 
 	public void setSchedule( Value request )
 	{
+		System.out.println( "setSchedule() has been deprecated and could be removed in future" );
+
 		String callbackOperation = "timeout";
 		Long period = (long) 60 * 60 * 1000;
+		Date startDate = new Date();
 		ValueVector vec;
 		if ( (vec = request.children().get( "operation" )) != null ) {
 			callbackOperation = vec.first().strValue();
 		}
 		/*else { callbackValue = vec.first(); }
 		 */
-		GregorianCalendar gc = new GregorianCalendar();
 		if ( (vec = request.children().get( "start_date" )) != null ) {
-			System.out.println( " start_date=" + vec.first() );
+			System.out.println( " start_date =" + vec.first() );
+			GregorianCalendar gc = new GregorianCalendar();
 			gc.add( GregorianCalendar.YEAR, vec.get( 1 ).getChildren( "year" ).get( 0 ).intValue() );
 			gc.add( GregorianCalendar.MONTH + 1, vec.get( 1 ).getChildren( "month" ).get( 0 ).intValue() );
 			gc.add( GregorianCalendar.DAY_OF_MONTH, vec.get( 1 ).getChildren( "day" ).get( 0 ).intValue() );
 			gc.add( GregorianCalendar.MINUTE, vec.get( 1 ).getChildren( "min" ).get( 0 ).intValue() );
 			gc.add( GregorianCalendar.SECOND, vec.get( 1 ).getChildren( "sec" ).get( 0 ).intValue() );
 			gc.add( GregorianCalendar.MILLISECOND, vec.get( 1 ).getChildren( "msec" ).get( 0 ).intValue() );
+			startDate = gc.getTime();
 		} else {
-			System.out.println( " start_date not present:It will be set to currente date" );
+			System.out.println( " start_date not present:set to current date" );
 		}
 		System.out.println( " start_date =" + startDate );
-		startDate = gc.getTime();
+
 		//else { callbackValue = new Date(); }
 		/*
 		GregorianCalendar cal = new GregorianCalendar();
@@ -230,7 +162,7 @@ public class SchedulerService extends JavaService
 				.startAt( startDate ).withSchedule( org.quartz.SimpleScheduleBuilder.simpleSchedule().withIntervalInMilliseconds( period ).repeatForever() ).build();
 			// Se viene rischiesto un trigger con lo stesso nome, il precedente viene rimosso
 			if ( scheduler.checkExists( trigger.getKey() ) ) {
-				System.out.println( " trigger (con stesso NOME) già innescato triggger.getStatTime=" + trigger.getStartTime() );
+				System.out.println( " trigger (con stesso NOME) già innescato trigger.getStatTime=" + trigger.getStartTime() );
 				System.out.println( "previusly scheduled trigger " + trigger + " has state=" + scheduler.getTriggerState( trigger.getKey() ) );
 				scheduler.unscheduleJob( trigger.getKey() );
 			}
