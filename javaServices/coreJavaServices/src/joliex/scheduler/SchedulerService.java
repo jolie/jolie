@@ -21,16 +21,14 @@
 
 package joliex.scheduler;
 
-import joliex.scheduler.impl.JolieSchedulerDefaultJob;
-import static org.quartz.CronScheduleBuilder.*;
-//import static org.quartz.DateBuilder.*:
 import java.util.Date;
-
 import java.util.GregorianCalendar;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import joliex.scheduler.impl.JolieSchedulerDefaultJob;
+import static org.quartz.CronScheduleBuilder.dailyAtHourAndMinute;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -40,10 +38,6 @@ import org.quartz.impl.StdSchedulerFactory;
 @AndJarDeps( {"quartz-2.0.0.jar", "slf4j-api-1.6.1.jar", "jta-1.1.jar", "c3p0-0.9.1.1.jar"} ) //  c3po
 public class SchedulerService extends JavaService
 {
-	public SchedulerService()
-	{
-	}
-
 	public void setDailySchedule( Value request )
 	{
 		System.out.println( "setDailySchedule() has been deprecated and could be removed in future" );
