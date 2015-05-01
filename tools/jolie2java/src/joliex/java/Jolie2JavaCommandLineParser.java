@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import jolie.CommandLineException;
 import jolie.CommandLineParser;
-import joliex.java.formatExeption;
 
 public class Jolie2JavaCommandLineParser extends CommandLineParser {
 
@@ -13,8 +12,7 @@ public class Jolie2JavaCommandLineParser extends CommandLineParser {
     private String targetPort;
     private boolean addSource = false;
 
-    public String getPackageName()
-	    throws formatExeption {
+    public String getPackageName() {
 	return packageName;
     }
 
