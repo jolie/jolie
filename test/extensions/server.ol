@@ -30,6 +30,15 @@ Protocol: sodep
 Interfaces: ServerInterface
 }
 
+outputPort SODEPSServer {
+Location: Location_SODEPSServer
+Protocol: sodeps {
+	.ssl.trustStore = "extensions/private/client.jks";
+	.ssl.trustStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 outputPort SOAPServer {
 Location: Location_SOAPServer
 Protocol: soap {
@@ -60,12 +69,28 @@ Protocol: http {
 Interfaces: ServerInterface
 }
 
+outputPort HTTPSServer {
+Location: Location_HTTPSServer
+Protocol: https {
+	.method -> method;
+	.method.queryFormat = "json";
+	.format -> format;
+	.compression -> compression;
+	.requestCompression -> requestCompression;
+	.ssl.trustStore = "extensions/private/client.jks";
+	.ssl.trustStorePassword = KeystorePassword
+}
+Interfaces: ServerInterface
+}
+
 embedded {
 Jolie:
 	"private/sodep_server.ol",
+	"private/sodeps_server.ol",
 	"private/soap_server.ol",
 	"private/jsonrpc_server.ol",
-	"private/http_server2.ol"
+	"private/http_server2.ol",
+	"private/https_server.ol"
 }
 
 define checkResponse
@@ -83,6 +108,9 @@ define test
 	echoPerson@SODEPServer( person )( response );
 	identity@SODEPServer( reqVal )( response2 );
 	checkResponse;
+	echoPerson@SODEPSServer( person )( response );
+	identity@SODEPSServer( reqVal )( response2 );
+	checkResponse;
 
 	echoPerson@SOAPServer( person )( response );
 	identity@SOAPServer( reqVal )( response2 );
@@ -97,13 +125,23 @@ define test
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
+// FIXME: does not work
+//	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
+	checkResponse;
 	format = "json";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
+	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
+	checkResponse;
 	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
+	checkResponse;
+	echoPerson@HTTPSServer( person )( response );
+	identity@HTTPSServer( reqVal )( response2 );
 	checkResponse
 }
 
@@ -139,8 +177,10 @@ define doTest
 		test;
 
 		shutdown@SODEPServer();
+		shutdown@SODEPSServer();
 		shutdown@SOAPServer();
 		shutdown@JSONRPCServer();
-		shutdown@HTTPServer()
+		shutdown@HTTPServer();
+		shutdown@HTTPSServer()
 	}
 }
