@@ -31,7 +31,6 @@ public class JolieDummyCommandLineParser extends CommandLineParser
 	private String nameOperation;
 
 	public String getNameOperation()
-		throws FormatException
 	{
 		return nameOperation;
 	}

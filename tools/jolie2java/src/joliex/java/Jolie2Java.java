@@ -56,8 +56,6 @@ public class Jolie2Java {
                 System.out.print("type not yet implemented");
             }
 
-        } catch (formatExeption ex) {
-            Logger.getLogger(Jolie2Java.class.getName()).log(Level.SEVERE, null, ex);
         } catch (CommandLineException e) {
             System.out.println(e.getMessage());
         } catch (IOException e) {

@@ -33,15 +33,11 @@ public class Jolie2Wsdl {
             ProgramInspector inspector = ParsingUtils.createInspector(program);
 
             WSDLDocCreator document = new WSDLDocCreator(inspector, program.context().source());
-            try {
-                String outfile = cmdParser.getOutputFile();
-                String tns = cmdParser.getTns();
-                String portName = cmdParser.getPortName();
-                String address = cmdParser.getAddress();
-                document.ConvertDocument(outfile, tns, portName, address );
-            } catch (Jolie2WsdlException e) {
-                System.out.println(e.getMessage());
-            }
+            String outfile = cmdParser.getOutputFile();
+            String tns = cmdParser.getTns();
+            String portName = cmdParser.getPortName();
+            String address = cmdParser.getAddress();
+            document.ConvertDocument(outfile, tns, portName, address );
         } catch (CommandLineException ex) {
             Logger.getLogger(Jolie2Wsdl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException e) {

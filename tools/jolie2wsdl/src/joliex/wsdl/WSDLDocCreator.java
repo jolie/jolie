@@ -128,7 +128,7 @@ public class WSDLDocCreator {
         return localDef;
     }
 
-    public void ConvertDocument(String filename, String tns, String portName, String location) throws Jolie2WsdlException {
+    public void ConvertDocument(String filename, String tns, String portName, String location) {
         System.out.println("Starting conversion...");
 
         this.tns = tns + ".wsdl";
