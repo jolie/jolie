@@ -49,6 +49,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -186,7 +187,7 @@ public class JavaDocumentCreator {
                 subclass = new Vector<TypeDefinition>();
                 subtypePresent = false;
                 counterSubClass = 0;
-                String nameFile = this.directoryPath + "\\" + typeEntry.getKey() + ".java";
+                String nameFile = directoryPath + Constants.fileSeparator + typeEntry.getKey() + ".java";
                 Writer writer;
                 try {
                     writer = new BufferedWriter(new FileWriter(nameFile));
@@ -311,7 +312,7 @@ public class JavaDocumentCreator {
 	    TransformerFactory transformerFactory = TransformerFactory.newInstance();
 	    Transformer transformer = transformerFactory.newTransformer();
 	    DOMSource source = new DOMSource(doc);
-	    StreamResult streamResult = new StreamResult(new File(".\\build.xml"));
+	    StreamResult streamResult = new StreamResult(new File("build.xml"));
 	    transformer.transform(source, streamResult);
 	} catch (ParserConfigurationException ex) {
 	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
@@ -328,9 +329,9 @@ public class JavaDocumentCreator {
 	File f = new File(".");
 
 	try {
-	    directoryPath = f.getCanonicalPath() + "\\src";
+	    directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "src";
 	    for (int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++) {
-		directoryPath += "\\" + directoriesComponents[counterDirectories];
+		directoryPath += Constants.fileSeparator + directoriesComponents[counterDirectories];
 	    }
 	    f = new File(directoryPath);
 	    f.mkdirs();
