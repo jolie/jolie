@@ -41,9 +41,13 @@ service Srv {
 
 define doTest
 {
-	op@Srv(21);
-	op2@Srv(21)(x);
+	op2@Srv(0)(x);
 	if ( x != 42 ) {
 		throw( TestFailed, "Unexpected result" )
 	};
+	op@Srv(10);
+	op2@Srv(10)(x);
+	if ( x != 20 ) {
+		throw( TestFailed, "Unexpected result" )
+	}
 }
