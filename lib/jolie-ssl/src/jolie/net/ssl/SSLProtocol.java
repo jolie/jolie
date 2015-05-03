@@ -1,5 +1,6 @@
 /***************************************************************************
  *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -72,17 +73,66 @@ public class SSLProtocol extends SequentialCommProtocol
 
 	private class SSLInputStream extends InputStream
 	{
+		@Override
 		public int read()
 			throws IOException
 		{
-			return SSLProtocol.this.read();
+			handshakeIfNeeded();
+
+			if ( clearInputBuffer.position() < clearInputBuffer.limit() ) {
+				return clearInputBuffer.get();
+			}
+
+			unwrapFromInputStream( false );
+			return clearInputBuffer.get();
 		}
+
+		@Override
+		public int read( byte[] b, int off, int len )
+			throws IOException
+		{
+			// in this case it is the best to use InputStream's method, which calls read()
+			return super.read( b, off, len );
+		}
+
+		@Override
+		public long skip( long n )
+			throws IOException
+		{
+			if ( n <= 0 ) {
+				return 0;
+			}
+
+			long skipped = 0;
+			while ( skipped < n && clearInputBuffer.position() < clearInputBuffer.limit() ) {
+				clearInputBuffer.get();
+				++skipped;
+			}
+			return skipped;
+		}
+
+		@Override
+		public int available()
+			throws IOException
+		{
+			return clearInputBuffer.limit() - clearInputBuffer.position();
+		}
+
+		// close() not necessary, does nothing
 	}
 
 	private class SSLOutputStream extends OutputStream
 	{
 		private final ByteArrayOutputStream internalStreamBuffer = new ByteArrayOutputStream();
 
+		private void writeCache()
+			throws IOException
+		{
+			SSLProtocol.this.write( ByteBuffer.wrap( internalStreamBuffer.toByteArray() ) );
+			internalStreamBuffer.reset();
+		}
+
+		@Override
 		public void write( int b )
 			throws IOException
 		{
@@ -90,14 +140,16 @@ public class SSLProtocol extends SequentialCommProtocol
 			if ( internalStreamBuffer.size() >= MAX_SSL_CONTENT_SIZE ) {
 				writeCache();
 			}
-			//SSLProtocol.this.write( ByteBuffer.wrap( new byte[] { (byte)b } ) );
 		}
 
-		public void writeCache()
+		@Override
+		public void write( byte[] b, int off, int len )
 			throws IOException
 		{
-			SSLProtocol.this.write( ByteBuffer.wrap( internalStreamBuffer.toByteArray() ) );
-			internalStreamBuffer.reset();
+			internalStreamBuffer.write( b, off, len );
+			if ( internalStreamBuffer.size() >= MAX_SSL_CONTENT_SIZE ) {
+				writeCache();
+			}
 		}
 
 		@Override
@@ -107,6 +159,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			writeCache();
 			SSLProtocol.this.flushOutputStream();
 		}
+
+		// close() not necessary, does nothing
 	}
 
 	private class SSLResult
@@ -125,6 +179,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		}
 	}
 
+	@Override
 	public String name()
 	{
 		return wrappedProtocol.name() + "s";
@@ -286,6 +341,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		}
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
@@ -300,19 +356,6 @@ public class SSLProtocol extends SequentialCommProtocol
 		InputStream sslInputStream = new SSLInputStream();
 		wrappedProtocol.send( sslOutputStream, message, sslInputStream );
 		sslOutputStream.writeCache();
-	}
-
-	private int read()
-		throws IOException
-	{
-		handshakeIfNeeded();
-
-		if ( clearInputBuffer.position() < clearInputBuffer.limit() ) {
-			return clearInputBuffer.get();
-		}
-
-		unwrapFromInputStream( false );
-		return clearInputBuffer.get();
 	}
 
 	private void handshakeIfNeeded()
@@ -418,6 +461,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		outputStream.flush();
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
