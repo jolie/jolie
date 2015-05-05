@@ -127,21 +127,21 @@ define test
 	checkResponse;
 // FIXME: does not work
 //	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	checkResponse;
+	//identity@HTTPSServer( reqVal )( response2 );
+	//checkResponse;
 	format = "json";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
-	checkResponse;
+	//echoPerson@HTTPSServer( person )( response );
+	//identity@HTTPSServer( reqVal )( response2 );
+	//checkResponse;
 	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
-	echoPerson@HTTPSServer( person )( response );
-	identity@HTTPSServer( reqVal )( response2 );
+	//echoPerson@HTTPSServer( person )( response );
+	//identity@HTTPSServer( reqVal )( response2 );
 	checkResponse
 }
 
