@@ -663,6 +663,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
             SOAPMessage soapMessage = messageFactory.createMessage();
             soapMessage.setProperty(SOAPMessage.WRITE_XML_DECLARATION, "true");
+            soapMessage.setProperty(SOAPMessage.CHARACTER_SET_ENCODING, "utf-8");
             SOAPEnvelope soapEnvelope = soapMessage.getSOAPPart().getEnvelope();
             setOutputEncodingStyle(soapEnvelope, message.operationName());
             SOAPBody soapBody = soapEnvelope.getBody();
