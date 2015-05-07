@@ -8,7 +8,7 @@ import jolie.CommandLineParser;
 public class Jolie2WsdlCommandLineParser extends CommandLineParser {
 
     private String portName;
-    private String tns;
+    private String namespace;
     private String address;
     private String outputFile;
 
@@ -20,10 +20,10 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
         return address;
     }
 
-    public String getTns() {
-        return tns;
+    public String getNamespace() {
+        return namespace;
     }
-    
+
     public String getOutputFile() {
         return outputFile;
     }
@@ -31,22 +31,22 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
     private static class JolieDummyArgumentHandler implements CommandLineParser.ArgumentHandler {
 
         private String portName;
-        private String tns;
+        private String namespace;
         private String address;
         private String outputFile;
-            
+
         public int onUnrecognizedArgument(List< String> argumentsList, int index)
                 throws CommandLineException {
-            if ("--tns".equals(argumentsList.get(index))) {
+            if ("--namespace".equals(argumentsList.get(index))) {
                 index++;
-                tns = argumentsList.get(index);
-            } else if ("--pN".equals(argumentsList.get(index))) {
+                namespace = argumentsList.get(index);
+            } else if ("--portName".equals(argumentsList.get(index))) {
                 index++;
                 portName = argumentsList.get(index);
-            } else if ("--addr".equals(argumentsList.get(index))) {
+            } else if ("--portAddr".equals(argumentsList.get(index))) {
                 index++;
                 address = argumentsList.get(index);
-            } else if ("--oF".equals(argumentsList.get(index))) {
+            } else if ("--o".equals(argumentsList.get(index))) {
                 index++;
                 outputFile = argumentsList.get(index);
             } else {
@@ -68,13 +68,13 @@ public class Jolie2WsdlCommandLineParser extends CommandLineParser {
 
         portName = argHandler.portName;
         address = argHandler.address;
-        tns = argHandler.tns;
+        namespace = argHandler.namespace;
         outputFile = argHandler.outputFile;
     }
 
-    
+
     @Override
     protected String getHelpString() {
-        return "Usage: jolie2wsdl --tns target_name_space --pN name_of_the_port --addr address_string --oF output_filename file.ol";
+        return "Usage: jolie2wsdl --namespace target_name_space --portName name_of_the_port --portAddr address_string --o output_filename file.ol";
     }
 }

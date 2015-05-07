@@ -34,7 +34,7 @@ public class Jolie2Wsdl {
 
             WSDLDocCreator document = new WSDLDocCreator(inspector, program.context().source());
             String outfile = cmdParser.getOutputFile();
-            String tns = cmdParser.getTns();
+            String tns = cmdParser.getNamespace();
             String portName = cmdParser.getPortName();
             String address = cmdParser.getAddress();
             document.ConvertDocument(outfile, tns, portName, address );
