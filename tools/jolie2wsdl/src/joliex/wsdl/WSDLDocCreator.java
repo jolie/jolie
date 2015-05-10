@@ -19,8 +19,10 @@ package joliex.wsdl;
 
 import com.ibm.wsdl.PortTypeImpl;
 import com.ibm.wsdl.ServiceImpl;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
@@ -118,7 +120,7 @@ public class WSDLDocCreator {
             localDef.addNamespace(NameSpacesEnum.XML_SCH.getNameSpacePrefix(), NameSpacesEnum.XML_SCH.getNameSpaceURI());
             localDef.setTargetNamespace(tns);
             localDef.addNamespace("xsd1", tns_schema);
-            fw = new FileWriter(filename);
+            fw = new BufferedWriter(filename != null ? new FileWriter(filename) : new OutputStreamWriter(System.out));
         } catch (IOException ex) {
             Logger.getLogger(WSDLDocCreator.class.getName()).log(Level.SEVERE, null, ex);
         } catch (WSDLException ex) {
