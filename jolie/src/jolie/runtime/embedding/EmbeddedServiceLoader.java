@@ -22,12 +22,13 @@
 
 package jolie.runtime.embedding;
 
+import jolie.Interpreter;
+import jolie.lang.Constants;
+import jolie.net.CommChannel;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 import jolie.runtime.embedding.js.JavaScriptServiceLoader;
 import jolie.runtime.expression.Expression;
-import jolie.runtime.*;
-import jolie.lang.Constants;
-import jolie.Interpreter;
-import jolie.net.CommChannel;
 
 public abstract class EmbeddedServiceLoader
 {
