@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -288,7 +287,7 @@ public class CommCore
 	}
 	
 	private final Map< String, CommChannelFactory > channelFactories =
-						new ConcurrentHashMap< String, CommChannelFactory > ();
+						new HashMap< String, CommChannelFactory > ();
 
 	private CommChannelFactory getCommChannelFactory( String name )
 		throws IOException
@@ -316,7 +315,7 @@ public class CommCore
 	}
 	
 	private final Map< String, CommProtocolFactory > protocolFactories =
-						new ConcurrentHashMap< String, CommProtocolFactory > ();
+						new HashMap< String, CommProtocolFactory > ();
 	
 	public CommProtocolFactory getCommProtocolFactory( String name )
 		throws IOException
@@ -354,7 +353,7 @@ public class CommCore
 	}
 	
 	private final Map< String, CommListenerFactory > listenerFactories =
-						new ConcurrentHashMap< String, CommListenerFactory > ();
+						new HashMap< String, CommListenerFactory > ();
 
 	private final LocalListener localListener;
 

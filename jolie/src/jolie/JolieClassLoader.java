@@ -40,6 +40,8 @@ import jolie.net.ext.CommProtocolFactory;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.CanUseJars;
 import jolie.runtime.JavaService;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 
 /**
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
@@ -52,6 +54,7 @@ public class JolieClassLoader extends URLClassLoader
 	private final Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
 	private final Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
 	private final Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
+	private final Map< String, String > embeddingExtensionClassNames = new HashMap< String, String >();
 
 	private void init( URL[] urls )
 		throws IOException
@@ -149,6 +152,42 @@ public class JolieClassLoader extends URLClassLoader
 		checkForJolieAnnotations( c );
 		return c;
 	}
+	
+	/**
+	 * Creates and returns an {@link EmbeddedServiceLoader}, selecting it
+	 * from the built-in and externally loaded Jolie extensions.
+	 * @param name
+	 * @param interpreter
+	 * @return 
+	 * @throws java.io.IOException 
+	 */
+	public synchronized EmbeddedServiceLoaderFactory createEmbeddedServiceLoaderFactory( String name, Interpreter interpreter )
+		throws IOException
+	{
+		EmbeddedServiceLoaderFactory factory = null;
+		String className = embeddingExtensionClassNames.get( name );
+		if ( className != null ) {
+			try {
+				Class<?> c = loadExtensionClass( className );
+				if ( EmbeddedServiceLoaderFactory.class.isAssignableFrom( c ) ) {
+					Class< ? extends EmbeddedServiceLoaderFactory > fClass = (Class< ? extends EmbeddedServiceLoaderFactory >)c;
+					factory = fClass.getConstructor().newInstance();
+				}
+			} catch( ClassNotFoundException e ) {
+				throw new IOException( e );
+			} catch( InstantiationException e ) {
+				throw new IOException( e );
+			} catch( IllegalAccessException e ) {
+				throw new IOException( e );
+			} catch( NoSuchMethodException e ) {
+				throw new IOException( e );
+			} catch( InvocationTargetException e ) {
+				throw new IOException( e );
+			}
+		}
+
+		return factory;
+	}
 
 	/**
 	 * Creates and returns a <code>CommChannelFactory</code>, selecting it
@@ -194,6 +233,20 @@ public class JolieClassLoader extends URLClassLoader
 			String[] pair = extensionSplitPattern.split( extension );
 			if ( pair.length == 2 ) {
 				channelExtensionClassNames.put( pair[0], pair[1] );
+			} else {
+				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+			}
+		}
+	}
+	
+	private void checkForEmbeddingExtension( Attributes attrs )
+		throws IOException
+	{
+		String extension = attrs.getValue( Constants.Manifest.EmbeddingExtension );
+		if ( extension != null ) {
+			String[] pair = extensionSplitPattern.split( extension );
+			if ( pair.length == 2 ) {
+				embeddingExtensionClassNames.put( pair[0], pair[1] );
 			} else {
 				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
 			}
@@ -309,6 +362,7 @@ public class JolieClassLoader extends URLClassLoader
 			checkForChannelExtension( attrs );
 			checkForListenerExtension( attrs );
 			checkForProtocolExtension( attrs );
+			checkForEmbeddingExtension( attrs );
 		}
 	}
 	
