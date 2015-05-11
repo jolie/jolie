@@ -41,6 +41,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,6 +88,7 @@ import jolie.runtime.correlation.CorrelationEngine;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
@@ -1191,23 +1193,23 @@ public class Interpreter
 			}
 			
 			cmdParser.close();
-      check = cmdParser.check();
-         
-      SemanticVerifier semanticVerifier = null;
-      
-      if ( check ){
-          SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
-          conf.setCheckForMain( false );
-          semanticVerifier = new SemanticVerifier( program, conf );
-      } else {
-          semanticVerifier = new SemanticVerifier( program );
-      }
-			
+			check = cmdParser.check();
+
+			SemanticVerifier semanticVerifier = null;
+
+			if ( check ) {
+				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+				conf.setCheckForMain( false );
+				semanticVerifier = new SemanticVerifier( program, conf );
+			} else {
+				semanticVerifier = new SemanticVerifier( program );
+			}
+
 			try {
-				semanticVerifier.validate(); 
+				semanticVerifier.validate();
 			} catch( SemanticException e ) {
 				logger.severe( e.getErrorMessages() );
-				throw new InterpreterException( "Exiting"  );
+				throw new InterpreterException( "Exiting" );
 			}
 
 			if ( cmdParser.typeCheck() ) {
@@ -1220,8 +1222,8 @@ public class Interpreter
 					throw new InterpreterException( "Exiting" );
 				}
 			}
-                        
-			if ( cmdParser.check() ){
+
+			if ( cmdParser.check() ) {
 				return false;
 			} else {
 				return (new OOITBuilder(
@@ -1229,9 +1231,9 @@ public class Interpreter
 					program,
 					semanticVerifier.isConstantMap(),
 					semanticVerifier.correlationFunctionInfo() ))
-				.build();
+					.build();
 			}
-			
+
 		} catch( IOException e ) {
 			throw new InterpreterException( e );
 		} catch( ParserException e ) {
@@ -1359,5 +1361,21 @@ public class Interpreter
 		if ( isMonitoring() ) {
 			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
 		}
+	}
+	
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories =
+		new ConcurrentHashMap< String, EmbeddedServiceLoaderFactory > ();
+	
+	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
+		throws IOException
+	{
+		EmbeddedServiceLoaderFactory factory = embeddingFactories.get( name );
+		if ( factory == null ) {
+			factory = getClassLoader().createEmbeddedServiceLoaderFactory( name, this );
+			if ( factory != null ) {
+				embeddingFactories.put( name, factory );
+			}
+		}
+		return factory;
 	}
 }

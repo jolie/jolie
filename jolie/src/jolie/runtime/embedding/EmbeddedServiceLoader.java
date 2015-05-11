@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2007-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -27,12 +27,11 @@ import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.runtime.embedding.js.JavaScriptServiceLoader;
 import jolie.runtime.expression.Expression;
 
 public abstract class EmbeddedServiceLoader
 {
-	final private Expression channelDest;
+	private final Expression channelDest;
 
 	protected EmbeddedServiceLoader( Expression channelDest )
 	{
@@ -53,8 +52,13 @@ public abstract class EmbeddedServiceLoader
 				ret = new JavaServiceLoader( channelDest, servicePath, interpreter );
 			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
 				ret = new JolieServiceLoader( channelDest, interpreter, servicePath );
-			} else if ( type == Constants.EmbeddedServiceType.JAVASCRIPT ) {
-				ret = new JavaScriptServiceLoader( channelDest, servicePath );
+			} else { // Check if we have an extension to load the service
+				String serviceType = type.toString();
+				EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
+				if ( factory == null ) {
+					throw new EmbeddedServiceLoaderCreationException( "Could not find extension to load services of type " + serviceType );
+				}
+				ret = factory.createLoader( interpreter, serviceType, servicePath, channelDest );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
@@ -100,6 +104,6 @@ public abstract class EmbeddedServiceLoader
 		}
 	}
 	
-	abstract public void load()
+	public abstract void load()
 		throws EmbeddedServiceLoadingException;
 }
