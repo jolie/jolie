@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime.embedding;
+package jolie.runtime.embedding.js;
 
 import java.io.IOException;
 import java.util.Map;

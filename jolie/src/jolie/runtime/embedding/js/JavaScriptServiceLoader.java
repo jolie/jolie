@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.runtime.embedding;
+package jolie.runtime.embedding.js;
 
 import jolie.runtime.expression.Expression;
 import java.io.FileNotFoundException;
@@ -31,6 +31,8 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 
 /**
  *
