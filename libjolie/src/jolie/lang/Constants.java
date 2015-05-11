@@ -21,7 +21,6 @@
 
 package jolie.lang;
 
-import java.nio.charset.Charset;
 import jolie.lang.parse.Scanner;
 import jolie.util.Range;
 
@@ -39,6 +38,7 @@ public final class Constants
 		public final static String ChannelExtension = "X-JOLIE-ChannelExtension";
 		public final static String ListenerExtension = "X-JOLIE-ListenerExtension";
 		public final static String ProtocolExtension = "X-JOLIE-ProtocolExtension";
+		public final static String EmbeddingExtension = "X-JOLIE-EmbeddingExtension";
 
 		// JAP Manifest
 		public final static String MainProgram = "X-JOLIE-Main-Program";
@@ -120,7 +120,20 @@ public final class Constants
 
 	public enum EmbeddedServiceType
 	{
-		JOLIE, JAVA, JAVASCRIPT, UNSUPPORTED
+		JOLIE("Jolie"), JAVA("Java"), JAVASCRIPT("JavaScript"), UNSUPPORTED("Unsupported");
+		
+		private final String str;
+		
+		EmbeddedServiceType( String str )
+		{
+			this.str = str;
+		}
+
+		@Override
+		public String toString()
+		{
+			return str;
+		}
 	}
 
 	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
