@@ -22,6 +22,7 @@
 
 package jolie.runtime.embedding;
 
+import jolie.runtime.embedding.js.JavaScriptServiceLoader;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.*;
 import jolie.lang.Constants;
