@@ -29,12 +29,14 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.runtime.expression.Expression;
 
 /**
- *
+ * An embedding extension for JavaScript programs.
+ * 
  * @author Fabrizio Montesi
  */
 @AndJarDeps({"jolie-js.jar"})
 public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory
 {
+	@Override
 	public EmbeddedServiceLoader createLoader( Interpreter interpreter, String type, String servicePath, Expression channelDest )
 		throws EmbeddedServiceLoaderCreationException
 	{
