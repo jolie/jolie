@@ -58,6 +58,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		return new JavaScriptCommChannel( invocable, json );
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
@@ -106,30 +107,12 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		messages.put( message.id(), response );
 	}
 	
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
 		throw new IOException( "Unsupported operation" );
 	}
-
-	/* protected CommMessage recvImpl()
-		throws IOException
-	{
-		CommMessage ret = null;
-		synchronized( messages ) {
-			while( messages.isEmpty() ) {
-				try {
-					messages.wait();
-				} catch( InterruptedException e ) {}
-			}
-			ret = messages.remove( 0 );
-		}
-		if ( ret == null ) {
-			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
-		}
-		return ret;
-	}
-	*/
 	
 	@Override
 	public CommMessage recvResponseFor( CommMessage request )
@@ -145,9 +128,11 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
+	@Override
 	protected void closeImpl()
 	{}
 
+	@Override
 	public boolean isReady()
 	{
 		return( !messages.isEmpty() );
