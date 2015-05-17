@@ -26,6 +26,7 @@ import jolie.runtime.expression.Expression;
 import jolie.runtime.*;
 import jolie.lang.Constants;
 import jolie.Interpreter;
+import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 
 public abstract class EmbeddedServiceLoader
@@ -53,7 +54,9 @@ public abstract class EmbeddedServiceLoader
 				ret = new JolieServiceLoader( channelDest, interpreter, servicePath );
 			} else if ( type == Constants.EmbeddedServiceType.JAVASCRIPT ) {
 				ret = new JavaScriptServiceLoader( channelDest, servicePath );
-			}
+			} else if ( type == Constants.EmbeddedServiceType.INTERNAL ) {
+                throw new EmbeddedServiceLoaderCreationException( "Use createInternalServiceLoader() instead" );
+            }
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
@@ -75,7 +78,7 @@ public abstract class EmbeddedServiceLoader
 	{
 		return createLoader( interpreter, type, servicePath, channelValue );
 	}
-	
+
 	public static EmbeddedServiceLoader create(
 				Interpreter interpreter,
 				Constants.EmbeddedServiceType type,
@@ -85,8 +88,26 @@ public abstract class EmbeddedServiceLoader
 		throws EmbeddedServiceLoaderCreationException
 	{
 		return createLoader( interpreter, type, servicePath, channelPath );
-	}
-	
+    }
+    
+    public static EmbeddedServiceLoader createInternalServiceLoader(
+        Interpreter interpreter,
+        Constants.EmbeddedServiceType type,
+        String servicePath,
+        Program program,
+        Expression channelDest
+    ) throws EmbeddedServiceLoaderCreationException {
+        InternalJolieServiceLoader internalJolieServiceLoader = null;
+
+        try {
+            internalJolieServiceLoader = new InternalJolieServiceLoader(channelDest, interpreter, program);
+        } catch (Exception e) {
+            throw new EmbeddedServiceLoaderCreationException(e);
+        }
+
+        return internalJolieServiceLoader;
+    }
+
 	protected void setChannel( CommChannel channel )
 	{
 		if ( channelDest != null ) {

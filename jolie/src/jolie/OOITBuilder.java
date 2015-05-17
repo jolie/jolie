@@ -124,6 +124,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.lang.parse.util.VisualizeAST;
 import jolie.net.AggregatedOperation;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
@@ -307,13 +308,13 @@ public class OOITBuilder implements OLVisitor
 	 */
 	public boolean build()
 	{
-		visit( program );
+        visit( program );
 		checkForInit();
 		resolveTypeLinks();
 		lazyVisits();
 		buildCorrelationSets();
 		
-		return valid;
+        return valid;
 	}
 	
 	private void lazyVisits()
@@ -465,13 +466,24 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException iie ) {}
 
 		try {
-			interpreter.addEmbeddedServiceLoader(
-				EmbeddedServiceLoader.create(
-						interpreter,
-						n.type(),
-						n.servicePath(),
-						path
-						) );
+            if (n.type().equals(Constants.EmbeddedServiceType.INTERNAL)) {
+                interpreter.addEmbeddedServiceLoader(
+                    EmbeddedServiceLoader.createInternalServiceLoader(
+                        interpreter,
+                        n.type(),
+                        n.servicePath(),
+                        (Program) n.children().get(0),
+                        path
+                    ));
+            } else {
+                interpreter.addEmbeddedServiceLoader(
+                    EmbeddedServiceLoader.create(
+                        interpreter,
+                        n.type(),
+                        n.servicePath(),
+                        path
+                    ));
+            }
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
 		}

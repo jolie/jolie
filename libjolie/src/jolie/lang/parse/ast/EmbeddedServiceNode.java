@@ -21,6 +21,8 @@
 
 package jolie.lang.parse.ast;
 
+import java.util.ArrayList;
+import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
@@ -30,6 +32,8 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 	private final String servicePath;
 	private final String portId;
 	private final Constants.EmbeddedServiceType type;
+    
+    private final List< OLSyntaxNode > children = new ArrayList< OLSyntaxNode > ();
 	
 	public EmbeddedServiceNode(
 			ParsingContext context,
@@ -58,6 +62,16 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 		return portId;
 	}
 	
+    public void addChild( OLSyntaxNode node )
+	{
+		children.add( node );
+	}
+	
+	public List< OLSyntaxNode > children()
+	{
+		return children;
+	}
+    
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

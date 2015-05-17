@@ -188,7 +188,6 @@ public class OLParser extends AbstractParser
 		if ( main != null ) {
 			program.addChild( main );
 		}
-
 		return program;
 	}
 
@@ -198,7 +197,7 @@ public class OLParser extends AbstractParser
 		getToken();
 		Scanner.Token t;
 		do {
-			t = token;
+     		t = token;
 			parseInclude();
 			parseConstants();
 			parseInclude();
@@ -206,12 +205,14 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseCorrelationSets();
 			parseInclude();
-			parseTypes();
+            parseTypes();
 			parseInclude();
 			parseInterfaceOrPort();
 			parseInclude();
 			parseEmbedded();
 			parseInclude();
+            parseInternalService();
+            parseInclude();
 			parseCode();
 		} while( t != token );
 
@@ -811,8 +812,159 @@ public class OLParser extends AbstractParser
 				node = null;
 			}
 		}
-	}
+    }
 
+    private OutputPortInfo createInternalServicePort(String name, List< InterfaceDefinition> interfaceList)
+        throws ParserException {
+         InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + name );
+       
+        OutputPortInfo p = new OutputPortInfo(getContext(), name);
+        for (InterfaceDefinition interfaceDefinition : interfaceList) {
+            p.addInterface(interfaceDefinition);
+            interfaceDefinition.copyTo(iface);
+        }
+        iface.copyTo( p );
+        return p;
+    }
+    
+    private InputPortInfo createInternalServiceInputPort(String serviceName, List< InterfaceDefinition > interfaceList)
+        throws ParserException
+    {
+        InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + serviceName );
+        OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
+        InputPortInfo iport = null;
+        try {
+            iport = new InputPortInfo(
+                getContext(),
+                serviceName + "InputPort", //input port name
+                new URI( Constants.LOCAL_LOCATION_KEYWORD ),
+                null,
+                protocolConfiguration,
+                new InputPortInfo.AggregationItemInfo[] {},
+                new HashMap<String, String>() );
+            
+            for( InterfaceDefinition i : interfaceList ) {
+            	iport.addInterface( i );
+                i.copyTo(iface);
+        	}                    
+    		iface.copyTo( iport );
+        } catch (URISyntaxException e) {
+             throwException( e );
+        }
+        return iport;
+    }
+    
+    /**
+     * Parses an internal service, i.e. service service_name {}
+     * 
+     * @throws IOException
+     * @throws ParserException 
+     */
+    private void parseInternalService()
+        throws IOException, ParserException
+    {
+        //only proceed if a service declaration
+        if (!token.isKeyword("service")) return;
+             
+        //variables
+        String serviceName;
+        
+        InterfaceDefinition iface;
+        List< InterfaceDefinition > interfaceList;
+		
+		//get service name
+        getToken();
+        assertToken(Scanner.TokenType.ID, "expected service name");
+        serviceName = token.content();
+        
+        //initialize internal interface and interface list
+        iface = new InterfaceDefinition( getContext(), "Internal interface for: " + serviceName );
+        interfaceList = new ArrayList< InterfaceDefinition >();
+        
+        
+        getToken();
+        eat(Scanner.TokenType.LCURLY, "{ expected");
+        
+        EmbeddedServiceNode internalServiceNode = 
+            new EmbeddedServiceNode(getContext(), Constants.EmbeddedServiceType.INTERNAL, null, serviceName);
+        
+        
+        OLSyntaxNode internal_main = null;
+        SequenceStatement internal_init = null;
+        
+        boolean keepRunning = true;
+        while ( keepRunning ) {
+            if ( token.isKeyword( "Interfaces" ) ) {
+                getToken();
+                eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
+                parseInterfaceList(iface, interfaceList);
+            }
+            else if ( token.isKeyword( "main" ) ) {
+				if ( internal_main != null ) {
+					throwException( "you must specify only one main definition" );
+				}
+
+				internal_main = parseMain();
+			} else if ( token.is( Scanner.TokenType.INIT ) ) {
+				if ( internal_init == null ) {
+					internal_init = new SequenceStatement( getContext() );
+				}
+
+				internal_init.addChild(parseInit());
+            }
+            else if (token.is(Scanner.TokenType.RCURLY)) {
+                keepRunning = false;
+            }
+            else {
+                throwException( "Unrecognized token in inline service." );
+            }
+        }
+        
+        eat(Scanner.TokenType.RCURLY, "} expected");
+        
+        if ( internal_main == null ) {
+            throwException( "You must specify a main for internal service " + serviceName );
+        }
+        
+      
+        Program internalServiceProgram = new Program(getContext());
+
+        for ( OLSyntaxNode child : program.children()) {
+            if ( child instanceof TypeInlineDefinition ||
+                child instanceof InterfaceDefinition ||
+                child instanceof OutputPortInfo ||
+                child instanceof EmbeddedServiceNode)
+            {
+               internalServiceProgram.addChild(child);
+            }
+        }
+         
+        internalServiceProgram.addChild(new ExecutionInfo(getContext(), Constants.ExecutionMode.CONCURRENT));
+
+        internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
+        
+        for ( InterfaceDefinition interfaceDefinition : interfaceList ) {
+            internalServiceProgram.addChild(interfaceDefinition);
+        }
+        //add input port to internal service
+        internalServiceProgram.addChild(createInternalServiceInputPort(serviceName, interfaceList));
+        internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
+        if ( internal_init != null ) {
+            internalServiceProgram.addChild(internal_init);
+            internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
+        }
+        internalServiceProgram.addChild(internal_main);
+        
+       
+        
+        //add output port to main program
+        program.addChild(createInternalServicePort(serviceName, interfaceList));
+        
+        
+        internalServiceNode.addChild(internalServiceProgram);
+        program.addChild(internalServiceNode);
+    }
+    
 	private InputPortInfo parseInputPortInfo()
 		throws IOException, ParserException
 	{
@@ -855,24 +1007,7 @@ public class OLParser extends AbstractParser
 			} else if ( token.isKeyword( "Interfaces" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
-				boolean keepRun = true;
-				while( keepRun ) {
-					assertToken( Scanner.TokenType.ID, "expected interface name" );
-					InterfaceDefinition i = interfaces.get( token.content() );
-					if ( i == null ) {
-						throwException( "Invalid interface name: " + token.content() );
-					}
-					i.copyTo( iface );
-					interfaceList.add( i );
-					getToken();
-					
-					if ( token.is( Scanner.TokenType.COMMA ) ) {
-						getToken();
-					} else {
-						keepRun = false;
-					}
-
-				}
+                parseInterfaceList(iface, interfaceList);
 			} else if ( token.isKeyword( "Protocol" ) ) {
 				if ( protocolId != null ) {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
@@ -938,6 +1073,28 @@ public class OLParser extends AbstractParser
 		program.addChild( iport );
 		return iport;
 	}
+    
+    private void parseInterfaceList( InterfaceDefinition iface, List< InterfaceDefinition > interfaceList )
+        throws ParserException, IOException
+    {
+        boolean keepRun = true;
+        while( keepRun ) {
+            assertToken( Scanner.TokenType.ID, "expected interface name" );
+            InterfaceDefinition i = interfaces.get( token.content() );
+            if ( i == null ) {
+                throwException( "Invalid interface name: " + token.content() );
+            }
+            i.copyTo( iface );
+            interfaceList.add( i );
+            getToken();
+
+            if ( token.is( Scanner.TokenType.COMMA ) ) {
+                getToken();
+            } else {
+                keepRun = false;
+            }
+        }
+    }
 	
 	private void parseAggregationList( List< InputPortInfo.AggregationItemInfo > aggregationList )
 		throws ParserException, IOException
