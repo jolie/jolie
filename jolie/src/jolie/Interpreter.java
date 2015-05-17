@@ -21,6 +21,7 @@
 
 package jolie;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,6 +63,7 @@ import jolie.lang.parse.SemanticException;
 import jolie.lang.parse.SemanticVerifier;
 import jolie.lang.parse.TypeChecker;
 import jolie.lang.parse.ast.Program;
+import jolie.lang.parse.util.VisualizeAST;
 import jolie.monitoring.MonitoringEvent;
 import jolie.monitoring.events.MonitorAttachedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -99,6 +101,7 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
+    private Program internalServiceProgram;
 	private class InitSessionThread extends SessionThread
 	{
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
@@ -836,14 +839,23 @@ public class Interpreter
 	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+        this( args, parentClassLoader, programDirectory, false );
+	}
+    
+    public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile)
+		throws CommandLineException, FileNotFoundException, IOException
+	{
 		this.parentClassLoader = parentClassLoader;
-		cmdParser = new CommandLineParser( args, parentClassLoader );
+        
+		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
 		classLoader = cmdParser.jolieClassLoader();
 		optionArgs = cmdParser.optionArgs();
 		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
+        
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+		
+        commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
@@ -872,6 +884,28 @@ public class Interpreter
 		if ( this.programDirectory == null ) {
 			throw new IOException( "Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
 		}
+	}
+    
+    public String getProgramFilename()
+    {
+        return cmdParser.programFilepath().getName();
+    }
+    
+    /** Constructor.
+	 *
+	 * @param args The command line arguments.
+	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
+	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, Program internalServiceProgram )
+		throws CommandLineException, FileNotFoundException, IOException
+	{
+        this( args, parentClassLoader, programDirectory, true );
+        
+        this.internalServiceProgram = internalServiceProgram;
 	}
 
 	/**
@@ -1172,7 +1206,9 @@ public class Interpreter
 	private boolean buildOOIT()
 		throws InterpreterException
 	{
+        
 		try {
+            
 			Program program = null;
 			if ( cmdParser.isProgramCompiled() ) {
 				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
@@ -1182,26 +1218,33 @@ public class Interpreter
 				} else {
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
-			} else {
+			}
+            else if (this.internalServiceProgram != null) {
+                program = this.internalServiceProgram;
+                OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+				program = optimizer.optimize();
+            }
+            else {
 				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
-				olParser.putConstants( cmdParser.definedConstants() );
+                
+                olParser.putConstants( cmdParser.definedConstants() );
 				program = olParser.parse();
-				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+                OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 				program = optimizer.optimize();
 			}
 			
 			cmdParser.close();
-      check = cmdParser.check();
+            check = cmdParser.check();
          
-      SemanticVerifier semanticVerifier = null;
-      
-      if ( check ){
-          SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
-          conf.setCheckForMain( false );
-          semanticVerifier = new SemanticVerifier( program, conf );
-      } else {
-          semanticVerifier = new SemanticVerifier( program );
-      }
+            SemanticVerifier semanticVerifier = null;
+
+            if ( check ){
+                SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
+                conf.setCheckForMain( false );
+                semanticVerifier = new SemanticVerifier( program, conf );
+            } else {
+                semanticVerifier = new SemanticVerifier( program );
+            }
 			
 			try {
 				semanticVerifier.validate(); 

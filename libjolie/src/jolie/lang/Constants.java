@@ -120,7 +120,7 @@ public final class Constants
 
 	public enum EmbeddedServiceType
 	{
-		JOLIE, JAVA, JAVASCRIPT, UNSUPPORTED
+		JOLIE, JAVA, JAVASCRIPT, UNSUPPORTED, INTERNAL
 	}
 
 	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
