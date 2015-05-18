@@ -226,8 +226,6 @@ public class OLParser extends AbstractParser
 		String typeName;
 		TypeDefinition currentType;
 
-		program.addChild( TypeDefinitionUndefined.getInstance() );
-
 		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
 		boolean keepRun = true;
 		boolean haveComment = false;
