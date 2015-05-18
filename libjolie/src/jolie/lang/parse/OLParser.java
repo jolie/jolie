@@ -878,6 +878,7 @@ public class OLParser extends AbstractParser
         serviceName = token.content();
         
         //initialize internal interface and interface list
+        
         iface = new InterfaceDefinition( getContext(), "Internal interface for: " + serviceName );
         interfaceList = new ArrayList< InterfaceDefinition >();
         
@@ -886,7 +887,7 @@ public class OLParser extends AbstractParser
         eat(Scanner.TokenType.LCURLY, "{ expected");
         
         EmbeddedServiceNode internalServiceNode = 
-            new EmbeddedServiceNode(getContext(), Constants.EmbeddedServiceType.INTERNAL, null, serviceName);
+            new EmbeddedServiceNode(getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName);
         
         
         OLSyntaxNode internal_main = null;

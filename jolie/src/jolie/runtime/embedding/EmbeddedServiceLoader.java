@@ -40,29 +40,35 @@ public abstract class EmbeddedServiceLoader
 
 	private static EmbeddedServiceLoader createLoader(
 				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
-				Expression channelDest
+                EmbeddedServiceConfiguration configuration,				
+                Expression channelDest
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
 		EmbeddedServiceLoader ret = null;
 		try {
-			if ( type == Constants.EmbeddedServiceType.JAVA ) {
-				ret = new JavaServiceLoader( channelDest, servicePath, interpreter );
-			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
-				ret = new JolieServiceLoader( channelDest, interpreter, servicePath );
-			} else if ( type == Constants.EmbeddedServiceType.JAVASCRIPT ) {
-				ret = new JavaScriptServiceLoader( channelDest, servicePath );
-			} else if ( type == Constants.EmbeddedServiceType.INTERNAL ) {
-                throw new EmbeddedServiceLoaderCreationException( "Use createInternalServiceLoader() instead" );
+            if ( configuration.isInternal()) {
+                InternalEmbeddedServiceConfiguration internalConfiguration = (InternalEmbeddedServiceConfiguration) configuration;
+                ret = new InternalJolieServiceLoader(channelDest, interpreter, internalConfiguration.getServiceName(), internalConfiguration.getProgram());
+            }
+            else {
+                ExternalEmbeddedServiceConfiguration externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
+                switch(configuration.getType()) {
+                    case JAVA:
+                        ret = new JavaServiceLoader(channelDest, externalConfiguration.getServicePath(), interpreter);
+                        break;
+                    case JOLIE:
+                        ret = new JolieServiceLoader(channelDest, interpreter, externalConfiguration.getServicePath());
+                        break;
+                    case JAVASCRIPT:
+                        ret = new JavaScriptServiceLoader(channelDest, externalConfiguration.getServicePath());
+                        break;
+                    default:
+                        throw new EmbeddedServiceLoaderCreationException( "Invalid embedded service type specified" );
+                } 
             }
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
-		}
-		
-		if ( ret == null ) {
-			throw new EmbeddedServiceLoaderCreationException( "Invalid embedded service type specified" );
 		}
 
 		return ret;
@@ -70,42 +76,22 @@ public abstract class EmbeddedServiceLoader
 	
 	public static EmbeddedServiceLoader create(
 				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
+				EmbeddedServiceConfiguration configuration,
 				Value channelValue
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		return createLoader( interpreter, type, servicePath, channelValue );
+		return createLoader( interpreter, configuration, channelValue );
 	}
 
 	public static EmbeddedServiceLoader create(
 				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
+				EmbeddedServiceConfiguration configuration,
 				VariablePath channelPath
 			)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		return createLoader( interpreter, type, servicePath, channelPath );
-    }
-    
-    public static EmbeddedServiceLoader createInternalServiceLoader(
-        Interpreter interpreter,
-        Constants.EmbeddedServiceType type,
-        String servicePath,
-        Program program,
-        Expression channelDest
-    ) throws EmbeddedServiceLoaderCreationException {
-        InternalJolieServiceLoader internalJolieServiceLoader = null;
-
-        try {
-            internalJolieServiceLoader = new InternalJolieServiceLoader(channelDest, interpreter, program);
-        } catch (Exception e) {
-            throw new EmbeddedServiceLoaderCreationException(e);
-        }
-
-        return internalJolieServiceLoader;
+		return createLoader( interpreter, configuration, channelPath );
     }
 
 	protected void setChannel( CommChannel channel )
@@ -121,4 +107,77 @@ public abstract class EmbeddedServiceLoader
 	
 	abstract public void load()
 		throws EmbeddedServiceLoadingException;
+
+    public static abstract class EmbeddedServiceConfiguration
+    {
+        private final Constants.EmbeddedServiceType type;
+        
+        public EmbeddedServiceConfiguration(Constants.EmbeddedServiceType type)
+        {
+            this.type = type;
+        }
+        
+        public Constants.EmbeddedServiceType getType()
+        {
+            return this.type;
+        }
+        
+        public boolean isInternal()
+        {
+            return this.type.equals(Constants.EmbeddedServiceType.INTERNAL);
+        }
+    }
+    
+    public static class InternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
+    {
+        private final String serviceName;
+        private final Program program;
+
+        /**
+         *
+         * @param serviceName Name of the internal service.
+         * @param program the program containing the service
+         */
+        public InternalEmbeddedServiceConfiguration( String serviceName, Program program)
+        {
+            super(Constants.EmbeddedServiceType.INTERNAL);
+            
+            this.serviceName = serviceName;
+            this.program = program;
+        }
+        
+        public String getServiceName()
+        {
+            return serviceName;
+        }
+
+        public Program getProgram()
+        {
+            return program;
+        }
+    }
+    
+    public static class ExternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
+    {
+        private final String servicePath;
+
+        /**
+         *
+         * @param type Type of embedded service, cannot be INTERNAL
+         * @param servicePath path of service
+         */
+        public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath )
+        {
+            super(type);
+            this.servicePath = servicePath;
+            
+            assert type != Constants.EmbeddedServiceType.INTERNAL;
+        }
+                
+        public String getServicePath()
+        {
+            return servicePath;
+        }
+
+    }
 }

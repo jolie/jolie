@@ -188,6 +188,7 @@ import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoader.EmbeddedServiceConfiguration;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.expression.AndCondition;
 import jolie.runtime.expression.CastBoolExpression;
@@ -465,25 +466,23 @@ public class OOITBuilder implements OLVisitor
 			path = interpreter.getOutputPort( n.portId() ).locationVariablePath();
 		} catch( InvalidIdException iie ) {}
 
-		try {
+        
+     	try {
+            EmbeddedServiceConfiguration embeddedServiceConfiguration;          
             if (n.type().equals(Constants.EmbeddedServiceType.INTERNAL)) {
-                interpreter.addEmbeddedServiceLoader(
-                    EmbeddedServiceLoader.createInternalServiceLoader(
-                        interpreter,
-                        n.type(),
-                        n.servicePath(),
-                        (Program) n.children().get(0),
-                        path
-                    ));
+                embeddedServiceConfiguration = new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration(n.servicePath(),(Program) n.children().get(0));
+                    
             } else {
-                interpreter.addEmbeddedServiceLoader(
-                    EmbeddedServiceLoader.create(
-                        interpreter,
-                        n.type(),
-                        n.servicePath(),
-                        path
-                    ));
+                embeddedServiceConfiguration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration(n.type(),n.servicePath());
             }
+            
+                interpreter.addEmbeddedServiceLoader(
+          EmbeddedServiceLoader.create(
+              interpreter,
+embeddedServiceConfiguration,
+              path
+          ));
+
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
 		}
