@@ -23,7 +23,7 @@ include "../AbstractTestUnit.iol"
 
 interface SrvIface {
 OneWay:
-	op(void)
+	op(int)
 RequestResponse:
 	op2(any)(any)
 }
