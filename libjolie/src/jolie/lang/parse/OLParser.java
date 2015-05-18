@@ -953,6 +953,11 @@ public class OLParser extends AbstractParser
             internalServiceProgram.addChild(internal_init);
             internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
         }
+        
+        if ( internal_init != null ) {
+            internalServiceProgram.addChild( new DefinitionNode( getContext(), "init", internal_init ) );
+        }
+        
         internalServiceProgram.addChild(internal_main);
         
        
