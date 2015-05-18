@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Martin Wolf.
+ * Copyright (C) 2015 Martin Wolf <mw@martinwolf.eu>.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,8 +33,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 {
 	private final Interpreter interpreter;
 	
-	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter,
-        Program program)
+	public InternalJolieServiceLoader( Expression channelDest, Interpreter currInterpreter, String serviceName, Program program)
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
@@ -45,7 +44,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		
 		String[] options = currInterpreter.optionArgs();
 		newArgs.addAll( Arrays.asList( options ) );
-        newArgs.add("_internal_"+currInterpreter.getProgramFilename());
+        newArgs.add("#"+serviceName+".ol");
 		interpreter = new Interpreter(
 			newArgs.toArray( new String[ newArgs.size() ] ),
 			currInterpreter.getClassLoader(),

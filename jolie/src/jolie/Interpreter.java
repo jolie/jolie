@@ -885,12 +885,7 @@ public class Interpreter
 			throw new IOException( "Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
 		}
 	}
-    
-    public String getProgramFilename()
-    {
-        return cmdParser.programFilepath().getName();
-    }
-    
+   
     /** Constructor.
 	 *
 	 * @param args The command line arguments.
