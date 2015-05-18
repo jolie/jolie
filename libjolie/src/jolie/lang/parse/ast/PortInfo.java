@@ -39,7 +39,7 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	private final String id;
 	private final Map< String, OperationDeclaration > operationsMap =
 		new HashMap< String, OperationDeclaration > ();
-	private List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
+	private final List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
 	private String document;
 
 	public PortInfo( ParsingContext context, String id )
