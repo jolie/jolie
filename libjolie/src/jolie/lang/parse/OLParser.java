@@ -815,22 +815,19 @@ public class OLParser extends AbstractParser
     }
 
     private OutputPortInfo createInternalServicePort(String name, List< InterfaceDefinition> interfaceList)
-        throws ParserException {
-         InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + name );
-       
+        throws ParserException
+    {
         OutputPortInfo p = new OutputPortInfo(getContext(), name);
+        
         for (InterfaceDefinition interfaceDefinition : interfaceList) {
-            p.addInterface(interfaceDefinition);
-            interfaceDefinition.copyTo(iface);
+            interfaceDefinition.copyTo(p);
         }
-        iface.copyTo( p );
         return p;
     }
     
     private InputPortInfo createInternalServiceInputPort(String serviceName, List< InterfaceDefinition > interfaceList)
         throws ParserException
     {
-        InterfaceDefinition iface = new InterfaceDefinition( getContext(), "Internal interface for: " + serviceName );
         OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
         InputPortInfo iport = null;
         try {
@@ -844,10 +841,8 @@ public class OLParser extends AbstractParser
                 new HashMap<String, String>() );
             
             for( InterfaceDefinition i : interfaceList ) {
-            	iport.addInterface( i );
-                i.copyTo(iface);
+                i.copyTo(iport);
         	}                    
-    		iface.copyTo( iport );
         } catch (URISyntaxException e) {
              throwException( e );
         }
@@ -865,30 +860,18 @@ public class OLParser extends AbstractParser
     {
         //only proceed if a service declaration
         if (!token.isKeyword("service")) return;
-             
-        //variables
-        String serviceName;
         
-        InterfaceDefinition iface;
-        List< InterfaceDefinition > interfaceList;
-		
 		//get service name
         getToken();
         assertToken(Scanner.TokenType.ID, "expected service name");
-        serviceName = token.content();
+        String serviceName = token.content();
         
-        //initialize internal interface and interface list
-        
-        iface = new InterfaceDefinition( getContext(), "Internal interface for: " + serviceName );
-        interfaceList = new ArrayList< InterfaceDefinition >();
-        
-        
+        //validate token
         getToken();
         eat(Scanner.TokenType.LCURLY, "{ expected");
         
-        EmbeddedServiceNode internalServiceNode = 
-            new EmbeddedServiceNode(getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName);
-        
+        //initialize internal interface and interface list
+        List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
         
         OLSyntaxNode internal_main = null;
         SequenceStatement internal_init = null;
@@ -898,7 +881,22 @@ public class OLParser extends AbstractParser
             if ( token.isKeyword( "Interfaces" ) ) {
                 getToken();
                 eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
-                parseInterfaceList(iface, interfaceList);
+                boolean keepRun = true;
+                while( keepRun ) {
+                    assertToken( Scanner.TokenType.ID, "expected interface name" );
+                    InterfaceDefinition i = interfaces.get( token.content() );
+                    if ( i == null ) {
+                        throwException( "Invalid interface name: " + token.content() );
+                    }
+                    interfaceList.add( i );
+                    getToken();
+
+                    if ( token.is( Scanner.TokenType.COMMA ) ) {
+                        getToken();
+                    } else {
+                        keepRun = false;
+                    }
+                }
             }
             else if ( token.isKeyword( "main" ) ) {
 				if ( internal_main != null ) {
@@ -921,53 +919,50 @@ public class OLParser extends AbstractParser
             }
         }
         
+        //validate ending
         eat(Scanner.TokenType.RCURLY, "} expected");
         
-        if ( internal_main == null ) {
+        //main in service needs to be defined
+        if ( internal_main == null )
             throwException( "You must specify a main for internal service " + serviceName );
-        }
-        
       
         Program internalServiceProgram = new Program(getContext());
-
-        for ( OLSyntaxNode child : program.children()) {
+        
+        // copy children of parent to embedded service
+        for ( OLSyntaxNode child : program.children() ) {
             if ( child instanceof TypeInlineDefinition ||
                 child instanceof InterfaceDefinition ||
                 child instanceof OutputPortInfo ||
-                child instanceof EmbeddedServiceNode)
+                child instanceof EmbeddedServiceNode )
             {
                internalServiceProgram.addChild(child);
             }
         }
          
+        // set execution to always concurrent
         internalServiceProgram.addChild(new ExecutionInfo(getContext(), Constants.ExecutionMode.CONCURRENT));
-
-        internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
         
-        for ( InterfaceDefinition interfaceDefinition : interfaceList ) {
-            internalServiceProgram.addChild(interfaceDefinition);
-        }
         //add input port to internal service
         internalServiceProgram.addChild(createInternalServiceInputPort(serviceName, interfaceList));
-        internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
-        if ( internal_init != null ) {
-            internalServiceProgram.addChild(internal_init);
-            internalServiceProgram.addChild( TypeDefinitionUndefined.getInstance() );
-        }
         
-        if ( internal_init != null ) {
+        //add init if defined in internal service
+        if ( internal_init != null )
             internalServiceProgram.addChild( new DefinitionNode( getContext(), "init", internal_init ) );
-        }
-        
-        internalServiceProgram.addChild(internal_main);
-        
        
+        //add main defined in internal service
+        internalServiceProgram.addChild(internal_main);
         
         //add output port to main program
         program.addChild(createInternalServicePort(serviceName, interfaceList));
         
+        //create internal embedded service node
+        EmbeddedServiceNode internalServiceNode = 
+            new EmbeddedServiceNode(getContext(), Constants.EmbeddedServiceType.INTERNAL, serviceName, serviceName);
         
+        //add internal service program to embedded service node
         internalServiceNode.addChild(internalServiceProgram);
+        
+        //add embedded service node to program that is embedding it
         program.addChild(internalServiceNode);
     }
     
@@ -1013,7 +1008,23 @@ public class OLParser extends AbstractParser
 			} else if ( token.isKeyword( "Interfaces" ) ) {
 				getToken();
 				eat( Scanner.TokenType.COLON, "expected : after Interfaces" );
-                parseInterfaceList(iface, interfaceList);
+                boolean keepRun = true;
+                while( keepRun ) {
+                    assertToken( Scanner.TokenType.ID, "expected interface name" );
+                    InterfaceDefinition i = interfaces.get( token.content() );
+                    if ( i == null ) {
+                        throwException( "Invalid interface name: " + token.content() );
+                    }
+                    i.copyTo( iface );
+                    interfaceList.add( i );
+                    getToken();
+
+                    if ( token.is( Scanner.TokenType.COMMA ) ) {
+                        getToken();
+                    } else {
+                        keepRun = false;
+                    }
+                }
 			} else if ( token.isKeyword( "Protocol" ) ) {
 				if ( protocolId != null ) {
 					throwException( "Protocol already defined for inputPort " + inputPortName );
@@ -1079,28 +1090,6 @@ public class OLParser extends AbstractParser
 		program.addChild( iport );
 		return iport;
 	}
-    
-    private void parseInterfaceList( InterfaceDefinition iface, List< InterfaceDefinition > interfaceList )
-        throws ParserException, IOException
-    {
-        boolean keepRun = true;
-        while( keepRun ) {
-            assertToken( Scanner.TokenType.ID, "expected interface name" );
-            InterfaceDefinition i = interfaces.get( token.content() );
-            if ( i == null ) {
-                throwException( "Invalid interface name: " + token.content() );
-            }
-            i.copyTo( iface );
-            interfaceList.add( i );
-            getToken();
-
-            if ( token.is( Scanner.TokenType.COMMA ) ) {
-                getToken();
-            } else {
-                keepRun = false;
-            }
-        }
-    }
 	
 	private void parseAggregationList( List< InputPortInfo.AggregationItemInfo > aggregationList )
 		throws ParserException, IOException
