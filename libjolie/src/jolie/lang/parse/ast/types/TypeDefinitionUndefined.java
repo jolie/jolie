@@ -23,7 +23,6 @@ package jolie.lang.parse.ast.types;
 
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 
 /**
@@ -36,7 +35,7 @@ public class TypeDefinitionUndefined extends TypeInlineDefinition
 
 	private static class LazyHolder {
 		private LazyHolder() {}
-		private static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
+		private final static TypeDefinitionUndefined instance = new TypeDefinitionUndefined();
 	}
 
 	private TypeDefinitionUndefined()
