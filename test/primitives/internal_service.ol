@@ -20,34 +20,59 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "math.iol"
+include "console.iol"
 
 interface SrvIface {
-OneWay:
-	op(int)
 RequestResponse:
-	op2(any)(any)
+	add(int)(int),
+	set(int)(void)
+}
+
+interface CellIface {
+RequestResponse:
+	read(void)(int),
+	writeAbs(int)(void)
+}
+
+service Cell {
+	Interfaces: CellIface
+	init {
+		global.value = 0
+	}
+	main {
+		[ read()( global.value ) ]
+		[ writeAbs( val )() {
+			abs@Math( val )( global.value )
+		} ]
+	}
 }
 
 service Srv {
 	Interfaces: SrvIface
-	init {
-		global.test = 42
-	}
 	main {
-		[ op(x) ] { global.test = x }
-    [ op2(x)(y) { y = x + global.test } ]
+		[ set( x )() {
+			writeAbs@Cell( x )()
+		} ]
+		[ add( x )( y ) {
+			read@Cell()( z );
+			y = z + x;
+			writeAbs@Cell( y )()
+		} ]
 	}
 }
 
 define doTest
 {
-	op2@Srv(0)(x);
+	set@Srv( -42 )();
+	add@Srv( 0 )( x );
 	if ( x != 42 ) {
 		throw( TestFailed, "Unexpected result" )
 	};
-	op@Srv(10);
-	op2@Srv(10)(x);
+	set@Srv( -10 )();
+	add@Srv( 10 )( x );
 	if ( x != 20 ) {
 		throw( TestFailed, "Unexpected result" )
 	}
 }
+
