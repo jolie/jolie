@@ -32,9 +32,9 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 	private final String servicePath;
 	private final String portId;
 	private final Constants.EmbeddedServiceType type;
-    
-    private final List< OLSyntaxNode > children = new ArrayList< OLSyntaxNode > ();
-	
+
+	private Program program = null;
+
 	public EmbeddedServiceNode(
 			ParsingContext context,
 			Constants.EmbeddedServiceType type,
@@ -61,17 +61,17 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 	{
 		return portId;
 	}
-	
-    public void addChild( OLSyntaxNode node )
+
+	public void setProgram( Program program )
 	{
-		children.add( node );
+		this.program = program;
 	}
-	
-	public List< OLSyntaxNode > children()
+
+	public Program program()
 	{
-		return children;
+		return program;
 	}
-    
+
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
