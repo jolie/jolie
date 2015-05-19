@@ -464,25 +464,24 @@ public class OOITBuilder implements OLVisitor
 		VariablePath path = null;
 		try {
 			path = interpreter.getOutputPort( n.portId() ).locationVariablePath();
-		} catch( InvalidIdException iie ) {}
+		} catch( InvalidIdException iie ) {
+		}
 
-        
-     	try {
-            EmbeddedServiceConfiguration embeddedServiceConfiguration;          
-            if (n.type().equals(Constants.EmbeddedServiceType.INTERNAL)) {
-                embeddedServiceConfiguration = new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration(n.servicePath(),(Program) n.children().get(0));
-                    
-            } else {
-                embeddedServiceConfiguration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration(n.type(),n.servicePath());
-            }
-            
-                interpreter.addEmbeddedServiceLoader(
-          EmbeddedServiceLoader.create(
-              interpreter,
-embeddedServiceConfiguration,
-              path
-          ));
+		try {
+			EmbeddedServiceConfiguration embeddedServiceConfiguration;
+			if ( n.type().equals( Constants.EmbeddedServiceType.INTERNAL ) ) {
+				embeddedServiceConfiguration = new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(), (Program) n.program() );
+			} else {
+				embeddedServiceConfiguration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
+			}
 
+			interpreter.addEmbeddedServiceLoader(
+				EmbeddedServiceLoader.create(
+					interpreter,
+					embeddedServiceConfiguration,
+					path
+				) );
+			
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
 		}
