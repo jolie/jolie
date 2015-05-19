@@ -1206,17 +1206,16 @@ public class Interpreter
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
 			}
-            else if (this.internalServiceProgram != null) {
-                program = this.internalServiceProgram;
-                OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
-				program = optimizer.optimize();
-            }
-            else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
-                
-                olParser.putConstants( cmdParser.definedConstants() );
-				program = olParser.parse();
-                OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
+			else {
+				if ( this.internalServiceProgram != null ) {
+					program = this.internalServiceProgram;
+				} else {
+					OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+
+					olParser.putConstants( cmdParser.definedConstants() );
+					program = olParser.parse();
+				}
+				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 				program = optimizer.optimize();
 			}
 			
