@@ -24,9 +24,9 @@ package jolie.process;
 import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
-import jolie.runtime.FaultException;
 
 public class InitDefinitionProcess extends DefinitionProcess
 {
