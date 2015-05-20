@@ -221,7 +221,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 
 		encounteredNode( n );
 	}
-
+    
 	public void visit( OneWayOperationDeclaration decl ) {}
 	public void visit( RequestResponseOperationDeclaration decl ) {}
 	public void visit( DefinitionNode n ) {}

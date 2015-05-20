@@ -24,6 +24,7 @@ package jolie.runtime.embedding;
 
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -39,71 +40,147 @@ public abstract class EmbeddedServiceLoader
 	}
 
 	private static EmbeddedServiceLoader createLoader(
-				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
-				Expression channelDest
-			)
+		Interpreter interpreter,
+		EmbeddedServiceConfiguration configuration,
+		Expression channelDest
+	)
 		throws EmbeddedServiceLoaderCreationException
 	{
 		EmbeddedServiceLoader ret = null;
 		try {
-			if ( type == Constants.EmbeddedServiceType.JAVA ) {
-				ret = new JavaServiceLoader( channelDest, servicePath, interpreter );
-			} else if ( type == Constants.EmbeddedServiceType.JOLIE ) {
-				ret = new JolieServiceLoader( channelDest, interpreter, servicePath );
-			} else { // Check if we have an extension to load the service
-				String serviceType = type.toString();
-				EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
-				if ( factory == null ) {
-					throw new EmbeddedServiceLoaderCreationException( "Could not find extension to load services of type " + serviceType );
+			if ( configuration.isInternal() ) {
+				InternalEmbeddedServiceConfiguration internalConfiguration = (InternalEmbeddedServiceConfiguration) configuration;
+				ret = new InternalJolieServiceLoader( channelDest, interpreter, internalConfiguration.serviceName(), internalConfiguration.program() );
+			} else {
+				ExternalEmbeddedServiceConfiguration externalConfiguration = (ExternalEmbeddedServiceConfiguration) configuration;
+				switch( configuration.type() ) {
+					case JAVA:
+						ret = new JavaServiceLoader( channelDest, externalConfiguration.servicePath(), interpreter );
+						break;
+					case JOLIE:
+						ret = new JolieServiceLoader( channelDest, interpreter, externalConfiguration.servicePath() );
+						break;
+					default:
+						String serviceType = configuration.type().toString();
+						EmbeddedServiceLoaderFactory factory = interpreter.getEmbeddedServiceLoaderFactory( serviceType );
+						if ( factory == null ) {
+							throw new EmbeddedServiceLoaderCreationException( "Could not find extension to load services of type " + serviceType );
+						}
+						ret = factory.createLoader( interpreter, serviceType, externalConfiguration.servicePath(), channelDest );
+						break;
 				}
-				ret = factory.createLoader( interpreter, serviceType, servicePath, channelDest );
 			}
 		} catch( Exception e ) {
 			throw new EmbeddedServiceLoaderCreationException( e );
 		}
-		
-		if ( ret == null ) {
-			throw new EmbeddedServiceLoaderCreationException( "Invalid embedded service type specified" );
-		}
 
 		return ret;
 	}
-	
+
 	public static EmbeddedServiceLoader create(
-				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
-				Value channelValue
-			)
+		Interpreter interpreter,
+		EmbeddedServiceConfiguration configuration,
+		Value channelValue
+	)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		return createLoader( interpreter, type, servicePath, channelValue );
+		return createLoader( interpreter, configuration, channelValue );
 	}
-	
+
 	public static EmbeddedServiceLoader create(
-				Interpreter interpreter,
-				Constants.EmbeddedServiceType type,
-				String servicePath,
-				VariablePath channelPath
-			)
+		Interpreter interpreter,
+		EmbeddedServiceConfiguration configuration,
+		VariablePath channelPath
+	)
 		throws EmbeddedServiceLoaderCreationException
 	{
-		return createLoader( interpreter, type, servicePath, channelPath );
+		return createLoader( interpreter, configuration, channelPath );
 	}
-	
+
 	protected void setChannel( CommChannel channel )
 	{
 		if ( channelDest != null ) {
 			if ( channelDest instanceof VariablePath ) {
-				((VariablePath)channelDest).getValue().setValue( channel );
+				((VariablePath) channelDest).getValue().setValue( channel );
 			} else if ( channelDest instanceof Value ) {
-				((Value)channelDest).setValue( channel );
+				((Value) channelDest).setValue( channel );
 			}
 		}
 	}
 	
 	public abstract void load()
 		throws EmbeddedServiceLoadingException;
+
+	public static abstract class EmbeddedServiceConfiguration
+	{
+		private final Constants.EmbeddedServiceType type;
+
+		public EmbeddedServiceConfiguration( Constants.EmbeddedServiceType type )
+		{
+			this.type = type;
+		}
+
+		public Constants.EmbeddedServiceType type()
+		{
+			return this.type;
+		}
+
+		public boolean isInternal()
+		{
+			return this.type.equals( Constants.EmbeddedServiceType.INTERNAL );
+		}
+	}
+
+	public static class InternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
+	{
+		private final String serviceName;
+		private final Program program;
+
+		/**
+		 *
+		 * @param serviceName Name of the internal service.
+		 * @param program the program containing the service
+		 */
+		public InternalEmbeddedServiceConfiguration( String serviceName, Program program )
+		{
+			super( Constants.EmbeddedServiceType.INTERNAL );
+
+			this.serviceName = serviceName;
+			this.program = program;
+		}
+
+		public String serviceName()
+		{
+			return serviceName;
+		}
+
+		public Program program()
+		{
+			return program;
+		}
+	}
+
+	public static class ExternalEmbeddedServiceConfiguration extends EmbeddedServiceConfiguration
+	{
+		private final String servicePath;
+
+		/**
+		 *
+		 * @param type Type of embedded service, cannot be INTERNAL
+		 * @param servicePath path of service
+		 */
+		public ExternalEmbeddedServiceConfiguration( Constants.EmbeddedServiceType type, String servicePath )
+		{
+			super( type );
+			this.servicePath = servicePath;
+
+			assert type != Constants.EmbeddedServiceType.INTERNAL;
+		}
+
+		public String servicePath()
+		{
+			return servicePath;
+		}
+
+	}
 }

@@ -101,7 +101,7 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
-	private class InitSessionThread extends SessionThread
+    private class InitSessionThread extends SessionThread
 	{
 		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
 		{
@@ -241,6 +241,8 @@ public class Interpreter
 
 	private CommCore commCore;
 	private CommandLineParser cmdParser;
+	private Program internalServiceProgram = null;
+	private Interpreter parentInterpreter = null;
 
 	private Map< String, SessionStarter > sessionStarters = new HashMap< String, SessionStarter >();
 	private boolean exiting = false;
@@ -816,20 +818,6 @@ public class Interpreter
 	 *
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
-	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
-	 * @throws FileNotFoundException if one of the passed input files is not found.
-	 * @throws IOException if a Scanner constructor signals an error.
-	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader )
-		throws CommandLineException, FileNotFoundException, IOException
-	{
-		this( args, parentClassLoader, null );
-	}
-	
-	/** Constructor.
-	 *
-	 * @param args The command line arguments.
-	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
@@ -838,14 +826,23 @@ public class Interpreter
 	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+        this( args, parentClassLoader, programDirectory, false );
+	}
+    
+    public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile )
+		throws CommandLineException, FileNotFoundException, IOException
+	{
 		this.parentClassLoader = parentClassLoader;
-		cmdParser = new CommandLineParser( args, parentClassLoader );
+        
+		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
 		classLoader = cmdParser.jolieClassLoader();
 		optionArgs = cmdParser.optionArgs();
 		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
+        
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+		
+        commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
@@ -875,6 +872,25 @@ public class Interpreter
 			throw new IOException( "Could not localize the service execution directory. This is probably a bug in the JOLIE interpreter, please report it to jolie-devel@lists.sf.net" );
 		}
 	}
+   
+    /** Constructor.
+	 *
+	 * @param args The command line arguments.
+	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
+	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @param internalServiceProgram
+	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
+	 * @throws FileNotFoundException if one of the passed input files is not found.
+	 * @throws IOException if a Scanner constructor signals an error.
+	 */
+	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+		throws CommandLineException, FileNotFoundException, IOException
+	{
+        this( args, parentClassLoader, programDirectory, true );
+        
+		this.parentInterpreter = parentInterpreter;
+        this.internalServiceProgram = internalServiceProgram;
+	}
 
 	/**
 	 * Returns the parent directory of the program executed by this Interpreter.
@@ -883,6 +899,11 @@ public class Interpreter
 	public File programDirectory()
 	{
 		return programDirectory;
+	}
+	
+	public Interpreter parentInterpreter()
+	{
+		return parentInterpreter;
 	}
 
 	/**
@@ -1049,31 +1070,31 @@ public class Interpreter
 	
 	private void runCode()
 	{
-            if( !check ){
-		try {
-                    initExecutionThread.join();
-		} catch( InterruptedException e ) {
-                    logSevere( e );
-		}
+		if ( !check ) {
+			try {
+				initExecutionThread.join();
+			} catch( InterruptedException e ) {
+				logSevere( e );
+			}
 
-		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
-                    try {
-                            mainSession.start();
-                            mainSession.join();
-                    } catch( InterruptedException e ) {
-                        logSevere( e );
-                    }
-		} else {
-                    exitingLock.lock();
-                    try {
-                            exitingCondition.await();
-                    } catch( InterruptedException e ) {
-                        logSevere( e );
-                    } finally {
-                        exitingLock.unlock();
-                    }
+			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+				try {
+					mainSession.start();
+					mainSession.join();
+				} catch( InterruptedException e ) {
+					logSevere( e );
+				}
+			} else {
+				exitingLock.lock();
+				try {
+					exitingCondition.await();
+				} catch( InterruptedException e ) {
+					logSevere( e );
+				} finally {
+					exitingLock.unlock();
+				}
+			}
 		}
-            }
 	}
 	
 	/**
@@ -1174,7 +1195,9 @@ public class Interpreter
 	private boolean buildOOIT()
 		throws InterpreterException
 	{
+        
 		try {
+            
 			Program program = null;
 			if ( cmdParser.isProgramCompiled() ) {
 				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
@@ -1184,15 +1207,22 @@ public class Interpreter
 				} else {
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
-			} else {
-				OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
-				olParser.putConstants( cmdParser.definedConstants() );
-				program = olParser.parse();
+			}
+			else {
+				if ( this.internalServiceProgram != null ) {
+					program = this.internalServiceProgram;
+				} else {
+					OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+
+					olParser.putConstants( cmdParser.definedConstants() );
+					program = olParser.parse();
+				}
 				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
 				program = optimizer.optimize();
 			}
 			
 			cmdParser.close();
+
 			check = cmdParser.check();
 
 			SemanticVerifier semanticVerifier = null;

@@ -1058,8 +1058,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
-	public void visit( EmbeddedServiceNode n )
-	{}
+	public void visit( EmbeddedServiceNode n ) {}
 	
 	public void visit( InterfaceExtenderDefinition n ) {}
 	

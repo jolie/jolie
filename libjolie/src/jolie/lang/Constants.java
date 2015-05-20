@@ -30,8 +30,6 @@ import jolie.util.Range;
  */
 public final class Constants
 {
-	private Constants() {}
-	
 	public interface Manifest
 	{
 		// JOLIE Extensions
@@ -120,7 +118,7 @@ public final class Constants
 
 	public enum EmbeddedServiceType
 	{
-		JOLIE("Jolie"), JAVA("Java"), JAVASCRIPT("JavaScript"), UNSUPPORTED("Unsupported");
+		JOLIE("Jolie"), JAVA("Java"), JAVASCRIPT("JavaScript"), INTERNAL("JolieInternal"), UNSUPPORTED("Unsupported");
 		
 		private final String str;
 		

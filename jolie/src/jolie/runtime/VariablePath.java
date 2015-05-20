@@ -197,8 +197,8 @@ public class VariablePath implements Expression, Cloneable
 
 	public final void setValue( Value value )
 	{
-		Pair< Expression, Expression > pair = null;
-		ValueVector currVector = null;
+		Pair< Expression, Expression > pair;
+		ValueVector currVector;
 		Value currValue = getRootValue();
 		int index;
 		String keyStr;
