@@ -25,6 +25,8 @@ import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.Value;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
 
@@ -34,13 +36,6 @@ public class InitDefinitionProcess extends DefinitionProcess
 	{
 		super( process );
 	}
-
-	/*private void insertCorrelationSetValues( Collection< List< VariablePath > > correlationSet )
-	{
-		for( List< VariablePath > cvarList : correlationSet ) {
-			cvarList.get( 0 ).setValue( Value.createCSetValue() );
-		}
-	}*/
 	
 	@Override
 	public void run()
@@ -70,8 +65,6 @@ public class InitDefinitionProcess extends DefinitionProcess
 
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
 			
-			//insertCorrelationSetValues( interpreter.correlationSets() );
-
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {
 				try {
 					p.run();
@@ -80,12 +73,24 @@ public class InitDefinitionProcess extends DefinitionProcess
 					assert false;
 				}
 			}
+			
+			// If an internal service, copy over the output port locations from the parent service
+			if ( interpreter.parentInterpreter() != null ) {
+				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
+				for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
+					try {
+						OutputPort port = interpreter.getOutputPort( parentPort.id() );
+						port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
+						port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
+						port.optimizeLocation();
+					} catch( InvalidIdException e ) {}
+				}
+			}
 
 			try {
 				super.run();
 			} catch( ExitingException e ) {}
 		} catch( EmbeddedServiceLoadingException e ) {
-			//Interpreter.getInstance().logger().severe( e.getMessage() );
 			interpreter.logSevere( e );
 		}
 	}
