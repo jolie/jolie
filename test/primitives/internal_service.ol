@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2015 by Martin Wolf                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,61 +19,60 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+include "../AbstractTestUnit.iol"
+include "math.iol"
+include "console.iol"
 
-import java.util.ArrayList;
-import java.util.List;
-import jolie.lang.Constants;
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+interface SrvIface {
+RequestResponse:
+	add(int)(int),
+	set(int)(void)
+}
 
-public class EmbeddedServiceNode extends OLSyntaxNode
-{
-	private final String servicePath;
-	private final String portId;
-	private final Constants.EmbeddedServiceType type;
+interface CellIface {
+RequestResponse:
+	read(void)(int),
+	writeAbs(int)(void)
+}
 
-	private Program program = null;
-
-	public EmbeddedServiceNode(
-			ParsingContext context,
-			Constants.EmbeddedServiceType type,
-			String servicePath,
-			String portId )
-	{
-		super( context );
-		this.type = type;
-		this.servicePath = servicePath;
-		this.portId = portId;
+service Cell {
+	Interfaces: CellIface
+	init {
+		global.value = 0
 	}
-	
-	public Constants.EmbeddedServiceType type()
-	{
-		return type;
-	}
-	
-	public String servicePath()
-	{
-		return servicePath;
-	}
-	
-	public String portId()
-	{
-		return portId;
-	}
-
-	public void setProgram( Program program )
-	{
-		this.program = program;
-	}
-
-	public Program program()
-	{
-		return program;
-	}
-
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+	main {
+		[ read()( global.value ) ]
+		[ writeAbs( val )() {
+			abs@Math( val )( global.value )
+		} ]
 	}
 }
+
+service Srv {
+	Interfaces: SrvIface
+	main {
+		[ set( x )() {
+			writeAbs@Cell( x )()
+		} ]
+		[ add( x )( y ) {
+			read@Cell()( z );
+			y = z + x;
+			writeAbs@Cell( y )()
+		} ]
+	}
+}
+
+define doTest
+{
+	set@Srv( -42 )();
+	add@Srv( 0 )( x );
+	if ( x != 42 ) {
+		throw( TestFailed, "Unexpected result" )
+	};
+	set@Srv( -10 )();
+	add@Srv( 10 )( x );
+	if ( x != 20 ) {
+		throw( TestFailed, "Unexpected result" )
+	}
+}
+

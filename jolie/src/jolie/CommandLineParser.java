@@ -133,7 +133,7 @@ public class CommandLineParser implements Closeable
 	{
 		return isProgramCompiled;
 	}
-
+    
 	/**
 	 * Returns the file path of the JOLIE program to execute.
 	 * @return the file path of the JOLIE program to execute
@@ -321,8 +321,8 @@ public class CommandLineParser implements Closeable
 	{
 		this( args, parentClassLoader, ArgumentHandler.DEFAULT_ARGUMENT_HANDLER );
 	}
-	
-	/**
+    
+    /**
 	 * Constructor
 	 * @param args the command line arguments
 	 * @param parentClassLoader the ClassLoader to use for finding resources
@@ -330,7 +330,36 @@ public class CommandLineParser implements Closeable
 	 * @throws CommandLineException
 	 * @throws IOException 
 	 */
-	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler )
+    public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler )
+        throws CommandLineException, IOException
+    {
+        this(args, parentClassLoader, argHandler, false);
+    }
+	
+    /**
+	 * Constructor
+	 * @param args the command line arguments
+	 * @param parentClassLoader the ClassLoader to use for finding resources
+	 * @param ignoreFile do not open file that is given as parameter (used for internal services)
+	 * @throws CommandLineException
+	 * @throws IOException 
+	 */
+    public CommandLineParser( String[] args, ClassLoader parentClassLoader, boolean ignoreFile )
+        throws CommandLineException, IOException
+    {
+        this(args, parentClassLoader,  ArgumentHandler.DEFAULT_ARGUMENT_HANDLER, ignoreFile);
+    }
+	
+    /**
+	 * Constructor
+	 * @param args the command line arguments
+	 * @param parentClassLoader the ClassLoader to use for finding resources
+	 * @param argHandler
+     * @param ignoreFile do not open file that is given as parameter (used for internal services)
+	 * @throws CommandLineException
+	 * @throws IOException 
+	 */
+	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler, boolean ignoreFile )
 		throws CommandLineException, IOException
 	{
 		List< String > argsList = new ArrayList< String >( args.length );
@@ -451,7 +480,7 @@ public class CommandLineParser implements Closeable
 				} else {
 					programArgumentsList.add( argsList.get( i ) );
 				}
-			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
+            } else if ( argsList.get( i ).endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
 					String japFilename = new File( argsList.get( i ) ).getCanonicalPath();
 					JarFile japFile = new JarFile( japFilename );
@@ -495,14 +524,13 @@ public class CommandLineParser implements Closeable
 		arguments = programArgumentsList.toArray( new String[ programArgumentsList.size() ] );
 		// whitepages = whitepageList.toArray( new String[ whitepageList.size() ] );
 		
-		if ( olFilepath == null ) {
+		if ( olFilepath == null && !ignoreFile) {
 			throw new CommandLineException( "Input file not specified." );
 		}
 	
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
-
-		addProgramDirectories( includeList, libList, olFilepath );
+        
 		List< URL > urls = new ArrayList< URL >();
 		for( String path : libList ) {
 			if ( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
@@ -543,7 +571,11 @@ public class CommandLineParser implements Closeable
 		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
-			if ( olFilepath.endsWith( ".ol" ) ) {
+            if (ignoreFile) {
+                olResult.source = olFilepath;
+                olResult.stream = new ByteArrayInputStream(new byte[]{});
+            }
+            else if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
 				olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
@@ -557,7 +589,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-    check = bCheck && !isProgramCompiled;
+        check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
