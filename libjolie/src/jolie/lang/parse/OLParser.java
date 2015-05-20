@@ -1009,7 +1009,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		String name;
-		InterfaceDefinition iface = null;
+		InterfaceDefinition iface;
         assertToken( Scanner.TokenType.ID, "expected interface name" );
 		name = token.content();
 		getToken();
@@ -1392,12 +1392,12 @@ public class OLParser extends AbstractParser
 
 		return stm;
 	}
-	private List< List< Scanner.Token > > inVariablePaths = new LinkedList< List< Scanner.Token > >();
+	private final List< List< Scanner.Token > > inVariablePaths = new LinkedList< List< Scanner.Token > >();
 
 	private OLSyntaxNode parseInVariablePathProcess( boolean withConstruct )
 		throws IOException, ParserException
 	{
-		OLSyntaxNode ret = null;
+		OLSyntaxNode ret;
 		List< Scanner.Token> tokens = new LinkedList< Scanner.Token>();
 
 		try {
