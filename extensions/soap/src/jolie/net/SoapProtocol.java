@@ -17,50 +17,6 @@
 package jolie.net;
 
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-
-import java.net.URI;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.soap.Detail;
-import javax.xml.soap.DetailEntry;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.Name;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPBodyElement;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPHeaderElement;
-import javax.xml.soap.SOAPMessage;
-
-import jolie.lang.Constants;
-import jolie.Interpreter;
-import jolie.runtime.ByteArray;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.runtime.VariablePath;
-
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.sun.xml.xsom.XSAttributeDecl;
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
@@ -75,11 +31,21 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.BindingOutput;
 import javax.wsdl.Definition;
@@ -91,9 +57,25 @@ import javax.wsdl.Types;
 import javax.wsdl.WSDLException;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.soap.SOAPOperation;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.Detail;
+import javax.xml.soap.DetailEntry;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.Name;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPBodyElement;
+import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPHeader;
+import javax.xml.soap.SOAPHeaderElement;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -105,6 +87,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.http.HttpMessage;
 import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
@@ -113,13 +97,22 @@ import jolie.net.http.UnsupportedMethodException;
 import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
+import jolie.runtime.ByteArray;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Implements the SOAP over HTTP protocol.
@@ -389,7 +382,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
             XSElementDecl currElementDecl = currTerm.asElementDecl();
             String name = currElementDecl.getName();
             String prefix = (first) ? getPrefix(currElementDecl) : getPrefixOrNull(currElementDecl);
-            SOAPElement childElement = null;
+            SOAPElement childElement;
             if ((vec = value.children().get(name)) != null) {
                 int k = 0;
                 while (vec.size() > 0 && (getMaxOccur > k || getMaxOccur == XSParticle.UNBOUNDED)) {
@@ -427,15 +420,14 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
         XSParticle[] children = modelGroup.getChildren();
         XSTerm currTerm;
-        for (int i = 0; i < children.length; i++) {
-            currTerm = children[i].getTerm();
-            if (currTerm.isModelGroup()) {
-                groupProcessing(value, xsDecl, element, envelope, first, currTerm.asModelGroup(), sSet, messageNamespace);
-            } else {
-                termProcessing(value, element, envelope, first, currTerm, children[i].getMaxOccurs(), sSet, messageNamespace);
-            }
-
-        }
+		for( XSParticle child : children ) {
+			currTerm = child.getTerm();
+			if ( currTerm.isModelGroup() ) {
+				groupProcessing(value, xsDecl, element, envelope, first, currTerm.asModelGroup(), sSet, messageNamespace);
+			} else {
+				termProcessing( value, element, envelope, first, currTerm, child.getMaxOccurs(), sSet, messageNamespace );
+			}
+		}
     }
 
     private void valueToTypedSOAP(
@@ -573,7 +565,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
         if (port != null) {
             try {
                 Operation operation = port.getBinding().getPortType().getOperation(operationName, null, null);
-                Part part = null;
+                Part part;
                 if (received) {
                     // We are sending a response
                     part = ((Entry<String, Part>) operation.getOutput().getMessage().getParts().entrySet().iterator().next()).getValue();
@@ -722,7 +714,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
                 String messageRootElementName = getOutputMessageRootElementName(message.operationName());
                 if (sSet == null
                         || (elementDecl = sSet.getElementDecl(messageNamespace, messageRootElementName)) == null) {
-                    Name operationName = null;
+                    Name operationName;
                     soapEnvelope.addNamespaceDeclaration("xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI);
                     soapEnvelope.addNamespaceDeclaration("xsd", XMLConstants.W3C_XML_SCHEMA_NS_URI);
                     if (messageNamespace.isEmpty()) {
