@@ -187,6 +187,7 @@ import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
+import jolie.runtime.embedding.EmbeddedServiceLoader.EmbeddedServiceConfiguration;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.expression.AndCondition;
 import jolie.runtime.expression.CastBoolExpression;
@@ -307,13 +308,13 @@ public class OOITBuilder implements OLVisitor
 	 */
 	public boolean build()
 	{
-		visit( program );
+        visit( program );
 		checkForInit();
 		resolveTypeLinks();
 		lazyVisits();
 		buildCorrelationSets();
 		
-		return valid;
+        return valid;
 	}
 	
 	private void lazyVisits()
@@ -462,16 +463,24 @@ public class OOITBuilder implements OLVisitor
 		VariablePath path = null;
 		try {
 			path = interpreter.getOutputPort( n.portId() ).locationVariablePath();
-		} catch( InvalidIdException iie ) {}
+		} catch( InvalidIdException iie ) {
+		}
 
 		try {
+			EmbeddedServiceConfiguration embeddedServiceConfiguration;
+			if ( n.type().equals( Constants.EmbeddedServiceType.INTERNAL ) ) {
+				embeddedServiceConfiguration = new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(), (Program) n.program() );
+			} else {
+				embeddedServiceConfiguration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
+			}
+
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(
-						interpreter,
-						n.type(),
-						n.servicePath(),
-						path
-						) );
+					interpreter,
+					embeddedServiceConfiguration,
+					path
+				) );
+			
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
 		}

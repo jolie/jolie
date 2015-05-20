@@ -357,7 +357,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		if ( message.value().isDefined() || message.value().hasChildren() ) {
-			headerBuilder.append( "?=" );
+			headerBuilder.append( "?" );
 			StringBuilder builder = new StringBuilder();
 			JsUtils.valueToJsonString( message.value(), true, getSendType( message ), builder );
 			headerBuilder.append( URLEncoder.encode( builder.toString(), HttpUtils.URL_DECODER_ENC ) );
@@ -644,7 +644,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( method.id() );
 	}
 	
-	private void send_appendRequestPath( CommMessage message, Method method, StringBuilder headerBuilder )
+	private void send_appendRequestPath( CommMessage message, Method method, String qsFormat, StringBuilder headerBuilder )
 		throws IOException
 	{
 		String path = uri.getRawPath();
@@ -665,14 +665,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if ( method == Method.GET ) {
-			boolean jsonFormat = false;
-			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
-				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
-					jsonFormat = true;
-					send_appendJsonQueryString( message, headerBuilder );
-				}
-			}
-			if ( !jsonFormat ) {
+			if ( qsFormat.equals( "json" ) ) {
+				send_appendJsonQueryString( message, headerBuilder );
+			} else {
 				send_appendQuerystring( message.value(), headerBuilder );
 			}
 		}
@@ -720,12 +715,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return method;
 	}
 	
-	private void send_appendRequestHeaders( CommMessage message, Method method, StringBuilder headerBuilder )
+	private void send_appendRequestHeaders( CommMessage message, Method method, String qsFormat, StringBuilder headerBuilder )
 		throws IOException
 	{
 		send_appendRequestMethod( method, headerBuilder );
 		headerBuilder.append( ' ' );
-		send_appendRequestPath( message, method, headerBuilder );
+		send_appendRequestPath( message, method, qsFormat, headerBuilder );
 		headerBuilder.append( " HTTP/1.1" + HttpUtils.CRLF );
 		headerBuilder.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
@@ -757,20 +752,20 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( checkBooleanParameter( Parameters.CONCURRENT, true ) ) {
 			headerBuilder.append( Headers.JOLIE_MESSAGE_ID ).append( ": " ).append( message.id() ).append( HttpUtils.CRLF );
 		}
+		
+		String contentType = getStringParameter( Parameters.CONTENT_TYPE );
+		if ( contentType.length() > 0 ) {
+			encodedContent.contentType = contentType;
+		}
+		encodedContent.contentType = encodedContent.contentType.toLowerCase();
+
+		headerBuilder.append( "Content-Type: " + encodedContent.contentType );
+		if ( charset != null ) {
+			headerBuilder.append( "; charset=" + charset.toLowerCase() );
+		}
+		headerBuilder.append( HttpUtils.CRLF );
 
 		if ( encodedContent.content != null ) {
-			String contentType = getStringParameter( Parameters.CONTENT_TYPE );
-			if ( contentType.length() > 0 ) {
-				encodedContent.contentType = contentType;
-			}
-			encodedContent.contentType = encodedContent.contentType.toLowerCase();
-
- 			headerBuilder.append( "Content-Type: " + encodedContent.contentType );
-			if ( charset != null ) {
-				headerBuilder.append( "; charset=" + charset.toLowerCase() );
-			}
-			headerBuilder.append( HttpUtils.CRLF );
-
 			String transferEncoding = getStringParameter( Parameters.CONTENT_TRANSFER_ENCODING );
 			if ( transferEncoding.length() > 0 ) {
 				headerBuilder.append( "Content-Transfer-Encoding: " + transferEncoding + HttpUtils.CRLF );
@@ -831,7 +826,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			send_appendResponseHeaders( message, headerBuilder );
 		} else {
 			// We're sending a notification or a solicit
-			send_appendRequestHeaders( message, method, headerBuilder );
+			String qsFormat = "";
+			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
+				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
+					qsFormat = format = "json";
+					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
+				}
+			}
+			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
