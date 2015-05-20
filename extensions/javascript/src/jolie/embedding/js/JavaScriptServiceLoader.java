@@ -73,11 +73,13 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 		}
 	}
 
+	@Override
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
 		try {
 			final Object json = engine.eval( "JSON" );
+			engine.eval( "var Jolie = { call: function(op,data,callback) { } }" );
 			setChannel( new JavaScriptCommChannel( (Invocable)engine, json ) );
 		} catch( ScriptException e ) {
 			throw new EmbeddedServiceLoadingException( e );
