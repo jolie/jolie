@@ -205,7 +205,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static class Headers {
 		private static final String JOLIE_MESSAGE_ID = "X-Jolie-MessageID";
 	}
-
+	
+	private static class ContentTypes {
+		private static final String APPLICATION_JSON = "application/json";
+	}
+	
 	private String inputId = null;
 	private final Transformer transformer;
 	private final DocumentBuilderFactory docBuilderFactory;
@@ -260,7 +264,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return null;
 	}
 	
-	private final static String BOUNDARY = "----Jol13H77p77Bound4r155";
+	private final static String BOUNDARY = "----jol13h77p77bound4r155";
 	
 	private void send_appendCookies( CommMessage message, String hostname, StringBuilder headerBuilder )
 	{
@@ -555,7 +559,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				throw new IOException( e );
 			}
 		} else if ( "json".equals( format ) ) {
-			ret.contentType = "application/json";
+			ret.contentType = ContentTypes.APPLICATION_JSON;
 			StringBuilder jsonStringBuilder = new StringBuilder();
 			if ( message.isFault() ) {
 				Value error = message.value().getFirstChild( "error" );
@@ -1014,27 +1018,31 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 	}
 
-	private static void recv_parseQueryString( HttpMessage message, Value value )
+	private static void recv_parseQueryString( HttpMessage message, Value value, String contentType, boolean strictEncoding )
 		throws IOException
 	{
-		Map< String, Integer > indexes = new HashMap< String, Integer >();
-		String queryString = message.requestPath();
-		String[] kv = queryString.split( "\\?", 2 );
-		Integer index;
-		if ( kv.length > 1 ) {
-			queryString = kv[1];
-			String[] params = queryString.split( "&" );
-			for( String param : params ) {
-				kv = param.split( "=", 2 );
-				if ( kv.length > 1 ) {
-					index = indexes.get( kv[0] );
-					if ( index == null ) {
-						index = 0;
-						indexes.put( kv[0], index );
+		if ( message.isGet() && contentType.equals( ContentTypes.APPLICATION_JSON ) ) {
+			recv_parseJsonQueryString( message, value, strictEncoding );
+		} else {
+			Map< String, Integer > indexes = new HashMap< String, Integer >();
+			String queryString = message.requestPath();
+			String[] kv = queryString.split( "\\?", 2 );
+			Integer index;
+			if ( kv.length > 1 ) {
+				queryString = kv[1];
+				String[] params = queryString.split( "&" );
+				for( String param : params ) {
+					kv = param.split( "=", 2 );
+					if ( kv.length > 1 ) {
+						index = indexes.get( kv[0] );
+						if ( index == null ) {
+							index = 0;
+							indexes.put( kv[0], index );
+						}
+						// the query string was already URL decoded by the HttpParser
+						value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
+						indexes.put( kv[0], index + 1 );
 					}
-					// the query string was already URL decoded by the HttpParser
-					value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
-					indexes.put( kv[0], index + 1 );
 				}
 			}
 		}
@@ -1043,13 +1051,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void recv_parseJsonQueryString( HttpMessage message, Value value, boolean strictEncoding )
 		throws IOException
 	{
-		Map< String, Integer > indexes = new HashMap< String, Integer >();
 		String queryString = message.requestPath();
-		String[] kv = queryString.split( "\\?=", 2 );
+		String[] kv = queryString.split( "\\?", 2 );
 		if ( kv.length > 1 ) {
 			// the query string was already URL decoded by the HttpParser
-			queryString = kv[1];
-			JsUtils.parseJsonIntoValue( new StringReader( queryString ), value, strictEncoding );
+			JsUtils.parseJsonIntoValue( new StringReader( kv[1] ), value, strictEncoding );
 		}
 	}
 
@@ -1083,7 +1089,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Interpreter.getInstance().logInfo( debugSB.toString() );
 	}
 
-	private void recv_parseRequestFormat( HttpMessage message, String type )
+	private void recv_parseRequestFormat( String type )
 		throws IOException
 	{
 		responseFormat = null;
@@ -1092,7 +1098,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			responseFormat = "xml";
 		} else if ( "text/x-gwt-rpc".equals( type ) ) {
 			responseFormat = "text/x-gwt-rpc";
-		} else if ( "application/json".equals( type ) ) {
+		} else if ( ContentTypes.APPLICATION_JSON.equals( type ) ) {
 			responseFormat = "json";
 		}
 	}
@@ -1115,7 +1121,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			|| "application/zip".equals( type )
 		) {
 			decodedMessage.value.setValue( new ByteArray( message.content() ) );
-		} else if ( "application/json".equals( type ) || type.contains( "json" ) ) {
+		} else if ( ContentTypes.APPLICATION_JSON.equals( type ) || type.contains( "json" ) ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			parseJson( message, decodedMessage.value, strictEncoding, charset );
 		} else {
@@ -1240,26 +1246,29 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		encoding = message.getProperty( "accept-encoding" );
 		headRequest = inInputPort && message.isHead();
 
+		String contentType = DEFAULT_CONTENT_TYPE;
+		if ( message.getProperty( "content-type" ) != null ) {
+			contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
+		}
+		
 		// URI parameter parsing
 		if ( message.requestPath() != null ) {
-			String requestPath = message.requestPath();
+			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
+			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
+			/* String requestPath = message.requestPath();
 			if ( requestPath.contains( "?=" ) ) {
 				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
 			} else if ( requestPath.contains( "?" ) ) {
-				recv_parseQueryString( message, decodedMessage.value );
-			}
+				
+			} */
 		}
+		
+		recv_parseRequestFormat( contentType );
 
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
 		if ( !message.isGet() && !message.isHead() && !message.isDelete() ) {
 			// body parsing
-			String contentType = DEFAULT_CONTENT_TYPE;
-			if ( message.getProperty( "content-type" ) != null ) {
-				contentType = message.getProperty( "content-type" ).split( ";", 2 )[0].toLowerCase();
-			}
-
-			recv_parseRequestFormat( message, contentType );
 			if ( message.size() > 0 ) {
 				recv_parseMessage( message, decodedMessage, contentType, charset );
 			}
