@@ -21,7 +21,6 @@
 
 include "../AbstractTestUnit.iol"
 include "math.iol"
-include "console.iol"
 
 interface SrvIface {
 RequestResponse:
@@ -33,6 +32,10 @@ interface CellIface {
 RequestResponse:
 	read(void)(int),
 	writeAbs(int)(void)
+}
+
+interface RecursionInterface {
+  RequestResponse: myOperation(int)(int) 
 }
 
 service Cell {
@@ -62,6 +65,19 @@ service Srv {
 	}
 }
 
+service RecursionService {
+  Interfaces: RecursionInterface
+  main 
+  {
+    [ myOperation ( req )( resp ){
+      resp = req + 1;
+      if ( req < 5 ) {
+        myOperation@RecursionService ( resp )( resp )
+      }
+    } ]
+  }
+}
+
 define doTest
 {
 	set@Srv( -42 )();
@@ -73,6 +89,13 @@ define doTest
 	add@Srv( 10 )( x );
 	if ( x != 20 ) {
 		throw( TestFailed, "Unexpected result" )
+	};
+
+	//test if recursion works
+	myOperation@RecursionService( 0 )( x );
+	if ( x != 6 ) {
+		throw( TestFailed, "Unexpected result" )
 	}
+	
 }
 
