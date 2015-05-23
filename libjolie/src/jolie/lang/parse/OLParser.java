@@ -925,6 +925,10 @@ public class OLParser extends AbstractParser
 			throwException( "You must specify a main for internal service " + serviceName );
 		}
 
+		//add output port to main program
+		program.addChild( createInternalServicePort( serviceName, interfaceList ) );
+		
+		//create Program representing the internal service
 		Program internalServiceProgram = new Program( getContext() );
 
 		// copy children of parent to embedded service
@@ -949,9 +953,6 @@ public class OLParser extends AbstractParser
 
 		//add main defined in internal service
 		internalServiceProgram.addChild( internalMain );
-
-		//add output port to main program
-		program.addChild( createInternalServicePort( serviceName, interfaceList ) );
 
 		//create internal embedded service node
 		EmbeddedServiceNode internalServiceNode
