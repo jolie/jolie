@@ -132,7 +132,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.iface = iface;
 		this.initialLocationURI = locationURI;
 		
-		System.out.println("OutputPort: " + locationURI.toString());
 		this.protocolVariablePath =
 					new VariablePathBuilder( false )
 					.add( id(), 0 )
