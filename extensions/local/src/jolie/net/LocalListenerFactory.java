@@ -28,8 +28,12 @@ import jolie.net.ports.InputPort;
 
 public class LocalListenerFactory extends CommListenerFactory
 {
-	private final Map<String, LocalListener> locationToListener = new ConcurrentHashMap<String, LocalListener>();
+	public static final Map<String, LocalListener> locationToListener =  new ConcurrentHashMap<String, LocalListener>();
 
+	static {
+		System.out.println("LocalListenerFactory initialized");
+	}
+	
 	public LocalListenerFactory( CommCore commCore )
 	{
 		super( commCore );
@@ -41,35 +45,26 @@ public class LocalListenerFactory extends CommListenerFactory
 		InputPort inputPort)
 		throws IOException
 	{
-		System.out.println("createListener");
 		if (inputPort.location() == null || inputPort.location().getHost() == null) {
 			throw new IOException( "No address given" );
-		}
-		
-		if ( this.locationToListener.containsKey( inputPort.location().getHost() ) ) {
+		}	
+		if ( locationToListener.containsKey( inputPort.location().getHost() ) ) {
 			throw new IOException( "Address already in use" );
 		}
 		
-		LocalListener localListener = LocalListener.create( interpreter, inputPort );
-		System.out.println(localListener.inputPort().getInterface().oneWayOperations().isEmpty());
-		
-		System.out.println("_:_Port: "+ inputPort.name());
-		for ( String key: inputPort.getInterface().oneWayOperations().keySet() ) {
-			System.out.println("__    Key: "+key);
-		}
-		
-//		public void addRedirections( Map< String, OutputPort > redirectionMap )
-//	
-//		public void addAggregations( Map< String, AggregatedOperation > aggregationMap )
-//	
-		this.locationToListener.put( inputPort.location().getHost(), localListener);
-
+		LocalListener localListener = LocalListener.create( interpreter, inputPort );	
+		LocalListenerFactory.addListener( inputPort.location().getHost(), localListener);
 		return localListener;
 	}
 	
-	public LocalListener getListener(String location)
+	public static LocalListener getListener(String location)
 	{
-		return this.locationToListener.get( location);
+		return locationToListener.get( location);
+	}
+	
+	public static void addListener(String hostname, LocalListener listener)
+	{	
+		locationToListener.put( hostname, listener);
 	}
 	
 }
