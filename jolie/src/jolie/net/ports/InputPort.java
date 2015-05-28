@@ -148,6 +148,13 @@ public class InputPort implements Port
 	 */
 	public boolean canHandleInputOperationDirectly( String operationName )
 	{
+		System.out.println("canHandleInputOperationDirectly: "+operationName);
+		System.out.println("canHandleInputOperationDirectly: "+this.name);
+		System.out.println(this.iface.oneWayOperations().size());
+		System.out.println(iface.containsOperation( operationName ));
+		for ( String key: iface.requestResponseOperations().keySet() ) {
+			System.out.println("    Key: "+key);
+		}
 		return iface.containsOperation( operationName );
 	}
 

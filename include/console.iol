@@ -73,6 +73,7 @@ RequestResponse:
 
 outputPort Console {
 Interfaces: ConsoleInterface
+Location: "local://A"
 }
 
 embedded {
@@ -86,6 +87,6 @@ interface ConsoleInputInterface {
 }
 
 inputPort ConsoleInputPort {
-Location: "local"
+Location: "local://A"
 Interfaces: ConsoleInputInterface
 }

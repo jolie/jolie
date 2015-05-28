@@ -433,6 +433,7 @@ public class OOITBuilder implements OLVisitor
 		}
 		currentOutputPort = null;
 
+		System.out.println("OutputPortInfo: "+ n.location().getPath());
 		interpreter.register( n.id(), new OutputPort(
 				interpreter,
 				n.id(),
@@ -511,9 +512,6 @@ public class OOITBuilder implements OLVisitor
 			new HashMap< String, OneWayTypeDescription >(),
 			new HashMap< String, RequestResponseTypeDescription >()
 		);
-		for( OperationDeclaration op : n.operations() ) {
-			op.accept( this );
-		}
 		
 		Map< String, OutputPort > redirectionMap =
 			new HashMap< String, OutputPort > ();
@@ -609,8 +607,13 @@ public class OOITBuilder implements OLVisitor
 			} catch( IOException e ) {
 				error( n.context(), e );
 			}
-		} else if ( protocolFactory != null ) {
+		} else if ( protocolFactory != null || n.location().getScheme().equals( "local" )) {
 			try {
+				
+				System.out.println("::: " + inputPort.name());
+				for ( String key: inputPort.getInterface().oneWayOperations().keySet() ) {
+					System.out.println("__    Key: "+key);
+				}
 				interpreter.commCore().addInputPort(
 					inputPort,
 					protocolFactory,
