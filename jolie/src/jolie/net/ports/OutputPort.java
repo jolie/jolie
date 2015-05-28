@@ -59,6 +59,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
 	private final Interface iface;
+	private URI initialLocationURI;
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -129,7 +130,9 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
 		this.iface = iface;
-
+		this.initialLocationURI = locationURI;
+		
+		System.out.println("OutputPort: " + locationURI.toString());
 		this.protocolVariablePath =
 					new VariablePathBuilder( false )
 					.add( id(), 0 )
@@ -217,16 +220,20 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
+		System.out.println("getCommChannel()");
 		CommChannel ret;
 		Value loc = locationExpression.evaluate();
-		if ( loc.isChannel() ) {
+		URI uri = getLocation( loc );
+		System.out.println("location variable: "+locationVariablePath.getValue().strValue());
+		System.out.println(uri.toString());
+		if ( loc.isChannel() && ( initialLocationURI == null || initialLocationURI.getScheme() == null )  ) {
+			System.out.println("loc.isChannel() && uri.getScheme() == null");
 			// It's a local channel
 			ret = loc.channelValue();
 			if ( forceNew ) {
 				ret = ret.createDuplicate();
 			}
 		} else {
-			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
 				ret = interpreter.commCore().createCommChannel( uri, this );
@@ -269,10 +276,15 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private URI getLocation( Value location )
 		throws URISyntaxException
 	{
-		if ( location.isChannel() ) {
+		String s = location.strValue();
+		System.out.println("getLocation: " + s);
+		if ( initialLocationURI != null && initialLocationURI.getScheme().equals( "local" ) ) {
+			return initialLocationURI;
+		}
+		else if ( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
-		String s = location.strValue();
+		
 		URI ret;
 		synchronized( uriCache ) {
 			if ( (ret=uriCache.get( s )) == null ) {

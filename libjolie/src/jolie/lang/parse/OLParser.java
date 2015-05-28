@@ -1076,14 +1076,15 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.RCURLY, "} expected" );
 		if ( inputPortLocation == null ) {
 			throwException( "expected location URI for " + inputPortName );
-		} else if ( iface.operationsMap().isEmpty() && redirectionMap.isEmpty() && aggregationList.isEmpty() ) {
+		} else if ( iface.operationsMap().isEmpty() && redirectionMap.isEmpty() && aggregationList.isEmpty()  ) {
 			throwException( "expected at least one operation, interface, aggregation or redirection for inputPort " + inputPortName );
-		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
+		} else if ( protocolId == null && !inputPortLocation.toString().equals( Constants.LOCAL_LOCATION_KEYWORD ) && !inputPortLocation.getScheme().equals("local") ) {
 			throwException( "expected protocol for inputPort " + inputPortName );
 		}
 		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ aggregationList.size() ] ), redirectionMap );
 		for( InterfaceDefinition i : interfaceList ) {
 			iport.addInterface( i );
+			System.out.println("Adding interface " + i.name() + " to " + iport.id());
 		}
 		iface.copyTo( iport );
 		program.addChild( iport );
