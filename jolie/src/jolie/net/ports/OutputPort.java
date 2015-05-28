@@ -219,14 +219,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private CommChannel getCommChannel( boolean forceNew )
 		throws URISyntaxException, IOException
 	{
-		System.out.println("getCommChannel()");
 		CommChannel ret;
 		Value loc = locationExpression.evaluate();
 		URI uri = getLocation( loc );
-		System.out.println("location variable: "+locationVariablePath.getValue().strValue());
-		System.out.println(uri.toString());
 		if ( loc.isChannel() && ( initialLocationURI == null || initialLocationURI.getScheme() == null )  ) {
-			System.out.println("loc.isChannel() && uri.getScheme() == null");
 			// It's a local channel
 			ret = loc.channelValue();
 			if ( forceNew ) {
@@ -276,7 +272,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		throws URISyntaxException
 	{
 		String s = location.strValue();
-		System.out.println("getLocation: " + s);
 		if ( initialLocationURI != null && initialLocationURI.getScheme().equals( "local" ) ) {
 			return initialLocationURI;
 		}
