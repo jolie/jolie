@@ -30,10 +30,7 @@ import jolie.net.ports.InputPort;
 
 public class LocalListenerFactory extends CommListenerFactory
 {
-	public static final Map< String, LocalListener > locationToListener =  new ConcurrentHashMap< String, LocalListener >();
-
 	static {
-		System.out.println( LocalListenerFactory.class.getName() );
 		StaticUtils.create(
 			LocalListenerFactory.class,
 			new Callable<Object>() {
@@ -61,7 +58,7 @@ public class LocalListenerFactory extends CommListenerFactory
 		if (inputPort.location() == null || inputPort.location().getHost() == null) {
 			throw new IOException( "No address given" );
 		}	
-		if ( locationToListener.containsKey( inputPort.location().getHost() ) ) {
+		if ( LocalListenerFactory.getListener(inputPort.location().getHost() ) != null ) {
 			throw new IOException( "Address already in use" );
 		}
 		
