@@ -33,17 +33,21 @@ public class LocalListenerFactory extends CommListenerFactory
 	static {
 		StaticUtils.create(
 			LocalListenerFactory.class,
-			new Callable<Object>() {
-				public Object call() { return new ConcurrentHashMap< String, LocalListener >(); }
+			new Callable<Object>()
+			{
+				public Object call()
+				{
+					return new ConcurrentHashMap< String, LocalListener>();
+				}
 			}
 		);
 	}
-	
-	private static Map< String, LocalListener > locationToListener()
+
+	private static Map< String, LocalListener> locationToListener()
 	{
 		return StaticUtils.retrieve( LocalListenerFactory.class, Map.class );
 	}
-	
+
 	public LocalListenerFactory( CommCore commCore )
 	{
 		super( commCore );
@@ -52,29 +56,29 @@ public class LocalListenerFactory extends CommListenerFactory
 	public CommListener createListener(
 		Interpreter interpreter,
 		CommProtocolFactory protocolFactory,
-		InputPort inputPort)
+		InputPort inputPort )
 		throws IOException
 	{
-		if (inputPort.location() == null || inputPort.location().getHost() == null) {
+		if ( inputPort.location() == null || inputPort.location().getHost() == null ) {
 			throw new IOException( "No address given" );
-		}	
-		if ( LocalListenerFactory.getListener(inputPort.location().getHost() ) != null ) {
+		}
+		if ( LocalListenerFactory.getListener( inputPort.location().getHost() ) != null ) {
 			throw new IOException( "Address already in use" );
 		}
-		
-		LocalListener localListener = LocalListener.create( interpreter, inputPort );	
-		LocalListenerFactory.addListener( inputPort.location().getHost(), localListener);
+
+		LocalListener localListener = LocalListener.create( interpreter, inputPort );
+		LocalListenerFactory.addListener( inputPort.location().getHost(), localListener );
 		return localListener;
 	}
-	
-	public static LocalListener getListener(String location)
+
+	public static LocalListener getListener( String location )
 	{
-		return locationToListener().get( location);
+		return locationToListener().get( location );
 	}
-	
-	public static void addListener(String hostname, LocalListener listener)
-	{	
-		locationToListener().put( hostname, listener);
+
+	public static void addListener( String hostname, LocalListener listener )
+	{
+		locationToListener().put( hostname, listener );
 	}
-	
+
 }

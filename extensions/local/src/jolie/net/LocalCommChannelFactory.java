@@ -23,12 +23,11 @@ import java.net.URI;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
-
 public class LocalCommChannelFactory extends CommChannelFactory
 {
 	public LocalCommChannelFactory( CommCore commCore )
 	{
-		super( commCore );		
+		super( commCore );
 	}
 
 	public CommChannel createChannel( URI location, OutputPort port )
@@ -36,8 +35,8 @@ public class LocalCommChannelFactory extends CommChannelFactory
 	{
 		LocalListener localListener = LocalListenerFactory.getListener( location.getHost() );
 		if ( localListener == null ) {
-			throw new IOException("Channel does not exist.");
+			throw new IOException( "Channel does not exist." );
 		}
-		return new LocalCommChannel (localListener.interpreter(), localListener);
+		return new LocalCommChannel( localListener.interpreter(), localListener );
 	}
 }
