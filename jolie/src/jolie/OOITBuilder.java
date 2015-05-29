@@ -611,11 +611,6 @@ public class OOITBuilder implements OLVisitor
 			}
 		} else if ( protocolFactory != null || n.location().getScheme().equals( "local" )) {
 			try {
-				
-				System.out.println("::: " + inputPort.name());
-				for ( String key: inputPort.getInterface().oneWayOperations().keySet() ) {
-					System.out.println("__    Key: "+key);
-				}
 				interpreter.commCore().addInputPort(
 					inputPort,
 					protocolFactory,

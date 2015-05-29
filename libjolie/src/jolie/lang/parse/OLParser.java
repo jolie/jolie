@@ -1084,7 +1084,6 @@ public class OLParser extends AbstractParser
 		InputPortInfo iport = new InputPortInfo( getContext(), inputPortName, inputPortLocation, protocolId, protocolConfiguration, aggregationList.toArray( new InputPortInfo.AggregationItemInfo[ aggregationList.size() ] ), redirectionMap );
 		for( InterfaceDefinition i : interfaceList ) {
 			iport.addInterface( i );
-			System.out.println("Adding interface " + i.name() + " to " + iport.id());
 		}
 		iface.copyTo( iport );
 		program.addChild( iport );
