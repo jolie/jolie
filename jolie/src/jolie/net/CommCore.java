@@ -574,7 +574,7 @@ public class CommCore
 						AggregatedOperation operation = port.getAggregatedOperation( message.operationName() );
 						if ( operation == null ) {
 							interpreter.logWarning(
-								"__Received a message for operation " + message.operationName() +
+								"Received a message for operation " + message.operationName() +
 									", not specified in the input port at the receiving service. Sending IOException to the caller."
 							);
 							System.out.println("" + port.name());

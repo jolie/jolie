@@ -30,3 +30,4 @@
 dist/
 build/
 /extensions/javascript/nbproject/private/
+/extensions/local/nbproject/private/
