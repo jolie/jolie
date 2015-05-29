@@ -129,7 +129,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
 		this.iface = iface;
-		
+
 		this.protocolVariablePath =
 					new VariablePathBuilder( false )
 					.add( id(), 0 )
@@ -272,7 +272,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		if ( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
-		
 		String s = location.strValue();
 		URI ret;
 		synchronized( uriCache ) {
