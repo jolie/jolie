@@ -1,3 +1,5 @@
+include "console.iol"
+
 interface EmbeddedIface {
 RequestResponse:
   twice(int)(int)
@@ -15,5 +17,6 @@ Jolie:
 
 main
 {
-  twice@Embedded( 5 )( x )
+  twice@Embedded( 5 )( x );
+  println@Console(x)()
 }
