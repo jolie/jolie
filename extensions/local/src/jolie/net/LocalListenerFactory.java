@@ -20,18 +20,31 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
+import jolie.StaticUtils;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 
 public class LocalListenerFactory extends CommListenerFactory
 {
-	public static final Map<String, LocalListener> locationToListener =  new ConcurrentHashMap<String, LocalListener>();
+	public static final Map< String, LocalListener > locationToListener =  new ConcurrentHashMap< String, LocalListener >();
 
 	static {
-		System.out.println("LocalListenerFactory initialized");
+		System.out.println( LocalListenerFactory.class.getName() );
+		StaticUtils.create(
+			LocalListenerFactory.class,
+			new Callable<Object>() {
+				public Object call() { return new ConcurrentHashMap< String, LocalListener >(); }
+			}
+		);
+	}
+	
+	private static Map< String, LocalListener > locationToListener()
+	{
+		return StaticUtils.retrieve( LocalListenerFactory.class, Map.class );
 	}
 	
 	public LocalListenerFactory( CommCore commCore )
@@ -59,12 +72,12 @@ public class LocalListenerFactory extends CommListenerFactory
 	
 	public static LocalListener getListener(String location)
 	{
-		return locationToListener.get( location);
+		return locationToListener().get( location);
 	}
 	
 	public static void addListener(String hostname, LocalListener listener)
 	{	
-		locationToListener.put( hostname, listener);
+		locationToListener().put( hostname, listener);
 	}
 	
 }
