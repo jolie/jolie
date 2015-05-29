@@ -577,7 +577,6 @@ public class CommCore
 								"Received a message for operation " + message.operationName() +
 									", not specified in the input port at the receiving service. Sending IOException to the caller."
 							);
-							System.out.println("" + port.name());
 							channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
 							channel.disposeForInput();
 						} else {
