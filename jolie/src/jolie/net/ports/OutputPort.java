@@ -59,7 +59,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
 	private final Interface iface;
-	private URI initialLocationURI;
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -130,7 +129,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.isConstant = isConstant;
 		this.interpreter = interpreter;
 		this.iface = iface;
-		this.initialLocationURI = locationURI;
 		
 		this.protocolVariablePath =
 					new VariablePathBuilder( false )
@@ -221,14 +219,14 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	{
 		CommChannel ret;
 		Value loc = locationExpression.evaluate();
-		URI uri = getLocation( loc );
-		if ( loc.isChannel() && ( initialLocationURI == null || initialLocationURI.getScheme() == null )  ) {
+		if ( loc.isChannel() ) {
 			// It's a local channel
 			ret = loc.channelValue();
 			if ( forceNew ) {
 				ret = ret.createDuplicate();
 			}
 		} else {
+			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
 				ret = interpreter.commCore().createCommChannel( uri, this );
@@ -271,14 +269,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private URI getLocation( Value location )
 		throws URISyntaxException
 	{
-		String s = location.strValue();
-		if ( initialLocationURI != null && initialLocationURI.getScheme().equals( "local" ) ) {
-			return initialLocationURI;
-		}
-		else if ( location.isChannel() ) {
+		if ( location.isChannel() ) {
 			return LazyLocalUriHolder.uri;
 		}
 		
+		String s = location.strValue();
 		URI ret;
 		synchronized( uriCache ) {
 			if ( (ret=uriCache.get( s )) == null ) {
