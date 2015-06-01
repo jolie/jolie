@@ -609,7 +609,7 @@ public class OOITBuilder implements OLVisitor
 			} catch( IOException e ) {
 				error( n.context(), e );
 			}
-		} else if ( protocolFactory != null ) {
+		} else if ( protocolFactory != null || n.location().getScheme().equals( Constants.LOCAL_LOCATION_KEYWORD ) ) {
 			try {
 				interpreter.commCore().addInputPort(
 					inputPort,

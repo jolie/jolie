@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: local:jolie.net.LocalCommChannelFactory
+X-JOLIE-ListenerExtension: local:jolie.net.LocalListenerFactory
