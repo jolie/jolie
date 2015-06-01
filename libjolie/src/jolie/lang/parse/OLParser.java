@@ -933,9 +933,12 @@ public class OLParser extends AbstractParser
 
 		// copy children of parent to embedded service
 		for( OLSyntaxNode child : program.children() ) {
-			if ( child instanceof TypeInlineDefinition
-				|| child instanceof InterfaceDefinition
-				|| child instanceof OutputPortInfo ) {
+			if ( child instanceof InterfaceDefinition
+				|| child instanceof OutputPortInfo
+				|| child instanceof TypeDefinition
+				|| child instanceof TypeInlineDefinition
+				|| child instanceof TypeDefinitionLink
+				|| child instanceof TypeDefinitionUndefined ) {
 				internalServiceProgram.addChild( child );
 			}
 		}
