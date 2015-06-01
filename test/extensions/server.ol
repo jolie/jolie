@@ -145,6 +145,16 @@ define test
 	checkResponse
 }
 
+define shutdown
+{
+	shutdown@SODEPServer();
+	shutdown@SODEPSServer();
+	shutdown@SOAPServer();
+	shutdown@JSONRPCServer();
+	shutdown@HTTPServer();
+	shutdown@HTTPSServer()
+}
+
 define doTest
 {
 	with( person ) {
@@ -163,7 +173,7 @@ define doTest
 	};
 	reqVal = "Döner";
 	scope( s ) {
-		install( TypeMismatch => throw( TestFailed, s.TypeMismatch ) );
+		install( TypeMismatch => shutdown; throw( TestFailed, s.TypeMismatch ) );
 
 		// compression on (default), but no request compression
 		test;
@@ -176,11 +186,6 @@ define doTest
 		compression = false;
 		test;
 
-		shutdown@SODEPServer();
-		shutdown@SODEPSServer();
-		shutdown@SOAPServer();
-		shutdown@JSONRPCServer();
-		shutdown@HTTPServer();
-		shutdown@HTTPSServer()
+		shutdown
 	}
 }
