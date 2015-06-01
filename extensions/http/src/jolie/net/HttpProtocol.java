@@ -827,7 +827,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
-			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
+			if ( method == Method.GET && getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					qsFormat = format = "json";
 					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
