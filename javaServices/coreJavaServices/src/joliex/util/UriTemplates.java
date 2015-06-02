@@ -23,11 +23,13 @@ package joliex.util;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateMatcherFactory;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 
 @AndJarDeps({"uri-templates.jar"})
 public class UriTemplates extends JavaService
@@ -46,5 +48,16 @@ public class UriTemplates extends JavaService
 			}
 		}
 		return response;
+	}
+	
+	public String expand( Value request )
+	{
+		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
+		if ( request.hasChildren( "params" ) ) {
+			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children().entrySet() ) {
+				t.set( entry.getKey(), entry.getValue().first().valueObject() );
+			}
+		}
+		return t.expand();
 	}
 }
