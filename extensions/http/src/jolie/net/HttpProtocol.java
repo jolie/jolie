@@ -1257,13 +1257,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( message.requestPath() != null ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
-			/* String requestPath = message.requestPath();
-			if ( requestPath.contains( "?=" ) ) {
-				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-			} else if ( requestPath.contains( "?" ) ) {
-				
-			} */
 		}
 		
 		recv_parseRequestFormat( contentType );
