@@ -179,7 +179,7 @@ public class HttpParser
 				+ token.content() + "(" + token.type() + ")" );
 		}
 
-		message.setRequestPath( URLDecoder.decode( scanner.readWord().substring( 1 ), HttpUtils.URL_DECODER_ENC ) );
+		message.setRequestPath( URLDecoder.decode( scanner.readWord(), HttpUtils.URL_DECODER_ENC ) );
 
 		getToken();
 		if ( !token.isKeywordIgnoreCase( HTTP ) )
