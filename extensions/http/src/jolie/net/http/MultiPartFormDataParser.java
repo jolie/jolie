@@ -100,7 +100,7 @@ public class MultiPartFormDataParser
 	{
 		boolean hasContentType;
 		// Split header from content
-		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF );
+		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF, 2 );
 		BufferedReader reader =
 			new BufferedReader(
 			new StringReader( hc[0] ) );
