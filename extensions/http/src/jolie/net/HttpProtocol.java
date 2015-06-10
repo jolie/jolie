@@ -894,7 +894,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
-		multiPartFormDataParser = new MultiPartFormDataParser( message, value, charset );
+		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
 	}
 	
