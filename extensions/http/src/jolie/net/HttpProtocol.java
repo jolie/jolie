@@ -1034,16 +1034,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				queryString = kv[1];
 				String[] params = queryString.split( "&" );
 				for( String param : params ) {
-					kv = param.split( "=", 2 );
-					if ( kv.length > 1 ) {
-						index = indexes.get( kv[0] );
+					String[] ikv = param.split( "=", 2 );
+					if ( ikv.length > 1 ) {
+						index = indexes.get( ikv[0] );
 						if ( index == null ) {
 							index = 0;
-							indexes.put( kv[0], index );
+							indexes.put( ikv[0], index );
 						}
 						// the query string was already URL decoded by the HttpParser
-						value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
-						indexes.put( kv[0], index + 1 );
+						value.getChildren( ikv[0] ).get( index ).setValue( ikv[1] );
+						indexes.put( ikv[0], index + 1 );
 					}
 				}
 			}
@@ -1150,7 +1150,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( decodedMessage.operationName == null ) {
 			String requestPath = message.requestPath().split( "\\?", 2 )[0];
-			decodedMessage.operationName = requestPath;
+			decodedMessage.operationName = requestPath.substring( 1 );
 			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
 			if ( m.find() ) {
 				int resourceStart = m.end();
