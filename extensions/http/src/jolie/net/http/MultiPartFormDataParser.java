@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import jolie.net.HttpProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 
@@ -40,7 +39,6 @@ public class MultiPartFormDataParser
 	private final String boundary;
 	private final Value value;
 	private final HttpMessage message;
-	private final String charset;
 	private final Map< String, PartProperties > partPropertiesMap = new HashMap< String, PartProperties >();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
@@ -58,7 +56,7 @@ public class MultiPartFormDataParser
 		}
 	}
 	
-	public MultiPartFormDataParser( HttpMessage message, Value value, String charset )
+	public MultiPartFormDataParser( HttpMessage message, Value value )
 		throws IOException
 	{
 		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
@@ -80,7 +78,6 @@ public class MultiPartFormDataParser
 		this.value = value;
 		this.boundary = b;
 		this.message = message;
-		this.charset = charset;
 	}
 
 	private PartProperties getPartProperties( String partName )
