@@ -65,7 +65,7 @@ public class MultiPartFormDataParser
 			for( String param : params ) {
 				param = param.trim();
 				if ( param.startsWith( "boundary" ) ) {
-					b = "--" + param.split( "=" )[1];
+					b = "--" + keyValueSplitPattern.split( param, 2 )[1];
 				}
 			}
 			if ( b == null ) {
@@ -115,7 +115,7 @@ public class MultiPartFormDataParser
 				param = param.trim();
 				if ( param.startsWith( "name" ) ) {
 					try {
-						name = keyValueSplitPattern.split( param )[1];
+						name = keyValueSplitPattern.split( param, 2 )[1];
 						// Names are surronded by "": cut them.
 						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
@@ -123,7 +123,7 @@ public class MultiPartFormDataParser
 					}
 				} else if ( param.startsWith( "filename" ) ) {
 					try {
-						filename = keyValueSplitPattern.split( param )[1];
+						filename = keyValueSplitPattern.split( param, 2 )[1];
 						// Filenames are surronded by quotes "": cut them.
 						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
