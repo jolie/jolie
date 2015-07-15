@@ -37,6 +37,10 @@ import jolie.net.protocols.CommProtocol;
  */
 public abstract class SelectableStreamingCommChannel extends StreamingCommChannel
 {
+	private static final long LIFETIME = 5000; // 5 secs
+	
+	private final long creationTime = System.currentTimeMillis();
+	
 	private int selectorIndex;
 	
 	public int selectorIndex()
@@ -126,6 +130,10 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 			final CommCore commCore = Interpreter.getInstance().commCore();
 			if ( commCore.isSelecting( this ) == false ) {
 				super.releaseImpl();
+			} else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+				commCore.unregisterForSelection( this );
+				setToBeClosed( true );
+				close();
 			}
 		} else {
 			lock.lock();
@@ -133,6 +141,10 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 				final CommCore commCore = Interpreter.getInstance().commCore();
 				if ( commCore.isSelecting( this ) == false ) {
 					super.releaseImpl();
+				} else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+					commCore.unregisterForSelection( this );
+					setToBeClosed( true );
+					close();
 				}
 			} finally {
 				lock.unlock();
