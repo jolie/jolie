@@ -46,6 +46,10 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
 	private final Object json;
 	
+	private final static class JsonMethods {
+		private final static String STRINGIFY = "stringify", PARSE = "parse";
+	}
+	
 	public JavaScriptCommChannel( Invocable invocable, Object json )
 	{
 		this.invocable = invocable;
@@ -66,7 +70,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 		try {
 			StringBuilder builder = new StringBuilder();
 			JsUtils.valueToJsonString( message.value(), true, Type.UNDEFINED, builder );
-			Object param = invocable.invokeMethod( json, "parse", builder.toString() );
+			Object param = invocable.invokeMethod( json, JsonMethods.PARSE, builder.toString() );
 			returnValue = invocable.invokeFunction( message.operationName(), param );
 		} catch( ScriptException e ) {
 			throw new IOException( e );
@@ -82,7 +86,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 				value.refCopy( (Value)returnValue );
 			} else {
 				try {
-					Object s = invocable.invokeMethod( json, "stringify", returnValue );
+					Object s = invocable.invokeMethod( json, JsonMethods.STRINGIFY, returnValue );
 					JsUtils.parseJsonIntoValue( new StringReader( (String)s ), value, true );
 				} catch( ScriptException e ) {
 					// TODO: do something here, maybe encode an internal server error

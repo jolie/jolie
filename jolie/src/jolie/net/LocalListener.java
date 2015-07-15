@@ -43,8 +43,8 @@ import jolie.runtime.typing.RequestResponseTypeDescription;
  * @author Fabrizio Montesi
  */
 public class LocalListener extends CommListener
-{	
-	public static LocalListener create( Interpreter interpreter )
+{
+	public static LocalListener create( Interpreter interpreter, InputPort inputPort )
 	{
 		VariablePath locationPath =
 			new ClosedVariablePath(
@@ -55,12 +55,17 @@ public class LocalListener extends CommListener
 				.toVariablePath(),
 				interpreter.globalValue()
 			);
-		return new LocalListener( interpreter, locationPath );
+		return new LocalListener( interpreter, locationPath, inputPort );
 	}
 	
-	private LocalListener( Interpreter interpreter, VariablePath locationPath )
+	public static LocalListener create( Interpreter interpreter )
 	{
-		super( interpreter, new InputPort(
+		return create(interpreter, null );
+	}
+	
+	private LocalListener( Interpreter interpreter, VariablePath locationPath, InputPort inputPort )
+	{
+		super( interpreter, inputPort == null ? new InputPort(
 				Constants.LOCAL_INPUT_PORT_NAME,
 				locationPath,
 				new VariablePathBuilder( true ).toVariablePath(),
@@ -70,7 +75,7 @@ public class LocalListener extends CommListener
 				),
 				new HashMap< String, AggregatedOperation >(),
 				new HashMap< String, OutputPort >()
-			)
+			) : inputPort
 		);
 		locationPath.getValue().setValue( Constants.LOCAL_LOCATION_KEYWORD );
 	}

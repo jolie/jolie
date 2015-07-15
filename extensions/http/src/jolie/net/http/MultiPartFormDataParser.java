@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import jolie.net.HttpProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 
@@ -40,7 +39,6 @@ public class MultiPartFormDataParser
 	private final String boundary;
 	private final Value value;
 	private final HttpMessage message;
-	private final String charset;
 	private final Map< String, PartProperties > partPropertiesMap = new HashMap< String, PartProperties >();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
@@ -58,7 +56,7 @@ public class MultiPartFormDataParser
 		}
 	}
 	
-	public MultiPartFormDataParser( HttpMessage message, Value value, String charset )
+	public MultiPartFormDataParser( HttpMessage message, Value value )
 		throws IOException
 	{
 		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
@@ -67,7 +65,7 @@ public class MultiPartFormDataParser
 			for( String param : params ) {
 				param = param.trim();
 				if ( param.startsWith( "boundary" ) ) {
-					b = "--" + param.split( "=" )[1];
+					b = "--" + keyValueSplitPattern.split( param, 2 )[1];
 				}
 			}
 			if ( b == null ) {
@@ -80,7 +78,6 @@ public class MultiPartFormDataParser
 		this.value = value;
 		this.boundary = b;
 		this.message = message;
-		this.charset = charset;
 	}
 
 	private PartProperties getPartProperties( String partName )
@@ -103,7 +100,7 @@ public class MultiPartFormDataParser
 	{
 		boolean hasContentType;
 		// Split header from content
-		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF );
+		String[] hc = part.split( HttpUtils.CRLF + HttpUtils.CRLF, 2 );
 		BufferedReader reader =
 			new BufferedReader(
 			new StringReader( hc[0] ) );
@@ -118,7 +115,7 @@ public class MultiPartFormDataParser
 				param = param.trim();
 				if ( param.startsWith( "name" ) ) {
 					try {
-						name = keyValueSplitPattern.split( param )[1];
+						name = keyValueSplitPattern.split( param, 2 )[1];
 						// Names are surronded by "": cut them.
 						name = URLDecoder.decode( name.substring( 1, name.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {
@@ -126,7 +123,7 @@ public class MultiPartFormDataParser
 					}
 				} else if ( param.startsWith( "filename" ) ) {
 					try {
-						filename = keyValueSplitPattern.split( param )[1];
+						filename = keyValueSplitPattern.split( param, 2 )[1];
 						// Filenames are surronded by quotes "": cut them.
 						filename = URLDecoder.decode( filename.substring( 1, filename.length() - 1 ), HttpUtils.URL_DECODER_ENC );
 					} catch( ArrayIndexOutOfBoundsException e ) {

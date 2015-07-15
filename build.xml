@@ -241,6 +241,7 @@ Please make sure that:
 		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.local}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="jar"/>
@@ -280,6 +281,7 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.local}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
@@ -287,7 +289,7 @@ Please make sure that:
     
 	<target name="dist" depends="-init,jar">
 		<delete dir="${dist}"/>
-        <copy todir="${dist.jolie}" flatten="true">
+		<copy todir="${dist.jolie}" flatten="true">
 			<resources>
 				<file file="${project.jolie}/dist/jolie.jar"/>
 			</resources>
@@ -320,6 +322,7 @@ Please make sure that:
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
 				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
+				<file file="${project.local}/dist/local.jar"/>
 			</resources>
 		</copy>
 		<copy todir="${dist.jolie}/javaServices" flatten="true">
@@ -357,7 +360,7 @@ Please make sure that:
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
 	
-        <antcall target="-create-unix-launchers" />
-        <antcall target="-create-windows-launchers" />
+		<antcall target="-create-unix-launchers" />
+		<antcall target="-create-windows-launchers" />
     </target>
 </project>

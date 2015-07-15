@@ -30,3 +30,6 @@
 dist/
 build/
 /extensions/javascript/nbproject/private/
+/extensions/local/nbproject/private/
+/lib/jolie-js/nbproject/private/
+/tools/jolie2surface/nbproject/private/
