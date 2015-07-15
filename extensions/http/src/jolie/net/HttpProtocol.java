@@ -827,7 +827,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
-			if ( getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
+			if ( method == Method.GET && getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					qsFormat = format = "json";
 					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
@@ -894,7 +894,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void parseMultiPartFormData( HttpMessage message, Value value, String charset )
 		throws IOException
 	{
-		multiPartFormDataParser = new MultiPartFormDataParser( message, value, charset );
+		multiPartFormDataParser = new MultiPartFormDataParser( message, value );
 		multiPartFormDataParser.parse();
 	}
 	
@@ -1034,16 +1034,16 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				queryString = kv[1];
 				String[] params = queryString.split( "&" );
 				for( String param : params ) {
-					kv = param.split( "=", 2 );
-					if ( kv.length > 1 ) {
-						index = indexes.get( kv[0] );
+					String[] ikv = param.split( "=", 2 );
+					if ( ikv.length > 1 ) {
+						index = indexes.get( ikv[0] );
 						if ( index == null ) {
 							index = 0;
-							indexes.put( kv[0], index );
+							indexes.put( ikv[0], index );
 						}
 						// the query string was already URL decoded by the HttpParser
-						value.getChildren( kv[0] ).get( index ).setValue( kv[1] );
-						indexes.put( kv[0], index + 1 );
+						value.getChildren( ikv[0] ).get( index ).setValue( ikv[1] );
+						indexes.put( ikv[0], index + 1 );
 					}
 				}
 			}
@@ -1150,7 +1150,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		if ( decodedMessage.operationName == null ) {
 			String requestPath = message.requestPath().split( "\\?", 2 )[0];
-			decodedMessage.operationName = requestPath;
+			decodedMessage.operationName = requestPath.substring( 1 );
 			Matcher m = LocationParser.RESOURCE_SEPARATOR_PATTERN.matcher( decodedMessage.operationName );
 			if ( m.find() ) {
 				int resourceStart = m.end();
@@ -1257,13 +1257,6 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( message.requestPath() != null ) {
 			boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
 			recv_parseQueryString( message, decodedMessage.value, contentType, strictEncoding );
-			/* String requestPath = message.requestPath();
-			if ( requestPath.contains( "?=" ) ) {
-				boolean strictEncoding = checkStringParameter( Parameters.JSON_ENCODING, "strict" );
-				recv_parseJsonQueryString( message, decodedMessage.value, strictEncoding );
-			} else if ( requestPath.contains( "?" ) ) {
-				
-			} */
 		}
 		
 		recv_parseRequestFormat( contentType );

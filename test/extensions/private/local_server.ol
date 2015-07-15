@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2015 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2015 by Martin Wolf <mw@martinwolf.eu>                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,45 +19,16 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package joliex.util;
+include "local_server.iol"
 
-import com.damnhandy.uri.template.UriTemplate;
-import com.damnhandy.uri.template.UriTemplateMatcherFactory;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
+execution { single }
 
-@AndJarDeps({"uri-templates.jar"})
-public class UriTemplates extends JavaService
+inputPort ServerInput {
+Location: Location_LocalServer
+Interfaces: ServerInterface
+}
+
+main
 {
-	public Value match( Value request )
-	{
-		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
-		Pattern p = UriTemplateMatcherFactory.getReverseMatchPattern( t );
-		Matcher m = p.matcher( request.getFirstChild( "uri" ).strValue() );
-		Value response = Value.create();
-		boolean matches = m.matches();
-		response.setValue( matches );
-		if ( matches ) {
-			for( String param : t.getVariables() ) {
-				response.setFirstChild( param, m.group( param ) );
-			}
-		}
-		return response;
-	}
-	
-	public String expand( Value request )
-	{
-		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
-		if ( request.hasChildren( "params" ) ) {
-			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children().entrySet() ) {
-				t.set( entry.getKey(), entry.getValue().first().valueObject() );
-			}
-		}
-		return t.expand();
-	}
+	twice( x )( x * 2 )
 }
