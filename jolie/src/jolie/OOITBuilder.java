@@ -1098,8 +1098,7 @@ public class OOITBuilder implements OLVisitor
 		
 		Expression backupExpr = currExpression;
 		
-		LinkedList< Pair< Expression, Expression > > list =
-							new LinkedList< Pair< Expression, Expression > >();
+		LinkedList< Pair< Expression, Expression > > list =	new LinkedList<>();
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
@@ -1108,7 +1107,7 @@ public class OOITBuilder implements OLVisitor
 			} else {
 				currExpression = null;
 			}
-			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
+			list.add( new Pair<>( keyExpr, currExpression ) );
 		}
 		
 		currExpression = backupExpr;
