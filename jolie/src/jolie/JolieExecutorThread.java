@@ -60,11 +60,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	
 	public static JolieExecutorThread currentThread()
 	{
-		Thread t = Thread.currentThread();
-		if ( t instanceof JolieExecutorThread ) {
-			return (JolieExecutorThread)t;
-		}
-		
-		return null;
+		final Thread t = Thread.currentThread();
+		return ( t instanceof JolieExecutorThread ) ? (JolieExecutorThread)t : null;
 	}
 }
