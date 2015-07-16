@@ -29,17 +29,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class StaticUtils
 {
-	private static final Map< String, Object > m = new ConcurrentHashMap< String, Object >();
+	private static final Map< String, Object > m = new ConcurrentHashMap<>();
 
 	public static void create( Class holder, Callable<Object> task )
 	{
-		if ( !m.containsKey( holder.getName() ) ) {
-			try {
-				m.put( holder.getName(), task.call() );
-			} catch( Exception e ) {
-				throw new RuntimeException( e );
+		m.computeIfAbsent( holder.getName(),
+			k -> {
+				try {
+					return task.call();
+				} catch( Exception e ) {
+					throw new RuntimeException( e );
+				}
 			}
-		}
+		);
 	}
 	
 	public static <T> T retrieve( Class<?> holder, Class<T> type )
