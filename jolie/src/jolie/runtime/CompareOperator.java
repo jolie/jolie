@@ -40,8 +40,8 @@ public enum CompareOperator
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() < right.doubleValue() );
 			} if ( left.isLong() ) {
-                                return ( left.longValue() < right.longValue() );
-                        } else {
+				return ( left.longValue() < right.longValue() );
+			} else {
 				return ( left.intValue() < right.intValue() );
 			}
 		}
@@ -50,8 +50,8 @@ public enum CompareOperator
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() > right.doubleValue() );
 			} if ( left.isLong() ) {
-                                return ( left.longValue() > right.longValue() );
-                        } else {
+				return ( left.longValue() > right.longValue() );
+			} else {
 				return ( left.intValue() > right.intValue() );
 			}
 		}
@@ -60,8 +60,8 @@ public enum CompareOperator
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() <= right.doubleValue() );
 			} if ( left.isLong() ) {
-                                return ( left.longValue() <= right.longValue() );
-                        } else {
+				return ( left.longValue() <= right.longValue() );
+			} else {
 				return ( left.intValue() <= right.intValue() );
 			}
 		}
@@ -70,8 +70,8 @@ public enum CompareOperator
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() >= right.doubleValue() );
 			} if ( left.isLong() ) {
-                                return ( left.longValue() >= right.longValue() );
-                        } else {
+				return ( left.longValue() >= right.longValue() );
+			} else {
 				return ( left.intValue() >= right.intValue() );
 			}
 		}
