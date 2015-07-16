@@ -70,8 +70,8 @@ public class NotificationProcess implements Process
 
 	private void log( String log, CommMessage message )
 	{
-		Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( new MessageTraceAction(
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,

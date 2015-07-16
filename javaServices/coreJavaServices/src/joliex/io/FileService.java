@@ -29,12 +29,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
@@ -218,7 +218,7 @@ public class FileService extends JavaService
 		} else {
 			properties.load( new InputStreamReader( istream, charset ) );
 		}
-		Enumeration< String> names = (Enumeration< String>) properties.propertyNames();
+		Enumeration< String > names = (Enumeration< String >) properties.propertyNames();
 		String name;
 		String propertyValue;
 		Matcher matcher;
@@ -307,7 +307,7 @@ public class FileService extends JavaService
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
 
-		File file = new File( filenameValue.strValue() );
+		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
 		try {

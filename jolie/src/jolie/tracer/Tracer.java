@@ -21,11 +21,13 @@
 
 package jolie.tracer;
 
+import java.util.function.Supplier;
+
 /**
  *
  * @author Fabrizio Montesi
  */
 public interface Tracer
 {
-	public void trace( TraceAction action );
+	public void trace( Supplier< ? extends TraceAction > supplier );
 }

@@ -22,7 +22,6 @@
 
 package jolie.net;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +63,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		super( location, protocol );
 		this.socketChannel = socketChannel;
 		socketChannel.socket().setSoLinger( true, SO_LINGER );
-		this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream( socketChannel ) ) );
+		// this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream( socketChannel ) ) );
+		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
@@ -124,12 +124,14 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	private boolean _isOpenImpl()
 		throws IOException
 	{
+		final ByteBuffer buffer = ByteBuffer.allocate( 1 );
+		
 		boolean wasBlocking = socketChannel.isBlocking();
-		ByteBuffer buffer = ByteBuffer.allocate( 1 );
+		
 		if ( wasBlocking ) {
 			socketChannel.configureBlocking( false );
 		}
-		int read;
+		final int read;
 		try {
 			read = socketChannel.read( buffer );
 		} catch( IOException e ) {
@@ -147,7 +149,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		if ( read == -1 ) {
 			return false;
 		} else if ( read > 0 ) {
-			istream.append( buffer.get( 0 ) );
+			buffer.flip();
+			istream.append( buffer.get() );
 		}
 		return true;
 	}

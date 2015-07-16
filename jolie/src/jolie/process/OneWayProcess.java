@@ -110,8 +110,8 @@ public class OneWayProcess implements InputOperationProcess
 
 	private void log( String log, CommMessage message )
 	{
-		Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( new MessageTraceAction(
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,

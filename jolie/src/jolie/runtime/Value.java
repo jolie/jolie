@@ -849,7 +849,7 @@ public abstract class Value implements Expression, Cloneable
 		return r;
 	}
 	
-	public synchronized final void add( Value val )
+	public final synchronized void add( Value val )
 	{
 		if ( isDefined() ) {
 			if ( val.isString() ) {
@@ -870,7 +870,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public synchronized final void subtract( Value val )
+	public final synchronized void subtract( Value val )
 	{
 		if ( !isDefined() ) {
 			if ( val.isDouble() ) {

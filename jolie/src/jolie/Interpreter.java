@@ -244,29 +244,24 @@ public class Interpreter
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
 
-	private Map< String, SessionStarter > sessionStarters = new HashMap< String, SessionStarter >();
+	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private boolean exiting = false;
 	private final Lock exitingLock;
 	private final Condition exitingCondition;
 	private final CorrelationEngine correlationEngine;
-	private final List< CorrelationSet > correlationSets =
-				new ArrayList< CorrelationSet > ();
-	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap< String, CorrelationSet >();
+	private final List< CorrelationSet > correlationSets = new ArrayList<> ();
+	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap<>();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
-	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
-			new LinkedList< EmbeddedServiceLoader >();
+	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new LinkedList<>();
 	private static final Logger logger = Logger.getLogger( "Jolie" );
 	
-	private final Map< String, DefinitionProcess > definitions =
-				new HashMap< String, DefinitionProcess >();
-	private final Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	private final Map< String, InputOperation > inputOperations =
-				new HashMap< String, InputOperation>();
+	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
+	private final Map< String, OutputPort > outputPorts = new HashMap<>();
+	private final Map< String, InputOperation > inputOperations = new HashMap<>();
 	
-	private final HashMap< String, Object > locksMap =
-				new HashMap< String, Object >();
+	private final HashMap< String, Object > locksMap = new HashMap<>();
 	
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
@@ -283,7 +278,7 @@ public class Interpreter
 
 	// 11 is the default initial capacity for PriorityQueue
 	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
-		new PriorityQueue< WeakReference< TimeoutHandler > >( 11, new TimeoutHandler.Comparator() );
+		new PriorityQueue<>( 11, new TimeoutHandler.Comparator() );
 	
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
 
@@ -1194,10 +1189,8 @@ public class Interpreter
 	
 	private boolean buildOOIT()
 		throws InterpreterException
-	{
-        
+	{        
 		try {
-            
 			Program program = null;
 			if ( cmdParser.isProgramCompiled() ) {
 				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
@@ -1264,11 +1257,7 @@ public class Interpreter
 					.build();
 			}
 
-		} catch( IOException e ) {
-			throw new InterpreterException( e );
-		} catch( ParserException e ) {
-			throw new InterpreterException( e );
-		} catch( ClassNotFoundException e ) {
+		} catch( IOException | ParserException | ClassNotFoundException e ) {
 			throw new InterpreterException( e );
 		} finally {
 			cmdParser = null; // Free memory
@@ -1393,8 +1382,7 @@ public class Interpreter
 		}
 	}
 	
-	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories =
-		new ConcurrentHashMap< String, EmbeddedServiceLoaderFactory > ();
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<> ();
 	
 	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
 		throws IOException
