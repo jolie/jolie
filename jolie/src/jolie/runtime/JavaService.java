@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -43,24 +43,30 @@ import jolie.runtime.embedding.RequestResponse;
  */
 public abstract class JavaService
 {
+	@FunctionalInterface
+	private interface JavaOperationCallable {
+		public CommMessage call( JavaService service, JavaOperation javaOperation, CommMessage message )
+			throws IllegalAccessException;
+	}
+	
 	public interface ValueConverter {}
 
 	private static class JavaOperation {
-		private final Constants.OperationType operationType;
 		private final Method method;
 		private final Method parameterConstructor;
 		private final Method returnValueConstructor;
+		private final JavaOperationCallable callable;
 
 		private JavaOperation(
-				Constants.OperationType operationType,
 				Method method,
 				Method parameterConstructor,
-				Method returnValueConstructor
+				Method returnValueConstructor,
+				JavaOperationCallable callable
 		) {
-			this.operationType = operationType;
 			this.method = method;
 			this.parameterConstructor = parameterConstructor;
 			this.returnValueConstructor = returnValueConstructor;
+			this.callable = callable;
 		}
 	}
 
@@ -106,7 +112,7 @@ public abstract class JavaService
 
 	public JavaService()
 	{
-		Map< String, JavaOperation > ops  = new HashMap< String, JavaOperation >();
+		Map< String, JavaOperation > ops  = new HashMap<>();
 		
 		Class<?>[] params;
 		for( Method method : this.getClass().getDeclaredMethods() ) {
@@ -214,6 +220,44 @@ public abstract class JavaService
 		}
 		return null;
 	}
+	
+	private static CommMessage oneWayCallable( JavaService javaService, JavaOperation javaOperation, CommMessage message )
+		throws IllegalAccessException
+	{
+		final Object[] args = getArguments( javaOperation, message );
+		javaService.interpreter.execute( () -> {
+			try {
+				javaOperation.method.invoke( javaService, args );
+			} catch( InvocationTargetException | IllegalAccessException e ) {
+				// This should never happen, as we filtered this out in the constructor.
+				javaService.interpreter.logSevere( e );
+			}
+		} );
+		return CommMessage.createEmptyResponse( message );
+	}
+	
+	private static CommMessage requestResponseCallable( JavaService javaService, JavaOperation javaOperation, CommMessage message )
+		throws IllegalAccessException
+	{
+		final Object[] args = getArguments( javaOperation, message );
+		try {
+			final Object retObject = javaOperation.method.invoke( javaService, args );
+			if ( retObject == null ) {
+				return CommMessage.createEmptyResponse( message );
+			} else {
+				return CommMessage.createResponse( message, (Value)javaOperation.returnValueConstructor.invoke( null, retObject ) );
+			}
+		} catch( InvocationTargetException e ) {
+			final FaultException fault =
+				( e.getCause() instanceof FaultException )
+				? (FaultException)e.getCause()
+				: new FaultException( e.getCause() );
+			return CommMessage.createFaultResponse(
+				message,
+				fault
+			);
+		}
+	}
 
 	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor )
 	{
@@ -228,12 +272,22 @@ public abstract class JavaService
 			if ( isRequestResponse ) { // && ( exceptions.length == 0 || (exceptions.length == 1 && FaultException.class.isAssignableFrom( exceptions[0]) ) ) ) {
 				ops.put(
 					method.getName(),
-					new JavaOperation( Constants.OperationType.REQUEST_RESPONSE, method, parameterConstructor, null )
+					new JavaOperation(
+						method,
+						parameterConstructor,
+						null,
+						JavaService::requestResponseCallable
+					)
 				);
 			} else if ( exceptions.length == 0 ) {
 				ops.put(
 					method.getName(),
-					new JavaOperation( Constants.OperationType.ONE_WAY, method, parameterConstructor, null )
+					new JavaOperation(
+						method,
+						parameterConstructor,
+						null,
+						JavaService::oneWayCallable
+					)
 				);
 			}
 		} else {
@@ -246,13 +300,32 @@ public abstract class JavaService
 				{
 					ops.put(
 						getMethodName( method ),
-						new JavaOperation( Constants.OperationType.REQUEST_RESPONSE, method, parameterConstructor, returnValueConstructor )
+						new JavaOperation(
+							method,
+							parameterConstructor,
+							returnValueConstructor,
+							JavaService::requestResponseCallable
+						)
 					);
 				}
 			}
 		}
 	}
 
+	private static Object[] getArguments( final JavaOperation javaOperation, final CommMessage message )
+		throws IllegalAccessException
+	{
+		if ( javaOperation.parameterConstructor == null ) {
+			return new Object[0];
+		} else {
+			try {
+				return new Object[] { javaOperation.parameterConstructor.invoke( null, message.value() ) };
+			} catch( InvocationTargetException e ) {
+				throw new IllegalAccessException( e.getMessage() );
+			}
+		}
+	}
+	
 	public CommMessage callOperation( CommMessage message )
 		throws InvalidIdException, IllegalAccessException
 	{
@@ -260,57 +333,8 @@ public abstract class JavaService
 		if ( javaOperation == null ) {
 			throw new InvalidIdException( message.operationName() );
 		}
-		CommMessage ret;
-		Object retObject;
-		final Object[] args;
-		if ( javaOperation.parameterConstructor == null ) {
-			args = new Object[0];
-		} else {
-			args = new Object[1];
-			try {
-				args[0] = javaOperation.parameterConstructor.invoke( null, message.value() );
-			} catch( InvocationTargetException e ) {
-				throw new IllegalAccessException( e.getMessage() );
-			}
-		}
-		if ( javaOperation.operationType == Constants.OperationType.ONE_WAY ) {
-			final JavaService javaService = this;
-			interpreter.execute( new Runnable() {
-				public void run()
-				{
-					try {
-						javaOperation.method.invoke( javaService, args );
-					} catch( InvocationTargetException e ) {
-						// This should never happen, as we filtered this out in the constructor.
-						interpreter.logSevere( e );
-					} catch( IllegalAccessException e ) {
-						interpreter.logSevere( e );
-					}
-				}
-			} );
-			ret = CommMessage.createEmptyResponse( message );
-		} else { // Request-Response
-			try {
-				retObject = javaOperation.method.invoke( this, args );
-				if ( retObject == null ) {
-					ret = CommMessage.createEmptyResponse( message );
-				} else {
-					ret = CommMessage.createResponse( message, (Value)javaOperation.returnValueConstructor.invoke( null, retObject ) );
-				}
-			} catch( InvocationTargetException e ) {
-				FaultException fault;
-				if ( e.getCause() instanceof FaultException ) {
-					fault = (FaultException)e.getCause();
-				} else {
-					fault = new FaultException( e.getCause() );
-				}
-				ret = CommMessage.createFaultResponse(
-					message,
-					fault
-				);
-			}
-		}
-		return ret;
+
+		return javaOperation.callable.call( this, javaOperation, message );
 	}
 	
 	public final void setInterpreter( Interpreter interpreter )
@@ -322,11 +346,6 @@ public abstract class JavaService
 	{
 		return interpreter;
 	}
-
-	/*protected Embedder getEmbedder()
-	{
-
-	}*/
 	
 	public CommChannel sendMessage( CommMessage message )
 	{

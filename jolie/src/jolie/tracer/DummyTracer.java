@@ -21,12 +21,15 @@
 
 package jolie.tracer;
 
+import java.util.function.Supplier;
+
 /**
  *
  * @author Fabrizio Montesi
  */
 public class DummyTracer implements Tracer
 {
-	public void trace( TraceAction action )
+	@Override
+	public void trace( Supplier< ? extends TraceAction > action )
 	{}
 }

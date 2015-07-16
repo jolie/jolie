@@ -108,6 +108,7 @@ class TypeImpl extends Type
 		}
 	}
 
+	@Override
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
@@ -117,7 +118,9 @@ class TypeImpl extends Type
 
 		if ( subTypes != null ) {
 			for( Entry< String, Type > entry : subTypes.entrySet() ) {
-				checkSubType( entry.getKey(), entry.getValue(), value, new StringBuilder( pathBuilder ) );
+				final int l = pathBuilder.length();
+				checkSubType( entry.getKey(), entry.getValue(), value, pathBuilder );
+				pathBuilder.setLength( l );
 			}
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {

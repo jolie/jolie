@@ -56,7 +56,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			service.setInterpreter( Interpreter.getInstance() );
 			setChannel(	new JavaCommChannel( service ) );
 			
-			interpreter.tracer().trace(	new EmbeddingTraceAction(
+			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
 				c.getCanonicalName()

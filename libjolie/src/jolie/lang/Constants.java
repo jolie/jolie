@@ -136,15 +136,16 @@ public final class Constants
 
 	public static EmbeddedServiceType stringToEmbeddedServiceType( String str )
 	{
-		if ( "jolie".equalsIgnoreCase( str ) ) {
-			return EmbeddedServiceType.JOLIE;
-		} else if ( "java".equalsIgnoreCase( str ) ) {
-			return EmbeddedServiceType.JAVA;
-		} else if ( "javascript".equalsIgnoreCase( str ) ) {
-			return EmbeddedServiceType.JAVASCRIPT;
+		switch( str.toLowerCase() ) {
+			case "jolie":
+				return EmbeddedServiceType.JOLIE;
+			case "java":
+				return EmbeddedServiceType.JAVA;
+			case "javascript":
+				return EmbeddedServiceType.JAVASCRIPT;
+			default:
+				return EmbeddedServiceType.UNSUPPORTED;
 		}
-
-		return EmbeddedServiceType.UNSUPPORTED;
 	}
 
 	public enum ExecutionMode

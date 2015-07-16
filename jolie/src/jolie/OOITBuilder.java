@@ -31,8 +31,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
@@ -174,7 +176,7 @@ import jolie.process.WhileProcess;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
 import jolie.runtime.ClosedVariablePath;
-import jolie.runtime.CompareOperator;
+import jolie.runtime.CompareOperators;
 import jolie.runtime.GlobalVariablePath;
 import jolie.runtime.InstallFixedVariablePath;
 import jolie.runtime.InvalidIdException;
@@ -1223,22 +1225,17 @@ public class OOITBuilder implements OLVisitor
 		n.leftExpression().accept( this );
 		Expression left = currExpression;
 		n.rightExpression().accept( this );
-		CompareOperator operator = null;
 		Scanner.TokenType opType = n.opType();
-		if ( opType == Scanner.TokenType.EQUAL ) {
-			operator = CompareOperator.EQUAL;
-		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
-			operator = CompareOperator.NOT_EQUAL;
-		} else if ( opType == Scanner.TokenType.LANGLE ) {
-			operator = CompareOperator.MINOR;
-		} else if ( opType == Scanner.TokenType.RANGLE ) {
-			operator = CompareOperator.MAJOR;
-		} else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL ) {
-			operator = CompareOperator.MINOR_OR_EQUAL;
-		} else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL ) {
-			operator = CompareOperator.MAJOR_OR_EQUAL;
-		}
-		assert( operator != null );
+
+		final BiPredicate< Value, Value > operator =
+			opType == Scanner.TokenType.EQUAL ? CompareOperators.EQUAL
+			: opType == Scanner.TokenType.NOT_EQUAL ? CompareOperators.NOT_EQUAL
+			: opType == Scanner.TokenType.LANGLE ? CompareOperators.MINOR
+			: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
+			: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
+			: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
+			: null;
+		Objects.requireNonNull( operator );
 		currExpression = new CompareCondition( left, currExpression, operator );
 	}
 

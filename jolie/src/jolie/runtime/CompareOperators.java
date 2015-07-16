@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2009 (C) by Fabrizio Montesi                                     *
+ *   Copyright 2009-2015 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,22 +21,19 @@
 
 package jolie.runtime;
 
+import java.util.function.BiPredicate;
+
 /**
  * A CompareOperator performs some kind of boolean comparison between two values.
  * @author Fabrizio Montesi
  */
-public enum CompareOperator
+public final class CompareOperators
 {
-	EQUAL {
-		public final boolean evaluate( Value left, Value right ) {
-			return left.equals( right );
-		}
-	}, NOT_EQUAL {
-		public final boolean evaluate( Value left, Value right ) {
-			return EQUAL.evaluate( left, right ) == false;
-		}
-	}, MINOR {
-		public final boolean evaluate( Value left, Value right ) {
+	public final static BiPredicate< Value, Value > EQUAL =
+		( left, right ) -> left.equals( right );
+	public final static BiPredicate< Value, Value > NOT_EQUAL = EQUAL.negate();
+	public final static BiPredicate< Value, Value > MINOR =
+		( left, right ) -> {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() < right.doubleValue() );
 			} if ( left.isLong() ) {
@@ -44,9 +41,9 @@ public enum CompareOperator
 			} else {
 				return ( left.intValue() < right.intValue() );
 			}
-		}
-	}, MAJOR {
-		public final boolean evaluate( Value left, Value right ) {
+		};
+	public final static BiPredicate< Value, Value > MAJOR =
+		( left, right ) -> {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() > right.doubleValue() );
 			} if ( left.isLong() ) {
@@ -54,9 +51,9 @@ public enum CompareOperator
 			} else {
 				return ( left.intValue() > right.intValue() );
 			}
-		}
-	}, MINOR_OR_EQUAL {
-		public final boolean evaluate( Value left, Value right ) {
+		};
+	public final static BiPredicate< Value, Value > MINOR_OR_EQUAL =
+		( left, right ) -> {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() <= right.doubleValue() );
 			} if ( left.isLong() ) {
@@ -64,9 +61,9 @@ public enum CompareOperator
 			} else {
 				return ( left.intValue() <= right.intValue() );
 			}
-		}
-	}, MAJOR_OR_EQUAL {
-		public final boolean evaluate( Value left, Value right ) {
+		};
+	public final static BiPredicate< Value, Value > MAJOR_OR_EQUAL =
+		( left, right ) -> {
 			if ( left.isDouble() ) {
 				return ( left.doubleValue() >= right.doubleValue() );
 			} if ( left.isLong() ) {
@@ -74,8 +71,5 @@ public enum CompareOperator
 			} else {
 				return ( left.intValue() >= right.intValue() );
 			}
-		}
-	};
-
-	public abstract boolean evaluate( Value left, Value right );
+		};
 }
