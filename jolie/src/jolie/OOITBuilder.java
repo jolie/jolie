@@ -232,18 +232,18 @@ public class OOITBuilder implements OLVisitor
 	private String currentOutputPort = null;
 	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > isConstantMap;
-	private final Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
-	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
+	private final Map< String, InputPort > inputPorts = new HashMap<>();
+	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList<>();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private boolean registerSessionStarters = false;
 	private InputPort currCourierInputPort = null;
 	private String currCourierOperationName = null;
 	private final Map< String, Map< String, AggregationConfiguration > > aggregationConfigurations =
-		new HashMap< String, Map< String, AggregationConfiguration > >(); // Input port name -> (operation name -> aggregation configuration)
+		new HashMap<>(); // Input port name -> (operation name -> aggregation configuration)
 	private final Map< String, InterfaceExtender > interfaceExtenders =
-		new HashMap< String, InterfaceExtender >();
-	private final Queue< OLSyntaxNode > lazyVisits = new LinkedList< OLSyntaxNode >();	
+		new HashMap<>();
+	private final Queue< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
 
 	private static class AggregationConfiguration {
@@ -266,6 +266,8 @@ public class OOITBuilder implements OLVisitor
 	 * Constructor.
 	 * @param interpreter the Interpreter requesting the interpretation tree building
 	 * @param program the Program to generate the interpretation tree from
+	 * @param isConstantMap
+	 * @param correlationFunctionInfo
 	 * @see Program
 	 */
 	public OOITBuilder(
@@ -361,13 +363,13 @@ public class OOITBuilder implements OLVisitor
 		VariablePath sessionVariablePath;
 		VariablePath messageVariablePath;
 		CorrelationSet currCorrelationSet;
-		Set< Interpreter.SessionStarter > starters = new HashSet< Interpreter.SessionStarter >();
+		Set< Interpreter.SessionStarter > starters = new HashSet<>();
 		List< VariablePath > correlationVariablePaths;
 		MultiMap< String, CorrelationPair > correlationMap;
 
 		for( CorrelationSetInfo csetInfo : correlationFunctionInfo.correlationSets() ) {
-			correlationVariablePaths = new ArrayList< VariablePath >();
-			correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+			correlationVariablePaths = new ArrayList<>();
+			correlationMap = new ArrayListMultiMap<>();
 
 			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
 				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
