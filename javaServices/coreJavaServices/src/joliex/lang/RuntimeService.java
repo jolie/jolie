@@ -130,7 +130,7 @@ public class RuntimeService extends JavaService
 			}
 		}
 		if ( foundOp == null ) {
-			throw new FaultException( "OuputPortDoesNotExist" );
+			throw new FaultException( "OutputPortDoesNotExist" );
 		} else {
 			ret.getFirstChild( "name" ).setValue( foundOp.id() );
 			try {
