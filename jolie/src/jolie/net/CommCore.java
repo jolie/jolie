@@ -29,6 +29,7 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -781,7 +782,7 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
-		private void runKeys( Set< SelectionKey > selectedKeys, Queue< Runnable > taskQueue )
+		private void runKeys( Collection< SelectionKey >selectedKeys, Queue< Runnable > taskQueue )
 			throws IOException
 		{
 			synchronized( this ) {
@@ -790,36 +791,34 @@ public class CommCore
 						final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
 						if ( channel.lock.tryLock() ) {
 							key.cancel();
-							taskQueue.add( new Runnable() {
-								public void run() {
+							taskQueue.add( () -> {
+								try {
 									try {
 										try {
-											try {
-												key.channel().configureBlocking( true );
-												if ( channel.isOpen() ) {
-													/*if ( channel.selectionTimeoutHandler() != null ) {
-														interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
-													}*/
-													scheduleReceive( channel, channel.parentInputPort() );
-												} else {
-													channel.closeImpl();
-												}
-											} catch( ClosedChannelException e ) {
+											key.channel().configureBlocking( true );
+											if ( channel.isOpen() ) {
+												/*if ( channel.selectionTimeoutHandler() != null ) {
+													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
+												}*/
+												scheduleReceive( channel, channel.parentInputPort() );
+											} else {
 												channel.closeImpl();
 											}
-										} catch( IOException e ) {
-											throw e;
-										} finally {
-											channel.lock.unlock();
+										} catch( ClosedChannelException e ) {
+											channel.closeImpl();
 										}
 									} catch( IOException e ) {
-										if ( channel.lock.isHeldByCurrentThread() ) {
-											channel.lock.unlock();
-										}
-										interpreter.logWarning( e );
+										throw e;
+									} finally {
+										channel.lock.unlock();
 									}
+								} catch( IOException e ) {
+									if ( channel.lock.isHeldByCurrentThread() ) {
+										channel.lock.unlock();
+									}
+									interpreter.logWarning( e );
 								}
-							});
+							} );
 						}
 					}
 				}
@@ -839,13 +838,13 @@ public class CommCore
 		@Override
 		public void run()
 		{
-			final Queue< Runnable > taskQueue = new LinkedList< Runnable >();
+			final Queue< Runnable > taskQueue = new LinkedList<>();
 			while( active ) {
 				try {
-					Set< SelectionKey > selectedKeys;
+					Collection< SelectionKey > selectedKeys;
 					synchronized( selectingMutex ) {
 						selector.select();
-						selectedKeys = new HashSet< SelectionKey >( selector.selectedKeys() );
+						selectedKeys = new ArrayList<>( selector.selectedKeys() );
 					}
 					runKeys( selectedKeys, taskQueue );
 					runTasks( taskQueue );
