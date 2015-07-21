@@ -37,7 +37,7 @@ public class NDChoiceStatement extends OLSyntaxNode
 	public NDChoiceStatement( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
+		children = new LinkedList<  >();
 	}
 	
 	public List< Pair< OLSyntaxNode, OLSyntaxNode > > children()
@@ -50,6 +50,7 @@ public class NDChoiceStatement extends OLSyntaxNode
 		children.add( node );
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

@@ -72,6 +72,7 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 		return program;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

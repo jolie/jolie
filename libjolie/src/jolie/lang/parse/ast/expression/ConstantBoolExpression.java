@@ -41,6 +41,7 @@ public class ConstantBoolExpression extends OLSyntaxNode
 		return value;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

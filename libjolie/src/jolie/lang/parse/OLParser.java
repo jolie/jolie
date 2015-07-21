@@ -136,13 +136,13 @@ public class OLParser extends AbstractParser
 {
 	private final Program program;
 	private final Map< String, Scanner.Token > constantsMap =
-		new HashMap< String, Scanner.Token >();
+		new HashMap<  >();
 	private boolean insideInstallFunction = false;
 	private String[] includePaths;
 	private final Map< String, InterfaceDefinition > interfaces =
-		new HashMap< String, InterfaceDefinition >();
+		new HashMap<  >();
 	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
-		new HashMap< String, InterfaceExtenderDefinition >();
+		new HashMap<  >();
 
 	private final Map< String, TypeDefinition > definedTypes;
 	private final ClassLoader classLoader;
@@ -166,7 +166,7 @@ public class OLParser extends AbstractParser
 
 	public static Map< String, TypeDefinition > createTypeDeclarationMap( ParsingContext context )
 	{
-		Map< String, TypeDefinition > definedTypes = new HashMap< String, TypeDefinition >();
+		Map< String, TypeDefinition > definedTypes = new HashMap<  >();
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
@@ -453,12 +453,12 @@ public class OLParser extends AbstractParser
 			String csetName = token.content();
 			getToken();*/
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			List< CorrelationVariableInfo > variables = new ArrayList< CorrelationVariableInfo >();
+			List< CorrelationVariableInfo > variables = new ArrayList<  >();
 			List< CorrelationAliasInfo > aliases;
 			VariablePathNode correlationVariablePath;
 			String typeName;
 			while ( token.is( Scanner.TokenType.ID ) ) {
-				aliases = new LinkedList< CorrelationAliasInfo >();
+				aliases = new LinkedList<  >();
 				correlationVariablePath = parseVariablePath();
 				eat( Scanner.TokenType.COLON, "expected correlation variable alias list" );
 				assertToken( Scanner.TokenType.ID, "expected correlation variable alias" );
@@ -489,14 +489,19 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			assertToken( Scanner.TokenType.ID, "expected execution modality" );
-			if ( "sequential".equals( token.content() ) ) {
-				mode = Constants.ExecutionMode.SEQUENTIAL;
-			} else if ( "concurrent".equals( token.content() ) ) {
-				mode = Constants.ExecutionMode.CONCURRENT;
-			} else if ( "single".equals( token.content() ) ) {
-				mode = Constants.ExecutionMode.SINGLE;
-			} else {
-				throwException( "Expected execution mode, found " + token.content() );
+			if ( null != token.content() ) switch( token.content() ) {
+				case "sequential":
+					mode = Constants.ExecutionMode.SEQUENTIAL;
+					break;
+				case "concurrent":
+					mode = Constants.ExecutionMode.CONCURRENT;
+					break;
+				case "single":
+					mode = Constants.ExecutionMode.SINGLE;
+					break;
+				default:
+					throwException( "Expected execution mode, found " + token.content() );
+					break;
 			}
 			program.addChild( new ExecutionInfo( getContext(), mode ) );
 			getToken();
@@ -560,7 +565,7 @@ public class OLParser extends AbstractParser
 		}
 	}
 	
-	private final Map< String, URL > resourceCache = new HashMap< String, URL >();
+	private final Map< String, URL > resourceCache = new HashMap<  >();
 
 	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
@@ -872,7 +877,7 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.LCURLY, "{ expected" );
 
 		//initialize internal interface and interface list
-		List< InterfaceDefinition> interfaceList = new ArrayList< InterfaceDefinition>();
+		List< InterfaceDefinition> interfaceList = new ArrayList< >();
 
 		OLSyntaxNode internalMain = null;
 		SequenceStatement internalInit = null;
@@ -974,7 +979,7 @@ public class OLParser extends AbstractParser
 		String inputPortName;
 		String protocolId;
 		URI inputPortLocation;
-		List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
+		List< InterfaceDefinition > interfaceList = new ArrayList<  >();
 		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
 		
 		getToken();
@@ -986,8 +991,8 @@ public class OLParser extends AbstractParser
 		
 		inputPortLocation = null;
 		protocolId = null;
-		Map<String, String> redirectionMap = new HashMap<String, String>();
-		List< InputPortInfo.AggregationItemInfo > aggregationList = new LinkedList< InputPortInfo.AggregationItemInfo >();
+		Map<String, String> redirectionMap = new HashMap<>();
+		List< InputPortInfo.AggregationItemInfo > aggregationList = new LinkedList<  >();
 		while ( token.isNot( Scanner.TokenType.RCURLY ) ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( iface );
@@ -1100,7 +1105,7 @@ public class OLParser extends AbstractParser
 		InterfaceExtenderDefinition extender;
 		for( boolean mainKeepRun = true; mainKeepRun; ) {
 			extender = null;
-			outputPortNames = new LinkedList< String >();
+			outputPortNames = new LinkedList<  >();
 			if ( token.is( Scanner.TokenType.LCURLY ) ) {
 				getToken();
 				for( boolean keepRun = true; keepRun; ) {
@@ -1362,7 +1367,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-				Map< String, TypeDefinition > faultTypesMap = new HashMap< String, TypeDefinition >();
+				Map< String, TypeDefinition > faultTypesMap = new HashMap<  >();
 
 				if ( token.is( Scanner.TokenType.THROWS ) ) {
 					getToken();
@@ -1548,13 +1553,13 @@ public class OLParser extends AbstractParser
 
 		return stm;
 	}
-	private final List< List< Scanner.Token > > inVariablePaths = new LinkedList< List< Scanner.Token > >();
+	private final List< List< Scanner.Token > > inVariablePaths = new LinkedList<  >();
 
 	private OLSyntaxNode parseInVariablePathProcess( boolean withConstruct )
 		throws IOException, ParserException
 	{
 		OLSyntaxNode ret;
-		List< Scanner.Token> tokens = new LinkedList< Scanner.Token>();
+		List< Scanner.Token> tokens = new LinkedList< >();
 
 		try {
 			if ( withConstruct ) {
@@ -1827,7 +1832,7 @@ public class OLParser extends AbstractParser
 			cond = parseExpression();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			node = parseBasicStatement();
-			stm.addChild( new Pair<OLSyntaxNode, OLSyntaxNode>( cond, node ) );
+			stm.addChild( new Pair<>( cond, node ) );
 
 			boolean keepRun = true;
 			while ( token.is( Scanner.TokenType.ELSE ) && keepRun ) {
@@ -1843,7 +1848,7 @@ public class OLParser extends AbstractParser
 					node =
 						parseBasicStatement();
 					stm.addChild(
-						new Pair<OLSyntaxNode, OLSyntaxNode>( cond, node ) );
+						new Pair<>( cond, node ) );
 				} else { // else branch
 					keepRun = false;
 					stm.setElseProcess( parseBasicStatement() );
@@ -1902,10 +1907,10 @@ public class OLParser extends AbstractParser
 		boolean backup = insideInstallFunction;
 		insideInstallFunction = true;
 		List< Pair< String, OLSyntaxNode > > vec =
-			new LinkedList< Pair< String, OLSyntaxNode > >();
+			new LinkedList<  >();
 
 		boolean keepRun = true;
-		List< String > names = new LinkedList< String >();
+		List< String > names = new LinkedList<  >();
 		OLSyntaxNode handler;
 		while( keepRun ) {
 			do {
@@ -1921,7 +1926,7 @@ public class OLParser extends AbstractParser
 			getToken(); // eat the arrow
 			handler = parseProcess();
 			for( String name : names ) {
-				vec.add( new Pair< String, OLSyntaxNode >( name, handler ) );
+				vec.add( new Pair<  >( name, handler ) );
 			}
 			names.clear();
 			
@@ -2001,25 +2006,25 @@ public class OLParser extends AbstractParser
 		OLSyntaxNode expr;
 		VariablePathNode path;
 
-		if ( varId.equals( Constants.GLOBAL ) ) {
-			path = new VariablePathNode( getContext(), Type.GLOBAL );
-		} else if ( varId.equals( Constants.CSETS ) ) {
-			path = new VariablePathNode( getContext(), Type.CSET );
-			path.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
-				new ConstantStringExpression( getContext(), varId ), new ConstantIntegerExpression( getContext(), 0 ) ) );
-		} else {
-			path = new VariablePathNode( getContext(), Type.NORMAL );
-			if ( token.is( Scanner.TokenType.LSQUARE ) ) {
-				getToken();
-				expr = parseBasicExpression();
-				eat(
-					Scanner.TokenType.RSQUARE, "expected ]" );
-			} else {
-				expr = null;
-			}
-
-			path.append( new Pair<OLSyntaxNode, OLSyntaxNode>(
-				new ConstantStringExpression( getContext(), varId ), expr ) );
+		switch( varId ) {
+			case Constants.GLOBAL:
+				path = new VariablePathNode( getContext(), Type.GLOBAL );
+				break;
+			case Constants.CSETS:
+				path = new VariablePathNode( getContext(), Type.CSET );
+				path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), new ConstantIntegerExpression( getContext(), 0 ) ) );
+				break;
+			default:
+				path = new VariablePathNode( getContext(), Type.NORMAL );
+				if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+					getToken();
+					expr = parseBasicExpression();
+					eat(
+						Scanner.TokenType.RSQUARE, "expected ]" );
+				} else {
+					expr = null;
+				}	path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), expr ) );
+				break;
 		}
 
 		OLSyntaxNode nodeExpr = null;
@@ -2045,8 +2050,7 @@ public class OLParser extends AbstractParser
 				expr = null;
 			}
 
-			path.append(
-				new Pair<OLSyntaxNode, OLSyntaxNode>( nodeExpr, expr ) );
+			path.append(new Pair<>( nodeExpr, expr ) );
 		}
 
 		return path;
@@ -2056,7 +2060,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		int i = inVariablePaths.size() - 1;
-		List< Scanner.Token > tokens = new ArrayList< Scanner.Token >();
+		List< Scanner.Token > tokens = new ArrayList<  >();
 		try {
 			tokens.addAll( inVariablePaths.get( i ) );
 		} catch( IndexOutOfBoundsException e ) {
@@ -2172,7 +2176,7 @@ public class OLParser extends AbstractParser
 				process = new NullProcessStatement( getContext() );
 			}
 			
-			stm.addChild( new Pair<OLSyntaxNode, OLSyntaxNode>( inputGuard, process ) );
+			stm.addChild( new Pair<>( inputGuard, process ) );
 		}
 
 		return stm;
@@ -2435,7 +2439,7 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			path = parseVariablePath();
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
-			freshValuePath.append( new Pair< OLSyntaxNode, OLSyntaxNode >( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
+			freshValuePath.append( new Pair<  >( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
 			if ( path.isEquivalentTo( freshValuePath ) ) {
 				retVal = new FreshValueExpressionNode( path.context() );
 				return retVal;
@@ -2614,7 +2618,7 @@ public class OLParser extends AbstractParser
 		VariablePathNode path;
 		OLSyntaxNode expression;
 		
-		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new LinkedList< Pair< VariablePathNode, OLSyntaxNode > >();
+		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new LinkedList<  >();
 		
 		while( keepRun ) {
 			eat( Scanner.TokenType.DOT, "expected ." );
@@ -2623,7 +2627,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.ASSIGN, "expected =" );
 			expression = parseExpression();
 			
-			assignments.add( new Pair< VariablePathNode, OLSyntaxNode >( path, expression ) );
+			assignments.add( new Pair<  >( path, expression ) );
 			
 			if ( token.is( Scanner.TokenType.COMMA ) ) {
 				getToken();

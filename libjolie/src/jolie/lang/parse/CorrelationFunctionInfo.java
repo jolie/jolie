@@ -59,10 +59,10 @@ public class CorrelationFunctionInfo
 		}
 	}
 
-	private final List< CorrelationSetInfo > correlationSets = new ArrayList< CorrelationSetInfo >();
-	private final Map< String, CorrelationSetInfo > operationCorrelationSetMap = new HashMap< String, CorrelationSetInfo >();
-	private final MultiMap< String, CorrelationPairInfo > correlationPairs = new ArrayListMultiMap< String, CorrelationPairInfo >();
-	private final MultiMap< CorrelationSetInfo, String > correlationSetOperations = new ArrayListMultiMap< CorrelationSetInfo, String >();
+	private final List< CorrelationSetInfo > correlationSets = new ArrayList<  >();
+	private final Map< String, CorrelationSetInfo > operationCorrelationSetMap = new HashMap<  >();
+	private final MultiMap< String, CorrelationPairInfo > correlationPairs = new ArrayListMultiMap<  >();
+	private final MultiMap< CorrelationSetInfo, String > correlationSetOperations = new ArrayListMultiMap<  >();
 
 	public List< CorrelationSetInfo > correlationSets()
 	{

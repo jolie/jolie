@@ -37,7 +37,7 @@ public class OrConditionNode extends OLSyntaxNode
 	public OrConditionNode( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList< OLSyntaxNode >();
+		children = new LinkedList<  >();
 	}
 	
 	public List< OLSyntaxNode > children()
@@ -50,6 +50,7 @@ public class OrConditionNode extends OLSyntaxNode
 		children.add( node );
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

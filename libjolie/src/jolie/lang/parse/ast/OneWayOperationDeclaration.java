@@ -46,6 +46,7 @@ public class OneWayOperationDeclaration extends OperationDeclaration
 		return requestType;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

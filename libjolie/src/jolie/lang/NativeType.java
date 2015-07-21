@@ -40,7 +40,7 @@ public enum NativeType
 	RAW( "raw" ),
 	ANY( "any" );
 
-	private final static Map< String, NativeType > idMap = new ConcurrentHashMap< String, NativeType >();
+	private final static Map< String, NativeType > idMap = new ConcurrentHashMap<  >();
 
 	static {
 		for( NativeType type : NativeType.values() ) {

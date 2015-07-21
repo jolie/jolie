@@ -146,37 +146,37 @@ public class SemanticVerifier implements OLVisitor
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
-	private final Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
-	private final Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
+	private final Map< String, InputPortInfo > inputPorts = new HashMap<  >();
+	private final Map< String, OutputPortInfo > outputPorts = new HashMap<  >();
 	
-	private final Set< String > subroutineNames = new HashSet< String > ();
+	private final Set< String > subroutineNames = new HashSet<  > ();
 	private final Map< String, OneWayOperationDeclaration > oneWayOperations =
-						new HashMap< String, OneWayOperationDeclaration >();
+						new HashMap<  >();
 	private final Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
-						new HashMap< String, RequestResponseOperationDeclaration >();
+						new HashMap<  >();
 
-	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap< TypeDefinition, List< TypeDefinition > >();
+	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap<  >();
 	private final Map< OneWayOperationDeclaration, List< OneWayOperationDeclaration > > owToBeEqual =
-		new HashMap< OneWayOperationDeclaration, List< OneWayOperationDeclaration > >();
+		new HashMap<  >();
 	private final Map< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > rrToBeEqual =
-		new HashMap< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > >();
-	private final List< CorrelationSetInfo > correlationSets = new LinkedList< CorrelationSetInfo >();
+		new HashMap<  >();
+	private final List< CorrelationSetInfo > correlationSets = new LinkedList<  >();
 
 	private boolean insideInputPort = false;
 	private boolean insideInit = false;
 	private boolean mainDefined = false;
 	private CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
 	private final MultiMap< String, String > inputTypeNameMap =
-		new ArrayListMultiMap< String, String >(); // Maps type names to the input operations that use them
+		new ArrayListMultiMap<  >(); // Maps type names to the input operations that use them
 
 	private ExecutionMode executionMode = ExecutionMode.SINGLE;
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
+	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<  >();
 	//private TypeDefinition rootType; // the type representing the whole session state
-	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
+	private final Map< String, Boolean > isConstantMap = new HashMap<  >();
 	
 	private OperationType insideCourierOperationType = null;
 
@@ -221,7 +221,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< TypeDefinition >();
+			toBeEqualList = new LinkedList<  >();
 			typesToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( type );
@@ -231,7 +231,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< OneWayOperationDeclaration >();
+			toBeEqualList = new LinkedList<  >();
 			owToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( oneWay );
@@ -241,7 +241,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< RequestResponseOperationDeclaration >();
+			toBeEqualList = new LinkedList<  >();
 			rrToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( requestResponse );
@@ -308,8 +308,8 @@ public class SemanticVerifier implements OLVisitor
 	private void checkCorrelationSets()
 	{
 		Collection< String > operations;
-		Set< String > correlatingOperations = new HashSet< String >();
-		Set< String > currCorrelatingOperations = new HashSet< String >();
+		Set< String > correlatingOperations = new HashSet<  >();
+		Set< String > currCorrelatingOperations = new HashSet<  >();
 		for( CorrelationSetInfo cset : correlationSets ) {
 			correlationFunctionInfo.correlationSets().add( cset );
 			currCorrelatingOperations.clear();
@@ -387,6 +387,7 @@ public class SemanticVerifier implements OLVisitor
 
 	private boolean isTopLevelType = true;
 
+	@Override
 	public void visit( TypeInlineDefinition n )
 	{
 		checkCardinality( n );
@@ -414,6 +415,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( TypeDefinitionLink n )
 	{
 		checkCardinality( n );
@@ -438,14 +440,17 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( SpawnStatement n )
 	{
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( DocumentationComment n )
 	{}
 
+	@Override
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -453,6 +458,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( VariablePathNode n )
 	{
 		if ( insideInit && n.isCSet() ) {
@@ -474,6 +480,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( InputPortInfo n )
 	{
 		if ( inputPorts.get( n.id() ) != null ) {
@@ -483,7 +490,7 @@ public class SemanticVerifier implements OLVisitor
 
 		insideInputPort = true;
 
-		Set< String > opSet = new HashSet< String >();
+		Set< String > opSet = new HashSet<  >();
 
 		for( OperationDeclaration op : n.operations() ) {
 			if ( opSet.contains( op.id() ) ) {
@@ -515,6 +522,7 @@ public class SemanticVerifier implements OLVisitor
 		insideInputPort = false;
 	}
 	
+	@Override
 	public void visit( OutputPortInfo n )
 	{
 		if ( outputPorts.get( n.id() ) != null )
@@ -528,6 +536,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( OneWayOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
@@ -544,6 +553,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( RequestResponseOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
@@ -599,6 +609,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( DefinitionNode n )
 	{
 		if ( subroutineNames.contains( n.id() ) ) {
@@ -642,6 +653,7 @@ public class SemanticVerifier implements OLVisitor
 		insideInit = false;
 	}
 		
+	@Override
 	public void visit( ParallelStatement stm )
 	{
 		for( OLSyntaxNode node : stm.children() ) {
@@ -649,6 +661,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( SequenceStatement stm )
 	{
 		for( OLSyntaxNode node : stm.children() ) {
@@ -656,9 +669,10 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( NDChoiceStatement stm )
 	{
-		Set< String > operations = new HashSet< String >();
+		Set< String > operations = new HashSet<  >();
 		String name = null;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 			if ( pair.key() instanceof OneWayOperationStatement ) {
@@ -678,6 +692,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( NotificationOperationStatement n )
 	{
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
@@ -692,6 +707,7 @@ public class SemanticVerifier implements OLVisitor
 		} 
 	}
 	
+	@Override
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		if ( n.inputVarPath() != null ) {
@@ -714,13 +730,16 @@ public class SemanticVerifier implements OLVisitor
 		}*/
 	}
 	
+	@Override
 	public void visit( ThrowStatement n )
 	{
 		verify( n.expression() );
 	}
 
+	@Override
 	public void visit( CompensateStatement n ) {}
 	
+	@Override
 	public void visit( InstallStatement n )
 	{
 		for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
@@ -728,11 +747,13 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( Scope n )
 	{
 		n.body().accept( this );
 	}
 	
+	@Override
 	public void visit( OneWayOperationStatement n )
 	{
 		if ( insideCourierOperationType != null ) {
@@ -747,6 +768,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( RequestResponseOperationStatement n )
 	{
 		if ( insideCourierOperationType != null ) {
@@ -762,14 +784,18 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( LinkInStatement n ) {}
+	@Override
 	public void visit( LinkOutStatement n ) {}
 
+	@Override
 	public void visit( SynchronizedStatement n )
 	{
 		n.body().accept( this );
 	}
 		
+	@Override
 	public void visit( AssignStatement n )
 	{
 		n.variablePath().accept( this );
@@ -777,11 +803,13 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 	
+	@Override
 	public void visit( InstanceOfExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( AddAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -789,6 +817,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( SubtractAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -796,6 +825,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( MultiplyAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -803,6 +833,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( DivideAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -817,6 +848,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( PointerStatement n )
 	{
 		encounteredAssignment( n.leftPath() );
@@ -829,6 +861,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( DeepCopyStatement n )
 	{
 		encounteredAssignment( n.leftPath() );
@@ -839,6 +872,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( IfStatement n )
 	{
 		for( Pair< OLSyntaxNode, OLSyntaxNode > choice : n.children() ) {
@@ -848,6 +882,7 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.elseProcess() );
 	}
 
+	@Override
 	public void visit( DefinitionCallStatement n )
 	{
 		if ( !subroutineNames.contains( n.id() ) ) {
@@ -855,12 +890,14 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( WhileStatement n )
 	{
 		n.condition().accept( this );
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( OrConditionNode n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -868,6 +905,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( AndConditionNode n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -875,23 +913,31 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( NotExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( CompareConditionNode n )
 	{
 		n.leftExpression().accept( this );
 		n.rightExpression().accept( this );
 	}
 
+	@Override
 	public void visit( ConstantIntegerExpression n ) {}
+	@Override
 	public void visit( ConstantDoubleExpression n ) {}
+	@Override
 	public void visit( ConstantStringExpression n ) {}
+	@Override
 	public void visit( ConstantLongExpression n ) {}
+	@Override
 	public void visit( ConstantBoolExpression n ) {}
 
+	@Override
 	public void visit( ProductExpressionNode n )
 	{
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
@@ -899,6 +945,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( SumExpressionNode n )
 	{
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
@@ -906,26 +953,32 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( VariableExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( InstallFixedVariableExpressionNode n )
 	{
 		n.variablePath().accept(  this );
 	}
 
+	@Override
 	public void visit( NullProcessStatement n ) {}
 
+	@Override
 	public void visit( ExitStatement n ) {}
 
+	@Override
 	public void visit( ExecutionInfo n )
 	{
 		executionMode = n.mode();
 		executionInfo = n;
 	}
 
+	@Override
 	public void visit( CorrelationSetInfo n )
 	{
 		VariablePathSet pathSet = new VariablePathSet();
@@ -980,16 +1033,19 @@ public class SemanticVerifier implements OLVisitor
 		}*/
 	}
 
+	@Override
 	public void visit( RunStatement n )
 	{
 		warning( n, "Run statement is not a stable feature yet." );
 	}
 
+	@Override
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 	
+	@Override
 	public void visit( InlineTreeExpressionNode n )
 	{
 		n.rootExpression().accept( this );
@@ -999,30 +1055,35 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( PreIncrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PostIncrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PreDecrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PostDecrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( UndefStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -1033,6 +1094,7 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	
+	@Override
 	public void visit( ForStatement n )
 	{
 		n.init().accept( this );
@@ -1041,6 +1103,7 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( ForEachStatement n )
 	{
 		n.keyPath().accept( this );
@@ -1048,20 +1111,25 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( IsTypeExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( EmbeddedServiceNode n ) {}
 	
+	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
 	
+	@Override
 	public void visit( CourierDefinitionNode n )
 	{
 		if ( inputPorts.containsKey( n.inputPortName() ) == false ) {
@@ -1070,6 +1138,7 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.body() );
 	}
 	
+	@Override
 	public void visit( CourierChoiceStatement n )
 	{
 		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
@@ -1098,6 +1167,7 @@ public class SemanticVerifier implements OLVisitor
 	/*
 	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
+	@Override
 	public void visit( NotificationForwardStatement n )
 	{
 		if ( insideCourierOperationType == null ) {
@@ -1110,6 +1180,7 @@ public class SemanticVerifier implements OLVisitor
 	/**
 	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
+	@Override
 	public void visit( SolicitResponseForwardStatement n )
 	{
 		if ( insideCourierOperationType == null ) {
@@ -1122,17 +1193,22 @@ public class SemanticVerifier implements OLVisitor
 	/**
 	 * todo: Must check if it's inside an install function
 	 */
+	@Override
 	public void visit( CurrentHandlerStatement n )
 	{}
 
+	@Override
 	public void visit( InterfaceDefinition n )
 	{}
 	
+	@Override
 	public void visit( FreshValueExpressionNode n )
 	{}
 	
+	@Override
 	public void visit( VoidExpressionNode n ) {}
 	
+	@Override
 	public void visit( ProvideUntilStatement n )
 	{	
 		if ( !( n.provide() instanceof NDChoiceStatement ) ) {

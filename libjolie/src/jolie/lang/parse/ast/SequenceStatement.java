@@ -36,7 +36,7 @@ public class SequenceStatement extends OLSyntaxNode
 	public SequenceStatement( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList< OLSyntaxNode >();
+		children = new LinkedList<  >();
 	}
 	
 	public List< OLSyntaxNode > children()
@@ -49,6 +49,7 @@ public class SequenceStatement extends OLSyntaxNode
 		children.add( node );
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

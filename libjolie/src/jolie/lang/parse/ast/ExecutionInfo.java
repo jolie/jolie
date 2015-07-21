@@ -40,6 +40,7 @@ public class ExecutionInfo extends OLSyntaxNode
 		return mode;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

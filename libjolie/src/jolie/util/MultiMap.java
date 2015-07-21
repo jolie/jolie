@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public abstract class MultiMap< K, V >
 {
-	private final Map< K, Collection< V > > map = new HashMap< K, Collection< V > >();
+	private final Map< K, Collection< V > > map = new HashMap<  >();
 
 	protected abstract Collection< V > createCollection();
 

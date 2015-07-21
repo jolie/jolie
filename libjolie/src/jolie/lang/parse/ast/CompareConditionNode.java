@@ -54,6 +54,7 @@ public class CompareConditionNode extends OLSyntaxNode
 		return opType;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
