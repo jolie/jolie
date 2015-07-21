@@ -136,7 +136,7 @@ public class Scanner
 	 * Map of unreserved keywords,
 	 * which can be considered as IDs in certain places (e.g. variables).
 	 */
-	private static final Map< String, TokenType > unreservedKeywords = new HashMap< String, TokenType >();
+	private static final Map< String, TokenType > unreservedKeywords = new HashMap<  >();
 	
 	static {
 		// Initialise the unreserved keywords map.

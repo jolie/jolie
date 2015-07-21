@@ -66,6 +66,7 @@ public class SpawnStatement extends OLSyntaxNode
 		return inVariablePath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

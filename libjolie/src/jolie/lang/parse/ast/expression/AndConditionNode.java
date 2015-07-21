@@ -32,7 +32,7 @@ import jolie.lang.parse.context.ParsingContext;
 
 public class AndConditionNode extends OLSyntaxNode
 {
-	private final List< OLSyntaxNode > children = new LinkedList< OLSyntaxNode >();
+	private final List< OLSyntaxNode > children = new LinkedList<  >();
 
 	public AndConditionNode( ParsingContext context )
 	{
@@ -49,6 +49,7 @@ public class AndConditionNode extends OLSyntaxNode
 		children.add( node );
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

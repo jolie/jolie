@@ -39,22 +39,22 @@ public class ProductExpressionNode extends OLSyntaxNode
 	public ProductExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new LinkedList< Pair< Constants.OperandType, OLSyntaxNode > >();
+		operands = new LinkedList<  >();
 	}
 	
 	public void multiply( OLSyntaxNode expression )
 	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MULTIPLY, expression ) );
+		operands.add( new Pair<  >( Constants.OperandType.MULTIPLY, expression ) );
 	}
 	
 	public void divide( OLSyntaxNode expression )
 	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.DIVIDE, expression ) );
+		operands.add( new Pair<  >( Constants.OperandType.DIVIDE, expression ) );
 	}
 	
 	public void modulo( OLSyntaxNode expression )
 	{
-		operands.add( new Pair< Constants.OperandType, OLSyntaxNode >( Constants.OperandType.MODULUS, expression ) );
+		operands.add( new Pair<  >( Constants.OperandType.MODULUS, expression ) );
 	}
 	
 	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands()
@@ -62,6 +62,7 @@ public class ProductExpressionNode extends OLSyntaxNode
 		return operands;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

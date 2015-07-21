@@ -43,6 +43,7 @@ public class DocumentationComment extends OLSyntaxNode
 		return comment;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

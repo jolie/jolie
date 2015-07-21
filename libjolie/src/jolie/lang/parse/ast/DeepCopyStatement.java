@@ -51,6 +51,7 @@ public class DeepCopyStatement extends OLSyntaxNode
 		return rightExpression;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

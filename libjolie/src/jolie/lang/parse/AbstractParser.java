@@ -40,7 +40,7 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
-	private final List< Scanner.Token > tokens = new LinkedList< Scanner.Token > ();
+	private final List< Scanner.Token > tokens = new LinkedList<  > ();
 	
 	/** Constructor
 	 * 
