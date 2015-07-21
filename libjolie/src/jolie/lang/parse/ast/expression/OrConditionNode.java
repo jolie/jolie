@@ -37,7 +37,7 @@ public class OrConditionNode extends OLSyntaxNode
 	public OrConditionNode( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList<  >();
+		children = new LinkedList<>();
 	}
 	
 	public List< OLSyntaxNode > children()

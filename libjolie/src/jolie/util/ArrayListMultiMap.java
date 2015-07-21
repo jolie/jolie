@@ -33,6 +33,6 @@ public class ArrayListMultiMap< K, V > extends MultiMap< K, V >
 	@Override
 	protected Collection< V > createCollection()
 	{
-		return new ArrayList<  >();
+		return new ArrayList<>();
 	}
 }

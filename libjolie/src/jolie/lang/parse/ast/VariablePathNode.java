@@ -47,7 +47,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 	public VariablePathNode( ParsingContext context, Type type )
 	{
 		super( context );
-		path = new LinkedList<  >();
+		path = new LinkedList<>();
 		this.type = type;
 	}
 
@@ -88,13 +88,13 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 		Pair< OLSyntaxNode, OLSyntaxNode > right = rightPath.path().get( rightIndex );
 
 		if ( left.value() == null && right.value() != null ) {
-			left = new Pair<  >(
+			left = new Pair<>(
 					left.key(),
 					new ConstantIntegerExpression( leftPath.context(), 0 )
 				);
 			leftPath.path().set( leftIndex, left );
 		} else if ( left.value() != null && right.value() == null ) {
-			right = new Pair<  >(
+			right = new Pair<>(
 					right.key(),
 					new ConstantIntegerExpression( rightPath.context(), 0 )
 				);

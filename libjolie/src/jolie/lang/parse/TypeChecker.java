@@ -151,7 +151,7 @@ public class TypeChecker implements OLVisitor
 			neededVarPaths = new VariablePathSet();
 			providedVarPaths = new VariablePathSet();
 			invalidatedVarPaths = new VariablePathSet();
-			sessionOperations = new HashSet<  >();
+			sessionOperations = new HashSet<>();
 		}
 
 		public void registerOperationInput( String operation, boolean isStartingOperation )
@@ -257,7 +257,7 @@ public class TypeChecker implements OLVisitor
 
 		public void removeUnsharedProvided( TypingResult other )
 		{
-			List< VariablePathNode > toBeRemoved = new LinkedList<  >();
+			List< VariablePathNode > toBeRemoved = new LinkedList<>();
 			for( VariablePathNode path : providedVarPaths ) {
 				if ( !other.providedVarPaths.contains( path ) ) {
 					toBeRemoved.add( path );
@@ -278,7 +278,7 @@ public class TypeChecker implements OLVisitor
 	private TypingResult entryTyping;
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
-	private final Map< String, TypingResult > definitionTyping = new HashMap<  >();
+	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
 
 	public TypeChecker( Program program, ExecutionMode executionMode, CorrelationFunctionInfo correlationFunctionInfo )
@@ -340,7 +340,7 @@ public class TypeChecker implements OLVisitor
 			isCorrelationSetFresh = false;
 			for( CorrelationVariableInfo cvar : cset.variables() ) {
 				path = new VariablePathNode( cvar.correlationVariablePath().context(), VariablePathNode.Type.CSET );
-				path.path().add( new Pair<  >(
+				path.path().add( new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );
@@ -519,7 +519,7 @@ public class TypeChecker implements OLVisitor
 			return;
 		}
 
-		List< TypingResult > branchTypings = new LinkedList<  >();
+		List< TypingResult > branchTypings = new LinkedList<>();
 
 		boolean origSessionStarter = sessionStarter;
 
@@ -593,7 +593,7 @@ public class TypeChecker implements OLVisitor
 		if ( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add(new Pair<  >(
+				path.path().add(new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );
@@ -632,7 +632,7 @@ public class TypeChecker implements OLVisitor
 		if ( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add(new Pair<  >(
+				path.path().add(new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );

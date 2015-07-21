@@ -289,7 +289,7 @@ public class OLParseTreeOptimizer
 					pair.key().accept( this );
 					OLSyntaxNode n = currNode;
 					pair.value().accept( this );
-					tmp.addChild(new Pair<  >( n, currNode ) );
+					tmp.addChild(new Pair<>( n, currNode ) );
 				}
 				currNode = tmp;
 			} else {
@@ -323,7 +323,7 @@ public class OLParseTreeOptimizer
 				pair.key().accept( this );
 				condition = currNode;
 				pair.value().accept( this );
-				stm.addChild(new Pair<  >( condition, currNode ) );
+				stm.addChild(new Pair<>( condition, currNode ) );
 			}
 			
 			if ( n.elseProcess() != null ) {
@@ -384,7 +384,7 @@ public class OLParseTreeOptimizer
 		{
 			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
-				varPath.append(new Pair<  >( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
+				varPath.append(new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}
 			currNode = varPath;
 		}
@@ -448,7 +448,7 @@ public class OLParseTreeOptimizer
 			int i = 0;
 			for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 				pair.value().accept( this );
-				pairs[ i++ ] = new Pair<  >( pair.key(), currNode );
+				pairs[ i++ ] = new Pair<>( pair.key(), currNode );
 			}
 			return new InstallFunctionNode( pairs );
 		}
@@ -895,7 +895,7 @@ public class OLParseTreeOptimizer
 			for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
 				currVarPath = optimizePath( pair.key() );
 				currExpr = optimizeNode( pair.value() );
-				optAssignments[i++] = new Pair<  >( currVarPath, currExpr );
+				optAssignments[i++] = new Pair<>( currVarPath, currExpr );
 			}
 			currNode = new InlineTreeExpressionNode( n.context(), optimizeNode( n.rootExpression() ), optAssignments );
 		}

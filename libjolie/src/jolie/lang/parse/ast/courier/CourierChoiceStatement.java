@@ -108,13 +108,13 @@ public class CourierChoiceStatement extends OLSyntaxNode
 	}
 	
 	private final List< InterfaceOneWayBranch > interfaceOneWayBranches =
-		new LinkedList<  >();
+		new LinkedList<>();
 	private final List< InterfaceRequestResponseBranch > interfaceRequestResponseBranches =
-		new LinkedList<  >();
+		new LinkedList<>();
 	private final List< OperationOneWayBranch > operationOneWayBranches =
-		new LinkedList<  >();
+		new LinkedList<>();
 	private final List< OperationRequestResponseBranch > operationRequestResponseBranches =
-		new LinkedList<  >();
+		new LinkedList<>();
 
 	public CourierChoiceStatement( ParsingContext context )
 	{

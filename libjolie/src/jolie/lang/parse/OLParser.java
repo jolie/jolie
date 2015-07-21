@@ -136,13 +136,13 @@ public class OLParser extends AbstractParser
 {
 	private final Program program;
 	private final Map< String, Scanner.Token > constantsMap =
-		new HashMap<  >();
+		new HashMap<>();
 	private boolean insideInstallFunction = false;
 	private String[] includePaths;
 	private final Map< String, InterfaceDefinition > interfaces =
-		new HashMap<  >();
+		new HashMap<>();
 	private final Map< String, InterfaceExtenderDefinition > interfaceExtenders =
-		new HashMap<  >();
+		new HashMap<>();
 
 	private final Map< String, TypeDefinition > definedTypes;
 	private final ClassLoader classLoader;
@@ -166,7 +166,7 @@ public class OLParser extends AbstractParser
 
 	public static Map< String, TypeDefinition > createTypeDeclarationMap( ParsingContext context )
 	{
-		Map< String, TypeDefinition > definedTypes = new HashMap<  >();
+		Map< String, TypeDefinition > definedTypes = new HashMap<>();
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
@@ -453,12 +453,12 @@ public class OLParser extends AbstractParser
 			String csetName = token.content();
 			getToken();*/
 			eat( Scanner.TokenType.LCURLY, "expected {" );
-			List< CorrelationVariableInfo > variables = new ArrayList<  >();
+			List< CorrelationVariableInfo > variables = new ArrayList<>();
 			List< CorrelationAliasInfo > aliases;
 			VariablePathNode correlationVariablePath;
 			String typeName;
 			while ( token.is( Scanner.TokenType.ID ) ) {
-				aliases = new LinkedList<  >();
+				aliases = new LinkedList<>();
 				correlationVariablePath = parseVariablePath();
 				eat( Scanner.TokenType.COLON, "expected correlation variable alias list" );
 				assertToken( Scanner.TokenType.ID, "expected correlation variable alias" );
@@ -565,7 +565,7 @@ public class OLParser extends AbstractParser
 		}
 	}
 	
-	private final Map< String, URL > resourceCache = new HashMap<  >();
+	private final Map< String, URL > resourceCache = new HashMap<>();
 
 	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
@@ -979,7 +979,7 @@ public class OLParser extends AbstractParser
 		String inputPortName;
 		String protocolId;
 		URI inputPortLocation;
-		List< InterfaceDefinition > interfaceList = new ArrayList<  >();
+		List< InterfaceDefinition > interfaceList = new ArrayList<>();
 		OLSyntaxNode protocolConfiguration = new NullProcessStatement( getContext() );
 		
 		getToken();
@@ -992,7 +992,7 @@ public class OLParser extends AbstractParser
 		inputPortLocation = null;
 		protocolId = null;
 		Map<String, String> redirectionMap = new HashMap<>();
-		List< InputPortInfo.AggregationItemInfo > aggregationList = new LinkedList<  >();
+		List< InputPortInfo.AggregationItemInfo > aggregationList = new LinkedList<>();
 		while ( token.isNot( Scanner.TokenType.RCURLY ) ) {
 			if ( token.is( Scanner.TokenType.OP_OW ) ) {
 				parseOneWayOperations( iface );
@@ -1105,7 +1105,7 @@ public class OLParser extends AbstractParser
 		InterfaceExtenderDefinition extender;
 		for( boolean mainKeepRun = true; mainKeepRun; ) {
 			extender = null;
-			outputPortNames = new LinkedList<  >();
+			outputPortNames = new LinkedList<>();
 			if ( token.is( Scanner.TokenType.LCURLY ) ) {
 				getToken();
 				for( boolean keepRun = true; keepRun; ) {
@@ -1367,7 +1367,7 @@ public class OLParser extends AbstractParser
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
 
-				Map< String, TypeDefinition > faultTypesMap = new HashMap<  >();
+				Map< String, TypeDefinition > faultTypesMap = new HashMap<>();
 
 				if ( token.is( Scanner.TokenType.THROWS ) ) {
 					getToken();
@@ -1553,7 +1553,7 @@ public class OLParser extends AbstractParser
 
 		return stm;
 	}
-	private final List< List< Scanner.Token > > inVariablePaths = new LinkedList<  >();
+	private final List< List< Scanner.Token > > inVariablePaths = new LinkedList<>();
 
 	private OLSyntaxNode parseInVariablePathProcess( boolean withConstruct )
 		throws IOException, ParserException
@@ -1907,10 +1907,10 @@ public class OLParser extends AbstractParser
 		boolean backup = insideInstallFunction;
 		insideInstallFunction = true;
 		List< Pair< String, OLSyntaxNode > > vec =
-			new LinkedList<  >();
+			new LinkedList<>();
 
 		boolean keepRun = true;
-		List< String > names = new LinkedList<  >();
+		List< String > names = new LinkedList<>();
 		OLSyntaxNode handler;
 		while( keepRun ) {
 			do {
@@ -1926,7 +1926,7 @@ public class OLParser extends AbstractParser
 			getToken(); // eat the arrow
 			handler = parseProcess();
 			for( String name : names ) {
-				vec.add( new Pair<  >( name, handler ) );
+				vec.add( new Pair<>( name, handler ) );
 			}
 			names.clear();
 			
@@ -2060,7 +2060,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		int i = inVariablePaths.size() - 1;
-		List< Scanner.Token > tokens = new ArrayList<  >();
+		List< Scanner.Token > tokens = new ArrayList<>();
 		try {
 			tokens.addAll( inVariablePaths.get( i ) );
 		} catch( IndexOutOfBoundsException e ) {
@@ -2439,7 +2439,7 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.ID ) ) {
 			path = parseVariablePath();
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
-			freshValuePath.append( new Pair<  >( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
+			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
 			if ( path.isEquivalentTo( freshValuePath ) ) {
 				retVal = new FreshValueExpressionNode( path.context() );
 				return retVal;
@@ -2618,7 +2618,7 @@ public class OLParser extends AbstractParser
 		VariablePathNode path;
 		OLSyntaxNode expression;
 		
-		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new LinkedList<  >();
+		List< Pair< VariablePathNode, OLSyntaxNode > > assignments = new LinkedList<>();
 		
 		while( keepRun ) {
 			eat( Scanner.TokenType.DOT, "expected ." );
@@ -2627,7 +2627,7 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.ASSIGN, "expected =" );
 			expression = parseExpression();
 			
-			assignments.add( new Pair<  >( path, expression ) );
+			assignments.add( new Pair<>( path, expression ) );
 			
 			if ( token.is( Scanner.TokenType.COMMA ) ) {
 				getToken();

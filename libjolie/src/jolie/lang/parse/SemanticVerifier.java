@@ -146,37 +146,37 @@ public class SemanticVerifier implements OLVisitor
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
-	private final Map< String, InputPortInfo > inputPorts = new HashMap<  >();
-	private final Map< String, OutputPortInfo > outputPorts = new HashMap<  >();
+	private final Map< String, InputPortInfo > inputPorts = new HashMap<>();
+	private final Map< String, OutputPortInfo > outputPorts = new HashMap<>();
 	
-	private final Set< String > subroutineNames = new HashSet<  > ();
+	private final Set< String > subroutineNames = new HashSet<> ();
 	private final Map< String, OneWayOperationDeclaration > oneWayOperations =
-						new HashMap<  >();
+						new HashMap<>();
 	private final Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
-						new HashMap<  >();
+						new HashMap<>();
 
-	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap<  >();
+	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap<>();
 	private final Map< OneWayOperationDeclaration, List< OneWayOperationDeclaration > > owToBeEqual =
-		new HashMap<  >();
+		new HashMap<>();
 	private final Map< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > rrToBeEqual =
-		new HashMap<  >();
-	private final List< CorrelationSetInfo > correlationSets = new LinkedList<  >();
+		new HashMap<>();
+	private final List< CorrelationSetInfo > correlationSets = new LinkedList<>();
 
 	private boolean insideInputPort = false;
 	private boolean insideInit = false;
 	private boolean mainDefined = false;
 	private CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
 	private final MultiMap< String, String > inputTypeNameMap =
-		new ArrayListMultiMap<  >(); // Maps type names to the input operations that use them
+		new ArrayListMultiMap<>(); // Maps type names to the input operations that use them
 
 	private ExecutionMode executionMode = ExecutionMode.SINGLE;
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<  >();
+	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	//private TypeDefinition rootType; // the type representing the whole session state
-	private final Map< String, Boolean > isConstantMap = new HashMap<  >();
+	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 	
 	private OperationType insideCourierOperationType = null;
 
@@ -221,7 +221,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<  >();
+			toBeEqualList = new LinkedList<>();
 			typesToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( type );
@@ -231,7 +231,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<  >();
+			toBeEqualList = new LinkedList<>();
 			owToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( oneWay );
@@ -241,7 +241,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList<  >();
+			toBeEqualList = new LinkedList<>();
 			rrToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( requestResponse );
@@ -308,8 +308,8 @@ public class SemanticVerifier implements OLVisitor
 	private void checkCorrelationSets()
 	{
 		Collection< String > operations;
-		Set< String > correlatingOperations = new HashSet<  >();
-		Set< String > currCorrelatingOperations = new HashSet<  >();
+		Set< String > correlatingOperations = new HashSet<>();
+		Set< String > currCorrelatingOperations = new HashSet<>();
 		for( CorrelationSetInfo cset : correlationSets ) {
 			correlationFunctionInfo.correlationSets().add( cset );
 			currCorrelatingOperations.clear();
@@ -490,7 +490,7 @@ public class SemanticVerifier implements OLVisitor
 
 		insideInputPort = true;
 
-		Set< String > opSet = new HashSet<  >();
+		Set< String > opSet = new HashSet<>();
 
 		for( OperationDeclaration op : n.operations() ) {
 			if ( opSet.contains( op.id() ) ) {
@@ -672,7 +672,7 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( NDChoiceStatement stm )
 	{
-		Set< String > operations = new HashSet<  >();
+		Set< String > operations = new HashSet<>();
 		String name = null;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 			if ( pair.key() instanceof OneWayOperationStatement ) {
