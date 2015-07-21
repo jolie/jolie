@@ -39,17 +39,17 @@ public class SumExpressionNode extends OLSyntaxNode
 	public SumExpressionNode( ParsingContext context )
 	{
 		super( context );
-		operands = new LinkedList<  >();
+		operands = new LinkedList<>();
 	}
 	
 	public void add( OLSyntaxNode expression )
 	{
-		operands.add( new Pair<  >( Constants.OperandType.ADD, expression ) );
+		operands.add( new Pair<>( Constants.OperandType.ADD, expression ) );
 	}
 	
 	public void subtract( OLSyntaxNode expression )
 	{
-		operands.add( new Pair<  >( Constants.OperandType.SUBTRACT, expression ) );
+		operands.add( new Pair<>( Constants.OperandType.SUBTRACT, expression ) );
 	}
 	
 	public List< Pair< Constants.OperandType, OLSyntaxNode > > operands()

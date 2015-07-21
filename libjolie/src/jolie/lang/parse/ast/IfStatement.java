@@ -38,7 +38,7 @@ public class IfStatement extends OLSyntaxNode
 	public IfStatement( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList<  >();
+		children = new LinkedList<>();
 		elseProcess = null;
 	}
 	

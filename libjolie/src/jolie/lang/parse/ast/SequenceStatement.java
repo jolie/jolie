@@ -36,7 +36,7 @@ public class SequenceStatement extends OLSyntaxNode
 	public SequenceStatement( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList<  >();
+		children = new LinkedList<>();
 	}
 	
 	public List< OLSyntaxNode > children()

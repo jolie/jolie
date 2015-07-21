@@ -115,12 +115,12 @@ import jolie.lang.parse.util.ProgramInspector;
  */
 public class ProgramInspectorCreatorVisitor implements OLVisitor
 {
-	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap<  >();
-	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap<  >();
-	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<  >();
-	private final Map< URI, List< TypeDefinition > > types = new HashMap<  >();
-	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<  >();
-	private final Set< URI > sources = new HashSet<  >();
+	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap<>();
+	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap<>();
+	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<>();
+	private final Map< URI, List< TypeDefinition > > types = new HashMap<>();
+	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<>();
+	private final Set< URI > sources = new HashSet<>();
 
 	public ProgramInspectorCreatorVisitor( Program program )
 	{
@@ -157,7 +157,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	{
 		List< InterfaceDefinition > list = interfaces.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList<  >();
+			list = new LinkedList<>();
 			interfaces.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -170,7 +170,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	{
 		List< TypeDefinition > list = types.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList<  >();
+			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -183,7 +183,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	{
 		List< TypeDefinition > list = types.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList<  >();
+			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -196,7 +196,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	{
 		List< InputPortInfo > list = inputPorts.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList<  >();
+			list = new LinkedList<>();
 			inputPorts.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -208,7 +208,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	{
 		List< OutputPortInfo > list = outputPorts.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList<  >();
+			list = new LinkedList<>();
 			outputPorts.put( n.context().source(), list );
 		}
 		list.add( n );

@@ -97,7 +97,7 @@ public class TypeInlineDefinition extends TypeDefinition
 	public void putSubType( TypeDefinition type )
 	{
 		if ( subTypes == null ) {
-			subTypes = new HashMap<  >();
+			subTypes = new HashMap<>();
 		}
 		subTypes.put( type.id(), type );
 	}

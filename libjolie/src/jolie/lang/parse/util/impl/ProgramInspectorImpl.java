@@ -70,7 +70,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	@Override
 	public TypeDefinition[] getTypes()
 	{
-		List< TypeDefinition > result = new ArrayList<  >();
+		List< TypeDefinition > result = new ArrayList<>();
 		List< TypeDefinition > list;
 		for( URI source : sources ) {
 			list = types.get( source );
@@ -94,7 +94,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	@Override
 	public InterfaceDefinition[] getInterfaces()
 	{
-		List< InterfaceDefinition > result = new ArrayList<  >();
+		List< InterfaceDefinition > result = new ArrayList<>();
 		List< InterfaceDefinition > list;
 		for( URI source : sources ) {
 			list = interfaces.get( source );
@@ -118,7 +118,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	@Override
 	public InputPortInfo[] getInputPorts()
 	{
-		List< InputPortInfo > result = new ArrayList<  >();
+		List< InputPortInfo > result = new ArrayList<>();
 		List< InputPortInfo > list;
 		for( URI source : sources ) {
 			list = inputPorts.get( source );
@@ -142,7 +142,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 	@Override
 	public OutputPortInfo[] getOutputPorts()
 	{
-		List< OutputPortInfo > result = new ArrayList<  >();
+		List< OutputPortInfo > result = new ArrayList<>();
 		List< OutputPortInfo > list;
 		for( URI source : sources ) {
 			list = outputPorts.get( source );

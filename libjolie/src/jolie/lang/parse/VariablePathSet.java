@@ -34,7 +34,7 @@ import jolie.lang.parse.ast.VariablePathNode;
  */
 public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 {
-	private final List< T > elements = new ArrayList<  >();
+	private final List< T > elements = new ArrayList<>();
 
 	@Override
 	public int size()
