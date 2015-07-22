@@ -40,6 +40,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -94,8 +95,9 @@ public class FileService extends JavaService
 	{
 		System.out.println("convertFromBinaryToBase64Value@FileService()() became rawToBase64@Converter()()");
 		byte[] buffer = value.byteArrayValue().getBytes();
-		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		return encoder.encode( buffer );
+		
+		Base64.Encoder encoder = Base64.getEncoder();
+		return encoder.encodeToString( buffer );
 	}
 
 	@RequestResponse
@@ -103,16 +105,10 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		System.out.println("convertFromBase64ToBinaryValue@FileService()() became base64ToRaw@Converter()()");
-		ByteArray returnValue = null;
-		try {
-			String stringValue = value.strValue();
-			sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
-			byte[] supportArray = decoder.decodeBuffer( stringValue );
-			returnValue = new ByteArray( supportArray );
-			return returnValue;
-		} catch( IOException ex ) {
-			throw new FaultException( "IOException", ex );
-		}
+		String stringValue = value.strValue();
+		Base64.Decoder decoder = Base64.getDecoder();
+		byte[] supportArray = decoder.decode( stringValue );
+		return new ByteArray( supportArray );
 	}
 
 	@RequestResponse
@@ -131,8 +127,8 @@ public class FileService extends JavaService
 	{
 		byte[] buffer = new byte[ (int) size ];
 		istream.read( buffer );
-		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		value.setValue( encoder.encode( buffer ) );
+		Base64.Encoder encoder = Base64.getEncoder();
+		value.setValue( encoder.encodeToString( buffer ) );
 	}
 
 	private static void readBinaryIntoValue( InputStream istream, long size, Value value )
@@ -168,9 +164,7 @@ public class FileService extends JavaService
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.documentToValue( doc, value );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -187,9 +181,7 @@ public class FileService extends JavaService
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -336,26 +328,33 @@ public class FileService extends JavaService
 			istream = new BufferedInputStream( istream );
 
 			try {
-				if ( "base64".equals( format ) ) {
-					readBase64IntoValue( istream, size, retValue );
-				} else if ( "binary".equals( format ) ) {
-					readBinaryIntoValue( istream, size, retValue );
-				} else if ( "xml".equals( format ) ) {
-					readXMLIntoValue( istream, retValue, charset );
-				} else if ( "xml_store".equals( format ) ) {
-					readXMLIntoValueForStoring( istream, retValue, charset );
-				} else if ( "properties".equals( format ) ) {
-					readPropertiesFile( istream, retValue, charset );
-				} else if ( "json".equals( format ) ) {
-					boolean strictEncoding = false;
-					if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
-						if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
-							strictEncoding = true;
-						}
-					}
-					readJsonIntoValue( istream, retValue, charset, strictEncoding );
-				} else {
-					readTextIntoValue( istream, size, retValue, charset );
+				if ( null != format ) switch( format ) {
+					case "base64":
+						readBase64IntoValue( istream, size, retValue );
+						break;
+					case "binary":
+						readBinaryIntoValue( istream, size, retValue );
+						break;
+					case "xml":
+						readXMLIntoValue( istream, retValue, charset );
+						break;
+					case "xml_store":
+						readXMLIntoValueForStoring( istream, retValue, charset );
+						break;
+					case "properties":
+						readPropertiesFile( istream, retValue, charset );
+						break;
+					case "json":
+						boolean strictEncoding = false;
+						if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
+							if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
+								strictEncoding = true;
+							}
+						}	readJsonIntoValue( istream, retValue, charset, strictEncoding );
+						break;
+					default:
+						readTextIntoValue( istream, size, retValue, charset );
+						break;
 				}
 			} finally {
 				istream.close();
@@ -718,8 +717,8 @@ public class FileService extends JavaService
 	{
 		if ( file.isDirectory() ) {
 			String[] children = file.list();
-			for( int i = 0; i < children.length; i++ ) {
-				__deleteDir( new File( file, children[ i ] ) );
+			for( String children1 : children ) {
+				__deleteDir( new File( file, children1 ) );
 			}
 		};
 		return file.delete();
@@ -737,6 +736,7 @@ public class FileService extends JavaService
 			this.dirsOnly = dirsOnly;
 		}
 
+		@Override
 		public boolean accept( File directory, String filename )
 		{
 			File file = new File( directory.getAbsolutePath() + File.separator + filename );
