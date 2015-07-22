@@ -23,7 +23,6 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -57,6 +56,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import org.w3c.dom.NodeList;
 
 /** Implements the XML-RPC over HTTP protocol.
@@ -212,7 +212,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				throw new IOException( e );
 			}
 		} else if ( name.equals( "base64" ) ) {
-			value.setValue( new ByteArray( new sun.misc.BASE64Decoder().decodeBuffer( content.getTextContent() ) ) );
+			value.setValue( new ByteArray( Base64.getDecoder().decode( content.getTextContent() ) ) );
 		} else {
 			// parse everything else as string (including <dateTime.iso8601>)
 			value.setValue( content.getTextContent() );
@@ -271,7 +271,7 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		} else if ( value.isByteArray() ) {
 
 			Element b = doc.createElement( "base64" );
-			b.appendChild( doc.createTextNode( new sun.misc.BASE64Encoder().encodeBuffer( value.byteArrayValue().getBytes() ) ) );
+			b.appendChild( doc.createTextNode( Base64.getEncoder().encodeToString( value.byteArrayValue().getBytes() ) ) );
 			v.appendChild( b );
 			node.appendChild( v );
 		} else if ( value.hasChildren( ARRAY_KEY ) ) {
