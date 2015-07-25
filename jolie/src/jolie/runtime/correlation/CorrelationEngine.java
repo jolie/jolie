@@ -21,8 +21,6 @@
 
 package jolie.runtime.correlation;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.SessionThread;
@@ -40,11 +38,13 @@ public abstract class CorrelationEngine implements SessionListener
 {
 	public enum Type {
 		SIMPLE {
+			@Override
 			public CorrelationEngine createInstance( Interpreter interpreter ) {
 				return new SimpleCorrelationEngine( interpreter );
 			}
 		},
 		HASH {
+			@Override
 			public CorrelationEngine createInstance( Interpreter interpreter ) {
 				//return new HashCorrelationEngine( interpreter );
 				return null;
@@ -55,10 +55,11 @@ public abstract class CorrelationEngine implements SessionListener
 
 		public static Type fromString( String name )
 		{
-			if ( "simple".equals( name ) ) {
-				return SIMPLE;
-			} else if ( "hash".equals( name ) ) {
-				return HASH;
+			if ( null != name ) switch( name ) {
+				case "simple":
+					return SIMPLE;
+				case "hash":
+					return HASH;
 			}
 			return null;
 		}
