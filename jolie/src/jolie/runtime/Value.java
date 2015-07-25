@@ -45,6 +45,7 @@ class ValueLink extends Value implements Cloneable
 		return linkPath.getValue();
 	}
 
+	@Override
 	public ValueVector getChildren( String childId )
 	{
 		return getLinkedValue().getChildren( childId );
@@ -57,31 +58,37 @@ class ValueLink extends Value implements Cloneable
 	}
 */
 	
+	@Override
 	public final Value evaluate()
 	{
 		return getLinkedValue();
 	}
 
+	@Override
 	public boolean hasChildren()
 	{
 		return getLinkedValue().hasChildren();
 	}
 
+	@Override
 	public boolean hasChildren( String childId )
 	{
 		return getLinkedValue().hasChildren( childId );
 	}
 
+	@Override
 	protected void _refCopy( Value value )
 	{
 		getLinkedValue()._refCopy( value );
 	}
 	
+	@Override
 	public void setValueObject( Object object )
 	{
 		getLinkedValue().setValueObject( object );
 	}
 	
+	@Override
 	public void erase()
 	{
 		getLinkedValue().erase();
@@ -93,6 +100,7 @@ class ValueLink extends Value implements Cloneable
 		return new ValueLink( linkPath );
 	}
 	
+	@Override
 	public void _deepCopy( Value value, boolean copyLinks )
 	{
 		getLinkedValue()._deepCopy( value, copyLinks );
@@ -103,6 +111,7 @@ class ValueLink extends Value implements Cloneable
 		return getLinkedValue().children();
 	}
 		
+	@Override
 	public Object valueObject()
 	{
 		return getLinkedValue().valueObject();
@@ -114,6 +123,7 @@ class ValueLink extends Value implements Cloneable
 		linkPath = path;
 	}
 	
+	@Override
 	public boolean isLink()
 	{
 		return true;
@@ -127,16 +137,19 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	private volatile Object valueObject = null;
 	private final AtomicReference< Map< String, ValueVector > > children = new AtomicReference<>();
 	
+	@Override
 	public void setValueObject( Object object )
 	{
 		valueObject = object;
 	}
 
+	@Override
 	public ValueVector getChildren( String childId )
 	{
 		return children().computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
+	@Override
 	public ValueImpl clone()
 	{
 		ValueImpl ret = new ValueImpl();
@@ -144,17 +157,20 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		return ret;
 	}
 
+	@Override
 	protected void _refCopy( Value value )
 	{
 		setValueObject( value.valueObject() );
 		this.children.set( value.children() );
 	}
 
+	@Override
 	public final Value evaluate()
 	{
 		return this;
 	}
 	
+	@Override
 	public void erase()
 	{
 		valueObject = null;
@@ -163,23 +179,27 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	
 	protected ValueImpl() {}
 	
+	@Override
 	public boolean isLink()
 	{
 		return false;
 	}
 
+	@Override
 	public boolean hasChildren()
 	{
 		Map< String, ValueVector > c = children.get();
 		return ( c == null ? false : !c.isEmpty() );
 	}
 
+	@Override
 	public boolean hasChildren( String childId )
 	{
 		Map< String, ValueVector > c = children.get();
 		return ( c != null && c.containsKey( childId ) );
 	}
 	
+	@Override
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
 		/**
@@ -221,6 +241,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 	
+	@Override
 	public Map< String, ValueVector > children()
 	{
 		// Create the map if not present
@@ -228,6 +249,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		return children.get();
 	}
 	
+	@Override
 	public Object valueObject()
 	{
 		return valueObject;
@@ -255,6 +277,7 @@ class RootValueImpl extends Value implements Cloneable
 	private final Map< String, ValueVector > children =
 		new ConcurrentHashMap<> ( INITIAL_CAPACITY, LOAD_FACTOR );
 
+	@Override
 	public RootValueImpl clone()
 	{
 		RootValueImpl ret = new RootValueImpl();
@@ -262,23 +285,28 @@ class RootValueImpl extends Value implements Cloneable
 		return ret;
 	}
 
+	@Override
 	public void setValueObject( Object object )
 	{}
 
+	@Override
 	protected void _refCopy( Value value )
 	{}
 
 
+	@Override
 	public ValueVector getChildren( String childId )
 	{
 		return children.computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
+	@Override
 	public final Value evaluate()
 	{
 		return this;
 	}
 
+	@Override
 	public void erase()
 	{
 		children.clear();
@@ -289,21 +317,25 @@ class RootValueImpl extends Value implements Cloneable
 		return false;
 	}
 
+	@Override
 	public final Map< String, ValueVector > children()
 	{
 		return children;
 	}
 
+	@Override
 	public boolean hasChildren()
 	{
 		return children.isEmpty() == false;
 	}
 
+	@Override
 	public boolean hasChildren( String childId )
 	{
 		return children.containsKey( childId );
 	}
 
+	@Override
 	protected void _deepCopy( Value value, boolean copyLinks )
 	{
 		if ( value.hasChildren() ) {
@@ -336,6 +368,7 @@ class RootValueImpl extends Value implements Cloneable
 		return children.computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
+	@Override
 	public Object valueObject()
 	{
 		return null;
@@ -501,6 +534,7 @@ public abstract class Value implements Expression, Cloneable
 		getFirstChild( childId ).setValue( object );
 	}
 	
+	@Override
 	public abstract Value evaluate();
 	
 	public final void setValue( Object object )
@@ -941,6 +975,7 @@ public abstract class Value implements Expression, Cloneable
 		setValueObject( val.valueObject() );
 	}
 	
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return Value.createClone( this );
