@@ -107,12 +107,10 @@ public class Interpreter
 		{
 			super( interpreter, process );
 			addSessionListener( new SessionListener() {
-				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					onSuccessfulInitExecution();
 				}
-				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					exit();
@@ -146,7 +144,7 @@ public class Interpreter
 			execute( new Runnable() {
 				private void pushMessages( Deque< SessionMessage > queue )
 				{
-					for ( SessionMessage message : queue ) {
+					for( SessionMessage message : queue ) {
 						try {
 							correlationEngine.onMessageReceive( message.message(), message.channel() );
 						} catch( CorrelationError e ) {
@@ -160,10 +158,11 @@ public class Interpreter
 					}
 				}
 
-				@Override
 				public void run()
 				{
-					messageQueues.values().forEach( queue -> pushMessages( queue ) );
+					for( Deque< SessionMessage > queue : messageQueues.values() ) {
+						pushMessages( queue );
+					}
 					pushMessages( uncorrelatedMessageQueue );
 				}
 			});
@@ -182,7 +181,6 @@ public class Interpreter
 		{
 			this.interpreter = interpreter;
 		}
-		@Override
 		public Thread newThread( Runnable r )
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
@@ -201,7 +199,6 @@ public class Interpreter
 			this.interpreter = interpreter;
 		}
 		
-		@Override
 		public Thread newThread( Runnable r )
 		{
 			return new NativeJolieThread( interpreter, r );
@@ -327,7 +324,9 @@ public class Interpreter
 				do {
 					response = channel.recvResponseFor( m );
 				} while( response == null );
-			} catch( URISyntaxException | IOException e ) {
+			} catch( URISyntaxException e ) {
+				logWarning( e );
+			} catch( IOException e ) {
 				logWarning( e );
 			} finally {
 				if ( channel != null ) {
@@ -361,10 +360,9 @@ public class Interpreter
 	public void addTimeoutHandler( TimeoutHandler handler )
 	{
 		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( new WeakReference<>( handler ) );
+			timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
 			if ( timeoutHandlerQueue.size() == 1 ) {
 				schedule( new TimerTask() {
-					@Override
 					public void run()
 					{
 						synchronized( timeoutHandlerQueue ) {
@@ -761,7 +759,9 @@ public class Interpreter
 	public void addCorrelationSet( CorrelationSet set )
 	{
 		correlationSets.add( set );
-		set.correlatingOperations().forEach( operation -> operationCorrelationSetMap.put( operation, set ) );
+		for( String operation : set.correlatingOperations() ) {
+			operationCorrelationSetMap.put( operation, set );
+		}
 	}
 
 	public CorrelationSet getCorrelationSetForOperation( String operationName )
@@ -873,8 +873,7 @@ public class Interpreter
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
-	 * @param parentInterpreter  the "parent" interpreter owning this interpreter
-	 * @param internalServiceProgram the parsed program to run
+	 * @param internalServiceProgram
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
@@ -882,10 +881,10 @@ public class Interpreter
 	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-		this( args, parentClassLoader, programDirectory, true );
-
+        this( args, parentClassLoader, programDirectory, true );
+        
 		this.parentInterpreter = parentInterpreter;
-		this.internalServiceProgram = internalServiceProgram;
+        this.internalServiceProgram = internalServiceProgram;
 	}
 
 	/**
@@ -953,7 +952,7 @@ public class Interpreter
 	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
-	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
+	private final Queue< SessionThread > waitingSessionThreads = new LinkedList< SessionThread >();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
@@ -969,13 +968,11 @@ public class Interpreter
 		private final CountDownLatch cl = new CountDownLatch( 1 );
 		private Exception result;
 
-		@Override
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
 			return false;
 		}
 		
-		@Override
 		public Exception get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
@@ -985,7 +982,6 @@ public class Interpreter
 			return result;
 		}
 		
-		@Override
 		public Exception get()
 			throws InterruptedException
 		{
@@ -993,13 +989,11 @@ public class Interpreter
 			return result;
 		}
 		
-		@Override
 		public boolean isCancelled()
 		{
 			return false;
 		}
 		
-		@Override
 		public boolean isDone()
 		{
 			return cl.getCount() == 0;
@@ -1174,7 +1168,7 @@ public class Interpreter
 		inputOperations.clear();
 		locksMap.clear();
 		initExecutionThread = null;
-		sessionStarters = new HashMap<>();
+		sessionStarters = new HashMap< String, SessionStarter>();
 		outputPorts.clear();
 		correlationSets.clear();
 		globalValue.erase();
@@ -1224,7 +1218,7 @@ public class Interpreter
 
 			check = cmdParser.check();
 
-			SemanticVerifier semanticVerifier;
+			SemanticVerifier semanticVerifier = null;
 
 			if ( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
@@ -1309,13 +1303,11 @@ public class Interpreter
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
 							message.id(), message.value() );
 			spawnedSession.addSessionListener( new SessionListener() {
-				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 				
-				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
@@ -1337,7 +1329,6 @@ public class Interpreter
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
-				@Override
 				public void onSessionExecuted( SessionThread session )
 				{
 					synchronized( waitingSessionThreads ) {
@@ -1351,7 +1342,6 @@ public class Interpreter
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 
-				@Override
 				public void onSessionError( SessionThread session, FaultException fault )
 				{
 					synchronized( waitingSessionThreads ) {

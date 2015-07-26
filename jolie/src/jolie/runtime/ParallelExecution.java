@@ -51,7 +51,7 @@ public class ParallelExecution
 		}
 	}
 	
-	final private Collection< ParallelThread > threads = new HashSet<>();
+	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
 	private FaultException fault = null;
 	private boolean isKilled = false;
 
@@ -66,7 +66,9 @@ public class ParallelExecution
 		throws FaultException
 	{
 		synchronized( this ) {
-			threads.forEach( t -> t.start() );
+			for( ParallelThread t : threads ) {
+				t.start();
+			}
 
 			ExecutionThread ethread;
 			while ( fault == null && !threads.isEmpty() ) {
@@ -91,7 +93,9 @@ public class ParallelExecution
 			}
 
 			if ( fault != null ) {
-				threads.forEach( t -> t.kill( fault ) );
+				for( ParallelThread t : threads ) {
+					t.kill( fault );
+				}
 				while ( !threads.isEmpty() ) {
 					try {
 						wait();
