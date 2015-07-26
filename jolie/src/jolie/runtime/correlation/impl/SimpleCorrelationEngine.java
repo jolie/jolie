@@ -44,14 +44,13 @@ import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
  */
 public class SimpleCorrelationEngine extends CorrelationEngine
 {
-	private final Set< SessionThread > sessions = new HashSet<>();
+	private final Set< SessionThread > sessions = new HashSet< SessionThread >();
 
 	public SimpleCorrelationEngine( Interpreter interpreter )
 	{
 		super( interpreter );
 	}
 
-	@Override
 	public synchronized boolean routeMessage( CommMessage message, CommChannel channel )
 	{
 		for( SessionThread session : sessions ) {
@@ -63,26 +62,22 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		return false;
 	}
 
-	@Override
 	public synchronized void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
 	{
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
 
-	@Override
 	public synchronized void onSingleExecutionSessionStart( SessionThread session )
 	{
 		sessions.add( session );
 	}
 
-	@Override
 	public synchronized void onSessionExecuted( SessionThread session )
 	{
 		sessions.remove( session );
 	}
 
-	@Override
 	public synchronized void onSessionError( SessionThread session, FaultException fault )
 	{
 		onSessionExecuted( session );

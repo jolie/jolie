@@ -36,13 +36,11 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return new ValueVectorLink( linkPath );
 	}
 
-	@Override
 	public Value get( int i )
 	{
 		return getLinkedValueVector().get( i );
 	}
 
-	@Override
 	public void set( int i, Value value )
 	{
 		getLinkedValueVector().set( i, value );
@@ -53,7 +51,6 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		linkPath = path;
 	}
 
-	@Override
 	public boolean isLink()
 	{
 		return true;
@@ -64,7 +61,6 @@ class ValueVectorLink extends ValueVector implements Cloneable
 		return linkPath.getValueVector();
 	}
 	
-	@Override
 	protected List< Value > values()
 	{
 		return getLinkedValueVector().values();
@@ -166,7 +162,6 @@ public abstract class ValueVector implements Iterable< Value >
 		return values().isEmpty();
 	}
 	
-	@Override
 	public Iterator< Value > iterator()
 	{
 		return values().iterator();
