@@ -147,11 +147,16 @@ define test
 
 define shutdown
 {
-	shutdown@SODEPServer();
-	shutdown@SODEPSServer();
-	shutdown@SOAPServer();
-	shutdown@JSONRPCServer();
-	shutdown@HTTPServer();
+	shutdown@SODEPServer()
+	|
+	shutdown@SODEPSServer()
+	|
+	shutdown@SOAPServer()
+	|
+	shutdown@JSONRPCServer()
+	|
+	shutdown@HTTPServer()
+	|
 	shutdown@HTTPSServer()
 }
 
