@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2009-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -117,11 +117,12 @@ class TypeImpl extends Type
 		}
 
 		if ( subTypes != null ) {
+			final int l = pathBuilder.length();
 			for( Entry< String, Type > entry : subTypes.entrySet() ) {
-				final int l = pathBuilder.length();
 				checkSubType( entry.getKey(), entry.getValue(), value, pathBuilder );
 				pathBuilder.setLength( l );
 			}
+			
 			// TODO make this more performant
 			for( String childName : value.children().keySet() ) {
 				if ( subTypes.containsKey( childName ) == false ) {
@@ -217,24 +218,25 @@ class TypeImpl extends Type
 
 	private boolean checkNativeType( Value value, NativeType nativeType )
 	{
-		if ( nativeType == NativeType.ANY ) {
+		switch( nativeType ) {
+		case ANY:
 			return true;
-		} else if ( nativeType == NativeType.DOUBLE ) {
+		case DOUBLE:
 			return value.isDouble() || value.isInt();
-		} else if ( nativeType == NativeType.LONG ) {
+		case LONG:
 			return value.isInt() || value.isLong();
-		} else if ( nativeType == NativeType.BOOL ) {
+		case BOOL:
 			return value.isBool();
-		} else if ( nativeType == NativeType.INT ) {
+		case INT:
 			return value.isInt();
-		} else if ( nativeType == NativeType.STRING ) {
+		case STRING:
 			return value.isString();
-		} else if ( nativeType == NativeType.VOID ) {
+		case VOID:
 			return value.valueObject() == null;
-		} else if ( nativeType == NativeType.RAW ) {
+		case RAW:
 			return value.isByteArray();
 		}
-
+		
 		return false;
 	}
 	
@@ -271,8 +273,8 @@ public abstract class Type implements Cloneable
 	{
 		NativeType nativeType = t1.nativeType();
 		Range cardinality = t1.cardinality();
-		Map< String, Type > subTypes = new HashMap< String, Type >();
-		for( Entry< String, Type > entry : t1.subTypes().entrySet()) {
+		Map< String, Type > subTypes = new HashMap<>();
+		for( Entry< String, Type > entry : t1.subTypes().entrySet() ) {
 			subTypes.put( entry.getKey(), entry.getValue() );
 		}
 		if ( t2 != null ) {
