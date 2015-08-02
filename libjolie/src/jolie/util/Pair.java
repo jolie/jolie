@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * @param <K> The type of the first element in the pair
  * @param <V> The type of the second element in the pair
  */
-public class Pair< K, V > implements Serializable
+public final class Pair< K, V > implements Serializable
 {
 	public final static long serialVersionUID = jolie.lang.Constants.serialVersionUID();
 
