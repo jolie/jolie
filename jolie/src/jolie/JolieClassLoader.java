@@ -30,7 +30,6 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import jolie.lang.Constants;
 import jolie.net.CommCore;
@@ -47,14 +46,14 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
  * @author Fabrizio Montesi
  */
-public class JolieClassLoader extends URLClassLoader
+public final class JolieClassLoader extends URLClassLoader
 {
 	private final static Pattern extensionSplitPattern = Pattern.compile( ":" );
 
-	private final Map< String, String > channelExtensionClassNames = new HashMap< String, String >();
-	private final Map< String, String > listenerExtensionClassNames = new HashMap< String, String >();
-	private final Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
-	private final Map< String, String > embeddingExtensionClassNames = new HashMap< String, String >();
+	private final Map< String, String > channelExtensionClassNames = new HashMap<>();
+	private final Map< String, String > listenerExtensionClassNames = new HashMap<>();
+	private final Map< String, String > protocolExtensionClassNames = new HashMap<>();
+	private final Map< String, String > embeddingExtensionClassNames = new HashMap<>();
 
 	private void init( URL[] urls )
 		throws IOException
@@ -89,23 +88,34 @@ public class JolieClassLoader extends URLClassLoader
 	protected Class<?> findClass( String className )
 		throws ClassNotFoundException
 	{
-		Class<?> c = super.findClass( className );
+		final Class<?> c = super.findClass( className );
 		if ( JavaService.class.isAssignableFrom( c ) ) {
 			checkForJolieAnnotations( c );
 		}
 		return c;
 	}
 
+	private final static Pattern delegatedPackages = Pattern.compile(
+		"(java\\."
+		+ "|jolie\\.jap\\."
+		+ "|jolie\\.lang\\."
+		+ "|jolie\\.runtime\\."
+		+ "|jolie\\.process\\."
+		+ "|jolie\\.util\\."
+		+ ").*"
+	);
+	
 	@Override
-	public Class<?> loadClass( String className )
+	public Class<?> loadClass( final String className )
 		throws ClassNotFoundException
 	{
+		if ( delegatedPackages.matcher( className ).matches() ) {
+			return getParent().loadClass( className );
+		}
+
 		try {
-			Class<?> c = findLoadedClass( className );
-			if ( c == null ) {
-				c = findClass( className );
-			}
-			return c;
+			final Class<?> c = findLoadedClass( className );
+			return ( c == null ) ? findClass( className ) : c;
 		} catch( ClassNotFoundException e ) {
 			return getParent().loadClass( className );
 		}
@@ -113,7 +123,7 @@ public class JolieClassLoader extends URLClassLoader
 
 	private void checkForJolieAnnotations( Class<?> c )
 	{
-		AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
+		final AndJarDeps needsJars = c.getAnnotation( AndJarDeps.class );
 		if ( needsJars != null ) {
 			for( String filename : needsJars.value() ) {
 				/*
@@ -129,7 +139,7 @@ public class JolieClassLoader extends URLClassLoader
 				}
 			}
 		}
-		CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
+		final CanUseJars canUseJars = c.getAnnotation( CanUseJars.class );
 		if ( canUseJars != null ) {
 			for( String filename : canUseJars.value() ) {
 				/*
@@ -148,7 +158,7 @@ public class JolieClassLoader extends URLClassLoader
 	private Class<?> loadExtensionClass( String className )
 		throws ClassNotFoundException
 	{
-		Class<?> c = loadClass( className );
+		final Class<?> c = loadClass( className );
 		checkForJolieAnnotations( c );
 		return c;
 	}
@@ -164,29 +174,20 @@ public class JolieClassLoader extends URLClassLoader
 	public synchronized EmbeddedServiceLoaderFactory createEmbeddedServiceLoaderFactory( String name, Interpreter interpreter )
 		throws IOException
 	{
-		EmbeddedServiceLoaderFactory factory = null;
 		String className = embeddingExtensionClassNames.get( name );
 		if ( className != null ) {
 			try {
-				Class<?> c = loadExtensionClass( className );
+				final Class<?> c = loadExtensionClass( className );
 				if ( EmbeddedServiceLoaderFactory.class.isAssignableFrom( c ) ) {
-					Class< ? extends EmbeddedServiceLoaderFactory > fClass = (Class< ? extends EmbeddedServiceLoaderFactory >)c;
-					factory = fClass.getConstructor().newInstance();
+					final Class< ? extends EmbeddedServiceLoaderFactory > fClass = (Class< ? extends EmbeddedServiceLoaderFactory >)c;
+					return fClass.getConstructor().newInstance();
 				}
-			} catch( ClassNotFoundException e ) {
-				throw new IOException( e );
-			} catch( InstantiationException e ) {
-				throw new IOException( e );
-			} catch( IllegalAccessException e ) {
-				throw new IOException( e );
-			} catch( NoSuchMethodException e ) {
-				throw new IOException( e );
-			} catch( InvocationTargetException e ) {
+			} catch( ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
 				throw new IOException( e );
 			}
 		}
 
-		return factory;
+		return null;
 	}
 
 	/**
@@ -209,15 +210,7 @@ public class JolieClassLoader extends URLClassLoader
 					Class< ? extends CommChannelFactory > fClass = (Class< ? extends CommChannelFactory >)c;
 					factory = fClass.getConstructor( CommCore.class ).newInstance( commCore );
 				}
-			} catch( ClassNotFoundException e ) {
-				throw new IOException( e );
-			} catch( InstantiationException e ) {
-				throw new IOException( e );
-			} catch( IllegalAccessException e ) {
-				throw new IOException( e );
-			} catch( NoSuchMethodException e ) {
-				throw new IOException( e );
-			} catch( InvocationTargetException e ) {
+			} catch( ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e ) {
 				throw new IOException( e );
 			}
 		}
@@ -356,9 +349,8 @@ public class JolieClassLoader extends URLClassLoader
 	private void checkJarForJolieExtensions( JarURLConnection jarConnection )
 		throws IOException
 	{
-		Manifest manifest = jarConnection.getManifest();
-		if ( manifest != null ) {
-			Attributes attrs = manifest.getMainAttributes();
+		final Attributes attrs  = jarConnection.getMainAttributes();
+		if ( attrs != null ) {
 			checkForChannelExtension( attrs );
 			checkForListenerExtension( attrs );
 			checkForProtocolExtension( attrs );
