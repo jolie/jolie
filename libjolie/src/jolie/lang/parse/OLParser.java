@@ -489,7 +489,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			eat( Scanner.TokenType.LCURLY, "{ expected" );
 			assertToken( Scanner.TokenType.ID, "expected execution modality" );
-			if ( null != token.content() ) switch( token.content() ) {
+			switch( token.content() ) {
 				case "sequential":
 					mode = Constants.ExecutionMode.SEQUENTIAL;
 					break;
@@ -536,40 +536,77 @@ public class OLParser extends AbstractParser
 			eat( Scanner.TokenType.RCURLY, "expected }" );
 		}
 	}
-
-	private static class IncludeFile
+	
+	private URL guessIncludeFilepath( String urlStr, String filename, String path )
 	{
-		private final InputStream inputStream;
-		private final String parentPath;
-		private final URI uri;
-		private IncludeFile( InputStream inputStream, String parentPath, URI uri )
-		{
-			this.inputStream = inputStream;
-			this.parentPath = parentPath;
-			this.uri = uri;
-		}
+		try {
+			if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
+				// Try hard to resolve names, even in Windows
+				if ( filename.startsWith( "../" ) ) {
+					String tmpPath = path;
+					String tmpFilename = filename;
+					if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) {
+						tmpPath = tmpPath.replace( "\\", "/" );
+					}
+					while( tmpFilename.startsWith( "../" ) ) {
+						tmpFilename = tmpFilename.substring( 2 );
+						if ( tmpPath.endsWith( "/" ) ) {
+							tmpPath = tmpPath.substring( 0, tmpPath.length() - 1 );
+						}
+						tmpPath = tmpPath.substring( 0, tmpPath.lastIndexOf( "/" ) );
+					}
 
-		private InputStream getInputStream()
-		{
-			return inputStream;
-		}
+					String tmpUrl = build( tmpPath, tmpFilename );
+					try {
+						return new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
+					} catch( Exception exn ) {}
+				} else if ( filename.startsWith( "./" ) ) {
+					String tmpPath = path;
+					String tmpFilename = filename;
+					if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) {
+						tmpPath = tmpPath.replace( "\\", "/" );
+					}
+					tmpFilename = tmpFilename.substring( 1 );
+					if ( tmpPath.endsWith( "/" ) ) {
+						tmpPath = tmpPath.substring( 0, tmpPath.length() - 1 );
+					}
+					String tmpUrl = build( tmpPath, tmpFilename );
+					return new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
+				} else {
+					/*
+					 * We need the embedded URL path, otherwise URI.normalize
+					 * is going to do nothing.
+					 */
+					return new URL(
+						urlStr.substring( 0, 4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString() );
+				}
+			} else {
+				return new URL( new URI( urlStr ).normalize().toString() );
+			}
+		} catch( MalformedURLException | URISyntaxException e ) {}
+		return null;
+	}
+	
+	private IncludeFile retrieveIncludeFile( final String path, final String filename )
+	{
+		IncludeFile ret;
+		
+		String urlStr = build( path, Constants.fileSeparator, filename );
 
-		private String getParentPath()
-		{
-			return parentPath;
+		ret = tryAccessIncludeFile( urlStr );
+		if ( ret == null ) {
+			final URL url = guessIncludeFilepath( urlStr, filename, path );
+			if ( url != null ) {
+				ret = tryAccessIncludeFile( url.toString() );
+			}
 		}
-
-		private URI getURI()
-		{
-			return uri;
-		}
+		return ret;
 	}
 	
 	private final Map< String, URL > resourceCache = new HashMap<>();
-
+	
 	private IncludeFile tryAccessIncludeFile( String includeStr )
 	{
-		IncludeFile ret = null;
 		if ( Helpers.getOperatingSystemType() == Helpers.OSType.Windows ) {
 			includeStr = includeStr.replace( "\\", "/" );
 			if ( includeStr.charAt( 1 ) == ':' ) {
@@ -577,111 +614,22 @@ public class OLParser extends AbstractParser
 				includeStr = includeStr.substring( 2 );
 			}
 		}
-		
-		URL includeURL = resourceCache.get( includeStr );
-		
-		if ( includeURL == null ) {
-			includeURL = classLoader.getResource( includeStr );
-			if ( includeURL != null ) {
-				resourceCache.put( includeStr, includeURL );
-			}
-		}
+
+		final URL includeURL = resourceCache.computeIfAbsent(
+			includeStr,
+			classLoader::getResource
+		);
 		
 		if ( includeURL != null ) {
 			File f = new File( includeURL.toString() );
 			try {
-				ret = new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), f.toURI() );
+				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), f.toURI() );
 			} catch( IOException e ) {
 				e.printStackTrace();
 			}
 		}
 
-		return ret;
-	}
-	
-	private IncludeFile retrieveIncludeFile( final String path, final String filename )
-	{
-		IncludeFile ret = null;
-		
-		/* File f = new File(
-				new StringBuilder()
-					.append( path )
-					.append( Constants.fileSeparator )
-					.append( filename )
-					.toString()
-				);
-		*/
-		String urlStr =
-			new StringBuilder()
-				.append( path )
-				.append( Constants.fileSeparator )
-				.append( filename )
-				.toString();
-		/* ret = new IncludeFile(
-					new BufferedInputStream( new FileInputStream( f ) ),
-					f.getParent(),
-					f.toURI()
-				); */
-		ret = tryAccessIncludeFile( urlStr );
-		if ( ret == null ) {
-			try {
-				URL url = null;
-				if ( urlStr.startsWith( "jap:" ) || urlStr.startsWith( "jar:" ) ) {
-					// Try hard to resolve names, even in Windows
-					if ( filename.startsWith( "../" ) ) {
-						String tmpPath = path;
-						String tmpFilename = filename;
-						if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) {
-							tmpPath = tmpPath.replace( "\\", "/" );
-						}
-						while( tmpFilename.startsWith( "../" ) ) {
-							tmpFilename = tmpFilename.substring( 2 );
-							if ( tmpPath.endsWith( "/" ) ) {
-								tmpPath = tmpPath.substring( 0, tmpPath.length() - 1 );
-							}
-							tmpPath = tmpPath.substring( 0, tmpPath.lastIndexOf( "/" ) );
-						}
-						String tmpUrl = new StringBuilder().append( tmpPath ).append( tmpFilename ).toString();
-						try {
-							url = new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
-						} catch( Exception exn ) {
-						}
-					} else if ( filename.startsWith( "./" ) ) {
-						String tmpPath = path;
-						String tmpFilename = filename;
-						if ( !tmpPath.contains( "/" ) && tmpPath.contains( "\\" ) ) {
-							tmpPath = tmpPath.replace( "\\", "/" );
-						}
-						tmpFilename = tmpFilename.substring( 1 );
-						if ( tmpPath.endsWith( "/" ) ) {
-							tmpPath = tmpPath.substring( 0, tmpPath.length() - 1 );
-						}
-						String tmpUrl = new StringBuilder().append( tmpPath ).append( tmpFilename ).toString();
-						url = new URL( tmpUrl.substring( 0, 4 ) + tmpUrl.substring( 4 ) );
-					} else {
-						/*
-						 * We need the embedded URL path, otherwise URI.normalize
-						 * is going to do nothing.
-						 */
-						url = new URL(
-							urlStr.substring( 0, 4 ) + new URI( urlStr.substring( 4 ) ).normalize().toString() );
-					}
-				} else {
-					url = new URL( new URI( urlStr ).normalize().toString() );
-				}
-				//File f2 = new File( url.toString() );
-				/* ret = new IncludeFile(
-					url.openStream(),
-					f2.getParent(),
-					f2.toURI() //path
-				); */
-				if ( url != null ) {
-					ret = tryAccessIncludeFile( url.toString() );
-				}
-			} catch( MalformedURLException mue ) {
-			} catch( URISyntaxException use ) {}
-		}
-		return ret;
+		return null;
 	}
 
 	private void parseInclude()
@@ -1595,12 +1543,15 @@ public class OLParser extends AbstractParser
 	{
 		OLSyntaxNode retVal = null;
 
-		if ( token.is( Scanner.TokenType.LSQUARE ) ) {
+		switch( token.type() ) {
+		case LSQUARE:
 			retVal = parseNDChoiceStatement();
-		} else if ( token.is( Scanner.TokenType.PROVIDE ) ) {
+			break;
+		case PROVIDE:
 			getToken();
 			retVal = parseProvideUntilStatement();
-		} else if ( token.is( Scanner.TokenType.ID ) ) {
+			break;
+		case ID:
 			checkConstant();
 			String id = token.content();
 			getToken();
@@ -1617,37 +1568,20 @@ public class OLParser extends AbstractParser
 			} else {
 				retVal = new DefinitionCallStatement( getContext(), id );
 			}
-		} else if ( token.is( Scanner.TokenType.WITH ) ) {
+			break;
+		case WITH:
 			getToken();
-			retVal =
-				parseInVariablePathProcess( true );
-		} else if ( token.is( Scanner.TokenType.DOT ) && inVariablePaths.size() > 0 ) {
-			retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
-		} else if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Pre increment: ++i
+			retVal = parseInVariablePathProcess( true );
+			break;
+		case INCREMENT:
 			getToken();
 			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
-		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
+			break;
+		case DECREMENT:
 			getToken();
-			retVal =
-				new PreDecrementStatement( getContext(), parseVariablePath() );
-		} else if ( token.is( Scanner.TokenType.SYNCHRONIZED ) ) {
-			getToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
-			assertToken(
-				Scanner.TokenType.ID, "expected lock id" );
-			String id = token.content();
-			getToken();
-
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
-			eat(
-				Scanner.TokenType.LCURLY, "expected {" );
-			retVal =
-				new SynchronizedStatement( getContext(), id, parseProcess() );
-			eat(
-				Scanner.TokenType.RCURLY, "expected }" );
-		} else if ( token.is( Scanner.TokenType.UNDEF ) ) {
+			retVal = new PreDecrementStatement( getContext(), parseVariablePath() );
+			break;
+		case UNDEF:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1656,7 +1590,8 @@ public class OLParser extends AbstractParser
 				new UndefStatement( getContext(), parseVariablePath() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.FOR ) ) {
+			break;
+		case FOR:
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			OLSyntaxNode init = parseProcess();
@@ -1670,7 +1605,20 @@ public class OLParser extends AbstractParser
 
 			retVal =
 				new ForStatement( getContext(), init, condition, post, body );
-		} else if ( token.is( Scanner.TokenType.SPAWN ) ) {
+			break;
+		case SYNCHRONIZED:
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			assertToken( Scanner.TokenType.ID, "expected lock id" );
+			final String sid = token.content();
+			getToken();
+
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			eat( Scanner.TokenType.LCURLY, "expected {" );
+			retVal = new SynchronizedStatement( getContext(), sid, parseProcess() );
+			eat( Scanner.TokenType.RCURLY, "expected }" );
+			break;
+		case SPAWN:
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 			VariablePathNode indexVariablePath = parseVariablePath();
@@ -1697,7 +1645,8 @@ public class OLParser extends AbstractParser
 				inVariablePath,
 				process
 			);
-		} else if ( token.is( Scanner.TokenType.FOREACH ) ) {
+			break;
+		case FOREACH:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1710,27 +1659,33 @@ public class OLParser extends AbstractParser
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 
-			OLSyntaxNode body = parseBasicStatement();
+			final OLSyntaxNode forEachBody = parseBasicStatement();
 
 			retVal =
-				new ForEachStatement( getContext(), keyPath, targetPath, body );
-		} else if ( token.is( Scanner.TokenType.LINKIN ) ) {
+				new ForEachStatement( getContext(), keyPath, targetPath, forEachBody );
+			break;
+		case LINKIN:
 			retVal = parseLinkInStatement();
-		} else if ( token.is( Scanner.TokenType.CURRENT_HANDLER ) ) {
+			break;
+		case CURRENT_HANDLER:
 			getToken();
 			retVal =
 				new CurrentHandlerStatement( getContext() );
-		} else if ( token.is( Scanner.TokenType.NULL_PROCESS ) ) {
+			break;
+		case NULL_PROCESS:
 			getToken();
 			retVal =
 				new NullProcessStatement( getContext() );
-		} else if ( token.is( Scanner.TokenType.EXIT ) ) {
+			break;
+		case EXIT:
 			getToken();
 			retVal =
 				new ExitStatement( getContext() );
-		} else if ( token.is( Scanner.TokenType.WHILE ) ) {
+			break;
+		case WHILE:
 			retVal = parseWhileStatement();
-		} else if ( token.is( Scanner.TokenType.LINKOUT ) ) {
+			break;
+		case LINKOUT:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1742,19 +1697,22 @@ public class OLParser extends AbstractParser
 
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
+			break;
+		case LPAREN:
 			getToken();
 			retVal =
 				parseProcess();
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.LCURLY ) ) {
+			break;
+		case LCURLY:
 			getToken();
 			retVal =
 				parseProcess();
 			eat(
 				Scanner.TokenType.RCURLY, "expected }" );
-		} else if ( token.is( Scanner.TokenType.SCOPE ) ) {
+			break;
+		case SCOPE:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1762,7 +1720,7 @@ public class OLParser extends AbstractParser
 
 			assertToken(
 				Scanner.TokenType.ID, "expected scope identifier" );
-			String id = token.content();
+			final String scopeId = token.content();
 			getToken();
 
 			eat(
@@ -1770,10 +1728,11 @@ public class OLParser extends AbstractParser
 			eat(
 				Scanner.TokenType.LCURLY, "expected {" );
 			retVal =
-				new Scope( getContext(), id, parseProcess() );
+				new Scope( getContext(), scopeId, parseProcess() );
 			eat(
 				Scanner.TokenType.RCURLY, "expected }" );
-		} else if ( token.is( Scanner.TokenType.COMPENSATE ) ) {
+			break;
+		case COMPENSATE:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1787,7 +1746,8 @@ public class OLParser extends AbstractParser
 
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.THROW ) ) {
+			break;
+		case THROW:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1812,7 +1772,8 @@ public class OLParser extends AbstractParser
 			}
 
 			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.INSTALL ) ) {
+			break;
+		case INSTALL:
 			getToken();
 			eat(
 				Scanner.TokenType.LPAREN, "expected (" );
@@ -1820,7 +1781,8 @@ public class OLParser extends AbstractParser
 				new InstallStatement( getContext(), parseInstallFunction() );
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IF ) ) {
+			break;
+		case IF:
 			IfStatement stm = new IfStatement( getContext() );
 			OLSyntaxNode cond;
 
@@ -1857,6 +1819,12 @@ public class OLParser extends AbstractParser
 			}
 
 			retVal = stm;
+			break;
+		case DOT:
+			if ( inVariablePaths.size() > 0 ) {
+				retVal = parseAssignOrDeepCopyOrPointerStatement( parsePrefixedVariablePath() );
+			}
+			break;
 		}
 
 		if ( retVal == null ) {
@@ -2436,7 +2404,8 @@ public class OLParser extends AbstractParser
 
 		checkConstant();
 
-		if ( token.is( Scanner.TokenType.ID ) ) {
+		switch( token.type() ) {
+		case ID:
 			path = parseVariablePath();
 			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
 			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ), new ConstantIntegerExpression( getContext(), 0 ) ) );
@@ -2444,156 +2413,191 @@ public class OLParser extends AbstractParser
 				retVal = new FreshValueExpressionNode( path.context() );
 				return retVal;
 			}
-		} else if ( token.is( Scanner.TokenType.DOT ) ) {
+			break;
+		case DOT:
 			path = parseVariablePath();
-		} else if ( insideInstallFunction && token.is( Scanner.TokenType.CARET ) ) {
-			getToken();
-			path = parseVariablePath();
-			retVal = new InstallFixedVariableExpressionNode( getContext(), path );
-			return retVal;
+			break;
+		case CARET:
+			if ( insideInstallFunction ) {
+				getToken();
+				path = parseVariablePath();
+				retVal = new InstallFixedVariableExpressionNode( getContext(), path );
+				return retVal;
+			}
+			break;
 		}
 
 		if ( path != null ) {
-			if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Post increment
+			switch( token.type() ) {
+			case INCREMENT:
 				getToken();
 				retVal =
 					new PostIncrementStatement( getContext(), path );
-			} else if ( token.is( Scanner.TokenType.DECREMENT ) ) {
+				break;
+			case DECREMENT:
 				getToken();
 				retVal =
 					new PostDecrementStatement( getContext(), path );
-			} else if ( token.is( Scanner.TokenType.ASSIGN ) ) {
+				break;
+			case ASSIGN:
 				getToken();
 				retVal = new AssignStatement( getContext(), path, parseExpression() );
-			} else {
+				break;
+			default:
 				retVal = new VariableExpressionNode( getContext(), path );
+				break;
 			}
-		} else if ( token.is( Scanner.TokenType.NOT ) ) {
-			getToken();
-			retVal = new NotExpressionNode( getContext(), parseFactor() );
-		} else if ( token.is( Scanner.TokenType.STRING ) ) {
-			retVal = new ConstantStringExpression( getContext(), token.content() );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.INT ) ) {
-			retVal = new ConstantIntegerExpression( getContext(), Integer.parseInt( token.content() ) );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.LONG ) ) {
-			retVal = new ConstantLongExpression( getContext(), Long.parseLong( token.content() ) );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.TRUE ) ) {
-			retVal = new ConstantBoolExpression( getContext(), true );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.FALSE ) ) {
-			retVal = new ConstantBoolExpression( getContext(), false );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.DOUBLE ) ) {
-			retVal = new ConstantDoubleExpression( getContext(), Double.parseDouble( token.content() ) );
-			getToken();
-		} else if ( token.is( Scanner.TokenType.LPAREN ) ) {
-			getToken();
-			retVal = parseExpression();
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.HASH ) ) {
-			getToken();
-			retVal = new ValueVectorSizeExpressionNode(
-				getContext(),
-				parseVariablePath()
-			);
-		} else if ( token.is( Scanner.TokenType.INCREMENT ) ) { // Pre increment: ++i
-			getToken();
-			retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
-		} else if ( token.is( Scanner.TokenType.DECREMENT ) ) { // Pre decrement
-			getToken();
-			retVal = new PreDecrementStatement( getContext(), parseVariablePath() );
-		} else if ( token.is( Scanner.TokenType.IS_DEFINED ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.DEFINED,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_INT ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.INT,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_DOUBLE ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.DOUBLE,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_BOOL ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.BOOL,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_LONG ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.LONG,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.IS_STRING ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new IsTypeExpressionNode(
-				getContext(),
-				IsTypeExpressionNode.CheckType.STRING,
-				parseVariablePath()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_INT ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new TypeCastExpressionNode( getContext(), NativeType.INT, parseExpression() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_LONG ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new TypeCastExpressionNode( getContext(), NativeType.LONG, parseExpression() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_BOOL ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new TypeCastExpressionNode( getContext(), NativeType.BOOL, parseExpression() );
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_DOUBLE ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new TypeCastExpressionNode(
-				getContext(),
-				NativeType.DOUBLE,
-				parseExpression()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		} else if ( token.is( Scanner.TokenType.CAST_STRING ) ) {
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			retVal = new TypeCastExpressionNode(
-				getContext(),
-				NativeType.STRING,
-				parseExpression()
-			);
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-		}
-		
+		} else {
+			switch( token.type() ) {
+			case NOT:
+				getToken();
+				retVal = new NotExpressionNode( getContext(), parseFactor() );
+				break;
+			case STRING:
+				retVal = new ConstantStringExpression( getContext(), token.content() );
+				getToken();
+				break;
+			case INT:
+				retVal = new ConstantIntegerExpression( getContext(), Integer.parseInt( token.content() ) );
+				getToken();
+				break;
+			case LONG:
+				retVal = new ConstantLongExpression( getContext(), Long.parseLong( token.content() ) );
+				getToken();
+				break;
+			case TRUE:
+				retVal = new ConstantBoolExpression( getContext(), true );
+				getToken();
+				break;
+			case FALSE:
+				retVal = new ConstantBoolExpression( getContext(), false );
+				getToken();
+				break;
+			case DOUBLE:
+				retVal = new ConstantDoubleExpression( getContext(), Double.parseDouble( token.content() ) );
+				getToken();
+				break;
+			case LPAREN:
+				getToken();
+				retVal = parseExpression();
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case HASH:
+				getToken();
+				retVal = new ValueVectorSizeExpressionNode(
+					getContext(),
+					parseVariablePath()
+				);
+				break;
+			case INCREMENT:
+				getToken();
+				retVal = new PreIncrementStatement( getContext(), parseVariablePath() );
+				break;
+			case DECREMENT:
+				getToken();
+				retVal = new PreDecrementStatement( getContext(), parseVariablePath() );
+				break;
+			case IS_DEFINED:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.DEFINED,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IS_INT:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.INT,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IS_DOUBLE:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.DOUBLE,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IS_BOOL:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.BOOL,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IS_LONG:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.LONG,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IS_STRING:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new IsTypeExpressionNode(
+					getContext(),
+					IsTypeExpressionNode.CheckType.STRING,
+					parseVariablePath()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case CAST_INT:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new TypeCastExpressionNode( getContext(), NativeType.INT, parseExpression() );
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case CAST_LONG:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new TypeCastExpressionNode( getContext(), NativeType.LONG, parseExpression() );
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case CAST_BOOL:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new TypeCastExpressionNode( getContext(), NativeType.BOOL, parseExpression() );
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case CAST_DOUBLE:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new TypeCastExpressionNode(
+					getContext(),
+					NativeType.DOUBLE,
+					parseExpression()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case CAST_STRING:
+				getToken();
+				eat( Scanner.TokenType.LPAREN, "expected (" );
+				retVal = new TypeCastExpressionNode(
+					getContext(),
+					NativeType.STRING,
+					parseExpression()
+				);
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			}
+		}	
+				
 		if ( retVal == null ) {
 			if ( token.is( Scanner.TokenType.LCURLY ) ) {
 				retVal = new VoidExpressionNode( getContext() );
@@ -2648,21 +2652,52 @@ public class OLParser extends AbstractParser
 		product.multiply( parseFactor() );
 		boolean keepRun = true;
 		while ( keepRun ) {
-			if ( token.is( Scanner.TokenType.ASTERISK ) ) {
+			switch( token.type() ) {
+			case ASTERISK:
 				getToken();
 				product.multiply( parseFactor() );
-			} else if ( token.is( Scanner.TokenType.DIVIDE ) ) {
+				break;
+			case DIVIDE:
 				getToken();
 				product.divide( parseFactor() );
-			} else if ( token.is( Scanner.TokenType.PERCENT_SIGN ) ) {
+				break;
+			case PERCENT_SIGN:
 				getToken();
 				product.modulo( parseFactor() );
-			} else {
+				break;
+			default:
 				keepRun = false;
+				break;
 			}
-
 		}
 
 		return product;
+	}
+	
+	private static class IncludeFile {
+		private final InputStream inputStream;
+		private final String parentPath;
+		private final URI uri;
+		private IncludeFile( InputStream inputStream, String parentPath, URI uri )
+		{
+			this.inputStream = inputStream;
+			this.parentPath = parentPath;
+			this.uri = uri;
+		}
+
+		private InputStream getInputStream()
+		{
+			return inputStream;
+		}
+
+		private String getParentPath()
+		{
+			return parentPath;
+		}
+
+		private URI getURI()
+		{
+			return uri;
+		}
 	}
 }
