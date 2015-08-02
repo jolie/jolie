@@ -23,7 +23,9 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import jolie.Interpreter;
 
 /**
@@ -60,12 +62,13 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		}
 
 		protected void sendImpl( CommMessage message )
+			throws IOException
 		{
-			ResponseContainer c = senderChannel.responseWaiters.get( message.id() );
-			synchronized( c ) {
-				c.response = message;
-				c.notify();
+			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
+			if ( f == null ) {
+				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
 			}
+			f.complete( message );
 		}
 
 		public CommMessage recvResponseFor( CommMessage request )
@@ -85,7 +88,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	private final Interpreter interpreter;
 	private final CommListener listener;
-	private final Map< Long, ResponseContainer > responseWaiters = new ConcurrentHashMap< Long, ResponseContainer >();
+	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
 	
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
@@ -112,31 +115,30 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 
 	protected void sendImpl( CommMessage message )
 	{
-		responseWaiters.put( message.id(), new ResponseContainer() );
+		responseWaiters.put( message.id(), new CompletableFuture<>() );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
 	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException
 	{
-		ResponseContainer c = responseWaiters.get( request.id() );
-		synchronized( c ) {
-			while( c.response == null ) {
-				try {
-					c.wait();
-				} catch( InterruptedException e ) {}
-			}
+		final CompletableFuture< CommMessage > f = responseWaiters.get( request.id() );
+		final CommMessage m;
+		
+		try { 
+			m = f.get();
+		} catch( ExecutionException | InterruptedException e ) {
+			throw new IOException( e );
+		} finally {
+			responseWaiters.remove( request.id() );
 		}
-		responseWaiters.remove( request.id() );
-		return c.response;
+			
+		return m;
 	}
 	
 	public boolean isReady()
 	{
-		boolean isReady;
-		synchronized( responseWaiters ) {
-			isReady = responseWaiters.isEmpty() == false;
-		}
-		return isReady;
+		return responseWaiters.isEmpty() == false;
 	}
 	
 	@Override
