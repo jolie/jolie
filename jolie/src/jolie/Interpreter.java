@@ -1168,14 +1168,14 @@ public class Interpreter
 		inputOperations.clear();
 		locksMap.clear();
 		initExecutionThread = null;
-		sessionStarters = new HashMap< String, SessionStarter>();
+		sessionStarters = new HashMap<>();
 		outputPorts.clear();
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		classLoader = null;
 		commCore = null;
-		System.gc();
+		// System.gc();
 	}
 	
 	/**
@@ -1191,34 +1191,32 @@ public class Interpreter
 		throws InterpreterException
 	{        
 		try {
-			Program program = null;
+			Program program;
 			if ( cmdParser.isProgramCompiled() ) {
-				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
-				Object o = istream.readObject();
+				final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
+				final Object o = istream.readObject();
 				if ( o instanceof Program ) {
 					program = (Program)o;
 				} else {
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
-			}
-			else {
+			} else {
 				if ( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 				} else {
-					OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
 
 					olParser.putConstants( cmdParser.definedConstants() );
 					program = olParser.parse();
 				}
-				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
-				program = optimizer.optimize();
+				program = new OLParseTreeOptimizer( program ).optimize();
 			}
 			
 			cmdParser.close();
 
 			check = cmdParser.check();
 
-			SemanticVerifier semanticVerifier = null;
+			final SemanticVerifier semanticVerifier;
 
 			if ( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
@@ -1246,7 +1244,7 @@ public class Interpreter
 				}
 			}
 
-			if ( cmdParser.check() ) {
+			if ( check ) {
 				return false;
 			} else {
 				return (new OOITBuilder(
