@@ -55,17 +55,21 @@ public abstract class ExecutionThread extends JolieThread
 	 * containing mappings for fault handlers and termination/compensation handlers.
 	 */
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
-		final private Map< String, Process > faultMap = new HashMap< String, Process >();
-		final private Map< String, Process > compMap = new HashMap< String, Process >();
+		private final Map< String, Process > faultMap;
+		private final Map< String, Process > compMap;
 
 		
 		@Override
 		public Scope clone()
 		{
-			Scope ret = new Scope( id );
-			ret.compMap.putAll( compMap );
-			ret.faultMap.putAll( faultMap );
-			return ret;
+			return new Scope( id, new HashMap<>( faultMap ), new HashMap<>( compMap ) );
+		}
+		
+		private Scope( String id, Map< String, Process > faultMap, Map< String, Process > compMap )
+		{
+			super( id );
+			this.faultMap = faultMap;
+			this.compMap = compMap;
 		}
 
 		/**
@@ -74,7 +78,7 @@ public abstract class ExecutionThread extends JolieThread
 		 */
 		public Scope( String id )
 		{
-			super( id );
+			this( id, new HashMap<>(), new HashMap<>() );
 		}
 
 		/**
@@ -157,15 +161,14 @@ public abstract class ExecutionThread extends JolieThread
 	}
 
 	protected final Process process;
-	protected final Deque< Scope > scopeStack = new ArrayDeque< Scope >();
+	protected final Deque< Scope > scopeStack = new ArrayDeque<>();
 	protected final ExecutionThread parent;
-	private final List< WeakReference< Future< ? > > > futureToCancel =
-			new LinkedList< WeakReference< Future< ? > > >();
+	private final List< WeakReference< Future< ? > > > futureToCancel = new LinkedList<>();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
 	
-	public void setTaskFuture( Future<?> taskFuture )
+	private void setTaskFuture( Future<?> taskFuture )
 	{
 		this.taskFuture = taskFuture;
 	}
@@ -462,6 +465,7 @@ public abstract class ExecutionThread extends JolieThread
 	
 	public abstract void runProcess();
 	
+	@Override
 	public final void run()
 	{
 		JolieExecutorThread t = JolieExecutorThread.currentThread();
