@@ -261,9 +261,9 @@ public abstract class JavaService
 
 	private void checkMethod( Map< String, JavaOperation > ops, Method method, Method parameterConstructor )
 	{
-		Class<?> returnType;
-		Class<?>[] exceptions;
-		Method returnValueConstructor;
+		final Class<?> returnType;
+		final Class<?>[] exceptions;
+		final Method returnValueConstructor;
 
 		returnType = method.getReturnType();
 		if ( void.class.isAssignableFrom( returnType ) ) {
