@@ -53,6 +53,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 		return executionThread;
 	}
 	
+	@Override
 	public Interpreter interpreter()
 	{
 		return executionThread.interpreter();
