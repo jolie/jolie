@@ -27,7 +27,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -362,18 +361,18 @@ public class CommandLineParser implements Closeable
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler, boolean ignoreFile )
 		throws CommandLineException, IOException
 	{
-		List< String > argsList = new ArrayList< String >( args.length );
+		List< String > argsList = new ArrayList<>( args.length );
 		Collections.addAll( argsList, args );
 
 		String csetAlgorithmName = "simple";
-		List< String > optionsList = new ArrayList< String >();
+		List< String > optionsList = new ArrayList<>();
 		boolean bTracer = false;
-                boolean bCheck = false;
+		boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
 		Level lLogLevel = Level.INFO;
-		List< String > programArgumentsList = new ArrayList< String >();
-		LinkedList< String > includeList = new LinkedList< String >();
-		List< String > libList = new ArrayList< String >();
+		List< String > programArgumentsList = new ArrayList<>();
+		LinkedList< String > includeList = new LinkedList<>();
+		List< String > libList = new ArrayList<>();
 		int cLimit = -1;
 		int cCache = 100;
 		String pwd = new File( "" ).getCanonicalPath();
@@ -451,14 +450,19 @@ public class CommandLineParser implements Closeable
 				optionsList.add( argsList.get( i ) );
 				i++;
 				String level = argsList.get( i );
-				if ( "severe".equals( level ) ) {
+				switch( level ) {
+				case "severe":
 					lLogLevel = Level.SEVERE;
-				} else if ( "warning".equals( level ) ) {
+					break;
+				case "warning":
 					lLogLevel = Level.WARNING;
-				} else if ( "fine".equals( level ) ) {
+					break;
+				case "fine":
 					lLogLevel = Level.FINE;
-				} else if ( "info".equals( level ) ) {
+					break;
+				case "info":
 					lLogLevel = Level.INFO;
+					break;
 				}
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--charset".equals( argsList.get( i ) ) ) {
@@ -531,7 +535,7 @@ public class CommandLineParser implements Closeable
 		connectionsLimit = cLimit;
 		connectionsCache = cCache;
         
-		List< URL > urls = new ArrayList< URL >();
+		List< URL > urls = new ArrayList<>();
 		for( String path : libList ) {
 			if ( path.contains( "!/" ) && !path.startsWith( "jap:" ) && !path.startsWith( "jar:" ) ) {
 				path = "jap:file:" + path;
@@ -546,11 +550,7 @@ public class CommandLineParser implements Closeable
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if ( path.endsWith( Constants.fileSeparator + "*" ) ) {
 				File dir = new File( path.substring( 0, path.length() - 2 ) );
-				String jars[] = dir.list( new FilenameFilter() {
-					public boolean accept( File dir, String filename ) {
-						return filename.endsWith( ".jar" );
-					}
-				} );
+				String jars[] = dir.list( ( File directory, String filename ) -> filename.endsWith( ".jar" ) );
 				if ( jars != null ) {
 					for( String jarPath : jars ) {
 						urls.add( new URL( "jar:file:" + dir.getCanonicalPath() + '/' + jarPath + "!/" ) );
@@ -571,11 +571,10 @@ public class CommandLineParser implements Closeable
 		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
 
 		if ( olResult.stream == null ) {
-            if (ignoreFile) {
+            if ( ignoreFile ) {
                 olResult.source = olFilepath;
-                olResult.stream = new ByteArrayInputStream(new byte[]{});
-            }
-            else if ( olFilepath.endsWith( ".ol" ) ) {
+                olResult.stream = new ByteArrayInputStream( new byte[]{} );
+            } else if ( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
 				olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
@@ -602,7 +601,7 @@ public class CommandLineParser implements Closeable
 	 * Adds the standard include and library subdirectories of the program to
 	 * the classloader paths.
 	 */
-	private void addProgramDirectories( List< String > includeList, List< String > libList, String olFilepath )
+	/* private void addProgramDirectories( List< String > includeList, List< String > libList, String olFilepath )
 	{
 		File olFile = new File( olFilepath );
 		if ( olFile.exists() ) {
@@ -615,7 +614,7 @@ public class CommandLineParser implements Closeable
 				libList.add( parentPath + "/lib" );
 			}
 		}
-	}
+	} */
 
 	/**
 	 * Returns the directory in which the main program is located.
