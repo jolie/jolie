@@ -313,7 +313,7 @@ public class CommCore
 		return factory.createChannel( uri, port );
 	}
 	
-	private final Map< String, CommProtocolFactory > protocolFactories = new HashMap<> ();
+	private final Map< String, CommProtocolFactory > protocolFactories = new HashMap<>();
 	
 	public CommProtocolFactory getCommProtocolFactory( String name )
 		throws IOException
