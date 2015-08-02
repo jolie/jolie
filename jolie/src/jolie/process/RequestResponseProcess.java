@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2011 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -160,7 +160,6 @@ public class RequestResponseProcess implements InputOperationProcess
 	private CommMessage createFaultMessage( CommMessage request, FaultException f )
 		throws TypeCheckingException
 	{
-		
 		if ( operation.typeDescription().faults().containsKey( f.faultName() ) ) {
 			Type faultType = operation.typeDescription().faults().get( f.faultName() );
 			if ( faultType != null ) {
