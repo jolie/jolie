@@ -33,12 +33,6 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
-	private static class ResponseContainer
-	{
-		private ResponseContainer() {}
-		private CommMessage response = null;
-	}
-	
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
