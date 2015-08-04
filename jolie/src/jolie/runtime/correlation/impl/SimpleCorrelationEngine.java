@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2011 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2011-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,9 +21,10 @@
 
 package jolie.runtime.correlation.impl;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.SessionThread;
 import jolie.lang.Constants.ExecutionMode;
@@ -44,14 +45,14 @@ import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
  */
 public class SimpleCorrelationEngine extends CorrelationEngine
 {
-	private final Set< SessionThread > sessions = new HashSet< SessionThread >();
+	private final Set< SessionThread > sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
 
 	public SimpleCorrelationEngine( Interpreter interpreter )
 	{
 		super( interpreter );
 	}
 
-	public synchronized boolean routeMessage( CommMessage message, CommChannel channel )
+	public boolean routeMessage( CommMessage message, CommChannel channel )
 	{
 		for( SessionThread session : sessions ) {
 			if ( correlate( session, message ) ) {
@@ -62,23 +63,23 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		return false;
 	}
 
-	public synchronized void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
+	public void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
 	{
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
 
-	public synchronized void onSingleExecutionSessionStart( SessionThread session )
+	public void onSingleExecutionSessionStart( SessionThread session )
 	{
 		sessions.add( session );
 	}
 
-	public synchronized void onSessionExecuted( SessionThread session )
+	public void onSessionExecuted( SessionThread session )
 	{
 		sessions.remove( session );
 	}
 
-	public synchronized void onSessionError( SessionThread session, FaultException fault )
+	public void onSessionError( SessionThread session, FaultException fault )
 	{
 		onSessionExecuted( session );
 	}
@@ -93,20 +94,17 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 			return true;
 		}
 
-		Value sessionValue;
-		Value messageValue;
-		List< CorrelationPair > pairs;
-		CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
+		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
 		if ( cset == null ) {
 			return interpreter().executionMode() == ExecutionMode.SINGLE; // It must be a session starter.
 		}
-		pairs = cset.getOperationCorrelationPairs( message.operationName() );
+		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
-			sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
+			Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
 			if ( sessionValue == null ) {
 				return false;
 			} else {
-				messageValue = cpair.messagePath().getValueOrNull( message.value() );
+				Value messageValue = cpair.messagePath().getValueOrNull( message.value() );
 				if ( messageValue == null ) {
 					return false;
 				} else {

@@ -30,7 +30,7 @@ import jolie.process.Process;
 
 public class ParallelExecution
 {
-	class ParallelThread extends TransparentExecutionThread
+	private class ParallelThread extends TransparentExecutionThread
 	{
 		public ParallelThread( Process process )
 		{

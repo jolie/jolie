@@ -29,18 +29,18 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -49,6 +49,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
+import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
 import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
@@ -233,11 +234,13 @@ public class CommCore
 		this.connectionsLimit = connectionsLimit;
 		// this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
-		if ( connectionsLimit > 0 ) {
+		/* if ( connectionsLimit > 0 ) {
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
+		*/
+		executorService = new JolieThreadPoolExecutor( new CommThreadFactory() );
 		
 		selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
 		for( int i = 0; i < selectorThreads.length; i++ ) {
@@ -590,14 +593,14 @@ public class CommCore
 		@Override
 		public void run()
 		{
-			CommChannelHandler thread = CommChannelHandler.currentThread();
+			final CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().initThread() );
 			channel.lock.lock();
 			channelHandlersLock.readLock().lock();
 			try {
 				if ( channel.redirectionChannel() == null ) {
 					assert( port != null );
-					CommMessage message = channel.recv();
+					final CommMessage message = channel.recv();
 					if ( message != null ) {
 						handleMessage( message );
 					} else {
@@ -605,7 +608,7 @@ public class CommCore
 					}
 				} else {
 					channel.lock.unlock();
-					CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+					final CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
 					if ( response != null ) {
 						forwardResponse( response );
 					}
@@ -771,6 +774,7 @@ public class CommCore
 	private class SelectorThread extends NativeJolieThread {
 		private final Selector selector;
 		private final Object selectingMutex = new Object();
+		private final Deque< Runnable > selectorTasks = new ArrayDeque<>();
 		// private final Queue< Runnable > actionQueue = new ConcurrentLinkedQueue< Runnable >();
 		
 		public SelectorThread( Interpreter interpreter )
@@ -780,17 +784,17 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
-		private Collection< Runnable > runKeys( Collection< SelectionKey > selectedKeys )
+		private Deque< Runnable > runKeys( Collection< SelectionKey > selectedKeys )
 			throws IOException
 		{
-			final List< Runnable > tasks = new ArrayList<>();
+			selectorTasks.clear();
 			synchronized( this ) {
 				for( final SelectionKey key : selectedKeys ) {
 					if ( key.isValid() ) {
 						final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
 						if ( channel.lock.tryLock() ) {
 							key.cancel();
-							tasks.add( () -> {
+							selectorTasks.add( () -> {
 								try {
 									try {
 										try {
@@ -825,12 +829,15 @@ public class CommCore
 					selector.selectNow(); // Clean up the cancelled keys
 				}
 			}
-			return tasks;
+			return selectorTasks;
 		}
 		
-		private void runTasks( Collection< Runnable > tasks )
+		private void runTasks( Deque< Runnable > tasks )
 		{
-			tasks.iterator().forEachRemaining( t -> t.run() );
+			Runnable r;
+			while( (r = tasks.poll()) != null ) {
+				r.run();
+			}
 		}
 		
 		@Override
@@ -843,7 +850,7 @@ public class CommCore
 						selector.select();
 						selectedKeys = new ArrayList<>( selector.selectedKeys() );
 					}
-					final Collection< Runnable > tasks = runKeys( selectedKeys );
+					final Deque< Runnable > tasks = runKeys( selectedKeys );
 					runTasks( tasks );
 				} catch( IOException e ) {
 					interpreter.logSevere( e );

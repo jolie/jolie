@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -38,7 +38,7 @@ import jolie.net.ports.InputPort;
  */
 public class SocketListener extends CommListener
 {
-	final private ServerSocketChannel serverChannel;
+	private final ServerSocketChannel serverChannel;
 
 	public SocketListener(
 				Interpreter interpreter,
@@ -54,16 +54,17 @@ public class SocketListener extends CommListener
 		);
 		
 		serverChannel = ServerSocketChannel.open();
-		ServerSocket socket = serverChannel.socket();
+		final ServerSocket socket = serverChannel.socket();
 		try {
 			socket.bind( new InetSocketAddress( inputPort.location().getPort() ) );
 		} catch( IOException e ) {
-			IOException exception = new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
+			final IOException exception = new IOException( e.getMessage() + " [with location: " + inputPort.location().toString() + "]" );
 			exception.setStackTrace( e.getStackTrace() );
 			throw exception;
 		}
 	}
 
+	@Override
 	public void shutdown()
 	{
 		if ( serverChannel.isOpen() ) {
@@ -78,15 +79,13 @@ public class SocketListener extends CommListener
 	{
 		try {
 			SocketChannel socketChannel;
-			CommChannel channel;
 			while ( (socketChannel = serverChannel.accept()) != null ) {
-				channel = new SocketCommChannel(
+				CommChannel channel = new SocketCommChannel(
 							socketChannel,
 							inputPort().location(),
 							createProtocol() );
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
-				channel = null; // Dispose for garbage collection
 			}
 		} catch( ClosedByInterruptException e ) {
 			try {

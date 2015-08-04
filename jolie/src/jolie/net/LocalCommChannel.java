@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -44,6 +44,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			this.request = request;
 		}
 
+		@Override
 		protected CommMessage recvImpl()
 			throws IOException
 		{
@@ -55,6 +56,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			return r;
 		}
 
+		@Override
 		protected void sendImpl( CommMessage message )
 			throws IOException
 		{
@@ -65,6 +67,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			f.complete( message );
 		}
 
+		@Override
 		public CommMessage recvResponseFor( CommMessage request )
 			throws IOException
 		{
@@ -76,6 +79,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			throws IOException
 		{}
 
+		@Override
 		protected void closeImpl()
 		{}
 	}
@@ -101,18 +105,21 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		return interpreter;
 	}
 
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
 		throw new IOException( "Unsupported operation" );
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 	{
 		responseWaiters.put( message.id(), new CompletableFuture<>() );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
+	@Override
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
@@ -130,6 +137,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		return m;
 	}
 	
+	@Override
 	public boolean isReady()
 	{
 		return responseWaiters.isEmpty() == false;
@@ -142,6 +150,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
+	@Override
 	protected void closeImpl()
 	{}
 }
