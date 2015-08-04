@@ -1108,8 +1108,12 @@ public class Interpreter
 		runCode();
 	}
 
-	private final ExecutorService nativeExecutorService = Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
-	private final ExecutorService processExecutorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
+	private final ExecutorService nativeExecutorService =
+		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService processExecutorService =
+		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
