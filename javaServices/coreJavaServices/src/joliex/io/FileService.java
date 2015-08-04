@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -78,7 +78,6 @@ import org.xml.sax.SAXException;
 @AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
 public class FileService extends JavaService
 {
-
 	private final static Pattern fileKeywordPattern = Pattern.compile( "(#+)file\\s+(.*)" );
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -253,16 +252,16 @@ public class FileService extends JavaService
 				__copyDir( fileSrc, fileDest );
 			}
 		} else {
-			// copy files
-			FileInputStream inStream = new FileInputStream( src );
-			FileOutputStream outStream = new FileOutputStream( dest );
-			byte[] buffer = new byte[ 4096 ];
-			int length;
-			while( (length = inStream.read( buffer )) > 0 ) {
-				outStream.write( buffer, 0, length );
+			try ( // copy files
+				FileInputStream inStream = new FileInputStream( src );
+				FileOutputStream outStream = new FileOutputStream( dest );
+			) {
+				byte[] buffer = new byte[ 4096 ];
+				int length;
+				while( (length = inStream.read( buffer )) > 0 ) {
+					outStream.write( buffer, 0, length );
+				}
 			}
-			inStream.close();
-			outStream.close();
 		}
 	}
 
@@ -325,10 +324,10 @@ public class FileService extends JavaService
 				}
 			}
 
-			istream = new BufferedInputStream( istream );
+			// istream = new BufferedInputStream( istream );
 
 			try {
-				if ( null != format ) switch( format ) {
+				switch( format ) {
 					case "base64":
 						readBase64IntoValue( istream, size, retValue );
 						break;
@@ -336,15 +335,19 @@ public class FileService extends JavaService
 						readBinaryIntoValue( istream, size, retValue );
 						break;
 					case "xml":
+						istream = new BufferedInputStream( istream );
 						readXMLIntoValue( istream, retValue, charset );
 						break;
 					case "xml_store":
+						istream = new BufferedInputStream( istream );
 						readXMLIntoValueForStoring( istream, retValue, charset );
 						break;
 					case "properties":
+						istream = new BufferedInputStream( istream );
 						readPropertiesFile( istream, retValue, charset );
 						break;
 					case "json":
+						istream = new BufferedInputStream( istream );
 						boolean strictEncoding = false;
 						if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
 							if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
@@ -470,10 +473,10 @@ public class FileService extends JavaService
 				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
 			}
 
-			Writer writer = new FileWriter( file, append );
-			StreamResult result = new StreamResult( writer );
-			transformer.transform( new DOMSource( doc ), result );
-			writer.close();
+			try( Writer writer = new FileWriter( file, append ) ) {
+				StreamResult result = new StreamResult( writer );
+				transformer.transform( new DOMSource( doc ), result );
+			}
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
@@ -505,10 +508,10 @@ public class FileService extends JavaService
 			if ( encoding != null ) {
 				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
 			}
-			Writer writer = new FileWriter( file, false );
-			StreamResult result = new StreamResult( writer );
-			transformer.transform( new DOMSource( doc ), result );
-			writer.close();
+			try( Writer writer = new FileWriter( file, false ) ) {
+				StreamResult result = new StreamResult( writer );
+				transformer.transform( new DOMSource( doc ), result );
+			}
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
@@ -521,10 +524,10 @@ public class FileService extends JavaService
 	private static void writeBinary( File file, Value value, boolean append )
 		throws IOException
 	{
-		FileOutputStream os = new FileOutputStream( file, append );
-		os.write( value.byteArrayValue().getBytes() );
-		os.flush();
-		os.close();
+		try( FileOutputStream os = new FileOutputStream( file, append ) ) {
+			os.write( value.byteArrayValue().getBytes() );
+			os.flush();
+		}
 	}
 
 	private static void writeText( File file, Value value, boolean append, String encoding )
@@ -667,9 +670,8 @@ public class FileService extends JavaService
 	@RequestResponse
 	public Value list( Value request )
 	{
-		String [] files = new String[]{};
-		File dir = new File( request.getFirstChild( "directory" ).strValue() );
-		String regex;
+		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
+		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
 			regex = request.getFirstChild( "regex" ).strValue();
 		} else {
@@ -683,7 +685,7 @@ public class FileService extends JavaService
 			dirsOnly = false;
 		}
 
-		files = dir.list( new ListFilter( regex, dirsOnly ) );
+		final String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
 		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
@@ -720,13 +722,12 @@ public class FileService extends JavaService
 			for( String children1 : children ) {
 				__deleteDir( new File( file, children1 ) );
 			}
-		};
+		}
 		return file.delete();
 	}
 
 	private static class ListFilter implements FilenameFilter
 	{
-
 		private final Pattern pattern;
 		private final boolean dirsOnly;
 
