@@ -21,7 +21,6 @@
 
 package jolie.runtime.expression;
 
-import jolie.lang.Constants;
 import jolie.process.TransformationReason;
 import jolie.runtime.Value;
 
@@ -45,16 +44,21 @@ public class ProductExpression implements Expression
 		return new ProductExpression( cc );
 	}
 	
+	@Override
 	public Value evaluate()
 	{
 		Value val = Value.create( children[0].expression().evaluate() );
 		for( int i = 1; i < children.length; i++ ) {
-			if ( children[i].type() == Constants.OperandType.MULTIPLY ) {
+			switch( children[i].type() ) {
+			case MULTIPLY:
 				val.multiply( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.DIVIDE ) {
+				break;
+			case DIVIDE:
 				val.divide( children[i].expression().evaluate() );
-			} else if ( children[i].type() == Constants.OperandType.MODULUS ) {
+				break;
+			case MODULUS:
 				val.modulo( children[i].expression().evaluate() );
+				break;
 			}
 		}
 		

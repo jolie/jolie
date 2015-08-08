@@ -52,14 +52,15 @@ public final class ForProcess implements Process
 	public void run()
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		final ExecutionThread ethread = ExecutionThread.currentThread();
+		if ( ethread.isKilled() ) {
 			return;
 		}
 		
 		init.run();
 		while ( condition.evaluate().boolValue() ) {
 			process.run();
-			if ( ExecutionThread.currentThread().isKilled() )
+			if ( ethread.isKilled() )
 				return;
 			post.run();
 		}

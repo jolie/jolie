@@ -46,7 +46,7 @@ import jolie.runtime.TimeoutHandler;
  */
 public abstract class CommChannel
 {
-	protected final ReentrantLock lock = new ReentrantLock( true );
+	protected final ReentrantLock lock = new ReentrantLock( false );
 	
 	private boolean toBeClosed = true;
 	private InputPort inputPort = null;

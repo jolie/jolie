@@ -100,7 +100,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 		}
 		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
-			Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
+			final Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
 			if ( sessionValue == null ) {
 				return false;
 			} else {

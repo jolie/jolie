@@ -80,7 +80,7 @@ public class SocketListener extends CommListener
 		try {
 			SocketChannel socketChannel;
 			while ( (socketChannel = serverChannel.accept()) != null ) {
-				CommChannel channel = new SocketCommChannel(
+				final CommChannel channel = new SocketCommChannel(
 							socketChannel,
 							inputPort().location(),
 							createProtocol() );
