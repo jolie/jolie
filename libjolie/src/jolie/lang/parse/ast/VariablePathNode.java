@@ -21,14 +21,13 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
 import java.io.Serializable;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import jolie.lang.Constants;
-
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 
@@ -47,7 +46,7 @@ public class VariablePathNode extends OLSyntaxNode implements Serializable
 	public VariablePathNode( ParsingContext context, Type type )
 	{
 		super( context );
-		path = new LinkedList<>();
+		path = new ArrayList<>();
 		this.type = type;
 	}
 

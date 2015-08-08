@@ -359,7 +359,7 @@ public class Scanner
 		readChar();
 	}
 
-	public String readWord()
+	/* public String readWord()
 		throws IOException
 	{
 		return readWord( true );
@@ -378,7 +378,7 @@ public class Scanner
 			readChar();
 		} while( !isSeparator( ch ) );
 		return buffer.toString();
-	}
+	} */
 	
 	private final StringBuilder tokenBuilder = new StringBuilder( 64 );
 

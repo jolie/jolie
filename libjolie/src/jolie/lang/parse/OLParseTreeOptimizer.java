@@ -913,15 +913,8 @@ public class OLParseTreeOptimizer
 		@Override
 		public void visit( DocumentationComment n ) {}
 	}
-	
-	private final Program originalProgram;
-	
-	public OLParseTreeOptimizer( Program originalProgram )
-	{
-		this.originalProgram = originalProgram;
-	}
 
-	public Program optimize()
+	public static Program optimize( Program originalProgram )
 	{
 		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
 	}

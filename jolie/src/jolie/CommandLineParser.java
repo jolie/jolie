@@ -346,7 +346,7 @@ public class CommandLineParser implements Closeable
     public CommandLineParser( String[] args, ClassLoader parentClassLoader, boolean ignoreFile )
         throws CommandLineException, IOException
     {
-        this(args, parentClassLoader,  ArgumentHandler.DEFAULT_ARGUMENT_HANDLER, ignoreFile);
+        this( args, parentClassLoader, ArgumentHandler.DEFAULT_ARGUMENT_HANDLER, ignoreFile );
     }
 	
     /**

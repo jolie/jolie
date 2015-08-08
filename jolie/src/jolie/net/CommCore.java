@@ -30,7 +30,6 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -38,7 +37,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -673,9 +671,9 @@ public class CommCore
 		for( SelectorThread t : selectorThreads ) {
 			t.start();
 		}
-		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+		listenersMap.entrySet().forEach( ( entry ) -> {
 			entry.getValue().start();
-		}
+		} );
 	}
 	
 	private PollingThread pollingThread = null;
@@ -730,13 +728,13 @@ public class CommCore
 				} catch( InterruptedException e ) {}
 			}
 
-			for( CommChannel c : channels ) {
+			channels.forEach( ( c ) -> {
 				try {
 					c.closeImpl();
 				} catch( IOException e ) {
 					interpreter.logWarning( e );
 				}
-			}
+			} );
 		}
 		
 		public void register( CommChannel channel )
@@ -772,10 +770,12 @@ public class CommCore
 	private final SelectorThread[] selectorThreads;
 
 	private class SelectorThread extends NativeJolieThread {
+		// We use a custom class for debugging purposes (the profiler gives us the class name)
+		private class SelectorMutex extends Object {}
+		
 		private final Selector selector;
-		private final Object selectingMutex = new Object();
+		private final SelectorMutex selectingMutex = new SelectorMutex();
 		private final Deque< Runnable > selectorTasks = new ArrayDeque<>();
-		// private final Queue< Runnable > actionQueue = new ConcurrentLinkedQueue< Runnable >();
 		
 		public SelectorThread( Interpreter interpreter )
 			throws IOException
@@ -784,55 +784,64 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
-		private Deque< Runnable > runKeys( Collection< SelectionKey > selectedKeys )
+		private Deque< Runnable > runKeys( SelectionKey[] selectedKeys )
 			throws IOException
 		{
-			selectorTasks.clear();
+			boolean keepRun;
 			synchronized( this ) {
-				for( final SelectionKey key : selectedKeys ) {
-					if ( key.isValid() ) {
-						final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
-						if ( channel.lock.tryLock() ) {
-							key.cancel();
-							selectorTasks.add( () -> {
-								try {
+				do {
+					for( final SelectionKey key : selectedKeys ) {
+						if ( key.isValid() ) {
+							final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
+							if ( channel.lock.tryLock() ) {
+								key.cancel();
+								selectorTasks.add( () -> {
 									try {
 										try {
-											key.channel().configureBlocking( true );
-											if ( channel.isOpen() ) {
-												/*if ( channel.selectionTimeoutHandler() != null ) {
-													interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
-												}*/
-												scheduleReceive( channel, channel.parentInputPort() );
-											} else {
+											try {
+												key.channel().configureBlocking( true );
+												if ( channel.isOpen() ) {
+													/*if ( channel.selectionTimeoutHandler() != null ) {
+														interpreter.removeTimeoutHandler( channel.selectionTimeoutHandler() );
+													}*/
+													scheduleReceive( channel, channel.parentInputPort() );
+												} else {
+													channel.closeImpl();
+												}
+											} catch( ClosedChannelException e ) {
 												channel.closeImpl();
 											}
-										} catch( ClosedChannelException e ) {
-											channel.closeImpl();
+										} catch( IOException e ) {
+											throw e;
+										} finally {
+											channel.lock.unlock();
 										}
 									} catch( IOException e ) {
-										throw e;
-									} finally {
-										channel.lock.unlock();
+										if ( channel.lock.isHeldByCurrentThread() ) {
+											channel.lock.unlock();
+										}
+										interpreter.logWarning( e );
 									}
-								} catch( IOException e ) {
-									if ( channel.lock.isHeldByCurrentThread() ) {
-										channel.lock.unlock();
-									}
-									interpreter.logWarning( e );
-								}
-							} );
+								} );
+							}
 						}
 					}
-				}
-				synchronized( selectingMutex ) {
-					selector.selectNow(); // Clean up the cancelled keys
-				}
+					synchronized( selectingMutex ) {
+						if ( selector.selectNow() > 0 ) { // Clean up the cancelled keys
+							// If some new channels are selected, run again
+							selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
+							keepRun = true;
+						} else {
+							keepRun = false;
+						}
+					}
+				} while( keepRun );
 			}
 			return selectorTasks;
 		}
 		
 		private void runTasks( Deque< Runnable > tasks )
+			throws IOException
 		{
 			Runnable r;
 			while( (r = tasks.poll()) != null ) {
@@ -845,10 +854,10 @@ public class CommCore
 		{
 			while( active ) {
 				try {
-					Collection< SelectionKey > selectedKeys;
+					SelectionKey[] selectedKeys;
 					synchronized( selectingMutex ) {
 						selector.select();
-						selectedKeys = new ArrayList<>( selector.selectedKeys() );
+						selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
 					}
 					final Deque< Runnable > tasks = runKeys( selectedKeys );
 					runTasks( tasks );
@@ -929,7 +938,7 @@ public class CommCore
 	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		int i = nextSelector.getAndIncrement() % selectorThreads.length;
+		final int i = nextSelector.getAndIncrement() % selectorThreads.length;
 		selectorThreads[ i ].register( channel, i );
 		/*final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
@@ -959,9 +968,9 @@ public class CommCore
 	{
 		if ( active ) {
 			active = false;
-			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+			listenersMap.entrySet().forEach( ( entry ) -> {
 				entry.getValue().shutdown();
-			}
+			} );
 			
 			for( SelectorThread t : selectorThreads ) {
 				t.selector.wakeup();

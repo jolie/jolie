@@ -51,16 +51,19 @@ class TypeImpl extends Type
 		}
 	}
 	
+	@Override
 	public Map< String, Type > subTypes()
 	{
 		return subTypes;
 	}
 
+	@Override
 	public Range cardinality()
 	{
 		return cardinality;
 	}
 	
+	@Override
 	public void cutChildrenFromValue( Value value )
 	{
 		if ( subTypes != null ) {
@@ -70,6 +73,7 @@ class TypeImpl extends Type
 		}
 	}
 
+	@Override
 	protected Value cast( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
 	{
@@ -89,12 +93,12 @@ class TypeImpl extends Type
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
-		boolean hasChildren = value.hasChildren( typeName );
+		final boolean hasChildren = value.hasChildren( typeName );
 		if ( hasChildren == false && type.cardinality().min() > 0 ) {
 			throw new TypeCastingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if ( hasChildren ) {
-			ValueVector vector = value.getChildren( typeName );
-			int size = vector.size();
+			final ValueVector vector = value.getChildren( typeName );
+			final int size = vector.size();
 			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
 				throw new TypeCastingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
@@ -224,7 +228,7 @@ class TypeImpl extends Type
 		case DOUBLE:
 			return value.isDouble() || value.isInt();
 		case LONG:
-			return value.isInt() || value.isLong();
+			return value.isLong() || value.isInt();
 		case BOOL:
 			return value.isBool();
 		case INT:
@@ -240,6 +244,7 @@ class TypeImpl extends Type
 		return false;
 	}
 	
+	@Override
 	public NativeType nativeType()
 	{
 		return nativeType;
@@ -271,9 +276,9 @@ public abstract class Type implements Cloneable
 	
 	public static Type merge( Type t1, Type t2 )
 	{
-		NativeType nativeType = t1.nativeType();
-		Range cardinality = t1.cardinality();
-		Map< String, Type > subTypes = new HashMap<>();
+		final NativeType nativeType = t1.nativeType();
+		final Range cardinality = t1.cardinality();
+		final Map< String, Type > subTypes = new HashMap<>();
 		for( Entry< String, Type > entry : t1.subTypes().entrySet() ) {
 			subTypes.put( entry.getKey(), entry.getValue() );
 		}
@@ -318,11 +323,13 @@ public abstract class Type implements Cloneable
 			this.cardinality = cardinality;
 		}
 		
+		@Override
 		public Map< String, Type > subTypes()
 		{
 			return linkedType.subTypes();
 		}
 		
+		@Override
 		public NativeType nativeType()
 		{
 			return linkedType.nativeType();
@@ -338,22 +345,26 @@ public abstract class Type implements Cloneable
 			this.linkedType = linkedType;
 		}
 		
+		@Override
 		public void cutChildrenFromValue( Value value )
 		{
 			linkedType.cutChildrenFromValue( value );
 		}
 
+		@Override
 		public Range cardinality()
 		{
 			return cardinality;
 		}
 
+		@Override
 		protected void check( Value value, StringBuilder pathBuilder )
 			throws TypeCheckingException
 		{
 			linkedType.check( value, pathBuilder );
 		}
 
+		@Override
 		protected Value cast( Value value, StringBuilder pathBuilder )
 			throws TypeCastingException
 		{

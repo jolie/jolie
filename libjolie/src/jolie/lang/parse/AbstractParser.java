@@ -23,8 +23,8 @@ package jolie.lang.parse;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
@@ -40,7 +40,7 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
-	private final List< Scanner.Token > tokens = new LinkedList<>();
+	private final List< Scanner.Token > tokens = new ArrayList<>();
 	private final StringBuilder stringBuilder = new StringBuilder( 256 );
 	
 	protected String build( String... args )

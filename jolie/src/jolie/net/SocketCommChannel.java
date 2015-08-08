@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -73,11 +73,13 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * Returns the SocketChannel underlying this SocketCommChannel
 	 * @return the SocketChannel underlying this SocketCommChannel
 	 */
+	@Override
 	public SelectableChannel selectableChannel()
 	{
 		return socketChannel;
 	}
 	
+	@Override
 	public InputStream inputStream()
 	{
 		return istream;
@@ -86,8 +88,10 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	/**
 	 * Receives a message from the channel.
 	 * @return the received CommMessage
+	 * @throws java.io.IOException
 	 * @see CommMessage
 	 */
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
@@ -104,6 +108,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see CommMessage
 	 * @throws IOException if an error sending the message occurs
 	 */
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
@@ -115,6 +120,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		}
 	}
 	
+	@Override
 	protected void closeImpl()
 		throws IOException
 	{
@@ -126,7 +132,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	{
 		final ByteBuffer buffer = ByteBuffer.allocate( 1 );
 		
-		boolean wasBlocking = socketChannel.isBlocking();
+		final boolean wasBlocking = socketChannel.isBlocking();
 		
 		if ( wasBlocking ) {
 			socketChannel.configureBlocking( false );
@@ -162,7 +168,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			return false;
 		}
 
-		boolean ret = false;
+		final boolean ret;
 		try {
 			if ( lock.isHeldByCurrentThread() ) {
 				ret = _isOpenImpl();

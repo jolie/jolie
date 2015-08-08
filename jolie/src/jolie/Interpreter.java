@@ -43,6 +43,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -249,12 +250,12 @@ public class Interpreter
 	private final Lock exitingLock;
 	private final Condition exitingCondition;
 	private final CorrelationEngine correlationEngine;
-	private final List< CorrelationSet > correlationSets = new ArrayList<> ();
+	private final List< CorrelationSet > correlationSets = new ArrayList<>();
 	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap<>();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
-	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new LinkedList<>();
+	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
 	private static final Logger logger = Logger.getLogger( "Jolie" );
 	
 	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
@@ -628,8 +629,8 @@ public class Interpreter
 		}
 		timer.cancel();
 		checkForExpiredTimeoutHandlers();
-		nativeExecutorService.shutdown();
 		processExecutorService.shutdown();
+		nativeExecutorService.shutdown();
 		commCore.shutdown();
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
@@ -952,7 +953,7 @@ public class Interpreter
 	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
-	private final Queue< SessionThread > waitingSessionThreads = new LinkedList< SessionThread >();
+	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
@@ -1124,6 +1125,11 @@ public class Interpreter
 		nativeExecutorService.execute( r );
 	}
 	
+	public Executor taskExecutor()
+	{
+		return nativeExecutorService;
+	}
+	
 	public Future<?> runJolieThread( Runnable task )
 	{
 		return processExecutorService.submit( task );
@@ -1213,7 +1219,7 @@ public class Interpreter
 					olParser.putConstants( cmdParser.definedConstants() );
 					program = olParser.parse();
 				}
-				program = new OLParseTreeOptimizer( program ).optimize();
+				program = OLParseTreeOptimizer.optimize( program );
 			}
 			
 			cmdParser.close();
