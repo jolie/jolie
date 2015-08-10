@@ -37,7 +37,7 @@ public class SemanticException extends Exception
 {
 	private static final long serialVersionUID = Constants.serialVersionUID();
 	
-	private final List< SemanticError > errorList = new ArrayList( 0 );
+	private final List< SemanticError > errorList = new ArrayList<>();
 
 	public static class SemanticError
 	{
@@ -72,8 +72,7 @@ public class SemanticException extends Exception
 	public void addSemanticError( OLSyntaxNode node, String message )
 	{
 		if ( node != null ) {
-			ParsingContext context = node.context();
-			errorList.add( new SemanticError( context, message ) );
+			errorList.add( new SemanticError( node.context(), message ) );
 		} else {
 			errorList.add( new SemanticError( URIParsingContext.DEFAULT, message ) );
 		}
