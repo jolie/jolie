@@ -378,9 +378,9 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
-			for( SemanticException.SemanticError e : semanticException.getErrorList() ){
+			/* for( SemanticException.SemanticError e : semanticException.getErrorList() ){
 				logger.severe( e.getMessage() );
-			}
+			} */
 			throw semanticException;
 		}
 	}
@@ -481,7 +481,7 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	@Override
-	public void visit( InputPortInfo n )
+	public void visit( final InputPortInfo n )
 	{
 		if ( inputPorts.get( n.id() ) != null ) {
 			error( n, "input port " + n.id() + " has been already defined" );
@@ -501,13 +501,28 @@ public class SemanticVerifier implements OLVisitor
 			}
 		}
 
-		OutputPortInfo outputPort;
 		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
 			for( String portName : item.outputPortList() ) {
-				outputPort = outputPorts.get( portName );
+				final OutputPortInfo outputPort = outputPorts.get( portName );
 				if ( outputPort == null ) {
 					error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
-				}/* else {
+				} else {
+					outputPort.operations().forEach( opDecl -> {
+						final TypeDefinition requestType =
+							opDecl instanceof OneWayOperationDeclaration
+							? ((OneWayOperationDeclaration)opDecl).requestType()
+							: ((RequestResponseOperationDeclaration)opDecl).requestType();
+						if ( requestType.untypedSubTypes() ) {
+							error( n,
+								"input port " + n.id()
+								+ " is trying to extend the type of operation " + opDecl.id()
+								+ " in output port " + outputPort.id()
+								+ " but such operation has undefined subnode types ({ ? } or undefined)" );
+						}
+					} );
+				}
+				
+				/* else {
 					for( OperationDeclaration op : outputPort.operations() ) {
 						if ( opSet.contains( op.id() ) ) {
 							error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
