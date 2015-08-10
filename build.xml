@@ -363,4 +363,17 @@ Please make sure that:
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
     </target>
+
+    <target name="-test-unix" unless="isWindows">
+    	<exec executable="sh" dir="test">
+    		<env key="JOLIE_HOME" file="dist/jolie" />
+    		<arg value="../dist/launchers/unix/jolie" />
+    		<arg value="test.ol" />
+    	</exec>
+    </target>
+
+    <target name="test"><!-- depends="dist"> -->
+    	<antcall target="-test-unix" />
+		<!-- <antcall target="-test-windows" /> -->
+    </target>
 </project>
