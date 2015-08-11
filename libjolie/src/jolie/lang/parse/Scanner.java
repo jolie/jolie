@@ -470,17 +470,17 @@ public class Scanner
 	 */
 	public static boolean isSeparator( char c )
 	{
-            return isNewLineChar( c ) || c == '\t' || c == ' ';
+		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
     
-        /**
-         * Checks whether a character is an overflow character.
-         * @param c the character to check
+	/**
+	 * Checks whether a character is an overflow character.
+	 * @param c the character to check
 	 * @return <code>true</code> if <code>c</code> is an overflow character
 	 */
-	public static boolean isOverflowChar( char c )
+	private static boolean isOverflowChar( char c )
 	{
-            return ( (int) c >= Character.MAX_VALUE );
+		return ( (int) c >= Character.MAX_VALUE );
 	}
 	
 	/**
@@ -791,9 +791,9 @@ public class Scanner
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
-                                        if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
-                                                readChar();
-                                                retval = getToken();
+					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
+						readChar();
+						retval = getToken();
 					}
 					break;
 				case 16: // DOT
