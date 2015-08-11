@@ -470,7 +470,7 @@ public class Scanner
 	 */
 	public static boolean isSeparator( char c )
 	{
-        return isNewLineChar( c ) || c == '\t' || c == ' ';
+            return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
     
         /**
@@ -791,9 +791,9 @@ public class Scanner
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
-                    if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
-						readChar();
-						retval = getToken();
+                                        if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
+                                                readChar();
+                                                retval = getToken();
 					}
 					break;
 				case 16: // DOT
