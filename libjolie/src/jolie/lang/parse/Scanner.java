@@ -470,7 +470,17 @@ public class Scanner
 	 */
 	public static boolean isSeparator( char c )
 	{
-		return isNewLineChar( c ) || c == '\t' || c == ' ';
+		return isNonChar( c ) || isNewLineChar( c ) || c == '\t' || c == ' ';
+	}
+    
+    /**
+     * Checks whether a character is an non-character.
+     * @param c the character to check
+	 * @return <code>true</code> if <code>c</code> is a non-char character
+	 */
+	public static boolean isNonChar( char c )
+	{
+        return ( (int) c >= Character.MAX_VALUE-1 );
 	}
 	
 	/**
@@ -780,7 +790,7 @@ public class Scanner
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
-					if ( isNewLineChar( ch ) ) {
+					if ( isNewLineChar( ch ) || isNonChar( ch ) ) {
 						readChar();
 						retval = getToken();
 					}
