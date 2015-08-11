@@ -470,7 +470,7 @@ public class Scanner
 	 */
 	public static boolean isSeparator( char c )
 	{
-		return isNonChar( c ) || isNewLineChar( c ) || c == '\t' || c == ' ';
+		return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
     
     /**
