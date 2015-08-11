@@ -470,17 +470,17 @@ public class Scanner
 	 */
 	public static boolean isSeparator( char c )
 	{
-		return isNewLineChar( c ) || c == '\t' || c == ' ';
+        return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
     
     /**
-     * Checks whether a character is an non-character.
+     * Checks whether a character is an overflow character.
      * @param c the character to check
-	 * @return <code>true</code> if <code>c</code> is a non-char character
+	 * @return <code>true</code> if <code>c</code> is an overflow character
 	 */
-	public static boolean isNonChar( char c )
+	public static boolean isOverflowChar( char c )
 	{
-        return ( (int) c >= Character.MAX_VALUE-1 );
+        return ( (int) c >= Character.MAX_VALUE );
 	}
 	
 	/**
@@ -501,8 +501,8 @@ public class Scanner
 		throws IOException
 	{
 		currInt = reader.read();
-
-		ch = (char)currInt;
+        
+		ch = (char) currInt;
 
 		if ( ch == '\n' ) {
 			line++;
@@ -526,13 +526,14 @@ public class Scanner
 	public Token getToken()
 		throws IOException
 	{
+        
 		boolean keepRun = true;
 		state = 1;
-		
+        
 		while ( currInt != -1 && isSeparator( ch ) ) {
 			readChar();
 		}
-		
+        
 		if ( currInt == -1 ) {
 			return new Token( TokenType.EOF );
 		}
@@ -790,7 +791,7 @@ public class Scanner
 						retval = new Token( TokenType.MINUS );
 					break;
 				case 15: // LINE_COMMENT: waiting for end of line
-					if ( isNewLineChar( ch ) || isNonChar( ch ) ) {
+                    if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
 						readChar();
 						retval = getToken();
 					}
