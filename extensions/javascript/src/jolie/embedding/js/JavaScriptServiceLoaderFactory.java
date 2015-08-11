@@ -33,7 +33,7 @@ import jolie.runtime.expression.Expression;
  * 
  * @author Fabrizio Montesi
  */
-@AndJarDeps({"jolie-js.jar"})
+@AndJarDeps({"jolie-js.jar","json_simple.jar"})
 public class JavaScriptServiceLoaderFactory implements EmbeddedServiceLoaderFactory
 {
 	@Override
