@@ -473,14 +473,14 @@ public class Scanner
         return isNewLineChar( c ) || c == '\t' || c == ' ';
 	}
     
-    /**
-     * Checks whether a character is an overflow character.
-     * @param c the character to check
+        /**
+         * Checks whether a character is an overflow character.
+         * @param c the character to check
 	 * @return <code>true</code> if <code>c</code> is an overflow character
 	 */
 	public static boolean isOverflowChar( char c )
 	{
-        return ( (int) c >= Character.MAX_VALUE );
+            return ( (int) c >= Character.MAX_VALUE );
 	}
 	
 	/**
