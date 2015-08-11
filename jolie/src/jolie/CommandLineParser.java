@@ -240,10 +240,9 @@ public class CommandLineParser implements Closeable
 		helpBuilder.append(
 				getOptionString( "-h, --help", "Display this help information" ) );
 		//TODO include doc for -l and -i
-		helpBuilder.append(
-                                getOptionString( "-C ConstantIdentifier=ConstantValue", "Sets constant ConstantIdentifier to ConstantValue before starting execution \n"
-                                                + "-C ConstantIdentifier=ConstantValue".replaceAll("(.)"," ") + "\t\t\t"
-                                                + "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
+		helpBuilder.append( getOptionString( "-C ConstantIdentifier=ConstantValue", "Sets constant ConstantIdentifier to ConstantValue before starting execution \n"
+							+ "-C ConstantIdentifier=ConstantValue".replaceAll("(.)"," ") + "\t\t\t"
+							+ "(under Windows use quotes or double-quotes, e.g., -C \"ConstantIdentifier=ConstantValue\" )" ) );
 		helpBuilder.append(
 				getOptionString( "--connlimit [number]", "Set the maximum number of active connection threads" ) );
 		helpBuilder.append(
