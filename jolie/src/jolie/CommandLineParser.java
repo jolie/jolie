@@ -440,9 +440,9 @@ public class CommandLineParser implements Closeable
 				} else if ( "true".equals( typeCheckStr ) ) {
 					bTypeCheck = true;
 				}
-        } else if ( "--check".equals( argsList.get( i ) ) ) {
-					optionsList.add( argsList.get( i ) );
-					bCheck = true;
+			} else if ( "--check".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				bCheck = true;
 			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
@@ -484,7 +484,7 @@ public class CommandLineParser implements Closeable
 				} else {
 					programArgumentsList.add( argsList.get( i ) );
 				}
-            } else if ( argsList.get( i ).endsWith( ".jap" ) ) {
+			} else if ( argsList.get( i ).endsWith( ".jap" ) ) {
 				if ( olFilepath == null ) {
 					String japFilename = new File( argsList.get( i ) ).getCanonicalPath();
 					JarFile japFile = new JarFile( japFilename );
@@ -588,7 +588,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
-        check = bCheck && !isProgramCompiled;
+		check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;
 
