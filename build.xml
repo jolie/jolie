@@ -373,6 +373,12 @@ Please make sure that:
 	</target>
 
 	<target name="-test-windows" if="isWindows">
+		<exec executable="cmd" dir="test">
+			<env key="JOLIE_HOME" file="dist\jolie" />
+			<arg value="/c" />
+			<arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
+			<arg value="test.ol" />
+		</exec>
 	</target>
 
 	<target name="test">
