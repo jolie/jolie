@@ -235,7 +235,7 @@ public class RequestResponseProcess implements InputOperationProcess
 
 		try {
 			channel.send( response );
-			Value monitorValue = null;
+			Value monitorValue;
 			if ( response.isFault() ) {
 				log( "SENT FAULT", response );					
 				monitorValue = response.fault().value();
@@ -244,7 +244,7 @@ public class RequestResponseProcess implements InputOperationProcess
 				monitorValue = response.value();
 			}
 			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( response.id()).toString(), responseStatus, details, monitorValue ));
+				Interpreter.getInstance().fireMonitorEvent( new OperationEndedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.toString( response.id() ), responseStatus, details, monitorValue ));
 			}
 		} catch( IOException e ) {
 			//Interpreter.getInstance().logSevere( e );
