@@ -64,9 +64,11 @@ public class PreBufferedInputStream extends BufferedInputStream
 			}
 			
 			final byte nbuf[] = new byte[tentative];
-			System.arraycopy( buf, pos, nbuf, 0, count - pos );
+			final int remaining = count - pos;
+			System.arraycopy( buf, pos, nbuf, 0, remaining );
 			buf = nbuf;
 			pos = 0;
+			count = remaining;
 		}
 	}
 	
