@@ -127,10 +127,12 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		socketChannel.close();
 	}
 	
+	private final ByteBuffer buffer = ByteBuffer.allocateDirect( 1024 );
+	
 	private boolean _isOpenImpl()
 		throws IOException
 	{
-		final ByteBuffer buffer = ByteBuffer.allocate( 1 );
+		buffer.clear();
 		
 		final boolean wasBlocking = socketChannel.isBlocking();
 		
@@ -155,8 +157,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		if ( read == -1 ) {
 			return false;
 		} else if ( read > 0 ) {
-			buffer.flip();
-			istream.append( buffer.get() );
+			buffer.limit( read );
+			buffer.rewind();
+			istream.append( buffer );
 		}
 		return true;
 	}
