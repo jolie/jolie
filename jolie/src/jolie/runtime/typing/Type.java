@@ -21,14 +21,15 @@
 
 package jolie.runtime.typing;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 class TypeImpl extends Type
 {
@@ -50,7 +51,8 @@ class TypeImpl extends Type
 			this.subTypes = Collections.unmodifiableMap( subTypes );
 		}
 	}
-	
+
+
 	public Map< String, Type > subTypes()
 	{
 		return subTypes;
@@ -90,12 +92,12 @@ class TypeImpl extends Type
 		pathBuilder.append( typeName );
 
 		boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && type.cardinality().min() > 0 ) {
+		if ( hasChildren == false && type.cardinality().min() > 0 && !(type instanceof TypePair) ) {
 			throw new TypeCastingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if ( hasChildren ) {
 			ValueVector vector = value.getChildren( typeName );
 			int size = vector.size();
-			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
+			if (!(type instanceof TypePair ) && checkCardinality(type, size)) {
 				throw new TypeCastingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
@@ -128,19 +130,21 @@ class TypeImpl extends Type
 		}
 	}
 
-	private void checkSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
+	private void checkSubType(String typeName, Type type, Value value, StringBuilder pathBuilder)
 		throws TypeCheckingException
 	{
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
 		boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && type.cardinality().min() > 0 ) {
-			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
+		if ( hasChildren == false && !(type instanceof TypePair)) {
+			if (type.cardinality().min() > 0){
+				throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
+			}
 		} else if ( hasChildren ) {
 			ValueVector vector = value.getChildren( typeName );
 			int size = vector.size();
-			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
+			if (!(type instanceof TypePair) && checkCardinality(type, size)) {
 				throw new TypeCheckingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
@@ -152,6 +156,10 @@ class TypeImpl extends Type
 			}
 		}
 	}
+
+    private Boolean checkCardinality (Type type, int size){
+        return ( type.cardinality().min() > size || type.cardinality().max() < size );
+    }
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
@@ -332,7 +340,7 @@ public abstract class Type implements Cloneable
 		{
 			this.linkedType = linkedType;
 		}
-		
+
 		public void cutChildrenFromValue( Value value )
 		{
 			linkedType.cutChildrenFromValue( value );
@@ -356,3 +364,4 @@ public abstract class Type implements Cloneable
 		}
 	}
 }
+

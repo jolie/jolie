@@ -21,114 +21,32 @@
 
 package jolie.lang.parse;
 
-import java.io.BufferedInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallFunctionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationCollector;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PortInfo;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.ast.VariablePathNode.Type;
-import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionLink;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
-import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.*;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.Helpers;
 import jolie.util.Pair;
 import jolie.util.Range;
 
-/** Parser for a .ol file. 
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.*;
+
+/** Parser for a .ol file.
  * @author Fabrizio Montesi
  *
  */
@@ -146,9 +64,9 @@ public class OLParser extends AbstractParser
 
 	private final Map< String, TypeDefinition > definedTypes;
 	private final ClassLoader classLoader;
-	
+
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
-	
+
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
@@ -173,7 +91,7 @@ public class OLParser extends AbstractParser
 			definedTypes.put( type.id(), new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
-		
+
 		return definedTypes;
 	}
 
@@ -225,9 +143,6 @@ public class OLParser extends AbstractParser
 	private void parseTypes()
 		throws IOException, ParserException
 	{
-		String typeName;
-		TypeDefinition currentType;
-
 		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
 		boolean keepRun = true;
 		boolean haveComment = false;
@@ -237,30 +152,20 @@ public class OLParser extends AbstractParser
 				commentToken = token;
 				getToken();
 			} else if ( token.isKeyword( "type" ) ) {
+
+				String typeName;
+				TypeDefinition currentType;
+
 				getToken();
 				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-				NativeType nativeType = readNativeType();
-				if ( nativeType == null ) { // It's a user-defined type
-					currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
-					getToken();
-				} else {
-					currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-					getToken();
-					if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
-						parseSubTypes( (TypeInlineDefinition) currentType );
-					}
-				}
+				eat(Scanner.TokenType.ID, "expected type name");
+				eat(Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])");
 
-				if ( haveComment ) {
-					currentType.setDocumentation( commentToken.content() );
-					haveComment = false;
-				}
+				currentType = parseType(typeName);
+				typeName = currentType.id();
 
-				// Keep track of the root types to support them in successive type declarations
-				definedTypes.put( typeName, currentType );
-				program.addChild( currentType );
+				definedTypes.put(typeName, currentType);
+				program.addChild(currentType);
 			} else {
 				keepRun = false;
 				if ( haveComment ) {
@@ -270,6 +175,97 @@ public class OLParser extends AbstractParser
 				}
 			}
 		}
+	}
+
+	private TypeDefinition parseType(String typeName)
+			throws IOException, ParserException
+	{
+		TypeDefinition currentType;
+
+
+		NativeType nativeType = readNativeType();
+		if (nativeType == null) { // It's a user-defined type
+			currentType = new TypeDefinitionLink(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content());
+			getToken();
+		} else {
+			currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE);
+			getToken();
+			if (token.is(Scanner.TokenType.LCURLY)) { // We have sub-types to parse
+				parseSubTypes((TypeInlineDefinition) currentType);
+			}
+		}
+
+		if (token.is(Scanner.TokenType.PARALLEL)) {
+			TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType);
+
+			getToken();
+			TypeDefinition secondType = parseType(typeName);
+			choiceDefinition.setT2(secondType, secondType.cardinality());
+			return choiceDefinition;
+		}
+
+		return currentType;
+	}
+
+	private void parseSubTypes( TypeInlineDefinition type )
+			throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+
+		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+			type.setUntypedSubTypes( true );
+			getToken();
+		} else {
+			TypeDefinition currentSubType;
+			while( !token.is( Scanner.TokenType.RCURLY ) ) {
+				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
+
+				// SubType id
+				String id = token.content();
+				eatIdentifier( "expected type name" );
+
+				Range cardinality = parseCardinality();
+				eat( Scanner.TokenType.COLON, "expected COLON" );
+
+				currentSubType = parseSubType(id, cardinality);
+				if ( type.hasSubType( currentSubType.id() ) ) {
+					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
+				}
+				type.putSubType( currentSubType );
+			}
+		}
+
+		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
+	}
+
+	private TypeDefinition parseSubType(String id, Range cardinality)
+			throws IOException, ParserException
+	{
+		NativeType nativeType = readNativeType();
+		TypeDefinition subType;
+		// SubType id
+
+		if ( nativeType == null ) { // It's a user-defined type
+			subType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
+			getToken();
+		} else {
+			getToken();
+			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
+				parseSubTypes((TypeInlineDefinition) subType);
+			}
+		}
+
+		if ( token.is( Scanner.TokenType.PARALLEL ) ) {
+			TypeChoiceDefinition choiceSubType = new TypeChoiceDefinition( getContext(), id, cardinality, subType);
+			getToken();
+			//String id2 = token.content();
+			TypeDefinition secondType = parseSubType(id, cardinality);
+			choiceSubType.setT2(secondType, secondType.cardinality());
+			return choiceSubType;
+			//getToken();
+		}
+		return subType;
 	}
 
 	private NativeType readNativeType()
@@ -286,56 +282,6 @@ public class OLParser extends AbstractParser
 			return NativeType.BOOL;
 		} else {
 			return NativeType.fromString( token.content() );
-		}
-	}
-
-	private void parseSubTypes( TypeInlineDefinition type )
-		throws IOException, ParserException
-	{
-		eat( Scanner.TokenType.LCURLY, "expected {" );
-		
-		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
-			type.setUntypedSubTypes( true );
-			getToken();
-		} else {
-			TypeDefinition currentSubType;
-			while( !token.is( Scanner.TokenType.RCURLY ) ) {
-				currentSubType = parseSubType();
-				if ( type.hasSubType( currentSubType.id() ) ) {
-					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
-				}
-				type.putSubType( currentSubType );
-			}
-		}
-
-		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
-	}
-
-	private TypeDefinition parseSubType()
-		throws IOException, ParserException
-	{
-		eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
-
-		// SubType id
-		String id = token.content();
-		eatIdentifier( "expected type name" );
-
-		Range cardinality = parseCardinality();
-		eat( Scanner.TokenType.COLON, "expected COLON" );
-
-		NativeType nativeType = readNativeType();
-
-		if ( nativeType == null ) { // It's a user-defined type
-			TypeDefinitionLink linkedSubType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
-			getToken();
-			return linkedSubType;
-		} else {
-			getToken();
-			TypeInlineDefinition inlineSubType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
-			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
-				parseSubTypes( inlineSubType );
-			}
-			return inlineSubType;
 		}
 	}
 

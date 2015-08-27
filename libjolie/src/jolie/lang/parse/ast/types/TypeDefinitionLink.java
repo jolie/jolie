@@ -21,12 +21,13 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.Map;
-import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Range;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -70,10 +71,13 @@ public class TypeDefinitionLink extends TypeDefinition
 		return linkedType.untypedSubTypes();
 	}
 
-	public boolean hasSubTypes()
-	{
-		return linkedType.hasSubTypes();
-	}
+    public boolean hasSubTypes()
+    {
+        if (linkedType!=null) {
+            return linkedType.hasSubTypes();
+        }
+        else return false;
+    }
 
 	public TypeDefinition getSubType( String id )
 	{

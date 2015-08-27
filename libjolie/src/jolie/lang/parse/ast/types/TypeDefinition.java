@@ -23,20 +23,17 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Representation for a type definition.
