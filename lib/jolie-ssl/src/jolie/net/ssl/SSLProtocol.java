@@ -30,6 +30,8 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -77,10 +79,13 @@ public class SSLProtocol extends SequentialCommProtocol
 		public int read()
 			throws IOException
 		{
-			handshakeIfNeeded();
-
-			if ( clearInputBuffer.remaining() <= 0 ) {
-				unwrapFromInputStream( false );
+			if ( !clearInputBuffer.hasRemaining() ) {
+				try {
+					handshakeIfNeeded();
+					unwrapFromInputStream( false );
+				} catch( RemoteClosureException e ) {
+					return -1;
+				}
 			}
 
 			try {
@@ -107,7 +112,7 @@ public class SSLProtocol extends SequentialCommProtocol
 			}
 
 			long skipped = 0;
-			while ( skipped < n && clearInputBuffer.position() < clearInputBuffer.limit() ) {
+			while ( skipped < n && clearInputBuffer.hasRemaining() ) {
 				clearInputBuffer.get();
 				++skipped;
 			}
@@ -118,7 +123,7 @@ public class SSLProtocol extends SequentialCommProtocol
 		public int available()
 			throws IOException
 		{
-			return clearInputBuffer.limit() - clearInputBuffer.position();
+			return clearInputBuffer.remaining();
 		}
 
 		// close() not necessary, does nothing
@@ -200,18 +205,25 @@ public class SSLProtocol extends SequentialCommProtocol
 		firstTime = true;
 		clearInputBuffer.limit( 0 );
 	}
+	
+	private static class RemoteClosureException extends IOException {
+		private RemoteClosureException( String message )
+		{
+			super( message );
+		}
+	}
 
 	private SSLResult wrap( ByteBuffer source )
 		throws IOException
 	{
-		SSLResult result = new SSLResult( source.capacity() );
+		final SSLResult result = new SSLResult( source.capacity() );
 		result.log = sslEngine.wrap( source, result.buffer );
 		while ( result.log.getStatus() == Status.BUFFER_OVERFLOW ) {
 			result.enlargeBuffer();
 			result.log = sslEngine.wrap( source, result.buffer );
 		}
 		if ( result.log.getStatus() == Status.CLOSED ) {
-			throw new IOException( "Remote party closed SSL connection" );
+			throw new RemoteClosureException( "Remote party closed SSL connection" );
 		}
 		result.buffer.flip();
 		return result;
@@ -332,8 +344,9 @@ public class SSLProtocol extends SequentialCommProtocol
 				break;
 			case NEED_WRAP:
 				result = wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
-				if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
-					outputStream.write( result.buffer.array(), result.buffer.position(), result.buffer.remaining() );
+				if ( result.log.bytesProduced() > 0 ) { // need to send result to other side
+					final WritableByteChannel outputChannel = Channels.newChannel( outputStream );
+					outputChannel.write( result.buffer );
 					outputStream.flush();
 				}
 				break;
@@ -355,8 +368,8 @@ public class SSLProtocol extends SequentialCommProtocol
 			wrappedProtocol.setChannel( this.channel() );
 		}
 
-		SSLOutputStream sslOutputStream = new SSLOutputStream();
-		InputStream sslInputStream = new SSLInputStream();
+		final SSLOutputStream sslOutputStream = new SSLOutputStream();
+		final InputStream sslInputStream = new SSLInputStream();
 		wrappedProtocol.send( sslOutputStream, message, sslInputStream );
 		sslOutputStream.writeCache();
 	}
@@ -372,71 +385,49 @@ public class SSLProtocol extends SequentialCommProtocol
 		}
 	}
 
-	/* private void enlargeClearInputBuffer()
-	{
-		// TODO: Maybe we should also check if some compacting would suffice.
-		ByteBuffer tmp = ByteBuffer.allocate( clearInputBuffer.capacity() + INITIAL_BUFFER_SIZE );
-		tmp.put( clearInputBuffer );
-		tmp.flip();
-		clearInputBuffer = tmp;
-	} */
-
 	private void unwrapFromInputStream( boolean forHandshake )
 		throws IOException
 	{
-		SSLEngineResult result;
-		ByteBuffer cryptBuffer;
-		ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+		final ByteArrayOutputStream cryptoBufferStream = new ByteArrayOutputStream();
 		boolean keepRun = true;
 		boolean closed = false;
 
-		int oldPosition = clearInputBuffer.position();
-		clearInputBuffer.position( clearInputBuffer.limit() );
-		clearInputBuffer.limit( clearInputBuffer.capacity() );
-
-		byteOutputStream.write( inputStream.read() );
+		ByteBuffer readBuffer = ByteBuffer.allocate( INITIAL_BUFFER_SIZE );
+		
+		cryptoBufferStream.write( inputStream.read() );
 		while( keepRun ) {
-			cryptBuffer = ByteBuffer.wrap( byteOutputStream.toByteArray() );
-			result = sslEngine.unwrap( cryptBuffer, clearInputBuffer );
+			final ByteBuffer cryptBuffer = ByteBuffer.wrap( cryptoBufferStream.toByteArray() );
+			final SSLEngineResult result = sslEngine.unwrap( cryptBuffer, readBuffer );
 			switch( result.getStatus() ) {
 			case BUFFER_OVERFLOW:
-				/*enlargeClearInputBuffer();
-				oldPosition = clearInputBuffer.position();
-				clearInputBuffer.position( clearInputBuffer.limit() );
-				clearInputBuffer.limit( clearInputBuffer.capacity() );*/
-                                int appSize = sslEngine.getSession().getApplicationBufferSize();
-                                ByteBuffer tmpBuffer1 = ByteBuffer.allocate(appSize + clearInputBuffer.position());
-                                clearInputBuffer.flip();
-                                tmpBuffer1.put( clearInputBuffer );
-                                clearInputBuffer = tmpBuffer1;
+				final int appSize = sslEngine.getSession().getApplicationBufferSize();
+				readBuffer = ByteBuffer.allocate( readBuffer.capacity() + appSize );
 				break;
 			case BUFFER_UNDERFLOW:
-                                int netSize = sslEngine.getSession().getPacketBufferSize();
-                                if ( netSize > clearInputBuffer.capacity() ) {
-                                    ByteBuffer tmpBuffer2 = ByteBuffer.allocate( netSize );
-                                    cryptBuffer.flip();
-                                    tmpBuffer2.put( cryptBuffer );
-                                    cryptBuffer = tmpBuffer2;
-                                }
-				byteOutputStream.write( inputStream.read() );
+				cryptoBufferStream.write( inputStream.read() );
 				break;
 			case CLOSED:
 				keepRun = false;
 				closed = true;
 				break;
 			case OK:
-				clearInputBuffer.limit( clearInputBuffer.position() );
-				clearInputBuffer.position( oldPosition );
 				if ( forHandshake ) {
 					keepRun = false;
 				} else {
-					if ( cryptBuffer.position() >= cryptBuffer.limit() ) {
+					final ByteBuffer oldClear = clearInputBuffer;
+					clearInputBuffer = ByteBuffer.allocate( clearInputBuffer.capacity() + readBuffer.capacity() );
+					clearInputBuffer.put( oldClear );
+					readBuffer.flip();
+					clearInputBuffer.put( readBuffer );
+					clearInputBuffer.flip();
+					
+					if ( !cryptBuffer.hasRemaining() ) {
 						// If we are here, it means that there are no more packets to receive
 						keepRun = false;
 					} else {
-						cryptBuffer = cryptBuffer.slice();
-						byteOutputStream = new ByteArrayOutputStream();
-						byteOutputStream.write( cryptBuffer.array() );
+						cryptoBufferStream.reset();
+						final WritableByteChannel outputChannel = Channels.newChannel( cryptoBufferStream );
+						outputChannel.write( cryptBuffer );
 					}
 				}
 				break;
@@ -446,15 +437,15 @@ public class SSLProtocol extends SequentialCommProtocol
 			throw new IOException( "Other party closed the SSL connection" );
 		}
 	}
-
+	
 	private void write( ByteBuffer b )
 		throws IOException
 	{
 		handshakeIfNeeded();
-		SSLResult wrapResult = wrap( b );
+		final SSLResult wrapResult = wrap( b );
 		if ( wrapResult.log.bytesProduced() > 0 ) {
-			outputStream.write( wrapResult.buffer.array(), 0, wrapResult.buffer.limit() );
-			//outputStream.flush();
+			final WritableByteChannel outputChannel = Channels.newChannel( outputStream );
+			outputChannel.write( wrapResult.buffer );
 		}
 	}
 
