@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2010-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -19,6 +19,7 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
+
 package jolie.net.ssl;
 
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -56,9 +58,7 @@ import jolie.runtime.VariablePath;
  */
 public class SSLProtocol extends SequentialCommProtocol
 {
-	private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate( 0 );
 	private static final int INITIAL_BUFFER_SIZE = 32768;
-
 	private static final int MAX_SSL_CONTENT_SIZE = 16384;
 
 	private final boolean isClient;
@@ -79,12 +79,15 @@ public class SSLProtocol extends SequentialCommProtocol
 		{
 			handshakeIfNeeded();
 
-			if ( clearInputBuffer.position() < clearInputBuffer.limit() ) {
-				return clearInputBuffer.get();
+			if ( clearInputBuffer.remaining() <= 0 ) {
+				unwrapFromInputStream( false );
 			}
 
-			unwrapFromInputStream( false );
-			return clearInputBuffer.get();
+			try {
+				return clearInputBuffer.get();
+			} catch( BufferUnderflowException e ) {
+				throw new IOException( e );
+			}
 		}
 
 		@Override
@@ -328,9 +331,9 @@ public class SSLProtocol extends SequentialCommProtocol
 				}
 				break;
 			case NEED_WRAP:
-				result = wrap( EMPTY_BYTE_BUFFER );
+				result = wrap( ByteBuffer.allocate( INITIAL_BUFFER_SIZE ) );
 				if ( result.log.bytesProduced() > 0 ) { //need to send result to other side
-					outputStream.write( result.buffer.array(), 0, result.buffer.limit() );
+					outputStream.write( result.buffer.array(), result.buffer.position(), result.buffer.remaining() );
 					outputStream.flush();
 				}
 				break;
@@ -369,14 +372,14 @@ public class SSLProtocol extends SequentialCommProtocol
 		}
 	}
 
-	private void enlargeClearInputBuffer()
+	/* private void enlargeClearInputBuffer()
 	{
 		// TODO: Maybe we should also check if some compacting would suffice.
 		ByteBuffer tmp = ByteBuffer.allocate( clearInputBuffer.capacity() + INITIAL_BUFFER_SIZE );
 		tmp.put( clearInputBuffer );
 		tmp.flip();
 		clearInputBuffer = tmp;
-	}
+	} */
 
 	private void unwrapFromInputStream( boolean forHandshake )
 		throws IOException
