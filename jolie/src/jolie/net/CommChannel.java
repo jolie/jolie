@@ -28,6 +28,7 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
 import jolie.runtime.TimeoutHandler;
+import jolie.util.Helpers;
 
 /**
  * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
@@ -56,7 +57,7 @@ public abstract class CommChannel
 	private long redirectionMessageId = 0L;
 	
 	private TimeoutHandler timeoutHandler = null;
-
+	
 	protected void setTimeoutHandler( TimeoutHandler timeoutHandler )
 	{
 		this.timeoutHandler = timeoutHandler;
@@ -189,18 +190,7 @@ public abstract class CommChannel
 	public CommMessage recv()
 		throws IOException
 	{
-		CommMessage ret;
-		if ( lock.isHeldByCurrentThread() ) {
-			ret = recvImpl();
-		} else {
-			lock.lock();
-			try {
-				ret = recvImpl();
-			} finally {
-				lock.unlock();
-			}
-		}
-		return ret;
+		return Helpers.lockAndThen( lock, () -> recvImpl() );
 	}
 
 	/**
@@ -217,20 +207,11 @@ public abstract class CommChannel
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public void send( CommMessage message )
+	public void send( final CommMessage message )
 		throws IOException
 	{
 		try {
-			if ( lock.isHeldByCurrentThread() ) {
-				sendImpl( message );
-			} else {
-				lock.lock();
-				try {
-					sendImpl( message );
-				} finally {
-					lock.unlock();
-				}
-			}
+			Helpers.lockAndThen( lock, () -> sendImpl( message ) );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -252,33 +233,19 @@ public abstract class CommChannel
 	public final void release()
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
+		Helpers.lockAndThen( lock, () -> {
 			if ( toBeClosed() ) {
-				isOpen = false;
 				close();
 			} else {
 				releaseImpl();
 			}
-		} else {
-			lock.lock();
-			try {
-				if ( toBeClosed() ) {
-					isOpen = false;
-					close();
-				} else {
-					releaseImpl();
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
+		} );
 	}
 
 	protected void releaseImpl()
 		throws IOException
 	{
-		isOpen = false;
-		closeImpl();
+		close();
 	}
 
 	/**
@@ -298,20 +265,13 @@ public abstract class CommChannel
 	public final void disposeForInput()
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
+		Helpers.lockAndThen( lock, () -> {
 			if ( toBeClosed() == false ) {
 				disposeForInputImpl();
+			} else {
+				close();
 			}
-		} else {
-			lock.lock();
-			try {
-				if ( toBeClosed() == false ) {
-					disposeForInputImpl();
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
+		} );
 	}
 	
 	protected void disposeForInputImpl()
@@ -327,9 +287,10 @@ public abstract class CommChannel
 		this.toBeClosed = toBeClosed;
 	}
 
-	protected void close()
+	protected final void close()
 		throws IOException
 	{
+		isOpen = false;
 		closeImpl();
 	}
 

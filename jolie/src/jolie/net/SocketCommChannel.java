@@ -34,6 +34,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.util.Helpers;
 
 
 /**
@@ -173,16 +174,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 
 		final boolean ret;
 		try {
-			if ( lock.isHeldByCurrentThread() ) {
-				ret = _isOpenImpl();
-			} else {
-				lock.lock();
-				try {
-					ret = _isOpenImpl();
-				} finally {
-					lock.unlock();
-				}
-			}
+			ret = Helpers.lockAndThen( lock, this::_isOpenImpl );
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );
 			return false;
