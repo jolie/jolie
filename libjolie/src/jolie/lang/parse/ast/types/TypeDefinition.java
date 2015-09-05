@@ -189,7 +189,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	public boolean isEquivalentTo( TypeDefinition other )
 	{
-		List<String> recursiveTypeChecked = new ArrayList<String>();
+		List<String> recursiveTypeChecked = new ArrayList<>();
 		return checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 

@@ -62,6 +62,7 @@ public class RequestResponseOperationDeclaration extends OperationDeclaration
 		return faults;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

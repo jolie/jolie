@@ -108,13 +108,13 @@ public class CourierChoiceStatement extends OLSyntaxNode
 	}
 	
 	private final List< InterfaceOneWayBranch > interfaceOneWayBranches =
-		new LinkedList< InterfaceOneWayBranch >();
+		new LinkedList<>();
 	private final List< InterfaceRequestResponseBranch > interfaceRequestResponseBranches =
-		new LinkedList< InterfaceRequestResponseBranch >();
+		new LinkedList<>();
 	private final List< OperationOneWayBranch > operationOneWayBranches =
-		new LinkedList< OperationOneWayBranch >();
+		new LinkedList<>();
 	private final List< OperationRequestResponseBranch > operationRequestResponseBranches =
-		new LinkedList< OperationRequestResponseBranch >();
+		new LinkedList<>();
 
 	public CourierChoiceStatement( ParsingContext context )
 	{
@@ -141,6 +141,7 @@ public class CourierChoiceStatement extends OLSyntaxNode
 		return operationRequestResponseBranches;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

@@ -43,6 +43,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -244,29 +245,24 @@ public class Interpreter
 	private Program internalServiceProgram = null;
 	private Interpreter parentInterpreter = null;
 
-	private Map< String, SessionStarter > sessionStarters = new HashMap< String, SessionStarter >();
+	private Map< String, SessionStarter > sessionStarters = new HashMap<>();
 	private boolean exiting = false;
 	private final Lock exitingLock;
 	private final Condition exitingCondition;
 	private final CorrelationEngine correlationEngine;
-	private final List< CorrelationSet > correlationSets =
-				new ArrayList< CorrelationSet > ();
-	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap< String, CorrelationSet >();
+	private final List< CorrelationSet > correlationSets = new ArrayList<>();
+	private final Map< String, CorrelationSet > operationCorrelationSetMap = new HashMap<>();
 	private Constants.ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private final Value globalValue = Value.createRootValue();
 	private final String[] arguments;
-	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders =
-			new LinkedList< EmbeddedServiceLoader >();
+	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
 	private static final Logger logger = Logger.getLogger( "Jolie" );
 	
-	private final Map< String, DefinitionProcess > definitions =
-				new HashMap< String, DefinitionProcess >();
-	private final Map< String, OutputPort > outputPorts = new HashMap< String, OutputPort >();
-	private final Map< String, InputOperation > inputOperations =
-				new HashMap< String, InputOperation>();
+	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
+	private final Map< String, OutputPort > outputPorts = new HashMap<>();
+	private final Map< String, InputOperation > inputOperations = new HashMap<>();
 	
-	private final HashMap< String, Object > locksMap =
-				new HashMap< String, Object >();
+	private final HashMap< String, Object > locksMap = new HashMap<>();
 	
 	private final ClassLoader parentClassLoader;
 	private final String[] includePaths;
@@ -283,7 +279,7 @@ public class Interpreter
 
 	// 11 is the default initial capacity for PriorityQueue
 	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
-		new PriorityQueue< WeakReference< TimeoutHandler > >( 11, new TimeoutHandler.Comparator() );
+		new PriorityQueue<>( 11, new TimeoutHandler.Comparator() );
 	
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
 
@@ -633,8 +629,8 @@ public class Interpreter
 		}
 		timer.cancel();
 		checkForExpiredTimeoutHandlers();
-		nativeExecutorService.shutdown();
 		processExecutorService.shutdown();
+		nativeExecutorService.shutdown();
 		commCore.shutdown();
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
@@ -957,7 +953,7 @@ public class Interpreter
 	
 	private InitSessionThread initExecutionThread;
 	private SessionThread mainSession = null;
-	private final Queue< SessionThread > waitingSessionThreads = new LinkedList< SessionThread >();
+	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
@@ -1113,8 +1109,12 @@ public class Interpreter
 		runCode();
 	}
 
-	private final ExecutorService nativeExecutorService = Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
-	private final ExecutorService processExecutorService = Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
+	private final ExecutorService nativeExecutorService =
+		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService processExecutorService =
+		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
+		// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
@@ -1123,6 +1123,11 @@ public class Interpreter
 	public void execute( Runnable r )
 	{
 		nativeExecutorService.execute( r );
+	}
+	
+	public Executor taskExecutor()
+	{
+		return nativeExecutorService;
 	}
 	
 	public Future<?> runJolieThread( Runnable task )
@@ -1173,14 +1178,14 @@ public class Interpreter
 		inputOperations.clear();
 		locksMap.clear();
 		initExecutionThread = null;
-		sessionStarters = new HashMap< String, SessionStarter>();
+		sessionStarters = new HashMap<>();
 		outputPorts.clear();
 		correlationSets.clear();
 		globalValue.erase();
 		embeddedServiceLoaders.clear();
 		classLoader = null;
 		commCore = null;
-		System.gc();
+		// System.gc();
 	}
 	
 	/**
@@ -1194,38 +1199,34 @@ public class Interpreter
 	
 	private boolean buildOOIT()
 		throws InterpreterException
-	{
-        
+	{        
 		try {
-            
-			Program program = null;
+			Program program;
 			if ( cmdParser.isProgramCompiled() ) {
-				ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
-				Object o = istream.readObject();
+				final ObjectInputStream istream = new ObjectInputStream( cmdParser.programStream() );
+				final Object o = istream.readObject();
 				if ( o instanceof Program ) {
 					program = (Program)o;
 				} else {
 					throw new InterpreterException( "Input compiled program is not a JOLIE program" );
 				}
-			}
-			else {
+			} else {
 				if ( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 				} else {
-					OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
 
 					olParser.putConstants( cmdParser.definedConstants() );
 					program = olParser.parse();
 				}
-				OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
-				program = optimizer.optimize();
+				program = OLParseTreeOptimizer.optimize( program );
 			}
 			
 			cmdParser.close();
 
 			check = cmdParser.check();
 
-			SemanticVerifier semanticVerifier = null;
+			final SemanticVerifier semanticVerifier;
 
 			if ( check ) {
 				SemanticVerifier.Configuration conf = new SemanticVerifier.Configuration();
@@ -1253,7 +1254,7 @@ public class Interpreter
 				}
 			}
 
-			if ( cmdParser.check() ) {
+			if ( check ) {
 				return false;
 			} else {
 				return (new OOITBuilder(
@@ -1264,11 +1265,7 @@ public class Interpreter
 					.build();
 			}
 
-		} catch( IOException e ) {
-			throw new InterpreterException( e );
-		} catch( ParserException e ) {
-			throw new InterpreterException( e );
-		} catch( ClassNotFoundException e ) {
+		} catch( IOException | ParserException | ClassNotFoundException e ) {
 			throw new InterpreterException( e );
 		} finally {
 			cmdParser = null; // Free memory
@@ -1393,8 +1390,7 @@ public class Interpreter
 		}
 	}
 	
-	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories =
-		new ConcurrentHashMap< String, EmbeddedServiceLoaderFactory > ();
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<> ();
 	
 	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
 		throws IOException

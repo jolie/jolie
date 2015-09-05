@@ -30,8 +30,9 @@ import java.util.Collection;
  */
 public class ArrayListMultiMap< K, V > extends MultiMap< K, V >
 {
+	@Override
 	protected Collection< V > createCollection()
 	{
-		return new ArrayList< V >();
+		return new ArrayList<>();
 	}
 }

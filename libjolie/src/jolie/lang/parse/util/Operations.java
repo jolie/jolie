@@ -39,7 +39,7 @@ public class Operations
 	) {
 		TypeDefinition newRequestType = operation.requestType();
 		TypeDefinition newResponseType = operation.responseType();
-		Map<String, TypeDefinition> extendedFaultMap = new HashMap<String, TypeDefinition>();
+		Map<String, TypeDefinition> extendedFaultMap = new HashMap<>();
 		extendedFaultMap.putAll( operation.faults() );
 		if ( extender != null ) {
 			newRequestType = TypeDefinition.extend( operation.requestType(), extender.requestType(), namePrefix );

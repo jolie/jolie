@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2012 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -29,17 +29,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -77,7 +78,6 @@ import org.xml.sax.SAXException;
 @AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
 public class FileService extends JavaService
 {
-
 	private final static Pattern fileKeywordPattern = Pattern.compile( "(#+)file\\s+(.*)" );
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -94,8 +94,9 @@ public class FileService extends JavaService
 	{
 		System.out.println("convertFromBinaryToBase64Value@FileService()() became rawToBase64@Converter()()");
 		byte[] buffer = value.byteArrayValue().getBytes();
-		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		return encoder.encode( buffer );
+		
+		Base64.Encoder encoder = Base64.getEncoder();
+		return encoder.encodeToString( buffer );
 	}
 
 	@RequestResponse
@@ -103,16 +104,10 @@ public class FileService extends JavaService
 		throws FaultException
 	{
 		System.out.println("convertFromBase64ToBinaryValue@FileService()() became base64ToRaw@Converter()()");
-		ByteArray returnValue = null;
-		try {
-			String stringValue = value.strValue();
-			sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
-			byte[] supportArray = decoder.decodeBuffer( stringValue );
-			returnValue = new ByteArray( supportArray );
-			return returnValue;
-		} catch( IOException ex ) {
-			throw new FaultException( "IOException", ex );
-		}
+		String stringValue = value.strValue();
+		Base64.Decoder decoder = Base64.getDecoder();
+		byte[] supportArray = decoder.decode( stringValue );
+		return new ByteArray( supportArray );
 	}
 
 	@RequestResponse
@@ -131,8 +126,8 @@ public class FileService extends JavaService
 	{
 		byte[] buffer = new byte[ (int) size ];
 		istream.read( buffer );
-		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		value.setValue( encoder.encode( buffer ) );
+		Base64.Encoder encoder = Base64.getEncoder();
+		value.setValue( encoder.encodeToString( buffer ) );
 	}
 
 	private static void readBinaryIntoValue( InputStream istream, long size, Value value )
@@ -168,9 +163,7 @@ public class FileService extends JavaService
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.documentToValue( doc, value );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -187,9 +180,7 @@ public class FileService extends JavaService
 			Document doc = builder.parse( src );
 			value = value.getFirstChild( doc.getDocumentElement().getNodeName() );
 			jolie.xml.XmlUtils.storageDocumentToValue( doc, value );
-		} catch( ParserConfigurationException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( ParserConfigurationException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -218,7 +209,7 @@ public class FileService extends JavaService
 		} else {
 			properties.load( new InputStreamReader( istream, charset ) );
 		}
-		Enumeration< String> names = (Enumeration< String>) properties.propertyNames();
+		Enumeration< String > names = (Enumeration< String >) properties.propertyNames();
 		String name;
 		String propertyValue;
 		Matcher matcher;
@@ -261,16 +252,16 @@ public class FileService extends JavaService
 				__copyDir( fileSrc, fileDest );
 			}
 		} else {
-			// copy files
-			FileInputStream inStream = new FileInputStream( src );
-			FileOutputStream outStream = new FileOutputStream( dest );
-			byte[] buffer = new byte[ 4096 ];
-			int length;
-			while( (length = inStream.read( buffer )) > 0 ) {
-				outStream.write( buffer, 0, length );
+			try ( // copy files
+				FileInputStream inStream = new FileInputStream( src );
+				FileOutputStream outStream = new FileOutputStream( dest );
+			) {
+				byte[] buffer = new byte[ 4096 ];
+				int length;
+				while( (length = inStream.read( buffer )) > 0 ) {
+					outStream.write( buffer, 0, length );
+				}
 			}
-			inStream.close();
-			outStream.close();
 		}
 	}
 
@@ -307,7 +298,7 @@ public class FileService extends JavaService
 			charset = Charset.forName( formatValue.getFirstChild( "charset" ).strValue() );
 		}
 
-		File file = new File( filenameValue.strValue() );
+		final File file = new File( filenameValue.strValue() );
 		InputStream istream = null;
 		long size;
 		try {
@@ -333,29 +324,40 @@ public class FileService extends JavaService
 				}
 			}
 
-			istream = new BufferedInputStream( istream );
+			// istream = new BufferedInputStream( istream );
 
 			try {
-				if ( "base64".equals( format ) ) {
-					readBase64IntoValue( istream, size, retValue );
-				} else if ( "binary".equals( format ) ) {
-					readBinaryIntoValue( istream, size, retValue );
-				} else if ( "xml".equals( format ) ) {
-					readXMLIntoValue( istream, retValue, charset );
-				} else if ( "xml_store".equals( format ) ) {
-					readXMLIntoValueForStoring( istream, retValue, charset );
-				} else if ( "properties".equals( format ) ) {
-					readPropertiesFile( istream, retValue, charset );
-				} else if ( "json".equals( format ) ) {
-					boolean strictEncoding = false;
-					if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
-						if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
-							strictEncoding = true;
-						}
-					}
-					readJsonIntoValue( istream, retValue, charset, strictEncoding );
-				} else {
-					readTextIntoValue( istream, size, retValue, charset );
+				switch( format ) {
+					case "base64":
+						readBase64IntoValue( istream, size, retValue );
+						break;
+					case "binary":
+						readBinaryIntoValue( istream, size, retValue );
+						break;
+					case "xml":
+						istream = new BufferedInputStream( istream );
+						readXMLIntoValue( istream, retValue, charset );
+						break;
+					case "xml_store":
+						istream = new BufferedInputStream( istream );
+						readXMLIntoValueForStoring( istream, retValue, charset );
+						break;
+					case "properties":
+						istream = new BufferedInputStream( istream );
+						readPropertiesFile( istream, retValue, charset );
+						break;
+					case "json":
+						istream = new BufferedInputStream( istream );
+						boolean strictEncoding = false;
+						if ( request.getFirstChild( "format" ).hasChildren( "json_encoding" ) ) {
+							if ( request.getFirstChild( "format" ).getFirstChild( "json_encoding" ).strValue().equals( "strict" ) ) {
+								strictEncoding = true;
+							}
+						}	readJsonIntoValue( istream, retValue, charset, strictEncoding );
+						break;
+					default:
+						readTextIntoValue( istream, size, retValue, charset );
+						break;
 				}
 			} finally {
 				istream.close();
@@ -471,10 +473,10 @@ public class FileService extends JavaService
 				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
 			}
 
-			Writer writer = new FileWriter( file, append );
-			StreamResult result = new StreamResult( writer );
-			transformer.transform( new DOMSource( doc ), result );
-			writer.close();
+			try( Writer writer = new FileWriter( file, append ) ) {
+				StreamResult result = new StreamResult( writer );
+				transformer.transform( new DOMSource( doc ), result );
+			}
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
@@ -506,10 +508,10 @@ public class FileService extends JavaService
 			if ( encoding != null ) {
 				transformer.setOutputProperty( OutputKeys.ENCODING, encoding );
 			}
-			Writer writer = new FileWriter( file, false );
-			StreamResult result = new StreamResult( writer );
-			transformer.transform( new DOMSource( doc ), result );
-			writer.close();
+			try( Writer writer = new FileWriter( file, false ) ) {
+				StreamResult result = new StreamResult( writer );
+				transformer.transform( new DOMSource( doc ), result );
+			}
 		} catch( ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( TransformerConfigurationException e ) {
@@ -522,10 +524,10 @@ public class FileService extends JavaService
 	private static void writeBinary( File file, Value value, boolean append )
 		throws IOException
 	{
-		FileOutputStream os = new FileOutputStream( file, append );
-		os.write( value.byteArrayValue().getBytes() );
-		os.flush();
-		os.close();
+		try( FileOutputStream os = new FileOutputStream( file, append ) ) {
+			os.write( value.byteArrayValue().getBytes() );
+			os.flush();
+		}
 	}
 
 	private static void writeText( File file, Value value, boolean append, String encoding )
@@ -668,9 +670,8 @@ public class FileService extends JavaService
 	@RequestResponse
 	public Value list( Value request )
 	{
-		String [] files = new String[]{};
-		File dir = new File( request.getFirstChild( "directory" ).strValue() );
-		String regex;
+		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
+		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
 			regex = request.getFirstChild( "regex" ).strValue();
 		} else {
@@ -684,7 +685,7 @@ public class FileService extends JavaService
 			dirsOnly = false;
 		}
 
-		files = dir.list( new ListFilter( regex, dirsOnly ) );
+		final String[] files = dir.list( new ListFilter( regex, dirsOnly ) );
 		
 		if ( request.hasChildren( "order" ) ) {
 			Value order = request.getFirstChild( "order" );
@@ -718,16 +719,15 @@ public class FileService extends JavaService
 	{
 		if ( file.isDirectory() ) {
 			String[] children = file.list();
-			for( int i = 0; i < children.length; i++ ) {
-				__deleteDir( new File( file, children[ i ] ) );
+			for( String children1 : children ) {
+				__deleteDir( new File( file, children1 ) );
 			}
-		};
+		}
 		return file.delete();
 	}
 
 	private static class ListFilter implements FilenameFilter
 	{
-
 		private final Pattern pattern;
 		private final boolean dirsOnly;
 
@@ -737,6 +737,7 @@ public class FileService extends JavaService
 			this.dirsOnly = dirsOnly;
 		}
 
+		@Override
 		public boolean accept( File directory, String filename )
 		{
 			File file = new File( directory.getAbsolutePath() + File.separator + filename );

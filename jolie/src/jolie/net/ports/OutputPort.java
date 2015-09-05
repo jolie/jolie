@@ -148,7 +148,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
 			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
 
-		List< Process > children = new LinkedList< Process >();
+		List< Process > children = new LinkedList<>();
 		children.add( a );
 		if ( protocolId != null ) {
 			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
@@ -176,6 +176,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		);
 	}
 
+	@Override
 	public Interface getInterface()
 	{
 		return iface;
@@ -188,6 +189,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		}
 	}
 
+	@Override
 	public VariablePath protocolConfigurationPath()
 	{
 		return protocolVariablePath;
@@ -249,7 +251,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		private static final URI uri = URI.create( "local" );
 	}
 
-	private static final Map< String, URI > uriCache = new WeakHashMap< String, URI > ();
+	private static final Map< String, URI > uriCache = new WeakHashMap<>();
 
 	/**
 	 * Returns the resource path of the location of this output port.

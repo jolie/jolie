@@ -50,10 +50,8 @@ import jolie.util.Pair;
  */
 public class NDChoiceProcess implements Process
 {
-	private Map< String, Pair< InputOperationProcess, Process > > branches =
-		new HashMap< String, Pair< InputOperationProcess, Process > >();
-	private Map< String, InputOperation > inputOperationsMap =
-		new HashMap< String, InputOperation >();
+	private Map< String, Pair< InputOperationProcess, Process > > branches = new HashMap<>();
+	private Map< String, InputOperation > inputOperationsMap = new HashMap<>();
 	
 	/** Constructor
 	 * @param branches
@@ -106,11 +104,7 @@ public class NDChoiceProcess implements Process
 			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
 			branch.key().receiveMessage( m, ethread.state() ).run();
 			branch.value().run();
-		} catch( CancellationException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( ExecutionException e ) {
-			Interpreter.getInstance().logSevere( e );
-		} catch( InterruptedException e ) {
+		} catch( CancellationException | ExecutionException | InterruptedException e ) {
 			Interpreter.getInstance().logSevere( e );
 		}
 	}

@@ -246,7 +246,7 @@ public class HttpParser
 	private static byte[] readAll( InputStream stream )
 		throws IOException
 	{
-		int r = -1;
+		int r;
 		ByteArrayOutputStream c = new ByteArrayOutputStream();
 		byte[] tmp = new byte[ BLOCK_SIZE ];
 		while( (r=stream.read( tmp, 0, BLOCK_SIZE )) != -1 ) {

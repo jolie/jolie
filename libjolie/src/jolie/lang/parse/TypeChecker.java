@@ -79,7 +79,7 @@ public class TypeChecker implements OLVisitor
 			neededVarPaths = new VariablePathSet();
 			providedVarPaths = new VariablePathSet();
 			invalidatedVarPaths = new VariablePathSet();
-			sessionOperations = new HashSet< String >();
+			sessionOperations = new HashSet<>();
 		}
 
 		public void registerOperationInput( String operation, boolean isStartingOperation )
@@ -185,7 +185,7 @@ public class TypeChecker implements OLVisitor
 
 		public void removeUnsharedProvided( TypingResult other )
 		{
-			List< VariablePathNode > toBeRemoved = new LinkedList< VariablePathNode >();
+			List< VariablePathNode > toBeRemoved = new LinkedList<>();
 			for( VariablePathNode path : providedVarPaths ) {
 				if ( !other.providedVarPaths.contains( path ) ) {
 					toBeRemoved.add( path );
@@ -206,7 +206,7 @@ public class TypeChecker implements OLVisitor
 	private TypingResult entryTyping;
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	private boolean valid = true;
-	private final Map< String, TypingResult > definitionTyping = new HashMap< String, TypingResult >();
+	private final Map< String, TypingResult > definitionTyping = new HashMap<>();
 	private boolean sessionStarter = false;
 
 	public TypeChecker( Program program, ExecutionMode executionMode, CorrelationFunctionInfo correlationFunctionInfo )
@@ -268,7 +268,7 @@ public class TypeChecker implements OLVisitor
 			isCorrelationSetFresh = false;
 			for( CorrelationVariableInfo cvar : cset.variables() ) {
 				path = new VariablePathNode( cvar.correlationVariablePath().context(), VariablePathNode.Type.CSET );
-				path.path().add( new Pair< OLSyntaxNode, OLSyntaxNode >(
+				path.path().add( new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );
@@ -331,6 +331,7 @@ public class TypeChecker implements OLVisitor
 		return ret;
 	}
 
+	@Override
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -338,21 +339,27 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( OneWayOperationDeclaration decl )
 	{}
 
+	@Override
 	public void visit( RequestResponseOperationDeclaration decl )
 	{}
 
+	@Override
 	public void visit( DefinitionNode n )
 	{
 		insideInit = false;
 		TypingResult entry = null;
-		if ( n.id().equals( "main" ) ) {
-			sessionStarter = true;
-			entry = definitionTyping.get( "init" );
-		} else if ( n.id().equals( "init" ) ) {
-			insideInit = true;
+		switch( n.id() ) {
+			case "main":
+				sessionStarter = true;
+				entry = definitionTyping.get( "init" );
+				break;
+			case "init":
+				insideInit = true;
+				break;
 		}
 		if ( entry == null ) {
 			entry = new TypingResult();
@@ -366,6 +373,7 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( ParallelStatement n )
 	{
 		if ( n.children().isEmpty() ) {
@@ -390,6 +398,7 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( SequenceStatement n )
 	{
 		if ( n.children().isEmpty() ) {
@@ -431,13 +440,14 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( NDChoiceStatement n )
 	{
 		if ( n.children().isEmpty() ) {
 			return;
 		}
 
-		List< TypingResult > branchTypings = new LinkedList< TypingResult >();
+		List< TypingResult > branchTypings = new LinkedList<>();
 
 		boolean origSessionStarter = sessionStarter;
 
@@ -489,6 +499,7 @@ public class TypeChecker implements OLVisitor
 		sessionStarter = false;
 	}
 
+	@Override
 	public void visit( OneWayOperationStatement n )
 	{
 		if ( executionMode == ExecutionMode.SINGLE ) {
@@ -510,7 +521,7 @@ public class TypeChecker implements OLVisitor
 		if ( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add( new Pair< OLSyntaxNode, OLSyntaxNode >(
+				path.path().add(new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );
@@ -526,6 +537,7 @@ public class TypeChecker implements OLVisitor
 		sessionStarter = false;
 	}
 
+	@Override
 	public void visit( RequestResponseOperationStatement n )
 	{
 		if ( executionMode == ExecutionMode.SINGLE ) {
@@ -548,7 +560,7 @@ public class TypeChecker implements OLVisitor
 		if ( cset != null ) {
 			for( CorrelationSetInfo.CorrelationVariableInfo cvar : cset.variables() ) {
 				VariablePathNode path = new VariablePathNode( cset.context(), VariablePathNode.Type.CSET );
-				path.path().add( new Pair< OLSyntaxNode, OLSyntaxNode >(
+				path.path().add(new Pair<>(
 					new ConstantStringExpression( cset.context(), Constants.CSETS ),
 					new ConstantIntegerExpression( cset.context(), 0 )
 				) );
@@ -569,9 +581,11 @@ public class TypeChecker implements OLVisitor
 		typingResult.registerOperations( internalProcessTyping );
 	}
 
+	@Override
 	public void visit( NotificationOperationStatement n )
 	{}
 
+	@Override
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) {
@@ -579,15 +593,19 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( FreshValueExpressionNode n )
 	{}
 
+	@Override
 	public void visit( LinkInStatement n )
 	{}
 
+	@Override
 	public void visit( LinkOutStatement n )
 	{}
 
+	@Override
 	public void visit( AssignStatement n )
 	{
 		if ( n.variablePath().isStatic() ) {
@@ -624,18 +642,23 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( AddAssignStatement n )
 	{}
 
+	@Override
 	public void visit( SubtractAssignStatement n )
 	{}
 
+	@Override
 	public void visit( MultiplyAssignStatement n )
 	{}
 
+	@Override
 	public void visit( DivideAssignStatement n )
 	{}
 
+	@Override
 	public void visit( IfStatement n )
 	{
 		if ( n.children().isEmpty() ) {
@@ -682,9 +705,11 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( InstanceOfExpressionNode n )
 	{}
 
+	@Override
 	public void visit( DefinitionCallStatement n )
 	{
 		typingResult = definitionTyping.get( n.id() );
@@ -694,9 +719,11 @@ public class TypeChecker implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( InlineTreeExpressionNode n )
 	{}
 
+	@Override
 	public void visit( WhileStatement n )
 	{
 		typingResult = check( n.body(), entryTyping );
@@ -706,82 +733,106 @@ public class TypeChecker implements OLVisitor
 		typingResult.providedVarPaths.clear();
 	}
 
+	@Override
 	public void visit( OrConditionNode n )
 	{}
 
+	@Override
 	public void visit( AndConditionNode n )
 	{}
 
+	@Override
 	public void visit( NotExpressionNode n )
 	{}
 
+	@Override
 	public void visit( CompareConditionNode n )
 	{}
 
+	@Override
 	public void visit( ConstantIntegerExpression n )
 	{}
 	
+	@Override
 	public void visit( ConstantLongExpression n )
 	{}
 	
+	@Override
 	public void visit( ConstantBoolExpression n )
 	{}
 
+	@Override
 	public void visit( ConstantDoubleExpression n )
 	{}
 
+	@Override
 	public void visit( ConstantStringExpression n )
 	{}
 
+	@Override
 	public void visit( ProductExpressionNode n )
 	{}
 
+	@Override
 	public void visit( SumExpressionNode n )
 	{}
 
+	@Override
 	public void visit( VariableExpressionNode n )
 	{}
 
+	@Override
 	public void visit( NullProcessStatement n )
 	{}
 
+	@Override
 	public void visit( Scope n )
 	{
 		typingResult = check( n.body(), entryTyping );
 	}
 
+	@Override
 	public void visit( InstallStatement n )
 	{ // TODO check code inside install
 
 	}
 
+	@Override
 	public void visit( CompensateStatement n )
 	{}
 
+	@Override
 	public void visit( ThrowStatement n )
 	{}
 
+	@Override
 	public void visit( ExitStatement n )
 	{}
 
+	@Override
 	public void visit( ExecutionInfo n )
 	{}
 
+	@Override
 	public void visit( CorrelationSetInfo n )
 	{}
 
+	@Override
 	public void visit( InputPortInfo n )
 	{}
 
+	@Override
 	public void visit( OutputPortInfo n )
 	{}
 
+	@Override
 	public void visit( PointerStatement n )
 	{
 		typingResult.invalidate( n.rightPath() );
 		typingResult.invalidate( n.leftPath() );
 	}
 
+	@Override
 	public void visit( DeepCopyStatement n )
 	{
 		if ( n.rightExpression() instanceof VariableExpressionNode ) {
@@ -791,29 +842,37 @@ public class TypeChecker implements OLVisitor
 		typingResult.invalidate( n.leftPath() );
 	}
 
+	@Override
 	public void visit( RunStatement n )
 	{}
 
+	@Override
 	public void visit( UndefStatement n )
 	{
 		typingResult.invalidate( n.variablePath() );
 	}
 
+	@Override
 	public void visit( ValueVectorSizeExpressionNode n )
 	{}
 
+	@Override
 	public void visit( PreIncrementStatement n )
 	{}
 
+	@Override
 	public void visit( PostIncrementStatement n )
 	{}
 
+	@Override
 	public void visit( PreDecrementStatement n )
 	{}
 
+	@Override
 	public void visit( PostDecrementStatement n )
 	{}
 
+	@Override
 	public void visit( ForStatement n )
 	{
 		typingResult = check( n.body(), entryTyping );
@@ -823,6 +882,7 @@ public class TypeChecker implements OLVisitor
 		typingResult.providedVarPaths.clear();
 	}
 
+	@Override
 	public void visit( ForEachStatement n )
 	{
 		typingResult = check( n.body(), entryTyping );
@@ -832,52 +892,71 @@ public class TypeChecker implements OLVisitor
 		typingResult.providedVarPaths.clear();
 	}
 
+	@Override
 	public void visit( SpawnStatement n )
 	{}
 
+	@Override
 	public void visit( IsTypeExpressionNode n )
 	{}
 
+	@Override
 	public void visit( TypeCastExpressionNode n )
 	{}
 
+	@Override
 	public void visit( SynchronizedStatement n )
 	{
 		typingResult = check( n.body(), entryTyping );
 	}
 
+	@Override
 	public void visit( CurrentHandlerStatement n )
 	{}
 
+	@Override
 	public void visit( EmbeddedServiceNode n )
 	{}
 
+	@Override
 	public void visit( InstallFixedVariableExpressionNode n )
 	{}
 
+	@Override
 	public void visit( VariablePathNode n )
 	{}
 
+	@Override
 	public void visit( TypeInlineDefinition n )
 	{}
 
+	@Override
 	public void visit( TypeDefinitionLink n )
 	{}
 
+	@Override
 	public void visit( InterfaceDefinition n )
 	{}
 
+	@Override
 	public void visit( DocumentationComment n )
 	{}
 	
+	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
+	@Override
 	public void visit( CourierDefinitionNode n ) {}
+	@Override
 	public void visit( CourierChoiceStatement n ) {}
+	@Override
 	public void visit( NotificationForwardStatement n ) {}
+	@Override
 	public void visit( SolicitResponseForwardStatement n ) {}
 	
+	@Override
 	public void visit( VoidExpressionNode n ) {}
 	
+	@Override
 	public void visit( ProvideUntilStatement n )
 	{
 		n.provide().accept( this );

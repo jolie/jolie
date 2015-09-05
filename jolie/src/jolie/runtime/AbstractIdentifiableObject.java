@@ -42,6 +42,7 @@ abstract public class AbstractIdentifiableObject
 	}
 	
 	/** Returns this object identifier.
+	 * @return the identifier of this object
 	 */
 	public final String id()
 	{

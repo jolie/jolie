@@ -40,6 +40,7 @@ public class LinkOutStatement extends OLSyntaxNode
 		return id;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

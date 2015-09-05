@@ -61,14 +61,16 @@ public class ProgramInspectorImpl implements ProgramInspector
                 this.embeddedServices = embeddedServices;
 	}
 
+	@Override
 	public URI[] getSources()
 	{
 		return sources;
 	}
 
+	@Override
 	public TypeDefinition[] getTypes()
 	{
-		List< TypeDefinition > result = new ArrayList< TypeDefinition >();
+		List< TypeDefinition > result = new ArrayList<>();
 		List< TypeDefinition > list;
 		for( URI source : sources ) {
 			list = types.get( source );
@@ -79,6 +81,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return result.toArray( new TypeDefinition[ 0 ] );
 	}
 
+	@Override
 	public TypeDefinition[] getTypes( URI source )
 	{
 		List< TypeDefinition > list = types.get( source );
@@ -88,9 +91,10 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return list.toArray( new TypeDefinition[ 0 ] );
 	}
 
+	@Override
 	public InterfaceDefinition[] getInterfaces()
 	{
-		List< InterfaceDefinition > result = new ArrayList< InterfaceDefinition >();
+		List< InterfaceDefinition > result = new ArrayList<>();
 		List< InterfaceDefinition > list;
 		for( URI source : sources ) {
 			list = interfaces.get( source );
@@ -101,6 +105,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return result.toArray( new InterfaceDefinition[ 0 ] );
 	}
 
+	@Override
 	public InterfaceDefinition[] getInterfaces( URI source )
 	{
 		List< InterfaceDefinition > list = interfaces.get( source );
@@ -110,9 +115,10 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return list.toArray( new InterfaceDefinition[ 0 ] );
 	}
 
+	@Override
 	public InputPortInfo[] getInputPorts()
 	{
-		List< InputPortInfo > result = new ArrayList< InputPortInfo >();
+		List< InputPortInfo > result = new ArrayList<>();
 		List< InputPortInfo > list;
 		for( URI source : sources ) {
 			list = inputPorts.get( source );
@@ -123,6 +129,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return result.toArray( new InputPortInfo[ 0 ] );
 	}
 
+	@Override
 	public InputPortInfo[] getInputPorts( URI source )
 	{
 		List< InputPortInfo > list = inputPorts.get( source );
@@ -132,9 +139,10 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return list.toArray( new InputPortInfo[ 0 ] );
 	}
 
+	@Override
 	public OutputPortInfo[] getOutputPorts()
 	{
-		List< OutputPortInfo > result = new ArrayList< OutputPortInfo >();
+		List< OutputPortInfo > result = new ArrayList<>();
 		List< OutputPortInfo > list;
 		for( URI source : sources ) {
 			list = outputPorts.get( source );
@@ -145,6 +153,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return result.toArray( new OutputPortInfo[ 0 ] );
 	}
 
+	@Override
 	public OutputPortInfo[] getOutputPorts( URI source )
 	{
 		List< OutputPortInfo > list = outputPorts.get( source );
@@ -154,9 +163,10 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return list.toArray( new OutputPortInfo[ 0 ] );
 	}
 
+	@Override
 	public EmbeddedServiceNode[] getEmbeddedServices()
 	{
-		List< EmbeddedServiceNode > result = new ArrayList< EmbeddedServiceNode>();
+		List< EmbeddedServiceNode > result = new ArrayList< >();
 		List< EmbeddedServiceNode > list;
 		for( URI source : sources ) {
 			list = embeddedServices.get( source );
@@ -167,6 +177,7 @@ public class ProgramInspectorImpl implements ProgramInspector
 		return result.toArray( new EmbeddedServiceNode[ 0 ] );
 	}
 
+	@Override
 	public EmbeddedServiceNode[] getEmbeddedServices( URI source )
 	{
 		List< EmbeddedServiceNode > list = embeddedServices.get( source );

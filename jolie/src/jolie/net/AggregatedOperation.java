@@ -30,16 +30,15 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
-import jolie.net.ports.Interface;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
-import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.SequentialProcess;
+import jolie.runtime.FaultException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 
@@ -65,15 +64,17 @@ public abstract class AggregatedOperation
 			this.courierProcess = courierProcess;
 		}
 		
+		@Override
 		public OperationType type()
 		{
 			return OperationType.ONE_WAY;
 		}
 		
+		@Override
 		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = Interpreter.getInstance();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
@@ -94,9 +95,11 @@ public abstract class AggregatedOperation
 				final FaultException[] f = new FaultException[1];
 				f[0] = null;
 				t.addSessionListener( new SessionListener() {
+					@Override
 					public void onSessionExecuted( SessionThread session )
 					{}
 
+					@Override
 					public void onSessionError( SessionThread session, FaultException fault )
 					{
 						// We need to send the acknowledgement
@@ -140,6 +143,7 @@ public abstract class AggregatedOperation
 			}
 		}
 		
+		@Override
 		public OperationTypeDescription getOperationTypeDescription()
 		{
 			return operation.getOneWayTypeDescription();
@@ -165,15 +169,17 @@ public abstract class AggregatedOperation
 			this.courierProcess = courierProcess;
 		}
 		
+		@Override
 		public OperationType type()
 		{
 			return OperationType.REQUEST_RESPONSE;
 		}
 		
+		@Override
 		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = Interpreter.getInstance();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
@@ -200,6 +206,7 @@ public abstract class AggregatedOperation
 			}
 		}
 
+		@Override
 		public OperationTypeDescription getOperationTypeDescription()
 		{
 			return operation.typeDescription();
@@ -219,11 +226,13 @@ public abstract class AggregatedOperation
                         this.name = name;
 		}
 		
+		@Override
 		public OperationType type()
 		{
 			return type;
 		}
 		
+		@Override
 		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
@@ -248,6 +257,7 @@ public abstract class AggregatedOperation
 			//}
 		}
 
+		@Override
 		public OperationTypeDescription getOperationTypeDescription()
 		{
 			if ( type == OperationType.ONE_WAY ) {

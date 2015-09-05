@@ -53,6 +53,7 @@ public class InlineTreeExpressionNode extends OLSyntaxNode
 		return assignments;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
