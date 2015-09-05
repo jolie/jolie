@@ -298,6 +298,11 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 
 	@Override
 	public void visit(TypeChoiceDefinition n) {
-		//todo
+		for (TypeDefinition type: n.both()){
+			if (type instanceof TypeInlineDefinition)
+				visit((TypeInlineDefinition) type);
+			else if (type instanceof TypeDefinitionLink)
+				visit((TypeDefinitionLink)type);
+		}
 	}
 }

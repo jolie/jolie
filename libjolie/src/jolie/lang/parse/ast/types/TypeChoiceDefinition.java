@@ -5,31 +5,24 @@ import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Range;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TypeChoiceDefinition extends TypeDefinition {
-    private final TypeDefinition T1;
-    private TypeDefinition T2;
-    //private Map< String, TypeDefinition > subTypes = null;
-    //private boolean untypedSubTypes = false;
-    private Range t2Cardinality;
+    private final TypeDefinition left;
+    private final TypeDefinition right;
 
-    public TypeChoiceDefinition(ParsingContext context, String id, Range cardinality, TypeDefinition T1)
+    public TypeChoiceDefinition(ParsingContext context, String id, Range cardinality, TypeDefinition left, TypeDefinition right)
     {
         super(context, id, cardinality );
-        this.T1 = T1;
+        this.left = left;
+        this.right = right;
     }
 
-    public TypeChoiceDefinition setT2(TypeDefinition T2, Range cardinality) {
-        this.T2 = T2;
-        this.t2Cardinality = cardinality;
+    /*public TypeChoiceDefinition setRight(TypeDefinition right, Range cardinality) {
+        this.right = right;
+        Range t2Cardinality = cardinality;
         return this;
-    }
-
-    public Range getT2Cardinality(){
-        return T2.cardinality();
-    }
+    }*/
 
     @Override
     public void accept(OLVisitor visitor) {
@@ -38,34 +31,25 @@ public class TypeChoiceDefinition extends TypeDefinition {
 
     @Override
     public TypeDefinition getSubType(String id) {
-        return T1.getSubType(id);
+        return left.getSubType(id);
     }
-
 
     @Override
     public Set<Map.Entry<String, TypeDefinition>> subTypes() {
-        return T1.subTypes();
-    }
-
-    public Set<Map.Entry<String, TypeDefinition>> t2SubTypes() {
-        return T2.subTypes();
+        return left.subTypes();
     }
 
     @Override
     public boolean hasSubTypes() {
-        if (T1!=null) {
-            return T1.hasSubTypes();
+        if (left !=null) {
+            return left.hasSubTypes();
         }
         else return false;
     }
 
     @Override
     public boolean untypedSubTypes() {
-        return T1.untypedSubTypes();
-    }
-
-    public boolean t2UntypedSubTypes() {
-        return T2.untypedSubTypes();
+        return left.untypedSubTypes();
     }
 
     @Override
@@ -73,24 +57,20 @@ public class TypeChoiceDefinition extends TypeDefinition {
         return  null;
     }
 
-    public NativeType t1NativeType() {
-        return T1.nativeType();
-    }
-
-    public NativeType t2NativeType() {
-        return T2.nativeType();
-    }
-
     @Override
     public boolean hasSubType(String id) {
-        return T1.hasSubType(id);
+        return left.hasSubType(id);
     }
 
-    public TypeDefinition getT1(){
-        return T1;
+    public TypeDefinition left(){
+        return left;
     }
 
-    public TypeDefinition getT2(){
-        return T2;
+    public TypeDefinition right(){
+        return right;
+    }
+
+    public ArrayList<TypeDefinition> both(){
+        return new ArrayList<TypeDefinition>() {{add(left); add(right);}};
     }
 }

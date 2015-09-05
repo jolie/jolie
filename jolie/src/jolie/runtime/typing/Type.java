@@ -125,7 +125,7 @@ class TypeImpl extends Type
 			final int l = pathBuilder.length();
 			for( Entry< String, Type > entry : subTypes.entrySet() ) {
 				checkSubType( entry.getKey(), entry.getValue(), value, pathBuilder );
-				pathBuilder.setLength( l );
+				pathBuilder.setLength(l);
 			}
 			
 			// TODO make this more performant
@@ -137,21 +137,21 @@ class TypeImpl extends Type
 		}
 	}
 
-	private void checkSubType(String typeName, Type type, Value value, StringBuilder pathBuilder)
+	private void checkSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
 		boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && !(type instanceof TypePair)) {
+		if ( hasChildren == false && !(type instanceof TypeChoice)) {
 			if (type.cardinality().min() > 0){
 				throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
 			}
 		} else if ( hasChildren ) {
-			ValueVector vector = value.getChildren( typeName );
-			int size = vector.size();
-			if (!(type instanceof TypePair) && checkCardinality(type, size)) {
+			final ValueVector vector = value.getChildren( typeName );
+			final int size = vector.size();
+			if (!(type instanceof TypeChoice) && checkCardinality(type, size)) {
 				throw new TypeCheckingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
