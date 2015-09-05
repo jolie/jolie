@@ -208,16 +208,6 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-    private void resolveChoiceLazyLinks()
-    {
-        for( TypeDefinitionLink l : definedTypeLinks ) {
-            l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
-            if ( l.linkedType() == null ) {
-                error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
-            }
-        }
-    }
-
 	private void checkToBeEqualTypes()
 	{
 		for( Entry< TypeDefinition, List< TypeDefinition > > entry : typesToBeEqual.entrySet() ) {
@@ -367,18 +357,6 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	public void visit(TypeChoiceDefinition n) {
-		/*ArrayList<TypeDefinition> typ = new ArrayList<TypeDefinition>();
-        typ.add(n.getT1());
-        typ.add(n.getT2());
-
-        for (TypeDefinition t: typ) {
-            if (t instanceof TypeDefinitionLink) {
-                visit((TypeDefinitionLink) t);
-            } else if (t instanceof TypeInlineDefinition) {
-                visit((TypeInlineDefinition) t);
-            }
-        }*/
-
 		checkCardinality( n );
 		boolean backupRootType = isTopLevelType;
 		if ( isTopLevelType ) {
@@ -403,12 +381,12 @@ public class SemanticVerifier implements OLVisitor
 			definedTypes.put( n.id(), n );
 		}
 
-        if (n.getT1() instanceof TypeDefinitionLink){
-            definedTypeLinks.add((TypeDefinitionLink) n.getT1());
+        if (n.left() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.left());
         }
 
-        if (n.getT2() instanceof TypeDefinitionLink){
-            definedTypeLinks.add((TypeDefinitionLink) n.getT2());
+        if (n.right() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.right());
         }
 	}
 

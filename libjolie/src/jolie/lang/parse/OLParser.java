@@ -196,11 +196,9 @@ public class OLParser extends AbstractParser
 		}
 
 		if (token.is(Scanner.TokenType.PARALLEL)) {
-			TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType);
-
 			getToken();
 			TypeDefinition secondType = parseType(typeName);
-			choiceDefinition.setT2(secondType, secondType.cardinality());
+			TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType);
 			return choiceDefinition;
 		}
 
@@ -257,13 +255,10 @@ public class OLParser extends AbstractParser
 		}
 
 		if ( token.is( Scanner.TokenType.PARALLEL ) ) {
-			TypeChoiceDefinition choiceSubType = new TypeChoiceDefinition( getContext(), id, cardinality, subType);
 			getToken();
-			//String id2 = token.content();
-			TypeDefinition secondType = parseSubType(id, cardinality);
-			choiceSubType.setT2(secondType, secondType.cardinality());
+			TypeDefinition secondSubType = parseSubType(id, cardinality);
+			TypeChoiceDefinition choiceSubType = new TypeChoiceDefinition( getContext(), id, cardinality, subType, secondSubType);
 			return choiceSubType;
-			//getToken();
 		}
 		return subType;
 	}

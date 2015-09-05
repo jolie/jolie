@@ -63,7 +63,6 @@ import jolie.runtime.expression.Expression.Operand;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
-import jolie.runtime.typing.TypePair;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
@@ -1524,43 +1523,12 @@ public class OOITBuilder implements OLVisitor
 	}
 
 	@Override
-	public void visit(TypeChoiceDefinition n) {
-		Type currType1;
-		Type currType2;
-		boolean backupInsideType = false;
-		insideType = true;
-
-		if ( n.untypedSubTypes() ) {
-			currType1 = Type.create( n.t1NativeType(), n.cardinality(), true, null );
-		} else {
-			Map< String, Type > subTypes = new HashMap< String, Type >();
-			if ( n.subTypes() != null ) {
-				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
-					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
-				}
-			}
-			currType1 = Type.create( n.t1NativeType(), n.cardinality(), false, subTypes );
-		}
-
-		if ( n.t2UntypedSubTypes() ) {
-			currType2 = Type.create( n.t2NativeType(), n.cardinality(), true, null );
-		} else {
-			Map< String, Type > subTypes = new HashMap< String, Type >();
-			if ( n.t2SubTypes() != null ) {
-				for( Entry< String, TypeDefinition > entry : n.t2SubTypes() ) {
-					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
-				}
-			}
-			currType2 = Type.create( n.t2NativeType(), n.getT2Cardinality(), false, subTypes );
-		}
-
-		insideType = backupInsideType;
-
-		if ( insideType == false && insideOperationDeclaration == false ) {
-			TypePair typePair = new TypePair(currType1, currType2);
-
-			types.put( n.id(), typePair );
-			currType = typePair;
+	public void visit( TypeChoiceDefinition n ) {
+		for (TypeDefinition type: n.both()){
+			if (type instanceof TypeInlineDefinition)
+				visit((TypeInlineDefinition) type);
+			else if (type instanceof TypeDefinitionLink)
+				visit((TypeDefinitionLink)type);
 		}
 	}
 

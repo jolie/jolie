@@ -6,23 +6,20 @@ import jolie.util.Range;
 
 import java.util.Map;
 
-/**
- * Created by User on 01.08.2015.
- */
-public class TypePair extends Type {
-    public Type getT1() {
-        return t1;
+public class TypeChoice extends Type {
+    public Type left() {
+        return left;
     }
-    public Type getT2() {
-        return t2;
+    public Type right() {
+        return right;
     }
 
-    private final Type t1;
-    private final Type t2;
+    private final Type left;
+    private final Type right;
 
-    public TypePair(Type t1, Type t2) {
-        this.t2 = t2;
-        this.t1 = t1;
+    public TypeChoice(Type left, Type right) {
+        this.right = right;
+        this.left = left;
     }
 
     @Override
@@ -48,18 +45,18 @@ public class TypePair extends Type {
     @Override
     protected void check(Value value, StringBuilder pathBuilder) throws TypeCheckingException {
         Boolean isValid;
-        isValid = isCheck(this.getT1(), value, pathBuilder) || isCheck(this.getT2(), value, pathBuilder);
+        isValid = isCheck(this.left(), value, pathBuilder) || isCheck(this.right(), value, pathBuilder);
         if (!isValid){
-            throw new TypeCheckingException( "Invalid types for node " + pathBuilder.toString() + ": expected " + this.getT1().nativeType() + " or " +  this.getT2().nativeType() + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
+            throw new TypeCheckingException( "Invalid types for node " + pathBuilder.toString() + ": expected " + this.left().nativeType() + " or " +  this.right().nativeType() + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
         }
     }
 
     @Override
     protected Value cast(Value value, StringBuilder pathBuilder) throws TypeCastingException {
         Boolean isValid;
-        isValid = isCast(this.getT1(), value, pathBuilder) || isCast(this.getT2(), value, pathBuilder);
+        isValid = isCast(this.left(), value, pathBuilder) || isCast(this.right(), value, pathBuilder);
         if (!isValid){
-            throw new TypeCastingException( "Invalid types for node " + pathBuilder.toString() + ": expected " + this.getT1().nativeType() + " or " +  this.getT2().nativeType() + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
+            throw new TypeCastingException( "Invalid types for node " + pathBuilder.toString() + ": expected " + this.left().nativeType() + " or " +  this.right().nativeType() + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
         }
         return value;
     }
