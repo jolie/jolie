@@ -34,6 +34,7 @@ public abstract class AbstractParsingContext implements ParsingContext
 		this.line = line;
 	}
 
+	@Override
 	public int line()
 	{
 		return line;

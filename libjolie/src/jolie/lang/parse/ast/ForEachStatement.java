@@ -58,6 +58,7 @@ public class ForEachStatement extends OLSyntaxNode
 		return targetPath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2015 Fabrizio Montesi <famontesi@gmail.com>
+ * Copyright (C) 2015 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,41 +17,29 @@
  * MA 02110-1301  USA
  */
 
-package jolie.process;
+package jolie;
 
-import jolie.Interpreter;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-
-public class ExitProcess implements Process
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public final class JolieThreadPoolExecutor extends ThreadPoolExecutor
 {
-	private ExitProcess(){}
-	
-	private static class LazyHolder {
-		private LazyHolder() {}
-		private static final ExitProcess instance = new ExitProcess();
-	}
-	
-	static public ExitProcess getInstance()
+	public JolieThreadPoolExecutor( final ThreadFactory factory )
 	{
-		return ExitProcess.LazyHolder.instance;
-	}
-	
-	@Override
-	public Process clone( TransformationReason reason )
-	{
-		return getInstance();
-	}
-	
-	@Override
-	public void run()
-	{
-		final Interpreter interpreter = Interpreter.getInstance();
-		interpreter.execute( () -> interpreter.exit() );
-	}
-	
-	@Override
-	public boolean isKillable()
-	{
-		return true;
+		super(
+			0,
+			Integer.MAX_VALUE - 8,
+			60L,
+			TimeUnit.SECONDS,
+			new SynchronousQueue<>(),
+			factory,
+			new ThreadPoolExecutor.AbortPolicy()
+		);
 	}
 }

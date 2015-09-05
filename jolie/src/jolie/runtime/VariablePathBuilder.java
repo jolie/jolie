@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,16 +21,19 @@
 
 package jolie.runtime;
 
-import jolie.runtime.expression.Expression;
 import java.util.LinkedList;
 import java.util.List;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
-public class VariablePathBuilder
+/**
+ *
+ * @author Fabrizio Montesi
+ */
+public final class VariablePathBuilder
 {
-	final private List< Pair< Expression, Expression > > list =
-					new LinkedList< Pair< Expression, Expression > > ();
-	final private boolean global;
+	private final List< Pair< Expression, Expression > > list = new LinkedList<>();
+	private final boolean global;
 	
 	public VariablePathBuilder( boolean global )
 	{
@@ -39,12 +42,7 @@ public class VariablePathBuilder
 	
 	public VariablePathBuilder add( String id, int index )
 	{
-		list.add(
-				new Pair< Expression, Expression >(
-						Value.create( id ),
-						Value.create( index )
-					)
-			);
+		list.add( new Pair<>( Value.create( id ), Value.create( index ) ) );
 		return this;
 	}
 	

@@ -31,6 +31,7 @@ public class ExitStatement extends OLSyntaxNode
 		super( context );
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

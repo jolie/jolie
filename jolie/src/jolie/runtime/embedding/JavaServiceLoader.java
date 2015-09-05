@@ -44,28 +44,23 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 	public void load()
 		throws EmbeddedServiceLoadingException
 	{
-		Class<?> c;
 		try {
-			JolieClassLoader cl = interpreter.getClassLoader();
-			c = cl.loadClass( servicePath );
-			Object obj = c.newInstance();
+			final JolieClassLoader cl = interpreter.getClassLoader();
+			final Class<?> c = cl.loadClass( servicePath );
+			final Object obj = c.newInstance();
 			if ( !(obj instanceof JavaService) ) {
 				throw new EmbeddedServiceLoadingException( servicePath + " is not a valid JavaService" );
 			}
-			JavaService service = (JavaService)obj;
-			service.setInterpreter( Interpreter.getInstance() );
+			final JavaService service = (JavaService)obj;
+			service.setInterpreter( interpreter );
 			setChannel(	new JavaCommChannel( service ) );
 			
-			interpreter.tracer().trace(	new EmbeddingTraceAction(
+			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
 				c.getCanonicalName()
 			) );
-		} catch( InstantiationException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( IllegalAccessException e ) {
-			throw new EmbeddedServiceLoadingException( e );
-		} catch( ClassNotFoundException e ) {
+		} catch( InstantiationException | IllegalAccessException | ClassNotFoundException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}

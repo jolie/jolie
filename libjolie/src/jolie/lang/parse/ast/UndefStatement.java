@@ -40,6 +40,7 @@ public class UndefStatement extends OLSyntaxNode
 		return variablePath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

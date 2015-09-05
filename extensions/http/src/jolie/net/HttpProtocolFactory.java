@@ -52,6 +52,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 		transformerFactory = TransformerFactory.newInstance();
 	}
 
+	@Override
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
@@ -69,6 +70,7 @@ public class HttpProtocolFactory extends CommProtocolFactory
 		}
 	}
 
+	@Override
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{

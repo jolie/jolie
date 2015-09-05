@@ -41,6 +41,7 @@ public class NotExpressionNode extends OLSyntaxNode
 		return expression;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

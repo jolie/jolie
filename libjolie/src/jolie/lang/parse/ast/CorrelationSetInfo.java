@@ -89,6 +89,7 @@ public class CorrelationSetInfo extends OLSyntaxNode
 		return variables;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
