@@ -59,8 +59,7 @@ public class ParsingUtils
 		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
-		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
-		program = optimizer.optimize();
+		program = OLParseTreeOptimizer.optimize( program );
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program, configuration );
 		semanticVerifier.validate();
 
@@ -80,8 +79,7 @@ public class ParsingUtils
 		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
-		OLParseTreeOptimizer optimizer = new OLParseTreeOptimizer( program );
-		program = optimizer.optimize();
+		program = OLParseTreeOptimizer.optimize( program );
 		SemanticVerifier semanticVerifier = new SemanticVerifier( program );
 		semanticVerifier.validate();
 

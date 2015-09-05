@@ -21,96 +21,18 @@
 
 package jolie.lang.parse;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.logging.Logger;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
 import jolie.lang.Constants.OperationType;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationAliasInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -118,6 +40,10 @@ import jolie.lang.parse.context.URIParsingContext;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 /**
  * Checks the well-formedness and validity of a JOLIE program.
@@ -146,37 +72,37 @@ public class SemanticVerifier implements OLVisitor
 	private final Configuration configuration;
 
 	private ExecutionInfo executionInfo = new ExecutionInfo( URIParsingContext.DEFAULT, ExecutionMode.SINGLE );
-	private final Map< String, InputPortInfo > inputPorts = new HashMap< String, InputPortInfo >();
-	private final Map< String, OutputPortInfo > outputPorts = new HashMap< String, OutputPortInfo >();
+	private final Map< String, InputPortInfo > inputPorts = new HashMap<>();
+	private final Map< String, OutputPortInfo > outputPorts = new HashMap<>();
 	
-	private final Set< String > subroutineNames = new HashSet< String > ();
+	private final Set< String > subroutineNames = new HashSet<> ();
 	private final Map< String, OneWayOperationDeclaration > oneWayOperations =
-						new HashMap< String, OneWayOperationDeclaration >();
+						new HashMap<>();
 	private final Map< String, RequestResponseOperationDeclaration > requestResponseOperations =
-						new HashMap< String, RequestResponseOperationDeclaration >();
+						new HashMap<>();
 
-	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap< TypeDefinition, List< TypeDefinition > >();
+	private final Map< TypeDefinition, List< TypeDefinition > > typesToBeEqual = new HashMap<>();
 	private final Map< OneWayOperationDeclaration, List< OneWayOperationDeclaration > > owToBeEqual =
-		new HashMap< OneWayOperationDeclaration, List< OneWayOperationDeclaration > >();
+		new HashMap<>();
 	private final Map< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > > rrToBeEqual =
-		new HashMap< RequestResponseOperationDeclaration, List< RequestResponseOperationDeclaration > >();
-	private final List< CorrelationSetInfo > correlationSets = new LinkedList< CorrelationSetInfo >();
+		new HashMap<>();
+	private final List< CorrelationSetInfo > correlationSets = new LinkedList<>();
 
 	private boolean insideInputPort = false;
 	private boolean insideInit = false;
 	private boolean mainDefined = false;
 	private CorrelationFunctionInfo correlationFunctionInfo = new CorrelationFunctionInfo();
 	private final MultiMap< String, String > inputTypeNameMap =
-		new ArrayListMultiMap< String, String >(); // Maps type names to the input operations that use them
+		new ArrayListMultiMap<>(); // Maps type names to the input operations that use them
 
 	private ExecutionMode executionMode = ExecutionMode.SINGLE;
 
 	private static final Logger logger = Logger.getLogger( "JOLIE" );
 	
 	private final Map< String, TypeDefinition > definedTypes;
-	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList< TypeDefinitionLink >();
+	private final List< TypeDefinitionLink > definedTypeLinks = new LinkedList<>();
 	//private TypeDefinition rootType; // the type representing the whole session state
-	private final Map< String, Boolean > isConstantMap = new HashMap< String, Boolean >();
+	private final Map< String, Boolean > isConstantMap = new HashMap<>();
 	
 	private OperationType insideCourierOperationType = null;
 
@@ -221,7 +147,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< TypeDefinition > toBeEqualList = typesToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< TypeDefinition >();
+			toBeEqualList = new LinkedList<>();
 			typesToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( type );
@@ -231,7 +157,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< OneWayOperationDeclaration > toBeEqualList = owToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< OneWayOperationDeclaration >();
+			toBeEqualList = new LinkedList<>();
 			owToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( oneWay );
@@ -241,7 +167,7 @@ public class SemanticVerifier implements OLVisitor
 	{
 		List< RequestResponseOperationDeclaration > toBeEqualList = rrToBeEqual.get( key );
 		if ( toBeEqualList == null ) {
-			toBeEqualList = new LinkedList< RequestResponseOperationDeclaration >();
+			toBeEqualList = new LinkedList<>();
 			rrToBeEqual.put( key, toBeEqualList );
 		}
 		toBeEqualList.add( requestResponse );
@@ -277,10 +203,20 @@ public class SemanticVerifier implements OLVisitor
 		for( TypeDefinitionLink l : definedTypeLinks ) {
 			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
 			if ( l.linkedType() == null ) {
-				error( l, "type " + l.id() + "points to an undefined type (" + l.linkedTypeName() + ")" );
+				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
 			}
 		}
 	}
+
+    private void resolveChoiceLazyLinks()
+    {
+        for( TypeDefinitionLink l : definedTypeLinks ) {
+            l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
+            if ( l.linkedType() == null ) {
+                error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
+            }
+        }
+    }
 
 	private void checkToBeEqualTypes()
 	{
@@ -308,8 +244,8 @@ public class SemanticVerifier implements OLVisitor
 	private void checkCorrelationSets()
 	{
 		Collection< String > operations;
-		Set< String > correlatingOperations = new HashSet< String >();
-		Set< String > currCorrelatingOperations = new HashSet< String >();
+		Set< String > correlatingOperations = new HashSet<>();
+		Set< String > currCorrelatingOperations = new HashSet<>();
 		for( CorrelationSetInfo cset : correlationSets ) {
 			correlationFunctionInfo.correlationSets().add( cset );
 			currCorrelatingOperations.clear();
@@ -378,15 +314,16 @@ public class SemanticVerifier implements OLVisitor
 		
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
-			for( SemanticException.SemanticError e : semanticException.getErrorList() ){
+			/* for( SemanticException.SemanticError e : semanticException.getErrorList() ){
 				logger.severe( e.getMessage() );
-			}
+			} */
 			throw semanticException;
 		}
 	}
 
 	private boolean isTopLevelType = true;
 
+	@Override
 	public void visit( TypeInlineDefinition n )
 	{
 		checkCardinality( n );
@@ -414,6 +351,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( TypeDefinitionLink n )
 	{
 		checkCardinality( n );
@@ -428,7 +366,53 @@ public class SemanticVerifier implements OLVisitor
 		definedTypeLinks.add( n );
 	}
 
-	private void checkCardinality( TypeDefinition type )
+	public void visit(TypeChoiceDefinition n) {
+		/*ArrayList<TypeDefinition> typ = new ArrayList<TypeDefinition>();
+        typ.add(n.getT1());
+        typ.add(n.getT2());
+
+        for (TypeDefinition t: typ) {
+            if (t instanceof TypeDefinitionLink) {
+                visit((TypeDefinitionLink) t);
+            } else if (t instanceof TypeInlineDefinition) {
+                visit((TypeInlineDefinition) t);
+            }
+        }*/
+
+		checkCardinality( n );
+		boolean backupRootType = isTopLevelType;
+		if ( isTopLevelType ) {
+			// Check if the type has already been defined with a different structure
+			TypeDefinition type = definedTypes.get( n.id() );
+			if ( type != null ) {
+				addTypeEqualnessCheck( type, n );
+			}
+		}
+
+		isTopLevelType = false;
+
+		if ( n.hasSubTypes() ) {
+			for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
+				entry.getValue().accept( this );
+			}
+		}
+
+		isTopLevelType = backupRootType;
+
+		if ( isTopLevelType ) {
+			definedTypes.put( n.id(), n );
+		}
+
+        if (n.getT1() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.getT1());
+        }
+
+        if (n.getT2() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.getT2());
+        }
+	}
+
+    private void checkCardinality( TypeDefinition type )
 	{
 		if ( type.cardinality().min() < 0 ) {
 			error( type, "type " + type.id() + " specifies an invalid minimum range value (must be positive)" );
@@ -438,14 +422,17 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( SpawnStatement n )
 	{
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( DocumentationComment n )
 	{}
 
+	@Override
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -453,6 +440,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( VariablePathNode n )
 	{
 		if ( insideInit && n.isCSet() ) {
@@ -474,7 +462,8 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
-	public void visit( InputPortInfo n )
+	@Override
+	public void visit( final InputPortInfo n )
 	{
 		if ( inputPorts.get( n.id() ) != null ) {
 			error( n, "input port " + n.id() + " has been already defined" );
@@ -483,7 +472,7 @@ public class SemanticVerifier implements OLVisitor
 
 		insideInputPort = true;
 
-		Set< String > opSet = new HashSet< String >();
+		Set< String > opSet = new HashSet<>();
 
 		for( OperationDeclaration op : n.operations() ) {
 			if ( opSet.contains( op.id() ) ) {
@@ -494,13 +483,28 @@ public class SemanticVerifier implements OLVisitor
 			}
 		}
 
-		OutputPortInfo outputPort;
 		for( InputPortInfo.AggregationItemInfo item : n.aggregationList() ) {
 			for( String portName : item.outputPortList() ) {
-				outputPort = outputPorts.get( portName );
+				final OutputPortInfo outputPort = outputPorts.get( portName );
 				if ( outputPort == null ) {
 					error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
-				}/* else {
+				} else {
+					outputPort.operations().forEach( opDecl -> {
+						final TypeDefinition requestType =
+							opDecl instanceof OneWayOperationDeclaration
+							? ((OneWayOperationDeclaration)opDecl).requestType()
+							: ((RequestResponseOperationDeclaration)opDecl).requestType();
+						if ( requestType.untypedSubTypes() ) {
+							error( n,
+								"input port " + n.id()
+								+ " is trying to extend the type of operation " + opDecl.id()
+								+ " in output port " + outputPort.id()
+								+ " but such operation has undefined subnode types ({ ? } or undefined)" );
+						}
+					} );
+				}
+				
+				/* else {
 					for( OperationDeclaration op : outputPort.operations() ) {
 						if ( opSet.contains( op.id() ) ) {
 							error( n, "input port " + n.id() + " declares duplicate operation " + op.id() + " from aggregated output port " + outputPort.id() );
@@ -515,6 +519,7 @@ public class SemanticVerifier implements OLVisitor
 		insideInputPort = false;
 	}
 	
+	@Override
 	public void visit( OutputPortInfo n )
 	{
 		if ( outputPorts.get( n.id() ) != null )
@@ -528,6 +533,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( OneWayOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
@@ -544,6 +550,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( RequestResponseOperationDeclaration n )
 	{
 		if ( definedTypes.get( n.requestType().id() ) == null ) {
@@ -599,6 +606,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( DefinitionNode n )
 	{
 		if ( subroutineNames.contains( n.id() ) ) {
@@ -642,6 +650,7 @@ public class SemanticVerifier implements OLVisitor
 		insideInit = false;
 	}
 		
+	@Override
 	public void visit( ParallelStatement stm )
 	{
 		for( OLSyntaxNode node : stm.children() ) {
@@ -649,6 +658,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( SequenceStatement stm )
 	{
 		for( OLSyntaxNode node : stm.children() ) {
@@ -656,9 +666,10 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 		
+	@Override
 	public void visit( NDChoiceStatement stm )
 	{
-		Set< String > operations = new HashSet< String >();
+		Set< String > operations = new HashSet<>();
 		String name = null;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : stm.children() ) {
 			if ( pair.key() instanceof OneWayOperationStatement ) {
@@ -678,6 +689,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( NotificationOperationStatement n )
 	{
 		OutputPortInfo p = outputPorts.get( n.outputPortId() );
@@ -692,6 +704,7 @@ public class SemanticVerifier implements OLVisitor
 		} 
 	}
 	
+	@Override
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		if ( n.inputVarPath() != null ) {
@@ -714,13 +727,16 @@ public class SemanticVerifier implements OLVisitor
 		}*/
 	}
 	
+	@Override
 	public void visit( ThrowStatement n )
 	{
 		verify( n.expression() );
 	}
 
+	@Override
 	public void visit( CompensateStatement n ) {}
 	
+	@Override
 	public void visit( InstallStatement n )
 	{
 		for( Pair< String, OLSyntaxNode > pair : n.handlersFunction().pairs() ) {
@@ -728,11 +744,13 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( Scope n )
 	{
 		n.body().accept( this );
 	}
 	
+	@Override
 	public void visit( OneWayOperationStatement n )
 	{
 		if ( insideCourierOperationType != null ) {
@@ -747,6 +765,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( RequestResponseOperationStatement n )
 	{
 		if ( insideCourierOperationType != null ) {
@@ -762,14 +781,18 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( LinkInStatement n ) {}
+	@Override
 	public void visit( LinkOutStatement n ) {}
 
+	@Override
 	public void visit( SynchronizedStatement n )
 	{
 		n.body().accept( this );
 	}
 		
+	@Override
 	public void visit( AssignStatement n )
 	{
 		n.variablePath().accept( this );
@@ -777,11 +800,13 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 	
+	@Override
 	public void visit( InstanceOfExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( AddAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -789,6 +814,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( SubtractAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -796,6 +822,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( MultiplyAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -803,6 +830,7 @@ public class SemanticVerifier implements OLVisitor
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( DivideAssignStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -817,6 +845,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( PointerStatement n )
 	{
 		encounteredAssignment( n.leftPath() );
@@ -829,6 +858,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 	
+	@Override
 	public void visit( DeepCopyStatement n )
 	{
 		encounteredAssignment( n.leftPath() );
@@ -839,6 +869,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( IfStatement n )
 	{
 		for( Pair< OLSyntaxNode, OLSyntaxNode > choice : n.children() ) {
@@ -848,6 +879,7 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.elseProcess() );
 	}
 
+	@Override
 	public void visit( DefinitionCallStatement n )
 	{
 		if ( !subroutineNames.contains( n.id() ) ) {
@@ -855,12 +887,14 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( WhileStatement n )
 	{
 		n.condition().accept( this );
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( OrConditionNode n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -868,6 +902,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( AndConditionNode n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -875,23 +910,31 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( NotExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( CompareConditionNode n )
 	{
 		n.leftExpression().accept( this );
 		n.rightExpression().accept( this );
 	}
 
+	@Override
 	public void visit( ConstantIntegerExpression n ) {}
+	@Override
 	public void visit( ConstantDoubleExpression n ) {}
+	@Override
 	public void visit( ConstantStringExpression n ) {}
+	@Override
 	public void visit( ConstantLongExpression n ) {}
+	@Override
 	public void visit( ConstantBoolExpression n ) {}
 
+	@Override
 	public void visit( ProductExpressionNode n )
 	{
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
@@ -899,6 +942,7 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( SumExpressionNode n )
 	{
 		for( Pair< OperandType, OLSyntaxNode > pair : n.operands() ) {
@@ -906,26 +950,32 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( VariableExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( InstallFixedVariableExpressionNode n )
 	{
 		n.variablePath().accept(  this );
 	}
 
+	@Override
 	public void visit( NullProcessStatement n ) {}
 
+	@Override
 	public void visit( ExitStatement n ) {}
 
+	@Override
 	public void visit( ExecutionInfo n )
 	{
 		executionMode = n.mode();
 		executionInfo = n;
 	}
 
+	@Override
 	public void visit( CorrelationSetInfo n )
 	{
 		VariablePathSet pathSet = new VariablePathSet();
@@ -980,16 +1030,19 @@ public class SemanticVerifier implements OLVisitor
 		}*/
 	}
 
+	@Override
 	public void visit( RunStatement n )
 	{
 		warning( n, "Run statement is not a stable feature yet." );
 	}
 
+	@Override
 	public void visit( ValueVectorSizeExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 	
+	@Override
 	public void visit( InlineTreeExpressionNode n )
 	{
 		n.rootExpression().accept( this );
@@ -999,30 +1052,35 @@ public class SemanticVerifier implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( PreIncrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PostIncrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PreDecrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( PostDecrementStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( UndefStatement n )
 	{
 		encounteredAssignment( n.variablePath() );
@@ -1033,6 +1091,7 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	
+	@Override
 	public void visit( ForStatement n )
 	{
 		n.init().accept( this );
@@ -1041,6 +1100,7 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( ForEachStatement n )
 	{
 		n.keyPath().accept( this );
@@ -1048,20 +1108,25 @@ public class SemanticVerifier implements OLVisitor
 		n.body().accept( this );
 	}
 
+	@Override
 	public void visit( IsTypeExpressionNode n )
 	{
 		n.variablePath().accept( this );
 	}
 
+	@Override
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
 	}
 
+	@Override
 	public void visit( EmbeddedServiceNode n ) {}
 	
+	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
 	
+	@Override
 	public void visit( CourierDefinitionNode n )
 	{
 		if ( inputPorts.containsKey( n.inputPortName() ) == false ) {
@@ -1070,6 +1135,7 @@ public class SemanticVerifier implements OLVisitor
 		verify( n.body() );
 	}
 	
+	@Override
 	public void visit( CourierChoiceStatement n )
 	{
 		for( CourierChoiceStatement.InterfaceOneWayBranch branch : n.interfaceOneWayBranches() ) {
@@ -1098,6 +1164,7 @@ public class SemanticVerifier implements OLVisitor
 	/*
 	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
+	@Override
 	public void visit( NotificationForwardStatement n )
 	{
 		if ( insideCourierOperationType == null ) {
@@ -1110,6 +1177,7 @@ public class SemanticVerifier implements OLVisitor
 	/**
 	 * todo: Check that the output port of the forward statement is right wrt the input port aggregation definition.
 	 */
+	@Override
 	public void visit( SolicitResponseForwardStatement n )
 	{
 		if ( insideCourierOperationType == null ) {
@@ -1122,17 +1190,22 @@ public class SemanticVerifier implements OLVisitor
 	/**
 	 * todo: Must check if it's inside an install function
 	 */
+	@Override
 	public void visit( CurrentHandlerStatement n )
 	{}
 
+	@Override
 	public void visit( InterfaceDefinition n )
 	{}
 	
+	@Override
 	public void visit( FreshValueExpressionNode n )
 	{}
 	
+	@Override
 	public void visit( VoidExpressionNode n ) {}
 	
+	@Override
 	public void visit( ProvideUntilStatement n )
 	{	
 		if ( !( n.provide() instanceof NDChoiceStatement ) ) {

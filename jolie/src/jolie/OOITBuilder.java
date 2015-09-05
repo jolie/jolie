@@ -22,104 +22,22 @@
 package jolie;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
 import jolie.lang.Constants;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.lang.Constants.OperandType;
-import jolie.lang.NativeType;
 import jolie.lang.parse.CorrelationFunctionInfo;
 import jolie.lang.parse.CorrelationFunctionInfo.CorrelationPairInfo;
 import jolie.lang.parse.OLParser;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.Scanner;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.CorrelationSetInfo.CorrelationVariableInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallFunctionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OperationDeclaration;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.WhileStatement;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -130,94 +48,30 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.ports.InterfaceExtender;
 import jolie.net.ports.OutputPort;
-import jolie.process.AddAssignmentProcess;
-import jolie.process.AssignmentProcess;
-import jolie.process.CallProcess;
-import jolie.process.CompensateProcess;
-import jolie.process.CurrentHandlerProcess;
-import jolie.process.DeepCopyProcess;
-import jolie.process.DefinitionProcess;
-import jolie.process.DivideAssignmentProcess;
-import jolie.process.ExitProcess;
-import jolie.process.ForEachProcess;
-import jolie.process.ForProcess;
-import jolie.process.IfProcess;
-import jolie.process.InitDefinitionProcess;
-import jolie.process.InputOperationProcess;
-import jolie.process.InstallProcess;
-import jolie.process.LinkInProcess;
-import jolie.process.LinkOutProcess;
-import jolie.process.MakePointerProcess;
-import jolie.process.MultiplyAssignmentProcess;
-import jolie.process.NDChoiceProcess;
-import jolie.process.NotificationProcess;
-import jolie.process.NullProcess;
-import jolie.process.OneWayProcess;
-import jolie.process.ParallelProcess;
-import jolie.process.PostDecrementProcess;
-import jolie.process.PostIncrementProcess;
-import jolie.process.PreDecrementProcess;
-import jolie.process.PreIncrementProcess;
+import jolie.process.*;
 import jolie.process.Process;
-import jolie.process.ProvideUntilProcess;
-import jolie.process.RequestResponseProcess;
-import jolie.process.RunProcess;
-import jolie.process.ScopeProcess;
-import jolie.process.SequentialProcess;
-import jolie.process.SolicitResponseProcess;
-import jolie.process.SpawnProcess;
-import jolie.process.SubtractAssignmentProcess;
-import jolie.process.SynchronizedProcess;
-import jolie.process.ThrowProcess;
-import jolie.process.UndefProcess;
-import jolie.process.WhileProcess;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
-import jolie.runtime.ClosedVariablePath;
-import jolie.runtime.CompareOperator;
-import jolie.runtime.GlobalVariablePath;
-import jolie.runtime.InstallFixedVariablePath;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
-import jolie.runtime.RequestResponseOperation;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVectorSizeExpression;
-import jolie.runtime.VariablePath;
-import jolie.runtime.VariablePathBuilder;
+import jolie.runtime.*;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoader.EmbeddedServiceConfiguration;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
-import jolie.runtime.expression.AndCondition;
-import jolie.runtime.expression.CastBoolExpression;
-import jolie.runtime.expression.CastDoubleExpression;
-import jolie.runtime.expression.CastIntExpression;
-import jolie.runtime.expression.CastLongExpression;
-import jolie.runtime.expression.CastStringExpression;
-import jolie.runtime.expression.CompareCondition;
-import jolie.runtime.expression.Expression;
+import jolie.runtime.expression.*;
 import jolie.runtime.expression.Expression.Operand;
-import jolie.runtime.expression.FreshValueExpression;
-import jolie.runtime.expression.InlineTreeExpression;
-import jolie.runtime.expression.InstanceOfExpression;
-import jolie.runtime.expression.IsBoolExpression;
-import jolie.runtime.expression.IsDefinedExpression;
-import jolie.runtime.expression.IsDoubleExpression;
-import jolie.runtime.expression.IsIntExpression;
-import jolie.runtime.expression.IsLongExpression;
-import jolie.runtime.expression.IsStringExpression;
-import jolie.runtime.expression.NotExpression;
-import jolie.runtime.expression.OrCondition;
-import jolie.runtime.expression.ProductExpression;
-import jolie.runtime.expression.SumExpression;
-import jolie.runtime.expression.VoidExpression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.runtime.typing.Type;
+import jolie.runtime.typing.TypePair;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.BiPredicate;
 
 /**
  * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
@@ -232,18 +86,18 @@ public class OOITBuilder implements OLVisitor
 	private String currentOutputPort = null;
 	private Interface currentPortInterface = null;
 	private final Map< String, Boolean > isConstantMap;
-	private final Map< String, InputPort > inputPorts = new HashMap< String, InputPort >();
-	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new LinkedList< Pair< Type.TypeLink, TypeDefinition > >();
+	private final Map< String, InputPort > inputPorts = new HashMap<>();
+	private final List< Pair< Type.TypeLink, TypeDefinition > > typeLinks = new ArrayList<>();
 	private final CorrelationFunctionInfo correlationFunctionInfo;
 	private ExecutionMode executionMode = Constants.ExecutionMode.SINGLE;
 	private boolean registerSessionStarters = false;
 	private InputPort currCourierInputPort = null;
 	private String currCourierOperationName = null;
 	private final Map< String, Map< String, AggregationConfiguration > > aggregationConfigurations =
-		new HashMap< String, Map< String, AggregationConfiguration > >(); // Input port name -> (operation name -> aggregation configuration)
+		new HashMap<>(); // Input port name -> (operation name -> aggregation configuration)
 	private final Map< String, InterfaceExtender > interfaceExtenders =
-		new HashMap< String, InterfaceExtender >();
-	private final Queue< OLSyntaxNode > lazyVisits = new LinkedList< OLSyntaxNode >();	
+		new HashMap<>();
+	private final Deque< OLSyntaxNode > lazyVisits = new LinkedList<>();	
 	private boolean firstPass = true;
 
 	private static class AggregationConfiguration {
@@ -266,6 +120,8 @@ public class OOITBuilder implements OLVisitor
 	 * Constructor.
 	 * @param interpreter the Interpreter requesting the interpretation tree building
 	 * @param program the Program to generate the interpretation tree from
+	 * @param isConstantMap
+	 * @param correlationFunctionInfo
 	 * @see Program
 	 */
 	public OOITBuilder(
@@ -320,8 +176,9 @@ public class OOITBuilder implements OLVisitor
 	private void lazyVisits()
 	{
 		firstPass = false;
-		while( !lazyVisits.isEmpty() ) {
-			lazyVisits.remove().accept( this );
+		OLSyntaxNode node;
+		while( (node = lazyVisits.poll()) != null ) {
+			node.accept( this );
 		}
 	}
 	
@@ -361,13 +218,13 @@ public class OOITBuilder implements OLVisitor
 		VariablePath sessionVariablePath;
 		VariablePath messageVariablePath;
 		CorrelationSet currCorrelationSet;
-		Set< Interpreter.SessionStarter > starters = new HashSet< Interpreter.SessionStarter >();
+		Set< Interpreter.SessionStarter > starters = new HashSet<>();
 		List< VariablePath > correlationVariablePaths;
 		MultiMap< String, CorrelationPair > correlationMap;
 
 		for( CorrelationSetInfo csetInfo : correlationFunctionInfo.correlationSets() ) {
-			correlationVariablePaths = new ArrayList< VariablePath >();
-			correlationMap = new ArrayListMultiMap< String, CorrelationPair >();
+			correlationVariablePaths = new ArrayList<>();
+			correlationMap = new ArrayListMultiMap<>();
 
 			for( CorrelationVariableInfo csetVariableInfo : csetInfo.variables() ) {
 				sessionVariablePath = buildCorrelationVariablePath( csetVariableInfo.correlationVariablePath() );
@@ -414,20 +271,15 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OutputPortInfo n )
 	{
-		Process protocolConfigurationProcess = NullProcess.getInstance();
-		if ( n.protocolConfiguration() != null ) {
-			n.protocolConfiguration().accept( this );
-			protocolConfigurationProcess = currProcess;
-		}
-
-		Boolean isConstant;
-		if ( (isConstant = isConstantMap.get( n.id() )) == null ) {
-			isConstant = false;
-		}
+		final Process protocolConfigurationProcess =
+			( n.protocolConfiguration() != null ) ? buildProcess( n.protocolConfiguration() )
+			: NullProcess.getInstance();
+		
+		final boolean isConstant = isConstantMap.computeIfAbsent( n.id(), k -> false );
 
 		currentOutputPort = n.id();
-		notificationTypes.put( currentOutputPort, new HashMap< String, OneWayTypeDescription >() );
-		solicitResponseTypes.put( currentOutputPort, new HashMap< String, RequestResponseTypeDescription >() );
+		notificationTypes.put( currentOutputPort, new HashMap<>() );
+		solicitResponseTypes.put( currentOutputPort, new HashMap<>() );
 		for( OperationDeclaration decl : n.operations() ) {
 			decl.accept( this );
 		}
@@ -460,19 +312,15 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( EmbeddedServiceNode n )
 	{
-		VariablePath path = null;
 		try {
-			path = interpreter.getOutputPort( n.portId() ).locationVariablePath();
-		} catch( InvalidIdException iie ) {
-		}
+			final VariablePath path =
+				n.portId() == null ? null
+				: interpreter.getOutputPort( n.portId() ).locationVariablePath();
 
-		try {
-			EmbeddedServiceConfiguration embeddedServiceConfiguration;
-			if ( n.type().equals( Constants.EmbeddedServiceType.INTERNAL ) ) {
-				embeddedServiceConfiguration = new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(), (Program) n.program() );
-			} else {
-				embeddedServiceConfiguration = new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
-			}
+			final EmbeddedServiceConfiguration embeddedServiceConfiguration =
+				n.type().equals( Constants.EmbeddedServiceType.INTERNAL )
+				? new EmbeddedServiceLoader.InternalEmbeddedServiceConfiguration( n.servicePath(), (Program) n.program() )
+				: new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration( n.type(), n.servicePath() );
 
 			interpreter.addEmbeddedServiceLoader(
 				EmbeddedServiceLoader.create(
@@ -480,9 +328,10 @@ public class OOITBuilder implements OLVisitor
 					embeddedServiceConfiguration,
 					path
 				) );
-			
 		} catch( EmbeddedServiceLoaderCreationException e ) {
 			error( n.context(), e );
+		} catch( InvalidIdException e ) {
+			error( n.context(), "could not find port " + n.portId() );
 		}
 	}
 	
@@ -651,7 +500,12 @@ public class OOITBuilder implements OLVisitor
 					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
-			currType = Type.create( n.nativeType(), n.cardinality(), false, subTypes );
+			currType = Type.create(
+				n.nativeType(),
+				n.cardinality(),
+				false,
+				subTypes
+			);
 		}
 
 		insideType = backupInsideType;
@@ -665,7 +519,7 @@ public class OOITBuilder implements OLVisitor
 	{
 		Type.TypeLink link = Type.createLink( n.linkedTypeName(), n.cardinality() );
 		currType = link;
-		typeLinks.add( new Pair< Type.TypeLink, TypeDefinition >( link, n ) );
+		typeLinks.add( new Pair<>( link, n ) );
 
 		if ( insideType == false && insideOperationDeclaration == false ) {
 			types.put( n.id(), currType );
@@ -754,7 +608,7 @@ public class OOITBuilder implements OLVisitor
 		if ( currentOutputPort == null ) {
 			// Register if not already present
 			try {
-				RequestResponseOperation op = interpreter.getRequestResponseOperation( decl.id() );
+				final RequestResponseOperation op = interpreter.getRequestResponseOperation( decl.id() );
 				typeDescription = op.typeDescription();
 			} catch( InvalidIdException e ) {
 				typeDescription = buildRequestResponseTypeDescription( decl );
@@ -775,28 +629,33 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( DefinitionNode n )
 	{
-		DefinitionProcess def;
+		final DefinitionProcess def;
 		
-		if ( "main".equals( n.id() ) ) {
-			if ( executionMode == ExecutionMode.SINGLE ) {
+		switch( n.id() ) {
+		case "main":
+			switch( executionMode ) {
+			case SINGLE:
 				// We are a single-session service, so we will not spawn sessions
 				registerSessionStarters = false;
-				buildProcess( n.body() );
-			} else {
+				def = new DefinitionProcess( buildProcess( n.body() ) );
+				break;
+			default:
 				registerSessionStarters = true;
-				buildProcess( n.body() );
+				def = new DefinitionProcess( buildProcess( n.body() ) );
 				registerSessionStarters = false;
+				break;
 			}
-			def = new DefinitionProcess( currProcess );
-		} else if ( "init".equals( n.id() ) ) {
-			Process[] initChildren = {
+			break;
+		case "init":
+			final Process[] initChildren = {
 				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
 				buildProcess( n.body() )
 			};
-
 			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
-		} else {
+			break;
+		default:
 			def = new DefinitionProcess( buildProcess( n.body() ) );
+			break;
 		}
 
 		interpreter.register( n.id(), def );
@@ -818,16 +677,17 @@ public class OOITBuilder implements OLVisitor
 		n.body().accept( this );
 		currProcess = new SynchronizedProcess( n.id(), currProcess );
 	}
-		
+
+	@Override
 	public void visit( SequenceStatement n )
 	{
-		boolean origRegisterSessionStarters = registerSessionStarters;
+		final boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
 
-		List< Process > children = new LinkedList< Process >();
-		for( OLSyntaxNode child : n.children() ) {
+		final List< Process > children = new ArrayList<>( n.children().size() );
+		n.children().forEach( ( child ) -> {
 			children.add( buildProcess( child ) );
-		}
+		} );
 		currProcess = new SequentialProcess( children.toArray( new Process[0] ) );
 
 		if ( origRegisterSessionStarters && children.get( 0 ) instanceof InputOperationProcess ) {
@@ -854,7 +714,7 @@ public class OOITBuilder implements OLVisitor
 		registerSessionStarters = false;
 
 		List< Pair< InputOperationProcess, Process > > branches =
-					new LinkedList< Pair< InputOperationProcess, Process > >();
+					new ArrayList<>( n.children().size() );
 		InputOperationProcess guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
@@ -886,9 +746,9 @@ public class OOITBuilder implements OLVisitor
 			InputOperationProcess inputProcess;
 			currProcess = inputProcess =
 				new OneWayProcess(
-						interpreter.getOneWayOperation( n.id() ),
-						buildVariablePath( n.inputVarPath() )
-						);
+					interpreter.getOneWayOperation( n.id() ),
+					buildVariablePath( n.inputVarPath() )
+				);
 			if ( origRegisterSessionStarters ) {
 				registerSessionStarter( inputProcess, NullProcess.getInstance() );
 			}
@@ -950,11 +810,6 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( SolicitResponseOperationStatement n )
 	{
-		Expression outputExpression = null;
-		if ( n.outputExpression() != null ) {
-			n.outputExpression().accept( this );
-			outputExpression = currExpression;
-		}
 		try {
 			Process installProcess = NullProcess.getInstance();
 			if ( n.handlersFunction() != null )
@@ -963,7 +818,7 @@ public class OOITBuilder implements OLVisitor
 				new SolicitResponseProcess(
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
-						outputExpression,
+						buildExpression( n.outputExpression() ),
 						buildVariablePath( n.inputVarPath() ),
 						installProcess,
 						solicitResponseTypes.get( n.outputPortId() ).get( n.id() )
@@ -1011,7 +866,7 @@ public class OOITBuilder implements OLVisitor
 	
 	private List< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
 	{
-		List< Pair< String, Process > > pairs = new LinkedList< Pair< String, Process > >();
+		List< Pair< String, Process > > pairs = new ArrayList<>( n.pairs().length );
 		for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 			pair.value().accept( this );
 			pairs.add( new Pair< String, Process >( pair.key(), currProcess ) );
@@ -1095,11 +950,11 @@ public class OOITBuilder implements OLVisitor
 	{
 		if ( path == null )
 			return null;
-		
-		Expression backupExpr = currExpression;
-		
-		LinkedList< Pair< Expression, Expression > > list =
-							new LinkedList< Pair< Expression, Expression > >();
+
+		final Expression backupExpr = currExpression;
+
+		Pair< Expression, Expression >[] internalPath = new Pair[ path.path().size() ];
+		int i = 0;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : path.path() ) {
 			pair.key().accept( this );
 			Expression keyExpr = currExpression;
@@ -1108,21 +963,16 @@ public class OOITBuilder implements OLVisitor
 			} else {
 				currExpression = null;
 			}
-			list.add( new Pair< Expression, Expression >( keyExpr, currExpression ) );
+			internalPath[ i++ ] = new Pair<>( keyExpr, currExpression );
 		}
 		
 		currExpression = backupExpr;
 
-		Pair< Expression, Expression >[] internalPath = new Pair[ list.size() ];
-		for( int i = 0; i < internalPath.length; i++ ) {
-			internalPath[i] = list.get( i );
-		}
-
-		if ( path.isGlobal() ) {
-			return new GlobalVariablePath( internalPath );
-		} else {
-			return new VariablePath( internalPath );
-		}
+		return
+			path.isGlobal() ?
+				new GlobalVariablePath( internalPath )
+			:
+				new VariablePath( internalPath );
 	}
 
 	public void visit( PointerStatement n )
@@ -1131,7 +981,7 @@ public class OOITBuilder implements OLVisitor
 			new MakePointerProcess(
 				buildVariablePath( n.leftPath() ),
 				buildVariablePath( n.rightPath() )
-				);
+			);
 	}
 
 	public void visit( DeepCopyStatement n )
@@ -1222,22 +1072,17 @@ public class OOITBuilder implements OLVisitor
 		n.leftExpression().accept( this );
 		Expression left = currExpression;
 		n.rightExpression().accept( this );
-		CompareOperator operator = null;
 		Scanner.TokenType opType = n.opType();
-		if ( opType == Scanner.TokenType.EQUAL ) {
-			operator = CompareOperator.EQUAL;
-		} else if ( opType == Scanner.TokenType.NOT_EQUAL ) {
-			operator = CompareOperator.NOT_EQUAL;
-		} else if ( opType == Scanner.TokenType.LANGLE ) {
-			operator = CompareOperator.MINOR;
-		} else if ( opType == Scanner.TokenType.RANGLE ) {
-			operator = CompareOperator.MAJOR;
-		} else if ( opType == Scanner.TokenType.MINOR_OR_EQUAL ) {
-			operator = CompareOperator.MINOR_OR_EQUAL;
-		} else if ( opType == Scanner.TokenType.MAJOR_OR_EQUAL ) {
-			operator = CompareOperator.MAJOR_OR_EQUAL;
-		}
-		assert( operator != null );
+
+		final BiPredicate< Value, Value > operator =
+			opType == Scanner.TokenType.EQUAL ? CompareOperators.EQUAL
+			: opType == Scanner.TokenType.NOT_EQUAL ? CompareOperators.NOT_EQUAL
+			: opType == Scanner.TokenType.LANGLE ? CompareOperators.MINOR
+			: opType == Scanner.TokenType.RANGLE ? CompareOperators.MAJOR
+			: opType == Scanner.TokenType.MINOR_OR_EQUAL ? CompareOperators.MINOR_OR_EQUAL
+			: opType == Scanner.TokenType.MAJOR_OR_EQUAL ? CompareOperators.MAJOR_OR_EQUAL
+			: null;
+		Objects.requireNonNull( operator );
 		currExpression = new CompareCondition( left, currExpression, operator );
 	}
 
@@ -1392,16 +1237,22 @@ public class OOITBuilder implements OLVisitor
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
-		if ( n.type() == NativeType.INT ) {
+		switch( n.type() ) {
+		case INT:
 			currExpression = new CastIntExpression( currExpression );
-		} else if ( n.type() == NativeType.DOUBLE ) {
+			break;
+		case DOUBLE:
 			currExpression = new CastDoubleExpression( currExpression );
-		} else if ( n.type() == NativeType.STRING ) {
+			break;
+		case STRING:
 			currExpression = new CastStringExpression( currExpression );
-		} else if ( n.type() == NativeType.BOOL ) {
+			break;
+		case BOOL:
 			currExpression = new CastBoolExpression( currExpression );
-		} else if ( n.type() == NativeType.LONG ) {
+			break;
+		case LONG:
 			currExpression = new CastLongExpression( currExpression );
+			break;
 		}
 	}
 	
@@ -1670,6 +1521,47 @@ public class OOITBuilder implements OLVisitor
 	public void visit( ProvideUntilStatement n )
 	{
 		currProcess = new ProvideUntilProcess( (NDChoiceProcess)buildProcess( n.provide() ), (NDChoiceProcess)buildProcess( n.until() ) );
+	}
+
+	@Override
+	public void visit(TypeChoiceDefinition n) {
+		Type currType1;
+		Type currType2;
+		boolean backupInsideType = false;
+		insideType = true;
+
+		if ( n.untypedSubTypes() ) {
+			currType1 = Type.create( n.t1NativeType(), n.cardinality(), true, null );
+		} else {
+			Map< String, Type > subTypes = new HashMap< String, Type >();
+			if ( n.subTypes() != null ) {
+				for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
+					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+				}
+			}
+			currType1 = Type.create( n.t1NativeType(), n.cardinality(), false, subTypes );
+		}
+
+		if ( n.t2UntypedSubTypes() ) {
+			currType2 = Type.create( n.t2NativeType(), n.cardinality(), true, null );
+		} else {
+			Map< String, Type > subTypes = new HashMap< String, Type >();
+			if ( n.t2SubTypes() != null ) {
+				for( Entry< String, TypeDefinition > entry : n.t2SubTypes() ) {
+					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
+				}
+			}
+			currType2 = Type.create( n.t2NativeType(), n.getT2Cardinality(), false, subTypes );
+		}
+
+		insideType = backupInsideType;
+
+		if ( insideType == false && insideOperationDeclaration == false ) {
+			TypePair typePair = new TypePair(currType1, currType2);
+
+			types.put( n.id(), typePair );
+			currType = typePair;
+		}
 	}
 
 	public void visit( SolicitResponseForwardStatement n )

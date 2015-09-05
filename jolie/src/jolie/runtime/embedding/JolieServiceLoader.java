@@ -23,14 +23,11 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import jolie.runtime.expression.Expression;
-import java.util.List;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.Interpreter;
+import jolie.runtime.expression.Expression;
 
 
 public class JolieServiceLoader extends EmbeddedServiceLoader
@@ -42,16 +39,16 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		throws IOException, CommandLineException
 	{
 		super( channelDest );
-		String[] ss = servicePathSplitPattern.split( servicePath );
-		List< String > newArgs = new LinkedList< String >();
-		newArgs.add( "-i" );
-		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
-		
-		String[] options = currInterpreter.optionArgs();
-		newArgs.addAll( Arrays.asList( options ) );
-		newArgs.addAll( Arrays.asList( ss ) );
+		final String[] ss = servicePathSplitPattern.split( servicePath );
+		final String[] options = currInterpreter.optionArgs();
+				
+		final String[] newArgs = new String[ 2 + options.length + ss.length ];
+		newArgs[0] = "-i";
+		newArgs[1] = currInterpreter.programDirectory().getAbsolutePath();
+		System.arraycopy( options, 0, newArgs, 2, options.length );
+		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		interpreter = new Interpreter(
-			newArgs.toArray( new String[ newArgs.size() ] ),
+			newArgs,
 			currInterpreter.getClassLoader(),
 			currInterpreter.programDirectory()
 		);

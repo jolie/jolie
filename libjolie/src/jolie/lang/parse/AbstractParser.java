@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,8 +23,8 @@ package jolie.lang.parse;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.lang.parse.context.URIParsingContext;
@@ -40,7 +40,17 @@ public abstract class AbstractParser
 {
 	private Scanner scanner;		// Input scanner.
 	protected Scanner.Token token;	///< The current token.
-	private final List< Scanner.Token > tokens = new LinkedList< Scanner.Token > ();
+	private final List< Scanner.Token > tokens = new ArrayList<>();
+	private final StringBuilder stringBuilder = new StringBuilder( 256 );
+	
+	protected String build( String... args )
+	{
+		stringBuilder.setLength( 0 );
+		for( String s : args ) {
+			stringBuilder.append( s );
+		}
+		return stringBuilder.toString();
+	}
 	
 	/** Constructor
 	 * 

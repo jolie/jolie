@@ -40,6 +40,7 @@ public class CompensateStatement extends OLSyntaxNode
 		return id;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

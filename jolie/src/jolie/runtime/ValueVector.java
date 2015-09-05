@@ -71,11 +71,13 @@ class ValueVectorImpl extends ValueVector implements Serializable
 {
 	private final ArrayList< Value > values;
 	
+	@Override
 	protected List< Value > values()
 	{
 		return values;
 	}
 
+	@Override
 	public Value get( int i )
 	{
 		if ( i >= values.size() ) {
@@ -91,6 +93,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 		return values.get( i );
 	}
 
+	@Override
 	public synchronized void set( int i, Value value )
 	{
 		if ( i >= values.size() ) {
@@ -104,6 +107,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 		}
 	}
 	
+	@Override
 	public boolean isLink()
 	{
 		return false;
@@ -111,7 +115,7 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	
 	public ValueVectorImpl()
 	{
-		values = new ArrayList< Value >( 1 );
+		values = new ArrayList<>( 1 );
 	}
 }
 

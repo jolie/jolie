@@ -27,8 +27,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -55,17 +53,21 @@ public abstract class ExecutionThread extends JolieThread
 	 * containing mappings for fault handlers and termination/compensation handlers.
 	 */
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
-		final private Map< String, Process > faultMap = new HashMap< String, Process >();
-		final private Map< String, Process > compMap = new HashMap< String, Process >();
+		private final Map< String, Process > faultMap;
+		private final Map< String, Process > compMap;
 
 		
 		@Override
 		public Scope clone()
 		{
-			Scope ret = new Scope( id );
-			ret.compMap.putAll( compMap );
-			ret.faultMap.putAll( faultMap );
-			return ret;
+			return new Scope( id, new HashMap<>( faultMap ), new HashMap<>( compMap ) );
+		}
+		
+		private Scope( String id, Map< String, Process > faultMap, Map< String, Process > compMap )
+		{
+			super( id );
+			this.faultMap = faultMap;
+			this.compMap = compMap;
 		}
 
 		/**
@@ -74,7 +76,7 @@ public abstract class ExecutionThread extends JolieThread
 		 */
 		public Scope( String id )
 		{
-			super( id );
+			this( id, new HashMap<>(), new HashMap<>() );
 		}
 
 		/**
@@ -157,15 +159,14 @@ public abstract class ExecutionThread extends JolieThread
 	}
 
 	protected final Process process;
-	protected final Deque< Scope > scopeStack = new ArrayDeque< Scope >();
+	protected final Deque< Scope > scopeStack = new ArrayDeque<>();
 	protected final ExecutionThread parent;
-	private final List< WeakReference< Future< ? > > > futureToCancel =
-			new LinkedList< WeakReference< Future< ? > > >();
+	private final Deque< WeakReference< Future< ? > > > futureToCancel = new ArrayDeque<>();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
 	
-	public void setTaskFuture( Future<?> taskFuture )
+	private void setTaskFuture( Future<?> taskFuture )
 	{
 		this.taskFuture = taskFuture;
 	}
@@ -206,17 +207,15 @@ public abstract class ExecutionThread extends JolieThread
 	 * Kills this ExecutionThread, interrupting its activity as soon as possible.
 	 * @param fault the fault causing the interruption.
 	 */
-	public void kill( FaultException fault )
+	public synchronized void kill( FaultException fault )
 	{
 		killerFault = fault;
-		
-		WeakReference< Future< ? > > ref;
+
 		while( !futureToCancel.isEmpty() ) {
-			ref = futureToCancel.get( 0 );
+			final WeakReference< Future< ? > > ref = futureToCancel.poll();
 			if ( ref.get() != null ) {
 				ref.get().cancel( true );
 			}
-			futureToCancel.remove( 0 );
 		}
 		
 		if( canBeInterrupted ) {
@@ -312,17 +311,16 @@ public abstract class ExecutionThread extends JolieThread
 		if ( isKilled() ) {
 			f.cancel( true );
 		}
-		futureToCancel.add( new WeakReference< Future< ? > >( f ) );
+		futureToCancel.add( new WeakReference<>( f ) );
 	}
 	
 	private void cleanFuturesToKill()
 	{
-		WeakReference< Future< ? > > ref;
 		boolean keepAlive = true;
 		while( !futureToCancel.isEmpty() && keepAlive ) {
-			ref = futureToCancel.get( 0 );
+			final WeakReference< Future< ? > > ref = futureToCancel.peek();
 			if ( ref.get() == null ) {
-				futureToCancel.remove( 0 );
+				futureToCancel.removeFirst();
 			} else {
 				keepAlive = false;
 			}
@@ -361,7 +359,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void popScope( boolean merge )
 	{
-		Scope s = scopeStack.pop();
+		final Scope s = scopeStack.pop();
 		if ( merge ) {
 			mergeCompensations( s );
 		}
@@ -462,6 +460,7 @@ public abstract class ExecutionThread extends JolieThread
 	
 	public abstract void runProcess();
 	
+	@Override
 	public final void run()
 	{
 		JolieExecutorThread t = JolieExecutorThread.currentThread();

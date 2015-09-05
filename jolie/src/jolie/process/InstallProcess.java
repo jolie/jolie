@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2007-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +22,6 @@
 package jolie.process;
 
 import java.util.List;
-
 import jolie.ExecutionThread;
 import jolie.runtime.HandlerInstallationReason;
 import jolie.util.Pair;
@@ -31,7 +30,7 @@ import jolie.util.Pair;
 public class InstallProcess implements Process
 {
 	// The compensation is identified by an empty string
-	final private List< Pair< String, Process > > pairs;
+	private final List< Pair< String, Process > > pairs;
 
 	public InstallProcess( List< Pair< String, Process > > pairs )
 	{
@@ -43,18 +42,16 @@ public class InstallProcess implements Process
 		return new InstallProcess( pairs );
 	}
 
-	/**
-	 * TODO perhaps the currentThread() thing can be stored in a local var. Check if this causes concurrency problems.
-	 */
 	public void run()
 	{
-		Process handler;
+		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Pair< String, Process > pair : pairs ) {
-			handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
-			if ( pair.key() == null )
-				ExecutionThread.currentThread().installCompensation( handler );
-			else
-				ExecutionThread.currentThread().installFaultHandler( pair.key(), handler );
+			final Process handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
+			if ( pair.key() == null ) {
+				ethread.installCompensation( handler );
+			} else {
+				ethread.installFaultHandler( pair.key(), handler );
+			}
 		}
 	}
 	

@@ -99,6 +99,7 @@ public class InputPortInfo extends PortInfo
 		return location;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

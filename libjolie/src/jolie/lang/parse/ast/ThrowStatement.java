@@ -54,6 +54,7 @@ public class ThrowStatement extends OLSyntaxNode
 		return id;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

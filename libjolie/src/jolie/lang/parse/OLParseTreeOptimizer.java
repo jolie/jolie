@@ -21,88 +21,20 @@
 
 package jolie.lang.parse;
 
-import java.lang.reflect.Array;
 import jolie.lang.Constants;
-import jolie.lang.parse.ast.AddAssignStatement;
-import jolie.lang.parse.ast.AssignStatement;
-import jolie.lang.parse.ast.CompareConditionNode;
-import jolie.lang.parse.ast.CompensateStatement;
-import jolie.lang.parse.ast.CorrelationSetInfo;
-import jolie.lang.parse.ast.CurrentHandlerStatement;
-import jolie.lang.parse.ast.DeepCopyStatement;
-import jolie.lang.parse.ast.DefinitionCallStatement;
-import jolie.lang.parse.ast.DefinitionNode;
-import jolie.lang.parse.ast.DivideAssignStatement;
-import jolie.lang.parse.ast.DocumentationComment;
-import jolie.lang.parse.ast.EmbeddedServiceNode;
-import jolie.lang.parse.ast.ExecutionInfo;
-import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
-import jolie.lang.parse.ast.ForStatement;
-import jolie.lang.parse.ast.IfStatement;
-import jolie.lang.parse.ast.InputPortInfo;
-import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
-import jolie.lang.parse.ast.InstallFunctionNode;
-import jolie.lang.parse.ast.InstallStatement;
-import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
-import jolie.lang.parse.ast.LinkInStatement;
-import jolie.lang.parse.ast.LinkOutStatement;
-import jolie.lang.parse.ast.MultiplyAssignStatement;
-import jolie.lang.parse.ast.NDChoiceStatement;
-import jolie.lang.parse.ast.NotificationOperationStatement;
-import jolie.lang.parse.ast.NullProcessStatement;
-import jolie.lang.parse.ast.OLSyntaxNode;
-import jolie.lang.parse.ast.OneWayOperationDeclaration;
-import jolie.lang.parse.ast.OneWayOperationStatement;
-import jolie.lang.parse.ast.OutputPortInfo;
-import jolie.lang.parse.ast.ParallelStatement;
-import jolie.lang.parse.ast.PointerStatement;
-import jolie.lang.parse.ast.PostDecrementStatement;
-import jolie.lang.parse.ast.PostIncrementStatement;
-import jolie.lang.parse.ast.PreDecrementStatement;
-import jolie.lang.parse.ast.PreIncrementStatement;
-import jolie.lang.parse.ast.Program;
-import jolie.lang.parse.ast.ProvideUntilStatement;
-import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.RequestResponseOperationStatement;
-import jolie.lang.parse.ast.RunStatement;
-import jolie.lang.parse.ast.Scope;
-import jolie.lang.parse.ast.SequenceStatement;
-import jolie.lang.parse.ast.SolicitResponseOperationStatement;
-import jolie.lang.parse.ast.SpawnStatement;
-import jolie.lang.parse.ast.SubtractAssignStatement;
-import jolie.lang.parse.ast.SynchronizedStatement;
-import jolie.lang.parse.ast.ThrowStatement;
-import jolie.lang.parse.ast.TypeCastExpressionNode;
-import jolie.lang.parse.ast.UndefStatement;
-import jolie.lang.parse.ast.ValueVectorSizeExpressionNode;
-import jolie.lang.parse.ast.VariablePathNode;
-import jolie.lang.parse.ast.WhileStatement;
+import jolie.lang.parse.ast.*;
 import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
+
+import java.lang.reflect.Array;
 
 
 /** Builds an optimized version of an OL parse tree.
@@ -131,6 +63,7 @@ public class OLParseTreeOptimizer
 			return program;
 		}
 		
+		@Override
 		public void visit( Program p )
 		{
 			for( OLSyntaxNode node : p.children() ) {
@@ -138,16 +71,19 @@ public class OLParseTreeOptimizer
 			}
 		}
 		
+		@Override
 		public void visit( ExecutionInfo p )
 		{
 			program.addChild( p );
 		}
 		
+		@Override
 		public void visit( CorrelationSetInfo p )
 		{
 			program.addChild( p );
 		}
 		
+		@Override
 		public void visit( OutputPortInfo p )
 		{
 			if ( p.protocolConfiguration() != null ) {
@@ -157,6 +93,7 @@ public class OLParseTreeOptimizer
 			program.addChild( p	);
 		}
 
+		@Override
 		public void visit( InputPortInfo p )
 		{
 			if ( p.protocolConfiguration() != null ) {
@@ -179,22 +116,27 @@ public class OLParseTreeOptimizer
 			}
 		}
 
+		@Override
 		public void visit( OneWayOperationDeclaration decl )
 		{}
 
+		@Override
 		public void visit( RequestResponseOperationDeclaration decl )
 		{}
 
+		@Override
 		public void visit( EmbeddedServiceNode n )
 		{
 			program.addChild( n );
 		}
 
+		@Override
 		public void visit( DefinitionNode n )
 		{
 			program.addChild( new DefinitionNode( n.context(), n.id(), optimizeNode( n.body() ) ) );
 		}
 
+		@Override
 		public void visit( ParallelStatement stm )
 		{
 			if ( stm.children().size() > 1 ) {
@@ -232,6 +174,7 @@ public class OLParseTreeOptimizer
 			}
 		}
 		
+		@Override
 		public void visit( SequenceStatement stm )
 		{
 			if ( stm.children().size() > 1 ) {
@@ -269,6 +212,7 @@ public class OLParseTreeOptimizer
 			}
 		}
 
+		@Override
 		public void visit( NDChoiceStatement stm )
 		{
 			if ( stm.children().size() > 0 ) {
@@ -277,7 +221,7 @@ public class OLParseTreeOptimizer
 					pair.key().accept( this );
 					OLSyntaxNode n = currNode;
 					pair.value().accept( this );
-					tmp.addChild( new Pair< OLSyntaxNode, OLSyntaxNode >( n, currNode ) );
+					tmp.addChild(new Pair<>( n, currNode ) );
 				}
 				currNode = tmp;
 			} else {
@@ -302,6 +246,7 @@ public class OLParseTreeOptimizer
 			}*/
 		}
 		
+		@Override
 		public void visit( IfStatement n )
 		{
 			IfStatement stm = new IfStatement( n.context() );
@@ -310,7 +255,7 @@ public class OLParseTreeOptimizer
 				pair.key().accept( this );
 				condition = currNode;
 				pair.value().accept( this );
-				stm.addChild( new Pair< OLSyntaxNode, OLSyntaxNode >( condition, currNode ) );
+				stm.addChild(new Pair<>( condition, currNode ) );
 			}
 			
 			if ( n.elseProcess() != null ) {
@@ -321,6 +266,7 @@ public class OLParseTreeOptimizer
 			currNode = stm;
 		}
 
+		@Override
 		public void visit( SpawnStatement n )
 		{
 			currNode = new SpawnStatement(
@@ -332,6 +278,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( WhileStatement n )
 		{
 			currNode = new WhileStatement(
@@ -341,6 +288,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( ForStatement n )
 		{
 			currNode = new ForStatement(
@@ -352,6 +300,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( ForEachStatement n )
 		{
 			currNode = new ForEachStatement(
@@ -362,11 +311,12 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( VariablePathNode n )
 		{
 			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
-				varPath.append( new Pair< OLSyntaxNode, OLSyntaxNode >( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
+				varPath.append(new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}
 			currNode = varPath;
 		}
@@ -389,6 +339,7 @@ public class OLParseTreeOptimizer
 			return currNode;
 		}
 		
+		@Override
 		public void visit( RequestResponseOperationStatement n )
 		{
 			OLSyntaxNode outputExpression = null;
@@ -405,12 +356,14 @@ public class OLParseTreeOptimizer
 						optimizeNode( n.process() ) );
 		}
 		
+		@Override
 		public void visit( Scope n )
 		{
 			n.body().accept( this );
 			currNode = new Scope( n.context(), n.id(), currNode );
 		}
 		
+		@Override
 		public void visit( InstallStatement n )
 		{
 			currNode = new InstallStatement( n.context(), optimizeInstallFunctionNode( n.handlersFunction() ) );
@@ -427,19 +380,22 @@ public class OLParseTreeOptimizer
 			int i = 0;
 			for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 				pair.value().accept( this );
-				pairs[ i++ ] = new Pair< String, OLSyntaxNode >( pair.key(), currNode );
+				pairs[ i++ ] = new Pair<>( pair.key(), currNode );
 			}
 			return new InstallFunctionNode( pairs );
 		}
 		
+		@Override
 		public void visit( SynchronizedStatement n )
 		{
 			n.body().accept( this );
 			currNode = new SynchronizedStatement( n.context(), n.id(), currNode );
 		}
 				
+		@Override
 		public void visit( CompensateStatement n ) { currNode = n; }
 
+		@Override
 		public void visit( ThrowStatement n )
 		{
 			if ( n.expression() == null ) {
@@ -450,6 +406,7 @@ public class OLParseTreeOptimizer
 			currNode = new ThrowStatement( n.context(), n.id(), currNode );
 		}
 
+		@Override
 		public void visit( OneWayOperationStatement n )
 		{
 			currNode = new OneWayOperationStatement(
@@ -459,6 +416,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( NotificationOperationStatement n )
 		{
 			OLSyntaxNode outputExpression = null;
@@ -474,6 +432,7 @@ public class OLParseTreeOptimizer
 						);
 		}
 
+		@Override
 		public void visit( SolicitResponseOperationStatement n )
 		{
 			OLSyntaxNode outputExpression = null;
@@ -491,9 +450,12 @@ public class OLParseTreeOptimizer
 						);
 		}
 
+		@Override
 		public void visit( LinkInStatement n ) { currNode = n; }
+		@Override
 		public void visit( LinkOutStatement n ) { currNode = n; }
 
+		@Override
 		public void visit( AssignStatement n )
 		{
 			currNode = new AssignStatement(
@@ -503,6 +465,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( AddAssignStatement n )
 		{
 			currNode = new AddAssignStatement(
@@ -511,6 +474,7 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.expression() ) );
 		}
 
+		@Override
 		public void visit( SubtractAssignStatement n )
 		{
 			currNode = new SubtractAssignStatement(
@@ -519,6 +483,7 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.expression() ) );
 		}
 
+		@Override
 		public void visit( MultiplyAssignStatement n )
 		{
 			currNode = new MultiplyAssignStatement(
@@ -527,6 +492,7 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.expression() ) );
 		}
 
+		@Override
 		public void visit( DivideAssignStatement n )
 		{
 			currNode = new DivideAssignStatement(
@@ -535,6 +501,7 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.expression() ) );
 		}
 
+		@Override
 		public void visit( DeepCopyStatement n )
 		{
 			currNode = new DeepCopyStatement(
@@ -544,6 +511,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( PointerStatement n )
 		{
 			currNode = new PointerStatement(
@@ -553,8 +521,10 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( DefinitionCallStatement n ) { currNode = n; }
 
+		@Override
 		public void visit( OrConditionNode n )
 		{
 			if ( n.children().size() > 1 ) {
@@ -569,6 +539,7 @@ public class OLParseTreeOptimizer
 			}
 		}
 		
+		@Override
 		public void visit( AndConditionNode n )
 		{
 			if ( n.children().size() > 1 ) {
@@ -583,12 +554,14 @@ public class OLParseTreeOptimizer
 			}
 		}
 
+		@Override
 		public void visit( NotExpressionNode n )
 		{
 			n.expression().accept( this );
 			currNode = new NotExpressionNode( n.context(), currNode );
 		}
 
+		@Override
 		public void visit( CompareConditionNode n )
 		{
 			n.leftExpression().accept( this );
@@ -597,19 +570,25 @@ public class OLParseTreeOptimizer
 			currNode = new CompareConditionNode( n.context(), leftExpression, currNode, n.opType() );
 		}
 
+		@Override
 		public void visit( ConstantIntegerExpression n ) { currNode = n; }
 		
+		@Override
 		public void visit( ConstantLongExpression n ) { currNode = n; }
 		
+		@Override
 		public void visit( ConstantBoolExpression n ) { currNode = n; }
 
+		@Override
 		public void visit( ConstantDoubleExpression n ) { currNode = n; }
 
+		@Override
 		public void visit( ConstantStringExpression n )
 		{
 			currNode = new ConstantStringExpression( n.context(), n.value().intern() );
 		}
 
+		@Override
 		public void visit( ProductExpressionNode n )
 		{
 			if ( n.operands().size() > 1 ) {
@@ -630,6 +609,7 @@ public class OLParseTreeOptimizer
 			}
 		}
 		
+		@Override
 		public void visit( SumExpressionNode n )
 		{
 			if ( n.operands().size() > 1 ) {
@@ -648,6 +628,7 @@ public class OLParseTreeOptimizer
 			}
 		}
 
+		@Override
 		public void visit( VariableExpressionNode n )
 		{
 			currNode = new VariableExpressionNode(
@@ -656,6 +637,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( InstallFixedVariableExpressionNode n )
 		{
 			currNode = new InstallFixedVariableExpressionNode(
@@ -664,20 +646,30 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( NullProcessStatement n ) { currNode = n; }
+		@Override
 		public void visit( ExitStatement n ) { currNode = n; }
+		@Override
 		public void visit( RunStatement n ) { currNode = n; }
 
+		@Override
 		public void visit( TypeInlineDefinition n )
 		{
 			program.addChild( n );
 		}
 
+		@Override
 		public void visit( TypeDefinitionLink n )
 		{
 			program.addChild( n );
 		}
+
+		public void visit(TypeChoiceDefinition n) {
+			program.addChild( n );
+		}
 		
+		@Override
 		public void visit( ValueVectorSizeExpressionNode n )
 		{
 			currNode = new ValueVectorSizeExpressionNode(
@@ -686,6 +678,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( PreIncrementStatement n )
 		{
 			currNode = new PreIncrementStatement(
@@ -694,6 +687,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( PostIncrementStatement n )
 		{
 			currNode = new PostIncrementStatement(
@@ -702,6 +696,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( PreDecrementStatement n )
 		{
 			currNode = new PreDecrementStatement(
@@ -710,6 +705,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( PostDecrementStatement n )
 		{
 			currNode = new PostDecrementStatement(
@@ -718,6 +714,7 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( UndefStatement n )
 		{
 			currNode = new UndefStatement(
@@ -726,11 +723,13 @@ public class OLParseTreeOptimizer
 			);
 		}
 		
+		@Override
 		public void visit( FreshValueExpressionNode n )
 		{
 			currNode = n;
 		}
 
+		@Override
 		public void visit( IsTypeExpressionNode n )
 		{
 			currNode = new IsTypeExpressionNode(
@@ -740,6 +739,7 @@ public class OLParseTreeOptimizer
 				);
 		}
 		
+		@Override
 		public void visit( InstanceOfExpressionNode n )
 		{
 			currNode = new InstanceOfExpressionNode(
@@ -749,6 +749,7 @@ public class OLParseTreeOptimizer
 				);
 		}
 
+		@Override
 		public void visit( TypeCastExpressionNode n )
 		{
 			currNode = new TypeCastExpressionNode(
@@ -758,23 +759,28 @@ public class OLParseTreeOptimizer
 				);
 		}
 
+		@Override
 		public void visit( CurrentHandlerStatement n ) { currNode = n; }
 		
+		@Override
 		public void visit( InterfaceDefinition n )
 		{
 			program.addChild( n );
 		}
 		
+		@Override
 		public void visit( InterfaceExtenderDefinition n )
 		{
 			program.addChild( n );
 		}
 	
+		@Override
 		public void visit( CourierDefinitionNode n )
 		{
 			program.addChild( new CourierDefinitionNode( n.context(), n.inputPortName(), optimizeNode( n.body() ) ) );
 		}
 	
+		@Override
 		public void visit( CourierChoiceStatement n )
 		{
 			CourierChoiceStatement courierChoice = new CourierChoiceStatement( n.context() );
@@ -797,21 +803,25 @@ public class OLParseTreeOptimizer
 			currNode = courierChoice;
 		}
 
+		@Override
 		public void visit( NotificationForwardStatement n )
 		{
 			currNode = new NotificationForwardStatement( n.context(), n.outputPortName(), optimizePath( n.outputVariablePath() ) );
 		}
 
+		@Override
 		public void visit( SolicitResponseForwardStatement n )
 		{
 			currNode = new SolicitResponseForwardStatement( n.context(), n.outputPortName(), optimizePath( n.outputVariablePath() ), optimizePath( n.inputVariablePath() ) );
 		}
 		
+		@Override
 		public void visit( VoidExpressionNode n )
 		{
 			currNode = n;
 		}
 		
+		@Override
 		public void visit( InlineTreeExpressionNode n )
 		{
 			Pair< VariablePathNode, OLSyntaxNode >[] optAssignments = new Pair[ n.assignments().length ];
@@ -821,11 +831,12 @@ public class OLParseTreeOptimizer
 			for( Pair< VariablePathNode, OLSyntaxNode > pair : n.assignments() ) {
 				currVarPath = optimizePath( pair.key() );
 				currExpr = optimizeNode( pair.value() );
-				optAssignments[i++] = new Pair< VariablePathNode, OLSyntaxNode >( currVarPath, currExpr );
+				optAssignments[i++] = new Pair<>( currVarPath, currExpr );
 			}
 			currNode = new InlineTreeExpressionNode( n.context(), optimizeNode( n.rootExpression() ), optAssignments );
 		}
 		
+		@Override
 		public void visit( ProvideUntilStatement n )
 		{
 			currNode = new ProvideUntilStatement(
@@ -835,17 +846,11 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+		@Override
 		public void visit( DocumentationComment n ) {}
 	}
-	
-	private final Program originalProgram;
-	
-	public OLParseTreeOptimizer( Program originalProgram )
-	{
-		this.originalProgram = originalProgram;
-	}
 
-	public Program optimize()
+	public static Program optimize( Program originalProgram )
 	{
 		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
 	}

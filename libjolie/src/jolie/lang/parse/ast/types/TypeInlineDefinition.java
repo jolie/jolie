@@ -45,6 +45,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		this.nativeType = nativeType;
 	}
 
+	@Override
 	public NativeType nativeType()
 	{
 		return nativeType;
@@ -55,6 +56,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		untypedSubTypes = b;
 	}
 
+	@Override
 	public boolean hasSubType( String id )
 	{
 		if ( subTypes == null ) {
@@ -64,6 +66,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		}
 	}
 
+	@Override
 	public Set< Map.Entry< String, TypeDefinition > > subTypes()
 	{
 		if ( subTypes == null ) {
@@ -73,6 +76,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		return subTypes.entrySet();
 	}
 
+	@Override
 	public TypeDefinition getSubType( String id )
 	{
 		if ( subTypes != null ) {
@@ -81,6 +85,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		return null;
 	}
 
+	@Override
 	public boolean hasSubTypes()
 	{
 		if ( subTypes != null && subTypes.isEmpty() == false ) {
@@ -92,16 +97,18 @@ public class TypeInlineDefinition extends TypeDefinition
 	public void putSubType( TypeDefinition type )
 	{
 		if ( subTypes == null ) {
-			subTypes = new HashMap< String, TypeDefinition >();
+			subTypes = new HashMap<>();
 		}
 		subTypes.put( type.id(), type );
 	}
 
+	@Override
 	public boolean untypedSubTypes()
 	{
 		return untypedSubTypes;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

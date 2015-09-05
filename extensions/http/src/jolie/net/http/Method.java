@@ -33,7 +33,7 @@ public enum Method
 	POST( "POST" ),
 	GET( "GET" );
 
-	private final static Map< String, Method > idMap = new ConcurrentHashMap< String, Method >();
+	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
 
 	static {
 		for( Method type : Method.values() ) {

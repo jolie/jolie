@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,7 +23,9 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import jolie.Interpreter;
 
 /**
@@ -31,12 +33,6 @@ import jolie.Interpreter;
  */
 public class LocalCommChannel extends CommChannel implements PollableCommChannel
 {
-	private static class ResponseContainer
-	{
-		private ResponseContainer() {}
-		private CommMessage response = null;
-	}
-	
 	private static class CoLocalCommChannel extends CommChannel
 	{
 		private CommMessage request;
@@ -48,6 +44,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			this.request = request;
 		}
 
+		@Override
 		protected CommMessage recvImpl()
 			throws IOException
 		{
@@ -59,15 +56,18 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			return r;
 		}
 
+		@Override
 		protected void sendImpl( CommMessage message )
+			throws IOException
 		{
-			ResponseContainer c = senderChannel.responseWaiters.get( message.id() );
-			synchronized( c ) {
-				c.response = message;
-				c.notify();
+			CompletableFuture< CommMessage > f = senderChannel.responseWaiters.get( message.id() );
+			if ( f == null ) {
+				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
 			}
+			f.complete( message );
 		}
 
+		@Override
 		public CommMessage recvResponseFor( CommMessage request )
 			throws IOException
 		{
@@ -79,13 +79,14 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 			throws IOException
 		{}
 
+		@Override
 		protected void closeImpl()
 		{}
 	}
 
 	private final Interpreter interpreter;
 	private final CommListener listener;
-	private final Map< Long, ResponseContainer > responseWaiters = new ConcurrentHashMap< Long, ResponseContainer >();
+	private final Map< Long, CompletableFuture< CommMessage > > responseWaiters = new ConcurrentHashMap<>();
 	
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
@@ -104,39 +105,42 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		return interpreter;
 	}
 
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
 		throw new IOException( "Unsupported operation" );
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 	{
-		responseWaiters.put( message.id(), new ResponseContainer() );
+		responseWaiters.put( message.id(), new CompletableFuture<>() );
 		interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
+	@Override
 	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException
 	{
-		ResponseContainer c = responseWaiters.get( request.id() );
-		synchronized( c ) {
-			while( c.response == null ) {
-				try {
-					c.wait();
-				} catch( InterruptedException e ) {}
-			}
+		final CompletableFuture< CommMessage > f = responseWaiters.get( request.id() );
+		final CommMessage m;
+		
+		try { 
+			m = f.get();
+		} catch( ExecutionException | InterruptedException e ) {
+			throw new IOException( e );
+		} finally {
+			responseWaiters.remove( request.id() );
 		}
-		responseWaiters.remove( request.id() );
-		return c.response;
+			
+		return m;
 	}
 	
+	@Override
 	public boolean isReady()
 	{
-		boolean isReady;
-		synchronized( responseWaiters ) {
-			isReady = responseWaiters.isEmpty() == false;
-		}
-		return isReady;
+		return responseWaiters.isEmpty() == false;
 	}
 	
 	@Override
@@ -146,6 +150,7 @@ public class LocalCommChannel extends CommChannel implements PollableCommChannel
 		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
+	@Override
 	protected void closeImpl()
 	{}
 }

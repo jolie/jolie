@@ -23,6 +23,7 @@ package jolie;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import jolie.lang.parse.ParserException;
 
 
 /** Starter class of the Interpreter.
@@ -66,7 +67,11 @@ public class Jolie
 			ioe.printStackTrace();
 			exitCode = 2;
 		} catch( InterpreterException ie ) {
-			ie.printStackTrace();
+			if ( ie.getCause() instanceof ParserException ) {
+				ie.getCause().printStackTrace();
+			} else {
+				ie.printStackTrace();
+			}
 			exitCode = 3;
 		} catch( Exception e ) {
 			e.printStackTrace();

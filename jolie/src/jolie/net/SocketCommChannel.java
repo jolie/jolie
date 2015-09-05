@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2010 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +22,6 @@
 
 package jolie.net;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +34,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.util.Helpers;
 
 
 /**
@@ -64,7 +64,8 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		super( location, protocol );
 		this.socketChannel = socketChannel;
 		socketChannel.socket().setSoLinger( true, SO_LINGER );
-		this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream( socketChannel ) ) );
+		// this.istream = new PreBufferedInputStream( new BufferedInputStream( Channels.newInputStream( socketChannel ) ) );
+		this.istream = new PreBufferedInputStream( Channels.newInputStream( socketChannel ) );
 		this.ostream = new BufferedOutputStream( Channels.newOutputStream( socketChannel ) );
 		setToBeClosed( false ); // Socket connections are kept open by default
 	}
@@ -73,11 +74,13 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * Returns the SocketChannel underlying this SocketCommChannel
 	 * @return the SocketChannel underlying this SocketCommChannel
 	 */
+	@Override
 	public SelectableChannel selectableChannel()
 	{
 		return socketChannel;
 	}
 	
+	@Override
 	public InputStream inputStream()
 	{
 		return istream;
@@ -86,8 +89,10 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	/**
 	 * Receives a message from the channel.
 	 * @return the received CommMessage
+	 * @throws java.io.IOException
 	 * @see CommMessage
 	 */
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
@@ -104,6 +109,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see CommMessage
 	 * @throws IOException if an error sending the message occurs
 	 */
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
@@ -115,21 +121,26 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		}
 	}
 	
+	@Override
 	protected void closeImpl()
 		throws IOException
 	{
 		socketChannel.close();
 	}
 	
+	private final ByteBuffer buffer = ByteBuffer.allocateDirect( 1024 );
+	
 	private boolean _isOpenImpl()
 		throws IOException
 	{
-		boolean wasBlocking = socketChannel.isBlocking();
-		ByteBuffer buffer = ByteBuffer.allocate( 1 );
+		buffer.clear();
+		
+		final boolean wasBlocking = socketChannel.isBlocking();
+		
 		if ( wasBlocking ) {
 			socketChannel.configureBlocking( false );
 		}
-		int read;
+		final int read;
 		try {
 			read = socketChannel.read( buffer );
 		} catch( IOException e ) {
@@ -147,7 +158,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 		if ( read == -1 ) {
 			return false;
 		} else if ( read > 0 ) {
-			istream.append( buffer.get( 0 ) );
+			buffer.limit( read );
+			buffer.rewind();
+			istream.append( buffer );
 		}
 		return true;
 	}
@@ -159,18 +172,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 			return false;
 		}
 
-		boolean ret = false;
+		final boolean ret;
 		try {
-			if ( lock.isHeldByCurrentThread() ) {
-				ret = _isOpenImpl();
-			} else {
-				lock.lock();
-				try {
-					ret = _isOpenImpl();
-				} finally {
-					lock.unlock();
-				}
-			}
+			ret = Helpers.lockAndThen( lock, this::_isOpenImpl );
 		} catch( IOException e ) {
 			Interpreter.getInstance().logWarning( e );
 			return false;
