@@ -21,15 +21,14 @@
 
 package jolie.runtime.typing;
 
-import jolie.lang.NativeType;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.util.Range;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.lang.NativeType;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.util.Range;
 
 class TypeImpl extends Type
 {

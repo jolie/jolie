@@ -5,7 +5,7 @@
 	<property name="dist.launchers" value="${dist}/launchers"/>
 	<property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
 	<property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
-    
+
 	<condition property="isWindows" value="true">
 		<os family="windows" />
 	</condition>
@@ -46,156 +46,156 @@
 	<target name="-create-windows-launchers">
 		<echo message="Creating Jolie Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -jar %JOLIE_HOME%\jolie.jar -l .\lib\*;%JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -jar %JOLIE_HOME%\jolie.jar -l .\lib\*;%JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 		<echo message="Creating JolieC (Jolie Compiler) Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/joliec.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\joliec.jar jolie.compiler.Main -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\joliec.jar jolie.compiler.Main -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 
 		<echo message="Creating Jolie2Java Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2java.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2java.jar;%JOLIE_HOME%\lib\jolie-gwt.jar joliex.java.Jolie2Java -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2java.jar;%JOLIE_HOME%\lib\jolie-gwt.jar joliex.java.Jolie2Java -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 
 		<echo message="Creating Jolie2Surface Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2surface.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2surface.jar joliex.surface.GetSurface -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2surface.jar joliex.surface.GetSurface -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 
 		<echo message="Creating Jolie2Dummy Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2dummy.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 
 		<echo message="Creating Jolie2Wsdl Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie2wsdl.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2wsdl.jar;%JOLIE_HOME%\lib\wsdl4j.jar joliex.wsdl.Jolie2Wsdl -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\jolie2wsdl.jar;%JOLIE_HOME%\lib\wsdl4j.jar joliex.wsdl.Jolie2Wsdl -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 
 		<echo message="Creating JolieDoc (Jolie Documentation tool) Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/joliedoc.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\joliedoc.jar jolie.doc.JolieDoc -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			java -ea:jolie... -ea:joliex... -cp %JOLIE_HOME%\jolie.jar;%JOLIE_HOME%\lib\libjolie.jar;%JOLIE_HOME%\tools\joliedoc.jar jolie.doc.JolieDoc -l %JOLIE_HOME%\lib;%JOLIE_HOME%\javaServices\*;%JOLIE_HOME%\extensions\* -i %JOLIE_HOME%\include %params%
 		</echo>
 		<echo message="Creating WSDL2Jolie Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/wsdl2jolie.bat">@echo off
-set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
-jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %params%
+			set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
+			jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %params%
 		</echo>
 	</target>
 
-    <target name="-install-unix-launchers" unless="isWindows">
-        <echo message="Installing Jolie Unix launcher scripts to ${private.install.launcher_dir} ..." />
-        <copy todir="${private.install.launcher_dir}" overwrite="true">
-          <fileset dir="${dist.launchers.unix}"/>
-        </copy>
-        <!-- mode permission is not preserved with copy task. using cp command with preserve mode parameter does not work on mac -->
-        <fileset id="launcher.files" dir="${dist.launchers.unix}" includes="**"/>
-        <pathconvert property="launcher.filename" pathsep="," refid="launcher.files">
-          <map from="${user.dir}/${dist.launchers.unix}/" to=""/>
-        </pathconvert>
-        <chmod perm="775">
-          <fileset dir="${private.install.launcher_dir}" includes="${launcher.filename}"/>
-        </chmod>
-    </target>
-    
+	<target name="-install-unix-launchers" unless="isWindows">
+		<echo message="Installing Jolie Unix launcher scripts to ${private.install.launcher_dir} ..." />
+		<copy todir="${private.install.launcher_dir}" overwrite="true">
+			<fileset dir="${dist.launchers.unix}"/>
+		</copy>
+		<!-- mode permission is not preserved with copy task. using cp command with preserve mode parameter does not work on mac -->
+		<fileset id="launcher.files" dir="${dist.launchers.unix}" includes="**"/>
+		<pathconvert property="launcher.filename" pathsep="," refid="launcher.files">
+			<map from="${user.dir}/${dist.launchers.unix}/" to=""/>
+		</pathconvert>
+		<chmod perm="775">
+			<fileset dir="${private.install.launcher_dir}" includes="${launcher.filename}"/>
+		</chmod>
+	</target>
+
 	<target name="-create-unix-launchers" unless="isWindows">
 		<echo message="Creating Jolie Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie">#!/bin/sh
 
-java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie" perm="a+x"/>
 
 		<echo message="Creating MetaService Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/metaservice">#!/bin/sh
 
-METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
+			METASERVICE=$JOLIE_HOME/include/services/metaservice/metaservice.ol
 
-print_help()
-{
-	echo "Usage: $0 [location [protocol]]"
-	echo -e "\nExamples of valid locations are:"
-	echo -e "\tsocket://localhost:9000/ (for a tcp/ip socket)"
-	echo -e "\tlocalsocket:/tmp/metaservice_socket (for a local socket)"
+			print_help()
+			{
+			echo "Usage: $0 [location [protocol]]"
+			echo -e "\nExamples of valid locations are:"
+			echo -e "\tsocket://localhost:9000/ (for a tcp/ip socket)"
+			echo -e "\tlocalsocket:/tmp/metaservice_socket (for a local socket)"
 
-	echo -e "\nExamples of valid protocls are:"
-	echo -e "\tsodep (a fast and open source binary protocol)"
-	echo -e "\tsoap (the SOAP protocol, the standard used by Web Services)"
+			echo -e "\nExamples of valid protocls are:"
+			echo -e "\tsodep (a fast and open source binary protocol)"
+			echo -e "\tsoap (the SOAP protocol, the standard used by Web Services)"
 
-	echo -e "\nExample of valid invocations:"
-	echo -e "\t$0 socket://localhost:9000/"
-	echo -e "\t$0 socket://localhost:9100/ soap"
+			echo -e "\nExample of valid invocations:"
+			echo -e "\t$0 socket://localhost:9000/"
+			echo -e "\t$0 socket://localhost:9100/ soap"
 
-	echo -e "\nPlease refer to http://www.jolie-lang.org/ for a complete list of supported locations and protocols."
-	echo -e "MetaService supports all of the locations and protocols provided by the JOLIE language.\n";
-}
+			echo -e "\nPlease refer to http://www.jolie-lang.org/ for a complete list of supported locations and protocols."
+			echo -e "MetaService supports all of the locations and protocols provided by the JOLIE language.\n";
+			}
 
-if [[ $1 = "-h" || $1 = "--help" ]]; then
-	print_help
-elif [[ $# = 0 ]]; then
-	jolie $METASERVICE
-elif [[ $# = 1 ]]; then
-	jolie -C "MetaServiceLocation=\"$1\"" $METASERVICE
-elif [[ $# = 2 ]]; then
-	jolie -C "MetaServiceLocation=\"$1\"" -C "MetaServiceProtocol=$2" $METASERVICE
-else
-	print_help
-fi
+			if [[ $1 = "-h" || $1 = "--help" ]]; then
+			print_help
+			elif [[ $# = 0 ]]; then
+			jolie $METASERVICE
+			elif [[ $# = 1 ]]; then
+			jolie -C "MetaServiceLocation=\"$1\"" $METASERVICE
+			elif [[ $# = 2 ]]; then
+			jolie -C "MetaServiceLocation=\"$1\"" -C "MetaServiceProtocol=$2" $METASERVICE
+			else
+			print_help
+			fi
 		</echo>
 		<chmod file="${dist.launchers.unix}/metaservice" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Plasma Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2plasma">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2plasma" perm="a+x"/>
 
 		<echo message="Creating Jolie2Wsdl Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2wsdl">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2wsdl.jar:$JOLIE_HOME/lib/wsdl4j.jar joliex.wsdl.Jolie2Wsdl -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2wsdl.jar:$JOLIE_HOME/lib/wsdl4j.jar joliex.wsdl.Jolie2Wsdl -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2wsdl" perm="a+x"/>
 
 		<echo message="Creating WSDL2Jolie Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/wsdl2jolie">#!/bin/sh
-jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
+			jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/wsdl2jolie" perm="a+x"/>
 		<echo message="Creating JolieC (Jolie Compiler) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/joliec">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliec.jar jolie.compiler.Main -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliec.jar jolie.compiler.Main -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/joliec" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Java Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2java">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/lib/jolie-gwt.jar:$JOLIE_HOME/tools/jolie2java.jar joliex.java.Jolie2Java -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/lib/jolie-gwt.jar:$JOLIE_HOME/tools/jolie2java.jar joliex.java.Jolie2Java -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2java" perm="a+x"/>
 
 		<echo message="Creating JolieDoc (Jolie Documentation Tool) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/joliedoc">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliedoc.jar jolie.doc.JolieDoc -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliedoc.jar jolie.doc.JolieDoc -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/joliedoc" perm="a+x"/>
 
 		<echo message="Creating Jolie2Dummy (Jolie Dummy Service Generator Tool) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2dummy">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2dummy" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Surface (Jolie Surface Extractor Tool) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2surface">#!/bin/sh
-java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2surface.jar joliex.surface.GetSurface -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+			java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2surface.jar joliex.surface.GetSurface -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2surface" perm="a+x"/>
 	</target>
@@ -209,13 +209,13 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 		<antcall target="-install-unix-launchers" />
 		<antcall target="-install-windows-launchers" />
 		<echo>
-Jolie has been installed.
-Please make sure that:
-	- the environment variable JOLIE_HOME is set to ${private.install.dir}
-	- the directory ${private.install.launcher_dir} is in your environment variable PATH
-</echo>
+			Jolie has been installed.
+			Please make sure that:
+			- the environment variable JOLIE_HOME is set to ${private.install.dir}
+			- the directory ${private.install.launcher_dir} is in your environment variable PATH
+		</echo>
 	</target>
-	
+
 	<target name="dist-install" depends="dist,install" />
 
 	<target name="build">
@@ -286,7 +286,7 @@ Please make sure that:
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
 	</target>
-    
+
 	<target name="dist" depends="-init,jar">
 		<delete dir="${dist}"/>
 		<copy todir="${dist.jolie}" flatten="true">
@@ -331,7 +331,7 @@ Please make sure that:
 				<file file="${project.monitorJavaServices}/dist/monitorJavaServices.jar"/>
 			</resources>
 		</copy>
-		
+
 		<copy todir="${dist.jolie}/tools" flatten="true">
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
@@ -344,7 +344,7 @@ Please make sure that:
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
 			</resources>
 		</copy>
-		
+
 		<copy file="${libs.bluetooth}" tofile="${dist.jolie}/lib/bluetooth.jar"/>
 		<copy file="${libs.gwt-servlet}" tofile="${dist.jolie}/lib/gwt-servlet.jar"/>
 		<copy file="${libs.javamail.smtp}" tofile="${dist.jolie}/lib/smtp.jar"/>
@@ -359,7 +359,7 @@ Please make sure that:
 		<copy file="${libs.smackx}" tofile="${dist.jolie}/lib/smackx.jar"/>
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
-	
+
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
 	</target>
@@ -372,17 +372,8 @@ Please make sure that:
 		</exec>
 	</target>
 
-	<target name="-test-windows" if="isWindows">
-		<exec executable="cmd" dir="test">
-			<env key="JOLIE_HOME" file="dist\jolie" />
-			<arg value="/c" />
-			<arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
-			<arg value="test.ol" />
-		</exec>
-	</target>
-
-	<target name="test">
+	<target name="test"><!-- depends="dist"> -->
 		<antcall target="-test-unix" />
-		<antcall target="-test-windows" />
+		<!-- <antcall target="-test-windows" /> -->
 	</target>
 </project>

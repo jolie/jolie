@@ -21,13 +21,12 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.util.Map;
+import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Range;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
