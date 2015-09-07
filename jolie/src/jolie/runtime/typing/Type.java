@@ -124,7 +124,7 @@ class TypeImpl extends Type
 			final int l = pathBuilder.length();
 			for( Entry< String, Type > entry : subTypes.entrySet() ) {
 				checkSubType( entry.getKey(), entry.getValue(), value, pathBuilder );
-				pathBuilder.setLength(l);
+				pathBuilder.setLength( l );
 			}
 			
 			// TODO make this more performant

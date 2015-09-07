@@ -235,7 +235,6 @@ public class OLParser extends AbstractParser
 				commentToken = token;
 				getToken();
 			} else if ( token.isKeyword( "type" ) ) {
-
 				String typeName;
 				TypeDefinition currentType;
 
@@ -264,7 +263,6 @@ public class OLParser extends AbstractParser
 			throws IOException, ParserException
 	{
 		TypeDefinition currentType;
-
 
 		NativeType nativeType = readNativeType();
 		if (nativeType == null) { // It's a user-defined type
