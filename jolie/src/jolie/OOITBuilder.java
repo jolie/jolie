@@ -121,6 +121,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -1668,6 +1669,16 @@ public class OOITBuilder implements OLVisitor
 	public void visit( ProvideUntilStatement n )
 	{
 		currProcess = new ProvideUntilProcess( (NDChoiceProcess)buildProcess( n.provide() ), (NDChoiceProcess)buildProcess( n.until() ) );
+	}
+
+	@Override
+	public void visit( TypeChoiceDefinition n ) {
+		for (TypeDefinition type: n.both()){
+			if (type instanceof TypeInlineDefinition)
+				visit((TypeInlineDefinition) type);
+			else if (type instanceof TypeDefinitionLink)
+				visit((TypeDefinitionLink)type);
+		}
 	}
 
 	public void visit( SolicitResponseForwardStatement n )

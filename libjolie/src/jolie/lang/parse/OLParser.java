@@ -118,6 +118,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
@@ -128,7 +129,7 @@ import jolie.util.Helpers;
 import jolie.util.Pair;
 import jolie.util.Range;
 
-/** Parser for a .ol file. 
+/** Parser for a .ol file.
  * @author Fabrizio Montesi
  *
  */
@@ -146,9 +147,9 @@ public class OLParser extends AbstractParser
 
 	private final Map< String, TypeDefinition > definedTypes;
 	private final ClassLoader classLoader;
-	
+
 	private InterfaceExtenderDefinition currInterfaceExtender = null;
-	
+
 	public OLParser( Scanner scanner, String[] includePaths, ClassLoader classLoader )
 	{
 		super( scanner );
@@ -173,7 +174,7 @@ public class OLParser extends AbstractParser
 			definedTypes.put( type.id(), new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
-		
+
 		return definedTypes;
 	}
 
@@ -225,9 +226,6 @@ public class OLParser extends AbstractParser
 	private void parseTypes()
 		throws IOException, ParserException
 	{
-		String typeName;
-		TypeDefinition currentType;
-
 		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
 		boolean keepRun = true;
 		boolean haveComment = false;
@@ -237,30 +235,19 @@ public class OLParser extends AbstractParser
 				commentToken = token;
 				getToken();
 			} else if ( token.isKeyword( "type" ) ) {
+				String typeName;
+				TypeDefinition currentType;
+
 				getToken();
 				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-				NativeType nativeType = readNativeType();
-				if ( nativeType == null ) { // It's a user-defined type
-					currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
-					getToken();
-				} else {
-					currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
-					getToken();
-					if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
-						parseSubTypes( (TypeInlineDefinition) currentType );
-					}
-				}
+				eat(Scanner.TokenType.ID, "expected type name");
+				eat(Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])");
 
-				if ( haveComment ) {
-					currentType.setDocumentation( commentToken.content() );
-					haveComment = false;
-				}
+				currentType = parseType(typeName);
+				typeName = currentType.id();
 
-				// Keep track of the root types to support them in successive type declarations
-				definedTypes.put( typeName, currentType );
-				program.addChild( currentType );
+				definedTypes.put(typeName, currentType);
+				program.addChild(currentType);
 			} else {
 				keepRun = false;
 				if ( haveComment ) {
@@ -270,6 +257,91 @@ public class OLParser extends AbstractParser
 				}
 			}
 		}
+	}
+
+	private TypeDefinition parseType(String typeName)
+			throws IOException, ParserException
+	{
+		TypeDefinition currentType;
+
+		NativeType nativeType = readNativeType();
+		if (nativeType == null) { // It's a user-defined type
+			currentType = new TypeDefinitionLink(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content());
+			getToken();
+		} else {
+			currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE);
+			getToken();
+			if (token.is(Scanner.TokenType.LCURLY)) { // We have sub-types to parse
+				parseSubTypes((TypeInlineDefinition) currentType);
+			}
+		}
+
+		if (token.is(Scanner.TokenType.PARALLEL)) {
+			getToken();
+			TypeDefinition secondType = parseType(typeName);
+			TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType);
+			return choiceDefinition;
+		}
+
+		return currentType;
+	}
+
+	private void parseSubTypes( TypeInlineDefinition type )
+			throws IOException, ParserException
+	{
+		eat( Scanner.TokenType.LCURLY, "expected {" );
+
+		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
+			type.setUntypedSubTypes( true );
+			getToken();
+		} else {
+			TypeDefinition currentSubType;
+			while( !token.is( Scanner.TokenType.RCURLY ) ) {
+				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
+
+				// SubType id
+				String id = token.content();
+				eatIdentifier( "expected type name" );
+
+				Range cardinality = parseCardinality();
+				eat( Scanner.TokenType.COLON, "expected COLON" );
+
+				currentSubType = parseSubType(id, cardinality);
+				if ( type.hasSubType( currentSubType.id() ) ) {
+					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
+				}
+				type.putSubType( currentSubType );
+			}
+		}
+
+		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
+	}
+
+	private TypeDefinition parseSubType(String id, Range cardinality)
+			throws IOException, ParserException
+	{
+		NativeType nativeType = readNativeType();
+		TypeDefinition subType;
+		// SubType id
+
+		if ( nativeType == null ) { // It's a user-defined type
+			subType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
+			getToken();
+		} else {
+			getToken();
+			subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
+				parseSubTypes((TypeInlineDefinition) subType);
+			}
+		}
+
+		if ( token.is( Scanner.TokenType.PARALLEL ) ) {
+			getToken();
+			TypeDefinition secondSubType = parseSubType(id, cardinality);
+			TypeChoiceDefinition choiceSubType = new TypeChoiceDefinition( getContext(), id, cardinality, subType, secondSubType);
+			return choiceSubType;
+		}
+		return subType;
 	}
 
 	private NativeType readNativeType()
@@ -286,56 +358,6 @@ public class OLParser extends AbstractParser
 			return NativeType.BOOL;
 		} else {
 			return NativeType.fromString( token.content() );
-		}
-	}
-
-	private void parseSubTypes( TypeInlineDefinition type )
-		throws IOException, ParserException
-	{
-		eat( Scanner.TokenType.LCURLY, "expected {" );
-		
-		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
-			type.setUntypedSubTypes( true );
-			getToken();
-		} else {
-			TypeDefinition currentSubType;
-			while( !token.is( Scanner.TokenType.RCURLY ) ) {
-				currentSubType = parseSubType();
-				if ( type.hasSubType( currentSubType.id() ) ) {
-					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
-				}
-				type.putSubType( currentSubType );
-			}
-		}
-
-		eat( Scanner.TokenType.RCURLY, "RCURLY expected" );
-	}
-
-	private TypeDefinition parseSubType()
-		throws IOException, ParserException
-	{
-		eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
-
-		// SubType id
-		String id = token.content();
-		eatIdentifier( "expected type name" );
-
-		Range cardinality = parseCardinality();
-		eat( Scanner.TokenType.COLON, "expected COLON" );
-
-		NativeType nativeType = readNativeType();
-
-		if ( nativeType == null ) { // It's a user-defined type
-			TypeDefinitionLink linkedSubType = new TypeDefinitionLink( getContext(), id, cardinality, token.content() );
-			getToken();
-			return linkedSubType;
-		} else {
-			getToken();
-			TypeInlineDefinition inlineSubType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
-			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
-				parseSubTypes( inlineSubType );
-			}
-			return inlineSubType;
 		}
 	}
 

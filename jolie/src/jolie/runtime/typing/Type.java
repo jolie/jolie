@@ -142,13 +142,15 @@ class TypeImpl extends Type
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
-		final boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && type.cardinality().min() > 0 ) {
-			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
+		boolean hasChildren = value.hasChildren( typeName );
+		if ( hasChildren == false && !(type instanceof TypeChoice)) {
+			if (type.cardinality().min() > 0){
+				throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
+			}
 		} else if ( hasChildren ) {
 			final ValueVector vector = value.getChildren( typeName );
 			final int size = vector.size();
-			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
+			if (!(type instanceof TypeChoice) && checkCardinality(type, size)) {
 				throw new TypeCheckingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
@@ -160,6 +162,10 @@ class TypeImpl extends Type
 			}
 		}
 	}
+
+    private Boolean checkCardinality (Type type, int size){
+        return ( type.cardinality().min() > size || type.cardinality().max() < size );
+    }
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
