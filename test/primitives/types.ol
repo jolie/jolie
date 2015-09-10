@@ -40,6 +40,15 @@ define doTest
 	call@Server( request )( response );
 	if ( response != 3 ) {
 		throw( TestFailed, "Return value does not match input value" )
+	};
+	request.left = 3;
+	choice@Server( request )( response );
+	if ( response != 3 ) {
+		throw( TestFailed, "Return value does not match input value" )
+	};
+	request.right = "3";
+	choice@Server( request )( response );
+	if ( response != "3" ) {
+		throw( TestFailed, "Return value does not match input value" )
 	}
 }
-
