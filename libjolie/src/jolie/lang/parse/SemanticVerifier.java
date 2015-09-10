@@ -111,6 +111,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -277,7 +278,7 @@ public class SemanticVerifier implements OLVisitor
 		for( TypeDefinitionLink l : definedTypeLinks ) {
 			l.setLinkedType( definedTypes.get( l.linkedTypeName() ) );
 			if ( l.linkedType() == null ) {
-				error( l, "type " + l.id() + "points to an undefined type (" + l.linkedTypeName() + ")" );
+				error( l, "type " + l.id() + " points to an undefined type (" + l.linkedTypeName() + ")" );
 			}
 		}
 	}
@@ -430,7 +431,41 @@ public class SemanticVerifier implements OLVisitor
 		definedTypeLinks.add( n );
 	}
 
-	private void checkCardinality( TypeDefinition type )
+	public void visit(TypeChoiceDefinition n) {
+		checkCardinality( n );
+		boolean backupRootType = isTopLevelType;
+		if ( isTopLevelType ) {
+			// Check if the type has already been defined with a different structure
+			TypeDefinition type = definedTypes.get( n.id() );
+			if ( type != null ) {
+				addTypeEqualnessCheck( type, n );
+			}
+		}
+
+		isTopLevelType = false;
+
+		if ( n.hasSubTypes() ) {
+			for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
+				entry.getValue().accept( this );
+			}
+		}
+
+		isTopLevelType = backupRootType;
+
+		if ( isTopLevelType ) {
+			definedTypes.put( n.id(), n );
+		}
+
+        if (n.left() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.left());
+        }
+
+        if (n.right() instanceof TypeDefinitionLink){
+            definedTypeLinks.add((TypeDefinitionLink) n.right());
+        }
+	}
+
+    private void checkCardinality( TypeDefinition type )
 	{
 		if ( type.cardinality().min() < 0 ) {
 			error( type, "type " + type.id() + " specifies an invalid minimum range value (must be positive)" );
