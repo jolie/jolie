@@ -431,7 +431,8 @@ public class SemanticVerifier implements OLVisitor
 		definedTypeLinks.add( n );
 	}
 
-	public void visit(TypeChoiceDefinition n) {
+	public void visit( TypeChoiceDefinition n )
+	{
 		checkCardinality( n );
 		boolean backupRootType = isTopLevelType;
 		if ( isTopLevelType ) {
@@ -444,25 +445,14 @@ public class SemanticVerifier implements OLVisitor
 
 		isTopLevelType = false;
 
-		if ( n.hasSubTypes() ) {
-			for( Entry< String, TypeDefinition > entry : n.subTypes() ) {
-				entry.getValue().accept( this );
-			}
-		}
+		verify( n.left() );
+		verify( n.right() );
 
 		isTopLevelType = backupRootType;
 
 		if ( isTopLevelType ) {
 			definedTypes.put( n.id(), n );
 		}
-
-        if (n.left() instanceof TypeDefinitionLink){
-            definedTypeLinks.add((TypeDefinitionLink) n.left());
-        }
-
-        if (n.right() instanceof TypeDefinitionLink){
-            definedTypeLinks.add((TypeDefinitionLink) n.right());
-        }
 	}
 
     private void checkCardinality( TypeDefinition type )
@@ -547,7 +537,12 @@ public class SemanticVerifier implements OLVisitor
 							opDecl instanceof OneWayOperationDeclaration
 							? ((OneWayOperationDeclaration)opDecl).requestType()
 							: ((RequestResponseOperationDeclaration)opDecl).requestType();
-						if ( requestType.untypedSubTypes() ) {
+						if ( requestType instanceof TypeInlineDefinition == false ) {
+							error( n, "input port " + n.id()
+								+ " is trying to extend the type of operation " + opDecl.id()
+								+ " in output port " + outputPort.id()
+								+ " but such operation has an unsupported type structure (type reference or type choice)" );
+						} else if ( ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
 							error( n,
 								"input port " + n.id()
 								+ " is trying to extend the type of operation " + opDecl.id()

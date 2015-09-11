@@ -43,7 +43,7 @@ public abstract class AbstractParser
 	private final List< Scanner.Token > tokens = new ArrayList<>();
 	private final StringBuilder stringBuilder = new StringBuilder( 256 );
 	
-	protected String build( String... args )
+	protected final String build( String... args )
 	{
 		stringBuilder.setLength( 0 );
 		for( String s : args ) {
@@ -61,12 +61,12 @@ public abstract class AbstractParser
 		this.scanner = scanner;
 	}
 	
-	protected void addTokens( Collection< Scanner.Token > tokens )
+	protected final void addTokens( Collection< Scanner.Token > tokens )
 	{
 		this.tokens.addAll( tokens );
 	}
 	
-	protected void addToken( Scanner.Token token )
+	protected final void addToken( Scanner.Token token )
 	{
 		this.tokens.add( token );
 	}
@@ -75,7 +75,7 @@ public abstract class AbstractParser
 	 * 
 	 * @throws IOException If the internal scanner raises one.
 	 */
-	protected void getToken()
+	protected final void getToken()
 		throws IOException
 	{
 		if ( tokens.size() > 0 ) {
@@ -90,7 +90,7 @@ public abstract class AbstractParser
 	 * @throws IOException If the internal scanner raises one.
 	 * @throws EOFException If the next token is of type {@code jolie.lang.parse.Scanner.Token.EOF}
 	 */
-	protected void getTokenNotEOF()
+	protected final void getTokenNotEOF()
 		throws IOException, EOFException
 	{
 		getToken();
@@ -103,12 +103,12 @@ public abstract class AbstractParser
 	 * Returns the Scanner object used by this parser.
 	 * @return The Scanner used by this parser.
 	 */
-	public Scanner scanner()
+	public final Scanner scanner()
 	{
 		return scanner;
 	}
 	
-	protected void setScanner( Scanner scanner )
+	protected final void setScanner( Scanner scanner )
 	{
 		this.scanner = scanner;
 	}
@@ -117,7 +117,7 @@ public abstract class AbstractParser
 	 * Returns the current {@link ParsingContext} from the underlying {@link Scanner}
 	 * @return the current {@link ParsingContext} from the underlying {@link Scanner}
 	 */
-	public ParsingContext getContext()
+	public final ParsingContext getContext()
 	{
 		return new URIParsingContext( scanner.source(), scanner.line() );
 	}
@@ -131,14 +131,14 @@ public abstract class AbstractParser
 	 * @throws ParserException If the token type is wrong.
 	 * @throws IOException If the internal scanner raises one.
 	 */
-	protected void eat( Scanner.TokenType type, String errorMessage )
+	protected final void eat( Scanner.TokenType type, String errorMessage )
 		throws ParserException, IOException
 	{
 		assertToken( type, errorMessage );
 		getToken();
 	}
 	
-	protected void eatKeyword( String keyword, String errorMessage )
+	protected final void eatKeyword( String keyword, String errorMessage )
 		throws ParserException, IOException
 	{
 		assertToken( Scanner.TokenType.ID, errorMessage );
@@ -156,7 +156,7 @@ public abstract class AbstractParser
 	 * @throws ParserException If the current token is not an identifier.
 	 * @throws IOException If the internal scanner cannot read the next token.
 	 */
-	protected void eatIdentifier( String errorMessage )
+	protected final void eatIdentifier( String errorMessage )
 		throws ParserException, IOException
 	{
 		assertIdentifier( errorMessage );
@@ -169,7 +169,7 @@ public abstract class AbstractParser
 	 * if the current token is not an identifier.
 	 * @throws ParserException if the current token is not an identifier.
 	 */
-	protected void assertIdentifier( String errorMessage )
+	protected final void assertIdentifier( String errorMessage )
 		throws ParserException
 	{
 		if ( !token.isIdentifier() ) {
@@ -183,7 +183,7 @@ public abstract class AbstractParser
 	 * @param errorMessage The error message to display in case of a wrong token type.
 	 * @throws ParserException If the token type is wrong.
 	 */
-	protected void assertToken( Scanner.TokenType type, String errorMessage )
+	protected final void assertToken( Scanner.TokenType type, String errorMessage )
 		throws ParserException
 	{
 		if ( token.isNot( type ) ) {
@@ -196,7 +196,7 @@ public abstract class AbstractParser
 	 * @param mesg The message to insert in the ParserException.
 	 * @throws ParserException Everytime, as its the purpose of this method.
 	 */
-	protected void throwException( String mesg )
+	protected final void throwException( String mesg )
 		throws ParserException
 	{
 		String m = mesg + ". Found token type " + token.type().toString();
@@ -212,7 +212,7 @@ public abstract class AbstractParser
 	 * @param exception The exception to get the message from.
 	 * @throws ParserException Everytime, as its the purpose of this method.
 	 */
-	protected void throwException( Exception exception )
+	protected final void throwException( Exception exception )
 		throws ParserException
 	{
 		throw new ParserException( getContext(), exception.getMessage() );
