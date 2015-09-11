@@ -21,6 +21,8 @@
 
 include "types_server.iol"
 
+execution { concurrent }
+
 inputPort ServerInput {
 Location: "local"
 Interfaces: ServerInterface
@@ -38,4 +40,5 @@ main
 			response = request.right
 		}
 	} ]
+	[ shutdown() ] { exit }
 }
