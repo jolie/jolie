@@ -240,14 +240,14 @@ public class OLParser extends AbstractParser
 
 				getToken();
 				typeName = token.content();
-				eat(Scanner.TokenType.ID, "expected type name");
-				eat(Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])");
+				eat( Scanner.TokenType.ID, "expected type name" );
+				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
 
-				currentType = parseType(typeName);
+				currentType = parseType( typeName );
 				typeName = currentType.id();
 
-				definedTypes.put(typeName, currentType);
-				program.addChild(currentType);
+				definedTypes.put( typeName, currentType );
+				program.addChild( currentType );
 			} else {
 				keepRun = false;
 				if ( haveComment ) {
@@ -265,21 +265,21 @@ public class OLParser extends AbstractParser
 		TypeDefinition currentType;
 
 		NativeType nativeType = readNativeType();
-		if (nativeType == null) { // It's a user-defined type
-			currentType = new TypeDefinitionLink(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content());
+		if ( nativeType == null ) { // It's a user-defined type
+			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			getToken();
 		} else {
-			currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE);
+			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
 			getToken();
-			if (token.is(Scanner.TokenType.LCURLY)) { // We have sub-types to parse
-				parseSubTypes((TypeInlineDefinition) currentType);
+			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
+				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
 		}
 
-		if (token.is(Scanner.TokenType.PARALLEL)) {
+		if ( token.is( Scanner.TokenType.PARALLEL ) ) { // It's a sum (union, choice) type
 			getToken();
-			TypeDefinition secondType = parseType(typeName);
-			TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition(getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType);
+			final TypeDefinition secondType = parseType( typeName );
+			final TypeChoiceDefinition choiceDefinition = new TypeChoiceDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, currentType, secondType );
 			return choiceDefinition;
 		}
 

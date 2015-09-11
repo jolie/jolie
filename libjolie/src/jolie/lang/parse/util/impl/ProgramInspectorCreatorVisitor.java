@@ -370,12 +370,15 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	public void visit( ProvideUntilStatement n ) {}
 
 	@Override
-	public void visit(TypeChoiceDefinition n) {
-		for (TypeDefinition type: n.both()){
-			if (type instanceof TypeInlineDefinition)
-				visit((TypeInlineDefinition) type);
-			else if (type instanceof TypeDefinitionLink)
-				visit((TypeDefinitionLink)type);
+	public void visit( TypeChoiceDefinition n )
+	{
+		List< TypeDefinition > list = types.get( n.context().source() );
+		if ( list == null ) {
+			list = new LinkedList<>();
+			types.put( n.context().source(), list );
 		}
+		list.add( n );
+
+		encounteredNode( n );
 	}
 }

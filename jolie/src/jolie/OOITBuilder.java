@@ -1545,7 +1545,7 @@ public class OOITBuilder implements OLVisitor
 
 		return new OneWayOperation(
 			operationName,
-			Type.merge( desc.requestType(), extenderType )
+			Type.extend( desc.requestType(), extenderType )
 		);
 	}
 	
@@ -1575,9 +1575,9 @@ public class OOITBuilder implements OLVisitor
 			operationName,
 			new RequestResponseTypeDescription(
 				( requestExtenderType == null ) ?
-					desc.requestType() : Type.merge( desc.requestType(), requestExtenderType ),
+					desc.requestType() : Type.extend( desc.requestType(), requestExtenderType ),
 				( responseExtenderType == null ) ?
-					desc.responseType() : Type.merge( desc.responseType(), responseExtenderType ),
+					desc.responseType() : Type.extend( desc.responseType(), responseExtenderType ),
 				extendedFaultMap
 			)
 		);
@@ -1672,12 +1672,16 @@ public class OOITBuilder implements OLVisitor
 	}
 
 	@Override
-	public void visit( TypeChoiceDefinition n ) {
-		for (TypeDefinition type: n.both()){
-			if (type instanceof TypeInlineDefinition)
-				visit((TypeInlineDefinition) type);
-			else if (type instanceof TypeDefinitionLink)
-				visit((TypeDefinitionLink)type);
+	public void visit( TypeChoiceDefinition n )
+	{
+		final boolean wasInsideType = insideType;
+		insideType = true;
+		
+		currType = Type.createChoice( n.cardinality(), buildType( n.left() ), buildType( n.right() ) );
+		
+		insideType = wasInsideType;		
+		if ( insideType == false && insideOperationDeclaration == false ) {
+			types.put( n.id(), currType );
 		}
 	}
 

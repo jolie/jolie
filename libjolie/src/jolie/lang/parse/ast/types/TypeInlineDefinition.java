@@ -23,11 +23,15 @@
 package jolie.lang.parse.ast.types;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Pair;
 import jolie.util.Range;
 
 /**
@@ -45,7 +49,6 @@ public class TypeInlineDefinition extends TypeDefinition
 		this.nativeType = nativeType;
 	}
 
-	@Override
 	public NativeType nativeType()
 	{
 		return nativeType;
@@ -56,7 +59,6 @@ public class TypeInlineDefinition extends TypeDefinition
 		untypedSubTypes = b;
 	}
 
-	@Override
 	public boolean hasSubType( String id )
 	{
 		if ( subTypes == null ) {
@@ -66,7 +68,6 @@ public class TypeInlineDefinition extends TypeDefinition
 		}
 	}
 
-	@Override
 	public Set< Map.Entry< String, TypeDefinition > > subTypes()
 	{
 		if ( subTypes == null ) {
@@ -75,8 +76,28 @@ public class TypeInlineDefinition extends TypeDefinition
 
 		return subTypes.entrySet();
 	}
-
+	
 	@Override
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
+	{
+		if ( it.hasNext() == false ) {
+			return nativeType() != NativeType.VOID;
+		}
+
+		if ( untypedSubTypes() ) {
+			return true;
+		}
+
+		Pair< OLSyntaxNode, OLSyntaxNode > pair = it.next();
+		String nodeName = ((ConstantStringExpression)pair.key()).value();
+		if ( hasSubType( nodeName ) ) {
+			TypeDefinition subType = getSubType( nodeName );
+			return subType.containsPath( it );
+		}
+
+		return false;
+	}
+
 	public TypeDefinition getSubType( String id )
 	{
 		if ( subTypes != null ) {
@@ -85,7 +106,6 @@ public class TypeInlineDefinition extends TypeDefinition
 		return null;
 	}
 
-	@Override
 	public boolean hasSubTypes()
 	{
 		if ( subTypes != null && subTypes.isEmpty() == false ) {
@@ -102,7 +122,6 @@ public class TypeInlineDefinition extends TypeDefinition
 		subTypes.put( type.id(), type );
 	}
 
-	@Override
 	public boolean untypedSubTypes()
 	{
 		return untypedSubTypes;

@@ -120,14 +120,16 @@ public class MetaJolie extends JavaService
 		if ( typedef instanceof TypeDefinitionLink ) {
 			response.getFirstChild( "root_type" ).getFirstChild( "link" ).setValue( ((TypeDefinitionLink) typedef).linkedTypeName() );
 			insertType( types, types_vector, name, ((TypeDefinitionLink) typedef).linkedType() );
-		} else {
-			TypeInlineDefinition td = (TypeInlineDefinition) typedef;
-			response.getFirstChild( "root_type" ).deepCopy( getNativeType( typedef.nativeType() ) );
+		} else if ( typedef instanceof TypeInlineDefinition ) {
+			final TypeInlineDefinition td = (TypeInlineDefinition) typedef;
+			response.getFirstChild( "root_type" ).deepCopy( getNativeType( td.nativeType() ) );
 			if ( td.hasSubTypes() ) {
 				for( Entry<String, TypeDefinition> entry : td.subTypes() ) {
 					response.getChildren( "sub_type" ).add( addSubType( types, types_vector, name, entry.getValue() ) );
 				}
 			}
+		} else {
+			throw new UnsupportedOperationException( "choice types are still unsupported in MetaJolie" );
 		}
 		return response;
 	}
@@ -172,9 +174,10 @@ public class MetaJolie extends JavaService
 					}
 				}
 				// adding extension                
-				if ( extension != null && extension.hasSubTypes() ) {
+				if ( extension != null && extension instanceof TypeInlineDefinition ) {
+					final TypeInlineDefinition typeInline = (TypeInlineDefinition) extension;
 					int subtype_counter = type.getChildren( "sub_type" ).size();
-					for( Entry<String, TypeDefinition> entry : extension.subTypes() ) {
+					for( Entry<String, TypeDefinition> entry : typeInline.subTypes() ) {
 						type.getChildren( "sub_type" ).get( subtype_counter ).deepCopy( addSubType( types, types_vector, name, entry.getValue() ) );
 						subtype_counter++;
 					}

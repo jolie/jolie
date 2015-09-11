@@ -52,16 +52,52 @@ class TypeImpl extends Type
 	}
 	
 	@Override
-	public Map< String, Type > subTypes()
+	protected Type copy()
 	{
-		return subTypes;
+		return new TypeImpl( nativeType, cardinality, ( subTypes == null ), copySubTypes() );
 	}
-
+	
+	@Override
+	protected void extend( TypeImpl other )
+	{
+		if ( subTypes != null && other.subTypes != null ) {
+			for( Entry< String, Type > entry : other.subTypes.entrySet() ) {
+				subTypes.put( entry.getKey(), entry.getValue() );
+			}
+		}
+	}
+	
+	private Map< String, Type > copySubTypes()
+	{
+		if ( subTypes != null ) {
+			final Map< String, Type > copy = new HashMap<>();
+			for( Entry< String, Type > entry : subTypes.entrySet() ) {
+				copy.put( entry.getKey(), entry.getValue().copy() );
+			}
+			return copy;
+		} else {
+			return null;
+		}
+	}
+	
 	@Override
 	public Range cardinality()
 	{
 		return cardinality;
 	}
+	
+	/* @Override
+	public Map< String, Type > subTypes()
+	{
+		return subTypes;
+	}
+	
+	@Override
+	public NativeType nativeType()
+	{
+		return nativeType;
+	}
+	*/
 	
 	@Override
 	public void cutChildrenFromValue( Value value )
@@ -142,15 +178,13 @@ class TypeImpl extends Type
 		pathBuilder.append( '.' );
 		pathBuilder.append( typeName );
 
-		boolean hasChildren = value.hasChildren( typeName );
-		if ( hasChildren == false && !(type instanceof TypeChoice)) {
-			if (type.cardinality().min() > 0){
-				throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
-			}
+		final boolean hasChildren = value.hasChildren( typeName );
+		if ( hasChildren == false && type.cardinality().min() > 0 ) {
+			throw new TypeCheckingException( "Undefined required child node: " + pathBuilder.toString() );
 		} else if ( hasChildren ) {
 			final ValueVector vector = value.getChildren( typeName );
 			final int size = vector.size();
-			if (!(type instanceof TypeChoice) && checkCardinality(type, size)) {
+			if ( type.cardinality().min() > size || type.cardinality().max() < size ) {
 				throw new TypeCheckingException(
 					"Child node " + pathBuilder.toString() + " has a wrong number of occurencies. Permitted range is [" +
 					type.cardinality().min() + "," + type.cardinality().max() + "], found " + size
@@ -162,10 +196,6 @@ class TypeImpl extends Type
 			}
 		}
 	}
-
-    private Boolean checkCardinality (Type type, int size){
-        return ( type.cardinality().min() > size || type.cardinality().max() < size );
-    }
 
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
@@ -249,11 +279,70 @@ class TypeImpl extends Type
 		
 		return false;
 	}
+}
+
+class TypeChoice extends Type
+{
+	private final Range cardinality;
+	private final Type left;
+	private final Type right;
+
+	public TypeChoice( Range cardinality, Type left, Type right )
+	{
+		this.cardinality = cardinality;
+		this.left = left;
+		this.right = right;
+	}
 	
 	@Override
-	public NativeType nativeType()
+	protected Type copy()
 	{
-		return nativeType;
+		return new TypeChoice( cardinality, left.copy(), right.copy() );
+	}
+	
+	@Override
+	protected void extend( TypeImpl other )
+	{
+		left.extend( other );
+		right.extend( other );
+	}
+
+	@Override
+	public void cutChildrenFromValue( Value value )
+	{
+		left.cutChildrenFromValue( value );
+		right.cutChildrenFromValue( value );
+	}
+
+	@Override
+	public Range cardinality()
+	{
+		return cardinality;
+	}
+
+	@Override
+	protected void check( Value value, StringBuilder pathBuilder )
+		throws TypeCheckingException
+	{
+		final int l = pathBuilder.length();
+		try {
+			left.check( value, pathBuilder );
+		} catch( TypeCheckingException e ) {
+			pathBuilder.setLength( l );
+			right.check( value, pathBuilder );
+		}
+	}
+
+	@Override
+	protected Value cast( Value value, StringBuilder pathBuilder )
+		throws TypeCastingException
+	{
+		final Value copy = Value.createDeepCopy( value );
+		try {
+			return left.cast( copy );
+		} catch( TypeCastingException e ) {
+			return right.cast( value );
+		}
 	}
 }
 
@@ -280,20 +369,20 @@ public abstract class Type implements Cloneable
 		return new TypeLink( linkedTypeName, cardinality );
 	}
 	
-	public static Type merge( Type t1, Type t2 )
+	public static Type createChoice( Range cardinality, Type left, Type right )
 	{
-		final NativeType nativeType = t1.nativeType();
-		final Range cardinality = t1.cardinality();
-		final Map< String, Type > subTypes = new HashMap<>();
-		for( Entry< String, Type > entry : t1.subTypes().entrySet() ) {
-			subTypes.put( entry.getKey(), entry.getValue() );
+		return new TypeChoice( cardinality, left, right );
+	}
+	
+	public static Type extend( Type t1, Type t2 )
+		throws UnsupportedOperationException
+	{
+		final Type copy = t1.copy();
+		if ( t2 instanceof TypeImpl == false ) {
+			throw new UnsupportedOperationException( "type links and choices are not supported in type extenders yet" );
 		}
-		if ( t2 != null ) {
-			for( Entry< String, Type > entry : t2.subTypes().entrySet() ) {
-				subTypes.put( entry.getKey(), entry.getValue() );
-			}
-		}
-		return create( nativeType, cardinality, false, subTypes );
+		copy.extend( (TypeImpl) t2 );
+		return copy;
 	}
 
 	public void check( Value value )
@@ -309,9 +398,9 @@ public abstract class Type implements Cloneable
 	}
 
 	public abstract void cutChildrenFromValue( Value value );
-	public abstract NativeType nativeType();
 	public abstract Range cardinality();
-	public abstract Map< String, Type > subTypes();
+	protected abstract Type copy();
+	protected abstract void extend( TypeImpl other );
 	protected abstract void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException;
 	protected abstract Value cast( Value value, StringBuilder pathBuilder )
@@ -329,16 +418,28 @@ public abstract class Type implements Cloneable
 			this.cardinality = cardinality;
 		}
 		
-		@Override
-		public Map< String, Type > subTypes()
+		/* public Map< String, Type > subTypes()
 		{
 			return linkedType.subTypes();
 		}
 		
-		@Override
 		public NativeType nativeType()
 		{
 			return linkedType.nativeType();
+		} */
+		
+		@Override
+		protected void extend( TypeImpl other )
+		{
+			linkedType.extend( other );
+		}
+		
+		@Override
+		protected Type copy()
+		{
+			final TypeLink copy = new TypeLink( linkedTypeName, cardinality );
+			copy.setLinkedType( linkedType.copy() );
+			return copy;
 		}
 
 		public String linkedTypeName()
