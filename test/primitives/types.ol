@@ -41,14 +41,17 @@ define doTest
 	if ( response != 3 ) {
 		throw( TestFailed, "Return value does not match input value" )
 	};
+	undef( request );
 	request.left = 3;
 	choice@Server( request )( response );
 	if ( response != 3 ) {
 		throw( TestFailed, "Return value does not match input value" )
 	};
+	undef( request );
 	request.right = "3";
 	choice@Server( request )( response );
 	if ( response != "3" ) {
 		throw( TestFailed, "Return value does not match input value" )
-	}
+	};
+	shutdown@Server()
 }

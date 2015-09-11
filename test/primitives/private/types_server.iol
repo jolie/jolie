@@ -37,4 +37,6 @@ interface ServerInterface {
 RequestResponse:
 	call(ListNode)(int),
 	choice(ChoiceRequest)(ChoiceResponse)
+OneWay:
+	shutdown(void)
 }
