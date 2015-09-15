@@ -26,6 +26,11 @@ type ListNode:int {
 	.next?:CoListNode
 }
 
+// Test for the type equality check
+type ListNode:int {
+	.next?:CoListNode
+}
+
 type ChoiceRequest: ChoiceLeft | ChoiceRight
 
 type ChoiceLeft: void { .left:int }
