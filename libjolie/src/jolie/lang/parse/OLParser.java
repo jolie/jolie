@@ -259,7 +259,7 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private TypeDefinition parseType(String typeName)
+	private TypeDefinition parseType( String typeName )
 			throws IOException, ParserException
 	{
 		TypeDefinition currentType;

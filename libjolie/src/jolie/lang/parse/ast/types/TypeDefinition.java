@@ -116,7 +116,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 				}
 
 				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
-					TypeDefinition rightSubType = right.getSubType( entry.getKey() );
+					final TypeDefinition rightSubType = right.getSubType( entry.getKey() );
 					if ( rightSubType == null ) {
 						return false;
 					}
@@ -139,10 +139,6 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	
 	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right, Set< String > recursiveTypesChecked )
 	{
-		if ( left.cardinality.equals( right.cardinality ) == false ) {
-			return false;
-		}
-		
 		if ( left instanceof TypeChoiceDefinition ) {
 			final TypeChoiceDefinition choice = (TypeChoiceDefinition) left;
 			if ( right instanceof TypeInlineDefinition ) {
@@ -231,7 +227,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	public boolean isEquivalentTo( TypeDefinition other )
 	{
 		Set< String > recursiveTypeChecked = new HashSet<>();
-		return checkTypeEqualness( this, other, recursiveTypeChecked );
+		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	/**
@@ -240,7 +236,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	private boolean isEquivalentTo_recursive( TypeDefinition other, Set< String > recursiveTypeChecked )
 	{
-		return checkTypeEqualness( this, other, recursiveTypeChecked );
+		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	@Override
