@@ -301,17 +301,19 @@ public abstract class CommChannel
 		if ( lock.isHeldByCurrentThread() ) {
 			if ( toBeClosed() == false ) {
 				disposeForInputImpl();
-			} else {
-				close();
 			}
+//			} else {
+//				close();
+//			}
 		} else {
 			lock.lock();
 			try {
 				if ( toBeClosed() == false ) {
 					disposeForInputImpl();
-				} else {
-					close();
 				}
+//				} else {
+//					close();
+//				}
 			} finally {
 				lock.unlock();
 			}

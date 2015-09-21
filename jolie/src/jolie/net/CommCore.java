@@ -463,11 +463,11 @@ public class CommCore
 					channel.redirectionChannel().send( message );
 				} finally {
 					try {
-						/* if ( channel.redirectionChannel().toBeClosed() ) {
+						if ( channel.redirectionChannel().toBeClosed() ) {
 							channel.redirectionChannel().close();
-						} else {*/
-						channel.redirectionChannel().disposeForInput();
-						// }
+						} else {
+							channel.redirectionChannel().disposeForInput();
+						}
 					} finally {
 						channel.setRedirectionChannel( null );
 					}
