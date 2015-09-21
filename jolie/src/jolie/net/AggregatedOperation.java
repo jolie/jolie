@@ -229,7 +229,7 @@ public abstract class AggregatedOperation
 			CommChannel oChannel = null;
 			boolean answered = false;
 			try {
-				oChannel = outputPort.getCommChannel();
+				oChannel = outputPort.getNewCommChannel();
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
 				oChannel.send( requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
