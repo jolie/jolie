@@ -241,18 +241,21 @@ public abstract class AggregatedOperation
 				}
 				oChannel.release();
 			} catch( IOException e ) {
-				if ( oChannel != null ) {
-					oChannel.close();
-				}
-				if ( !answered ) {
-					try {
-						channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-						channel.disposeForInput();
-					} catch( IOException ioe ) {
-						channel.close();
+				try {
+					if ( oChannel != null ) {
+						oChannel.close();
 					}
-				} else {
-					channel.disposeForInput();
+				} finally {
+					if ( !answered ) {
+						try {
+							channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+							channel.disposeForInput();
+						} catch( IOException ioe ) {
+							channel.close();
+						}
+					} else {
+						channel.disposeForInput();
+					}
 				}
 			}
 			
