@@ -226,22 +226,52 @@ public abstract class AggregatedOperation
 		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			CommChannel oChannel = outputPort.getNewCommChannel();
+			CommChannel oChannel = null;
+			boolean answered = false;
+			try {
+				oChannel = outputPort.getCommChannel();
+				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
+				oChannel.send( requestToAggregated );
+				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
+				try {
+					channel.send( response );
+					answered = true;
+				} catch( IOException e ) {
+					channel.close();
+				}
+				oChannel.release();
+			} catch( IOException e ) {
+				if ( oChannel != null ) {
+					oChannel.close();
+				}
+				if ( !answered ) {
+					try {
+						channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+						channel.disposeForInput();
+					} catch( IOException ioe ) {
+						channel.close();
+					}
+				} else {
+					channel.disposeForInput();
+				}
+			}
+			
+			/* CommChannel oChannel = outputPort.getNewCommChannel();
 			oChannel.setRedirectionChannel( channel );
 			oChannel.setRedirectionMessageId( requestMessage.id() );
 			try {
 				oChannel.setToBeClosed( true );
 				oChannel.send( outputPort.getResourceUpdatedMessage( requestMessage ) );
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+				faultEncountered( requestMessage, channel );
 			} finally {
 				try {
 					oChannel.setToBeClosed( false );
 					oChannel.disposeForInput();
-				} finally {
-					channel.disposeForInput();
+				} catch( IOException e ) {
+					faultEncountered( requestMessage, channel );
 				}
-			}
+			} */
 		}
 
 		public OperationTypeDescription getOperationTypeDescription()
