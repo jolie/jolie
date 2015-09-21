@@ -227,7 +227,6 @@ public abstract class AggregatedOperation
 			throws IOException, URISyntaxException
 		{
 			CommChannel oChannel = null;
-			boolean answered = false;
 			try {
 				oChannel = outputPort.getNewCommChannel();
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
@@ -241,23 +240,6 @@ public abstract class AggregatedOperation
 					oChannel.close();
 				}
 			}
-			
-			/* CommChannel oChannel = outputPort.getNewCommChannel();
-			oChannel.setRedirectionChannel( channel );
-			oChannel.setRedirectionMessageId( requestMessage.id() );
-			try {
-				oChannel.setToBeClosed( true );
-				oChannel.send( outputPort.getResourceUpdatedMessage( requestMessage ) );
-			} catch( IOException e ) {
-				faultEncountered( requestMessage, channel );
-			} finally {
-				try {
-					oChannel.setToBeClosed( false );
-					oChannel.disposeForInput();
-				} catch( IOException e ) {
-					faultEncountered( requestMessage, channel );
-				}
-			} */
 		}
 
 		public OperationTypeDescription getOperationTypeDescription()
