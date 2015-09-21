@@ -118,9 +118,9 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	protected void closeImpl()
 		throws IOException
 	{
-		final CommCore commCore = Interpreter.getInstance().commCore();
-		if ( commCore != null && commCore.isSelecting( this ) ) {
-			commCore.unregisterForSelection( this );
+		final Interpreter interpreter = Interpreter.getInstance();
+		if ( interpreter != null && interpreter.commCore().isSelecting( this ) ) {
+			interpreter.commCore().unregisterForSelection( this );
 		}
 		socketChannel.close();
 	}
