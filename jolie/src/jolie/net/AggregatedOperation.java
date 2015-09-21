@@ -30,16 +30,15 @@ import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
-import jolie.net.ports.Interface;
 import jolie.net.ports.OutputPort;
 import jolie.process.OneWayProcess;
-import jolie.runtime.FaultException;
-import jolie.runtime.VariablePath;
 import jolie.process.Process;
 import jolie.process.RequestResponseProcess;
 import jolie.process.SequentialProcess;
+import jolie.runtime.FaultException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
+import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 
@@ -239,11 +238,15 @@ public abstract class AggregatedOperation
 			oChannel.setRedirectionMessageId( requestMessage.id() );
 			try {
 				oChannel.send( outputPort.getResourceUpdatedMessage( requestMessage ) );
-				oChannel.setToBeClosed( false );
-				oChannel.disposeForInput();
 			} catch( IOException e ) {
 				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-				channel.disposeForInput();
+			} finally {
+				// oChannel.setToBeClosed( false );
+				try {
+					oChannel.release();
+				} finally {
+					channel.disposeForInput();
+				}
 			}
 			//}
 		}
