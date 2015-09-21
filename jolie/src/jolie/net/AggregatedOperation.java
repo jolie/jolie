@@ -233,12 +233,8 @@ public abstract class AggregatedOperation
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
 				oChannel.send( requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
-				try {
-					channel.send( response );
-					answered = true;
-				} catch( IOException e ) {
-					channel.close();
-				}
+				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
+				answered = true;
 				oChannel.release();
 			} catch( IOException e ) {
 				try {
@@ -247,14 +243,7 @@ public abstract class AggregatedOperation
 					}
 				} finally {
 					if ( !answered ) {
-						try {
-							channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-							channel.disposeForInput();
-						} catch( IOException ioe ) {
-							channel.close();
-						}
-					} else {
-						channel.disposeForInput();
+						channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
 					}
 				}
 			}
