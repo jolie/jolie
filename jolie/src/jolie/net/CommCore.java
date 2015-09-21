@@ -463,11 +463,11 @@ public class CommCore
 					channel.redirectionChannel().send( message );
 				} finally {
 					try {
-						if ( channel.redirectionChannel().toBeClosed() ) {
+						/* if ( channel.redirectionChannel().toBeClosed() ) {
 							channel.redirectionChannel().close();
-						} else {
-							channel.redirectionChannel().disposeForInput();
-						}
+						} else {*/
+						channel.redirectionChannel().disposeForInput();
+						// }
 					} finally {
 						channel.setRedirectionChannel( null );
 					}
@@ -577,8 +577,11 @@ public class CommCore
 								"Received a message for operation " + message.operationName() +
 									", not specified in the input port at the receiving service. Sending IOException to the caller."
 							);
-							channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
-							channel.disposeForInput();
+							try {
+								channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+							} finally {
+								channel.disposeForInput();
+							}
 						} else {
 							handleAggregatedInput( message, operation );
 						}
@@ -606,8 +609,13 @@ public class CommCore
 					}
 				} else {
 					channel.lock.unlock();
-					CommMessage response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
-					if ( response != null ) {
+					CommMessage response = null;
+					try {
+						response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+					} finally {
+						if ( response == null ) {
+							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
+						}
 						forwardResponse( response );
 					}
 				}
