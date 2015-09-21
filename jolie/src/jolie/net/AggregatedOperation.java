@@ -241,7 +241,7 @@ public abstract class AggregatedOperation
 			} catch( IOException e ) {
 				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
 			} finally {
-				// oChannel.setToBeClosed( false );
+				oChannel.setToBeClosed( false );
 				try {
 					oChannel.release();
 				} finally {
