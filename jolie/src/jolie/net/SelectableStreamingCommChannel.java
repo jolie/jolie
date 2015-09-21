@@ -92,6 +92,9 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 		final CommCore commCore = Interpreter.getInstance().commCore();
 		if ( commCore.isSelecting( this ) ) {
 			commCore.unregisterForSelection( this );
+			if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+				setToBeClosed( true );
+			}
 			sendImpl( message );
 			commCore.registerForSelection( this );
 		} else {
@@ -130,22 +133,22 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 			final CommCore commCore = Interpreter.getInstance().commCore();
 			if ( commCore.isSelecting( this ) == false ) {
 				super.releaseImpl();
-			} else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+			} /* else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
 				commCore.unregisterForSelection( this );
 				setToBeClosed( true );
 				close();
-			}
+			} */
 		} else {
 			lock.lock();
 			try {
 				final CommCore commCore = Interpreter.getInstance().commCore();
 				if ( commCore.isSelecting( this ) == false ) {
 					super.releaseImpl();
-				} else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
+				} /* else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
 					commCore.unregisterForSelection( this );
 					setToBeClosed( true );
 					close();
-				}
+				} */
 			} finally {
 				lock.unlock();
 			}
