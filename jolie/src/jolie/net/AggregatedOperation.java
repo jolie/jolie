@@ -243,7 +243,7 @@ public abstract class AggregatedOperation
 			} finally {
 				oChannel.setToBeClosed( false );
 				try {
-					oChannel.release();
+					oChannel.disposeForInput();
 				} finally {
 					channel.disposeForInput();
 				}
