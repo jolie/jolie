@@ -234,17 +234,11 @@ public abstract class AggregatedOperation
 				oChannel.send( requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
 				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
-				answered = true;
-				oChannel.release();
 			} catch( IOException e ) {
-				try {
-					if ( oChannel != null ) {
-						oChannel.close();
-					}
-				} finally {
-					if ( !answered ) {
-						channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-					}
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+			} finally {
+				if ( oChannel != null ) {
+					oChannel.close();
 				}
 			}
 			
