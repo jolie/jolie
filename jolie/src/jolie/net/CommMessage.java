@@ -97,7 +97,7 @@ public class CommMessage implements Serializable
 		return id;
 	}
 
-	private static long getNewMessageId()
+	public static long getNewMessageId()
 	{
 		return idCounter.getAndIncrement();
 	}

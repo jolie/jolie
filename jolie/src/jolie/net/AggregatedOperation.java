@@ -223,7 +223,7 @@ public abstract class AggregatedOperation
 			super( name );
 			this.type = type;
 			this.outputPort = outputPort;
-                        this.name = name;
+			this.name = name;
 		}
 		
 		@Override
@@ -236,25 +236,20 @@ public abstract class AggregatedOperation
 		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			// Aggregation input
-			/*if ( type == OperationType.ONE_WAY ) {
-				CommChannel oChannel = outputPort.getCommChannel();
-				oChannel.send( requestMessage );
-				
-				oChannel.release();
-			} else {*/
-			CommChannel oChannel = outputPort.getNewCommChannel();
-			oChannel.setRedirectionChannel( channel );
-			oChannel.setRedirectionMessageId( requestMessage.id() );
+			CommChannel oChannel = null;
 			try {
-				oChannel.send( outputPort.getResourceUpdatedMessage( requestMessage ) );
-				oChannel.setToBeClosed( false );
-				oChannel.disposeForInput();
+				oChannel = outputPort.getNewCommChannel();
+				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
+				oChannel.send( requestToAggregated );
+				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
+				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
 			} catch( IOException e ) {
 				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
-				channel.disposeForInput();
+			} finally {
+				if ( oChannel != null ) {
+					oChannel.close();
+				}
 			}
-			//}
 		}
 
 		@Override
