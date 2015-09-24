@@ -164,11 +164,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @return a new message with same operation and value, but updated resource
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommMessage getResourceUpdatedMessage( CommMessage message )
+	public CommMessage createAggregatedRequest( CommMessage message )
 		throws URISyntaxException
 	{
 		return new CommMessage(
-			message.id(),
+			CommMessage.getNewMessageId(),
 			message.operationName(),
 			getResourcePath(),
 			message.value(),
