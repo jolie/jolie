@@ -37,6 +37,7 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -75,7 +76,7 @@ public class HtmlDocumentCreator
 		for( InputPortInfo inputPort : inputPorts ) {
 
 			if ( inputPortName.isEmpty() || inputPortName.equals( inputPort.id() ) ) {
-				types = new ArrayList<String>();
+				types = new ArrayList<>();
 				writer = new BufferedWriter( new FileWriter( inputPort.id() + ".html" ) );
 				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( inputPort );
@@ -108,7 +109,7 @@ public class HtmlDocumentCreator
 			OutputPortInfo[] outputPortList = inspector.getOutputPorts( directorySourceFile );
 			for( OutputPortInfo outputPort : outputPortList ) {
 				writer = new BufferedWriter( new FileWriter( outputPort.id() + ".html" ) );
-				types = new ArrayList< String>();
+				types = new ArrayList<>();
 				jolieDocWriter = new JolieDocWriter( writer, directorySourceFile.getRawSchemeSpecificPart().substring( filenameIndex ) );
 				jolieDocWriter.addPort( outputPort );
 				List<InterfaceDefinition> interfacesList = outputPort.getInterfaceList();
@@ -138,29 +139,22 @@ public class HtmlDocumentCreator
 					jolieDocWriter.addType( responseType );
 					types.add( responseType.id() );
 				}
-				if ( requestType.hasSubTypes() ) {
-					addSubTypes( requestType );
-				}
-				if ( responseType.hasSubTypes() ) {
-					addSubTypes( responseType );
-				}
+				addSubTypes( requestType );
+				addSubTypes( responseType );
+
 				for( Entry< String, TypeDefinition> fault : ((RequestResponseOperationDeclaration) operationDeclaration).faults().entrySet() ) {
 					if ( !fault.getValue().id().equals( "undefined" ) ) {
 						if ( !types.contains( fault.getValue().id() ) ) {
 							jolieDocWriter.addType( fault.getValue() );
 							types.add( fault.getValue().id() );
 						}
-						if ( fault.getValue().hasSubTypes() ) {
-							addSubTypes( fault.getValue() );
-						}
+						addSubTypes( fault.getValue() );
 					}
 				}
 			} else {
 				TypeDefinition requestType = ((OneWayOperationDeclaration) operationDeclaration).requestType();
 				jolieDocWriter.addType( requestType );
-				if ( requestType.hasSubTypes() ) {
-					addSubTypes( requestType );
-				}
+				addSubTypes( requestType );
 			}
 		}
 	}
@@ -168,16 +162,24 @@ public class HtmlDocumentCreator
 	private void addSubTypes( TypeDefinition type )
 		throws IOException
 	{
-		if ( type.hasSubTypes() ) {
-			for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+		if (type instanceof TypeChoiceDefinition){
+			addSubTypes(((TypeChoiceDefinition) type).left());
+			addSubTypes(((TypeChoiceDefinition) type).right());
+		} else if (type instanceof TypeDefinitionLink){
+			addSubTypes(((TypeDefinitionLink) type).linkedType());
+		} else if ( ( (TypeInlineDefinition)type).hasSubTypes() ) {
+			for( Entry<String, TypeDefinition> entry : ((TypeInlineDefinition) type).subTypes() ) {
 				if ( entry.getValue() instanceof TypeDefinitionLink ) {
 					if ( !types.contains( ((TypeDefinitionLink) entry.getValue()).linkedType().id() ) ) {
 						types.add( ((TypeDefinitionLink) entry.getValue()).linkedType().id() );
 						jolieDocWriter.addLinkedType( (TypeDefinitionLink) entry.getValue() );
 						addSubTypes( ((TypeDefinitionLink) entry.getValue()).linkedType() );
 					}
+				} else if ( entry.getValue() instanceof TypeChoiceDefinition ) {
+					addSubTypes(((TypeChoiceDefinition) entry.getValue()).left());
+					addSubTypes(((TypeChoiceDefinition) entry.getValue()).right());
 				} else if ( entry.getValue() instanceof TypeInlineDefinition ) {
-					if ( entry.getValue().hasSubTypes() ) {
+					if ( ((TypeInlineDefinition) entry.getValue()).hasSubTypes() ) {
 						addSubTypes( entry.getValue() );
 					}
 				}
