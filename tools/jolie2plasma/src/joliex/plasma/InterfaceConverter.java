@@ -31,8 +31,7 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
-import jolie.lang.parse.ast.types.TypeDefinition;
-import jolie.lang.parse.ast.types.TypeDefinitionUndefined;
+import jolie.lang.parse.ast.types.*;
 import joliex.plasma.impl.InterfaceVisitor;
 import joliex.plasma.impl.InterfaceVisitor.InterfaceNotFound;
 
@@ -83,9 +82,9 @@ public class InterfaceConverter
 
 		for( Entry< String, OperationDeclaration > entry : iface.operationsMap().entrySet() ) {
 			if ( entry.getValue() instanceof OneWayOperationDeclaration ) { // It's a One-Way
-				type = ((OneWayOperationDeclaration)entry.getValue()).requestType();
+				type = ( ( OneWayOperationDeclaration )entry.getValue() ).requestType();
 			} else { // It's a Request-Response
-				type = ((RequestResponseOperationDeclaration)entry.getValue()).requestType();
+				type = ( ( RequestResponseOperationDeclaration )entry.getValue() ).requestType();
 			}
 
 			writer.write( "\t<group name=\"" + entry.getKey() + "\"" );
@@ -107,28 +106,37 @@ public class InterfaceConverter
 	private void writeType( InterfaceDefinition iface, String operationName, TypeDefinition type, Writer writer )
 		throws IOException
 	{
-		boolean empty = true;
+		if ( type instanceof TypeInlineDefinition ) {
+			boolean empty = true;
 
-		if ( type.nativeType() != NativeType.VOID ) {
-			empty = false;
-			writer.write( ">\n" );
-			writeEntry( "/", getPlasmaParameterType( iface, operationName, "/", type ), writer );
-		}
-
-		if ( type.hasSubTypes() ) {
-			if ( empty ) { writer.write( ">\n" ); }
-			writeParameters( iface, operationName, type, writer );
-			writer.write( "\t</group>\n" );
-		} else {
-			if ( empty ) {
-				writer.write( " />\n" );
-			} else {
-				writer.write( "\t</group>\n" );
+			if ( ( ( TypeInlineDefinition ) type ).nativeType() != NativeType.VOID ) {
+				empty = false;
+				writer.write( ">\n" );
+				writeEntry( "/", getPlasmaParameterType( iface, operationName, "/", type ), writer );
 			}
+
+			if ( ( ( TypeInlineDefinition ) type ).hasSubTypes() ) {
+				if ( empty ) {
+					writer.write( ">\n" );
+				}
+				writeParameters( iface, operationName, ( TypeInlineDefinition ) type, writer);
+				writer.write( "\t</group>\n" );
+			} else {
+				if ( empty ) {
+					writer.write( " />\n" );
+				} else {
+					writer.write( "\t</group>\n" );
+				}
+			}
+		} else if ( type instanceof TypeDefinitionLink ){
+			writeType( iface, operationName, ( ( TypeDefinitionLink ) type ).linkedType(), writer );
+
+		} else if ( type instanceof TypeChoiceDefinition ){
+			writeType( iface, operationName, ( ( TypeChoiceDefinition ) type ).left(), writer );
 		}
 	}
 
-	private void writeParameters( InterfaceDefinition iface, String operationName, TypeDefinition type, Writer writer )
+	private void writeParameters( InterfaceDefinition iface, String operationName, TypeInlineDefinition type, Writer writer )
 		throws IOException
 	{
 		String plasmaType;
@@ -145,23 +153,30 @@ public class InterfaceConverter
 		TypeDefinition type
 	) {
 		String ret = "unsupported";
-		if ( type.hasSubTypes() ) {
-			// TODO check for sub types that can be represented by a Qt class, like QRect or QPoint
-			unsupported( iface, operationName, "nested sub-elements under parameter " + parameterName );
-		}
+		if ( type instanceof TypeInlineDefinition ) {
+			if ( ( (TypeInlineDefinition ) type ).hasSubTypes() ) {
+				// TODO check for sub types that can be represented by a Qt class, like QRect or QPoint
+				unsupported( iface, operationName, "nested sub-elements under parameter " + parameterName );
+			}
 
+			NativeType nativeType = ( ( TypeInlineDefinition ) type ).nativeType();
+			if ( nativeType == NativeType.VOID ) {
+				unsupported( iface, operationName, "void native type for parameter " + parameterName );
+			} else if ( nativeType == NativeType.INT ) {
+				ret = "Int";
+			} else if ( nativeType == NativeType.DOUBLE ) {
+				ret = "Double";
+			} else if ( nativeType == NativeType.STRING ) {
+				ret = "String";
+			} else if ( nativeType == NativeType.ANY ) {
+				unsupported( iface, operationName, "any native type for parameter " + parameterName );
+			}
 
-		NativeType nativeType = type.nativeType();
-		if ( nativeType == NativeType.VOID ) {
-			unsupported( iface, operationName, "void native type for parameter " + parameterName );
-		} else if ( nativeType == NativeType.INT ) {
-			ret = "Int";
-		} else if ( nativeType == NativeType.DOUBLE ) {
-			ret = "Double";
-		} else if ( nativeType == NativeType.STRING ) {
-			ret = "String";
-		} else if ( nativeType == NativeType.ANY ) {
-			unsupported( iface, operationName, "any native type for parameter " + parameterName );
+		} else if ( type instanceof TypeDefinitionLink ) {
+			ret = getPlasmaParameterType( iface, operationName, parameterName, ( ( TypeDefinitionLink ) type ).linkedType() );
+
+		} else if ( type instanceof TypeChoiceDefinition ){
+			ret = getPlasmaParameterType( iface, operationName, parameterName, ( ( TypeChoiceDefinition ) type ).left() );
 		}
 
 		return ret;
