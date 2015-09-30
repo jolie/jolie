@@ -22,14 +22,11 @@ package joliex.surface;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
-import jolie.lang.parse.ast.InterfaceExtenderDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
@@ -37,10 +34,9 @@ import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.typing.OneWayTypeDescription;
-import jolie.runtime.typing.RequestResponseTypeDescription;
 import jolie.util.Range;
 
 /**
@@ -169,73 +165,96 @@ public class SurfaceCreator
 
 	private String getCardinality( Range card )
 	{
-		return "[" + card.min() + "," + getMax( card.max() ) + "]";
+		return ( card.min() == 1 && card.max() == 1 ) ? "" : ("[" + card.min() + "," + getMax(card.max()) + "]");
 	}
 
+	boolean choice;
 	private String getSubType( TypeDefinition type, int indent )
 	{
 		String ret = "";
-		for( int y = 0; y < indent; y++ ) {
-			ret = ret + "\t";
-		}
-		ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
-		if ( type instanceof TypeDefinitionLink ) {
-			ret = ret + ((TypeDefinitionLink) type).linkedTypeName();
-			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+
+		if ( choice ) {
+			choice = false;
+		} else {
+			for ( int y = 0; y < indent; y++ ) {
+				ret = ret + "\t";
 			}
 
-		} else {
-			ret = ret + type.nativeType().id();
-			if ( ((TypeInlineDefinition) type).hasSubTypes() ) {
+			ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
+		}
+
+
+		if ( type instanceof TypeDefinitionLink ) {
+			ret = ret + ( (TypeDefinitionLink) type ).linkedTypeName();
+			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type ).linkedType() ) ) {
+				aux_types_vector.add( ((TypeDefinitionLink) type ).linkedType() );
+			}
+
+		} else if ( type instanceof TypeInlineDefinition ) {
+			ret = ret + ( (TypeInlineDefinition) type ).nativeType().id();
+			if ( ( (TypeInlineDefinition) type ).hasSubTypes() ) {
 				ret = ret + "{ \n";
-				for( Entry<String, TypeDefinition> entry : ((TypeInlineDefinition) type).subTypes() ) {
+				for( Entry<String, TypeDefinition> entry : ( (TypeInlineDefinition) type ).subTypes() ) {
 					ret = ret + getSubType( entry.getValue(), indent + 1 ) + "\n";
 				}
 				for( int y = 0; y < indent; y++ ) {
 					ret = ret + "\t";
 				}
 				ret = ret + "}";
+			} else if ( ( (TypeInlineDefinition) type ).untypedSubTypes() ){
+				ret = ret+ "{ ? }";
 			}
-                        else if (type.untypedSubTypes()){ ret = ret+ "{ ? }"; }
+		} else if ( type instanceof TypeChoiceDefinition ){
+			choice = true;
+			ret += getSubType( ( (TypeChoiceDefinition) type).left(), indent ) + " | ";
+			choice = true;
+			ret += getSubType( ( (TypeChoiceDefinition) type ).right(), indent );
+
 		}
-		;
+
 		return ret;
 	}
 
 	private String getType( TypeDefinition type )
 	{
 		String ret = "";                            
-		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )  && !type.id().equals("undefined")) {
-                        
+		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )  && !type.id().equals( "undefined" ) ) {
+
 			System.out.print( "type " + type.id() + ":" );
-			if ( type instanceof TypeDefinitionLink ) {
-				System.out.println( ((TypeDefinitionLink) type).linkedTypeName() );
-				if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
-					aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
-				}
-			} else {
-				System.out.print( type.nativeType().id() );
-				if ( ((TypeInlineDefinition) type).hasSubTypes() ) {
-					System.out.println( "{" );
-					for( Entry<String, TypeDefinition> entry : ((TypeInlineDefinition) type).subTypes() ) {
-						System.out.println( getSubType( entry.getValue(), 1 ) );
-					}
-					System.out.println( "}" );
-				} else { 
-                                    
-                                    if (type.untypedSubTypes()) {
-					System.out.println( " { ? }" );}
-                                    else {
-                                        System.out.println( "" );
-                                    }
-                                   
-				}
-			}
+			checkType(type, 1);
+			System.out.println( "" );
 			types_vector.add( type.id() );
+		}
+
+		return ret;
+	}
+
+	private void checkType( TypeDefinition type, int indent ){
+		if ( type instanceof TypeDefinitionLink ) {
+			System.out.print( ( (TypeDefinitionLink) type ).linkedTypeName() );
+			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
+				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
+			}
+		} else  if ( type instanceof TypeInlineDefinition ){
+			System.out.print( ( (TypeInlineDefinition) type ).nativeType().id() );
+			if ( ( (TypeInlineDefinition) type ).hasSubTypes() ) {
+				System.out.print( "{\n" );
+				for( Entry<String, TypeDefinition> entry : ( (TypeInlineDefinition) type ).subTypes() ) {
+					System.out.print( getSubType( entry.getValue(), indent + 1 ) + "\n" );
+				}
+				System.out.print("}");
+			} else {
+
+				if ( ( (TypeInlineDefinition) type ).untypedSubTypes() ) {
+					System.out.print( " { ? }" );}
+
+			}
+		} else if ( type instanceof TypeChoiceDefinition ){
+			checkType( ( (TypeChoiceDefinition) type ).left(), 1 );
+			System.out.print( " | " );
+			checkType( ( (TypeChoiceDefinition) type ).right(), 3 );
 
 		}
-		return ret;
 	}
 
 	private void printType( String type )
