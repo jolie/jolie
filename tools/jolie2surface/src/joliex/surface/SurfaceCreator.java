@@ -31,10 +31,10 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
-import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.util.Interfaces;
 import jolie.lang.parse.util.ProgramInspector;
 import jolie.util.Range;
@@ -168,7 +168,7 @@ public class SurfaceCreator
 		return ( card.min() == 1 && card.max() == 1 ) ? "" : ("[" + card.min() + "," + getMax(card.max()) + "]");
 	}
 
-	boolean choice;
+	private boolean choice;
 	private String getSubType( TypeDefinition type, int indent )
 	{
 		String ret = "";
@@ -183,7 +183,6 @@ public class SurfaceCreator
 			ret = ret + "." + type.id() + getCardinality( type.cardinality() ) + ":";
 		}
 
-
 		if ( type instanceof TypeDefinitionLink ) {
 			ret = ret + ( (TypeDefinitionLink) type ).linkedTypeName();
 			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type ).linkedType() ) ) {
@@ -191,11 +190,11 @@ public class SurfaceCreator
 			}
 
 		} else if ( type instanceof TypeInlineDefinition ) {
-			ret = ret + ( (TypeInlineDefinition) type ).nativeType().id();
-			if ( ( (TypeInlineDefinition) type ).hasSubTypes() ) {
+			ret = ret + type.nativeType().id();
+			if ( type.hasSubTypes() ) {
 				ret = ret + "{ \n";
-				for( Entry<String, TypeDefinition> entry : ( (TypeInlineDefinition) type ).subTypes() ) {
-					ret = ret + getSubType( entry.getValue(), indent + 1 ) + "\n";
+				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+					ret = ret + getSubType(entry.getValue(), indent + 1) + "\n";
 				}
 				for( int y = 0; y < indent; y++ ) {
 					ret = ret + "\t";
@@ -221,7 +220,7 @@ public class SurfaceCreator
 		if ( !types_vector.contains( type.id() ) && !NativeType.isNativeTypeKeyword( type.id() )  && !type.id().equals( "undefined" ) ) {
 
 			System.out.print( "type " + type.id() + ":" );
-			checkType(type, 1);
+			checkType(type);
 			System.out.println( "" );
 			types_vector.add( type.id() );
 		}
@@ -229,19 +228,20 @@ public class SurfaceCreator
 		return ret;
 	}
 
-	private void checkType( TypeDefinition type, int indent ){
+	private void checkType( TypeDefinition type ){
 		if ( type instanceof TypeDefinitionLink ) {
 			System.out.print( ( (TypeDefinitionLink) type ).linkedTypeName() );
 			if ( !aux_types_vector.contains( ((TypeDefinitionLink) type).linkedType() ) ) {
 				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 		} else  if ( type instanceof TypeInlineDefinition ){
-			System.out.print( ( (TypeInlineDefinition) type ).nativeType().id() );
-			if ( ( (TypeInlineDefinition) type ).hasSubTypes() ) {
+			System.out.print( type.nativeType().id() );
+			if ( type.hasSubTypes() ) {
 				System.out.print( "{\n" );
-				for( Entry<String, TypeDefinition> entry : ( (TypeInlineDefinition) type ).subTypes() ) {
-					System.out.print( getSubType( entry.getValue(), indent + 1 ) + "\n" );
+				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+					System.out.print( getSubType( entry.getValue(), 1) + "\n" );
 				}
+
 				System.out.print("}");
 			} else {
 
@@ -250,11 +250,11 @@ public class SurfaceCreator
 
 			}
 		} else if ( type instanceof TypeChoiceDefinition ){
-			checkType( ( (TypeChoiceDefinition) type ).left(), 1 );
+			checkType( ( (TypeChoiceDefinition) type ).left());
 			System.out.print( " | " );
-			checkType( ( (TypeChoiceDefinition) type ).right(), 3 );
-
+			checkType( ( (TypeChoiceDefinition) type ).right());
 		}
+
 	}
 
 	private void printType( String type )
