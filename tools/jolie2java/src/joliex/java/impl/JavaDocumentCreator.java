@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,10 +60,6 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import joliex.java.support.GeneralDocumentCreator;
-import joliex.java.support.GeneralProgramVisitor;
-import joliex.java.support.treeOLObject;
-import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

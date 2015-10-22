@@ -23,20 +23,13 @@
  ***************************************************************************/
 package joliex.java.impl;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -56,13 +49,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
-import joliex.java.support.GeneralDocumentCreator;
-import joliex.java.support.GeneralProgramVisitor;
-import joliex.java.support.treeOLObject;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 
 public class JavaGWTDocumentCreator {
 
