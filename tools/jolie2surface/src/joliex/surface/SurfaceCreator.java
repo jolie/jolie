@@ -190,10 +190,11 @@ public class SurfaceCreator
 			}
 
 		} else if ( type instanceof TypeInlineDefinition ) {
-			ret = ret + type.nativeType().id();
-			if ( type.hasSubTypes() ) {
+			TypeInlineDefinition def = (TypeInlineDefinition)type;
+			ret = ret + def.nativeType().id();
+			if ( def.hasSubTypes() ) {
 				ret = ret + "{ \n";
-				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+				for( Entry<String, TypeDefinition> entry : def.subTypes() ) {
 					ret = ret + getSubType(entry.getValue(), indent + 1) + "\n";
 				}
 				for( int y = 0; y < indent; y++ ) {
@@ -235,10 +236,11 @@ public class SurfaceCreator
 				aux_types_vector.add( ((TypeDefinitionLink) type).linkedType() );
 			}
 		} else  if ( type instanceof TypeInlineDefinition ){
-			System.out.print( type.nativeType().id() );
-			if ( type.hasSubTypes() ) {
+			TypeInlineDefinition def = (TypeInlineDefinition)type;
+			System.out.print( def.nativeType().id() );
+			if ( def.hasSubTypes() ) {
 				System.out.print( "{\n" );
-				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
+				for( Entry<String, TypeDefinition> entry : def.subTypes() ) {
 					System.out.print( getSubType( entry.getValue(), 1) + "\n" );
 				}
 
