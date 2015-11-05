@@ -60,6 +60,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -251,28 +252,37 @@ public class WSDLConverter
 				builder.append( '\n' );
 			}
 			writeLine( builder.toString() );
-		} else if ( type.untypedSubTypes() ) {
-			builder.append( "undefined" );
-			writeLine( builder.toString() );
-			writeLine( "" );
-		} else {
-			builder.append( nativeTypeToString( type.nativeType() ) );
-			if ( type.hasSubTypes() ) {
-				builder.append( " {" );
-			}
-			writeLine( builder.toString() );
-			if ( type.hasSubTypes() ) {
-				indent();
-				for( Entry< String, TypeDefinition > entry : type.subTypes() ) {
-					writeType( entry.getValue(), true );
-				}
-				unindent();
-				writeLine( "}" );
-			}
-			if ( subType == false ) {
+		} else if ( type instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition def = (TypeInlineDefinition)type;
+			if ( def.untypedSubTypes() ) {
+				builder.append( "undefined" );
+				writeLine( builder.toString() );
 				writeLine( "" );
+			} else {
+				builder.append( nativeTypeToString( def.nativeType() ) );
+				if ( def.hasSubTypes() ) {
+					builder.append( " {" );
+				}
+				writeLine( builder.toString() );
+				if ( def.hasSubTypes() ) {
+					indent();
+					for( Entry< String, TypeDefinition > entry : def.subTypes() ) {
+						writeType( entry.getValue(), true );
+					}
+					unindent();
+					writeLine( "}" );
+				}
+				if ( subType == false ) {
+					writeLine( "" );
+				}
 			}
-		}		
+		} else if ( type instanceof TypeChoiceDefinition ) {
+			writeLine( builder.toString() );
+			TypeChoiceDefinition choice = (TypeChoiceDefinition)type;
+			writeType( choice.left(), true );
+			writeLine( " | " );
+			writeType( choice.right(), true );
+		}
 	}
 
 	private static String nativeTypeToString( NativeType nativeType )
