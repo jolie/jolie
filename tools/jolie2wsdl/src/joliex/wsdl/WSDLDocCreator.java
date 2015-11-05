@@ -69,6 +69,7 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -297,16 +298,16 @@ public class WSDLDocCreator {
                 }
                 subEl.setAttribute("maxOccurs", maxOccurs);
                 if (curType instanceof TypeInlineDefinition) {
-                    if (curType.hasSubTypes()) {
-                        if (curType.nativeType() != NativeType.VOID) {
+                    if (((TypeInlineDefinition) curType).hasSubTypes()) {
+                        if (((TypeInlineDefinition) curType).nativeType() != NativeType.VOID) {
                             throw (new Exception("ERROR, type " + curType.id() + ": conversion not allowed when the types defined as operation messages have native type different from void!"));
                         } else {
                             subEl.appendChild(createTypeDefinition((TypeInlineDefinition) curType, true));
                         }
                     } else {
-                        subEl.setAttribute("type", getSchemaNativeType(curType.nativeType()));
+                        subEl.setAttribute("type", getSchemaNativeType(((TypeInlineDefinition) curType).nativeType()));
                     }
-                } else {
+                } else if (curType instanceof TypeDefinitionLink) {
                     subEl.setAttribute("type", tns_schema_prefix + ":" + ((TypeDefinitionLink) curType).linkedTypeName());
                     addRootType(((TypeDefinitionLink) curType).linkedType());
                 }
@@ -328,13 +329,15 @@ public class WSDLDocCreator {
                 newEl.appendChild(createTypeDefinition((TypeInlineDefinition) rootType, true));
                 rootTypes.add(typename);
                 schemaRootElement.appendChild(newEl);
-                if (rootType.nativeType() != NativeType.VOID) {
+                if (((TypeInlineDefinition) rootType).nativeType() != NativeType.VOID) {
                     throw (new Exception("ERROR, type " + rootType.id() + ": conversion not allowed when the types defined as operation messages have native type different from void!"));
                 }
             } else if (rootType instanceof TypeDefinitionLink) {
                 throw (new Exception("ERROR, type " + rootType.id() + ":conversion not allowed when the types defined as operation messages are linked type!"));
                 // newEl.appendChild( lookForLinkedType( (TypeDefinitionLink ) rootType, typename ));
                 //schemaRootElement.appendChild( createTypeDefinitionLink( ( TypeDefinitionLink ) rootType, true, typename ));
+            } else if (rootType instanceof TypeChoiceDefinition) {
+                throw (new Exception("ERROR, type " + rootType.id() + ":conversion not allowed when the types defined as operation messages are choice types!"));
             }
         }
 

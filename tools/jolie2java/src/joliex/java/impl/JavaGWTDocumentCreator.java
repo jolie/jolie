@@ -27,14 +27,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import jolie.lang.NativeType;
-import jolie.lang.parse.ast.*;
+import jolie.lang.parse.ast.InputPortInfo;
+import jolie.lang.parse.ast.InterfaceDefinition;
+import jolie.lang.parse.ast.OneWayOperationDeclaration;
+import jolie.lang.parse.ast.OperationDeclaration;
+import jolie.lang.parse.ast.OutputPortInfo;
+import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -390,7 +398,7 @@ public class JavaGWTDocumentCreator {
 
                     if (Utils.hasSubTypes(subType)) {
 
-                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                        /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -470,7 +478,7 @@ public class JavaGWTDocumentCreator {
 
                     if (Utils.hasSubTypes(subType)) {
 
-                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                        /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -508,14 +516,14 @@ public class JavaGWTDocumentCreator {
                                 stringBuilder.append("" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
                                 stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             } else {
-                                for (NativeType t : NativeType.class.getEnumConstants()) {
+	                        for (NativeType t : NativeType.class.getEnumConstants()) {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                            "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
-                                                    + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
-                                            + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                            + "}\n");
+                                        "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
+                                        + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
+                                        + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                        + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -532,9 +540,9 @@ public class JavaGWTDocumentCreator {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                            "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
-                                                    + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
-                                                    + "}\n");
+                                        "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
+                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
+                                        + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -560,9 +568,9 @@ public class JavaGWTDocumentCreator {
                     if (!javaNativeChecker.containsKey(t))
                         continue;
                     stringBuilder.append(
-                            "if(v." + javaNativeChecker.get(t) + "){\n"
-                                    + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
-                                    + "}\n");
+                        "if(v." + javaNativeChecker.get(t) + "){\n"
+                        + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
+                        + "}\n");
                 }
             }
         }
@@ -595,7 +603,7 @@ public class JavaGWTDocumentCreator {
                         if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
                         }
-                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                        /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -645,7 +653,7 @@ public class JavaGWTDocumentCreator {
                 } else if (subType instanceof TypeInlineDefinition) {
                     if (Utils.hasSubTypes(subType)) {
 
-                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                        /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -675,9 +683,9 @@ public class JavaGWTDocumentCreator {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                            "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                                                    + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
-                                                    + "}\n");
+                                        "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
+                                        + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -692,9 +700,9 @@ public class JavaGWTDocumentCreator {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                            "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                                                    + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
-                                                    + "}\n");
+                                        "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
+                                        + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -717,9 +725,9 @@ public class JavaGWTDocumentCreator {
                     if (!javaNativeChecker.containsKey(t))
                         continue;
                     stringBuilder.append(
-                            "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                                    + "vReturn.setValue(rootValue);\n"
-                                    + "}\n");
+                        "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                        + "vReturn.setValue(rootValue);\n"
+                        + "}\n");
                 }
             }
 
@@ -783,7 +791,7 @@ public class JavaGWTDocumentCreator {
 
                     if (Utils.hasSubTypes(subType)) {
 
-                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                        /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue

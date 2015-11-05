@@ -58,6 +58,12 @@ class TypeImpl extends Type
 	}
 	
 	@Override
+	public Type findSubType( String key )
+	{
+		return ( subTypes != null ) ? subTypes.get( key ) : null;
+	}
+	
+	@Override
 	protected void extend( TypeImpl other )
 	{
 		if ( subTypes != null && other.subTypes != null ) {
@@ -295,6 +301,13 @@ class TypeChoice extends Type
 	}
 	
 	@Override
+	public Type findSubType( String key )
+	{
+		Type ret = left.findSubType( key );
+		return ( ret != null ) ? ret : right.findSubType( key );
+	}
+	
+	@Override
 	protected Type copy()
 	{
 		return new TypeChoice( cardinality, left.copy(), right.copy() );
@@ -399,6 +412,7 @@ public abstract class Type implements Cloneable
 
 	public abstract void cutChildrenFromValue( Value value );
 	public abstract Range cardinality();
+	public abstract Type findSubType( String key );
 	protected abstract Type copy();
 	protected abstract void extend( TypeImpl other );
 	protected abstract void check( Value value, StringBuilder pathBuilder )
@@ -416,6 +430,12 @@ public abstract class Type implements Cloneable
 		{
 			this.linkedTypeName = linkedTypeName;
 			this.cardinality = cardinality;
+		}
+		
+		@Override
+		public Type findSubType( String key )
+		{
+			return linkedType.findSubType( key );
 		}
 		
 		/* public Map< String, Type > subTypes()
