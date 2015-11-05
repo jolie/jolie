@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -279,7 +281,7 @@ public class JavaGWTDocumentCreator {
     }
 
     private void ConvertSubTypes(TypeDefinition typeDefinition, StringBuilder builderHeaderclass) {
-        Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
+        Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
         Iterator i = supportSet.iterator();
         while (i.hasNext()) {
             Map.Entry me = (Map.Entry) i.next();

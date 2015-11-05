@@ -466,6 +466,7 @@ public class JavaDocumentCreator {
 
 
                 } else if (subType instanceof TypeChoiceDefinition){
+                    System.out.println("WARNING: Type definition contains a choice variable which is not supported!");
                     if (subType.cardinality().max() > 1) {
                         stringBuilder.append("private List<Object> _" + subType.id() + ";\n");
                     } else {
@@ -596,7 +597,7 @@ public class JavaDocumentCreator {
                     }
 
                 } else if (subType instanceof TypeChoiceDefinition) {
-                    //can't initialize variable with several possible types
+                    throw new UnsupportedOperationException("Can't initialize variable with several possible types");
                 } else {
                     System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
@@ -676,7 +677,7 @@ public class JavaDocumentCreator {
                     }
 
                 } else if (subType instanceof TypeChoiceDefinition) {
-                    //can't initialize variable with several possible types
+                    throw new UnsupportedOperationException("Can't initialize variable with several possible types");
                 } else {
                     System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
@@ -989,11 +990,11 @@ public class JavaDocumentCreator {
         }
     }
 
-    private HashSet<NativeType> getTypes(TypeDefinition typeDefinition){
-        HashSet<NativeType> choiceTypes = new HashSet<>();
+    private Set<NativeType> getTypes(TypeDefinition typeDefinition){
+        Set<NativeType> choiceTypes = new HashSet<>();
         if (typeDefinition instanceof TypeChoiceDefinition){
             choiceTypes = getTypes(((TypeChoiceDefinition) typeDefinition).left());
-            HashSet<NativeType> right = getTypes(((TypeChoiceDefinition) typeDefinition).right());
+            Set<NativeType> right = getTypes(((TypeChoiceDefinition) typeDefinition).right());
             if (right!=null){
                 choiceTypes.addAll(right);
             }
