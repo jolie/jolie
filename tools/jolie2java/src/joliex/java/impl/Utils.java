@@ -46,11 +46,11 @@ public class Utils {
 
 	}
 
-	public static  HashSet<NativeType> getTypes(TypeDefinition typeDefinition){
-		HashSet<NativeType> choiceTypes = new HashSet<>();
+	public static  Set<NativeType> getTypes(TypeDefinition typeDefinition){
+		Set<NativeType> choiceTypes = new HashSet<>();
 		if (typeDefinition instanceof TypeChoiceDefinition){
 			choiceTypes = getTypes(((TypeChoiceDefinition) typeDefinition).left());
-			HashSet<NativeType> right = getTypes(((TypeChoiceDefinition) typeDefinition).right());
+			Set<NativeType> right = getTypes(((TypeChoiceDefinition) typeDefinition).right());
 			if (right!=null){
 				choiceTypes.addAll(right);
 			}
