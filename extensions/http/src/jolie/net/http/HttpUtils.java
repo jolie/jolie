@@ -169,7 +169,8 @@ public class HttpUtils
 
 	public static ByteArray encode( String encoding, ByteArray content, StringBuilder headerBuilder ) throws IOException
 	{
-		if ( encoding.contains( "gzip" ) ) {
+		// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
+		if ( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
 			ByteArrayOutputStream baOutStream = new ByteArrayOutputStream();
 			GZIPOutputStream outStream = new GZIPOutputStream( baOutStream );
 			outStream.write( content.getBytes() );
