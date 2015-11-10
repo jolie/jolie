@@ -108,7 +108,7 @@ RequestResponse:
 	 * - binary (the default if base value of type raw)
 	 * - xml
 	 * - xml_store (a type-annotated XML format)
-	 * - * - json
+	 * - json
 	 *
 	 *
 	 * Child values: text and binary only consider the content's (WriteFileRequest.content) base value, the other formats look at the child values as well.
