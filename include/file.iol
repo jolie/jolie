@@ -35,7 +35,7 @@ type CopyDirRequest: void {
 
 type ReadFileRequest:void {
 	.filename:string
-	.format?:string { // "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml", "xml_store", "properties" (Java properties file), "json" or "text" (defaults to "text")
+	.format?:string { // "text" (default), "base64" (same as "binary" but afterwards base64-encoded), "binary", "xml" (a type-annotated XML format), "xml_store", "properties" (Java properties file) or "json"
 		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8), header specification (XML) or format's default (for XML and JSON UTF-8)
 	}
 }
@@ -43,7 +43,7 @@ type ReadFileRequest:void {
 type WriteFileRequest:void {
 	.filename:string
 	.content:undefined
-	.format?:string { // "text", "binary", "xml", "xml_store" or "json" (defaults to "binary" if contents' base value is raw, "text" otherwise)
+	.format?:string { // "text", "binary", "xml", "xml_store" (a type-annotated XML format) or "json" (defaults to "binary" if contents' base value is raw, "text" otherwise)
 		.doctype_system?:string // If format is "xml", adds it as a DOCTYPE system tag
 		.schema*:string
 		.indent?:bool // if true, indentation is applied to file (default: false)
@@ -80,7 +80,41 @@ RequestResponse:
 	  it returns if a filename is a directory or not. False if the file does not exist.
 	*/
 	isDirectory( string )( bool ) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
+
+	/**!
+	 * Reads some file's content into a Jolie structure
+	 *
+	 * Supported formats (ReadFileRequest.format):
+	 * - text (the default)
+	 * - base64 (same as binary but afterwards base64-encoded)
+	 * - binary
+	 * - xml
+	 * - xml_store (a type-annotated XML format)
+	 * - properties (Java properties file)
+	 * - json
+	 *
+	 * Child values: text, base64 and binary only populate the return's base value, the other formats fill in the child values as well.
+	 * - xml, xml_store: the XML root node will costitute a return's child value, the rest is filled in recursively
+	 * - properties: each property is represented by a child value
+	 * - json: each attribute corresponds to a child value, the default values (attribute "$" or singular value) are saved as the base values, nested arrays get mapped with the "_" helper childs (e.g. a[i][j] -> a._[i]._[j]), the rest is filled in recursively
+	 */
 	readFile(ReadFileRequest)(undefined) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
+
+	/**!
+	 * Writes a Jolie structure out to an external file
+	 *
+	 * Supported formats (WriteFileRequest.format):
+	 * - text (the default if base value not of type raw)
+	 * - binary (the default if base value of type raw)
+	 * - xml
+	 * - xml_store (a type-annotated XML format)
+	 * - * - json
+	 *
+	 *
+	 * Child values: text and binary only consider the content's (WriteFileRequest.content) base value, the other formats look at the child values as well.
+	 * - xml, xml_store: the XML root node will costitute the content's only child value, the rest gets read out recursively
+	 * - json: each child value corresponds to an attribute, the base values are saved as the default values (attribute "$" or singular value), the "_" helper childs disappear (e.g. a._[i]._[j] -> a[i][j]), the rest gets read out recursively
+	 */
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 	
 	/**!
