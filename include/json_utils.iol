@@ -32,14 +32,18 @@ type GetJsonValueResponse: undefined
 interface JsonUtilsInterface {
 RequestResponse:
 	/**!
-	    it returns the value converted into a JSON string
-	*/
+	 * Returns the value converted into a JSON string
+	 *
+	 * Each child value corresponds to an attribute, the base values are saved as the default values (attribute "$" or singular value), the "_" helper childs disappear (e.g. a._[i]._[j] -> a[i][j]), the rest gets converted recursively
+	 */
 	getJsonString( GetJsonStringRequest )( GetJsonStringResponse )
 	      throws JSONCreationError,
 
 	/**!
-	    it returns the JSON string converted into a value
-	*/
+	 * Returns the JSON string converted into a value
+	 *
+	 * Each attribute corresponds to a child value, the default values (attribute "$" or singular value) are saved as the base values, nested arrays get mapped with the "_" helper childs (e.g. a[i][j] -> a._[i]._[j]), the rest gets converted recursively
+	 */
 	getJsonValue( GetJsonValueRequest )( GetJsonValueResponse )
 	      throws JSONCreationError
 }
