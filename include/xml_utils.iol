@@ -49,12 +49,19 @@ type ValueToXmlRequest: void {
 
 interface XmlUtilsInterface{
 	RequestResponse:
-		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType),
 		transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
 		/**!
-		*  It transforms the value contained within the root node into an xml string. Root values of field .root will be discarded
-		*/
-		valueToXml( ValueToXmlRequest )(string)
+		 * Transforms the value contained within the root node into an xml string.
+		 *
+		 * The base value of ValueToXmlRequest.root will be discarded, the rest gets converted recursively
+		 */
+		valueToXml( ValueToXmlRequest )(string) throws IOException(IOExceptionType),
+		/**!
+		 * Transforms the base value in XML format (data types string, raw) into a Jolie value
+		 *
+		 * The XML root node will be discarded, the rest gets converted recursively
+		 */
+		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType)
 }
 
 outputPort XmlUtils {
