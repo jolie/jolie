@@ -118,7 +118,7 @@ define test
 
 	echoPerson@JSONRPCServer( person )( response );
 	identity@JSONRPCServer( reqVal )( response2 );
-	//checkResponse;
+	checkResponse;
 
 	method = "post";
 	format = "xml";
