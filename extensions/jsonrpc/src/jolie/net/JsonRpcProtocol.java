@@ -37,7 +37,7 @@ import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.protocols.ConcurrentCommProtocol;
+import jolie.net.protocols.SequentialCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -53,7 +53,7 @@ import jolie.js.JsUtils;
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
-public class JsonRpcProtocol extends ConcurrentCommProtocol implements HttpUtils.HttpProtocol
+public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
 	private final URI uri;
 	private final Interpreter interpreter;
