@@ -111,7 +111,7 @@ public class JsUtils
 			}
 			int i = 0;
 			for( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-				final Type subType = type.findSubType( child.getKey() );
+				final Type subType = ( type != null ? type.findSubType( child.getKey() ) : null );
 				appendKeyColon( builder, child.getKey() );
 				valueVectorToJsonString( child.getValue(), builder, false, subType );
 				if ( i++ < size - 1 ) {
