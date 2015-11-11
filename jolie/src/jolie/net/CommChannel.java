@@ -268,9 +268,9 @@ public abstract class CommChannel
 		Helpers.lockAndThen( lock, () -> {
 			if ( toBeClosed() == false ) {
 				disposeForInputImpl();
-			} else {
+			}/* else {
 				close();
-			}
+			}*/
 		} );
 	}
 	
