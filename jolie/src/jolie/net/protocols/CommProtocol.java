@@ -97,6 +97,15 @@ public abstract class CommProtocol
 		return false;
 	}
 	
+	protected boolean hasParameterValue( String id )
+	{
+		if ( configurationPath.getValue().hasChildren( id ) ) {
+			Value v = configurationPath.getValue().getFirstChild( id );
+			return v.isDefined();
+		}
+		return false;
+	}
+	
 	/**
 	 * Shortcut for getParameterVector( id ).first()
 	 */
