@@ -285,7 +285,7 @@ public class HttpParser
 		InputStream stream = scanner.inputStream();
 		if ( chunked ) {
 			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1
-			List< byte[] > chunks = new ArrayList< byte[] > ();
+			List< byte[] > chunks = new ArrayList<> ();
 			int l = -1, totalLen = 0;
 			scanner.readChar();
 			do {
