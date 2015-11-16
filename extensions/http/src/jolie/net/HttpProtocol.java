@@ -190,6 +190,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String REQUEST_COMPRESSION = "requestCompression";
 		private static final String FORMAT = "format";
 		private static final String JSON_ENCODING = "json_encoding";
+                private static final String REQUEST_USER = "request";
+                private static final String RESPONSE_USER = "response";
+                private static final String HEADER_USER = "headers";
 		private static final String CHARSET = "charset";
 		private static final String CONTENT_TYPE = "contentType";
 		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
@@ -586,7 +589,29 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	{
 		return locationRequiredStatusCodes.contains( statusCode );
 	}
-
+  private void send_appendResponseUserHeader( CommMessage message, StringBuilder headerBuilder ){
+                Value responseHeaderParameters = null;   
+                
+                if( hasOperationSpecificParameter(message.operationName(), Parameters.RESPONSE_USER)){                
+                    responseHeaderParameters = getOperationSpecificParameterFirstValue(message.operationName(), Parameters.RESPONSE_USER);
+                    if (( responseHeaderParameters != null ) && (responseHeaderParameters.hasChildren(Parameters.HEADER_USER))){
+                        for( Entry< String, ValueVector > entry : responseHeaderParameters.getFirstChild(Parameters.HEADER_USER).children().entrySet() ) {
+                            headerBuilder.append( entry.getKey() ).append(": ").append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
+                        }
+                    }
+                }
+                responseHeaderParameters = null;
+                if (hasParameter(Parameters.RESPONSE_USER)){
+                     responseHeaderParameters  = getParameterFirstValue(Parameters.RESPONSE_USER);
+ 
+                     if (( responseHeaderParameters != null ) && (responseHeaderParameters.hasChildren(Parameters.HEADER_USER))) {
+                        for( Entry< String, ValueVector > entry : responseHeaderParameters.getFirstChild(Parameters.HEADER_USER).children().entrySet() ) {
+                            headerBuilder.append( entry.getKey() ).append(": ").append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
+                        }
+                    }
+                
+                }
+        }
 	private void send_appendResponseHeaders( CommMessage message, StringBuilder headerBuilder )
 	{		
 		int statusCode = DEFAULT_STATUS_CODE;
@@ -686,7 +711,27 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 		}
 	}
-
+        	private void send_appendRequestUserHeader( CommMessage message, StringBuilder headerBuilder ){
+                Value responseHeaderParameters = null;
+                if( hasOperationSpecificParameter(message.operationName(), Parameters.REQUEST_USER)){                
+                    responseHeaderParameters = getOperationSpecificParameterFirstValue(message.operationName(), Parameters.RESPONSE_USER);
+                    if (( responseHeaderParameters != null )&& (responseHeaderParameters.hasChildren(Parameters.HEADER_USER))){
+                        for( Entry< String, ValueVector > entry : responseHeaderParameters.getFirstChild(Parameters.HEADER_USER).children().entrySet() ) {
+                            headerBuilder.append( entry.getKey() ).append(": ").append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
+                        }
+                    }
+                }
+                responseHeaderParameters = null;
+                if (hasParameter(Parameters.RESPONSE_USER)){
+                     responseHeaderParameters  = getParameterFirstValue(Parameters.REQUEST_USER);
+                     if ((responseHeaderParameters != null )&& (responseHeaderParameters.hasChildren(Parameters.HEADER_USER))){
+                        for( Entry< String, ValueVector > entry : responseHeaderParameters.getFirstChild(Parameters.HEADER_USER).children().entrySet() ) {
+                            headerBuilder.append( entry.getKey() ).append(": ").append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
+                        }
+                    }
+                
+                }
+        }
 	private void send_appendHeader( StringBuilder headerBuilder )
 	{
 		Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
@@ -824,6 +869,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
+                        send_appendResponseUserHeader(message, headerBuilder);
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
@@ -833,6 +879,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
+                        send_appendRequestUserHeader(message, headerBuilder);
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
