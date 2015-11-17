@@ -23,10 +23,6 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -34,6 +30,11 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Representation for a type definition.
@@ -193,10 +194,10 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		final TypeInlineDefinition left = (TypeInlineDefinition)inputType;
 		final TypeInlineDefinition right = (TypeInlineDefinition)extender;
 		
-		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality );
+		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality, ((TypeInlineDefinition) inputType).getConstraint() );
 
 		if ( left instanceof TypeDefinitionUndefined ) {
-			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality );
+			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality, ((TypeInlineDefinition) inputType).getConstraint() );
 			if ( right.hasSubTypes() ) {
 				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );

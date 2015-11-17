@@ -45,8 +45,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /** Parser for a .ol file.
  * @author Fabrizio Montesi
@@ -90,7 +88,7 @@ public class OLParser extends AbstractParser
 
 		// Fill in defineTypes with all the supported native types (string, int, double, ...)
 		for( NativeType type : NativeType.values() ) {
-			definedTypes.put( type.id(), new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE ) );
+			definedTypes.put( type.id(), new TypeInlineDefinition( context, type.id(), type, Constants.RANGE_ONE_TO_ONE, null ) );
 		}
 		definedTypes.put( TypeDefinitionUndefined.UNDEFINED_KEYWORD, TypeDefinitionUndefined.getInstance() );
 
@@ -190,16 +188,12 @@ public class OLParser extends AbstractParser
 		} else {
 			getToken();
 			if ( nativeType.equals(NativeType.STRING) && token.is(Scanner.TokenType.LPAREN) ) { // We have regular expression to parse
-				try {
-					getToken();
-					currentType = new TypeRegexDefinition( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, Pattern.compile(token.content()) );
-				} catch ( PatternSyntaxException e) {
-					throwException(e.getMessage());
-				}
+				getToken();
+				currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE, token.content());
 				getToken();
 				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
-				currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
+				currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE, null );
 			}
 
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
@@ -262,15 +256,11 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( token.is(Scanner.TokenType.LPAREN)){
 				getToken();
-				try {
-					subType = new TypeRegexDefinition(getContext(), id, cardinality, Pattern.compile(token.content()));
-					getToken();
-					eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
-				} catch (PatternSyntaxException e){
-					throwException(e.getMessage());
-				}
+				subType = new TypeInlineDefinition(getContext(), id, nativeType, cardinality, token.content());
+				getToken();
+				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
-				subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality );
+				subType = new TypeInlineDefinition( getContext(), id, nativeType, cardinality, null );
 			}
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // Has ulterior sub-types
 				parseSubTypes((TypeInlineDefinition) subType);

@@ -22,10 +22,6 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -33,6 +29,11 @@ import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Fabrizio Montesi
@@ -42,11 +43,13 @@ public class TypeInlineDefinition extends TypeDefinition
 	private final NativeType nativeType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
+	private String constraint;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality )
+	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality, String constraint )
 	{
 		super( context, id, cardinality );
 		this.nativeType = nativeType;
+		this.constraint = constraint;
 	}
 
 	public NativeType nativeType()
@@ -131,5 +134,9 @@ public class TypeInlineDefinition extends TypeDefinition
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
+	}
+
+	public String getConstraint() {
+		return constraint;
 	}
 }

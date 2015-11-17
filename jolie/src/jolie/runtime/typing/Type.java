@@ -21,26 +21,31 @@
 
 package jolie.runtime.typing;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import jolie.lang.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 class TypeImpl extends Type
 {
 	private final Range cardinality;
 	private final NativeType nativeType;
 	private final Map< String, Type > subTypes;
+	private String constraint = "";
 	
 	public TypeImpl(
 		NativeType nativeType,
 		Range cardinality,
 		boolean undefinedSubTypes,
-		Map< String, Type > subTypes
+		Map< String, Type > subTypes, String constraint
 	) {
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
@@ -49,12 +54,13 @@ class TypeImpl extends Type
 		} else {
 			this.subTypes = Collections.unmodifiableMap( subTypes );
 		}
+		this.constraint = (constraint!=null) ? constraint : "";
 	}
 	
 	@Override
 	protected Type copy()
 	{
-		return new TypeImpl( nativeType, cardinality, ( subTypes == null ), copySubTypes() );
+		return new TypeImpl( nativeType, cardinality, ( subTypes == null ), copySubTypes(), null );
 	}
 	
 	@Override
@@ -158,9 +164,14 @@ class TypeImpl extends Type
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
-		if ( checkNativeType( value, nativeType ) == false ) {
-			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
+		if ( !checkNativeType( value, nativeType )) {
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName().substring(10)) );
 		}
+
+		if (!checkConstraint(value)){
+			throw new TypeCheckingException( "Invalid value \"" + value.strValue() + "\" for regular expression: expected " + nativeType + "(" + constraint + ")" );
+		}
+
 
 		if ( subTypes != null ) {
 			final int l = pathBuilder.length();
@@ -206,7 +217,7 @@ class TypeImpl extends Type
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
 	{
-		if ( checkNativeType( value, nativeType ) == false ) {
+		if ( !( checkNativeType( value, nativeType ) && checkConstraint(value)) ) {
 			// ANY is not handled, because checkNativeType returns true for it anyway
 			if ( nativeType == NativeType.DOUBLE ) {
 				try {
@@ -285,6 +296,27 @@ class TypeImpl extends Type
 		
 		return false;
 	}
+
+	private boolean checkConstraint( Value value ) {
+		switch( nativeType ) {
+			case STRING:
+				if (constraint!=null){
+					try {
+						Pattern p = Pattern.compile(constraint);
+						Matcher matcher = p.matcher(value.strValue());
+						return matcher.matches();
+					} catch (PatternSyntaxException e) {
+						throw new PatternSyntaxException("Regular expression can't be compiled", constraint, e.getIndex());
+					}
+				}
+			case ANY: case BOOL: case RAW: case VOID:
+				return true;
+			case DOUBLE: case LONG: case INT:
+				return true; //todo predicate logic
+		}
+
+		return false;
+	}
 }
 
 class TypeChoice extends Type
@@ -316,8 +348,8 @@ class TypeChoice extends Type
 	@Override
 	protected void extend( TypeImpl other )
 	{
-		left.extend( other );
-		right.extend( other );
+		left.extend(other);
+		right.extend(other);
 	}
 
 	@Override
@@ -366,15 +398,16 @@ class TypeChoice extends Type
 public abstract class Type implements Cloneable
 {
 	public static final Type UNDEFINED =
-		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null, null );
 
 	public static Type create(
 		NativeType nativeType,
 		Range cardinality,
 		boolean undefinedSubTypes,
-		Map< String, Type > subTypes
+		Map< String, Type > subTypes,
+		String constraint
 	) {
-		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes );
+		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes, constraint );
 	}
 
 	public static TypeLink createLink( String linkedTypeName, Range cardinality )
