@@ -23,6 +23,10 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -30,11 +34,6 @@ import jolie.lang.parse.ast.VariablePathNode;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Representation for a type definition.

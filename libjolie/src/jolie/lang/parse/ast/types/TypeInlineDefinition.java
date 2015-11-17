@@ -22,6 +22,10 @@
 
 package jolie.lang.parse.ast.types;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -29,11 +33,6 @@ import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Fabrizio Montesi
@@ -81,7 +80,7 @@ public class TypeInlineDefinition extends TypeDefinition
 	}
 	
 	@Override
-	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
+	protected boolean containsPath( Iterator<Pair<OLSyntaxNode, OLSyntaxNode >> it )
 	{
 		if ( it.hasNext() == false ) {
 			return nativeType() != NativeType.VOID;

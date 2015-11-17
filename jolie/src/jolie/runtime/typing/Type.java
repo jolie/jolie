@@ -21,11 +21,6 @@
 
 package jolie.runtime.typing;
 
-import jolie.lang.NativeType;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
-import jolie.util.Range;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +28,11 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import jolie.lang.NativeType;
+import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
+import jolie.util.Range;
+
 
 class TypeImpl extends Type
 {
