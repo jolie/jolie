@@ -43,7 +43,6 @@ public class PreBufferedInputStream extends BufferedInputStream
 	}
 
 	public void append( ByteBuffer b )
-		throws IOException
 	{
 		final int bufferSize = b.remaining();
 		enlargeIfNecessary( bufferSize );
@@ -73,12 +72,7 @@ public class PreBufferedInputStream extends BufferedInputStream
 	}
 	
 	public void append( byte b )
-		throws IOException
 	{
-		if ( buf == null ) {
-			throw new IOException( "Stream closed" );
-		}
-		
 		enlargeIfNecessary( 1 );
 		buf[ count++ ] = b;
 	}
