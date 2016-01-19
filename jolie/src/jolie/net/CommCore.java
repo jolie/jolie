@@ -874,11 +874,13 @@ public class CommCore
 				}
 			}
 
-			for( SelectionKey key : selector.keys() ) {
-				try {
-					((SelectableStreamingCommChannel)key.attachment()).closeImpl();
-				} catch( IOException e ) {
-					interpreter.logWarning( e );
+			synchronized( this ) {
+				for( SelectionKey key : selector.keys() ) {
+					try {
+						((SelectableStreamingCommChannel)key.attachment()).closeImpl();
+					} catch( IOException e ) {
+						interpreter.logWarning( e );
+					}
 				}
 			}
 		}
