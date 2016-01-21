@@ -100,7 +100,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right, Set< String > recursiveTypesChecked )
 	{
-		if ( left.nativeType() != right.nativeType() ) {
+		if ( left.nativeType() != right.nativeType() || left.getConstraint() != right.getConstraint() ) {
 			return false;
 		}
 

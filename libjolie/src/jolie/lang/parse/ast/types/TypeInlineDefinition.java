@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
@@ -42,9 +43,9 @@ public class TypeInlineDefinition extends TypeDefinition
 	private final NativeType nativeType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
-	private String constraint;
+	private Pattern constraint;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality, String constraint )
+	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality, Pattern constraint )
 	{
 		super( context, id, cardinality );
 		this.nativeType = nativeType;
@@ -135,7 +136,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		visitor.visit( this );
 	}
 
-	public String getConstraint() {
+	public Pattern getConstraint() {
 		return constraint;
 	}
 }

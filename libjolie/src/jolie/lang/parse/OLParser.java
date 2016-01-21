@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import jolie.lang.Constants;
 import jolie.lang.NativeType;
 import jolie.lang.parse.ast.AddAssignStatement;
@@ -272,7 +273,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( nativeType.equals(NativeType.STRING) && token.is(Scanner.TokenType.LPAREN) ) { // We have regular expression to parse
 				getToken();
-				currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE, token.content());
+				currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE, Pattern.compile(token.content()));
 				getToken();
 				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
@@ -339,7 +340,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( token.is(Scanner.TokenType.LPAREN)){
 				getToken();
-				subType = new TypeInlineDefinition(getContext(), id, nativeType, cardinality, token.content());
+				subType = new TypeInlineDefinition(getContext(), id, nativeType, cardinality, Pattern.compile(token.content()));
 				getToken();
 				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
