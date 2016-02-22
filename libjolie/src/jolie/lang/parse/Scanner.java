@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.NativeType;
 
 /**
  * Scanner implementation for the Jolie language parser.
@@ -170,11 +170,11 @@ public class Scanner
 		unreservedKeywords.put( "is_long", TokenType.IS_LONG );
 		unreservedKeywords.put( "is_double", TokenType.IS_DOUBLE );
 		unreservedKeywords.put( "instanceof", TokenType.INSTANCE_OF );
-		unreservedKeywords.put( NativeType.INT.id(), TokenType.CAST_INT );
-		unreservedKeywords.put( NativeType.STRING.id(), TokenType.CAST_STRING );
-		unreservedKeywords.put( NativeType.BOOL.id(), TokenType.CAST_BOOL );
-		unreservedKeywords.put( NativeType.DOUBLE.id(), TokenType.CAST_DOUBLE );
-		unreservedKeywords.put( NativeType.LONG.id(), TokenType.CAST_LONG );
+		unreservedKeywords.put( NativeType.NativeTypeEnum.INT.id(), TokenType.CAST_INT );
+		unreservedKeywords.put( NativeType.NativeTypeEnum.STRING.id(), TokenType.CAST_STRING );
+		unreservedKeywords.put( NativeType.NativeTypeEnum.BOOL.id(), TokenType.CAST_BOOL );
+		unreservedKeywords.put( NativeType.NativeTypeEnum.DOUBLE.id(), TokenType.CAST_DOUBLE );
+		unreservedKeywords.put( NativeType.NativeTypeEnum.LONG.id(), TokenType.CAST_LONG );
 		unreservedKeywords.put( "throws", TokenType.THROWS );
 		unreservedKeywords.put( "cH", TokenType.CURRENT_HANDLER );
 		unreservedKeywords.put( "init", TokenType.INIT );

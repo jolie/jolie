@@ -640,7 +640,7 @@ public class OOITBuilder implements OLVisitor
 		insideType = true;
 
 		if (n.untypedSubTypes()) {
-			currType = Type.create(n.nativeType(), n.cardinality(), true, null, n.getConstraint());
+			currType = Type.create(n.nativeType(), n.cardinality(), true, null);
 		} else {
 			Map<String, Type> subTypes = new HashMap<>();
 			if (n.subTypes() != null) {
@@ -652,8 +652,7 @@ public class OOITBuilder implements OLVisitor
 					n.nativeType(),
 					n.cardinality(),
 					false,
-					subTypes,
-					n.getConstraint()
+					subTypes
 			);
 		}
 
@@ -1386,7 +1385,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( TypeCastExpressionNode n )
 	{
 		n.expression().accept( this );
-		switch( n.type() ) {
+		switch( n.type().getType() ) {
 		case INT:
 			currExpression = new CastIntExpression( currExpression );
 			break;

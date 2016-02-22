@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import jolie.lang.Constants;
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.NativeType;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;

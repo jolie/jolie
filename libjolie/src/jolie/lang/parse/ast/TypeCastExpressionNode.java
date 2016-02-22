@@ -21,7 +21,7 @@
 
 package jolie.lang.parse.ast;
 
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
 

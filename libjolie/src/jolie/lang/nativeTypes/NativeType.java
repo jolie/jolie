@@ -19,7 +19,7 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang;
+package jolie.lang.nativeTypes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,45 +28,80 @@ import java.util.Map;
  *
  * @author Fabrizio Montesi
  */
-public enum NativeType
-{
-	//UNDEFINED( "undefined" ),
-	STRING( "string" ),
-	INT( "int" ),
-	LONG( "long" ),
-	BOOL( "bool" ),
-	DOUBLE( "double" ),
-	VOID( "void" ),
-	RAW( "raw" ),
-	ANY( "any" );
+public class NativeType {
 
-	private final static Map< String, NativeType > idMap = new HashMap<>();
+	String refinement = "";
+	NativeTypeEnum type;
 
-	static {
-		for( NativeType type : NativeType.values() ) {
-			idMap.put( type.id(), type );
+	public NativeType(NativeTypeEnum type) {
+		this.type = type;
+	}
+
+	public NativeType(String refinement, NativeTypeEnum type) {
+		this.refinement = refinement;
+		this.type = type;
+	}
+
+	public NativeType() {
+	}
+
+	public NativeTypeEnum getType() {
+		return type;
+	}
+
+	public void setType(NativeTypeEnum type) {
+		this.type = type;
+	}
+
+	public String getRefinement() {
+		return refinement;
+	}
+
+	public void setRefinement(String refinement) {
+		this.refinement = refinement;
+	}
+
+	public enum NativeTypeEnum {
+
+		//UNDEFINED( "undefined" ),
+		STRING("string"),
+		INT("int"),
+		LONG("long"),
+		BOOL("bool"),
+		DOUBLE("double"),
+		VOID("void"),
+		RAW("raw"),
+		ANY("any");
+
+		public static Map<String, NativeTypeEnum> getIdMap() {
+			return idMap;
 		}
-	}
 
-	private final String id;
-	
-	private NativeType( String id )
-	{
-		this.id = id;
-	}
+		final static Map<String, NativeTypeEnum> idMap = new HashMap<>();
 
-	public String id()
-	{
-		return id;
-	}
+		static {
+			for (NativeTypeEnum type : NativeTypeEnum.values()) {
+				idMap.put(type.id(), type);
+			}
+		}
 
-	public static NativeType fromString( String id )
-	{
-		return idMap.get( id );
-	}
+		private final String id;
 
-	public static boolean isNativeTypeKeyword( String id )
-	{
-		return idMap.containsKey( id );
+		private NativeTypeEnum(String id) {
+			this.id = id;
+		}
+
+		public String id() {
+			return id;
+		}
+
+		public static NativeTypeEnum fromString(String id) {
+			return idMap.get(id);
+		}
+
+		public static boolean isNativeTypeKeyword(String id) {
+			return idMap.containsKey(id);
+		}
+
 	}
 }

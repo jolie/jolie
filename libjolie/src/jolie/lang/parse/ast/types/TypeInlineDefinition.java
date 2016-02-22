@@ -26,8 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.NativeType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
@@ -43,13 +42,18 @@ public class TypeInlineDefinition extends TypeDefinition
 	private final NativeType nativeType;
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
-	private Pattern constraint;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality, Pattern constraint )
+	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, String refinement, Range cardinality )
 	{
 		super( context, id, cardinality );
 		this.nativeType = nativeType;
-		this.constraint = constraint;
+		this.nativeType.setRefinement(refinement);
+	}
+
+	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality )
+	{
+		super( context, id, cardinality );
+		this.nativeType = nativeType;
 	}
 
 	public NativeType nativeType()
@@ -81,10 +85,10 @@ public class TypeInlineDefinition extends TypeDefinition
 	}
 	
 	@Override
-	protected boolean containsPath( Iterator<Pair<OLSyntaxNode, OLSyntaxNode >> it )
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
 	{
 		if ( it.hasNext() == false ) {
-			return nativeType() != NativeType.VOID;
+			return nativeType().getType() != NativeType.NativeTypeEnum.VOID;
 		}
 
 		if ( untypedSubTypes() ) {
@@ -134,9 +138,5 @@ public class TypeInlineDefinition extends TypeDefinition
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
-	}
-
-	public Pattern getConstraint() {
-		return constraint;
 	}
 }

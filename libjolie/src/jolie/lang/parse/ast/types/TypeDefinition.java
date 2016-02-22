@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.AnyType;
 import jolie.lang.parse.DocumentedNode;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
@@ -100,7 +100,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	 */
 	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right, Set< String > recursiveTypesChecked )
 	{
-		if ( left.nativeType() != right.nativeType() || left.getConstraint() != right.getConstraint() ) {
+		if ( left.nativeType() != right.nativeType() ) {
 			return false;
 		}
 
@@ -193,10 +193,10 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		final TypeInlineDefinition left = (TypeInlineDefinition)inputType;
 		final TypeInlineDefinition right = (TypeInlineDefinition)extender;
 		
-		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality, ((TypeInlineDefinition) inputType).getConstraint() );
+		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality );
 
 		if ( left instanceof TypeDefinitionUndefined ) {
-			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality, ((TypeInlineDefinition) inputType).getConstraint() );
+			TypeInlineDefinition newTid = new TypeInlineDefinition(inputType.context(), namePrefix + "_" + inputType.id(), new AnyType(), inputType.cardinality);
 			if ( right.hasSubTypes() ) {
 				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );

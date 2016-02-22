@@ -27,25 +27,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-import jolie.lang.NativeType;
+import jolie.lang.nativeTypes.NativeType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
-
 
 class TypeImpl extends Type
 {
 	private final Range cardinality;
 	private final NativeType nativeType;
 	private final Map< String, Type > subTypes;
-	private String constraint = "";
 	
 	public TypeImpl(
 		NativeType nativeType,
 		Range cardinality,
 		boolean undefinedSubTypes,
-		Map< String, Type > subTypes, String constraint
+		Map< String, Type > subTypes
 	) {
 		this.nativeType = nativeType;
 		this.cardinality = cardinality;
@@ -54,13 +51,12 @@ class TypeImpl extends Type
 		} else {
 			this.subTypes = Collections.unmodifiableMap( subTypes );
 		}
-		this.constraint = (constraint!=null) ? constraint : "";
 	}
 	
 	@Override
 	protected Type copy()
 	{
-		return new TypeImpl( nativeType, cardinality, ( subTypes == null ), copySubTypes(), null );
+		return new TypeImpl( nativeType, cardinality, ( subTypes == null ), copySubTypes() );
 	}
 	
 	@Override
@@ -138,7 +134,7 @@ class TypeImpl extends Type
 	private void castSubType( String typeName, Type type, Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
 	{
-		pathBuilder.append( '.' );
+		pathBuilder.append('.');
 		pathBuilder.append( typeName );
 
 		final boolean hasChildren = value.hasChildren( typeName );
@@ -164,14 +160,9 @@ class TypeImpl extends Type
 	protected void check( Value value, StringBuilder pathBuilder )
 		throws TypeCheckingException
 	{
-		if ( !checkNativeType( value, nativeType )) {
-			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName().substring(10)) );
+		if ( checkNativeType( value, nativeType ) == false ) {
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
 		}
-
-		if (!checkConstraint(value)){
-			throw new TypeCheckingException( "Invalid value \"" + value.strValue() + "\" for regular expression: expected " + nativeType + "(" + constraint + ")" );
-		}
-
 
 		if ( subTypes != null ) {
 			final int l = pathBuilder.length();
@@ -217,55 +208,56 @@ class TypeImpl extends Type
 	private void castNativeType( Value value, StringBuilder pathBuilder )
 		throws TypeCastingException
 	{
-		if ( !( checkNativeType( value, nativeType ) && checkConstraint(value)) ) {
+		if ( checkNativeType( value, nativeType ) == false ) {
+			NativeType.NativeTypeEnum type = nativeType.getType();
 			// ANY is not handled, because checkNativeType returns true for it anyway
-			if ( nativeType == NativeType.DOUBLE ) {
+			if ( type == NativeType.NativeTypeEnum.DOUBLE ) {
 				try {
 					value.setValue( value.doubleValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.INT ) {
+			} else if ( type == NativeType.NativeTypeEnum.INT ) {
 				try {
 					value.setValue( value.intValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.LONG ) {
+			} else if ( type == NativeType.NativeTypeEnum.LONG ) {
 				try {
 					value.setValue( value.longValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.BOOL ) {
+			} else if ( type == NativeType.NativeTypeEnum.BOOL ) {
 				try {
 					value.setValue( value.boolValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.STRING ) {
+			} else if ( type == NativeType.NativeTypeEnum.STRING ) {
 				try {
 					value.setValue( value.strValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
-			} else if ( nativeType == NativeType.VOID ) {
+			} else if ( type == NativeType.NativeTypeEnum.VOID ) {
 				if ( value.valueObject() != null ) {
 					throw new TypeCastingException(
-						"Expected " + NativeType.VOID.id() + ", found " +
+						"Expected " + NativeType.NativeTypeEnum.VOID.id() + ", found " +
 						value.valueObject().getClass().getSimpleName() +
 						": " + pathBuilder.toString()
 					);
 				}
-			} else if ( nativeType == NativeType.RAW ) {
+			} else if ( type == NativeType.NativeTypeEnum.RAW ) {
 				try {
 					value.setValue( value.byteArrayValueStrict() );
 				} catch( TypeCastingException e ) {
-					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
+					throw new TypeCastingException( "Cannot cast node value to " + type.id() + ": " + pathBuilder.toString() );
 				}
 			} else {
 				throw new TypeCastingException(
-					"Expected " + nativeType.id() + ", found " +
+					"Expected " + type.id() + ", found " +
 					value.valueObject().getClass().getSimpleName() +
 					": " + pathBuilder.toString()
 				);
@@ -275,7 +267,7 @@ class TypeImpl extends Type
 
 	private boolean checkNativeType( Value value, NativeType nativeType )
 	{
-		switch( nativeType ) {
+		switch( nativeType.getType() ) {
 		case ANY:
 			return true;
 		case DOUBLE:
@@ -287,6 +279,13 @@ class TypeImpl extends Type
 		case INT:
 			return value.isInt();
 		case STRING:
+			if (value.isString()){
+				if (nativeType.getRefinement()!=null && !nativeType.getRefinement().isEmpty()){
+					Pattern p = Pattern.compile(nativeType.getRefinement());
+					Matcher m = p.matcher(value.strValue());
+					return m.matches();
+				}
+			}
 			return value.isString();
 		case VOID:
 			return value.valueObject() == null;
@@ -294,27 +293,6 @@ class TypeImpl extends Type
 			return value.isByteArray();
 		}
 		
-		return false;
-	}
-
-	private boolean checkConstraint( Value value ) {
-		switch( nativeType ) {
-			case STRING:
-				if (constraint!=null){
-					try {
-						Pattern p = Pattern.compile(constraint);
-						Matcher matcher = p.matcher(value.strValue());
-						return matcher.matches();
-					} catch (PatternSyntaxException e) {
-						throw new PatternSyntaxException("Regular expression can't be compiled", constraint, e.getIndex());
-					}
-				}
-			case ANY: case BOOL: case RAW: case VOID:
-				return true;
-			case DOUBLE: case LONG: case INT:
-				return true; //todo predicate logic
-		}
-
 		return false;
 	}
 }
@@ -348,8 +326,8 @@ class TypeChoice extends Type
 	@Override
 	protected void extend( TypeImpl other )
 	{
-		left.extend(other);
-		right.extend(other);
+		left.extend( other );
+		right.extend( other );
 	}
 
 	@Override
@@ -398,16 +376,20 @@ class TypeChoice extends Type
 public abstract class Type implements Cloneable
 {
 	public static final Type UNDEFINED =
-		Type.create( NativeType.ANY, new Range( 0, Integer.MAX_VALUE ), true, null, null );
+		Type.create( new NativeType() {
+			@Override
+			public void setType(NativeTypeEnum type) {
+				super.setType(NativeTypeEnum.ANY);
+			}
+		}, new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
 		NativeType nativeType,
 		Range cardinality,
 		boolean undefinedSubTypes,
-		Map< String, Type > subTypes,
-		String constraint
+		Map< String, Type > subTypes
 	) {
-		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes, constraint );
+		return new TypeImpl( nativeType, cardinality, undefinedSubTypes, subTypes );
 	}
 
 	public static TypeLink createLink( String linkedTypeName, Range cardinality )
@@ -491,7 +473,7 @@ public abstract class Type implements Cloneable
 		protected Type copy()
 		{
 			final TypeLink copy = new TypeLink( linkedTypeName, cardinality );
-			copy.setLinkedType( linkedType.copy() );
+			copy.setLinkedType(linkedType.copy());
 			return copy;
 		}
 
