@@ -6,6 +6,6 @@ package jolie.lang.nativeTypes;
 public class BoolType extends NativeType {
 
     public BoolType() {
-        type = NativeTypeEnum.BOOL;
+        super(NativeTypeEnum.BOOL);
     }
 }

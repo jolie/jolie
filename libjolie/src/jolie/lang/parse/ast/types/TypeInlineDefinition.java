@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import jolie.lang.nativeTypes.NativeType;
+import jolie.lang.nativeTypes.StringType;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.expression.ConstantStringExpression;
@@ -43,11 +44,11 @@ public class TypeInlineDefinition extends TypeDefinition
 	private Map< String, TypeDefinition > subTypes = null;
 	private boolean untypedSubTypes = false;
 
-	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, String refinement, Range cardinality )
+	public TypeInlineDefinition( ParsingContext context, String id, StringType nativeType, String refinement, Range cardinality )
 	{
 		super( context, id, cardinality );
+		nativeType.setRefinement(refinement);
 		this.nativeType = nativeType;
-		this.nativeType.setRefinement(refinement);
 	}
 
 	public TypeInlineDefinition( ParsingContext context, String id, NativeType nativeType, Range cardinality )

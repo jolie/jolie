@@ -267,7 +267,7 @@ public class OLParser extends AbstractParser
 	private TypeDefinition parseType( String typeName )
 			throws IOException, ParserException
 	{
-		TypeDefinition currentType = null;
+		TypeDefinition currentType;
 
 		NativeType nativeType = readNativeType();
 		if ( nativeType == null ) { // It's a user-defined type
@@ -277,7 +277,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( nativeType.equals(NativeType.NativeTypeEnum.STRING) && token.is(Scanner.TokenType.LPAREN) ) { // We have regular expression to parse
 				getToken();
-				currentType = new TypeInlineDefinition(getContext(), typeName, nativeType, token.content(), Constants.RANGE_ONE_TO_ONE);
+				currentType = new TypeInlineDefinition(getContext(), typeName, (StringType) nativeType, token.content(), Constants.RANGE_ONE_TO_ONE);
 				getToken();
 				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
@@ -285,7 +285,7 @@ public class OLParser extends AbstractParser
 			}
 
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
-				parseSubTypes((TypeInlineDefinition) currentType);
+				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
 		}
 
@@ -334,7 +334,7 @@ public class OLParser extends AbstractParser
 			throws IOException, ParserException
 	{
 		NativeType nativeType = readNativeType();
-		TypeDefinition subType = null;
+		TypeDefinition subType;
 		// SubType id
 
 		if ( nativeType == null ) { // It's a user-defined type
@@ -344,7 +344,7 @@ public class OLParser extends AbstractParser
 			getToken();
 			if ( token.is(Scanner.TokenType.LPAREN)){
 				getToken();
-				subType = new TypeInlineDefinition(getContext(), id, nativeType, token.content(), cardinality);
+				subType = new TypeInlineDefinition(getContext(), id, (StringType) nativeType, token.content(), cardinality);
 				getToken();
 				eat(Scanner.TokenType.RPAREN, "expected right parenthesis");
 			} else {
@@ -730,7 +730,7 @@ public class OLParser extends AbstractParser
 
 	private boolean checkConstant()
 	{
-		if ( token.is(Scanner.TokenType.ID) ) {
+		if ( token.is( Scanner.TokenType.ID ) ) {
 			final Scanner.Token t;
 			final Constants.Predefined p = Constants.Predefined.get( token.content() );
 			if ( p != null ) {
@@ -1455,7 +1455,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		getToken();
-		eat(Scanner.TokenType.LCURLY, "expected { after procedure identifier");
+		eat( Scanner.TokenType.LCURLY, "expected { after procedure identifier" );
 		DefinitionNode retVal = new DefinitionNode( getContext(), "main", parseProcess() );
 		eat( Scanner.TokenType.RCURLY, "expected } after procedure definition" );
 		return retVal;
@@ -1521,7 +1521,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		ParallelStatement stm = new ParallelStatement( getContext() );
-		stm.addChild(parseSequenceStatement());
+		stm.addChild( parseSequenceStatement() );
 		while ( token.is( Scanner.TokenType.PARALLEL ) ) {
 			getToken();
 			stm.addChild( parseSequenceStatement() );
@@ -2004,7 +2004,8 @@ public class OLParser extends AbstractParser
 		if ( token.is( Scanner.TokenType.DOT ) ) {
 			return parsePrefixedVariablePath();
 		}
-		assertToken(Scanner.TokenType.ID, "Expected variable path");
+		assertToken( Scanner.TokenType.ID, "Expected variable path" );
+		assertToken( Scanner.TokenType.ID, "Expected variable path" );
 		String varId = token.content();
 		getToken();
 		return _parseVariablePath( varId );
@@ -2060,7 +2061,7 @@ public class OLParser extends AbstractParser
 				expr = null;
 			}
 
-			path.append(new Pair<>(nodeExpr, expr));
+			path.append( new Pair<>( nodeExpr, expr ) );
 		}
 
 		return path;
@@ -2397,7 +2398,7 @@ public class OLParser extends AbstractParser
 	{
 		boolean keepRun = true;
 		SumExpressionNode sum = new SumExpressionNode( getContext() );
-		sum.add(parseProductExpression());
+		sum.add( parseProductExpression() );
 
 		while ( keepRun ) {
 			if ( token.is( Scanner.TokenType.PLUS ) ) {
@@ -2691,7 +2692,7 @@ public class OLParser extends AbstractParser
 		throws IOException, ParserException
 	{
 		ProductExpressionNode product = new ProductExpressionNode( getContext() );
-		product.multiply(parseFactor());
+		product.multiply( parseFactor() );
 		boolean keepRun = true;
 		while ( keepRun ) {
 			switch( token.type() ) {

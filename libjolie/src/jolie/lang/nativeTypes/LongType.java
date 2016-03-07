@@ -5,12 +5,14 @@ package jolie.lang.nativeTypes;
  */
 public class LongType extends NativeType {
 
+    //String refinement ="";
+
     public LongType() {
-        type = NativeTypeEnum.LONG;
+        super(NativeTypeEnum.LONG);
     }
 
-    public LongType(String refinement) {
-        type = NativeTypeEnum.LONG;
+    /*public LongType(String refinement) {
+        super(NativeTypeEnum.LONG);
         this.refinement = refinement;
-    }
+    }*/
 }

@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jolie.lang.nativeTypes.NativeType;
+import jolie.lang.nativeTypes.StringType;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.util.Range;
@@ -280,13 +281,12 @@ class TypeImpl extends Type
 			return value.isInt();
 		case STRING:
 			if (value.isString()){
-				if (nativeType.getRefinement()!=null && !nativeType.getRefinement().isEmpty()){
-					Pattern p = Pattern.compile(nativeType.getRefinement());
-					Matcher m = p.matcher(value.strValue());
+				Pattern pattern = ((StringType)nativeType).getRefinement();
+				if (pattern!=null){
+					Matcher m = pattern.matcher(value.strValue());
 					return m.matches();
 				}
 			}
-			return value.isString();
 		case VOID:
 			return value.valueObject() == null;
 		case RAW:
@@ -376,12 +376,7 @@ class TypeChoice extends Type
 public abstract class Type implements Cloneable
 {
 	public static final Type UNDEFINED =
-		Type.create( new NativeType() {
-			@Override
-			public void setType(NativeTypeEnum type) {
-				super.setType(NativeTypeEnum.ANY);
-			}
-		}, new Range( 0, Integer.MAX_VALUE ), true, null );
+		Type.create(new NativeType(NativeType.NativeTypeEnum.ANY), new Range( 0, Integer.MAX_VALUE ), true, null );
 
 	public static Type create(
 		NativeType nativeType,

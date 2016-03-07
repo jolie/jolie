@@ -6,6 +6,6 @@ package jolie.lang.nativeTypes;
 public class VoidType extends NativeType {
 
     public VoidType() {
-        type = NativeTypeEnum.VOID;
+        super(NativeTypeEnum.VOID);
     }
 }

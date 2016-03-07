@@ -5,12 +5,14 @@ package jolie.lang.nativeTypes;
  */
 public class DoubleType extends NativeType {
 
+    //String refinement ="";
+
     public DoubleType() {
-        type = NativeTypeEnum.DOUBLE;
+        super(NativeTypeEnum.DOUBLE);
     }
 
-    public DoubleType(String refinement) {
-        type = NativeTypeEnum.DOUBLE;
+    /*public DoubleType(String refinement) {
+        super(NativeTypeEnum.DOUBLE);
         this.refinement = refinement;
-    }
+    }*/
 }

@@ -6,6 +6,6 @@ package jolie.lang.nativeTypes;
 public class AnyType extends NativeType {
 
     public AnyType() {
-        type = NativeTypeEnum.ANY;
+        super(NativeTypeEnum.ANY);
     }
 }

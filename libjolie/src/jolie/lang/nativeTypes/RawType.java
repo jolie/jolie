@@ -6,6 +6,6 @@ package jolie.lang.nativeTypes;
 public class RawType extends NativeType {
 
     public RawType() {
-        type = NativeTypeEnum.RAW;
+        super(NativeTypeEnum.RAW);
     }
 }

@@ -5,12 +5,14 @@ package jolie.lang.nativeTypes;
  */
 public class IntType extends NativeType {
 
+    //String refinement ="";
+
     public IntType() {
-        type = NativeTypeEnum.INT;
+        super(NativeTypeEnum.INT);
     }
 
-    public IntType(String refinement) {
-        type = NativeTypeEnum.INT;
+    /*public IntType(String refinement) {
+        super(NativeTypeEnum.INT);
         this.refinement = refinement;
-    }
+    }*/
 }

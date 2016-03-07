@@ -30,35 +30,14 @@ import java.util.Map;
  */
 public class NativeType {
 
-	String refinement = "";
-	NativeTypeEnum type;
+	private final NativeTypeEnum type;
 
 	public NativeType(NativeTypeEnum type) {
 		this.type = type;
 	}
 
-	public NativeType(String refinement, NativeTypeEnum type) {
-		this.refinement = refinement;
-		this.type = type;
-	}
-
-	public NativeType() {
-	}
-
 	public NativeTypeEnum getType() {
 		return type;
-	}
-
-	public void setType(NativeTypeEnum type) {
-		this.type = type;
-	}
-
-	public String getRefinement() {
-		return refinement;
-	}
-
-	public void setRefinement(String refinement) {
-		this.refinement = refinement;
 	}
 
 	public enum NativeTypeEnum {
