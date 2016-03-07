@@ -162,7 +162,7 @@ class TypeImpl extends Type
 		throws TypeCheckingException
 	{
 		if ( checkNativeType( value, nativeType ) == false ) {
-			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType.getType() + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
 		}
 
 		if ( subTypes != null ) {
@@ -285,8 +285,10 @@ class TypeImpl extends Type
 				if (pattern!=null){
 					Matcher m = pattern.matcher(value.strValue());
 					return m.matches();
+				} else {
+					return true;
 				}
-			}
+			} else return false;
 		case VOID:
 			return value.valueObject() == null;
 		case RAW:
@@ -468,7 +470,7 @@ public abstract class Type implements Cloneable
 		protected Type copy()
 		{
 			final TypeLink copy = new TypeLink( linkedTypeName, cardinality );
-			copy.setLinkedType(linkedType.copy());
+			copy.setLinkedType( linkedType.copy());
 			return copy;
 		}
 

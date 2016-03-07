@@ -11,12 +11,7 @@ public class StringType extends NativeType {
         super(NativeTypeEnum.STRING);
     }
 
-    Pattern refinement;
-
-    public StringType(String refinement) {
-        super(NativeTypeEnum.STRING);
-        this.refinement = Pattern.compile(refinement);
-    }
+    private Pattern refinement;
 
     public Pattern getRefinement() {
         return refinement;
