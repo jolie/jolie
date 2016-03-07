@@ -639,13 +639,13 @@ public class OOITBuilder implements OLVisitor
 		boolean backupInsideType = insideType;
 		insideType = true;
 
-		if (n.untypedSubTypes()) {
-			currType = Type.create(n.nativeType(), n.cardinality(), true, null);
+		if ( n.untypedSubTypes() ) {
+			currType = Type.create( n.nativeType(), n.cardinality(), true, null );
 		} else {
-			Map<String, Type> subTypes = new HashMap<>();
-			if (n.subTypes() != null) {
-				for (Entry<String, TypeDefinition> entry : n.subTypes()) {
-					subTypes.put(entry.getKey(), buildType(entry.getValue()));
+			Map< String, Type > subTypes = new HashMap<>();
+			if ( n.subTypes() != null ) {
+				for ( Entry< String, TypeDefinition > entry : n.subTypes() ) {
+					subTypes.put( entry.getKey(), buildType( entry.getValue() ) );
 				}
 			}
 			currType = Type.create(
