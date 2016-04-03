@@ -249,6 +249,7 @@ public abstract class AggregatedOperation
 				if ( oChannel != null ) {
 					oChannel.close();
 				}
+				channel.disposeForInput();
 			}
 		}
 
