@@ -47,6 +47,7 @@ public class OneWayOperationStatement extends OLSyntaxNode
 		return inputVarPath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

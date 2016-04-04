@@ -81,8 +81,8 @@ public class SolicitResponseProcess implements Process
 
 	private void log( String log, CommMessage message )
 	{
-		Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( new MessageTraceAction(
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,

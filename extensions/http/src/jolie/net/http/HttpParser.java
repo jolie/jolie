@@ -246,7 +246,7 @@ public class HttpParser
 	private static byte[] readAll( InputStream stream )
 		throws IOException
 	{
-		int r = -1;
+		int r;
 		ByteArrayOutputStream c = new ByteArrayOutputStream();
 		byte[] tmp = new byte[ BLOCK_SIZE ];
 		while( (r=stream.read( tmp, 0, BLOCK_SIZE )) != -1 ) {
@@ -285,7 +285,7 @@ public class HttpParser
 		InputStream stream = scanner.inputStream();
 		if ( chunked ) {
 			// Link: http://tools.ietf.org/html/rfc2616#section-3.6.1
-			List< byte[] > chunks = new ArrayList< byte[] > ();
+			List< byte[] > chunks = new ArrayList<> ();
 			int l = -1, totalLen = 0;
 			scanner.readChar();
 			do {

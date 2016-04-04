@@ -35,6 +35,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -95,8 +96,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static final int DEFAULT_REDIRECTION_STATUS_CODE = 303;
 	private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream"; // default content type per RFC 2616#7.2.1
 	private static final String DEFAULT_FORMAT = "xml";
-	private static final Map< Integer, String > statusCodeDescriptions = new HashMap< Integer, String >();
-	private static final Set< Integer > locationRequiredStatusCodes = new HashSet< Integer >();
+	private static final Map< Integer, String > statusCodeDescriptions = new HashMap<>();
+	private static final Set< Integer > locationRequiredStatusCodes = new HashSet<>();
 
 	static {
 		locationRequiredStatusCodes.add( 301 );
@@ -221,11 +222,13 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private final boolean inInputPort;
 	private MultiPartFormDataParser multiPartFormDataParser = null;
 
+	@Override
 	public String name()
 	{
 		return "http";
 	}
 
+	@Override
 	public boolean isThreadSafe()
 	{
 		return checkBooleanParameter( Parameters.CONCURRENT );
@@ -371,7 +374,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		int offset = 0;
-		ArrayList<String> aliasKeys = new ArrayList<String>();
+		ArrayList<String> aliasKeys = new ArrayList<>();
 		String currStrValue;
 		String currKey;
 		StringBuilder result = new StringBuilder( alias );
@@ -706,8 +709,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			String userpass =
 				v.getFirstChild( "userid" ).strValue() + ":" +
 				v.getFirstChild( "password" ).strValue();
-			sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-			userpass = encoder.encode( userpass.getBytes() );
+			Base64.Encoder encoder = Base64.getEncoder();
+			userpass = encoder.encodeToString( userpass.getBytes() );
 			headerBuilder.append( "Authorization: Basic " ).append( userpass ).append( HttpUtils.CRLF );
 		}
 	}
@@ -896,6 +899,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headRequest = false;
 	}
 
+	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream )
 		throws IOException
 	{
@@ -1074,7 +1078,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( message.isGet() && contentType.equals( ContentTypes.APPLICATION_JSON ) ) {
 			recv_parseJsonQueryString( message, value, strictEncoding );
 		} else {
-			Map< String, Integer > indexes = new HashMap< String, Integer >();
+			Map< String, Integer > indexes = new HashMap<>();
 			String queryString = message.requestPath();
 			String[] kv = queryString.split( "\\?", 2 );
 			Integer index;
@@ -1392,6 +1396,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		return retVal;
 	}
 
+	@Override
 	public CommMessage recv( InputStream istream, OutputStream ostream )
 		throws IOException
 	{

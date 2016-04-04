@@ -47,6 +47,7 @@ public class Scope extends OLSyntaxNode
 		return body;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

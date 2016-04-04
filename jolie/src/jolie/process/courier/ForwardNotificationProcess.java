@@ -78,7 +78,7 @@ public class ForwardNotificationProcess implements Process
 	private void log( String log, CommMessage message )
 	{
 		Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( new MessageTraceAction(
+		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.COURIER_NOTIFICATION,
 			operationName + "@" + outputPort.id(),
 			log,

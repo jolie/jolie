@@ -52,6 +52,7 @@ public class OutputPortInfo extends PortInfo
 		this.location = location;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

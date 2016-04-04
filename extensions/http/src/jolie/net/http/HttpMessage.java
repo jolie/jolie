@@ -106,10 +106,10 @@ public class HttpMessage
 	private Version version;
 	private final Type type;
 	private byte[] content = null;
-	final private Map< String, String > propMap = new HashMap< String, String > ();
-	final private List< Cookie > setCookies = new ArrayList< Cookie > ();
+	final private Map< String, String > propMap = new HashMap<> ();
+	final private List< Cookie > setCookies = new ArrayList<> ();
 	
-	final private Map< String, String > cookies = new HashMap< String, String >();
+	final private Map< String, String > cookies = new HashMap<>();
 	
 	private int statusCode;
 	private String requestPath;

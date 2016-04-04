@@ -4,9 +4,15 @@ type TwiceRequest:void {
 	.number: int
 }
 
+type PowRequest:void {
+	.x:double
+	.y:double
+}
+
 interface TwiceInterface {
 RequestResponse:
-	twice( TwiceRequest )( double )
+	twice( TwiceRequest )( double ),
+	pow( PowRequest )( double )
 }
 
 outputPort TwiceService {
@@ -23,6 +29,11 @@ define doTest
 	request.number = 5;
 	twice@TwiceService( request )( response );
 	if ( int( response ) != 10 ) {
-		throw( TestFailed, "wrong result" )
+		throw( TestFailed, "wrong result for twice" )
+	};
+
+	pow@TwiceService( { .x = 3, .y = 4 } )( result );
+	if ( int( result ) != 81 ) {
+		throw( TestFailed, "wrong result for pow" )
 	}
 }

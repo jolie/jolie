@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import jolie.net.CommChannel;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
@@ -123,8 +124,8 @@ class ValueImpl extends Value implements Cloneable, Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
-	private Object valueObject = null;
-	private Map< String, ValueVector > children = null;
+	private volatile Object valueObject = null;
+	private final AtomicReference< Map< String, ValueVector > > children = new AtomicReference<>();
 	
 	public void setValueObject( Object object )
 	{
@@ -133,13 +134,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 
 	public ValueVector getChildren( String childId )
 	{
-		ValueVector v = children().get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			children.put( childId, v );
-		}
-
-		return v;
+		return children().computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
 	public ValueImpl clone()
@@ -152,7 +147,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	protected void _refCopy( Value value )
 	{
 		setValueObject( value.valueObject() );
-		this.children = value.children();
+		this.children.set( value.children() );
 	}
 
 	public final Value evaluate()
@@ -163,7 +158,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	public void erase()
 	{
 		valueObject = null;
-		children = null;
+		children.set( null );
 	}
 	
 	protected ValueImpl() {}
@@ -175,15 +170,14 @@ class ValueImpl extends Value implements Cloneable, Serializable
 
 	public boolean hasChildren()
 	{
-		if ( children == null ) {
-			return false;
-		}
-		return !children.isEmpty();
+		Map< String, ValueVector > c = children.get();
+		return ( c == null ? false : !c.isEmpty() );
 	}
 
 	public boolean hasChildren( String childId )
 	{
-		return ( children != null && children.containsKey( childId ) );
+		Map< String, ValueVector > c = children.get();
+		return ( c != null && c.containsKey( childId ) );
 	}
 	
 	protected void _deepCopy( Value value, boolean copyLinks )
@@ -221,24 +215,17 @@ class ValueImpl extends Value implements Cloneable, Serializable
 	
 	private static ValueVector getChildren( String childId, Map< String, ValueVector > children )
 	{
-		ValueVector vec = children.get( childId );
-		if ( vec == null ) {
-			vec = ValueVector.create();
-			children.put( childId, vec );
-		}
-
-		return vec;
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
 	private final static int INITIAL_CAPACITY = 8;
 	private final static float LOAD_FACTOR = 0.75f;
 	
-	public synchronized Map< String, ValueVector > children()
+	public Map< String, ValueVector > children()
 	{
-		if ( children == null ) {
-			children = new ConcurrentHashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
-		}
-		return children;
+		// Create the map if not present
+		children.getAndUpdate( v -> v == null ? new ConcurrentHashMap<> ( INITIAL_CAPACITY, LOAD_FACTOR ) : v );
+		return children.get();
 	}
 	
 	public Object valueObject()
@@ -266,7 +253,7 @@ class RootValueImpl extends Value implements Cloneable
 	private final static float LOAD_FACTOR = 0.75f;
 
 	private final Map< String, ValueVector > children =
-		new ConcurrentHashMap< String, ValueVector > ( INITIAL_CAPACITY, LOAD_FACTOR );
+		new ConcurrentHashMap<> ( INITIAL_CAPACITY, LOAD_FACTOR );
 
 	public RootValueImpl clone()
 	{
@@ -284,13 +271,7 @@ class RootValueImpl extends Value implements Cloneable
 
 	public ValueVector getChildren( String childId )
 	{
-		ValueVector v = children.get( childId );
-		if ( v == null ) {
-			v = ValueVector.create();
-			children.put( childId, v );
-		}
-
-		return v;
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
 	public final Value evaluate()
@@ -352,13 +333,7 @@ class RootValueImpl extends Value implements Cloneable
 
 	private static ValueVector getChildren( String childId, Map< String, ValueVector > children )
 	{
-		ValueVector vec = children.get( childId );
-		if ( vec == null ) {
-			vec = ValueVector.create();
-			children.put( childId, vec );
-		}
-
-		return vec;
+		return children.computeIfAbsent( childId, k -> ValueVector.create() );
 	}
 
 	public Object valueObject()
@@ -874,7 +849,7 @@ public abstract class Value implements Expression, Cloneable
 		return r;
 	}
 	
-	public synchronized final void add( Value val )
+	public final synchronized void add( Value val )
 	{
 		if ( isDefined() ) {
 			if ( val.isString() ) {
@@ -895,7 +870,7 @@ public abstract class Value implements Expression, Cloneable
 		}
 	}
 	
-	public synchronized final void subtract( Value val )
+	public final synchronized void subtract( Value val )
 	{
 		if ( !isDefined() ) {
 			if ( val.isDouble() ) {

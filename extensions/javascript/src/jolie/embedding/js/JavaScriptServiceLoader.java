@@ -21,9 +21,11 @@
 
 package jolie.embedding.js;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
@@ -47,17 +49,17 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 		throws EmbeddedServiceLoaderCreationException
 	{
 		super( channelDest );
-		ScriptEngineManager manager = new ScriptEngineManager();
+		final ScriptEngineManager manager = new ScriptEngineManager();
 		this.engine = manager.getEngineByName( "JavaScript" );
 		if ( engine == null ) {
 			throw new EmbeddedServiceLoaderCreationException( "JavaScript engine not found. Check your system." );
 		}
 
-		Compilable compilable = (Compilable)engine;
+		final Compilable compilable = (Compilable)engine;
 		try {
-			FileReader reader = new FileReader( jsPath );
+			final Reader reader = new BufferedReader( new FileReader( jsPath ) );
 			try {
-				CompiledScript compiledScript = compilable.compile( reader );
+				final CompiledScript compiledScript = compilable.compile( reader );
 				compiledScript.eval();
 			} catch( ScriptException e ) {
 				throw new EmbeddedServiceLoaderCreationException( e );

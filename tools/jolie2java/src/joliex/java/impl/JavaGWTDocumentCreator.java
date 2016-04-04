@@ -23,20 +23,13 @@
  ***************************************************************************/
 package joliex.java.impl;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -56,13 +49,7 @@ import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
-import joliex.java.support.GeneralDocumentCreator;
-import joliex.java.support.GeneralProgramVisitor;
-import joliex.java.support.treeOLObject;
-import jolie.runtime.Value;
-import jolie.runtime.ValueVector;
 
 public class JavaGWTDocumentCreator {
 
@@ -294,11 +281,11 @@ public class JavaGWTDocumentCreator {
     }
 
     private void ConvertSubTypes(TypeDefinition typeDefinition, StringBuilder builderHeaderclass) {
-        Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
+        Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
         Iterator i = supportSet.iterator();
         while (i.hasNext()) {
             Map.Entry me = (Map.Entry) i.next();
-            if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
+            if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes(((TypeDefinition) me.getValue())))) {
                 convertClass((TypeDefinition) me.getValue(), builderHeaderclass);
             }
         }
@@ -307,7 +294,7 @@ public class JavaGWTDocumentCreator {
 
     private void convertClass(TypeDefinition typeDefinition, StringBuilder stringBuilder) {
         stringBuilder.append("public class ").append(typeDefinition.id()).append(" {" + "\n");
-        if (typeDefinition.hasSubTypes()) {
+        if (Utils.hasSubTypes(typeDefinition)) {
             ConvertSubTypes(typeDefinition, stringBuilder);
         }
         variableCreate(stringBuilder, typeDefinition);
@@ -319,7 +306,7 @@ public class JavaGWTDocumentCreator {
 
     private void importsCreate(StringBuilder stringBuilder, TypeDefinition type) {
         stringBuilder.append("import joliex.gwt.client.Value;\n");
-        if (type.hasSubTypes()) {
+        if (Utils.hasSubTypes(type)) {
             subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
@@ -392,8 +379,8 @@ public class JavaGWTDocumentCreator {
 
     private void variableCreate(StringBuilder stringBuilder, TypeDefinition type) {
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -411,7 +398,7 @@ public class JavaGWTDocumentCreator {
 
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
                         /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
@@ -426,7 +413,7 @@ public class JavaGWTDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
                         if (subType.cardinality().max() > 1) {
                             stringBuilder.append("private List<" + javaCode + "> " + "_" + subType.id() + ";\n");
                         } else {
@@ -441,8 +428,8 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.nativeType() != NativeType.VOID) {
-            stringBuilder.append("private " + javaNativeEquivalent.get(type.nativeType()) + " rootValue;\n");
+        if (Utils.nativeType(type) != NativeType.VOID) {
+            stringBuilder.append("private " + javaNativeEquivalent.get(Utils.nativeType(type)) + " rootValue;\n");
         }
 
         // stringBuilder.append("private Value v ;\n");
@@ -462,8 +449,8 @@ public class JavaGWTDocumentCreator {
         stringBuilder.append("public " + type.id() + "( Value v ){\n");
         //stringBuilder.append("this.v=v;\n");
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -491,7 +478,7 @@ public class JavaGWTDocumentCreator {
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
                         /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
@@ -519,15 +506,15 @@ public class JavaGWTDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
                         if (((TypeDefinition) subType).cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + javaCode + ">();" + "\n");
 
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0; " + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size(); counter" + subType.id() + "++){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append("" + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
                                 stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             } else {
@@ -548,7 +535,7 @@ public class JavaGWTDocumentCreator {
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
 
 
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append("_" + subType.id() + "= v.getFirstChild(\"" + subType.id() + "\")." + javaMethod + ";" + "\n");
                             } else {
                                 for (NativeType t : NativeType.class.getEnumConstants()) {
@@ -571,12 +558,12 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.nativeType() != NativeType.VOID) {
+        if (Utils.nativeType(type) != NativeType.VOID) {
 
-            String javaCode = javaNativeEquivalent.get(type.nativeType());
-            String javaMethod = javaNativeMethod.get(type.nativeType());
+            String javaCode = javaNativeEquivalent.get(Utils.nativeType(type));
+            String javaMethod = javaNativeMethod.get(Utils.nativeType(type));
 
-            if (type.nativeType() != NativeType.ANY) {
+            if (Utils.nativeType(type) != NativeType.ANY) {
                 stringBuilder.append("rootValue = v." + javaMethod + ";" + "\n");
             } else {
                 for (NativeType t : NativeType.class.getEnumConstants()) {
@@ -597,8 +584,8 @@ public class JavaGWTDocumentCreator {
 
         stringBuilder.append("public " + type.id() + "(){\n");
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -613,7 +600,7 @@ public class JavaGWTDocumentCreator {
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
                         if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
@@ -626,8 +613,8 @@ public class JavaGWTDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        //String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        //String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
                         if (((TypeDefinition) subType).cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + javaCode + ">();" + "\n");
@@ -647,8 +634,8 @@ public class JavaGWTDocumentCreator {
 
         stringBuilder.append("public Value getValue(){\n");
         stringBuilder.append("Value vReturn = new Value();\n");
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator subtypeIterator = supportSet.iterator();
             while (subtypeIterator.hasNext()) {
                 TypeDefinition subType = (TypeDefinition) (((Map.Entry) subtypeIterator.next()).getValue());
@@ -666,7 +653,7 @@ public class JavaGWTDocumentCreator {
                         stringBuilder.append("}\n");
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
                         /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
@@ -691,7 +678,7 @@ public class JavaGWTDocumentCreator {
                         if (subType.cardinality().max() > 1) {
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n");
                             } else {
                                 for (NativeType t : NativeType.class.getEnumConstants()) {
@@ -708,7 +695,7 @@ public class JavaGWTDocumentCreator {
 
                         } else {
                             stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n");
                             } else {
                                 for (NativeType t : NativeType.class.getEnumConstants()) {
@@ -730,10 +717,10 @@ public class JavaGWTDocumentCreator {
             }
         }
 
-        if (type.nativeType() != NativeType.VOID) {
+        if (Utils.nativeType(type) != NativeType.VOID) {
 
             stringBuilder.append("if((rootValue!=null)){\n");
-            if (type.nativeType() != NativeType.ANY) {
+            if (Utils.nativeType(type) != NativeType.ANY) {
                 stringBuilder.append("vReturn.setValue(rootValue);\n");
             } else {
                 for (NativeType t : NativeType.class.getEnumConstants()) {
@@ -756,8 +743,8 @@ public class JavaGWTDocumentCreator {
 
     private void methodsCreate(StringBuilder stringBuilder, TypeDefinition type) {
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -804,7 +791,7 @@ public class JavaGWTDocumentCreator {
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
                         /*if(subType.nativeType()==NativeType.VOID){
                          //manage type with subtypes and a rootValue
@@ -846,10 +833,10 @@ public class JavaGWTDocumentCreator {
                     } else {
                         //native type
 
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
-                        if (subType.nativeType() != NativeType.VOID) {
+                        if ( Utils.nativeType(subType) != NativeType.VOID) {
 
                             if (subType.cardinality().max() > 1) {
 
@@ -889,10 +876,10 @@ public class JavaGWTDocumentCreator {
                     System.out.println("WARNING: variable is not a Link or an Inline Definition!");
                 }
             }
-            if (type.nativeType() != NativeType.VOID) {
+            if (Utils.nativeType(type) != NativeType.VOID) {
 
-                String javaCode = javaNativeEquivalent.get(type.nativeType());
-                String javaMethod = javaNativeMethod.get(type.nativeType());
+                String javaCode = javaNativeEquivalent.get(Utils.nativeType(type));
+                String javaMethod = javaNativeMethod.get(Utils.nativeType(type));
 
                 stringBuilder.append("public " + javaCode + " getRootValue(){\n");
                 stringBuilder.append("return " + "rootValue;\n");
@@ -910,8 +897,8 @@ public class JavaGWTDocumentCreator {
     }
 
     private void parseSubType(TypeDefinition typeDefinition) {
-        if (typeDefinition.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
+        if (Utils.hasSubTypes(typeDefinition)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
                 Map.Entry me = (Map.Entry) i.next();

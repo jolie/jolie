@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OneWayOperationDeclaration;
@@ -21,6 +19,7 @@ import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import joliex.java.impl.Utils;
 
 /*
  * To change this template, choose Tools | Templates
@@ -234,15 +233,15 @@ public abstract class GeneralDocumentCreator
 
 				olObjetTree.SetLinkedObject( supportType );
 
-				if ( supportType.hasSubTypes() ) {
+				if ( Utils.hasSubTypes(supportType) ) {
 					ScanTypes( supportType );
-					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+					Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(supportType);
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
 
 
-						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+						if ( Utils.hasSubTypes(((TypeDefinition) me.getValue())) ) {
 							//System.out.print( "element of the list Oltree  dentro al loop per il linked type " + me.getKey() + "\n" );
 							ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
 						} else {
@@ -262,15 +261,15 @@ public abstract class GeneralDocumentCreator
 			//System.out.print( "element of the list Oltree " + supportType.id() + "\n" );
 
 
-			if ( supportType.hasSubTypes() ) {
+			if ( Utils.hasSubTypes(supportType) ) {
 
 				ScanTypes( supportType );
-				Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+				Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(supportType);
 				Iterator i = supportSet.iterator();
 				while( i.hasNext() ) {
 					Map.Entry me = (Map.Entry) i.next();
 
-					if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+					if ( Utils.hasSubTypes(((TypeDefinition) me.getValue())) ) {
 						//System.out.print( "element of the list loop 1 " + me.getKey() + "\n" );
 						olObjetTree.SetLinkedObject( (TypeDefinition) me.getValue() );
 						ScanTypesOlTree( (TypeDefinition) me.getValue(), olObjetTree.GetLinkedObject( 0 ) );
@@ -304,13 +303,13 @@ public abstract class GeneralDocumentCreator
 				addingMap.put( nameFile, supportType );
 				typeMap.add( addingMap );
 
-				if ( supportType.hasSubTypes() ) {
+				if ( Utils.hasSubTypes(supportType) ) {
 					//ScanTypes( supportType );
-					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+					Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(supportType);
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
-						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+						if ( Utils.hasSubTypes(((TypeDefinition) me.getValue())) ) {
 
 							ScanTypes( (TypeDefinition) me.getValue() );
 						}
@@ -332,14 +331,14 @@ public abstract class GeneralDocumentCreator
 				TypeDefinition supportType = typeDefinition;
 
 
-				if ( supportType.hasSubTypes() ) {
+				if ( Utils.hasSubTypes(supportType) ) {
 					//ScanTypes( supportType );
-					Set<Map.Entry<String, TypeDefinition>> supportSet = supportType.subTypes();
+					Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(supportType);
 
 					for( Iterator i = supportSet.iterator(); i.hasNext(); ) {
 						Map.Entry me = (Map.Entry) i.next();
 
-						if ( ((TypeDefinition) me.getValue()).hasSubTypes() ) {
+						if ( Utils.hasSubTypes(((TypeDefinition) me.getValue())) ) {
 							Map<String, TypeDefinition> addingMap = new HashMap<String, TypeDefinition>();
 							addingMap.put( nameFile, supportType );
 							typeMap.add( addingMap );

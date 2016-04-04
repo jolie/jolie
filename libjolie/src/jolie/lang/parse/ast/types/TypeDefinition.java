@@ -1,7 +1,7 @@
 /***************************************************************************
  *   Copyright (C) 2008 by Elvis Ciotti                                    *
- *   Copyright (C) 2009 by Fabrizio Montesi                                *
- *   Copyright (C) 2011 by Claudio Guidi                                *
+ *   Copyright (C) 2009-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2011 by Claudio Guidi                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -23,18 +23,15 @@
 
 package jolie.lang.parse.ast.types;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import jolie.lang.parse.context.ParsingContext;
-import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.NativeType;
 import jolie.lang.parse.DocumentedNode;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
+import jolie.lang.parse.ast.OLSyntaxNode;
 import jolie.lang.parse.ast.VariablePathNode;
+import jolie.lang.parse.context.ParsingContext;
 import jolie.util.Pair;
 import jolie.util.Range;
 
@@ -87,38 +84,23 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	{
 		return containsPath( variablePath.path().iterator() );
 	}
+	
+	protected abstract boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it );
 
-	private boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
+	private static boolean checkTypeEqualnessChoiceChoice( TypeChoiceDefinition left, TypeChoiceDefinition right, Set< String > recursiveTypesChecked )
 	{
-		if ( it.hasNext() == false ) {
-			return nativeType() != NativeType.VOID;
-		}
-
-		if ( untypedSubTypes() ) {
-			return true;
-		}
-
-		Pair< OLSyntaxNode, OLSyntaxNode > pair = it.next();
-		String nodeName = ((ConstantStringExpression)pair.key()).value();
-		if ( hasSubType( nodeName ) ) {
-			TypeDefinition subType = getSubType( nodeName );
-			return subType.containsPath( it );
-		}
-
-		return false;
+		return
+			checkTypeEqualness( left.left(), right.left(), recursiveTypesChecked )
+			&&
+			checkTypeEqualness( left.right(), right.right(), recursiveTypesChecked );
 	}
-
+	
 	/*
 	 * 13/10/2011 - Claudio Guidi: added recursiveTypesChecked list for checking recursive types equalness
 	 */
-	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right, List<String> recursiveTypesChecked )
+	private static boolean checkTypeEqualnessInline( TypeInlineDefinition left, TypeInlineDefinition right, Set< String > recursiveTypesChecked )
 	{
-
 		if ( left.nativeType() != right.nativeType() ) {
-			return false;
-		}
-
-		if ( left.cardinality.equals( right.cardinality ) == false ) {
 			return false;
 		}
 
@@ -134,7 +116,7 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 				}
 
 				for( Entry< String, TypeDefinition > entry : left.subTypes() ) {
-					TypeDefinition rightSubType = right.getSubType( entry.getKey() );
+					final TypeDefinition rightSubType = right.getSubType( entry.getKey() );
 					if ( rightSubType == null ) {
 						return false;
 					}
@@ -154,31 +136,81 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 
 		return true;
 	}
+	
+	private static boolean checkTypeEqualness( TypeDefinition left, TypeDefinition right, Set< String > recursiveTypesChecked )
+	{
+		if ( left instanceof TypeChoiceDefinition ) {
+			final TypeChoiceDefinition choice = (TypeChoiceDefinition) left;
+			if ( right instanceof TypeInlineDefinition ) {
+				return
+					checkTypeEqualness( choice.left(), right, recursiveTypesChecked )
+					&&
+					checkTypeEqualness( choice.right(), right, recursiveTypesChecked );
+			} else if ( right instanceof TypeDefinitionLink ) {
+				return checkTypeEqualness( left, ((TypeDefinitionLink)right).linkedType(), recursiveTypesChecked );
+			} else if ( right instanceof TypeChoiceDefinition ) {
+				return checkTypeEqualnessChoiceChoice( choice, (TypeChoiceDefinition)right, recursiveTypesChecked );
+			}
+		} else if ( left instanceof TypeDefinitionLink ) {
+			return checkTypeEqualness( ((TypeDefinitionLink)left).linkedType(), right, recursiveTypesChecked );
+		} else if ( left instanceof TypeInlineDefinition ) {
+			if ( right instanceof TypeInlineDefinition ) {
+				return checkTypeEqualnessInline( (TypeInlineDefinition)left, (TypeInlineDefinition)right, recursiveTypesChecked );
+			} else if ( right instanceof TypeDefinitionLink ) {
+				return checkTypeEqualness( left, ((TypeDefinitionLink)right).linkedType(), recursiveTypesChecked );
+			} else if ( right instanceof TypeChoiceDefinition ) {
+				final TypeChoiceDefinition choice = (TypeChoiceDefinition) left;
+				return
+					checkTypeEqualness( right, choice.left(), recursiveTypesChecked )
+					&&
+					checkTypeEqualness( right, choice.right(), recursiveTypesChecked );
+			}
+		}
+		
+		return false; // Unaccounted cases, fail fast.
+	}
 
 	/**
 	 * @author Claudio Guidi
 	 * 01-Sep-2011 Fabrizio Montesi: removed some type casting
+	 * @param inputType
+	 * @param extender
+	 * @param namePrefix
+	 * @return 
 	 */
 	public static TypeDefinition extend( TypeDefinition inputType, TypeDefinition extender, String namePrefix )
 	{
-		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), inputType.nativeType(), inputType.cardinality );
+		if ( inputType instanceof TypeChoiceDefinition || extender instanceof TypeChoiceDefinition ) {
+			throw new UnsupportedOperationException( "extension does not support choice types yet" );
+		}
+		
+		if ( inputType instanceof TypeDefinitionLink ) {
+			return extend( ((TypeDefinitionLink)inputType).linkedType(), extender, namePrefix );
+		} else if ( extender instanceof TypeDefinitionLink ) {
+			return extend( inputType, ((TypeDefinitionLink)extender).linkedType(), namePrefix );
+		}
+		
+		final TypeInlineDefinition left = (TypeInlineDefinition)inputType;
+		final TypeInlineDefinition right = (TypeInlineDefinition)extender;
+		
+		TypeInlineDefinition newType = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), left.nativeType(), inputType.cardinality );
 
-		if ( inputType instanceof TypeDefinitionUndefined ) {
+		if ( left instanceof TypeDefinitionUndefined ) {
 			TypeInlineDefinition newTid = new TypeInlineDefinition( inputType.context(), namePrefix + "_" + inputType.id(), NativeType.ANY, inputType.cardinality );
-			if ( extender.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : extender.subTypes() ) {
+			if ( right.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
 					newTid.putSubType( subType.getValue() );
 				}
 			}
 			newType = newTid;
 		} else {
-			if ( inputType.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : inputType.subTypes() ) {
+			if ( left.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
 					newType.putSubType( subType.getValue() );
 				}
 			}
-			if ( extender.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> subType : extender.subTypes() ) {
+			if ( right.hasSubTypes() ) {
+				for( Entry<String, TypeDefinition> subType : right.subTypes() ) {
 					newType.putSubType( subType.getValue() );
 				}
 			}
@@ -189,20 +221,22 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 	/**
 	 * Checks if this TypeDeclaration is equivalent to otherType.
 	 * @author Fabrizio Montesi
+	 * @param other
+	 * @return 
 	 */
 	public boolean isEquivalentTo( TypeDefinition other )
 	{
-		List<String> recursiveTypeChecked = new ArrayList<String>();
-		return checkTypeEqualness( this, other, recursiveTypeChecked );
+		Set< String > recursiveTypeChecked = new HashSet<>();
+		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	/**
 	 * introduced for checking also recursive type equalness
 	 * @author Claudio Guidi
 	 */
-	private boolean isEquivalentTo_recursive( TypeDefinition other, List<String> recursiveTypeChecked )
+	private boolean isEquivalentTo_recursive( TypeDefinition other, Set< String > recursiveTypeChecked )
 	{
-		return checkTypeEqualness( this, other, recursiveTypeChecked );
+		return cardinality.equals( other.cardinality ) && checkTypeEqualness( this, other, recursiveTypeChecked );
 	}
 
 	@Override
@@ -220,10 +254,11 @@ public abstract class TypeDefinition extends OLSyntaxNode implements DocumentedN
 		return hash;
 	}
 
-	public abstract TypeDefinition getSubType( String id );
+	/* public abstract TypeDefinition getSubType( String id );
 	public abstract Set< Map.Entry< String, TypeDefinition > > subTypes();
 	public abstract boolean hasSubTypes();
 	public abstract boolean untypedSubTypes();
 	public abstract NativeType nativeType();
 	public abstract boolean hasSubType( String id );
+	*/
 }

@@ -29,17 +29,16 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
+import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
 import jolie.lang.Constants;
 import jolie.net.ext.CommChannelFactory;
@@ -76,7 +76,7 @@ import jolie.runtime.typing.TypeCheckingException;
  */
 public class CommCore
 {
-	private final Map< String, CommListener > listenersMap = new HashMap< String, CommListener >();
+	private final Map< String, CommListener > listenersMap = new HashMap<>();
 	private final static int CHANNEL_HANDLER_TIMEOUT = 5;
 	private final ThreadGroup threadGroup;
 
@@ -89,8 +89,7 @@ public class CommCore
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 
 	// Location URI -> Protocol name -> Persistent CommChannel object
-	private final Map< URI, Map< String, CommChannel > > persistentChannels =
-			new HashMap< URI, Map< String, CommChannel > >();
+	private final Map< URI, Map< String, CommChannel > > persistentChannels = new HashMap<>();
 
 	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel > protocolChannels )
 	{		
@@ -184,7 +183,7 @@ public class CommCore
 		synchronized( persistentChannels ) {
 			Map< String, CommChannel > protocolChannels = persistentChannels.get( location );
 			if ( protocolChannels == null ) {
-				protocolChannels = new HashMap< String, CommChannel >();
+				protocolChannels = new HashMap<>();
 				persistentChannels.put( location, protocolChannels );
 			}
 			// Set the timeout
@@ -233,11 +232,13 @@ public class CommCore
 		this.connectionsLimit = connectionsLimit;
 		// this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
-		if ( connectionsLimit > 0 ) {
+		/* if ( connectionsLimit > 0 ) {
 			executorService = Executors.newFixedThreadPool( connectionsLimit, new CommThreadFactory() );
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
+		*/
+		executorService = new JolieThreadPoolExecutor( new CommThreadFactory() );
 		
 		selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
 		for( int i = 0; i < selectorThreads.length; i++ ) {
@@ -274,7 +275,7 @@ public class CommCore
 		return threadGroup;
 	}
 	
-	private final Collection< Process > protocolConfigurations = new LinkedList< Process > ();
+	private final Collection< Process > protocolConfigurations = new LinkedList<> ();
 	
 	public Collection< Process > protocolConfigurations()
 	{
@@ -286,8 +287,7 @@ public class CommCore
 		return listenersMap.get( serviceName );
 	}
 	
-	private final Map< String, CommChannelFactory > channelFactories =
-						new HashMap< String, CommChannelFactory > ();
+	private final Map< String, CommChannelFactory > channelFactories = new HashMap<>();
 
 	private CommChannelFactory getCommChannelFactory( String name )
 		throws IOException
@@ -314,8 +314,7 @@ public class CommCore
 		return factory.createChannel( uri, port );
 	}
 	
-	private final Map< String, CommProtocolFactory > protocolFactories =
-						new HashMap< String, CommProtocolFactory > ();
+	private final Map< String, CommProtocolFactory > protocolFactories = new HashMap<>();
 	
 	public CommProtocolFactory getCommProtocolFactory( String name )
 		throws IOException
@@ -352,8 +351,7 @@ public class CommCore
 		return factory.createInputProtocol( configurationPath, uri );
 	}
 	
-	private final Map< String, CommListenerFactory > listenerFactories =
-						new HashMap< String, CommListenerFactory > ();
+	private final Map< String, CommListenerFactory > listenerFactories = new HashMap<> ();
 
 	private final LocalListener localListener;
 
@@ -429,7 +427,8 @@ public class CommCore
 	
 	private final ExecutorService executorService;
 	
-	private class CommThreadFactory implements ThreadFactory {
+	private final static class CommThreadFactory implements ThreadFactory {
+		@Override
 		public Thread newThread( Runnable r )
 		{
 			return new CommChannelHandler( r );
@@ -592,16 +591,17 @@ public class CommCore
 			}
 		}
 		
+		@Override
 		public void run()
 		{
-			CommChannelHandler thread = CommChannelHandler.currentThread();
+			final CommChannelHandler thread = CommChannelHandler.currentThread();
 			thread.setExecutionThread( interpreter().initThread() );
 			channel.lock.lock();
 			channelHandlersLock.readLock().lock();
 			try {
 				if ( channel.redirectionChannel() == null ) {
 					assert( port != null );
-					CommMessage message = channel.recv();
+					final CommMessage message = channel.recv();
 					if ( message != null ) {
 						handleMessage( message );
 					} else {
@@ -679,9 +679,9 @@ public class CommCore
 		for( SelectorThread t : selectorThreads ) {
 			t.start();
 		}
-		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+		listenersMap.entrySet().forEach( ( entry ) -> {
 			entry.getValue().start();
-		}
+		} );
 	}
 	
 	private PollingThread pollingThread = null;
@@ -698,7 +698,7 @@ public class CommCore
 	}
 	
 	private class PollingThread extends Thread {
-		private final Set< CommChannel > channels = new HashSet< CommChannel >();
+		private final Set< CommChannel > channels = new HashSet<>();
 
 		private PollingThread()
 		{
@@ -736,13 +736,13 @@ public class CommCore
 				} catch( InterruptedException e ) {}
 			}
 
-			for( CommChannel c : channels ) {
+			channels.forEach( ( c ) -> {
 				try {
 					c.closeImpl();
 				} catch( IOException e ) {
 					interpreter.logWarning( e );
 				}
-			}
+			} );
 		}
 		
 		public void register( CommChannel channel )
@@ -778,9 +778,12 @@ public class CommCore
 	private final SelectorThread[] selectorThreads;
 
 	private class SelectorThread extends NativeJolieThread {
+		// We use a custom class for debugging purposes (the profiler gives us the class name)
+		private class SelectorMutex extends Object {}
+		
 		private final Selector selector;
-		private final Object selectingMutex = new Object();
-		// private final Queue< Runnable > actionQueue = new ConcurrentLinkedQueue< Runnable >();
+		private final SelectorMutex selectingMutex = new SelectorMutex();
+		private final Deque< Runnable > selectorTasks = new ArrayDeque<>();
 		
 		public SelectorThread( Interpreter interpreter )
 			throws IOException
@@ -789,17 +792,18 @@ public class CommCore
 			this.selector = Selector.open();
 		}
 		
-		private void runKeys( Set< SelectionKey > selectedKeys, Queue< Runnable > taskQueue )
+		private Deque< Runnable > runKeys( SelectionKey[] selectedKeys )
 			throws IOException
 		{
+			boolean keepRun;
 			synchronized( this ) {
-				for( final SelectionKey key : selectedKeys ) {
-					if ( key.isValid() ) {
-						final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
-						if ( channel.lock.tryLock() ) {
-							key.cancel();
-							taskQueue.add( new Runnable() {
-								public void run() {
+				do {
+					for( final SelectionKey key : selectedKeys ) {
+						if ( key.isValid() ) {
+							final SelectableStreamingCommChannel channel = (SelectableStreamingCommChannel)key.attachment();
+							if ( channel.lock.tryLock() ) {
+								key.cancel();
+								selectorTasks.add( () -> {
 									try {
 										try {
 											try {
@@ -826,37 +830,45 @@ public class CommCore
 										}
 										interpreter.logWarning( e );
 									}
-								}
-							});
+								} );
+							}
 						}
 					}
-				}
-				synchronized( selectingMutex ) {
-					selector.selectNow(); // Clean up the cancelled keys
-				}
+					synchronized( selectingMutex ) {
+						if ( selector.selectNow() > 0 ) { // Clean up the cancelled keys
+							// If some new channels are selected, run again
+							selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
+							keepRun = true;
+						} else {
+							keepRun = false;
+						}
+					}
+				} while( keepRun );
 			}
+			return selectorTasks;
 		}
 		
-		private void runTasks( Queue< Runnable > taskQueue )
+		private void runTasks( Deque< Runnable > tasks )
+			throws IOException
 		{
-			while( !taskQueue.isEmpty() ) {
-				taskQueue.remove().run();
+			Runnable r;
+			while( (r = tasks.poll()) != null ) {
+				r.run();
 			}
 		}
 		
 		@Override
 		public void run()
 		{
-			final Queue< Runnable > taskQueue = new LinkedList< Runnable >();
 			while( active ) {
 				try {
-					Set< SelectionKey > selectedKeys;
+					SelectionKey[] selectedKeys;
 					synchronized( selectingMutex ) {
 						selector.select();
-						selectedKeys = new HashSet< SelectionKey >( selector.selectedKeys() );
+						selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
 					}
-					runKeys( selectedKeys, taskQueue );
-					runTasks( taskQueue );
+					final Deque< Runnable > tasks = runKeys( selectedKeys );
+					runTasks( tasks );
 				} catch( IOException e ) {
 					interpreter.logSevere( e );
 				}
@@ -936,7 +948,7 @@ public class CommCore
 	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		int i = nextSelector.getAndIncrement() % selectorThreads.length;
+		final int i = nextSelector.getAndIncrement() % selectorThreads.length;
 		selectorThreads[ i ].register( channel, i );
 		/*final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
@@ -966,9 +978,9 @@ public class CommCore
 	{
 		if ( active ) {
 			active = false;
-			for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
+			listenersMap.entrySet().forEach( ( entry ) -> {
 				entry.getValue().shutdown();
-			}
+			} );
 			
 			for( SelectorThread t : selectorThreads ) {
 				t.selector.wakeup();

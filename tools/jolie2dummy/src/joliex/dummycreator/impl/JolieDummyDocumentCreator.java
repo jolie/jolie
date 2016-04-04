@@ -34,7 +34,9 @@ import jolie.lang.parse.ast.InterfaceDefinition;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.util.ProgramInspector;
 
 /**
@@ -120,239 +122,50 @@ public class JolieDummyDocumentCreator
 	{
 
 		if ( operatationDeclaration instanceof RequestResponseOperationDeclaration ) {
-			//if (((RequestResponseOperationDeclaration)operatationDeclaration).requestType().id()
 			stringBuilder.append( "[" ).append( operatationDeclaration.id() ).append( "(request)(response){\n" );
 			stringBuilder.append( "\t" ).append( "valueToPrettyString@StringUtils( request )( s)" ).append( ";\n" );
-			stringBuilder.append( "\t" ).append( "println@Console(s)()" );
+			stringBuilder.append( "\t" ).append( "println@Console(s)();\n" );
 
-			TypeDefinition typeDefinition = ((RequestResponseOperationDeclaration) operatationDeclaration).responseType();
-			if ( typeDefinition.hasSubTypes() ) {
-				stringBuilder.append( ";\n" );
-				for( Entry<String, TypeDefinition> entry : typeDefinition.subTypes() ) {
-
-					convertTypes( entry.getValue(), stringBuilder, "\tdummyResponse." + entry.getKey() );
-
-
-				}
-				stringBuilder.append( "response<<dummyResponse\n" );
-			} else {
-
-				if ( !(typeDefinition.nativeType().id().equals( "void" )) ) {
-					stringBuilder.append( ";\n" );
-					if ( typeDefinition.nativeType().id().equals( "int" ) ) {
-						stringBuilder.append( "\tdummyRespose" ).append( "=" ).append( "42;\n" );
-//
-					} else if ( typeDefinition.nativeType().id().equals( "double" ) ) {
-
-						stringBuilder.append( "\tdummyRespose" ).append( "=" ).append( "1.54;\n" );
-
-
-					} else {
-
-						stringBuilder.append( "\tdummyRespose" ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-					}
-					stringBuilder.append( "response<<dummyResponse\n" );
-				}
-
-			}
-
-			/// handeling of types here
-
+			TypeDefinition typeDefinition = ( ( RequestResponseOperationDeclaration ) operatationDeclaration ).responseType();
+			convertTypes( typeDefinition, stringBuilder, "dummyResponse" );
+			stringBuilder.append( "response<<dummyResponse\n" );
 			stringBuilder.append( "\n}]{nullProcess}\n" );
-
 		}
 
 	}
 
-	private void convertTypes( TypeDefinition typeDefinition, StringBuilder stringBuilder, String nameVariable )
-	{
+	private void convertTypes( TypeDefinition typeDefinition, StringBuilder stringBuilder, String nameVariable ) {
+		if ( typeDefinition instanceof TypeChoiceDefinition ) {
+			TypeChoiceDefinition typeChoiceDefinition = ( TypeChoiceDefinition ) typeDefinition;
+			convertTypes( typeChoiceDefinition.left(), stringBuilder, nameVariable );
 
+		} else if ( typeDefinition instanceof TypeDefinitionLink ) {
+			TypeDefinitionLink typeDefinitionLink = ( TypeDefinitionLink ) typeDefinition;
+			convertTypes( typeDefinitionLink.linkedType(), stringBuilder, nameVariable );
 
-		if ( typeDefinition instanceof TypeDefinitionLink ) {
-
-
-			TypeDefinitionLink typeDefinitionLink = (TypeDefinitionLink) typeDefinition;
-
-			if ( typeDefinitionLink.cardinality().max() > 1 ) {
-				if ( typeDefinitionLink.cardinality().max() == 2147483647 ) {
-
-					for( int cardinalityIndex = 0; cardinalityIndex < 4; cardinalityIndex++ ) {
-						{
-							if ( !(typeDefinitionLink.linkedType().nativeType().id().equals( "void" )) ) {
-								if ( typeDefinitionLink.nativeType().id().equals( "int" ) ) {
-									stringBuilder.append( "[" + (new Integer( cardinalityIndex )).toString() + "]" ).append( "=" ).append( "42;\n" );
-//
-								} else if ( typeDefinitionLink.nativeType().id().equals( "double" ) ) {
-
-									stringBuilder.append( nameVariable ).append( "[" + (new Integer( cardinalityIndex )).toString() + "]" ).append( "=" ).append( "1.54;\n" );
-
-
-								} else {
-
-									stringBuilder.append( nameVariable ).append( "[" + (new Integer( cardinalityIndex )).toString() + "]" ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-								}
-							}
-							if (typeDefinitionLink.linkedType().hasSubTypes()){
-							for( Entry<String, TypeDefinition> entry : typeDefinitionLink.linkedType().subTypes() ) {
-
-								convertTypes( entry.getValue(), stringBuilder, nameVariable + "[" + (new Integer( cardinalityIndex )).toString() + "]" + "." + entry.getKey() );
-
-
-							}
-							}
-						}
-					}
-				} else {
-					for( int cardinalityIndex = 0; cardinalityIndex < typeDefinitionLink.cardinality().max(); cardinalityIndex++ ) {
-						{
-							if ( !(typeDefinitionLink.linkedType().nativeType().id().equals( "void" )) ) {
-						if ( typeDefinitionLink.nativeType().id().equals( "int" ) ) {
-							stringBuilder.append( "[" ).append( (new Integer( cardinalityIndex )).toString() ).append( "]").append( "=" ).append( "42;\n" );
-//
-						} else if ( typeDefinitionLink.nativeType().id().equals( "double" ) ) {
-
-							stringBuilder.append( nameVariable ).append( "[" ).append( (new Integer( cardinalityIndex )).toString()).append( "]").append( "=" ).append( "1.54;\n" );
-
-
+		} else if ( typeDefinition instanceof TypeInlineDefinition ) {
+			TypeInlineDefinition typeInlineDefinition = ( TypeInlineDefinition ) typeDefinition;
+			//check subtypes
+			if ( typeInlineDefinition.hasSubTypes() ) {
+				for ( Entry<String, TypeDefinition> entry : typeInlineDefinition.subTypes() ) {
+					convertTypes( entry.getValue(), stringBuilder, nameVariable + "." + entry.getKey() );
+				}
+			} else {
+				//get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
+				int typeCardinality = ( typeInlineDefinition.cardinality().max() > 5 ? 5 : typeInlineDefinition.cardinality().max() );
+				for ( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
+					String cardinalityString = typeCardinality == 1 ? "" : "[" + String.valueOf( cardinalityIndex ) + "]";
+					if ( !( typeInlineDefinition.nativeType().id().equals( "void" ) ) ) {
+						if ( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "42;\n" );
+						} else if ( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "1.54;\n" );
 						} else {
-
-							stringBuilder.append( nameVariable ).append( "[" ).append( (new Integer( cardinalityIndex )).toString()).append( "]").append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
 						}
 					}
-
-							for( Entry<String, TypeDefinition> entry : typeDefinitionLink.linkedType().subTypes() ) {
-
-								convertTypes( entry.getValue(), stringBuilder, nameVariable + "[" + (new Integer( cardinalityIndex )).toString() + "]" + "." + entry.getKey() );
-
-
-							}
-						}
-
-					}
-
-				}
-			} else {
-				if ( !(typeDefinitionLink.linkedType().nativeType().id().equals( "void" )) ) {
-					if ( typeDefinitionLink.nativeType().id().equals( "int" ) ) {
-						stringBuilder.append( nameVariable ).append( "=" ).append( "42;\n" );
-//
-					} else if ( typeDefinitionLink.nativeType().id().equals( "double" ) ) {
-
-						stringBuilder.append( nameVariable ).append( "=" ).append( "1.54;\n" );
-
-
-					} else {
-
-						stringBuilder.append( nameVariable ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-					}
-				}
-				if (typeDefinitionLink.linkedType().hasSubTypes()){
-				for( Entry<String, TypeDefinition> entry : typeDefinitionLink.linkedType().subTypes() ) {
-					convertTypes( entry.getValue(), stringBuilder, nameVariable + "." + entry.getKey() );
-
-				}
-				}
-
-			}
-		} else if ( typeDefinition.untypedSubTypes() ) {
-//			
-		} else {
-
-
-			if ( typeDefinition.hasSubTypes() ) {
-				for( Entry<String, TypeDefinition> entry : typeDefinition.subTypes() ) {
-
-					convertTypes( entry.getValue(), stringBuilder, nameVariable + "." + entry.getKey() );
-
-
-				}
-
-
-
-
-
-
-			} else {
-
-				if ( typeDefinition.cardinality().max() > 1 ) {
-					if ( typeDefinition.cardinality().max() == 2147483647 ) {
-						for( int cardinalityIndex = 0; cardinalityIndex < 4; cardinalityIndex++ ) {
-							if ( typeDefinition.nativeType().id().equals( "int" ) ) {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( cardinalityIndex ).append( ";\n" );
-//
-							} else if ( typeDefinition.nativeType().id().equals( "double" ) ) {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( 1.54 + cardinalityIndex ).append( ";\n" );
-
-
-							} else {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-							}
-//
-						}
-					} else {
-
-						for( int cardinalityIndex = 0; cardinalityIndex < typeDefinition.cardinality().max(); cardinalityIndex++ ) {
-							if ( typeDefinition.nativeType().id().equals( "int" ) ) {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( cardinalityIndex ).append( ";\n" );
-//
-							} else if ( typeDefinition.nativeType().id().equals( "double" ) ) {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( 1.54 + cardinalityIndex ).append( ";\n" );
-
-
-							} else {
-
-								stringBuilder.append( nameVariable ).append( "[" ).append( cardinalityIndex ).append( "]" ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-							}
-
-						}
-
-
-					}
-
-
-				} else {
-					if ( typeDefinition.nativeType().id().equals( "int" ) ) {
-						stringBuilder.append( nameVariable ).append( "=" ).append( "42;\n" );
-//			 
-					} else if ( typeDefinition.nativeType().id().equals( "double" ) ) {
-
-						stringBuilder.append( nameVariable ).append( "=" ).append( "1.54;\n" );
-
-
-					} else {
-
-						stringBuilder.append( nameVariable ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
-
-
-					}
-
-
-
-
 				}
 			}
-
 		}
-
-
-
 	}
-	//private void writeType( TypeDefinition type, boolean subType, Writer writer, int indetationLevel )
 }

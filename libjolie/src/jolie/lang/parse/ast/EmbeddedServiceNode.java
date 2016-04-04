@@ -21,8 +21,6 @@
 
 package jolie.lang.parse.ast;
 
-import java.util.ArrayList;
-import java.util.List;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLVisitor;
 import jolie.lang.parse.context.ParsingContext;
@@ -72,6 +70,7 @@ public class EmbeddedServiceNode extends OLSyntaxNode
 		return program;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

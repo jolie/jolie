@@ -55,6 +55,7 @@ public class NotificationForwardStatement extends OLSyntaxNode
 		return outputVariablePath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

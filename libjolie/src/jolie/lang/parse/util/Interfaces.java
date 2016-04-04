@@ -40,7 +40,7 @@ public class Interfaces
 		InterfaceExtenderDefinition extender,
 		String namePrefix
 	) {
-		LinkedList<String> operationNameList = new LinkedList<String>();
+		LinkedList<String> operationNameList = new LinkedList<>();
 		operationNameList.addAll( inputInterface.operationsMap().keySet() );
 		InterfaceDefinition outputInterface = inputInterface;
 		if ( extender != null ) {
