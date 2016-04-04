@@ -27,9 +27,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -57,14 +57,11 @@ import jolie.lang.parse.ast.OneWayOperationDeclaration;
 import jolie.lang.parse.ast.OperationDeclaration;
 import jolie.lang.parse.ast.OutputPortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import jolie.lang.parse.util.ProgramInspector;
-import joliex.java.support.GeneralDocumentCreator;
-import joliex.java.support.GeneralProgramVisitor;
-import joliex.java.support.treeOLObject;
-import jolie.runtime.Value;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -119,11 +116,9 @@ public class JavaDocumentCreator {
     }
 
     public void ConvertDocument() {
-
-
-        typeMap = new LinkedHashMap<String, TypeDefinition>();
-        subTypeMap = new LinkedHashMap<String, TypeDefinition>();
-        subclass = new Vector<TypeDefinition>();
+        typeMap = new LinkedHashMap<>();
+        subTypeMap = new LinkedHashMap<>();
+        subclass = new Vector<>();
         int counterSubClass;
         TypeDefinition[] support = inspector.getTypes();
         InputPortInfo[] inputPorts = inspector.getInputPorts();
@@ -201,143 +196,139 @@ public class JavaDocumentCreator {
                     Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
-
-
         }
-
     }
 
     private void createBuildFile() {
-	try {
-	    DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-	    DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-	    Document doc = docBuilder.newDocument();
-	    Element rootElement = doc.createElement("project");
-	    doc.appendChild(rootElement);
-	    rootElement.setAttribute("name", "JolieConnector");
-	    rootElement.setAttribute("default", "compile");
-	    rootElement.setAttribute("basedir", ".");
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("project");
+            doc.appendChild(rootElement);
+            rootElement.setAttribute("name", "JolieConnector");
+            rootElement.setAttribute("default", "compile");
+            rootElement.setAttribute("basedir", ".");
 	    /*Section that defines constants*/
-	    Element propertyElement = doc.createElement("property");
-	    propertyElement.setAttribute("name", "src");
-	    propertyElement.setAttribute("location", "src");
-	    rootElement.appendChild(propertyElement);
-	    propertyElement = doc.createElement("property");
-	    propertyElement.setAttribute("name", "dist");
-	    propertyElement.setAttribute("location", "dist");
-	    rootElement.appendChild(propertyElement);
-	    propertyElement = doc.createElement("property");
-	    propertyElement.setAttribute("name", "build");
-	    propertyElement.setAttribute("location", "built");
-	    rootElement.appendChild(propertyElement);
-	    propertyElement = doc.createElement("property");
-	    propertyElement.setAttribute("name", "lib");
-	    propertyElement.setAttribute("location", "lib");
-	    rootElement.appendChild(propertyElement);
-	    propertyElement = doc.createElement("property");
-	    propertyElement.setAttribute("environment", "env");
-	    rootElement.appendChild(propertyElement);
+            Element propertyElement = doc.createElement("property");
+            propertyElement.setAttribute("name", "src");
+            propertyElement.setAttribute("location", "src");
+            rootElement.appendChild(propertyElement);
+            propertyElement = doc.createElement("property");
+            propertyElement.setAttribute("name", "dist");
+            propertyElement.setAttribute("location", "dist");
+            rootElement.appendChild(propertyElement);
+            propertyElement = doc.createElement("property");
+            propertyElement.setAttribute("name", "build");
+            propertyElement.setAttribute("location", "built");
+            rootElement.appendChild(propertyElement);
+            propertyElement = doc.createElement("property");
+            propertyElement.setAttribute("name", "lib");
+            propertyElement.setAttribute("location", "lib");
+            rootElement.appendChild(propertyElement);
+            propertyElement = doc.createElement("property");
+            propertyElement.setAttribute("environment", "env");
+            rootElement.appendChild(propertyElement);
 
 	    /*
 	     This portion of the code is responsible for the dist target creation
 	     */
-	    Element initElement = doc.createElement("target");
-	    initElement.setAttribute("name", "init");
-	    rootElement.appendChild(initElement);
-	    Element mkDirElement = doc.createElement("mkdir");
-	    mkDirElement.setAttribute("dir", "${build}");
-	    initElement.appendChild(mkDirElement);
-	    mkDirElement = doc.createElement("mkdir");
-	    mkDirElement.setAttribute("dir", "${dist}");
-	    initElement.appendChild(mkDirElement);
-	    mkDirElement = doc.createElement("mkdir");
-	    mkDirElement.setAttribute("dir", "${lib}");
-	    initElement.appendChild(mkDirElement);
-	    mkDirElement = doc.createElement("mkdir");
-	    mkDirElement.setAttribute("dir", "${dist}/lib");
-	    initElement.appendChild(mkDirElement);
-	    Element copyLib = doc.createElement("copy");
-	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/jolie.jar");
-	    copyLib.setAttribute("tofile", "${lib}/jolie.jar");
-	    initElement.appendChild(copyLib);
-	    copyLib = doc.createElement("copy");
-	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/libjolie.jar");
-	    copyLib.setAttribute("tofile", "${lib}/libjolie.jar");
-	    initElement.appendChild(copyLib);
-	    copyLib = doc.createElement("copy");
-	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/jolie-java.jar");
-	    copyLib.setAttribute("tofile", "${lib}/jolie-java.jar");
-	    initElement.appendChild(copyLib);
-	    copyLib = doc.createElement("copy");
-	    copyLib.setAttribute("file", "${env.JOLIE_HOME}/extensions/sodep.jar");
-	    copyLib.setAttribute("tofile", "${lib}/sodep.jar");
-	    initElement.appendChild(copyLib);
-	    Element compileElement = doc.createElement("target");
-	    rootElement.appendChild(compileElement);
-	    compileElement.setAttribute("name", "compile");
-	    compileElement.setAttribute("depends", "init");
-	    Element javacElement = doc.createElement("javac");
-	    compileElement.appendChild(javacElement);
-	    javacElement.setAttribute("srcdir", "${src}");
-	    javacElement.setAttribute("destdir", "${build}");
-	    Element classPathElement = doc.createElement("classpath");
-	    javacElement.appendChild(classPathElement);
-	    Element jolieJar = doc.createElement("pathelement");
-	    classPathElement.appendChild(jolieJar);
-	    jolieJar.setAttribute("path", "./lib/jolie.jar");
-	    Element libJolieJar = doc.createElement("pathelement");
-	    classPathElement.appendChild(libJolieJar);
-	    libJolieJar.setAttribute("path", "./lib/libjolie.jar");
-	    Element distElement = doc.createElement("target");
-	    rootElement.appendChild(distElement);
-	    distElement.setAttribute("name", "dist");
-	    distElement.setAttribute("depends", "compile");
-	    Element jarElement = doc.createElement("jar");
-	    distElement.appendChild(jarElement);
-	    jarElement.setAttribute("jarfile", "${dist}/JolieConnector.jar");
-	    jarElement.setAttribute("basedir", "${build}");
-	    if (addSource) {
-		Element filesetElement = doc.createElement("fileset");
-		filesetElement.setAttribute("dir", "${src}");
-		filesetElement.setAttribute("includes", "**/*.java");
-		jarElement.appendChild(filesetElement);
-	    }
-	    copyLib = doc.createElement("copy");
-	    copyLib.setAttribute("toDir", "${dist}/lib");
-	    Element filesetElement = doc.createElement("fileset");
-	    filesetElement.setAttribute("dir", "${lib}");
-	    copyLib.appendChild(filesetElement);
-	    distElement.appendChild(copyLib);
-	    TransformerFactory transformerFactory = TransformerFactory.newInstance();
-	    Transformer transformer = transformerFactory.newTransformer();
-	    DOMSource source = new DOMSource(doc);
-	    StreamResult streamResult = new StreamResult(new File("build.xml"));
-	    transformer.transform(source, streamResult);
-	} catch (ParserConfigurationException ex) {
-	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
-	} catch (TransformerConfigurationException ex) {
-	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
-	} catch (TransformerException ex) {
-	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
-	}
+            Element initElement = doc.createElement("target");
+            initElement.setAttribute("name", "init");
+            rootElement.appendChild(initElement);
+            Element mkDirElement = doc.createElement("mkdir");
+            mkDirElement.setAttribute("dir", "${build}");
+            initElement.appendChild(mkDirElement);
+            mkDirElement = doc.createElement("mkdir");
+            mkDirElement.setAttribute("dir", "${dist}");
+            initElement.appendChild(mkDirElement);
+            mkDirElement = doc.createElement("mkdir");
+            mkDirElement.setAttribute("dir", "${lib}");
+            initElement.appendChild(mkDirElement);
+            mkDirElement = doc.createElement("mkdir");
+            mkDirElement.setAttribute("dir", "${dist}/lib");
+            initElement.appendChild(mkDirElement);
+            Element copyLib = doc.createElement("copy");
+            copyLib.setAttribute("file", "${env.JOLIE_HOME}/jolie.jar");
+            copyLib.setAttribute("tofile", "${lib}/jolie.jar");
+            initElement.appendChild(copyLib);
+            copyLib = doc.createElement("copy");
+            copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/libjolie.jar");
+            copyLib.setAttribute("tofile", "${lib}/libjolie.jar");
+            initElement.appendChild(copyLib);
+            copyLib = doc.createElement("copy");
+            copyLib.setAttribute("file", "${env.JOLIE_HOME}/lib/jolie-java.jar");
+            copyLib.setAttribute("tofile", "${lib}/jolie-java.jar");
+            initElement.appendChild(copyLib);
+            copyLib = doc.createElement("copy");
+            copyLib.setAttribute("file", "${env.JOLIE_HOME}/extensions/sodep.jar");
+            copyLib.setAttribute("tofile", "${lib}/sodep.jar");
+            initElement.appendChild(copyLib);
+            Element compileElement = doc.createElement("target");
+            rootElement.appendChild(compileElement);
+            compileElement.setAttribute("name", "compile");
+            compileElement.setAttribute("depends", "init");
+            Element javacElement = doc.createElement("javac");
+            compileElement.appendChild(javacElement);
+            javacElement.setAttribute("srcdir", "${src}");
+            javacElement.setAttribute("destdir", "${build}");
+            Element classPathElement = doc.createElement("classpath");
+            javacElement.appendChild(classPathElement);
+            Element jolieJar = doc.createElement("pathelement");
+            classPathElement.appendChild(jolieJar);
+            jolieJar.setAttribute("path", "./lib/jolie.jar");
+            Element libJolieJar = doc.createElement("pathelement");
+            classPathElement.appendChild(libJolieJar);
+            libJolieJar.setAttribute("path", "./lib/libjolie.jar");
+            Element distElement = doc.createElement("target");
+            rootElement.appendChild(distElement);
+            distElement.setAttribute("name", "dist");
+            distElement.setAttribute("depends", "compile");
+            Element jarElement = doc.createElement("jar");
+            distElement.appendChild(jarElement);
+            jarElement.setAttribute("jarfile", "${dist}/JolieConnector.jar");
+            jarElement.setAttribute("basedir", "${build}");
+            if (addSource) {
+                Element filesetElement = doc.createElement("fileset");
+                filesetElement.setAttribute("dir", "${src}");
+                filesetElement.setAttribute("includes", "**/*.java");
+                jarElement.appendChild(filesetElement);
+            }
+            copyLib = doc.createElement("copy");
+            copyLib.setAttribute("toDir", "${dist}/lib");
+            Element filesetElement = doc.createElement("fileset");
+            filesetElement.setAttribute("dir", "${lib}");
+            copyLib.appendChild(filesetElement);
+            distElement.appendChild(copyLib);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult streamResult = new StreamResult(new File("build.xml"));
+            transformer.transform(source, streamResult);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerConfigurationException ex) {
+            Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerException ex) {
+            Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }
 
     private void createPackageDirectory() {
-	String[] directoriesComponents = packageName.split("\\.");
-	File f = new File(".");
+        String[] directoriesComponents = packageName.split("\\.");
+        File f = new File(".");
 
-	try {
-	    directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "src";
-	    for (int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++) {
-		directoryPath += Constants.fileSeparator + directoriesComponents[counterDirectories];
-	    }
-	    f = new File(directoryPath);
-	    f.mkdirs();
-	} catch (IOException ex) {
-	    Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
-	}
+        try {
+            directoryPath = f.getCanonicalPath() + Constants.fileSeparator + "src";
+            for (int counterDirectories = 0; counterDirectories < directoriesComponents.length; counterDirectories++) {
+                directoryPath += Constants.fileSeparator + directoriesComponents[counterDirectories];
+            }
+            f = new File(directoryPath);
+            f.mkdirs();
+        } catch (IOException ex) {
+            Logger.getLogger(JavaDocumentCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void ConvertInterface(InterfaceDefinition interfaceDefinition, Writer writer)
@@ -362,25 +353,23 @@ public class JavaDocumentCreator {
 
     public void ConvertTypes(TypeDefinition typeDefinition, Writer writer)
             throws IOException {
-
-
         StringBuilder builderHeaderclass = new StringBuilder();
         builderHeaderclass.append("package " + packageName + ";\n");
         importsCreate(builderHeaderclass, typeDefinition);
         builderHeaderclass.append("public class " + typeDefinition.id() + " {" + "\n");
-        if (typeDefinition.hasSubTypes()) {
-
+        if (Utils.hasSubTypes(typeDefinition)) {
             ConvertSubTypes(typeDefinition, builderHeaderclass);
-
-        } else {
-            builderHeaderclass.append("}\n");
         }
+
+
+        builderHeaderclass.append("}\n");
+
         writer.append(builderHeaderclass.toString());
     }
 
     private void ConvertSubTypes(TypeDefinition typeDefinition, StringBuilder builderHeaderclass) {
 
-        Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
+        Set<Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
         Iterator i = supportSet.iterator();
         while (i.hasNext()) {
             Map.Entry me = (Map.Entry) i.next();
@@ -390,7 +379,7 @@ public class JavaDocumentCreator {
 
 
 
-             }else*/ if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (((TypeDefinition) me.getValue()).hasSubTypes())) {
+             }else*/ if ((((TypeDefinition) me.getValue()) instanceof TypeInlineDefinition) && (Utils.hasSubTypes((TypeDefinition) me.getValue()))) {
                 builderHeaderclass.append("public class " + ((TypeDefinition) me.getValue()).id() + " {" + "\n");
                 ConvertSubTypes((TypeDefinition) me.getValue(), builderHeaderclass);
             }
@@ -421,9 +410,7 @@ public class JavaDocumentCreator {
         List<String> a = new LinkedList<String>();
         boolean addListImport = false;
 
-
-
-        if (supportType.hasSubTypes()) {
+        if (Utils.hasSubTypes(supportType)) {
             subtypePresent = true;
             stringBuilder.append("import java.util.List;\n");
             stringBuilder.append("import java.util.LinkedList;\n");
@@ -435,8 +422,8 @@ public class JavaDocumentCreator {
 
     private void variableCreate(StringBuilder stringBuilder, TypeDefinition type) {
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -446,7 +433,7 @@ public class JavaDocumentCreator {
                 if (subType instanceof TypeDefinitionLink) {
 
                     //link
-                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                    if (subType.cardinality().max() > 1) {
                         stringBuilder.append("private List<" + ((TypeDefinitionLink) subType).linkedType().id() + "> " + "_" + ((TypeDefinitionLink) subType).id() + ";\n");
                     } else {
                         stringBuilder.append("private " + ((TypeDefinitionLink) subType).linkedType().id() + " " + "_" + ((TypeDefinitionLink) subType).id() + ";\n");
@@ -454,9 +441,9 @@ public class JavaDocumentCreator {
 
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
-                        /*if(subType.nativeType()==NativeType.VOID){
+                        /*if(Utils.nativeType(subType)==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -469,7 +456,7 @@ public class JavaDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(((TypeInlineDefinition) subType).nativeType());
                         if (subType.cardinality().max() > 1) {
                             stringBuilder.append("private List<" + javaCode + "> " + "_" + subType.id() + ";\n");
                         } else {
@@ -478,22 +465,25 @@ public class JavaDocumentCreator {
                     }
 
 
+                } else if (subType instanceof TypeChoiceDefinition){
+                    System.out.println("WARNING: Type definition contains a choice variable which is not supported!");
+                    if (subType.cardinality().max() > 1) {
+                        stringBuilder.append("private List<Object> _" + subType.id() + ";\n");
+                    } else {
+                        stringBuilder.append("private Object " + subType.id() + ";\n");
+                    }
+
                 } else {
-                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                    System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
             }
         }
 
-        if (type.nativeType() != NativeType.VOID) {
-            stringBuilder.append("private " + javaNativeEquivalent.get(type.nativeType()) + " rootValue;\n");
+        if (Utils.nativeType(type) != NativeType.VOID) {
+            stringBuilder.append("private " + javaNativeEquivalent.get(Utils.nativeType(type)) + " rootValue;\n");
         }
 
         stringBuilder.append("\n");
-
-
-
-
-
     }
 
     private void constructorCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
@@ -503,8 +493,8 @@ public class JavaDocumentCreator {
         stringBuilder.append("public " + type.id() + "( Value v ){\n");
         //stringBuilder.append("this.v=v;\n");
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -513,7 +503,7 @@ public class JavaDocumentCreator {
 
                 if (subType instanceof TypeDefinitionLink) {
                     //link
-                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                    if (subType.cardinality().max() > 1) {
                         stringBuilder.append("_" + subType.id() + "= new LinkedList<" + ((TypeDefinitionLink) subType).linkedType().id() + ">();" + "\n");
                         //stringBuilder.append("}\n");
 
@@ -532,15 +522,15 @@ public class JavaDocumentCreator {
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
-                        /*if(subType.nativeType()==NativeType.VOID){
+                        /*if(Utils.nativeType(subType)==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
                          }*/
 
-                        if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
+                        if (subType.cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
 
                             //to check:
@@ -560,26 +550,26 @@ public class JavaDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
-                        if (((TypeDefinition) subType).cardinality().max() > 1) {
+                        if (subType.cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + javaCode + ">();" + "\n");
 
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
                             stringBuilder.append("for(int counter" + subType.id() + "=0; " + "counter" + subType.id() + "<v.getChildren(\"" + subType.id() + "\").size(); counter" + subType.id() + "++){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append(javaCode + " support").append(subType.id()).append(" = v.getChildren(\"").append(subType.id()).append("\").get(counter").append(subType.id()).append(")." + javaMethod + ";\n");
                                 stringBuilder.append("_" + subType.id() + ".add(support" + subType.id() + ");\n");
                             } else {
-	                        for (NativeType t : NativeType.class.getEnumConstants()) {
+                                for (NativeType t : NativeType.class.getEnumConstants()) {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                        "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
-                                        + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
-                                        + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
-                                        + "}\n");
+                                            "if(v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeChecker.get(t) + "){\n"
+                                                    + javaCode + " support").append(subType.id()).append(" = v.getChildren(\"" + subType.id() + "\").get(counter" + subType.id() + ")." + javaNativeMethod.get(t) + ";\n"
+                                            + "_" + subType.id() + ".add(support" + subType.id() + ");\n"
+                                            + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -589,16 +579,16 @@ public class JavaDocumentCreator {
                             stringBuilder.append("if (v.hasChildren(\"").append(subType.id()).append("\")){\n");
 
 
-                            if (subType.nativeType() != NativeType.ANY) {
+                            if (Utils.nativeType(subType) != NativeType.ANY) {
                                 stringBuilder.append("_" + subType.id() + "= v.getFirstChild(\"" + subType.id() + "\")." + javaMethod + ";" + "\n");
                             } else {
                                 for (NativeType t : NativeType.class.getEnumConstants()) {
                                     if (!javaNativeChecker.containsKey(t))
                                         continue;
                                     stringBuilder.append(
-                                        "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
-                                        + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
-                                        + "}\n");
+                                            "if(v.getFirstChild(\"" + subType.id() + "\")." + javaNativeChecker.get(t) + "){\n"
+                                                    + "_" + subType.id() + " = v.getFirstChild(\"" + subType.id() + "\")." + javaNativeMethod.get(t) + ";\n"
+                                                    + "}\n");
                                 }
                             }
                             stringBuilder.append("}\n");
@@ -606,27 +596,38 @@ public class JavaDocumentCreator {
 
                     }
 
+                } else if (subType instanceof TypeChoiceDefinition) {
+                    throw new UnsupportedOperationException("Can't initialize variable with several possible types");
                 } else {
-                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                    System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
             }
         }
 
-        if (type.nativeType() != NativeType.VOID) {
+        if (Utils.nativeType(type) != NativeType.VOID) {
 
-            String javaCode = javaNativeEquivalent.get(type.nativeType());
-            String javaMethod = javaNativeMethod.get(type.nativeType());
+            String javaCode = javaNativeEquivalent.get(Utils.nativeType(type));
+            String javaMethod = javaNativeMethod.get(Utils.nativeType(type));
 
-            if (type.nativeType() != NativeType.ANY) {
+            if (Utils.nativeType(type) != NativeType.ANY) {
                 stringBuilder.append("rootValue = v." + javaMethod + ";" + "\n");
-            } else {
+            } else if (type instanceof TypeChoiceDefinition) {
+                for (NativeType t : getTypes(type)) {
+                    if (!javaNativeChecker.containsKey(t))
+                        continue;
+                    stringBuilder.append(
+                            "if(v." + javaNativeChecker.get(t) + "){\n"
+                                    + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
+                                    + "}\n");
+                }
+            } else{
                 for (NativeType t : NativeType.class.getEnumConstants()) {
                     if (!javaNativeChecker.containsKey(t))
                         continue;
                     stringBuilder.append(
-                        "if(v." + javaNativeChecker.get(t) + "){\n"
-                        + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
-                        + "}\n");
+                            "if(v." + javaNativeChecker.get(t) + "){\n"
+                                    + "rootValue = v." + javaNativeMethod.get(t) + ";\n"
+                                    + "}\n");
                 }
             }
         }
@@ -638,8 +639,8 @@ public class JavaDocumentCreator {
 
         stringBuilder.append("public " + type.id() + "(){\n");
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -648,18 +649,18 @@ public class JavaDocumentCreator {
 
                 if (subType instanceof TypeDefinitionLink) {
                     //link
-                    if (((TypeDefinitionLink) subType).cardinality().max() > 1) {
+                    if (subType.cardinality().max() > 1) {
                         stringBuilder.append("_" + subType.id() + "= new LinkedList<" + ((TypeDefinitionLink) subType).linkedType().id() + ">();" + "\n");
                         //stringBuilder.append("}\n");
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
-                        if (((TypeInlineDefinition) subType).cardinality().max() > 1) {
+                        if (subType.cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + subType.id() + ">();" + "\n");
                         }
-                        /*if(subType.nativeType()==NativeType.VOID){
+                        /*if(Utils.nativeType(subType)==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -667,16 +668,18 @@ public class JavaDocumentCreator {
 
                     } else {
                         //native type
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        //String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        //String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
-                        if (((TypeDefinition) subType).cardinality().max() > 1) {
+                        if (subType.cardinality().max() > 1) {
                             stringBuilder.append("_" + subType.id() + "= new LinkedList<" + javaCode + ">();" + "\n");
                         }
                     }
 
+                } else if (subType instanceof TypeChoiceDefinition) {
+                    throw new UnsupportedOperationException("Can't initialize variable with several possible types");
                 } else {
-                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                    System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
             }
         }
@@ -686,8 +689,8 @@ public class JavaDocumentCreator {
 
     private void methodsCreate(StringBuilder stringBuilder, TypeDefinition type/*, boolean naturalType*/) {
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
+        if (Utils.hasSubTypes(type)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
             Iterator i = supportSet.iterator();
 
             while (i.hasNext()) {
@@ -698,7 +701,7 @@ public class JavaDocumentCreator {
                 String startingChar = nameVariable.substring(0, 1);
                 String remaningStr = nameVariable.substring(1, nameVariable.length());
                 String nameVariableOp = startingChar.toUpperCase() + remaningStr;
-                if ( nameVariableOp.equals("Value") ) {
+                if (nameVariableOp.equals("Value")) {
                     nameVariableOp = "__Value";
                 }
 
@@ -737,9 +740,9 @@ public class JavaDocumentCreator {
                     }
                 } else if (subType instanceof TypeInlineDefinition) {
 
-                    if (subType.hasSubTypes()) {
+                    if (Utils.hasSubTypes(subType)) {
 
-                        /*if(subType.nativeType()==NativeType.VOID){
+                        /*if(Utils.nativeType(subType)==NativeType.VOID){
                          //manage type with subtypes and a rootValue
                          }else{
                          //manage type with subtypes without rootValue
@@ -779,10 +782,10 @@ public class JavaDocumentCreator {
                     } else {
                         //native type
 
-                        String javaCode = javaNativeEquivalent.get(subType.nativeType());
-                        String javaMethod = javaNativeMethod.get(subType.nativeType());
+                        String javaCode = javaNativeEquivalent.get(Utils.nativeType(subType));
+                        String javaMethod = javaNativeMethod.get(Utils.nativeType(subType));
 
-                        if (subType.nativeType() != NativeType.VOID) {
+                        if (Utils.nativeType(subType) != NativeType.VOID) {
 
                             if (subType.cardinality().max() > 1) {
 
@@ -812,71 +815,52 @@ public class JavaDocumentCreator {
                                 stringBuilder.append("_" + nameVariable + " = value;\n");
                                 stringBuilder.append("}\n");
                             }
-
-
-
                         }
                     }
+                } else if (subType instanceof TypeChoiceDefinition) {
+                    //How to manage creating getters and setters for variable that can be initialized with several types?
+                    //public <type1> get <variable>
+                    //public <type2> get <variable>
 
                 } else {
-                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                    System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                 }
+
+
+                if (Utils.nativeType(type) != NativeType.VOID) {
+
+                    String javaCode = javaNativeEquivalent.get(Utils.nativeType(type));
+                    String javaMethod = javaNativeMethod.get(Utils.nativeType(type));
+
+                    stringBuilder.append("public " + javaCode + " getRootValue(){\n");
+                    stringBuilder.append("return " + "rootValue;\n");
+                    stringBuilder.append("}\n");
+
+                    stringBuilder.append("public void setRootValue( " + javaCode + " value ){\n");
+                    stringBuilder.append("rootValue = value;\n");
+                    stringBuilder.append("}\n");
+
+                }
+
             }
-            if (type.nativeType() != NativeType.VOID) {
-
-                String javaCode = javaNativeEquivalent.get(type.nativeType());
-                String javaMethod = javaNativeMethod.get(type.nativeType());
-
-                stringBuilder.append("public " + javaCode + " getRootValue(){\n");
-                stringBuilder.append("return " + "rootValue;\n");
-                stringBuilder.append("}\n");
-
-                stringBuilder.append("public void setRootValue( " + javaCode + " value ){\n");
-                stringBuilder.append("rootValue = value;\n");
-                stringBuilder.append("}\n");
-
-            }
-
         }
 
 
-        //getValue
+            //getValue
 
-        stringBuilder.append("public " + "Value getValue(){\n");
-        stringBuilder.append("Value vReturn = Value.create();\n");
+            stringBuilder.append("public " + "Value getValue(){\n");
+            stringBuilder.append("Value vReturn = Value.create();\n");
 
-        if (type.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = type.subTypes();
-            Iterator i = supportSet.iterator();
+            if (Utils.hasSubTypes(type)) {
+                Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(type);
+                Iterator i = supportSet.iterator();
 
-            while (i.hasNext()) {
+                while (i.hasNext()) {
 
-                TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
+                    TypeDefinition subType = (TypeDefinition) (((Map.Entry) i.next()).getValue());
 
-                if (subType instanceof TypeDefinitionLink) {
-                    //link
-                    if (subType.cardinality().max() > 1) {
-
-                        stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
-                        stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
-                        stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").deepCopy(" + "_" + subType.id() + ".get(counter" + subType.id() + ").getValue());\n");
-                        stringBuilder.append("}\n");
-                        stringBuilder.append("}\n");
-
-                    } else {
-                        stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
-                        stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".deepCopy(" + "_" + subType.id() + ".getValue());\n");
-                        stringBuilder.append("}\n");
-                    }
-                } else if (subType instanceof TypeInlineDefinition) {
-
-                    if (subType.hasSubTypes()) {
-
-                        /*if(subType.nativeType()==NativeType.VOID){
-                         //manage type with subtypes and a rootValue
-                         }else{
-                         //manage type with subtypes without rootValue
-                         }*/
+                    if (subType instanceof TypeDefinitionLink) {
+                        //link
                         if (subType.cardinality().max() > 1) {
 
                             stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
@@ -890,82 +874,108 @@ public class JavaDocumentCreator {
                             stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".deepCopy(" + "_" + subType.id() + ".getValue());\n");
                             stringBuilder.append("}\n");
                         }
+                    } else if (subType instanceof TypeInlineDefinition) {
 
-                    } else {
-                        //native type
+                        if (Utils.hasSubTypes(subType)) {
 
-                        String javaCode = javaNativeEquivalent.get(type.nativeType());
-                        String javaMethod = javaNativeMethod.get(type.nativeType());
+                        /*if(Utils.nativeType(subType)==NativeType.VOID){
+                         //manage type with subtypes and a rootValue
+                         }else{
+                         //manage type with subtypes without rootValue
+                         }*/
+                            if (subType.cardinality().max() > 1) {
 
-                        if (subType.cardinality().max() > 1) {
-                            stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
-                            stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n");
+                                stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
+                                stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").deepCopy(" + "_" + subType.id() + ".get(counter" + subType.id() + ").getValue());\n");
+                                stringBuilder.append("}\n");
+                                stringBuilder.append("}\n");
+
                             } else {
-                                for (NativeType t : NativeType.class.getEnumConstants()) {
-                                    if (!javaNativeChecker.containsKey(t))
-                                        continue;
-                                    stringBuilder.append(
-                                        "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
-                                        + "}\n");
-                                }
+                                stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
+                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".deepCopy(" + "_" + subType.id() + ".getValue());\n");
+                                stringBuilder.append("}\n");
                             }
-                            stringBuilder.append("}\n");
-                            stringBuilder.append("}\n");
 
                         } else {
-                            stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
-                            if (subType.nativeType() != NativeType.ANY) {
-                                stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n");
-                            } else {
-                                for (NativeType t : NativeType.class.getEnumConstants()) {
-                                    if (!javaNativeChecker.containsKey(t))
-                                        continue;
-                                    stringBuilder.append(
-                                        "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
-                                        + "}\n");
+                            //native type
+
+                            String javaCode = javaNativeEquivalent.get(Utils.nativeType(type));
+                            String javaMethod = javaNativeMethod.get(Utils.nativeType(type));
+
+                            if (subType.cardinality().max() > 1) {
+                                stringBuilder.append("if(_").append(subType.id()).append("!=null){\n");
+                                stringBuilder.append("for(int counter" + subType.id() + "=0;" + "counter" + subType.id() + "<" + "_" + subType.id() + ".size();counter" + subType.id() + "++){\n");
+                                if (Utils.nativeType(subType) != NativeType.ANY) {
+                                    stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\").setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n");
+                                } else {
+                                    for (NativeType t : NativeType.class.getEnumConstants()) {
+                                        if (!javaNativeChecker.containsKey(t))
+                                            continue;
+                                        stringBuilder.append(
+                                                "if(_" + subType.id() + ".get(counter" + subType.id() + ") instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ".get(counter" + subType.id() + "));\n"
+                                                        + "}\n");
+                                    }
                                 }
+                                stringBuilder.append("}\n");
+                                stringBuilder.append("}\n");
+
+                            } else {
+                                stringBuilder.append("if((_").append(subType.id()).append("!=null)){\n");
+                                if (Utils.nativeType(subType) != NativeType.ANY) {
+                                    stringBuilder.append("vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n");
+                                } else {
+                                    for (NativeType t : NativeType.class.getEnumConstants()) {
+                                        if (!javaNativeChecker.containsKey(t))
+                                            continue;
+                                        stringBuilder.append(
+                                                "if(_" + subType.id() + " instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                                        + "vReturn.getNewChild(\"" + subType.id() + "\")" + ".setValue(_" + subType.id() + ");\n"
+                                                        + "}\n");
+                                    }
+                                }
+                                stringBuilder.append("}\n");
                             }
-                            stringBuilder.append("}\n");
                         }
+
+                    } else if (subType instanceof TypeChoiceDefinition) {
+                        //How to set value for choice types if the operation differs for link and inline types
+                        //vReturn.getNewChild("x").setValue(_x); for inline
+                        //vReturn.getNewChild("x").deepCopy(_x.getValue()); for link
+
+                    } else {
+                        System.out.println("WARNING: variable is not a Link, a Choice or an Inline Definition!");
                     }
+                }
+            }
 
+            if (Utils.nativeType(type) != NativeType.VOID) {
+
+                stringBuilder.append("if((rootValue!=null)){\n");
+                if (Utils.nativeType(type) != NativeType.ANY) {
+                    stringBuilder.append("vReturn.setValue(rootValue);\n");
                 } else {
-                    System.out.println("WARNING: variable is not a Link or an Inline Definition!");
+                    for (NativeType t : getTypes(type)) {
+                        if (!javaNativeChecker.containsKey(t))
+                            continue;
+                        stringBuilder.append(
+                                "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
+                                        + "vReturn.setValue(rootValue);\n"
+                                        + "}\n");
+                    }
                 }
+
+                stringBuilder.append("}\n");
             }
-        }
-
-        if (type.nativeType() != NativeType.VOID) {
-
-            stringBuilder.append("if((rootValue!=null)){\n");
-            if (type.nativeType() != NativeType.ANY) {
-                stringBuilder.append("vReturn.setValue(rootValue);\n");
-            } else {
-                for (NativeType t : NativeType.class.getEnumConstants()) {
-                    if (!javaNativeChecker.containsKey(t))
-                        continue;
-                    stringBuilder.append(
-                        "if(rootValue instanceof " + javaNativeEquivalent.get(t) + "){\n"
-                        + "vReturn.setValue(rootValue);\n"
-                        + "}\n");
-                }
-            }
-
+            stringBuilder.append("return vReturn;\n");
             stringBuilder.append("}\n");
 
-        }
-
-        stringBuilder.append("return vReturn;\n");
-        stringBuilder.append("}\n");
     }
 
     private void parseSubType(TypeDefinition typeDefinition) {
-        if (typeDefinition.hasSubTypes()) {
-            Set<Map.Entry<String, TypeDefinition>> supportSet = typeDefinition.subTypes();
+        if (Utils.hasSubTypes(typeDefinition)) {
+            Set<Map.Entry<String, TypeDefinition>> supportSet = Utils.subTypes(typeDefinition);
             Iterator i = supportSet.iterator();
             while (i.hasNext()) {
                 Map.Entry me = (Map.Entry) i.next();
@@ -978,5 +988,21 @@ public class JavaDocumentCreator {
                 }
             }
         }
+    }
+
+    private Set<NativeType> getTypes(TypeDefinition typeDefinition){
+        Set<NativeType> choiceTypes = new HashSet<>();
+        if (typeDefinition instanceof TypeChoiceDefinition){
+            choiceTypes = getTypes(((TypeChoiceDefinition) typeDefinition).left());
+            Set<NativeType> right = getTypes(((TypeChoiceDefinition) typeDefinition).right());
+            if (right!=null){
+                choiceTypes.addAll(right);
+            }
+        } else if (typeDefinition instanceof TypeDefinitionLink){
+            return getTypes(((TypeDefinitionLink) typeDefinition).linkedType());
+        } else if (typeDefinition instanceof TypeInlineDefinition){
+            choiceTypes.add(((TypeInlineDefinition) typeDefinition).nativeType());
+        }
+        return choiceTypes;
     }
 }

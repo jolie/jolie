@@ -38,12 +38,9 @@ public abstract class AbstractCommChannel extends CommChannel
 {
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
-	private final Map< Long, CommMessage > pendingResponses =
-			new HashMap< Long, CommMessage >();
-	private final Map< Long, ResponseContainer > waiters =
-			new HashMap< Long, ResponseContainer >();
-	private final List< CommMessage > pendingGenericResponses =
-			new LinkedList< CommMessage >();
+	private final Map< Long, CommMessage > pendingResponses = new HashMap<>();
+	private final Map< Long, ResponseContainer > waiters = new HashMap<>();
+	private final List< CommMessage > pendingGenericResponses = new LinkedList<>();
 
 	private final Object responseRecvMutex = new Object();
 
@@ -53,6 +50,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		private CommMessage response = null;
 	}
 
+	@Override
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
@@ -211,6 +209,7 @@ public abstract class AbstractCommChannel extends CommChannel
 			}
 		}
 
+		@Override
 		public void run()
 		{
 			/*

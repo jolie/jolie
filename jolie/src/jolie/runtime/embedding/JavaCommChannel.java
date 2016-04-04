@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -40,13 +40,14 @@ import jolie.runtime.JavaService;
 public class JavaCommChannel extends CommChannel implements PollableCommChannel
 {
 	private final JavaService javaService;
-	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
+	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
 	
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
 	}
 
+	@Override
 	public boolean isReady()
 	{
 		return messages.isEmpty() == false;
@@ -72,19 +73,19 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 		sendImpl( message );
 	}
 
+	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
 		try {
-			CommMessage response = javaService.callOperation( message );
+			final CommMessage response = javaService.callOperation( message );
 			messages.put( message.id(), response );
-		} catch( IllegalAccessException e ) {
-			throw new IOException( e );
-		} catch( InvalidIdException e ) {
+		} catch( IllegalAccessException | InvalidIdException e ) {
 			throw new IOException( e );
 		}
 	}
 
+	@Override
 	protected CommMessage recvImpl()
 		throws IOException
 	{
@@ -95,41 +96,10 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
 	{
-		/* boolean keepRun = true;
-		CommMessage ret = null;
-		synchronized( messages ) {
-			while( keepRun ) {
-				if ( (ret=messages.remove( request.id() )) == null ) {
-					try {
-						messages.wait();
-					} catch( InterruptedException e ) {}
-				} else {
-					keepRun = false;
-				}
-			}
-		}
-		return ret;*/
 		return messages.remove( request.id() );
 	}
 
-	/*protected CommMessage recvImpl()
-		throws IOException
-	{
-		CommMessage ret = null;
-		synchronized( messages ) {
-			while( messages.isEmpty() ) {
-				try {
-					messages.wait();
-				} catch( InterruptedException e ) {}
-			}
-			ret = messages.remove( 0 );
-		}
-		if ( ret == null ) {
-			throw new IOException( "Unknown exception occurred during communications with a Java Service" );
-		}
-		return ret;
-	}*/
-
+	@Override
 	protected void closeImpl()
 	{}
 }

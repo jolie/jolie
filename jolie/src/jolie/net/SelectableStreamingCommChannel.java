@@ -27,6 +27,7 @@ import java.net.URI;
 import java.nio.channels.SelectableChannel;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
+import jolie.util.Helpers;
 
 /**
  * This class implements the support for a selectable channel.
@@ -40,7 +41,6 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	private static final long LIFETIME = 5000; // 5 secs
 	
 	private final long creationTime = System.currentTimeMillis();
-	
 	private int selectorIndex;
 	
 	public int selectorIndex()
@@ -74,16 +74,7 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	public final void send( CommMessage message )
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
-			_send( message );
-		} else {
-			lock.lock();
-			try {
-				_send( message );
-			} finally {
-				lock.unlock();
-			}
-		}
+		Helpers.lockAndThen( lock, () -> _send( message ) );
 	}
 
 	private void _send( CommMessage message )
@@ -102,56 +93,22 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 		}
 	}
 
-	private void _disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForSelection( this );
-	}
-
-
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
-			_disposeForInputImpl();
-		} else {
-			lock.lock();
-			try {
-				_disposeForInputImpl();
-			} finally {
-				lock.unlock();
-			}
-		}
+		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().registerForSelection( this ) );
 	}
 
 	@Override
 	protected void releaseImpl()
 		throws IOException
 	{
-		if ( lock.isHeldByCurrentThread() ) {
+		Helpers.lockAndThen( lock, () -> {
 			final CommCore commCore = Interpreter.getInstance().commCore();
 			if ( commCore.isSelecting( this ) == false ) {
 				super.releaseImpl();
-			} /* else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
-				commCore.unregisterForSelection( this );
-				setToBeClosed( true );
-				close();
-			} */
-		} else {
-			lock.lock();
-			try {
-				final CommCore commCore = Interpreter.getInstance().commCore();
-				if ( commCore.isSelecting( this ) == false ) {
-					super.releaseImpl();
-				} /* else if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
-					commCore.unregisterForSelection( this );
-					setToBeClosed( true );
-					close();
-				} */
-			} finally {
-				lock.unlock();
 			}
-		}
+		} );
 	}
 }

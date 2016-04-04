@@ -21,6 +21,8 @@
 
 include "types_server.iol"
 
+execution { concurrent }
+
 inputPort ServerInput {
 Location: "local"
 Interfaces: ServerInterface
@@ -28,7 +30,15 @@ Interfaces: ServerInterface
 
 main
 {
-	call( request )( response ) {
+	[ call( request )( response ) {
 		response = request.next.next
-	}
+	} ]
+	[ choice( request )( response ) {
+		if ( request instanceof ChoiceLeft ) {
+			response = request.left
+		} else if ( request instanceof ChoiceRight ) {
+			response = request.right
+		}
+	} ]
+	[ shutdown() ] { exit }
 }

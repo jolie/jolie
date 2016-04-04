@@ -22,6 +22,7 @@
 package joliex.util;
 
 import java.io.IOException;
+import java.util.Base64;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -34,24 +35,18 @@ public class Converter extends JavaService
 	public String rawToBase64( Value value )
 	{
 		byte[] buffer = value.byteArrayValue().getBytes();
-		sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-		return encoder.encode( buffer );
+		Base64.Encoder encoder = Base64.getEncoder();
+		return encoder.encodeToString( buffer );
 	}
 
 	@RequestResponse
 	public ByteArray base64ToRaw( Value value )
 		throws FaultException
 	{
-		ByteArray returnValue;
-		try {
-			String stringValue = value.strValue();
-			sun.misc.BASE64Decoder decoder = new sun.misc.BASE64Decoder();
-			byte[] supportArray = decoder.decodeBuffer( stringValue );
-			returnValue = new ByteArray( supportArray );
-			return returnValue;
-		} catch( IOException ex ) {
-			throw new FaultException( ex );
-		}
+		String stringValue = value.strValue();
+		Base64.Decoder decoder = Base64.getDecoder();
+		byte[] supportArray = decoder.decode( stringValue );
+		return new ByteArray( supportArray );
 	}
 
 	@RequestResponse

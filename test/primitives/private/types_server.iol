@@ -26,10 +26,22 @@ type ListNode:int {
 	.next?:CoListNode
 }
 
-interface ServerInterface {
-RequestResponse:
-	call(ListNode)(int)
+// Test for the type equality check
+type ListNode:int {
+	.next?:CoListNode
 }
 
+type ChoiceRequest: ChoiceLeft | ChoiceRight
 
+type ChoiceLeft: void { .left:int }
+type ChoiceRight: void { .right:string }
 
+type ChoiceResponse: int | string
+
+interface ServerInterface {
+RequestResponse:
+	call(ListNode)(int),
+	choice(ChoiceRequest)(ChoiceResponse)
+OneWay:
+	shutdown(void)
+}

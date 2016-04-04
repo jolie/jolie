@@ -38,7 +38,7 @@ public class IfStatement extends OLSyntaxNode
 	public IfStatement( ParsingContext context )
 	{
 		super( context );
-		children = new LinkedList< Pair< OLSyntaxNode, OLSyntaxNode > >();
+		children = new LinkedList<>();
 		elseProcess = null;
 	}
 	
@@ -62,6 +62,7 @@ public class IfStatement extends OLSyntaxNode
 		children.add( node );
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

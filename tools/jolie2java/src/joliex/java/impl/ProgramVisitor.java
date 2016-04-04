@@ -99,6 +99,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
 import joliex.java.support.GeneralProgramVisitor;
@@ -424,4 +425,7 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	public void visit( InlineTreeExpressionNode n ) {}
 	public void visit( VoidExpressionNode n ) {}
 	public void visit( ProvideUntilStatement n ) {}
+
+	@Override
+	public void visit(TypeChoiceDefinition typeChoiceDefinition) {}
 }

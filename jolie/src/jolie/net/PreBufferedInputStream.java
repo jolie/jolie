@@ -23,165 +23,57 @@
 
 package jolie.net;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
-public class PreBufferedInputStream extends InputStream
+public class PreBufferedInputStream extends BufferedInputStream
 {
-	private static final int INITIAL_BUFFER_SIZE = 10;
-	private final InputStream istream;
-	private byte[] buffer = new byte[ INITIAL_BUFFER_SIZE ];
-	private int writePos = 0;
-	private int readPos = 0;
-	private int count = 0;
-
+	private final static int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
+	
 	public PreBufferedInputStream( InputStream istream )
 	{
-		this.istream = istream;
+		super( istream );
 	}
 
-	public synchronized boolean hasCachedData()
+	public boolean hasCachedData()
 	{
-		return count > 0;
+		return pos < count;
 	}
 
-	public synchronized void append( byte b )
-		throws IOException
+	public void append( ByteBuffer b )
 	{
-		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
-		}
-
-		if ( count < 0 ) {
-			count = 0;
-		}
-		count++;
-		if ( count >= buffer.length ) { // We need to enlarge the buffer
-			byte[] newBuffer = new byte[ buffer.length * 2] ;
-			System.arraycopy( buffer, 0, newBuffer, 0, buffer.length );
-			buffer = newBuffer;
-		}
-		if ( writePos >= buffer.length ) {
-			writePos = 0;
-		}
-
-		buffer[ writePos++ ] = b;
+		final int bufferSize = b.remaining();
+		enlargeIfNecessary( bufferSize );
+		b.get( buf, count, bufferSize );
+		count += bufferSize;
 	}
-
-	@Override
-	public synchronized int available()
-		throws IOException
+	
+	private void enlargeIfNecessary( int toBeWritten )
 	{
-		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
-		}
-		return Math.max( count, 0 ) + istream.available();
-	}
-
-	@Override
-	public synchronized int read()
-		throws IOException
-	{
-		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
-		}
-
-		if ( count < 1 ) { // No bytes to read
-			return istream.read();
-		}
-
-		count--;
-		if ( readPos >= buffer.length ) {
-			readPos = 0;
-		}
-
-		return buffer[ readPos++ ];
-	}
-
-	@Override
-	public int read( byte[] b )
-		throws IOException
-	{
-		return read( b, 0, b.length );
-	}
-
-	@Override
-	public synchronized int read( byte[] b, int off, int len )
-		throws IOException
-	{
-		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
-		}
-
-		int lenFromBuffer = count >= len ? len : count;
-		if ( lenFromBuffer > 0 ) {
-			// match implementation of read()
-			count -= lenFromBuffer;
-			for ( int i = 0; i < lenFromBuffer; i++ ) {
-				if ( readPos >= buffer.length ) {
-					readPos = 0;
+		if ( count + toBeWritten >= buf.length ) {
+			int tentative = Math.max( count * 2, count + toBeWritten );
+			if ( tentative >= MAX_BUFFER_SIZE ) {
+				if ( count + toBeWritten < MAX_BUFFER_SIZE ) {
+					tentative = count + toBeWritten;
+				} else {
+					throw new OutOfMemoryError( "Required array size too large" );
 				}
-				b[ off + i ] = buffer[ readPos++ ];
 			}
-		} else {
-			// count could have been negative, so reset lenFromBuffer to 0
-			lenFromBuffer = 0;
+			
+			final byte nbuf[] = new byte[tentative];
+			final int remaining = count - pos;
+			System.arraycopy( buf, pos, nbuf, 0, remaining );
+			buf = nbuf;
+			pos = 0;
+			count = remaining;
 		}
-
-		int lenFromStream = 0;
-		if ( lenFromBuffer != len ) {
-			lenFromStream = istream.read( b, off+lenFromBuffer, len-lenFromBuffer );
-			if ( lenFromStream < 0 && lenFromBuffer > 0 ) {
-				// we return -1 (EOF) only when lenFromBuffer == 0
-				lenFromStream = 0;
-			}
-		}
-
-		return lenFromBuffer + lenFromStream;
 	}
-
-	@Override
-	public synchronized long skip( long n )
-		throws IOException
+	
+	public void append( byte b )
 	{
-		if ( buffer == null ) {
-			throw new IOException( "Stream closed" );
-		}
-
-		if ( n <= 0 ) {
-			return 0;
-		}
-
-		long skipFromBuffer = count >= n ? n : count;
-		if ( skipFromBuffer > 0 ) {
-			// match implementation of read()
-			// skipFromBuffer <= count
-			count -= (int)skipFromBuffer;
-			for ( int i = 0; i < (int)skipFromBuffer; i++ ) {
-				if ( readPos >= buffer.length ) {
-					readPos = 0;
-				}
-				readPos++;
-			}
-		} else {
-			// count could have been negative, so reset skipFromBuffer to 0
-			skipFromBuffer = 0;
-		}
-
-		long skipFromStream = 0;
-		if ( skipFromBuffer != n ) {
-			skipFromStream = istream.skip( n-skipFromBuffer );
-		}
-
-		return skipFromBuffer + skipFromStream;
-	}
-
-	@Override
-	public synchronized void close()
-		throws IOException
-	{
-		buffer = null;
-		// Java's semantic: a stream closes also its underlying ones
-		istream.close();
+		enlargeIfNecessary( 1 );
+		buf[ count++ ] = b;
 	}
 }

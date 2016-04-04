@@ -104,6 +104,7 @@ import jolie.lang.parse.ast.expression.ProductExpressionNode;
 import jolie.lang.parse.ast.expression.SumExpressionNode;
 import jolie.lang.parse.ast.expression.VariableExpressionNode;
 import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
 import jolie.lang.parse.ast.types.TypeInlineDefinition;
@@ -115,12 +116,12 @@ import jolie.lang.parse.util.ProgramInspector;
  */
 public class ProgramInspectorCreatorVisitor implements OLVisitor
 {
-	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap< URI, List< InterfaceDefinition > >();
-	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap< URI, List< InputPortInfo > >();
-	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap< URI, List< OutputPortInfo > >();
-	private final Map< URI, List< TypeDefinition > > types = new HashMap< URI, List< TypeDefinition > >();
-	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap< URI, List< EmbeddedServiceNode > >();
-	private final Set< URI > sources = new HashSet< URI >();
+	private final Map< URI, List< InterfaceDefinition > > interfaces = new HashMap<>();
+	private final Map< URI, List< InputPortInfo > > inputPorts = new HashMap<>();
+	private final Map< URI, List< OutputPortInfo > > outputPorts = new HashMap<>();
+	private final Map< URI, List< TypeDefinition > > types = new HashMap<>();
+	private final Map< URI, List< EmbeddedServiceNode > > embeddedServices = new HashMap<>();
+	private final Set< URI > sources = new HashSet<>();
 
 	public ProgramInspectorCreatorVisitor( Program program )
 	{
@@ -144,6 +145,7 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		sources.add( n.context().source() );
 	}
 
+	@Override
 	public void visit( Program n )
 	{
 		for( OLSyntaxNode node : n.children() ) {
@@ -151,11 +153,12 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		}
 	}
 
+	@Override
 	public void visit( InterfaceDefinition n )
 	{
 		List< InterfaceDefinition > list = interfaces.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< InterfaceDefinition >();
+			list = new LinkedList<>();
 			interfaces.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -163,11 +166,12 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
 
+	@Override
 	public void visit( TypeInlineDefinition n )
 	{
 		List< TypeDefinition > list = types.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< TypeDefinition >();
+			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -175,11 +179,12 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
 
+	@Override
 	public void visit( TypeDefinitionLink n )
 	{
 		List< TypeDefinition > list = types.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< TypeDefinition >();
+			list = new LinkedList<>();
 			types.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -187,22 +192,24 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
 
+	@Override
 	public void visit( InputPortInfo n )
 	{
 		List< InputPortInfo > list = inputPorts.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< InputPortInfo >();
+			list = new LinkedList<>();
 			inputPorts.put( n.context().source(), list );
 		}
 		list.add( n );
 		encounteredNode( n );
 	}
 
+	@Override
 	public void visit( OutputPortInfo n )
 	{
 		List< OutputPortInfo > list = outputPorts.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< OutputPortInfo >();
+			list = new LinkedList<>();
 			outputPorts.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -210,11 +217,12 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
 
+	@Override
 	public void visit( EmbeddedServiceNode n )
 	{
 		List< EmbeddedServiceNode> list = embeddedServices.get( n.context().source() );
 		if ( list == null ) {
-			list = new LinkedList< EmbeddedServiceNode>();
+			list = new LinkedList< >();
 			embeddedServices.put( n.context().source(), list );
 		}
 		list.add( n );
@@ -222,73 +230,155 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 		encounteredNode( n );
 	}
     
+	@Override
 	public void visit( OneWayOperationDeclaration decl ) {}
+	@Override
 	public void visit( RequestResponseOperationDeclaration decl ) {}
+	@Override
 	public void visit( DefinitionNode n ) {}
+	@Override
 	public void visit( ParallelStatement n ) {}
+	@Override
 	public void visit( SequenceStatement n ) {}
+	@Override
 	public void visit( NDChoiceStatement n ) {}
+	@Override
 	public void visit( OneWayOperationStatement n ) {}
+	@Override
 	public void visit( RequestResponseOperationStatement n ) {}
+	@Override
 	public void visit( NotificationOperationStatement n ) {}
+	@Override
 	public void visit( SolicitResponseOperationStatement n ) {}
+	@Override
 	public void visit( LinkInStatement n ) {}
+	@Override
 	public void visit( LinkOutStatement n ) {}
+	@Override
 	public void visit( AssignStatement n ) {}
+	@Override
 	public void visit( IfStatement n ) {}
+	@Override
 	public void visit( DefinitionCallStatement n ) {}
+	@Override
 	public void visit( WhileStatement n ) {}
+	@Override
 	public void visit( OrConditionNode n ) {}
+	@Override
 	public void visit( AndConditionNode n ) {}
+	@Override
 	public void visit( NotExpressionNode n ) {}
+	@Override
 	public void visit( CompareConditionNode n ) {}
+	@Override
 	public void visit( ConstantIntegerExpression n ) {}
+	@Override
 	public void visit( ConstantLongExpression n ) {}
+	@Override
 	public void visit( ConstantBoolExpression n ) {}
+	@Override
 	public void visit( ConstantDoubleExpression n ) {}
+	@Override
 	public void visit( ConstantStringExpression n ) {}
+	@Override
 	public void visit( ProductExpressionNode n ) {}
+	@Override
 	public void visit( SumExpressionNode n ) {}
+	@Override
 	public void visit( VariableExpressionNode n ) {}
+	@Override
 	public void visit( NullProcessStatement n ) {}
+	@Override
 	public void visit( Scope n ) {}
+	@Override
 	public void visit( InstallStatement n ) {}
+	@Override
 	public void visit( CompensateStatement n ) {}
+	@Override
 	public void visit( ThrowStatement n ) {}
+	@Override
 	public void visit( ExitStatement n ) {}
+	@Override
 	public void visit( ExecutionInfo n ) {}
+	@Override
 	public void visit( CorrelationSetInfo n ) {}
+	@Override
 	public void visit( PointerStatement n ) {}
+	@Override
 	public void visit( DeepCopyStatement n ) {}
+	@Override
 	public void visit( RunStatement n ) {}
+	@Override
 	public void visit( UndefStatement n ) {}
+	@Override
 	public void visit( ValueVectorSizeExpressionNode n ) {}
+	@Override
 	public void visit( PreIncrementStatement n ) {}
+	@Override
 	public void visit( PostIncrementStatement n ) {}
+	@Override
 	public void visit( PreDecrementStatement n ) {}
+	@Override
 	public void visit( PostDecrementStatement n ) {}
+	@Override
 	public void visit( ForStatement n ) {}
+	@Override
 	public void visit( ForEachStatement n ) {}
+	@Override
 	public void visit( SpawnStatement n ) {}
+	@Override
 	public void visit( IsTypeExpressionNode n ) {}
+	@Override
 	public void visit( TypeCastExpressionNode n ) {}
+	@Override
 	public void visit( SynchronizedStatement n ) {}
+	@Override
 	public void visit( CurrentHandlerStatement n ) {}
+	@Override
 	public void visit( InstallFixedVariableExpressionNode n ) {}
+	@Override
 	public void visit( VariablePathNode n ) {}
+	@Override
 	public void visit( DocumentationComment n ) {}
+	@Override
 	public void visit( AddAssignStatement n ) {}
+	@Override
 	public void visit( SubtractAssignStatement n ) {}
+	@Override
 	public void visit( MultiplyAssignStatement n ) {}
+	@Override
 	public void visit( DivideAssignStatement n ) {}
+	@Override
 	public void visit( FreshValueExpressionNode n ) {}
+	@Override
 	public void visit( InterfaceExtenderDefinition n ) {}
+	@Override
 	public void visit( CourierDefinitionNode n ) {}
+	@Override
 	public void visit( CourierChoiceStatement n ) {}
+	@Override
 	public void visit( NotificationForwardStatement n ) {}
+	@Override
 	public void visit( InstanceOfExpressionNode n ) {}
+	@Override
 	public void visit( SolicitResponseForwardStatement n ) {}
+	@Override
 	public void visit( InlineTreeExpressionNode n ) {}
+	@Override
 	public void visit( VoidExpressionNode n ) {}
+	@Override
 	public void visit( ProvideUntilStatement n ) {}
+
+	@Override
+	public void visit( TypeChoiceDefinition n )
+	{
+		List< TypeDefinition > list = types.get( n.context().source() );
+		if ( list == null ) {
+			list = new LinkedList<>();
+			types.put( n.context().source(), list );
+		}
+		list.add( n );
+
+		encounteredNode( n );
+	}
 }

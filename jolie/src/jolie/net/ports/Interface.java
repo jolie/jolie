@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2011 (C) by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright 2011-2015 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -21,11 +21,8 @@
 
 package jolie.net.ports;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import jolie.runtime.typing.OneWayTypeDescription;
@@ -43,66 +40,76 @@ public class Interface
 		implements Map< String, OneWayTypeDescription >
 	{
 		private static final Set< Entry< String, OneWayTypeDescription > > entrySet =
-			Collections.unmodifiableSet( new HashSet< Entry< String, OneWayTypeDescription > >() );
-		private static final Collection< OneWayTypeDescription > values =
-			Collections.unmodifiableCollection( new ArrayList< OneWayTypeDescription >( 0 ) );
-		private static final Set< String > keySet =
-			Collections.unmodifiableSet( new HashSet< String >() );
+			Collections.EMPTY_SET;
+		private static final Collection< OneWayTypeDescription > values = Collections.EMPTY_LIST;
+		private static final Set< String > keySet = Collections.EMPTY_SET;
 		private static final OneWayTypeDescription value = new OneWayTypeDescription( Type.UNDEFINED );
 
+		@Override
 		public Set< Entry< String, OneWayTypeDescription > > entrySet()
 		{
 			return entrySet;
 		}
 
+		@Override
 		public Collection< OneWayTypeDescription > values()
 		{
 			return values;
 		}
 
+		@Override
 		public Set< String > keySet()
 		{
 			return keySet;
 		}
 
+		@Override
 		public void clear()
 		{}
 
+		@Override
 		public void putAll( Map< ? extends String, ? extends OneWayTypeDescription > map )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public OneWayTypeDescription remove( Object key )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public OneWayTypeDescription put( String key, OneWayTypeDescription value )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public OneWayTypeDescription get( Object key )
 		{
 			return value;
 		}
 
+		@Override
 		public boolean containsValue( Object value )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public boolean containsKey( Object value )
 		{
 			return true;
 		}
 
+		@Override
 		public boolean isEmpty()
 		{
 			return false;
 		}
 
+		@Override
 		public int size()
 		{
 			throw new UnsupportedOperationException();
@@ -112,68 +119,77 @@ public class Interface
 	private static final class UndefinedRequestResponseOperationsMap
 		implements Map< String, RequestResponseTypeDescription >
 	{
-		private static final Set< Entry< String, RequestResponseTypeDescription > > entrySet =
-			Collections.unmodifiableSet( new HashSet< Entry< String, RequestResponseTypeDescription > >() );
-		private static final Collection< RequestResponseTypeDescription > values =
-			Collections.unmodifiableCollection( new ArrayList< RequestResponseTypeDescription >( 0 ) );
-		private static final Set< String > keySet =
-			Collections.unmodifiableSet( new HashSet< String >() );
+		private static final Set< Entry< String, RequestResponseTypeDescription > > entrySet = Collections.EMPTY_SET;
+		private static final Collection< RequestResponseTypeDescription > values = Collections.EMPTY_LIST;
+		private static final Set< String > keySet = Collections.EMPTY_SET;
 		private static final RequestResponseTypeDescription value =
-			new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, new HashMap< String, Type >() );
+			new RequestResponseTypeDescription( Type.UNDEFINED, Type.UNDEFINED, Collections.EMPTY_MAP );
 
+		@Override
 		public Set< Entry< String, RequestResponseTypeDescription > > entrySet()
 		{
 			return entrySet;
 		}
 
+		@Override
 		public Collection< RequestResponseTypeDescription > values()
 		{
 			return values;
 		}
 
+		@Override
 		public Set< String > keySet()
 		{
 			return keySet;
 		}
 
+		@Override
 		public void clear()
 		{}
 
+		@Override
 		public void putAll( Map< ? extends String, ? extends RequestResponseTypeDescription > map )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public RequestResponseTypeDescription remove( Object key )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public RequestResponseTypeDescription put( String key, RequestResponseTypeDescription value )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public RequestResponseTypeDescription get( Object key )
 		{
 			return value;
 		}
 
+		@Override
 		public boolean containsValue( Object value )
 		{
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public boolean containsKey( Object value )
 		{
 			return true;
 		}
 
+		@Override
 		public boolean isEmpty()
 		{
 			return false;
 		}
 
+		@Override
 		public int size()
 		{
 			throw new UnsupportedOperationException();

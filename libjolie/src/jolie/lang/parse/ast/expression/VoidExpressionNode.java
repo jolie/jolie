@@ -33,6 +33,7 @@ public class VoidExpressionNode extends OLSyntaxNode
 		super( context );
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

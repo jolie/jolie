@@ -21,8 +21,8 @@
 
 package jolie.lang;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -40,7 +40,7 @@ public enum NativeType
 	RAW( "raw" ),
 	ANY( "any" );
 
-	private final static Map< String, NativeType > idMap = new ConcurrentHashMap< String, NativeType >();
+	private final static Map< String, NativeType > idMap = new HashMap<>();
 
 	static {
 		for( NativeType type : NativeType.values() ) {
@@ -50,7 +50,7 @@ public enum NativeType
 
 	private final String id;
 	
-	NativeType( String id )
+	private NativeType( String id )
 	{
 		this.id = id;
 	}

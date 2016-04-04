@@ -35,6 +35,8 @@ import jolie.lang.parse.ast.PortInfo;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
+import jolie.lang.parse.ast.types.TypeInlineDefinition;
+import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 
 /**
  *
@@ -206,13 +208,15 @@ public class JolieDocWriter
 				writer.write( "<tr>" );
 				writer.write( "<td><a href=\"#" + operation.id() + "\">" + operation.id() + "</a></td>" );
 				if ( operation instanceof RequestResponseOperationDeclaration ) {
-					if ( ((RequestResponseOperationDeclaration) operation).requestType().hasSubTypes() ) {
+                    if (((RequestResponseOperationDeclaration) operation).requestType() instanceof TypeInlineDefinition &&
+                            ((TypeInlineDefinition) ((RequestResponseOperationDeclaration) operation).requestType()).hasSubTypes()) {
 						writer.write( "<td>" + "<a href=\"#" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "\">" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "</a><br />" + "</td>" );
 					} else {
 						writer.write( "<td>" + ((RequestResponseOperationDeclaration) operation).requestType().id() + "<br />" + "</td>" );
 					}
 
-					if ( ((RequestResponseOperationDeclaration) operation).responseType().hasSubTypes() ) {
+                    if (((RequestResponseOperationDeclaration) operation).responseType() instanceof TypeInlineDefinition &&
+                            ((TypeInlineDefinition) ((RequestResponseOperationDeclaration) operation).responseType()).hasSubTypes()) {
 						writer.write( "<td>" + "<a href=\"#" + ((RequestResponseOperationDeclaration) operation).responseType().id() + "\">" + ((RequestResponseOperationDeclaration) operation).responseType().id() + "</a><br />" + "</td>" );
 					} else {
 						writer.write( "<td>" + ((RequestResponseOperationDeclaration) operation).responseType().id() + "<br />" + "</td>" );
@@ -284,7 +288,7 @@ public class JolieDocWriter
 			if ( typesDefinition.getDocumentation() != null ) {
 				writer.write( "<span class=\"opdoc\"><p>" + typesDefinition.getDocumentation().trim().replace( "\n", "<br/>" ) + "</p></span>" );
 			}
-			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinition, false, 0 ) + "</div>" );
+			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinition, false, false, 0 ) + "</div>" );
 		}
 
 		writer.write( "<hr>" );
@@ -292,7 +296,7 @@ public class JolieDocWriter
 		for( TypeDefinitionLink typesDefinitionLink : typeDefinitionLinkVector ) {
 			writer.write( "<h3 id=\"" + typesDefinitionLink.linkedTypeName() + "\">" + typesDefinitionLink.linkedTypeName() + "</h3>" );
 			writer.write( "<a name=\"" + typesDefinitionLink.linkedTypeName() + "\"></a>" );
-			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinitionLink.linkedType(), false, 0 ) + "</div>" );
+			writer.write( "<div class=\"code\" lang=\"jolie\">" + writeType( typesDefinitionLink.linkedType(), false, false, 0 ) + "</div>" );
 		}
 
 		// document ending
@@ -304,7 +308,7 @@ public class JolieDocWriter
 		writer.close();
 	}
 
-	private String writeType( TypeDefinition type, boolean subType, int indetationLevel )
+	private String writeType( TypeDefinition type, boolean subType, boolean choice, int indetationLevel )
 		throws IOException
 	{
 		StringBuilder builder = new StringBuilder();
@@ -312,32 +316,38 @@ public class JolieDocWriter
 			for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
 				builder.append( " " );
 			}
-			builder.append( "." + type.id() + getCardinalityString( type ) );
-		} else {
-			builder.append( "type " + type.id() );
-		}
-		builder.append( ':' );
+			builder.append( "." + type.id() + getCardinalityString( type ) + ": ");
+        } else if (!choice){
+            builder.append("type " + type.id() + ": ");
+        }
 
 		if ( type instanceof TypeDefinitionLink ) {
 			TypeDefinitionLink link = (TypeDefinitionLink) type;
 			builder.append( /* "<a href=\"#" + */ link.linkedTypeName() /* + "\">" + link.linkedTypeName() + "</a>" */ );
 
-		} else if ( type.untypedSubTypes() ) {
-			builder.append( "undefined" );
-		} else {
-			builder.append( /*"<span class=\"native\">" + */ nativeTypeToString( type.nativeType() ) /* + "</span>" */ );
-			if ( type.hasSubTypes() ) {
-				builder.append( " { \n" );
-				for( Entry<String, TypeDefinition> entry : type.subTypes() ) {
-					builder.append( writeType( entry.getValue(), true, indetationLevel + 4 ) + "\n" );
-				}
-				for( int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++ ) {
-					builder.append( " " );
-				}
-				;
-				builder.append( "}" );
-			}
-		}
+		} else if (type instanceof TypeInlineDefinition) {
+            if (((TypeInlineDefinition) type).untypedSubTypes()) {
+                builder.append("undefined");
+            } else {
+                builder.append( /*"<span class=\"native\">" + */ nativeTypeToString(((TypeInlineDefinition) type).nativeType()) /* + "</span>" */);
+                if (((TypeInlineDefinition) type).hasSubTypes()) {
+                    builder.append(" { \n");
+                    for (Entry<String, TypeDefinition> entry : ((TypeInlineDefinition) type).subTypes()) {
+                        builder.append(writeType(entry.getValue(), true, false, indetationLevel + 4) + "\n");
+                    }
+                    for (int indexIndetation = 0; indexIndetation < indetationLevel; indexIndetation++) {
+                        builder.append(" ");
+                    }
+                    ;
+                    builder.append("}");
+                }
+            }
+            
+        } else if (type instanceof TypeChoiceDefinition){
+            builder.append(writeType(((TypeChoiceDefinition) type).left(), false, true, 0));
+            builder.append(" | ");
+            builder.append(writeType(((TypeChoiceDefinition) type).right(), false, true, 0) );
+        }
 
 		return builder.toString();
 	}

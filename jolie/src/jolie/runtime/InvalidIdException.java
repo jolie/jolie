@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -31,5 +31,11 @@ public class InvalidIdException extends Exception
 	public InvalidIdException( String id )
 	{
 		super( "invalid identifier: " + id );
+	}
+	
+	@Override
+	public Throwable fillInStackTrace()
+	{
+		return this;
 	}
 }

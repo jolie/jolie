@@ -34,18 +34,21 @@ import jolie.lang.parse.ast.VariablePathNode;
  */
 public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 {
-	private final List< T > elements = new ArrayList< T >();
+	private final List< T > elements = new ArrayList<>();
 
+	@Override
 	public int size()
 	{
 		return elements.size();
 	}
 
+	@Override
 	public boolean isEmpty()
 	{
 		return elements.isEmpty();
 	}
 
+	@Override
 	public boolean contains( Object o )
 	{
 		if ( o instanceof VariablePathNode ) {
@@ -60,21 +63,25 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return false;
 	}
 
+	@Override
 	public Iterator< T > iterator()
 	{
 		return elements.iterator();
 	}
 
+	@Override
 	public Object[] toArray()
 	{
 		return elements.toArray();
 	}
 
+	@Override
 	public <T> T[] toArray( T[] a )
 	{
 		return elements.toArray( a );
 	}
 
+	@Override
 	public boolean add( T e )
 	{
 		for( VariablePathNode element : elements ) {
@@ -96,6 +103,7 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return null;
 	}
 
+	@Override
 	public boolean remove( Object o )
 	{
 		if ( o instanceof VariablePathNode ) {
@@ -112,6 +120,7 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return false;
 	}
 
+	@Override
 	public boolean containsAll( Collection<?> c )
 	{
 		for( Object o : c ) {
@@ -123,6 +132,7 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return true;
 	}
 
+	@Override
 	public boolean addAll( Collection<? extends T> c )
 	{
 		for( T n : c ) {
@@ -131,16 +141,19 @@ public class VariablePathSet <T extends VariablePathNode> implements Set< T >
 		return true;
 	}
 
+	@Override
 	public boolean retainAll( Collection<?> c )
 	{
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 
+	@Override
 	public boolean removeAll( Collection<?> c )
 	{
 		throw new UnsupportedOperationException( "Not supported yet." );
 	}
 
+	@Override
 	public void clear()
 	{
 		elements.clear();

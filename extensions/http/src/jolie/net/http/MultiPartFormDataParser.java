@@ -39,7 +39,7 @@ public class MultiPartFormDataParser
 	private final String boundary;
 	private final Value value;
 	private final HttpMessage message;
-	private final Map< String, PartProperties > partPropertiesMap = new HashMap< String, PartProperties >();
+	private final Map< String, PartProperties > partPropertiesMap = new HashMap<>();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
 	private static final Pattern keyValueSplitPattern = Pattern.compile( "=" );

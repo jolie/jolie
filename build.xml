@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Jolie" default="build">
-	<property name="dist" value="dist"/>
-	<property name="dist.jolie" value="dist/jolie"/>
-	<property name="dist.launchers" value="${dist}/launchers"/>
-	<property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
-	<property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
+    <property name="dist" value="dist"/>
+    <property name="dist.jolie" value="dist/jolie"/>
+    <property name="dist.launchers" value="${dist}/launchers"/>
+    <property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
+    <property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
     
 	<condition property="isWindows" value="true">
 		<os family="windows" />
@@ -41,9 +41,9 @@
 		<copy todir="${private.install.launcher_dir}" overwrite="true">
 			<fileset dir="${dist.launchers.windows}"/>
 		</copy>
-	</target>
+    </target>
 
-	<target name="-create-windows-launchers">
+    <target name="-create-windows-launchers">
 		<echo message="Creating Jolie Windows launcher script..." />
 		<echo file="${dist.launchers.windows}/jolie.bat">@echo off
 set params=%1 %2 %3 %4 %5 %6 %7 %8 %9
@@ -362,27 +362,27 @@ Please make sure that:
 	
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
-	</target>
+    </target>
 
-	<target name="-test-unix" unless="isWindows">
-		<exec executable="sh" dir="test">
-			<env key="JOLIE_HOME" file="dist/jolie" />
-			<arg value="../dist/launchers/unix/jolie" />
-			<arg value="test.ol" />
-		</exec>
-	</target>
+    <target name="-test-unix" unless="isWindows">
+    	<exec executable="sh" dir="test">
+    		<env key="JOLIE_HOME" file="dist/jolie" />
+    		<arg value="../dist/launchers/unix/jolie" />
+    		<arg value="test.ol" />
+    	</exec>
+    </target>
 
-	<target name="-test-windows" if="isWindows">
-		<exec executable="cmd" dir="test">
-			<env key="JOLIE_HOME" file="dist\jolie" />
-			<arg value="/c" />
-			<arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
-			<arg value="test.ol" />
-		</exec>
-	</target>
+    <target name="-test-windows" if="isWindows">
+        <exec executable="cmd" dir="test">
+            <env key="JOLIE_HOME" file="dist\jolie" />
+            <arg value="/c" />
+            <arg value='..\dist\launchers\windows\jolie.bat --charset "utf-8"' />
+            <arg value="test.ol" />
+        </exec>
+    </target>
 
-	<target name="test">
-		<antcall target="-test-unix" />
+    <target name="test"><!-- depends="dist"> -->
+    	<antcall target="-test-unix" />
 		<antcall target="-test-windows" />
-	</target>
+    </target>
 </project>

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2014 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2014-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,6 +22,7 @@
 package jolie.util;
 
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A convenience class with some helper functions for cleaner coding.
@@ -67,5 +68,56 @@ public class Helpers
 	public static OSType getOperatingSystemType()
 	{
 		return detectedOS;
+	}
+	
+	/**
+	 * Acquires lock if the current thread does not hold it already, executes code and returns.
+	 * The passed lambda may throw an exception, which is then thrown by this method.
+	 * 
+	 * @param <T>
+	 * @param lock
+	 * @param code
+	 * @throws T
+	 */
+	public static <T extends Throwable> void lockAndThen( ReentrantLock lock, ExceptionalRunnable<T> code )
+		throws T
+	{
+		if ( lock.isHeldByCurrentThread() ) {
+			code.run();
+		} else {
+			lock.lock();
+			try {
+				code.run();
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
+	
+	/**
+	 * Acquires lock if the current thread does not hold it already, executes code and returns.
+	 * The passed lambda may throw an exception, which is then thrown by this method.
+	 * @param <R>
+	 * @param <T>
+	 * @param lock
+	 * @param code
+	 * @return 
+	 * @throws T 
+	 */
+	public static <R, T extends Throwable> R lockAndThen( ReentrantLock lock, ExceptionalCallable<R, T> code )
+		throws T
+	{
+		final R ret;
+		if ( lock.isHeldByCurrentThread() ) {
+			ret = code.call();
+		} else {
+			lock.lock();
+			try {
+				ret = code.call();
+			} finally {
+				lock.unlock();
+			}
+		}
+		return ret;
 	}
 }

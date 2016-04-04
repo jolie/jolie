@@ -63,6 +63,7 @@ public class SolicitResponseForwardStatement extends OLSyntaxNode
 		return inputVariablePath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

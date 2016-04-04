@@ -67,9 +67,10 @@ public class JsUtils
 		}
 	}
 
-	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type ) throws IOException
+	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type )
+		throws IOException
 	{
-		if ( isArray || (!isArray && ((type != null && type.cardinality().max() > 1) || (type == null && vector.size() > 1))) ) {
+		if ( isArray || ( type != null && type.cardinality().max() > 1 || vector.size() > 1 ) ) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
 				valueToJsonString( vector.get( i ), false, type, builder );
@@ -110,10 +111,7 @@ public class JsUtils
 			}
 			int i = 0;
 			for( Map.Entry<String, ValueVector> child : value.children().entrySet() ) {
-				Type subType = null;
-				if ( type != null && type.subTypes() != null ) {
-					subType = type.subTypes().get( child.getKey() );
-				}
+				final Type subType = ( type != null ? type.findSubType( child.getKey() ) : null );
 				appendKeyColon( builder, child.getKey() );
 				valueVectorToJsonString( child.getValue(), builder, false, subType );
 				if ( i++ < size - 1 ) {

@@ -38,8 +38,8 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 {
 	private final String id;
 	private final Map< String, OperationDeclaration > operationsMap =
-		new HashMap< String, OperationDeclaration > ();
-	private final List< InterfaceDefinition > interfaceList = new ArrayList< InterfaceDefinition >();
+		new HashMap<> ();
+	private final List< InterfaceDefinition > interfaceList = new ArrayList<>();
 	private String document;
 
 	public PortInfo( ParsingContext context, String id )
@@ -70,21 +70,25 @@ public abstract class PortInfo extends OLSyntaxNode implements OperationCollecto
 	 * Returns the operations of the port, mapped by their names.
 	 * @return the operations of the port, mapped by their names.
 	 */
+	@Override
 	public Map< String, OperationDeclaration > operationsMap()
 	{
 		return operationsMap;
 	}
 	
+	@Override
 	public void addOperation( OperationDeclaration decl )
 	{
 		operationsMap.put( decl.id(), decl );
 	}
 
+	@Override
 	public void setDocumentation( String document )
 	{
 		this.document = document;
 	}
 
+	@Override
 	public String getDocumentation()
 	{
 		return this.document;

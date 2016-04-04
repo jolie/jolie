@@ -23,11 +23,15 @@
 package jolie.lang.parse.ast.types;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import jolie.lang.NativeType;
 import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.ast.OLSyntaxNode;
+import jolie.lang.parse.ast.expression.ConstantStringExpression;
 import jolie.lang.parse.context.ParsingContext;
+import jolie.util.Pair;
 import jolie.util.Range;
 
 /**
@@ -72,6 +76,27 @@ public class TypeInlineDefinition extends TypeDefinition
 
 		return subTypes.entrySet();
 	}
+	
+	@Override
+	protected boolean containsPath( Iterator< Pair< OLSyntaxNode, OLSyntaxNode > > it )
+	{
+		if ( it.hasNext() == false ) {
+			return nativeType() != NativeType.VOID;
+		}
+
+		if ( untypedSubTypes() ) {
+			return true;
+		}
+
+		Pair< OLSyntaxNode, OLSyntaxNode > pair = it.next();
+		String nodeName = ((ConstantStringExpression)pair.key()).value();
+		if ( hasSubType( nodeName ) ) {
+			TypeDefinition subType = getSubType( nodeName );
+			return subType.containsPath( it );
+		}
+
+		return false;
+	}
 
 	public TypeDefinition getSubType( String id )
 	{
@@ -92,7 +117,7 @@ public class TypeInlineDefinition extends TypeDefinition
 	public void putSubType( TypeDefinition type )
 	{
 		if ( subTypes == null ) {
-			subTypes = new HashMap< String, TypeDefinition >();
+			subTypes = new HashMap<>();
 		}
 		subTypes.put( type.id(), type );
 	}
@@ -102,6 +127,7 @@ public class TypeInlineDefinition extends TypeDefinition
 		return untypedSubTypes;
 	}
 
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );

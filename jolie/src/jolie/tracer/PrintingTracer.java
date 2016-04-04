@@ -26,6 +26,7 @@ package jolie.tracer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.function.Supplier;
 import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValuePrettyPrinter;
@@ -45,8 +46,10 @@ public class PrintingTracer implements Tracer
 		this.interpreter = interpreter;
 	}
 
-	public synchronized void trace( TraceAction action )
+	@Override
+	public synchronized void trace( Supplier< ? extends TraceAction > supplier )
 	{
+		final TraceAction action = supplier.get();
 		actionCounter++;
 		if ( action instanceof MessageTraceAction ) {
 			trace( (MessageTraceAction) action );

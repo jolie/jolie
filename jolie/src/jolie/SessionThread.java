@@ -21,11 +21,11 @@
 
 package jolie;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -69,6 +69,7 @@ public class SessionThread extends ExecutionThread
 			condition = lock.newCondition();
 		}
 
+		@Override
 		public boolean cancel( boolean mayInterruptIfRunning )
 		{
 			lock.lock();
@@ -86,6 +87,7 @@ public class SessionThread extends ExecutionThread
 			return true;
 		}
 
+		@Override
 		public SessionMessage get( long timeout, TimeUnit unit )
 			throws InterruptedException, TimeoutException
 		{
@@ -102,6 +104,7 @@ public class SessionThread extends ExecutionThread
 			return sessionMessage;
 		}
 
+		@Override
 		public SessionMessage get()
 			throws InterruptedException
 		{
@@ -116,11 +119,13 @@ public class SessionThread extends ExecutionThread
 			return sessionMessage;
 		}
 
+		@Override
 		public boolean isCancelled()
 		{
 			return isCancelled;
 		}
 
+		@Override
 		public boolean isDone()
 		{
 			return isDone;
@@ -170,12 +175,10 @@ public class SessionThread extends ExecutionThread
 	
 	private final long id = idCounter.getAndIncrement();
 	private final jolie.State state;
-	private final List< SessionListener > listeners = new LinkedList< SessionListener >();
-	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues =
-		new HashMap< CorrelationSet, Deque< SessionMessage > >();
-	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new LinkedList< SessionMessage >();
-	private final Map< String, Deque< SessionMessageFuture > > messageWaiters =
-		new HashMap< String, Deque< SessionMessageFuture > >();
+	private final List< SessionListener > listeners = new ArrayList<>();
+	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues = new HashMap<>();
+	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new ArrayDeque<>();
+	private final Map< String, Deque< SessionMessageFuture > > messageWaiters =	new HashMap<>();
 
 	private final static VariablePath typeMismatchPath;
 	private final static VariablePath ioExceptionPath;
@@ -202,39 +205,45 @@ public class SessionThread extends ExecutionThread
 	 */
 	public static List< Pair< String, Process > > createDefaultFaultHandlers( final Interpreter interpreter )
 	{
-		final List< Pair< String, Process > > instList = new ArrayList< Pair< String, Process > >();
-		instList.add( new Pair< String, Process >(
+		final List< Pair< String, Process > > instList = new ArrayList<>();
+		instList.add( new Pair<>(
 			Constants.TYPE_MISMATCH_FAULT_NAME,
 			new Process() {
+				@Override
 				public void run() throws FaultException, ExitingException
 				{
 					interpreter.logInfo( typeMismatchPath.getValue().strValue() );
 				}
 
+				@Override
 				public Process clone( TransformationReason reason )
 				{
 					return this;
 				}
 
+				@Override
 				public boolean isKillable()
 				{
 					return true;
 				}
 			}
 		) );
-		instList.add( new Pair< String, Process >(
+		instList.add( new Pair<>(
 			Constants.IO_EXCEPTION_FAULT_NAME,
 			new Process() {
+				@Override
 				public void run() throws FaultException, ExitingException
 				{
 					interpreter.logInfo( ioExceptionPath.getValue().strValue() );
 				}
 
+				@Override
 				public Process clone( TransformationReason reason )
 				{
 					return this;
 				}
 
+				@Override
 				public boolean isKillable()
 				{
 					return true;
@@ -255,9 +264,7 @@ public class SessionThread extends ExecutionThread
 	{
 		super( parent.interpreter(), process );
 		this.state = state;		
-		for( Scope s : parent.scopeStack ) {
-			scopeStack.push( s.clone() );
-		}
+		parent.scopeStack.forEach( s -> scopeStack.push( s.clone() ) );
 		initMessageQueues();
 	}
 	
@@ -290,9 +297,9 @@ public class SessionThread extends ExecutionThread
 	
 	private void initMessageQueues()
 	{
-		for( CorrelationSet cset : interpreter().correlationSets() ) {
-			messageQueues.put( cset, new LinkedList< SessionMessage >() );
-		}
+		interpreter().correlationSets().forEach(
+			cset -> messageQueues.put( cset, new ArrayDeque<>() )
+		);
 	}
 	
 	/**
@@ -308,9 +315,7 @@ public class SessionThread extends ExecutionThread
 		initMessageQueues();
 		assert( parent != null );
 		state = parent.state().clone();
-		for( Scope s : parent.scopeStack ) {
-			scopeStack.push( s.clone() );
-		}
+		parent.scopeStack.forEach( s -> scopeStack.push( s.clone() ) );
 	}
 	
 	/**
@@ -318,11 +323,13 @@ public class SessionThread extends ExecutionThread
 	 * @return the State of this thread
 	 * @see State
 	 */
+	@Override
 	public jolie.State state()
 	{
 		return state;
 	}
 
+	@Override
 	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread )
 	{
 		final SessionMessageFuture future = new SessionMessageNDFuture( operations.keySet().toArray( new String[0] ) );
@@ -349,9 +356,9 @@ public class SessionThread extends ExecutionThread
 			}
 
 			if ( message == null || operation == null ) {
-				for( Map.Entry< String, InputOperation > entry : operations.entrySet() ) {
-					addMessageWaiter( entry.getValue(), future );
-				}
+				operations.entrySet().forEach(
+					entry -> addMessageWaiter( entry.getValue(), future )
+				);
 			} else {
 				future.setResult( message );
 				queue.removeFirst();
@@ -374,20 +381,17 @@ public class SessionThread extends ExecutionThread
 		return future;
 	}
 
+	@Override
 	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread )
 	{
-		SessionMessageFuture future = new SessionMessageFuture();
+		final SessionMessageFuture future = new SessionMessageFuture();
 		ethread.cancelIfKilled( future );
-		CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
+		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
+		final Deque< SessionMessage > queue =
+				cset == null ? uncorrelatedMessageQueue
+				: messageQueues.get( cset );
 		synchronized( messageQueues ) {
-			Deque< SessionMessage > queue;
-			if ( cset == null ) {
-				queue = uncorrelatedMessageQueue;
-			} else {
-				queue = messageQueues.get( cset );
-			}
-
-			SessionMessage message = queue.peekFirst();
+			final SessionMessage message = queue.peekFirst();
 			if ( message == null
 				|| message.message().operationName().equals( operation.id() ) == false
 			) {
@@ -398,12 +402,11 @@ public class SessionThread extends ExecutionThread
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
-				SessionMessageFuture currFuture;
 				while( keepRun && !queue.isEmpty() ) {
-					message = queue.peekFirst();
-					currFuture = getMessageWaiter( message.message().operationName() );
+					final SessionMessage otherMessage = queue.peekFirst();
+					final SessionMessageFuture currFuture = getMessageWaiter( otherMessage.message().operationName() );
 					if ( currFuture != null ) { // We found a waiter for the unlocked message
-						currFuture.setResult( message );
+						currFuture.setResult( otherMessage );
 						queue.removeFirst();
 					} else {
 						keepRun = false;
@@ -418,7 +421,7 @@ public class SessionThread extends ExecutionThread
 	{
 		Deque< SessionMessageFuture > waitersList = messageWaiters.get( operation.id() );
 		if ( waitersList == null ) {
-			waitersList = new LinkedList< SessionMessageFuture >();
+			waitersList = new ArrayDeque<>();
 			messageWaiters.put( operation.id(), waitersList );
 		}
 		waitersList.addLast( future );
@@ -457,15 +460,14 @@ public class SessionThread extends ExecutionThread
 		}
 	}
 
+	@Override
 	public void runProcess()
 	{
 		try {
 			try {
 				process().run();
 			} catch( ExitingException e ) {}
-			for( SessionListener listener : listeners ) {
-				listener.onSessionExecuted( this );
-			}
+			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
 		} catch( FaultException f ) {
 			Process p = null;
 			while( hasScope() && (p = getFaultHandler( f.faultName(), true )) == null ) {
@@ -485,17 +487,14 @@ public class SessionThread extends ExecutionThread
 					} catch( ExitingException e ) {}
 				}
 			} catch( FaultException fault ) {
-				for( SessionListener listener : listeners ) {
-					listener.onSessionError( this, fault );
-				}
+				listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 			}
 
-			for( SessionListener listener : listeners ) {
-				listener.onSessionExecuted( this );
-			}
+			listeners.forEach( listener -> listener.onSessionExecuted( this ) );
 		}
 	}
 
+	@Override
 	public String getSessionId()
 	{
 		return Long.toString( id );

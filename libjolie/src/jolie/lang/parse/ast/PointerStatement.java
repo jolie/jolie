@@ -47,6 +47,7 @@ public class PointerStatement extends OLSyntaxNode
 		return rightPath;
 	}
 	
+	@Override
 	public void accept( OLVisitor visitor )
 	{
 		visitor.visit( this );
