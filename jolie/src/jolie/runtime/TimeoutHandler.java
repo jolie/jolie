@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2016 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,7 +22,6 @@
 package jolie.runtime;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Fabrizio Montesi
@@ -61,10 +60,11 @@ public abstract class TimeoutHandler implements Runnable
 	 */
 	public static class Comparator implements java.util.Comparator< WeakReference< TimeoutHandler > >
 	{
+		@Override
 		public int compare( WeakReference< TimeoutHandler > wt1, WeakReference< TimeoutHandler > wt2 )
 		{
-			TimeoutHandler t1 = wt1.get();
-			TimeoutHandler t2 = wt2.get();
+			TimeoutHandler t1 = ( wt1 != null ) ? wt1.get() : null;
+			TimeoutHandler t2 = ( wt2 != null ) ? wt2.get() : null;
 			if ( t1 == null ) {
 				return -1;
 			} else if ( t2 == null ) {
