@@ -660,7 +660,7 @@ public class CommandLineParser implements Closeable
 		String filepath = null;
 		if ( manifest != null ) { // See if a main program is defined through a Manifest attribute
 			Attributes attrs = manifest.getMainAttributes();
-			filepath = attrs.getValue( Constants.Manifest.MainProgram );
+			filepath = attrs.getValue(Constants.Manifest.MAIN_PROGRAM );
 		}
 
 		if ( filepath == null ) { // Main program not defined, we make <japName>.ol and <japName>.olc guesses
@@ -695,7 +695,7 @@ public class CommandLineParser implements Closeable
 		Collection< String > optionList = new ArrayList();
 		if ( manifest != null ) {
 			Attributes attrs = manifest.getMainAttributes();
-			String options = attrs.getValue( Constants.Manifest.Options );
+			String options = attrs.getValue(Constants.Manifest.OPTIONS );
 			if ( options != null ) {
 				String[] tmp = optionSeparatorPattern.split( options );
 				Collections.addAll( optionList, tmp );
