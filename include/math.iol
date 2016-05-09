@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2016 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -41,7 +41,9 @@ RequestResponse:
 	/**! Returns a random number d such that 0.0 <= d < 1.0. */
 	random(void)(double),
 
-	
+	/**! Returns the PI constant */
+	pi(void)(double),
+
 	round(RoundRequestType)(double),
 
 	/**! Returns the result of .base to the power of .exponent (see request data type). */
