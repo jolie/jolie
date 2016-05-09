@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2008-2016 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -31,6 +31,11 @@ import jolie.runtime.Value;
  */
 public class MathService extends JavaService
 {
+	public Double pi()
+	{
+		return Math.PI;
+	}
+	
 	public Double random()
 	{
 		return Math.random();
