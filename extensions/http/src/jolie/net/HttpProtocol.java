@@ -39,6 +39,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -374,14 +375,14 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		int offset = 0;
-		ArrayList<String> aliasKeys = new ArrayList<>();
+		List< String > aliasKeys = new ArrayList<>();
 		String currStrValue;
 		String currKey;
 		StringBuilder result = new StringBuilder( alias );
 		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-			if ( m.group( 1 ) == null ) { // We have to use URLEncoder
+			if ( m.group( 1 ) == null ) { // ! is missing after %: We have to use URLEncoder
 				currKey = alias.substring( m.start() + 2, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = URLEncoder.encode( value.strValue(), HttpUtils.URL_DECODER_ENC );
@@ -389,7 +390,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					currStrValue = URLEncoder.encode( value.getFirstChild( currKey ).strValue(), HttpUtils.URL_DECODER_ENC );
 					aliasKeys.add( currKey );
 				}
-			} else { // We have to insert the string raw
+			} else { // ! is given after %: We have to insert the string raw
 				currKey = alias.substring( m.start() + 3, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = value.strValue();
