@@ -744,4 +744,24 @@ public class FileService extends JavaService
 			return pattern.matcher( filename ).matches() && (!dirsOnly || file.isDirectory());
 		}
 	}
+
+	@RequestResponse
+    public Value getAbsolutePath( Value request ) {
+        Value response = Value.create();
+        String fileName = request.strValue();
+
+        response.setValue(Paths.get(fileName).toAbsolutePath().toString());
+
+        return response;
+    }
+
+    @RequestResponse
+    public Value getAbsoluteParentPath( Value request ) {
+        Value response = Value.create();
+        String fileName = request.strValue();
+
+        response.setValue(Paths.get(fileName).toAbsolutePath().getParent().toString());
+
+        return response;
+    }
 }
