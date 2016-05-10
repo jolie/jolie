@@ -30,6 +30,7 @@ public class LocalCommChannelFactory extends CommChannelFactory
 		super( commCore );
 	}
 
+	@Override
 	public CommChannel createChannel( URI location, OutputPort port )
 		throws IOException
 	{
