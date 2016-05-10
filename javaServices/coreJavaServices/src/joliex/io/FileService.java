@@ -747,22 +747,20 @@ public class FileService extends JavaService
 	}
 
 	@RequestResponse
-    public Value getAbsolutePath( Value request ) {
-        Value response = Value.create();
-        String fileName = request.strValue();
+	public Value getAbsolutePath( Value request ) {
+		Value response = Value.create();
+		String fileName = request.strValue();
+		
+		response.setValue( Paths.get( fileName ).toAbsolutePath().toString() );
+		return response;
+	}
 
-        response.setValue(Paths.get(fileName).toAbsolutePath().toString());
+        @RequestResponse
+        public Value getAbsoluteParentPath( Value request ) {
+    	       Value response = Value.create();
+               String fileName = request.strValue();
 
-        return response;
-    }
-
-    @RequestResponse
-    public Value getAbsoluteParentPath( Value request ) {
-        Value response = Value.create();
-        String fileName = request.strValue();
-
-        response.setValue(Paths.get(fileName).toAbsolutePath().getParent().toString());
-
-        return response;
-    }
+               response.setValue( Paths.get( fileName ).toAbsolutePath().getParent().toString() );
+               return response;
+        }
 }
