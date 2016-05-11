@@ -77,14 +77,14 @@ type ListResponse:void {
 interface FileInterface {
 RequestResponse:
 	/**!
-	 * Constructs a absolute path to the target file or directory. 
-	 * Can be used to construct a absolute path for new files that does not exist yet.
+	 * Constructs an absolute path to the target file or directory. 
+	 * Can be used to construct an absolute path for new files that does not exist yet.
 	 */
 	getAbsolutePath( string )( string ),
 
 	/**!
-	 * Constructs a absolute path to the parent directory of the target file or directory.
-	 * Can be used to construct a absolute path to the parent directory for files that does not exists yet.
+	 * Constructs an absolute path to the parent directory of the target file or directory.
+	 * Can be used to construct an absolute path to the parent directory for files that does not exists yet.
 	 */
 	getAbsoluteParentPath( string )( string ),
 
