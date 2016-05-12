@@ -58,8 +58,8 @@ import jolie.util.Helpers;
  */
 public class CommandLineParser implements Closeable
 {
-	private final static Pattern pathSeparatorPattern = Pattern.compile( jolie.lang.Constants.pathSeparator );
-	private final static Pattern optionSeparatorPattern = Pattern.compile( " " );
+	private final static Pattern PATH_SEPARATOR_PATTERN = Pattern.compile( jolie.lang.Constants.pathSeparator );
+	private final static Pattern OPTION_SEPARATOR_PATTERN = Pattern.compile( " " );
 
 	private final int connectionsLimit;
 	private final int connectionsCache;
@@ -404,7 +404,7 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
+				String[] tmp = PATH_SEPARATOR_PATTERN.split( argsList.get( i ) );
 				Collections.addAll( includeList, tmp );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "-l".equals( argsList.get( i ) ) ) {
@@ -413,7 +413,7 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
-				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
+				String[] tmp = PATH_SEPARATOR_PATTERN.split( argsList.get( i ) );
 				Collections.addAll( libList, tmp );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
@@ -697,7 +697,7 @@ public class CommandLineParser implements Closeable
 			Attributes attrs = manifest.getMainAttributes();
 			String options = attrs.getValue(Constants.Manifest.OPTIONS );
 			if ( options != null ) {
-				String[] tmp = optionSeparatorPattern.split( options );
+				String[] tmp = OPTION_SEPARATOR_PATTERN.split( options );
 				Collections.addAll( optionList, tmp );
 			}
 		}
