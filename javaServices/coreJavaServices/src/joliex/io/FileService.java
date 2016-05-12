@@ -747,20 +747,36 @@ public class FileService extends JavaService
 	}
 
 	@RequestResponse
-	public Value getAbsolutePath( Value request ) {
+	public Value toAbsolutePath( Value request ) throws FaultException
+	{
 		Value response = Value.create();
 		String fileName = request.strValue();
 		
-		response.setValue( Paths.get( fileName ).toAbsolutePath().toString() );
+		String absolutePath = Paths.get( fileName ).toAbsolutePath().normalize().toString();
+
+		if ( absolutePath == null ) {
+			throw new FaultException( "Not a valid path", new IOException() );
+		}
+
+		response.setValue( absolutePath );
 		return response;
 	}
 
-        @RequestResponse
-        public Value getAbsoluteParentPath( Value request ) {
-    	       Value response = Value.create();
-               String fileName = request.strValue();
+    @RequestResponse
+    public Value getParentPath( Value request ) throws FaultException
+    {
+        Value response = Value.create();
+        String fileName = request.strValue();
 
-               response.setValue( Paths.get( fileName ).toAbsolutePath().getParent().toString() );
-               return response;
+        String parentPath = Paths.get( fileName ).getParent().toString();
+
+        if ( parentPath == null ) {
+            throw new FaultException( "Path has no parent or is not a valid path", 
+                new IOException() );
         }
+
+        response.setValue( parentPath );
+
+        return response;
+    }
 }

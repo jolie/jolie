@@ -79,14 +79,16 @@ RequestResponse:
 	/**!
 	 * Constructs an absolute path to the target file or directory. 
 	 * Can be used to construct an absolute path for new files that does not exist yet.
+	 * Throws a fault if input is a relative path is not system recognized path.
 	 */
-	getAbsolutePath( string )( string ),
+	toAbsolutePath( string )( string ),
 
 	/**!
-	 * Constructs an absolute path to the parent directory of the target file or directory.
-	 * Can be used to construct an absolute path to the parent directory for files that does not exists yet.
+	 * Constructs the path to the parent directory. 
+	 * Can be used to construct paths that does not exist so long as the path uses the system's filesystem path conventions.
+	 * Throws a fault if input path is not a recognized system path or if the parent has no parent.
 	 */
-	getAbsoluteParentPath( string )( string ),
+	getParentPath( string )( string ),
 
 	/**!
 	  it returns if a filename is a directory or not. False if the file does not exist.
