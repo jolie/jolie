@@ -102,7 +102,7 @@ public class ConsoleService extends JavaService
 		if ( request.getFirstChild( "enableSessionListener" ).isDefined() ) {
 			if ( request.getFirstChild( "enableSessionListener" ).boolValue() ) {
 				sessionListeners = true;
-				sessionTokens = new HashMap< String, String >();
+				sessionTokens = new HashMap<>();
 			}
 		}
 		consoleInputThread = new ConsoleInputThread();
