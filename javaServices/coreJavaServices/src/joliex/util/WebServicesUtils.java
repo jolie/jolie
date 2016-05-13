@@ -46,9 +46,7 @@ public class WebServicesUtils extends JavaService
 			Definition definition = reader.readWSDL( wsdlUrl );
 			WSDLConverter converter = new WSDLConverter( definition, writer );
 			converter.convert();
-		} catch( WSDLException e ) {
-			throw new FaultException( "IOException", e );
-		} catch( IOException e ) {
+		} catch( WSDLException | IOException e ) {
 			throw new FaultException( "IOException", e );
 		} catch( Exception e ) {
 			e.printStackTrace();
