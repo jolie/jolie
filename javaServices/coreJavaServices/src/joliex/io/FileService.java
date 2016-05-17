@@ -40,6 +40,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Enumeration;
@@ -751,31 +753,40 @@ public class FileService extends JavaService
 	{
 		Value response = Value.create();
 		String fileName = request.strValue();
-		
-		String absolutePath = Paths.get( fileName ).toAbsolutePath().normalize().toString();
 
-		if ( absolutePath == null ) {
-			throw new FaultException( new IOException( "Not a valid path" ) );
+		Path absolutePath = null;
+		
+		try {
+			absolutePath = Paths.get( fileName ).toAbsolutePath().normalize();
+		} catch ( InvalidPathException invalidPathException ) {
+			throw new FaultException( invalidPathException );
 		}
 
-		response.setValue( absolutePath );
+		response.setValue( absolutePath.toString() );
+
 		return response;
 	}
 
-    @RequestResponse
-    public Value getParentPath( Value request ) throws FaultException
-    {
-        Value response = Value.create();
-        String fileName = request.strValue();
+	@RequestResponse
+	public Value getParentPath( Value request ) throws FaultException
+	{
+		Value response = Value.create();
+		String fileName = request.strValue();
 
-        String parentPath = Paths.get( fileName ).getParent().toString();
+		Path parent = null;
 
-        if ( parentPath == null ) {
-            throw new FaultException( new IOException( "Path has no parent or is not a valid path" ) );
-        }
+		try {
+			parent = Paths.get( fileName ).getParent();
+		} catch ( InvalidPathException invalidPathException ) {
+			throw new FaultException( invalidPathException );
+		}
 
-        response.setValue( parentPath );
+		if ( parent == null ) {
+			throw new FaultException( new InvalidPathException( fileName, "Path has no parent" ) );
+		}
+		
+		response.setValue( parent.toString() );
 
-        return response;
-    }
+		return response;
+	}
 }
