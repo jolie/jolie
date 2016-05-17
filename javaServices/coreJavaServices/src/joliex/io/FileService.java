@@ -755,7 +755,7 @@ public class FileService extends JavaService
 		String absolutePath = Paths.get( fileName ).toAbsolutePath().normalize().toString();
 
 		if ( absolutePath == null ) {
-			throw new FaultException( "Not a valid path", new IOException() );
+			throw new FaultException( new IOException( "Not a valid path" ) );
 		}
 
 		response.setValue( absolutePath );
@@ -771,8 +771,7 @@ public class FileService extends JavaService
         String parentPath = Paths.get( fileName ).getParent().toString();
 
         if ( parentPath == null ) {
-            throw new FaultException( "Path has no parent or is not a valid path", 
-                new IOException() );
+            throw new FaultException( new IOException( "Path has no parent or is not a valid path" ) );
         }
 
         response.setValue( parentPath );
