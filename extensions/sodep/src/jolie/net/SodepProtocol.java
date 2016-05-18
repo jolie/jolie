@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2006-2016 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -94,7 +94,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 		throws IOException
 	{
 		int size = in.readInt();
-		ByteArray ret = null;
+		ByteArray ret;
 		if ( size > 0 ) {
 			byte[] bytes = new byte[ size ];
 			in.readFully( bytes, 0, size );
@@ -133,19 +133,19 @@ public class SodepProtocol extends ConcurrentCommProtocol
 			writeString( out, (String)valueObject );
 		} else if ( valueObject instanceof Integer ) {
 			out.writeByte( DataTypeHeaderId.INT );
-			out.writeInt( ((Integer)valueObject).intValue() );
+			out.writeInt( (Integer)valueObject );
 		} else if ( valueObject instanceof Double ) {
 			out.writeByte( DataTypeHeaderId.DOUBLE );
-			out.writeDouble( ((Double)valueObject).doubleValue() );
+			out.writeDouble( (Double)valueObject );
 		} else if ( valueObject instanceof ByteArray ) {
 			out.writeByte( DataTypeHeaderId.BYTE_ARRAY );
 			writeByteArray( out, (ByteArray)valueObject );
 		} else if ( valueObject instanceof Boolean ) {
 			out.writeByte( DataTypeHeaderId.BOOL );
-			out.writeBoolean( ((Boolean)valueObject).booleanValue() );
+			out.writeBoolean( (Boolean)valueObject );
 		} else if ( valueObject instanceof Long ) {
 			out.writeByte( DataTypeHeaderId.LONG );
-			out.writeLong( ((Long)valueObject).longValue() );
+			out.writeLong( (Long)valueObject );
 		} else {
 			out.writeByte( DataTypeHeaderId.NULL );
 		}
@@ -196,19 +196,19 @@ public class SodepProtocol extends ConcurrentCommProtocol
 				valueObject = readString( in );
 				break;
 			case DataTypeHeaderId.INT:
-				valueObject = Integer.valueOf( in.readInt() );
+				valueObject = in.readInt();
 				break;
 			case DataTypeHeaderId.LONG:
-				valueObject = Long.valueOf( in.readLong() );
+				valueObject = in.readLong();
 				break;
 			case DataTypeHeaderId.DOUBLE:
-				valueObject = Double.valueOf( in.readDouble() );
+				valueObject = in.readDouble();
 				break;
 			case DataTypeHeaderId.BYTE_ARRAY:
 				valueObject = readByteArray( in );
 				break;
 			case DataTypeHeaderId.BOOL:
-				valueObject = Boolean.valueOf( in.readBoolean() );
+				valueObject = in.readBoolean();
 				break;
 			case DataTypeHeaderId.NULL:
 			default:
