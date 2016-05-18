@@ -79,16 +79,16 @@ RequestResponse:
 	/**!
 	 * Constructs an absolute path to the target file or directory. 
 	 * Can be used to construct an absolute path for new files that does not exist yet.
-	 * Throws a fault if input is a relative path is not system recognized path.
+	 * Throws a InvalidPathException fault if input is a relative path is not system recognized path.
 	 */
-	toAbsolutePath( string )( string ),
+	toAbsolutePath( string )( string ) throws JavaExceptionType( InvalidPathExceptionType ),
 
 	/**!
 	 * Constructs the path to the parent directory. 
 	 * Can be used to construct paths that does not exist so long as the path uses the system's filesystem path conventions.
-	 * Throws a fault if input path is not a recognized system path or if the parent has no parent.
+	 * Throws a InvalidPathException fault if input path is not a recognized system path or if the parent has no parent.
 	 */
-	getParentPath( string )( string ),
+	getParentPath( string )( string ) throws JavaExceptionType( InvalidPathExceptionType ),
 
 	/**!
 	  it returns if a filename is a directory or not. False if the file does not exist.
