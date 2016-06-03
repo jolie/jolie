@@ -77,6 +77,20 @@ type ListResponse:void {
 interface FileInterface {
 RequestResponse:
 	/**!
+	 * Constructs an absolute path to the target file or directory. 
+	 * Can be used to construct an absolute path for new files that does not exist yet.
+	 * Throws a InvalidPathException fault if input is a relative path is not system recognized path.
+	 */
+	toAbsolutePath( string )( string ) throws InvalidPathException( JavaExceptionType ),
+
+	/**!
+	 * Constructs the path to the parent directory. 
+	 * Can be used to construct paths that does not exist so long as the path uses the system's filesystem path conventions.
+	 * Throws a InvalidPathException fault if input path is not a recognized system path or if the parent has no parent.
+	 */
+	getParentPath( string )( string ) throws InvalidPathException( JavaExceptionType ),
+
+	/**!
 	  it returns if a filename is a directory or not. False if the file does not exist.
 	*/
 	isDirectory( string )( bool ) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
@@ -163,6 +177,7 @@ RequestResponse:
 	convertFromBinaryToBase64Value( raw )( string ),
 	/**! deprecated, please use base64ToRaw@Converter()() from converter.iol */
 	convertFromBase64ToBinaryValue( string )( raw ) throws IOException(IOExceptionType)
+
 }
 
 outputPort File {
