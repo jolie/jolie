@@ -23,7 +23,7 @@ type EndsWithRequest: string {
 	.suffix: string
 }
 
-type ReplaceAllRequest:string {
+type ReplaceRequest:string {
 	.regex:string
 	.replacement:string
 }
@@ -109,7 +109,8 @@ RequestResponse:
 	length(string)(int),
 	match(MatchRequest)(MatchResult),
 	find(MatchRequest)(MatchResult),
-	replaceAll(ReplaceAllRequest)(string),
+	replaceAll(ReplaceRequest)(string),
+	replaceFirst(ReplaceRequest)(string),
 	sort(StringItemList)(StringItemList),
 	split(SplitRequest)(SplitResult),
 	splitByLength(SplitByLengthRequest)(SplitResult),
