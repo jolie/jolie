@@ -1,4 +1,4 @@
-type MatchRequest:void {
+type UriMatchRequest:void {
 	.uri:string
 	.template:string
 }
@@ -15,7 +15,7 @@ WARNING: the API of this service is experimental. Use it at your own risk.
 */
 interface UriTemplatesIface {
 RequestResponse:
-	match(MatchRequest)(MatchResponse),
+	match(UriMatchRequest)(MatchResponse),
 	expand(ExpandRequest)(string)
 }
 
