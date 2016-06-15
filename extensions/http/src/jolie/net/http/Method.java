@@ -31,7 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum Method
 {
 	POST( "POST" ),
-	GET( "GET" );
+	GET( "GET" ),
+	PUT( "PUT" ),
+	DELETE( "DELETE" );
 
 	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
 
