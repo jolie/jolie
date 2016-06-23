@@ -557,6 +557,7 @@ public class MetaJolie extends JavaService
 			if ( operationEntry.getValue() instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationEntry.getValue();
 				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
+                                current_operation.getFirstChild( "documentation" ).setValue( oneWayOperation.getDocumentation() );
 				current_operation.getFirstChild( "input" ).deepCopy( setName( name ) );
 				current_operation.getFirstChild( "input" ).getFirstChild( "name" ).setValue( oneWayOperation.requestType().id() );
 				if ( !isNativeType( oneWayOperation.requestType().id() ) ) {
@@ -566,6 +567,7 @@ public class MetaJolie extends JavaService
 			} else {
 				RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
 				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
+                                current_operation.getFirstChild( "documentation" ).setValue( requestResponseOperation.getDocumentation() );
 				current_operation.getFirstChild( "input" ).deepCopy( setName( name ) );
 				current_operation.getFirstChild( "input" ).getFirstChild( "name" ).setValue( requestResponseOperation.requestType().id() );
 				current_operation.getFirstChild( "output" ).deepCopy( setName( name ) );
@@ -612,6 +614,7 @@ public class MetaJolie extends JavaService
 			if ( operationEntry.getValue() instanceof OneWayOperationDeclaration ) {
 				OneWayOperationDeclaration oneWayOperation = (OneWayOperationDeclaration) operationEntry.getValue();
 				current_operation.getFirstChild( "operation_name" ).setValue( oneWayOperation.id() );
+                                current_operation.getFirstChild( "documentation" ).setValue( oneWayOperation.getDocumentation() );
 				current_operation.getFirstChild( "input" ).deepCopy( setName( name ) );
 				current_operation.getFirstChild( "input" ).getFirstChild( "name" ).setValue( oneWayOperation.requestType().id() );
 				if ( !isNativeType( oneWayOperation.requestType().id() ) ) {
@@ -621,6 +624,7 @@ public class MetaJolie extends JavaService
 			} else {
 				RequestResponseOperationDeclaration requestResponseOperation = (RequestResponseOperationDeclaration) operationEntry.getValue();
 				current_operation.getFirstChild( "operation_name" ).setValue( requestResponseOperation.id() );
+                                current_operation.getFirstChild( "documentation" ).setValue( requestResponseOperation.getDocumentation() );
 				current_operation.getFirstChild( "input" ).deepCopy( setName( name ) );
 				current_operation.getFirstChild( "input" ).getFirstChild( "name" ).setValue( requestResponseOperation.requestType().id() );
 				current_operation.getFirstChild( "output" ).deepCopy( setName( name ) );
