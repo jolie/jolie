@@ -19,7 +19,6 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie.net;
 
 import java.io.IOException;
@@ -31,33 +30,35 @@ import jolie.runtime.TimeoutHandler;
 import jolie.util.Helpers;
 
 /**
- * <code>CommChannel</code> allows for the sending and receiving of <code>CommMessage</code> instances.
- * This class is thread-safe.
+ * <code>CommChannel</code> allows for the sending and receiving of
+ * <code>CommMessage</code> instances. This class is thread-safe.
  *
  * This abstract class is meant to be extended by classes implementing the
  * communication logic for sending and receiving messages.
  *
- * Either the {@link #disposeForInput() disposeForInput} or the {@link #release() release} method must be called after using
- * a channel. Their behaviour can be influenced by indicating if a channel
- * is to be closed or not through the {@link #setToBeClosed(boolean) setToBeClosed} method, but this does not
- * give any right to make assumptions on said behaviour: implementing classes
- * have complete freedom on that.
+ * Either the {@link #disposeForInput() disposeForInput} or the
+ * {@link #release() release} method must be called after using a channel. Their
+ * behaviour can be influenced by indicating if a channel is to be closed or not
+ * through the {@link #setToBeClosed(boolean) setToBeClosed} method, but this
+ * does not give any right to make assumptions on said behaviour: implementing
+ * classes have complete freedom on that.
+ *
  * @author Fabrizio Montesi
  * @see CommMessage
  */
 public abstract class CommChannel
 {
 	protected final ReentrantLock lock = new ReentrantLock( false );
-	
+
 	private boolean toBeClosed = true;
 	private InputPort inputPort = null;
 	private OutputPort outputPort = null;
 	private boolean isOpen = true;
 
 	private long redirectionMessageId = 0L;
-	
+
 	private TimeoutHandler timeoutHandler = null;
-	
+
 	protected void setTimeoutHandler( TimeoutHandler timeoutHandler )
 	{
 		this.timeoutHandler = timeoutHandler;
@@ -77,19 +78,20 @@ public abstract class CommChannel
 	{
 		redirectionMessageId = id;
 	}
-	
+
 	private CommChannel redirectionChannel = null;
 
 	/**
 	 * Returns <code>true</code> if this channel is to be closed when not used,
 	 * <code>false</code> otherwise.
+	 *
 	 * @return <code>true</code> if this channel is to be closed when not used,
-	 *							<code>false</code> otherwise.
+	 * <code>false</code> otherwise.
 	 */
-    public final boolean toBeClosed()
-    {
-        return toBeClosed;
-    }
+	public final boolean toBeClosed()
+	{
+		return toBeClosed;
+	}
 
 	public CommChannel createDuplicate()
 	{
@@ -97,11 +99,11 @@ public abstract class CommChannel
 	}
 
 	/**
-	 * Sets a redirection channel for this channel.
-	 * When a <code>CommChannel</code> has a redirection channel set,
-	 * the next input message received by the <code>CommCore</code> on that 
-	 * channel will be redirected automatically to the redirection channel
-	 * that has been set.
+	 * Sets a redirection channel for this channel. When a
+	 * <code>CommChannel</code> has a redirection channel set, the next input
+	 * message received by the <code>CommCore</code> on that channel will be
+	 * redirected automatically to the redirection channel that has been set.
+	 *
 	 * @param redirectionChannel the redirection channel to set
 	 */
 	public void setRedirectionChannel( CommChannel redirectionChannel )
@@ -111,6 +113,7 @@ public abstract class CommChannel
 
 	/**
 	 * Returns the redirection channel of this channel.
+	 *
 	 * @return the redirection channel of this channel
 	 */
 	public CommChannel redirectionChannel()
@@ -120,6 +123,7 @@ public abstract class CommChannel
 
 	/**
 	 * Sets the parent {@link InputPort} of this channel.
+	 *
 	 * @param inputPort the parent {@link InputPort} of this channel.
 	 */
 	public void setParentInputPort( InputPort inputPort )
@@ -129,6 +133,7 @@ public abstract class CommChannel
 
 	/**
 	 * Returns the parent {@link InputPort} of this channel.
+	 *
 	 * @return the parent {@link InputPort} of this channel.
 	 */
 	public InputPort parentInputPort()
@@ -138,6 +143,7 @@ public abstract class CommChannel
 
 	/**
 	 * Sets the parent {@link OutputPort} of this channel.
+	 *
 	 * @param outputPort the parent {@link OutputPort} of this channel.
 	 */
 	public void setParentOutputPort( OutputPort outputPort )
@@ -147,6 +153,7 @@ public abstract class CommChannel
 
 	/**
 	 * Returns the parent {@link OutputPort} of this channel.
+	 *
 	 * @return the parent {@link OutputPort} of this channel.
 	 */
 	public OutputPort parentOutputPort()
@@ -156,16 +163,20 @@ public abstract class CommChannel
 
 	/**
 	 * Returns the parent {@link Port} of this channel.
+	 *
 	 * @return the parent {@link Port} of this channel.
 	 */
 	public Port parentPort()
 	{
-		return ( inputPort == null ) ? outputPort : inputPort;
+		return (inputPort == null) ? outputPort : inputPort;
 	}
 
 	/**
-	 * Returns <code>true</code> if this channel is open, <code>false</code> otherwise.
-	 * @return <code>true</code> if this channel is open, <code>false</code> otherwise
+	 * Returns <code>true</code> if this channel is open, <code>false</code>
+	 * otherwise.
+	 *
+	 * @return <code>true</code> if this channel is open, <code>false</code>
+	 * otherwise
 	 */
 	public final boolean isOpen()
 	{
@@ -184,6 +195,7 @@ public abstract class CommChannel
 
 	/**
 	 * Receives a message from the channel. This is a blocking operation.
+	 *
 	 * @return the received message
 	 * @throws IOException in case of some communication error
 	 */
@@ -195,7 +207,9 @@ public abstract class CommChannel
 
 	/**
 	 * Receives a response for the specified request.
-	 * @param request the request message for which we want to receive a response
+	 *
+	 * @param request the request message for which we want to receive a
+	 * response
 	 * @return the response for the specified request message
 	 * @throws java.io.IOException in case of some communication error
 	 */
@@ -204,6 +218,7 @@ public abstract class CommChannel
 
 	/**
 	 * Sends a message through this channel.
+	 *
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
@@ -217,16 +232,17 @@ public abstract class CommChannel
 			throw e;
 		}
 	}
-	
+
 	protected abstract CommMessage recvImpl()
 		throws IOException;
-	
+
 	protected abstract void sendImpl( CommMessage message )
 		throws IOException;
-	
+
 	/**
-	 * Releases this CommChannel, making it available
-	 * to other processes for sending data.
+	 * Releases this CommChannel, making it available to other processes for
+	 * sending data.
+	 *
 	 * @throws IOException in case of an internal error
 	 *
 	 */
@@ -249,18 +265,18 @@ public abstract class CommChannel
 	}
 
 	/**
-	 * Disposes this channel for input.
-	 * This method can behave in two ways, depending on the state of the channel
-	 * and its underlying implementation:
+	 * Disposes this channel for input. This method can behave in two ways,
+	 * depending on the state of the channel and its underlying implementation:
 	 * <ul><li>
 	 * the channel is closed and its resources are released;
 	 * </li><li>
 	 * the channel is kept open and its control is given to its generating
-	 * <code>CommCore</code> instance, which will listen for input messages
-	 * on this channel.
+	 * <code>CommCore</code> instance, which will listen for input messages on
+	 * this channel.
 	 * </li></ul>
-	 * @throws java.io.IOException in case of some error generated by this channel
-	 *								implementation
+	 *
+	 * @throws java.io.IOException in case of some error generated by this
+	 * channel implementation
 	 */
 	public final void disposeForInput()
 		throws IOException
@@ -273,14 +289,17 @@ public abstract class CommChannel
 			}*/
 		} );
 	}
-	
+
 	protected void disposeForInputImpl()
 		throws IOException
-	{}
+	{
+	}
 
 	/**
 	 * Sets if this channel is to be closed after releasing or not.
-	 * @param toBeClosed <code>true</code> if this channel is to be closed after releasing, <code>false</code> otherwise
+	 *
+	 * @param toBeClosed <code>true</code> if this channel is to be closed after
+	 * releasing, <code>false</code> otherwise
 	 */
 	public void setToBeClosed( boolean toBeClosed )
 	{
@@ -296,6 +315,7 @@ public abstract class CommChannel
 
 	/**
 	 * Implements the communication channel closing operation.
+	 *
 	 * @throws java.io.IOException
 	 */
 	protected abstract void closeImpl()

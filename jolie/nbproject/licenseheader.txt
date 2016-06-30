@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2006-2008 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,47 +18,3 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-package jolie.net.http;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- *
- * @author Fabrizio Montesi
- */
-public enum Method
-{
-	POST( "POST" ),
-	GET( "GET" );
-
-	private final static Map< String, Method> idMap = new ConcurrentHashMap<>();
-
-	static {
-		for ( Method type : Method.values() ) {
-			idMap.put( type.id(), type );
-		}
-	}
-
-	private final String id;
-
-	private Method( String id )
-	{
-		this.id = id;
-	}
-
-	public String id()
-	{
-		return id;
-	}
-
-	public static Method fromString( String id )
-			throws UnsupportedMethodException
-	{
-		Method m = idMap.get( id.toUpperCase() );
-		if ( m == null ) {
-			throw new UnsupportedMethodException( id );
-		}
-		return m;
-	}
-}

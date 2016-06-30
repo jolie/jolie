@@ -102,7 +102,7 @@ jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %*
 		<echo message="Creating Jolie Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie">#!/bin/sh
 
-java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
+java -ea:jolie... -ea:joliex... -Djava.rmi.server.codebase=file:/$JOLIE_HOME/extensions/rmi.jar -cp $JOLIE_HOME/lib/netty-all-4.1.1.Final.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/jolie.jar jolie.Jolie -l ./lib/*:$JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie" perm="a+x"/>
 
@@ -228,11 +228,11 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
+		<!--<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>-->
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>
+		<!--<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>-->
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
-		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
+		<!--<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>-->
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
@@ -260,11 +260,11 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>
+		<!--<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>-->
+		<!--<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>-->
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
-		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
+		<!--<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>-->
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="clean"/>
@@ -308,11 +308,11 @@ Please make sure that:
 				<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
-				<file file="${project.soap}/dist/soap.jar"/>
+				<!--<file file="${project.soap}/dist/soap.jar"/>-->
 				<file file="${project.sodep}/dist/sodep.jar"/>
-				<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>
+				<!--<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>-->
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
-				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
+				<!--<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>-->
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
 				<file file="${project.local}/dist/local.jar"/>
 			</resources>
@@ -351,6 +351,7 @@ Please make sure that:
 		<copy file="${libs.smackx}" tofile="${dist.jolie}/lib/smackx.jar"/>
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
+		<copy file="${libs.netty}" tofile="${dist.jolie}/lib/netty-all-4.1.1.Final.jar"/>
 	
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
