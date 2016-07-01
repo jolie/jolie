@@ -42,6 +42,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 
 	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
 	{
+		ExecutionThread ethread = ExecutionThread.currentThread();
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
@@ -55,7 +56,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 					ChannelPipeline p = ch.pipeline();
 					protocol.setupPipeline( p );
 					p.addLast( channel.nioSocketCommChannelHandler );
-					ch.attr( EXECUTION_CONTEXT ).set( ExecutionThread.currentThread() );
+					ch.attr( EXECUTION_CONTEXT ).set( ethread );
 				}
 			} );
 		return channel;
