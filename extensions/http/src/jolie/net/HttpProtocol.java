@@ -382,7 +382,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-                        int displacement = 2;
+                       int displacement = 2;
 			if ( m.group( 1 ) == null ) { // ! is missing after %: We have to use URLEncoder
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
@@ -392,7 +392,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					aliasKeys.add( currKey );
 				}
 			} else { // ! is given after %: We have to insert the string raw
-                                displacement = 3;
+                               displacement = 3;
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = value.strValue();
@@ -406,7 +406,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				m.start() + offset, m.end() + offset,
 				currStrValue
 			);
-                        displacement++; //considering also }
+                       displacement++; //considering also }
 			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
