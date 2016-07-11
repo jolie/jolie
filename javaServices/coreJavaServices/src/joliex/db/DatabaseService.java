@@ -102,7 +102,7 @@ public class DatabaseService extends JavaService
 			}
 		}
 	}
-
+	
 	@RequestResponse
 	public void connect( Value request )
 		throws FaultException
@@ -134,6 +134,7 @@ public class DatabaseService extends JavaService
 				Class.forName( "org.apache.derby.jdbc.ClientDriver" );
 			} else if ( "sqlite".equals( driver ) ) {
 				Class.forName( "org.sqlite.JDBC" );
+				isEmbedded = true;
 			} else if ( "sqlserver".equals( driver ) ) {
 				Class.forName( "com.microsoft.sqlserver.jdbc.SQLServerDriver" );
 				separator = ";";
