@@ -57,19 +57,19 @@ public class StringUtils extends JavaService
 		return ret;
 	}
 
-	public static class ReplaceAllRequest implements ValueConverter
+	public static class ReplaceRequest implements ValueConverter
 	{
 		private String self, regex, replacement;
-		private ReplaceAllRequest() {}
-		public static ReplaceAllRequest fromValue( Value value )
+		private ReplaceRequest() {}
+		public static ReplaceRequest fromValue( Value value )
 		{
-			ReplaceAllRequest ret = new ReplaceAllRequest();
+			ReplaceRequest ret = new ReplaceRequest();
 			ret.self = value.strValue();
 			ret.regex = value.getFirstChild( "regex" ).strValue();
 			ret.replacement = value.getFirstChild( "replacement" ).strValue();
 			return ret;
 		}
-		public static Value toValue( ReplaceAllRequest p )
+		public static Value toValue( ReplaceRequest p )
 		{
 			Value ret = Value.create();
 			ret.setValue( p.self );
@@ -78,10 +78,18 @@ public class StringUtils extends JavaService
 			return ret;
 		}
 	}
+        
+        
 
-	public String replaceAll( ReplaceAllRequest request )
+	public String replaceAll( ReplaceRequest request )
 	{
 		return request.self.replaceAll( request.regex, request.replacement );
+	}
+               
+
+	public String replaceFirst( ReplaceRequest request )
+	{
+		return request.self.replaceFirst( request.regex, request.replacement );
 	}
 	
 	public static class StartsWithRequest implements ValueConverter
@@ -152,6 +160,7 @@ public class StringUtils extends JavaService
 			return ret;
 		}
 	}
+        
 
 	public String join( JoinRequest request )
 	{
