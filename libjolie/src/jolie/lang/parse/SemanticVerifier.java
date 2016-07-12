@@ -49,6 +49,7 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
@@ -376,7 +377,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( configuration.checkForMain && mainDefined == false ) {
 			error( null, "Main procedure not defined" );
 		}
-		
+
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
 			/* for( SemanticException.SemanticError e : semanticException.getErrorList() ){
@@ -1151,6 +1152,13 @@ public class SemanticVerifier implements OLVisitor
 	@Override
 	public void visit( ForEachStatement n )
 	{
+		n.keyPath().accept( this );
+		n.targetPath().accept( this );
+		n.body().accept( this );
+	}
+
+	@Override
+	public void visit(ForEachStatementArray n) {
 		n.keyPath().accept( this );
 		n.targetPath().accept( this );
 		n.body().accept( this );
