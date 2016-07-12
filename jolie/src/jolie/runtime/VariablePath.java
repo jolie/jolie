@@ -41,7 +41,7 @@ public class VariablePath implements Expression, Cloneable
 
 	private final Pair< Expression, Expression >[] path; // Right Expression may be null
 
-	protected final Pair< Expression, Expression >[] path()
+	public final Pair< Expression, Expression >[] path()
 	{
 		return path;
 	}

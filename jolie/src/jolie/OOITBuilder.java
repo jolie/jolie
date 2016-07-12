@@ -59,6 +59,7 @@ import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -141,6 +142,7 @@ import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
 import jolie.process.DivideAssignmentProcess;
 import jolie.process.ExitProcess;
+import jolie.process.ForEachArrayProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
 import jolie.process.IfProcess;
@@ -1431,7 +1433,17 @@ public class OOITBuilder implements OLVisitor
 		n.body().accept( this );
 		currProcess = new ForProcess( init, condition, post, currProcess );
 	}
-	
+
+	public void visit( ForEachStatementArray n ) {
+		n.body().accept( this );
+		currProcess =
+				new ForEachArrayProcess(
+						buildVariablePath( n.keyPath() ),
+						buildVariablePath( n.targetPath() ),
+						currProcess
+				);
+	}
+
 	public void visit( ForEachStatement n )
 	{
 		n.body().accept( this );
