@@ -43,6 +43,7 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
@@ -324,6 +325,8 @@ public class ProgramInspectorCreatorVisitor implements OLVisitor
 	public void visit( ForStatement n ) {}
 	@Override
 	public void visit( ForEachStatement n ) {}
+	@Override
+	public void visit( ForEachStatementArray n ) {}
 	@Override
 	public void visit( SpawnStatement n ) {}
 	@Override
