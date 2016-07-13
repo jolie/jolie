@@ -27,12 +27,12 @@ import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
-public class ForEachProcess implements Process
+public class ForEachSubNodeProcess implements Process
 {
 	final private VariablePath keyPath, targetPath;
 	final private Process process;
 
-	public ForEachProcess(
+	public ForEachSubNodeProcess(
 			VariablePath keyPath,
 			VariablePath targetPath,
 			Process process )
@@ -44,7 +44,7 @@ public class ForEachProcess implements Process
 	
 	public Process clone( TransformationReason reason )
 	{
-		return new ForEachProcess(
+		return new ForEachSubNodeProcess(
 					(VariablePath) keyPath.cloneExpression( reason ),
 					(VariablePath) targetPath.cloneExpression( reason ),
 					process.clone( reason )

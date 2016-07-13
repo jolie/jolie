@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.lang.parse;
 
@@ -54,8 +52,8 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatementArray;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -1672,43 +1670,32 @@ public class OLParser extends AbstractParser
 			break;
 		case FOREACH:
 			getToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
+			eat( Scanner.TokenType.LPAREN, "expected (" );
 
-			VariablePathNode keyPath = parseVariablePath();
-			eat(
-				Scanner.TokenType.COLON, "expected :" );
-
-			VariablePathNode targetPath = parseVariablePath();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
-
-			final OLSyntaxNode forEachBody = parseBasicStatement();
-
-			retVal =
-				new ForEachStatement( getContext(), keyPath, targetPath, forEachBody );
+			final VariablePathNode keyPath = parseVariablePath();
+			
+			if ( token.is( Scanner.TokenType.COLON ) ) {
+				// foreach( k : path ) { ... }
+				getToken();
+				final VariablePathNode targetPath = parseVariablePath();
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				final OLSyntaxNode forEachBody = parseBasicStatement();
+				retVal = new ForEachSubNodeStatement( getContext(), keyPath, targetPath, forEachBody );
+			} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
+				// foreach( item -> path ) { ... }
+				getToken();
+				final VariablePathNode targetPath = parseVariablePath();
+				if ( targetPath.path().get( targetPath.path().size() - 1 ).value() != null ) {
+					throwException( "target array in foreach cannot specify an index: " + targetPath.toPrettyString() );
+				}
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				final OLSyntaxNode forEachBody = parseBasicStatement();
+				
+				retVal = new ForEachArrayItemStatement( getContext(), keyPath, targetPath, forEachBody );
+			} else {
+				throwException( "expected : or ->" );
+			}
 			break;
-        case FOREACH_ARRAY:
-            getToken();
-            eat(
-                    Scanner.TokenType.LPAREN, "expected (");
-
-            VariablePathNode aliasIdentifier = parseVariablePath();
-            eat(
-                    Scanner.TokenType.POINTS_TO, "expected ->");
-
-            VariablePathNode arrayIdentifier = parseVariablePath();
-            if(arrayIdentifier.path().get(arrayIdentifier.path().size() - 1).value() != null){
-                throwException("invalid target array");
-            }
-            eat(
-                    Scanner.TokenType.RPAREN, "expected )");
-
-            final OLSyntaxNode foreachBody = parseBasicStatement();
-
-            retVal =
-                    new ForEachStatementArray(getContext(), aliasIdentifier,arrayIdentifier, foreachBody);
-            break;
 		case LINKIN:
 			retVal = parseLinkInStatement();
 			break;

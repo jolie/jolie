@@ -37,8 +37,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatementArray;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -371,9 +371,9 @@ public class OLParseTreeOptimizer
 		}
 		
 		@Override
-		public void visit( ForEachStatement n )
+		public void visit( ForEachSubNodeStatement n )
 		{
-			currNode = new ForEachStatement(
+			currNode = new ForEachSubNodeStatement(
 				n.context(),
 				optimizePath( n.keyPath() ),
 				optimizePath( n.targetPath() ),
@@ -382,13 +382,13 @@ public class OLParseTreeOptimizer
 		}
 
         @Override
-        public void visit( ForEachStatementArray n )
+        public void visit( ForEachArrayItemStatement n )
         {
-            currNode = new ForEachStatementArray(
-                    n.context(),
-                    optimizePath( n.keyPath() ),
-                    optimizePath( n.targetPath() ),
-                    optimizeNode( n.body() )
+            currNode = new ForEachArrayItemStatement(
+				n.context(),
+				optimizePath( n.keyPath() ),
+				optimizePath( n.targetPath() ),
+				optimizeNode( n.body() )
             );
         }
 
@@ -397,7 +397,7 @@ public class OLParseTreeOptimizer
 		{
 			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
-				varPath.append(new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
+				varPath.append( new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}
 			currNode = varPath;
 		}

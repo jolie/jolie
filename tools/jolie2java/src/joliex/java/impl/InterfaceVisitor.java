@@ -40,7 +40,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -206,7 +207,7 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( PreDecrementStatement n ) {}
 	public void visit( PostDecrementStatement n ) {}
 	public void visit( ForStatement n ) {}
-	public void visit( ForEachStatement n ) {}
+	public void visit( ForEachSubNodeStatement n ) {}
 	public void visit( SpawnStatement n ) {}
 	public void visit( IsTypeExpressionNode n ) {}
 	public void visit( TypeCastExpressionNode n ) {}
@@ -231,6 +232,7 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( InlineTreeExpressionNode n ) {}
 	public void visit( VoidExpressionNode n ) {}
 	public void visit( ProvideUntilStatement n ) {}
+	public void visit( ForEachArrayItemStatement n ) {}
 
 	@Override
 	public void visit(TypeChoiceDefinition typeChoiceDefinition) {}

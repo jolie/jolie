@@ -1,68 +1,68 @@
-/***************************************************************************
- * Copyright (C) by Fabrizio Montesi                                     *
- * *
- * This program is free software; you can redistribute it and/or modify  *
- * it under the terms of the GNU Library General Public License as       *
- * published by the Free Software Foundation; either version 2 of the    *
- * License, or (at your option) any later version.                       *
- * *
- * This program is distributed in the hope that it will be useful,       *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- * GNU General Public License for more details.                          *
- * *
- * You should have received a copy of the GNU Library General Public     *
- * License along with this program; if not, write to the                 *
- * Free Software Foundation, Inc.,                                       *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- * *
- * For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2016 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.process;
 
 import jolie.runtime.*;
-import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
-public class ForEachArrayProcess implements Process {
+public class ForEachArrayItemProcess implements Process
+{
+	private final VariablePath keyPath, targetPath;
+	private final Process process;
 
-    final private VariablePath keyPath, targetPath;
-    final private Process process;
+	public ForEachArrayItemProcess(
+		VariablePath keyPath,
+		VariablePath targetPath,
+		Process process )
+	{
+		this.keyPath = keyPath;
+		this.targetPath = targetPath;
+		this.process = process;
+	}
 
-    public ForEachArrayProcess(
-            VariablePath keyPath,
-            VariablePath targetPath,
-            Process process) {
-        this.keyPath = keyPath;
-        this.targetPath = targetPath;
-        this.process = process;
-    }
+	public Process clone( TransformationReason reason )
+	{
+		return new ForEachArrayItemProcess(
+			keyPath.clone(),
+			targetPath.clone(),
+			process.clone( reason )
+		);
+	}
 
-    public Process clone(TransformationReason reason) {
-        return new ForEachArrayProcess(
-                keyPath.clone(),
-                targetPath.clone(),
-                process.clone(reason)
-        );
-    }
+	public void run()
+		throws FaultException, ExitingException
+	{
+		ValueVector targetVector = targetPath.getValueVector();
+		int size = targetVector.size();
+		VariablePath target = targetPath.clone();
+		int length = target.path().length;
 
-    public void run()
-            throws FaultException, ExitingException {
+		for( int i = 0; i < size; i++ ) {
+			target.path()[ length - 1 ] = new Pair<>( target.path()[ length - 1 ].key(), Value.create( i ) );
+			keyPath.makePointer( target );
+			process.run();
+		}
+	}
 
-        ValueVector targetVector = targetPath.getValueVector();
-        int size = targetVector.size();
-        int length = targetPath.path().length;
-        Pair<Expression, Expression>[] path = targetPath.path();
-
-        for (int i = 0; i < size; i++) {
-            path[length - 1] = new Pair<>(path[length - 1].key(), Value.create(i));
-            keyPath.makePointer(targetPath);
-            process.run();
-        }
-    }
-
-    public boolean isKillable() {
-        return true;
-    }
+	public boolean isKillable()
+	{
+		return true;
+	}
 }

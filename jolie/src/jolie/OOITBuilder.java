@@ -1,23 +1,22 @@
-/***************************************************************************
- *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+
 
 package jolie;
 
@@ -58,8 +57,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
-import jolie.lang.parse.ast.ForEachStatementArray;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -142,8 +141,8 @@ import jolie.process.DeepCopyProcess;
 import jolie.process.DefinitionProcess;
 import jolie.process.DivideAssignmentProcess;
 import jolie.process.ExitProcess;
-import jolie.process.ForEachArrayProcess;
-import jolie.process.ForEachProcess;
+import jolie.process.ForEachArrayItemProcess;
+import jolie.process.ForEachSubNodeProcess;
 import jolie.process.ForProcess;
 import jolie.process.IfProcess;
 import jolie.process.InitDefinitionProcess;
@@ -1434,25 +1433,25 @@ public class OOITBuilder implements OLVisitor
 		currProcess = new ForProcess( init, condition, post, currProcess );
 	}
 
-	public void visit( ForEachStatementArray n ) {
+	public void visit( ForEachArrayItemStatement n ) {
 		n.body().accept( this );
 		currProcess =
-				new ForEachArrayProcess(
-						buildVariablePath( n.keyPath() ),
-						buildVariablePath( n.targetPath() ),
-						currProcess
-				);
+			new ForEachArrayItemProcess(
+					buildVariablePath( n.keyPath() ),
+					buildVariablePath( n.targetPath() ),
+					currProcess
+			);
 	}
 
-	public void visit( ForEachStatement n )
+	public void visit( ForEachSubNodeStatement n )
 	{
 		n.body().accept( this );
 		currProcess =
-			new ForEachProcess(
+			new ForEachSubNodeProcess(
 				buildVariablePath( n.keyPath() ),
 				buildVariablePath( n.targetPath() ),
 				currProcess
-				);
+			);
 	}
 
 	private Expression buildExpression( OLSyntaxNode n )
