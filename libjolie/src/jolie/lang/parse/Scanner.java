@@ -109,9 +109,8 @@ public class Scanner
 		UNDEF,				///< undef
 		HASH,				///< #
 		PERCENT_SIGN,		///< %
-		FOR,				///< for
+		FOR,					///< for
 		FOREACH,			///< foreach
-		FOREACH_ARRAY,		///< for_each
 		WITH,				///< with
 		DECREMENT,			///< --
 		IS_STRING,			///< is_string
@@ -164,7 +163,6 @@ public class Scanner
 		unreservedKeywords.put( "undef", TokenType.UNDEF );
 		unreservedKeywords.put( "for", TokenType.FOR );
 		unreservedKeywords.put( "foreach", TokenType.FOREACH );
-		unreservedKeywords.put( "for_each", TokenType.FOREACH_ARRAY );
 		unreservedKeywords.put( "is_defined", TokenType.IS_DEFINED );
 		unreservedKeywords.put( "is_string", TokenType.IS_STRING );
 		unreservedKeywords.put( "is_int", TokenType.IS_INT );
