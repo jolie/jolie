@@ -54,6 +54,7 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
@@ -1687,6 +1688,27 @@ public class OLParser extends AbstractParser
 			retVal =
 				new ForEachStatement( getContext(), keyPath, targetPath, forEachBody );
 			break;
+        case FOREACH_ARRAY:
+            getToken();
+            eat(
+                    Scanner.TokenType.LPAREN, "expected (");
+
+            VariablePathNode aliasIdentifier = parseVariablePath();
+            eat(
+                    Scanner.TokenType.POINTS_TO, "expected ->");
+
+            VariablePathNode arrayIdentifier = parseVariablePath();
+            if(arrayIdentifier.path().get(arrayIdentifier.path().size() - 1).value() != null){
+                throwException("invalid target array");
+            }
+            eat(
+                    Scanner.TokenType.RPAREN, "expected )");
+
+            final OLSyntaxNode foreachBody = parseBasicStatement();
+
+            retVal =
+                    new ForEachStatementArray(getContext(), aliasIdentifier,arrayIdentifier, foreachBody);
+            break;
 		case LINKIN:
 			retVal = parseLinkInStatement();
 			break;
