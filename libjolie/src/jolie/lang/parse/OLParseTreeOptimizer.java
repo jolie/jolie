@@ -37,6 +37,7 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
@@ -379,6 +380,17 @@ public class OLParseTreeOptimizer
 				optimizeNode( n.body() )
 			);
 		}
+
+        @Override
+        public void visit( ForEachStatementArray n )
+        {
+            currNode = new ForEachStatementArray(
+                    n.context(),
+                    optimizePath( n.keyPath() ),
+                    optimizePath( n.targetPath() ),
+                    optimizeNode( n.body() )
+            );
+        }
 
 		@Override
 		public void visit( VariablePathNode n )

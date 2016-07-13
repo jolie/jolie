@@ -35,6 +35,7 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
+import jolie.lang.parse.ast.ForEachStatementArray;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
@@ -155,6 +156,7 @@ public interface OLVisitor
 	public void visit( PostDecrementStatement n );
 	public void visit( ForStatement n );
 	public void visit( ForEachStatement n );
+	public void visit( ForEachStatementArray n );
 	public void visit( SpawnStatement n );
 	public void visit( IsTypeExpressionNode n );
 	public void visit( InstanceOfExpressionNode n );
