@@ -184,7 +184,7 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
-import jolie.runtime.ValueVectorSizeExpression;
+import jolie.runtime.expression.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
