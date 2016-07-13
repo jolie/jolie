@@ -382,8 +382,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
+                       int displacement = 2;
 			if ( m.group( 1 ) == null ) { // ! is missing after %: We have to use URLEncoder
-				currKey = alias.substring( m.start() + 2, m.end() - 1 );
+				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = URLEncoder.encode( value.strValue(), HttpUtils.URL_DECODER_ENC );
 				} else {
@@ -391,7 +392,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					aliasKeys.add( currKey );
 				}
 			} else { // ! is given after %: We have to insert the string raw
-				currKey = alias.substring( m.start() + 3, m.end() - 1 );
+                               displacement = 3;
+				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = value.strValue();
 				} else {
@@ -404,7 +406,8 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				m.start() + offset, m.end() + offset,
 				currStrValue
 			);
-			offset += currStrValue.length() - 3 - currKey.length();
+                       displacement++; //considering also }
+			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
 		for( String aliasKey : aliasKeys ) {
