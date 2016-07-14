@@ -1817,15 +1817,11 @@ public class OLParser extends AbstractParser
 				eat( Scanner.TokenType.RPAREN, "expected )" );
 			}
 			else { //case 2
-				
-				//we need to push token back
-				addToken( token );
-				
 				//rethrow without any payload
 				retVal = new ReThrowStatement ( getContext() );
 				
 			}
-			getToken();
+			
 			break;
 		case INSTALL:
 			getToken();

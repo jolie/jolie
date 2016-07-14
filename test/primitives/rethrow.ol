@@ -21,6 +21,7 @@
 
 include "../AbstractTestUnit.iol"
 include "console.iol"
+
 define simpleReThrowTest
 {
   scope( s1 ) {
@@ -36,7 +37,25 @@ define simpleReThrowTest
 	}
 }
 
+define advancedReThrowTest
+{
+  x = 1;
+  scope( s1 ) {
+    install ( MyFault => x = s1.MyFault*x );
+  	scope( s2 ) {
+  		install( MyFault => rethrow ( 10 ); x = 20 );
+  		throw( MyFault, 15 )
+  	};
+    x = 5
+  };
+	if ( x != 10 ) {
+		throw( TestFailed, "an installed fault handler was not executed" )
+	}
+}
+
+
 define doTest
 {
-	simpleReThrowTest
+	simpleReThrowTest;
+  advancedReThrowTest
 }
