@@ -92,6 +92,7 @@ public class Scanner
 		WHILE,				///< while
 		EXECUTION,			///< execution
 		THROW,				///< throw
+		RETHROW,			///< rethrow
 		DOCUMENTATION_COMMENT,
 		INSTALL,				///< install
 		SCOPE,				///< scope
@@ -155,6 +156,7 @@ public class Scanner
 		unreservedKeywords.put( "this", TokenType.THIS );
 		unreservedKeywords.put( "synchronized", TokenType.SYNCHRONIZED );
 		unreservedKeywords.put( "throw", TokenType.THROW );
+		unreservedKeywords.put( "rethrow", TokenType.RETHROW);
 		unreservedKeywords.put( "scope", TokenType.SCOPE );
 		unreservedKeywords.put( "spawn", TokenType.SPAWN );
 		unreservedKeywords.put( "comp", TokenType.COMPENSATE );

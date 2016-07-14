@@ -86,6 +86,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -162,6 +163,7 @@ import jolie.process.PreDecrementProcess;
 import jolie.process.PreIncrementProcess;
 import jolie.process.Process;
 import jolie.process.ProvideUntilProcess;
+import jolie.process.ReThrowProcess;
 import jolie.process.RequestResponseProcess;
 import jolie.process.RunProcess;
 import jolie.process.ScopeProcess;
@@ -934,6 +936,16 @@ public class OOITBuilder implements OLVisitor
 		}
 
 		registerSessionStarters = origRegisterSessionStarters;
+	}
+	
+	@Override
+	public void visit ( ReThrowStatement n ) {
+		Expression expression = null;
+		if ( n.expression() != null ) {
+			n.expression().accept( this );
+			expression = currExpression;
+		}
+		currProcess = new ReThrowProcess( expression );
 	}
 		
 	public void visit( NotificationOperationStatement n )

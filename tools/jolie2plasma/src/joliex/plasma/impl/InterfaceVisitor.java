@@ -66,6 +66,7 @@ import jolie.lang.parse.ast.PreDecrementStatement;
 import jolie.lang.parse.ast.PreIncrementStatement;
 import jolie.lang.parse.ast.Program;
 import jolie.lang.parse.ast.ProvideUntilStatement;
+import jolie.lang.parse.ast.ReThrowStatement;
 import jolie.lang.parse.ast.RequestResponseOperationDeclaration;
 import jolie.lang.parse.ast.RequestResponseOperationStatement;
 import jolie.lang.parse.ast.RunStatement;
@@ -231,6 +232,8 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( InlineTreeExpressionNode n ) {}
 	public void visit( VoidExpressionNode n ) {}
 	public void visit( ProvideUntilStatement n ) {}
+	public void visit( ReThrowStatement n ) {}
+	
 
 	@Override
 	public void visit(TypeChoiceDefinition typeChoiceDefinition) {}
