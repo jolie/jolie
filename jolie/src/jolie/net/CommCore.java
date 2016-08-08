@@ -93,6 +93,9 @@ public class CommCore
 
 	// Location URI -> Protocol name -> Persistent CommChannel object
 	private final Map< URI, Map< String, CommChannel>> persistentChannels = new HashMap<>();
+	
+	private final EventLoopGroup workerGroup;
+	private final EventLoopGroup bossGroup;
 
 	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel> protocolChannels )
 	{
@@ -253,8 +256,8 @@ public class CommCore
 			selectorThreads[ i ] = new SelectorThread( interpreter );
 		}
 
-		EventLoopGroup bossGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
-		EventLoopGroup workerGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
+		bossGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
+		workerGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new NioSocketListenerFactory( this, bossGroup, workerGroup );
 		listenerFactories.put( "socket", listenerFactory );
@@ -408,12 +411,12 @@ public class CommCore
 
 	public LocalCommChannel getLocalCommChannel()
 	{
-		return new LocalCommChannel( interpreter, localListener );
+		return new LocalCommChannel( interpreter, localListener, workerGroup );
 	}
 
 	public LocalCommChannel getLocalCommChannel( CommListener listener )
 	{
-		return new LocalCommChannel( interpreter, listener );
+		return new LocalCommChannel( interpreter, listener, workerGroup );
 	}
 
 	public CommListenerFactory getCommListenerFactory( String name )

@@ -17,15 +17,25 @@
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.lang.Constants;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.FaultException;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
 import jolie.runtime.Value;
+import jolie.runtime.correlation.CorrelationError;
+import jolie.runtime.typing.TypeCheckingException;
 
 public abstract class AbstractCommChannel extends CommChannel
 {
@@ -45,6 +55,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		private CommMessage response = null;
 	}
 
+	/* Handle messages received on OutputPort */
 	@Override
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException
@@ -142,6 +153,194 @@ public abstract class AbstractCommChannel extends CommChannel
 				}
 			}
 			waiters.clear();
+		}
+	}
+	
+	/* Handle messages received on InputPort */
+	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
+
+	private void forwardResponse( CommMessage message )
+		throws IOException
+	{
+		message = new CommMessage(
+			redirectionMessageId(),
+			message.operationName(),
+			message.resourcePath(),
+			message.value(),
+			message.fault()
+		);
+		try {
+			try {
+				redirectionChannel().send( message );
+			} finally {
+				try {
+					if ( redirectionChannel().toBeClosed() ) {
+						redirectionChannel().close();
+					} else {
+						redirectionChannel().disposeForInput();
+					}
+				} finally {
+					setRedirectionChannel( null );
+				}
+			}
+		} finally {
+			closeImpl();
+		}
+	}
+
+	private void handleRedirectionInput( CommMessage message, String[] ss )
+		throws IOException, URISyntaxException
+	{
+		// Redirection
+		String rPath;
+		if ( ss.length <= 2 ) {
+			rPath = "/";
+		} else {
+			StringBuilder builder = new StringBuilder();
+			for( int i = 2; i < ss.length; i++ ) {
+				builder.append( '/' );
+				builder.append( ss[ i ] );
+			}
+			rPath = builder.toString();
+		}
+		OutputPort oPort = parentInputPort().redirectionMap().get( ss[ 1 ] );
+		if ( oPort == null ) {
+			String error = "Discarded a message for resource " + ss[ 1 ]
+				+ ", not specified in the appropriate redirection table.";
+			Interpreter.getInstance().logWarning( error );
+			throw new IOException( error );
+		}
+		try {
+			CommChannel oChannel = oPort.getNewCommChannel();
+			CommMessage rMessage
+				= new CommMessage(
+					message.id(),
+					message.operationName(),
+					rPath,
+					message.value(),
+					message.fault()
+				);
+			oChannel.setRedirectionChannel( this );
+			oChannel.setRedirectionMessageId( rMessage.id() );
+			oChannel.send( rMessage );
+			oChannel.setToBeClosed( false );
+			oChannel.disposeForInput();
+		} catch( IOException e ) {
+			send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
+			disposeForInput();
+			throw e;
+		}
+	}
+
+	private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
+		throws IOException, URISyntaxException
+	{
+		operation.runAggregationBehaviour( message, this );
+	}
+
+	private void handleDirectMessage( CommMessage message )
+		throws IOException
+	{
+		try {
+			InputOperation operation
+				= Interpreter.getInstance().getInputOperation( message.operationName() );
+			try {
+				operation.requestType().check( message.value() );
+				Interpreter.getInstance().correlationEngine().onMessageReceive( message, this );
+				if ( operation instanceof OneWayOperation ) {
+					// We need to send the acknowledgement
+					send( CommMessage.createEmptyResponse( message ) );
+					//channel.release();
+				}
+			} catch( TypeCheckingException e ) {
+				Interpreter.getInstance().logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
+				try {
+					send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+				} catch( IOException ioe ) {
+					Interpreter.getInstance().logSevere( ioe );
+				}
+			} catch( CorrelationError e ) {
+				Interpreter.getInstance().logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
+				send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+			}
+		} catch( InvalidIdException e ) {
+			Interpreter.getInstance().logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
+			send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+		} finally {
+			disposeForInput();
+		}
+	}
+
+	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
+
+	private void handleRecvMessage( CommMessage message )
+		throws IOException
+	{
+		try {
+			String[] ss = pathSplitPattern.split( message.resourcePath() );
+			if ( ss.length > 1 ) {
+				handleRedirectionInput( message, ss );
+			} else if ( parentInputPort().canHandleInputOperationDirectly( message.operationName() ) ) {
+				handleDirectMessage( message );
+			} else {
+				AggregatedOperation operation = parentInputPort().getAggregatedOperation( message.operationName() );
+				if ( operation == null ) {
+					Interpreter.getInstance().logWarning(
+						"Received a message for operation " + message.operationName()
+						+ ", not specified in the input port at the receiving service. Sending IOException to the caller."
+					);
+					try {
+						send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+					} finally {
+						disposeForInput();
+					}
+				} else {
+					handleAggregatedInput( message, operation );
+				}
+			}
+		} catch( URISyntaxException e ) {
+			Interpreter.getInstance().logSevere( e );
+		}
+	}
+
+	protected void messageRecv( CommMessage message )
+	{
+		assert (parentInputPort() != null);
+		lock.lock();
+		channelHandlersLock.readLock().lock();
+		try {
+			if ( redirectionChannel() == null ) {
+				if ( message != null ) {
+					handleRecvMessage( message );
+				} else {
+					disposeForInput();
+				}
+			} else {
+				lock.unlock();
+				CommMessage response = null;
+				try {
+					response = recvResponseFor( new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+				} finally {
+					if ( response == null ) {
+						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
+					}
+					forwardResponse( response );
+				}
+			}
+		} catch( ChannelClosingException e ) {
+			Interpreter.getInstance().logFine( e );
+		} catch( IOException e ) {
+			Interpreter.getInstance().logSevere( e );
+			try {
+				closeImpl();
+			} catch( IOException e2 ) {
+				Interpreter.getInstance().logSevere( e2 );
+			}
+		} finally {
+			channelHandlersLock.readLock().unlock();
+			if ( lock.isHeldByCurrentThread() ) {
+				lock.unlock();
+			}
 		}
 	}
 }
