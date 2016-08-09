@@ -21,6 +21,7 @@
 
 package jolie.lang.parse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -93,6 +94,7 @@ public class Scanner
 		EXECUTION,			///< execution
 		THROW,				///< throw
 		DOCUMENTATION_COMMENT,
+		DOCUMENTATION_BACKWARD_COMMENT,
 		INSTALL,				///< install
 		SCOPE,				///< scope
 		SPAWN,				///< spawn
@@ -335,12 +337,15 @@ public class Scanner
 	
 
 	private final InputStream stream;		// input stream
-	private final InputStreamReader reader;			// data input
+	private final BufferedReader reader;	// data input
+	private final String charset;			// data input charset
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
 	protected int state;					// current state
 	private int line;						// current line
 	private final URI source;				// source name
+	
+	private final boolean ignoreDocumentation;
 
 	/**
 	 * Constructor
@@ -352,9 +357,28 @@ public class Scanner
 	public Scanner( InputStream stream, URI source, String charset )
 		throws IOException
 	{
+		this( stream, source, charset, true );
+	}
+	
+	/**
+	 * Constructor
+	 * @param stream the <code>InputStream</code> to use for input reading
+	 * @param source the source URI of the stream
+	 * @param charset the character encoding
+	 * @param ignoreDocumentation do not emit documentation tokens
+	 * @throws java.io.IOException if the input reading initialization fails
+	 */
+	public Scanner( InputStream stream, URI source, String charset, boolean ignoreDocumentation )
+		throws IOException
+	{
 		this.stream = stream;
-		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		this.source = source;
+		this.ignoreDocumentation = ignoreDocumentation;
+		
+		InputStreamReader inputStreamReader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
+		this.reader = new BufferedReader( inputStreamReader );
+		this.charset = inputStreamReader.getEncoding();
+		
 		line = 1;
 		readChar();
 	}
@@ -415,7 +439,7 @@ public class Scanner
 	 */
 	public String charset()
 	{
-		return reader.getEncoding();
+		return  this.charset;
 	}
 	
 	/**
@@ -463,6 +487,32 @@ public class Scanner
 		}
 	}
 	
+	/**
+	 * Checks whether the next sequence of characters will be a newline.
+	 *
+	 * Does a readChar() itself. The global ch will be set to the last char of
+	 * the newline sequence.
+	 *
+	 * @return true if newline
+	 * @throws IOException
+	 */
+	private boolean nextIsNewline() throws IOException
+	{
+		readChar();
+		if ( ch == '\r' ) {
+			readChar();
+			if ( ch == '\n' ) {
+				return true;
+			}
+		}
+		
+		if ( ch == '\n' ) {
+			return true;
+		}
+		
+		return false;
+	}
+
 	/**
 	 * Checks whether a character is a separator (whitespace).
 	 * @param c the character to check as a whitespace
@@ -744,10 +794,44 @@ public class Scanner
 						retval = new Token( TokenType.NOT );
 					break;
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
-					if ( ch == '*' ) {
-						state = 13;
+					if ( ch == '*' ) { // BEGIN_COMMENT
+						readChar();
+						
+						if ( ch == '*' && !this.ignoreDocumentation ) { //BEGIN DOCUMENTATION COMMENT
+							readChar();
+							if ( ch == '<' ) { //documentation backward comment
+								resetTokenBuilder();	
+								readChar();
+								state = 24;
+							}
+							else { //normal documentation comment
+								resetTokenBuilder();
+								readChar();
+								state = 21;
+							}
+						}
+						else {
+							state = 13; //normal comment
+						}
 					} else if ( ch == '/' )  {
-						state = 15;
+						readChar();
+						if ( ch == '/' ) {
+							readChar();
+							if ( ch == '<'  ) {
+								readChar();
+								state = 25; //backward documentation line comment
+								resetTokenBuilder();
+							}
+							else {
+								stopOneChar = true;
+								resetTokenBuilder();
+								state = 22; //documentation line comment
+							}
+						}
+						else {
+							stopOneChar = true;
+							state = 15; //normal line comment
+						}
 					} else if( ch == '=' )  {
 						retval = new Token( TokenType.DIVIDE_ASSIGN );
 						readChar();
@@ -761,10 +845,6 @@ public class Scanner
 						if ( ch == '/' ) {
 							readChar();
 							retval = getToken();
-						} else if ( ch == '!' ) {
-							resetTokenBuilder();
-							readChar();
-							state = 21;
 						}
 					}
 					break;
@@ -830,9 +910,61 @@ public class Scanner
 					if ( ch == '*' ) {
 						readChar();
 						stopOneChar = true;
+						if ( ch == '/' ) { // documentation commented ended
+							//if blank line follows documentation, we igore it
+							if ( this.ignoreDocumentation || ( nextIsNewline() && nextIsNewline() ) ) {
+								readChar();
+								resetTokenBuilder();
+								state = 1;
+							}
+							else {
+								retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+							}
+						}
+					}
+					break;
+				case 22: //documentation line comment
+					if ( ch == '\r' ) { //ignore for windows newlines
+						readChar();
+					}
+
+					if ( ch == '\n' || isOverflowChar( ch ) ) {
+						if ( this.ignoreDocumentation || nextIsNewline() ) { //ignore because before blank line
+							readChar();
+							resetTokenBuilder();
+							state = 1;
+						}
+						else { //return the documentation comment
+							retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+						}
+					}
+					break;
+				case 24: //Backward comment
+					if ( ch == '*' ) {
+						readChar();
+						stopOneChar = true;
 						if ( ch == '/' ) {
 							readChar();
-							retval = new Token( TokenType.DOCUMENTATION_COMMENT, tokenBuilder.toString() );
+							if ( !this.ignoreDocumentation ) {
+								retval = new Token( TokenType.DOCUMENTATION_BACKWARD_COMMENT, tokenBuilder.toString() );
+							}
+							else {
+								resetTokenBuilder();
+								state = 1;
+							}
+						}
+					}
+					break;
+				case 25: //documentation backward line comment
+					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
+						readChar();
+						if ( !this.ignoreDocumentation ) {
+							retval = new Token( TokenType.DOCUMENTATION_BACKWARD_COMMENT, tokenBuilder.toString() );
+						}
+						else {
+							stopOneChar = true;
+							resetTokenBuilder();
+							state = 1;
 						}
 					}
 					break;
