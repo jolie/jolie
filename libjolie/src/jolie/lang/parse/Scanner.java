@@ -398,12 +398,7 @@ public class Scanner
 		}
 		return tokenBuilder.toString();
 	}
-	
-	public static String addStringTerminator( String str )
-	{
-		return str + -1;
-	}
-	
+		
 	public InputStream inputStream()
 	{
 		return stream;
