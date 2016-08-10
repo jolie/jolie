@@ -437,11 +437,6 @@ public class Scanner
 	{
 		return source;
 	}
-
-	public String sourceName()
-	{
-		return source.getSchemeSpecificPart();
-	}
 	
 	/**
 	 * Eats all separators (whitespace) until the next input.
