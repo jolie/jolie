@@ -432,6 +432,11 @@ public class Scanner
 	{
 		return stream;
 	}
+	
+	public boolean ignoreDocumentation()
+	{
+		return this.ignoreDocumentation;
+	}
 
 	/**
 	 * Returns character encoding

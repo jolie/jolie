@@ -207,8 +207,10 @@ public class OLParser extends AbstractParser
 			parseInclude();
 			parseCorrelationSets();
 			parseInclude();
-            parseTypes();
+			parseDocumentation();
+            parseType();
 			parseInclude();
+			parseDocumentation();
 			parseInterfaceOrPort();
 			parseInclude();
 			parseEmbedded();
@@ -223,41 +225,91 @@ public class OLParser extends AbstractParser
 		}
 	}
 
-	private void parseTypes()
+	/**
+	 * Sets comment for a DocumentedNode. Make sure that scanner is not set to
+	 * ignore documentation comments for it to be called.
+	 */
+	protected void registerDocumentationComment( DocumentedNode node, Scanner.Token docToken )
+	{
+		node.setDocumentation( docToken.content() );
+	}
+
+	private void parseDocumentation()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
-		boolean keepRun = true;
-		boolean haveComment = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				haveComment = true;
-				commentToken = token;
-				getToken();
-			} else if ( token.isKeyword( "type" ) ) {
-				String typeName;
-				TypeDefinition currentType;
+		Scanner.Token commentToken = parseForwardDocumentation();
 
-				getToken();
-				typeName = token.content();
-				eat( Scanner.TokenType.ID, "expected type name" );
-				eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
-
-				currentType = parseType( typeName );
-				typeName = currentType.id();
-
-				definedTypes.put( typeName, currentType );
-				program.addChild( currentType );
+		if ( commentToken != null ) {
+			DocumentedNode node = parseType();
+			if ( node != null ) {
+				registerDocumentationComment( node, commentToken );
 			} else {
-				keepRun = false;
-				if ( haveComment ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
+				node = parseInterfaceOrPort();
+				if ( node != null ) {
+					registerDocumentationComment( node, commentToken );
 				}
 			}
 		}
 	}
+
+	private Scanner.Token parseForwardDocumentation()
+		throws IOException
+	{
+		if ( this.scanner().ignoreDocumentation() ) {
+			return null;
+		}
+		
+		Scanner.Token commentToken = null; //null if no comment found
+
+		//if a sequence of documentation comments we only use the last
+		while ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
+			commentToken = token;
+			getToken();
+		}
+		return commentToken;
+	}
+	
+	private void parseBackwardDocumentation(DocumentedNode payload)
+		throws IOException, ParserException
+	{
+		if ( this.scanner().ignoreDocumentation() ) {
+			return;
+		}
+		
+		Scanner.Token documentation = null; //null if no comment found
+
+		//if a sequence of documentation comments we only use the last
+		while ( token.is( Scanner.TokenType.DOCUMENTATION_BACKWARD_COMMENT ) ) {
+			documentation = token;
+			getToken();
+		}
+		
+		if ( documentation != null )
+			registerDocumentationComment( payload, documentation );
+	}
+	
+	private TypeDefinition parseType()
+		throws IOException, ParserException
+	{
+		if ( token.isKeyword( "type" ) ) {
+			String typeName;
+			TypeDefinition currentType;
+			getToken();
+			typeName = token.content();
+			eat( Scanner.TokenType.ID, "expected type name" );
+			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+			currentType = parseType( typeName );
+			parseBackwardDocumentation( currentType );
+			
+			//register type declaration
+			definedTypes.put( currentType.id(), currentType );
+			program.addChild( currentType );
+			
+			return currentType;
+		}
+		return null;
+	} 
+
 
 	private TypeDefinition parseType( String typeName )
 			throws IOException, ParserException
@@ -297,6 +349,8 @@ public class OLParser extends AbstractParser
 		} else {
 			TypeDefinition currentSubType;
 			while( !token.is( Scanner.TokenType.RCURLY ) ) {
+				Scanner.Token comment = parseForwardDocumentation();
+				
 				eat( Scanner.TokenType.DOT, "sub-type syntax error (dot not found)" );
 
 				// SubType id
@@ -310,6 +364,12 @@ public class OLParser extends AbstractParser
 				if ( type.hasSubType( currentSubType.id() ) ) {
 					throwException( "sub-type " + currentSubType.id() + " conflicts with another sub-type with the same name" );
 				}
+				
+				if ( comment != null ) {
+					registerDocumentationComment( currentSubType, comment);
+				}
+				parseBackwardDocumentation( currentSubType );
+				
 				type.putSubType( currentSubType );
 			}
 		}
@@ -746,46 +806,26 @@ public class OLParser extends AbstractParser
 		return portInfo;
 	}
 
-	private void parseInterfaceOrPort()
+	private DocumentedNode parseInterfaceOrPort()
 		throws IOException, ParserException
 	{
-		Scanner.Token commentToken = new Scanner.Token( Scanner.TokenType.DOCUMENTATION_COMMENT, "" );
-		boolean keepRun = true;
 		DocumentedNode node = null;
-		boolean haveDocumentation = false;
-		while( keepRun ) {
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				haveDocumentation = true;
-				commentToken = token;
-				getToken();
-			} else if ( token.isKeyword( "interface" ) ) {
-				getToken();
-				if ( token.isKeyword( "extender") ) {
-					getToken();
-					node = parseInterfaceExtender();
-				} else {
-					node = parseInterface();
-				}
-			} else if ( token.isKeyword( "inputPort" ) ) {
-				node = parsePort();
-			} else if ( token.isKeyword( "outputPort" ) ) {
-				node = parsePort();
-			} else {
-				keepRun = false;
-				
-				if ( haveDocumentation ) {
-					addToken( commentToken );
-					addToken( token );
-					getToken();
-				}
-			}
 			
-			if ( haveDocumentation && node != null ) {
-				node.setDocumentation( commentToken.content() );
-				haveDocumentation = false;
-				node = null;
+		if ( token.isKeyword( "interface" ) ) {
+			getToken();
+			if ( token.isKeyword( "extender") ) {
+				getToken();
+				node = parseInterfaceExtender();
+			} else {
+				node = parseInterface();
 			}
-		}
+		} else if ( token.isKeyword( "inputPort" ) ) {
+			node = parsePort();
+		} else if ( token.isKeyword( "outputPort" ) ) {
+			node = parsePort();
+		} 
+
+		return node;
     }
 
     private OutputPortInfo createInternalServicePort( String name, List< InterfaceDefinition> interfaceList )
@@ -1254,16 +1294,13 @@ public class OLParser extends AbstractParser
 		eat( Scanner.TokenType.COLON, "expected :" );
 
 		boolean keepRun = true;
-		boolean commentsPreset = false;
-		String comment = "";
 		String opId;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentsPreset = true;
-				comment = token.content();
-				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) || (
+
+			Scanner.Token comment = parseForwardDocumentation();
+			
+			if ( token.is( Scanner.TokenType.ID ) || (
 				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
 			) ) {
 				opId = token.content();
@@ -1279,10 +1316,9 @@ public class OLParser extends AbstractParser
 					getToken(); // eat the type name
 					eat( Scanner.TokenType.RPAREN, "expected )" );
 				}
-
-				if ( commentsPreset ) {
-					opDecl.setDocumentation( comment );
-					commentsPreset = false;
+				
+				if ( comment != null ) {
+					registerDocumentationComment( opDecl, comment );
 				}
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
@@ -1291,8 +1327,11 @@ public class OLParser extends AbstractParser
 					oc.addOperation( opDecl );
 				}
 
+				parseBackwardDocumentation( opDecl );
+				
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
+					parseBackwardDocumentation( opDecl );
 				} else {
 					keepRun = false;
 				}
@@ -1309,16 +1348,11 @@ public class OLParser extends AbstractParser
 		getToken();
 		eat( Scanner.TokenType.COLON, "expected :" );
 		boolean keepRun = true;
-		String comment = "";
 		String opId;
-		boolean commentsPreset = false;
 		while( keepRun ) {
 			checkConstant();
-			if ( token.is( Scanner.TokenType.DOCUMENTATION_COMMENT ) ) {
-				commentsPreset = true;
-				comment = token.content();
-				getToken();
-			} else if ( token.is( Scanner.TokenType.ID ) || (
+			Scanner.Token comment = parseForwardDocumentation();
+			if ( token.is( Scanner.TokenType.ID ) || (
 				currInterfaceExtender != null && token.is( Scanner.TokenType.ASTERISK )
 			) ) {
 				opId = token.content();
@@ -1376,9 +1410,8 @@ public class OLParser extends AbstractParser
 					);
 
 				// adding documentation
-				if ( commentsPreset ) {
-					opRR.setDocumentation( comment );
-					commentsPreset = false;
+				if ( comment != null ) {
+					registerDocumentationComment( opRR, comment );
 				}
 
 				if ( currInterfaceExtender != null && opId.equals( "*" ) ) {
@@ -1387,8 +1420,10 @@ public class OLParser extends AbstractParser
 					oc.addOperation( opRR );
 				}
 				
+				parseBackwardDocumentation( opRR );
 				if ( token.is( Scanner.TokenType.COMMA ) ) {
 					getToken();
+					parseBackwardDocumentation( opRR );
 				} else {
 					keepRun = false;
 				}
