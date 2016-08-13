@@ -24,16 +24,16 @@ type FullDate:void {
 	.msec:int
 	.sec:int
 	.min:int
-	.hour:int	
+	.hour:int
 	.day:int
 	.month:int
 	.year:int
 }
 
 
-/**!
-* Configure the schedule with a repeat-period end a start time
-*/
+/**
+ * Configure the schedule with a repeat-period end a start time
+ */
 type ScheduleReq:void {
 
 	.format?:string    //If not specified, it defaults to "dd/MM/yyyy"
@@ -42,9 +42,9 @@ type ScheduleReq:void {
 	.period:int
 }
 
-/**!
-* Configure the schedule for once daily activation
-*/
+/**
+ * Configure the schedule for once daily activation
+ */
 type DailyScheduleReq:void {
 
 	.operation?:string //if not specified, it defaults to timeout
@@ -52,9 +52,9 @@ type DailyScheduleReq:void {
 	.start_min?:int    //if not specified, it defaults to 0
 }
 
-/**!
-* Configure the schedule in chron style string
-*/
+/**
+ * Configure the schedule in chron style string
+ */
 
 /*
 *type CronScheduleReq:void {

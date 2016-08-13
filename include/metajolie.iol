@@ -95,9 +95,9 @@ type ParseRoleRequest: void {
 }
 
 
-/**!
-WARNING: the API of this service is experimental. Use it at your own risk.
-*/
+/**
+ *WARNING: the API of this service is experimental. Use it at your own risk.
+ */
 interface MetaJolieInterface {
 RequestResponse:
 	checkNativeType( CheckNativeTypeRequest )( CheckNativeTypeResponse ),
@@ -111,7 +111,7 @@ RequestResponse:
 	messageTypeCast( MessageTypeCastRequest )( MessageTypeCastResponse )
 	    throws TypeMismatch,
 	parseRoles( ParseRoleRequest)( Role )
-	
+
 }
 
 outputPort MetaJolie {

@@ -27,22 +27,22 @@ type QueueRequest: void {
 
 interface QueueUtilsInterface {
 RequestResponse:
-	//Creates a new queue with queue_name as key
+	/// Creates a new queue with queue_name as key
 	new_queue( string )( bool ),
 
-	//Removes an existing queue
+	/// Removes an existing queue
 	delete_queue( string )( bool ),
 
-	//Pushes an element at the end of an existing queue
+	/// Pushes an element at the end of an existing queue
 	push( QueueRequest )( bool ),
 
-	//Retrieves, but does not remove, the head of the queue
+	/// Retrieves, but does not remove, the head of the queue
 	peek( string )( undefined ),
-	
-	//Removes and returns the head of the queue
+
+	/// Removes and returns the head of the queue
 	poll( string )( undefined ),
 
-	//Returns the size of an existing queue, null otherwise
+	/// Returns the size of an existing queue, null otherwise
 	size( string )( int )
 }
 

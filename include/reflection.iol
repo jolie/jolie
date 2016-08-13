@@ -60,15 +60,15 @@ type ReflectionSetOutputPortRequest:void {
 	.binding:Binding
 }
 
-/**!
-WARNING: the API of this service is experimental. Use it at your own risk.
-*/
+/**
+ * WARNING: the API of this service is experimental. Use it at your own risk.
+ */
 interface ReflectionIface {
 RequestResponse:
-	/**!
-	Invokes the specified .operation at .outputPort.
-	If the operation is a OneWay, the invocation returns no value.
-	*/
+	/**
+	 * Invokes the specified .operation at .outputPort.
+	 * If the operation is a OneWay, the invocation returns no value.
+	 */
 	invoke(InvokeRequest)(undefined) throws OperationNotFound(string) InvocationFault(InvocationFaultType)
 }
 

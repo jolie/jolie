@@ -10,9 +10,9 @@ type ExpandRequest:void {
 	.params?:undefined
 }
 
-/**!
-WARNING: the API of this service is experimental. Use it at your own risk.
-*/
+/**
+ * WARNING: the API of this service is experimental. Use it at your own risk.
+ */
 interface UriTemplatesIface {
 RequestResponse:
 	match(UriMatchRequest)(MatchResponse),

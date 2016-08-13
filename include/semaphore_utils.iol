@@ -21,24 +21,24 @@
 
 type SemaphoreRequest: void {
 	.name: string
-	// the optional number of permits to release/acquire
+	/// the optional number of permits to release/acquire
 	.permits?: int
 }
 
 interface SemaphoreUtilsInterface {
 	RequestResponse:
-	
-	/**!
-	* Releases permits to a semaphore.
-	* If there exists no semaphore with the given ".name", "release" creates a
-	* new semaphore with that name and as many permits as indicated in ".permits".
-	* The default behaviour when value ".permits" is absent is to release one permit.
-	*/
+
+	/**
+	 * Releases permits to a semaphore.
+	 * If there exists no semaphore with the given ".name", "release" creates a
+	 * new semaphore with that name and as many permits as indicated in ".permits".
+	 * The default behaviour when value ".permits" is absent is to release one permit.
+	 */
 	release( SemaphoreRequest )( bool ),
-	
-	/**!
+
+	/**
 	 * Acquires permits from a semaphore.
-	 * If there exists no semaphore with the given ".name", "acquire" creates a 
+	 * If there exists no semaphore with the given ".name", "acquire" creates a
 	 * new semaphore with 0 permits with that name.
 	 * The operation returns a response when a new permit is released (see operation "release").
 	 * The default behaviour when value ".permits" is absent is to acquire one permit.

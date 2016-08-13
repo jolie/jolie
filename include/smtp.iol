@@ -44,7 +44,7 @@ type SendMailRequest:void {
 	/* Content */
 	.content:string
 
-	/* Content type
+	/** Content type
 	 * can be "text/plain", "text/html", ..  [MIME tags]
 	 * defaults to "text/plain"
 	 */
@@ -64,4 +64,3 @@ embedded {
 Java:
 	"joliex.mail.SMTPService" in SMTP
 }
-

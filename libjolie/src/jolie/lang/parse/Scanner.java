@@ -558,7 +558,6 @@ public class Scanner
 		currInt = reader.read();
         
 		ch = (char) currInt;
-
 		if ( ch == '\n' ) {
 			line++;
 		}
@@ -667,13 +666,14 @@ public class Scanner
 							retval = new Token( TokenType.CARET );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
+						} else {
+							stopOneChar= true;
 						}
 						/*else if ( ch == '$' )
 							retval = new Token( TokenType.DOLLAR );*/
 						
 						readChar();
 					}
-					
 					break;
 				case 2:	// ID (or unreserved keyword)
 					if ( !Character.isLetterOrDigit( ch ) && ch != '_' ) {
@@ -801,40 +801,37 @@ public class Scanner
 				case 12: // DIVIDE OR BEGIN_COMMENT OR LINE_COMMENT
 					if ( ch == '*' ) { // BEGIN_COMMENT
 						readChar();
+						stopOneChar = true;
 						
 						if ( ch == '*' && !this.ignoreDocumentation ) { //BEGIN DOCUMENTATION COMMENT
+							//normal documentation comment
 							readChar();
-							if ( ch == '<' ) { //documentation backward comment
-								resetTokenBuilder();	
-								readChar();
-								state = 24;
-							}
-							else { //normal documentation comment
-								resetTokenBuilder();
-								readChar();
-								state = 21;
-							}
+							resetTokenBuilder();
+							state = 21;
+						}
+						else if ( ch == '<' && !this.ignoreDocumentation ) { //documentation backward comment
+							readChar();
+							resetTokenBuilder();	
+							state = 24;
 						}
 						else {
 							state = 13; //normal comment
 						}
 					} else if ( ch == '/' )  {
 						readChar();
-						if ( ch == '/' ) {
+						stopOneChar = true;
+							
+						if ( ch == '/' && !this.ignoreDocumentation ) {
 							readChar();
-							if ( ch == '<'  ) {
-								readChar();
-								state = 25; //backward documentation line comment
-								resetTokenBuilder();
-							}
-							else {
-								stopOneChar = true;
-								resetTokenBuilder();
-								state = 22; //documentation line comment
-							}
+							resetTokenBuilder();
+							state = 22; //documentation line comment
+						}
+						else if ( ch == '<' && !this.ignoreDocumentation ) {
+							readChar();
+							resetTokenBuilder();
+							state = 25; //backward documentation line comment
 						}
 						else {
-							stopOneChar = true;
 							state = 15; //normal line comment
 						}
 					} else if( ch == '=' )  {
@@ -962,12 +959,10 @@ public class Scanner
 					break;
 				case 25: //documentation backward line comment
 					if ( isNewLineChar( ch ) || isOverflowChar( ch ) ) {
-						readChar();
 						if ( !this.ignoreDocumentation ) {
 							retval = new Token( TokenType.DOCUMENTATION_BACKWARD_COMMENT, tokenBuilder.toString() );
 						}
 						else {
-							stopOneChar = true;
 							resetTokenBuilder();
 							state = 1;
 						}

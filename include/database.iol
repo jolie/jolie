@@ -21,16 +21,16 @@
  ***************************************************************************/
 
 type ConnectionInfo:void {
-	.driver:string // http://docs.jolie-lang.org/#!documentation/databases/databases.html
+	.driver:string //< http://docs.jolie-lang.org/#!documentation/databases/databases.html
 	.host:string
 	.port?:int
 	.database:string
 	.username:string
 	.password:string
-	.attributes?:string // further semicolon-separated JDBC connection string parameters
-	.checkConnection?:int // if true (> 0) check connection before each DB command (default: false (0))
-	.toLowerCase?: bool // lowercase attribute names
-	.toUpperCase?: bool // uppercase attribute names
+	.attributes?:string //< further semicolon-separated JDBC connection string parameters
+	.checkConnection?:int //< if true (> 0) check connection before each DB command (default: false (0))
+	.toLowerCase?: bool //< lowercase attribute names
+	.toUpperCase?: bool //< uppercase attribute names
 }
 
 type QueryResult:void {
@@ -75,7 +75,7 @@ RequestResponse:
 	 * Database service, eg. when the enclosing program finishes.
 	 */
 	close(void)(void),
-	
+
 	/**!
 	 * Queries the database and returns a result set
 	 *

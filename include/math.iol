@@ -35,21 +35,21 @@ type SummationRequest:void {
 
 interface MathInterface {
 RequestResponse:
-	/**! Returns the absolute value of the input integer. */
+	/// Returns the absolute value of the input integer.
 	abs(int)(int),
 
-	/**! Returns a random number d such that 0.0 <= d < 1.0. */
+	/// Returns a random number d such that 0.0 <= d < 1.0.
 	random(void)(double),
 
-	/**! Returns the PI constant */
+	/// Returns the PI constant
 	pi(void)(double),
 
 	round(RoundRequestType)(double),
 
-	/**! Returns the result of .base to the power of .exponent (see request data type). */
+	/// Returns the result of .base to the power of .exponent (see request data type).
 	pow(PowRequest)(double),
 
-	/**! Returns the summation of values from .from to .to (see request data type). For example, .from=2 and .to=5 would produce a return value of 2+3+4+5=14. */
+	/// Returns the summation of values from .from to .to (see request data type). For example, .from=2 and .to=5 would produce a return value of 2+3+4+5=14.
 	summation(SummationRequest)(int)
 }
 

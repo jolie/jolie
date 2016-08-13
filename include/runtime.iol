@@ -114,26 +114,26 @@ RequestResponse:
 
 	setOutputPort(SetOutputPortRequest)(void),
 
-	/**!
-	*	it returns a port definition if it exists, OuputPortDoesNotExist fault otherwise
-	*/
+	/**
+	 * it returns a port definition if it exists, OuputPortDoesNotExist fault otherwise
+	 */
 	getOutputPort( GetOutputPortRequest )( GetOutputPortResponse )
 	  throws OutputPortDoesNotExist,
 
-	/**!
-	*	it returns the list of definitions of all the available outputPorts of the service
-	*/
+	/**
+	 *	it returns the list of definitions of all the available outputPorts of the service
+	 */
 	getOutputPorts( void )( GetOutputPortsResponse ),
-	
+
 	getProcessId( void )( string ),
-	
+
 	halt(HaltRequest)(void),
 
 	removeOutputPort(string)(void),
 	callExit(any)(void),
 	dumpState(void)(string),
 	loadLibrary(string)(void) throws IOException(IOExceptionType),
-	/**!
+	/**
 	 * Get information about the runtime state of the Jolie interpreter.
 	 */
 	stats(void)(Stats)

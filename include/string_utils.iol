@@ -55,7 +55,7 @@ type MatchRequest:string {
 	.regex:string
 }
 
-type MatchResult:int { // 1 if at least a match was found, 0 otherwise.
+type MatchResult:int { //< 1 if at least a match was found, 0 otherwise.
 	.group[0,*]:string
 }
 
@@ -82,22 +82,22 @@ type ContainsRequest:string {
 	.substring:string
 }
 
-/**!
+/**
  * An interface for supporting string manipulation operations.
  */
 interface StringUtilsInterface {
 RequestResponse:
-	/**!
-	  checks if a string ends with a given suffix
-	*/
+	/**
+	 * checks if a string ends with a given suffix
+	 */
 	endsWith( EndsWithRequest )( bool ),
 
-	/**!
-	* it returns a random UUID
-	*/
+	/**
+	 * it returns a random UUID
+	 */
 	getRandomUUID( void )( string ),
 
-	/**!
+	/**
 	 * Returns true if the string contains .substring
 	 */
 	contains( ContainsRequest )( bool ),
@@ -118,9 +118,9 @@ RequestResponse:
 	toLowerCase(string)(string),
 	toUpperCase(string)(string),
 
-	/**!
-	* checks if the passed string starts with a given prefix
-	*/
+	/**
+	 * checks if the passed string starts with a given prefix
+	 */
 	startsWith(StartsWithRequest)( bool ),
 	valueToPrettyString(undefined)(string)
 }

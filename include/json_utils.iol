@@ -25,13 +25,13 @@ type GetJsonStringResponse: string
 
 type GetJsonValueRequest: any {
 	.strictEncoding?: bool
-	.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+	.charset?:string //< set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
 }
 type GetJsonValueResponse: undefined
 
 interface JsonUtilsInterface {
 RequestResponse:
-	/**!
+	/**
 	 * Returns the value converted into a JSON string
 	 *
 	 * Each child value corresponds to an attribute, the base values are saved as the default values (attribute "$" or singular value), the "_" helper childs disappear (e.g. a._[i]._[j] -> a[i][j]), the rest gets converted recursively
@@ -39,7 +39,7 @@ RequestResponse:
 	getJsonString( GetJsonStringRequest )( GetJsonStringResponse )
 	      throws JSONCreationError,
 
-	/**!
+	/**
 	 * Returns the JSON string converted into a value
 	 *
 	 * Each attribute corresponds to a child value, the default values (attribute "$" or singular value) are saved as the base values, nested arrays get mapped with the "_" helper childs (e.g. a[i][j] -> a._[i]._[j]), the rest gets converted recursively

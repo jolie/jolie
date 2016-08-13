@@ -21,8 +21,8 @@
 
 
 /**
-*WARNING: work in progress, the API is unstable.
-*/
+ * WARNING: work in progress, the API is unstable.
+ */
 
 
 type DateValuesType:void {
@@ -38,19 +38,19 @@ type TimeValuesType:void {
 }
 
 type DateValuesRequestType:string {
-	/*
-	* Date format.
-	* If not specified, it defaults to "dd/MM/yyyy"
-	*/
+	/**
+	 * Date format.
+	 * If not specified, it defaults to "dd/MM/yyyy"
+	 */
 
 	.format?:string
 }
 
 type CurrentDateTimeRequestType:void {
-	/*
-	* 	Date format.
-	* 	If not specified, it defaults to "dd/MM/yyyy"
-	*/
+	/**
+	 * 	Date format.
+	 * 	If not specified, it defaults to "dd/MM/yyyy"
+	 */
 
 	.format?:string
 }
@@ -66,28 +66,28 @@ type GetTimeDiffRequest:void {
 }
 
 type GetTimestampFromStringRequest:string {
-	.format?:string 
+	.format?:string
 	.language?: string
 }
 
 type GetDateTimeRequest: long {
   .format?: string
- 
+
 }
 
 type GetDateTimeResponse: string {
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
-	.second:int 
+	.second:int
 }
 
 type DateTimeType:void{
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
 	.second:int
@@ -100,37 +100,37 @@ type SetNextTimeOutRequest: int {
 
 interface TimeInterface{
 	OneWay:
-		/**!
-		  it sets a timeout whose duration is in milliseconds and it is represented by the root value of the message
-		  When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation 
-		  ( default: timeout )
-		*/
-		setNextTimeout(SetNextTimeOutRequest), 
+		/**
+		 * it sets a timeout whose duration is in milliseconds and it is represented by the root value of the message
+		 * When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation
+		 * ( default: timeout )
+		 */
+		setNextTimeout(SetNextTimeOutRequest),
 		setNextTimeoutByDateTime, setNextTimeoutByTime
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
-		/**!
-		* It returns a date time in a string format starting from a timestamp
-		*/
+		/**
+		 * It returns a date time in a string format starting from a timestamp
+		 */
 		getDateTime( GetDateTimeRequest )( GetDateTimeResponse ),
 
-		/**!
-		* Converts an input string into a date expressed by means of
-		* three elements: day, month and year. The request may specify the 
-		* date parsing format. See #DateValuesRequestType for details.
-		*/
+		/**
+		 * Converts an input string into a date expressed by means of
+		 * three elements: day, month and year. The request may specify the
+		 * date parsing format. See #DateValuesRequestType for details.
+		 */
 		getDateValues(DateValuesRequestType)(DateValuesType),
 
-		/**!
-		* Returns the current date split in three fields: day, month and year
-		*/
+		/**
+		 * Returns the current date split in three fields: day, month and year
+		 */
 		getCurrentDateValues(void)(DateValuesType),
 		getDateDiff(DiffDateRequestType)(int),
 
-		/**!
-		* Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
-		*/
+		/**
+		 * Warning: this is temporary and subject to future change as soon as long is supported by Jolie.
+		 */
 		getCurrentTimeMillis(void)(long),
 		getTimeValues(string)(TimeValuesType),
 		getTimeDiff(GetTimeDiffRequest)(int),

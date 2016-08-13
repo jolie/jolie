@@ -298,6 +298,7 @@ public class OLParser extends AbstractParser
 			typeName = token.content();
 			eat( Scanner.TokenType.ID, "expected type name" );
 			eat( Scanner.TokenType.COLON, "expected COLON (cardinality not allowed in root type declaration, it is fixed to [1,1])" );
+			
 			currentType = parseType( typeName );
 			parseBackwardDocumentation( currentType );
 			
@@ -320,9 +321,11 @@ public class OLParser extends AbstractParser
 		if ( nativeType == null ) { // It's a user-defined type
 			currentType = new TypeDefinitionLink( getContext(), typeName, Constants.RANGE_ONE_TO_ONE, token.content() );
 			getToken();
+			parseBackwardDocumentation( currentType );
 		} else {
 			currentType = new TypeInlineDefinition( getContext(), typeName, nativeType, Constants.RANGE_ONE_TO_ONE );
 			getToken();
+			parseBackwardDocumentation( currentType );
 			if ( token.is( Scanner.TokenType.LCURLY ) ) { // We have sub-types to parse
 				parseSubTypes( (TypeInlineDefinition) currentType );
 			}
@@ -343,6 +346,8 @@ public class OLParser extends AbstractParser
 	{
 		eat( Scanner.TokenType.LCURLY, "expected {" );
 
+		parseBackwardDocumentation( type );
+		
 		if ( token.is( Scanner.TokenType.QUESTION_MARK ) ) {
 			type.setUntypedSubTypes( true );
 			getToken();

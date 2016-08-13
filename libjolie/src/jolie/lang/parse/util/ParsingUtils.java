@@ -56,7 +56,7 @@ public class ParsingUtils
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, false ), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
@@ -76,7 +76,7 @@ public class ParsingUtils
 	)
 		throws IOException, ParserException, SemanticException
 	{
-		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset ), includePaths, classLoader );
+		OLParser olParser = new OLParser( new Scanner( inputStream, source, charset, false), includePaths, classLoader );
 		olParser.putConstants( definedConstants );
 		Program program = olParser.parse();
 		program = OLParseTreeOptimizer.optimize( program );
