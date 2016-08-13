@@ -331,7 +331,16 @@ public class JolieDocWriter
             } else {
                 builder.append( /*"<span class=\"native\">" + */ nativeTypeToString(((TypeInlineDefinition) type).nativeType()) /* + "</span>" */);
                 if (((TypeInlineDefinition) type).hasSubTypes()) {
-                    builder.append(" { \n");
+                    builder.append(" {");
+				}
+				
+				if ( type.getDocumentation() != null && subType ) { 
+					builder.append( "\t//&lt;" ).append( type.getDocumentation() ).append( "\n" );
+				}
+				
+				if (((TypeInlineDefinition) type).hasSubTypes()) {
+					if (!subType ) 
+						builder.append( "\n" );
                     for (Entry<String, TypeDefinition> entry : ((TypeInlineDefinition) type).subTypes()) {
                         builder.append(writeType(entry.getValue(), true, false, indetationLevel + 4) + "\n");
                     }
@@ -341,6 +350,7 @@ public class JolieDocWriter
                     ;
                     builder.append("}");
                 }
+				
             }
             
         } else if (type instanceof TypeChoiceDefinition){
