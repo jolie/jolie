@@ -165,6 +165,7 @@ public abstract class ExecutionThread extends JolieThread
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
 	private Future<?> taskFuture;
+	private FaultException currentFault;
 	
 	private void setTaskFuture( Future<?> taskFuture )
 	{
@@ -238,6 +239,21 @@ public abstract class ExecutionThread extends JolieThread
 	public void clearKill()
 	{
 		killerFault = null;
+	}
+	
+	public FaultException currentFault()
+	{
+		return currentFault;
+	}
+	
+	public void setCurrentFault( FaultException fault )
+	{
+		currentFault = fault;
+	}
+	
+	public void clearCurrentFault()
+	{
+		currentFault = null;
 	}
 
 	/**

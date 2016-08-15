@@ -49,19 +49,10 @@ public class ReThrowProcess implements Process
 		}
 
 		ExecutionThread ethread = ExecutionThread.currentThread();
-
-		Value scopeValue = new VariablePathBuilder( false )
-			.add( ethread.currentScopeId(), 0 )
-			.toVariablePath()
-			.getValue();
-		String faultName = scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).strValue();
-
-		Value faultValue = scopeValue.getChildren( faultName ).get( 0 );
-
 		if ( expression == null ) {
-			throw new FaultException( faultName, faultValue );
+			throw ethread.currentFault();
 		} else {
-			throw new FaultException( faultName, expression.evaluate() );
+			throw new FaultException( ethread.currentFault().faultName(), expression.evaluate() );
 		}
 	}
 

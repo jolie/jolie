@@ -75,16 +75,19 @@ public class ScopeProcess implements Process
 				p = ethread.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
 					Value scopeValue =
-							new VariablePathBuilder( false )
+						new VariablePathBuilder( false )
 							.add( ethread.currentScopeId(), 0 )
 							.toVariablePath()
 							.getValue();
 					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+					scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+					ethread.setCurrentFault( f );
 					this.runScope( p );
 				} else {
 					fault = f;
 				}
+			} finally {
+				ethread.clearCurrentFault();
 			}
 		}
 	}
@@ -105,17 +108,20 @@ public class ScopeProcess implements Process
 		this( id, process, true );
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ScopeProcess( id, process.clone( reason ), autoPop );
 	}
 	
+	@Override
 	public void run()
 		throws FaultException, ExitingException
 	{
 		(new Execution( this )).run();
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return process.isKillable();
