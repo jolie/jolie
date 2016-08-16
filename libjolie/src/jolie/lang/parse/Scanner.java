@@ -337,8 +337,8 @@ public class Scanner
 	
 
 	private final InputStream stream;		// input stream
-	private final BufferedReader reader;	// data input
-	private final String charset;			// data input charset
+	private final InputStreamReader reader;	// data input
+
 	protected char ch;						// current character
 	protected int currInt;					// current stream int
 	protected int state;					// current state
@@ -375,9 +375,7 @@ public class Scanner
 		this.source = source;
 		this.ignoreDocumentation = ignoreDocumentation;
 		
-		InputStreamReader inputStreamReader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
-		this.reader = new BufferedReader( inputStreamReader );
-		this.charset = inputStreamReader.getEncoding();
+		this.reader = charset != null ? new InputStreamReader( stream, charset ) : new InputStreamReader( stream );
 		
 		line = 1;
 		readChar();
@@ -444,7 +442,7 @@ public class Scanner
 	 */
 	public String charset()
 	{
-		return  this.charset;
+		return reader.getEncoding();
 	}
 	
 	/**
@@ -804,8 +802,11 @@ public class Scanner
 						stopOneChar = true;
 						
 						if ( ch == '*' && !this.ignoreDocumentation ) { //BEGIN DOCUMENTATION COMMENT
-							//normal documentation comment
 							readChar();
+							if ( ch == '!' ) { //ignore old documentation sign
+								readChar();
+							}
+
 							resetTokenBuilder();
 							state = 21;
 						}
