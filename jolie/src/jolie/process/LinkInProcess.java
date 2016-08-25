@@ -21,8 +21,8 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.ExitingException;
@@ -41,7 +41,7 @@ public class LinkInProcess implements Process
 			this.parent = parent;
 		}
 
-		private void run()
+		private void run(SessionContext ctx)
 			throws FaultException
 		{
 			InternalLink link = InternalLink.getById( parent.linkId );
@@ -49,10 +49,9 @@ public class LinkInProcess implements Process
 				link.signForMessage( this );
 				synchronized( this ) {
 					if( message == null && !Interpreter.getInstance().exiting() ) {
-						ExecutionThread ethread = ExecutionThread.currentThread();
-						ethread.setCanBeInterrupted( true );
+						ctx.setCanBeInterrupted( true );
 						this.wait();
-						ethread.setCanBeInterrupted( false );
+						ctx.setCanBeInterrupted( false );
 					}
 				}
 			} catch( InterruptedException ie ) {
@@ -80,21 +79,24 @@ public class LinkInProcess implements Process
 		this.linkId = link;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new LinkInProcess( linkId );
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
-		(new Execution( this )).run();
+		(new Execution( this )).run(ctx);
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

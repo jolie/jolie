@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
@@ -37,6 +37,7 @@ public class WhileProcess implements Process
 		this.process = process;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new WhileProcess(
@@ -45,20 +46,20 @@ public class WhileProcess implements Process
 				);
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
-		while( condition.evaluate().boolValue() ) {
-			process.run();
-			if ( ExecutionThread.currentThread().isKilled() ) {
-				return;
-			}
+
+		if( condition.evaluate().boolValue() ) {
+			ctx.executeNext( process, this );
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

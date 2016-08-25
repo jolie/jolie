@@ -19,38 +19,41 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-
 package jolie;
 
 import java.util.Map;
 import java.util.concurrent.Future;
 import jolie.net.SessionMessage;
+import jolie.process.Process;
 import jolie.runtime.InputOperation;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public abstract class TransparentExecutionThread extends ExecutionThread
+public abstract class TransparentContext extends SessionContext
 {
-	public TransparentExecutionThread( jolie.process.Process process, ExecutionThread parent )
+	public TransparentContext( Process process, ScopableContext parent )
 	{
 		super( process, parent );
 	}
 
+	@Override
 	public jolie.State state()
 	{
 		return parent.state();
 	}
 
-	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionThread ethread )
+	@Override
+	public Future< SessionMessage> requestMessage( InputOperation operation, ScopableContext ctx )
 	{
-		return parent.requestMessage( operation, ethread );
+		return parent.requestMessage( operation, ctx );
 	}
 
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionThread ethread )
+	@Override
+	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ScopableContext ctx )
 	{
-		return parent.requestMessage( operations, ethread );
+		return parent.requestMessage( operations, ctx );
 	}
 
 	@Override

@@ -23,13 +23,14 @@ package jolie.process;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.monitoring.events.OperationCallEvent;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
+import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.expression.Expression;
@@ -40,6 +41,34 @@ import jolie.tracer.Tracer;
 
 public class NotificationProcess implements Process
 {
+	private class SendCompleteProcess implements Process
+	{
+		private final CommMessage message;
+		public SendCompleteProcess(CommMessage message)
+		{
+			this.message = message;
+		}
+		
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			log( "SENT", message );
+			if ( ctx.interpreter().isMonitoring() ) {
+				ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+			}
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Should not be cloned" );
+		}
+
+		@Override
+		public boolean isKillable()
+		{ return false; }
+	};
+	
 	private final String operationId;
 	private final OutputPort outputPort;
 	private final Expression outputExpression; // may be null
@@ -79,10 +108,11 @@ public class NotificationProcess implements Process
 		) );
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -97,39 +127,35 @@ public class NotificationProcess implements Process
 				oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
 					if ( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 					throw( e );
 				}
 			}
-			channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel( ctx );
 
 			log( "SENDING", message );
+
+			ctx.executeNext(new SendCompleteProcess(message) );
+			channel.send( message, ctx );
 			
-			channel.send( message );
-			
-			log( "SENT", message );
-			if ( Interpreter.getInstance().isMonitoring() ) {
-				Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
-			}
-			
-			CommMessage response = null;
-			do {
-				response = channel.recvResponseFor( message );
-			} while( response == null );
-			
-			log( "RECEIVED ACK", response );
-			
-			if ( response.isFault() ) {
-				if ( response.fault().faultName().equals( "CorrelationError" )
-					|| response.fault().faultName().equals( "IOException" )
-					|| response.fault().faultName().equals( "TypeMismatch" )
-					) {
-					throw response.fault();
-				} else {
-					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
-				}
-			}
+//			CommMessage response = null;
+//			do {
+//				response = channel.recvResponseFor( message );
+//			} while( response == null );
+//			
+//			log( "RECEIVED ACK", response );
+//			
+//			if ( response.isFault() ) {
+//				if ( response.fault().faultName().equals( "CorrelationError" )
+//					|| response.fault().faultName().equals( "IOException" )
+//					|| response.fault().faultName().equals( "TypeMismatch" )
+//					) {
+//					throw response.fault();
+//				} else {
+//					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
+//				}
+//			}
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
@@ -141,7 +167,7 @@ public class NotificationProcess implements Process
 				try {
 					channel.release();
 				} catch( IOException e ) {
-					Interpreter.getInstance().logWarning( e );
+					ctx.interpreter().logWarning( e );
 				}
 			}
 		}

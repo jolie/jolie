@@ -22,8 +22,8 @@
 package jolie.runtime.correlation;
 
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.SessionListener;
-import jolie.SessionThread;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
@@ -66,8 +66,8 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 	}
 
-	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message );
-	public abstract void onSingleExecutionSessionStart( SessionThread session );
+	public abstract void onSessionStart( SessionContext session, Interpreter.SessionStarter starter, CommMessage message );
+	public abstract void onSingleExecutionSessionStart( SessionContext session );
 	protected abstract boolean routeMessage( CommMessage message, CommChannel channel );
 
 	private final Interpreter interpreter;
@@ -82,7 +82,7 @@ public abstract class CorrelationEngine implements SessionListener
 		return interpreter;
 	}
 
-	protected void initCorrelationValues( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
+	protected void initCorrelationValues( SessionContext session, Interpreter.SessionStarter starter, CommMessage message )
 	{
 		Value messageValue;
 		CorrelationSet correlationSet = starter.correlationInitializer();

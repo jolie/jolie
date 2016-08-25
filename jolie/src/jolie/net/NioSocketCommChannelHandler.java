@@ -5,7 +5,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 
 /**
@@ -18,12 +17,10 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 
 	private Channel channel;
 	private final NioSocketCommChannel commChannel;
-	private final Interpreter interpreter;
 
 	NioSocketCommChannelHandler( NioSocketCommChannel channel )
 	{
 		this.commChannel = channel;
-		this.interpreter = Interpreter.getInstance();
 	}
 
 	@Override
@@ -39,8 +36,10 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 		if(commChannel.parentPort() instanceof OutputPort) {
 			this.commChannel.recievedResponse( msg );
 		} else {
-			this.commChannel.messageRecv( msg );
+			this.commChannel.messageRecv( commChannel.sessionContext(), msg );
 		}
+		// Wake up the context to handle the message
+		commChannel.context.start();
 	}
 
 	protected ChannelFuture write( CommMessage msg )

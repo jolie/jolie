@@ -25,6 +25,7 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import jolie.SessionContext;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -43,7 +44,7 @@ public abstract class CommProtocol
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends AbstractCommChannel {
 			public void closeImpl() {}
-			public void sendImpl( CommMessage message ) {}
+			public void sendImpl( CommMessage message, SessionContext ctx ) {}
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
@@ -54,7 +55,7 @@ public abstract class CommProtocol
 		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
 
-
+	protected SessionContext sessionContext;
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
 
@@ -85,13 +86,13 @@ public abstract class CommProtocol
 	
 	protected ValueVector getParameterVector( String id )
 	{
-		return configurationPath.getValue().getChildren( id );
+		return configurationPath.getValue( sessionContext ).getChildren( id );
 	}
 	
 	protected boolean hasParameter( String id )
 	{
-		if ( configurationPath.getValue().hasChildren( id ) ) {
-			Value v = configurationPath.getValue().getFirstChild( id );
+		if ( configurationPath.getValue( sessionContext ).hasChildren( id ) ) {
+			Value v = configurationPath.getValue( sessionContext ).getFirstChild( id );
 			return v.isDefined() || v.hasChildren();
 		}
 		return false;
@@ -99,8 +100,8 @@ public abstract class CommProtocol
 	
 	protected boolean hasParameterValue( String id )
 	{
-		if ( configurationPath.getValue().hasChildren( id ) ) {
-			Value v = configurationPath.getValue().getFirstChild( id );
+		if ( configurationPath.getValue( sessionContext ).hasChildren( id ) ) {
+			Value v = configurationPath.getValue( sessionContext ).getFirstChild( id );
 			return v.isDefined();
 		}
 		return false;

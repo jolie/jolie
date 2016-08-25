@@ -21,10 +21,10 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
+import jolie.SessionContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Multiply a VariablePath's value with an expression value, assigning the resulting
@@ -49,6 +49,7 @@ public class MultiplyAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new MultiplyAssignmentProcess(
@@ -56,6 +57,7 @@ public class MultiplyAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new MultiplyAssignmentProcess(
@@ -63,15 +65,18 @@ public class MultiplyAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
-	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
+	/** Evaluates the expression and adds its value to the variable's value.
+	 */
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 		varPath.getValue().multiply( expression.evaluate() );
 	}
 
+	@Override
 	public Value evaluate()
 	{
 		Value val = varPath.getValue();
@@ -79,6 +84,7 @@ public class MultiplyAssignmentProcess implements Process, Expression
 		return val;
 	}
 
+	@Override
 	public boolean isKillable()
 	{
 		return true;

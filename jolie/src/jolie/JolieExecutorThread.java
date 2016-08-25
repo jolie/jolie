@@ -29,6 +29,7 @@ package jolie;
 public class JolieExecutorThread extends Thread implements InterpreterThread
 {
 	private ExecutionThread executionThread;
+	private SessionContext sessionContext;
 	
 	public JolieExecutorThread( Runnable r, Interpreter interpreter )
 	{
@@ -43,6 +44,12 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	{
 		executionThread = thread;
 	}
+	
+	public final void sessionContext( SessionContext ctx ) 
+	{
+		System.out.println( "Set Thread SessionContext to: " + this + " for: " + Thread.currentThread() );
+		sessionContext = ctx;
+	}
 
 	/**
 	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state resolution.
@@ -51,6 +58,11 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	public final ExecutionThread executionThread()
 	{
 		return executionThread;
+	}
+	
+	public final SessionContext sessionContext() 
+	{
+		return sessionContext;
 	}
 	
 	@Override

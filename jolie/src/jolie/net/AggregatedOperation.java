@@ -23,10 +23,9 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.SessionListener;
-import jolie.SessionThread;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
@@ -71,36 +70,36 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( final SessionContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			final Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				ExecutionThread initThread = Interpreter.getInstance().initThread();
+				SessionContext initContext = interpreter.initContext();
 				try {
-					initThread.join();
+					initContext.join();
 				} catch( InterruptedException e ) {
 					throw new IOException( e );
 				}
 
-				State state = initThread.state().clone();
+				State state = initContext.state().clone();
 				Process p = new SequentialProcess( new Process[] {
-					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
+					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), ctx ),
 					courierProcess
 				});
-				SessionThread t = new SessionThread( p, state, initThread );
+				SessionContext c = new SessionContext( p, state, initContext );
 				
 				final FaultException[] f = new FaultException[1];
 				f[0] = null;
-				t.addSessionListener( new SessionListener() {
+				c.addSessionListener( new SessionListener() {
 					@Override
-					public void onSessionExecuted( SessionThread session )
+					public void onSessionExecuted( SessionContext session )
 					{}
 
 					@Override
-					public void onSessionError( SessionThread session, FaultException fault )
+					public void onSessionError( SessionContext session, FaultException fault )
 					{
 						// We need to send the acknowledgement
 						if ( fault.faultName().equals( "CorrelationError" )
@@ -111,32 +110,32 @@ public abstract class AggregatedOperation
 								f[0] = fault;
 							}
 						} else {
-							Interpreter.getInstance().logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
+							interpreter.logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
 							synchronized( f ) {
 								f[0] = new FaultException( jolie.lang.Constants.IO_EXCEPTION_FAULT_NAME, fault.faultName() );
 							}
 						}
 					}
 				} );
-				t.start();
+				c.start();
 				try {
-					t.join();
+					c.join();
 				} catch( InterruptedException e ) {}
 				
 				synchronized( f ) {
 					if ( f[0] == null ) {
 						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
+						channel.send( CommMessage.createEmptyResponse( requestMessage ), c );
 					} else {
-						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ) );
+						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ), c );
 					}
 				}
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ), ctx );
 				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
+					interpreter.logSevere( ioe );
 				}
 			} finally {
 				channel.disposeForInput();
@@ -176,30 +175,30 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( SessionContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			final Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				ExecutionThread initThread = Interpreter.getInstance().initThread();
+				SessionContext initContext = interpreter.initContext();
 				try {
-					initThread.join();
+					initContext.join();
 				} catch( InterruptedException e ) {
 					throw new IOException( e );
 				}
 
-				State state = initThread.state().clone();
+				State state = initContext.state().clone();
 				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess )
-								.receiveMessage( new SessionMessage( requestMessage, channel ), state );
-				new SessionThread( p, state, initThread ).start();
+								.receiveMessage( new SessionMessage( requestMessage, channel ), ctx );
+				new SessionContext( p, state, initContext ).start();
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ), ctx );
 				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
+					interpreter.logSevere( ioe );
 				}
 			} finally {
 				channel.disposeForInput();
@@ -233,18 +232,18 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+		public void runAggregationBehaviour( SessionContext ctx, CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
 			CommChannel oChannel = null;
 			try {
-				oChannel = outputPort.getNewCommChannel();
+				oChannel = outputPort.getNewCommChannel( ctx );
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
-				oChannel.send( requestToAggregated );
+				oChannel.send( requestToAggregated, ctx );
 				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
-				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
+				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ), ctx );
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ), ctx );
 			} finally {
 				if ( oChannel != null ) {
 					oChannel.close();
@@ -311,6 +310,6 @@ public abstract class AggregatedOperation
 		return name;
 	}
         
-	public abstract void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+	public abstract void runAggregationBehaviour( SessionContext ctx, CommMessage requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }

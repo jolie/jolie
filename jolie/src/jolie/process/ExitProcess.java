@@ -20,6 +20,7 @@
 package jolie.process;
 
 import jolie.Interpreter;
+import jolie.SessionContext;
 
 
 public class ExitProcess implements Process
@@ -43,7 +44,7 @@ public class ExitProcess implements Process
 	}
 	
 	@Override
-	public void run()
+	public void run(SessionContext ctx)
 	{
 		final Interpreter interpreter = Interpreter.getInstance();
 		interpreter.execute( () -> interpreter.exit() );

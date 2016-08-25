@@ -21,10 +21,10 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
+import jolie.SessionContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Subtract an expression value from a VariablePath's value, assigning the resulting
@@ -49,6 +49,7 @@ public class SubtractAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new AssignmentProcess(
@@ -56,6 +57,7 @@ public class SubtractAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new AssignmentProcess(
@@ -64,15 +66,17 @@ public class SubtractAssignmentProcess implements Process, Expression
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
-		varPath.getValue().subtract( expression.evaluate() );
+		varPath.getValue( ctx ).subtract( expression.evaluate() );
 	}
 
+	@Override
 	public Value evaluate()
 	{
 		Value val = varPath.getValue();
@@ -80,6 +84,7 @@ public class SubtractAssignmentProcess implements Process, Expression
 		return val;
 	}
 
+	@Override
 	public boolean isKillable()
 	{
 		return true;

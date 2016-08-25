@@ -68,7 +68,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, CommMessage msg, ByteBuf out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread( ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 
@@ -79,7 +79,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		protected void decode( ChannelHandlerContext ctx, ByteBuf in, List<Object> out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread( ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext(ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 
@@ -93,7 +93,7 @@ public class SodepProtocol extends AsyncCommProtocol
 				 * TODO instead of throwing away already read bytes and partial 
 				 * CommMessage, we could store the partial CommMessage, and 
 				 * resume decoding when more bytes are available until the 
-				 * complete is read.
+				 * complete message is read.
 				 */
 				in.resetReaderIndex();
 			}

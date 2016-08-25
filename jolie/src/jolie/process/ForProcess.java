@@ -19,7 +19,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
@@ -28,6 +28,50 @@ public final class ForProcess implements Process
 {
 	private final Expression condition;
 	private final Process init, post, process;
+	
+	private final Process step = new Process() {
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			if ( condition.evaluate().boolValue() ) {
+				ctx.executeNext( process , postStep );
+			}
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+
+		@Override
+		public boolean isKillable()
+		{
+			return false;
+		}
+	};
+	
+	private final Process postStep = new Process() {
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			if (ctx.isKilled())
+				return;
+			ctx.executeNext( post, step );
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+
+		@Override
+		public boolean isKillable()
+		{
+			return false;
+		}
+	};
 
 	public ForProcess( Process init, Expression condition, Process post, Process process )
 	{
@@ -49,21 +93,13 @@ public final class ForProcess implements Process
 	}
 	
 	@Override
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if ( ctx.isKilled() )
 			return;
-		}
 		
-		init.run();
-		while ( condition.evaluate().boolValue() ) {
-			process.run();
-			if ( ethread.isKilled() )
-				return;
-			post.run();
-		}
+		ctx.executeNext( init, step );
 	}
 	
 	@Override

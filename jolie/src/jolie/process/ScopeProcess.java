@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -33,23 +33,23 @@ public class ScopeProcess implements Process
 	private class Execution
 	{
 		final private ScopeProcess parent;
-		final private ExecutionThread ethread;
+		final private SessionContext ctx;
 		private boolean shouldMerge = true;
 		private FaultException fault = null;
 		
-		public Execution( ScopeProcess parent )
+		public Execution( ScopeProcess parent, SessionContext ctx )
 		{
 			this.parent = parent;
-			this.ethread = ExecutionThread.currentThread();
+			this.ctx = ctx;
 		}
 		
 		public void run()
 			throws FaultException, ExitingException
 		{
-			ethread.pushScope( parent.id );
+			ctx.pushScope( parent.id );
 			runScope( parent.process );
 			if ( autoPop ) {
-				ethread.popScope( shouldMerge );
+				ctx.popScope( shouldMerge );
 			}
 			if ( shouldMerge && fault != null ) {
 				throw fault;
@@ -60,25 +60,25 @@ public class ScopeProcess implements Process
 			throws ExitingException
 		{
 			try {
-				p.run();
-				if ( ethread.isKilled() ) {
+				p.run( ctx );
+				if ( ctx.isKilled() ) {
 					shouldMerge = false;
-					p = ethread.getCompensation( id );
+					p = ctx.getCompensation( id );
 					if ( p != null ) { // Termination handling
-						FaultException f = ethread.killerFault();
-						ethread.clearKill();
+						FaultException f = ctx.killerFault();
+						ctx.clearKill();
 						this.runScope( p );
-						ethread.kill( f );
+						ctx.kill( f );
 					}
 				}
 			} catch( FaultException f ) {
-				p = ethread.getFaultHandler( f.faultName(), true );
+				p = ctx.getFaultHandler( f.faultName(), true );
 				if ( p != null ) {
 					Value scopeValue =
 							new VariablePathBuilder( false )
-							.add( ethread.currentScopeId(), 0 )
+							.add( ctx.currentScopeId(), 0 )
 							.toVariablePath()
-							.getValue();
+							.getValue( ctx );
 					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
                                         scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
 					this.runScope( p );
@@ -105,17 +105,20 @@ public class ScopeProcess implements Process
 		this( id, process, true );
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ScopeProcess( id, process.clone( reason ), autoPop );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		(new Execution( this )).run();
+		(new Execution( this, ctx )).run();
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return process.isKillable();

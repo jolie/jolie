@@ -22,8 +22,9 @@
 package jolie.process;
 
 
-import jolie.runtime.expression.Expression;
+import jolie.SessionContext;
 import jolie.runtime.FaultException;
+import jolie.runtime.expression.Expression;
 
 public class RunProcess implements Process
 {
@@ -34,12 +35,14 @@ public class RunProcess implements Process
 		this.expression = expression;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new RunProcess( expression.cloneExpression( reason ) );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
 		throw new FaultException( "UnsupportedStatement" );
@@ -77,6 +80,7 @@ public class RunProcess implements Process
 			throw new FaultException( "fInvalidCode" );*/
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

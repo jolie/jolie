@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -49,6 +49,7 @@ public class AddAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new AddAssignmentProcess(
@@ -56,6 +57,7 @@ public class AddAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new AddAssignmentProcess(
@@ -63,15 +65,17 @@ public class AddAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
-	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
+	/** Evaluates the expression and adds its value to the variable's value.
+	 * @param ctx */
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 		varPath.getValue().add( expression.evaluate() );
 	}
 
+	@Override
 	public Value evaluate()
 	{
 		Value val = varPath.getValue();
@@ -79,6 +83,7 @@ public class AddAssignmentProcess implements Process, Expression
 		return val;
 	}
 
+	@Override
 	public boolean isKillable()
 	{
 		return true;

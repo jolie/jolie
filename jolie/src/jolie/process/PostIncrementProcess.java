@@ -19,7 +19,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
@@ -46,11 +46,11 @@ public class PostIncrementProcess implements Process, Expression
 	}
 	
 	@Override
-	public void run()
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
-		final Value val = path.getValue();
+		final Value val = path.getValue( ctx );
 		val.setValue( val.intValue() + 1 );
 	}
 	

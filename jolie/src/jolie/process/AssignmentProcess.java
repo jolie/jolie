@@ -21,11 +21,10 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
-import jolie.runtime.InvalidIdException;
+import jolie.SessionContext;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /** Assigns an expression value to a VariablePath.
  * @see Expression
@@ -65,11 +64,11 @@ public class AssignmentProcess implements Process, Expression
 	}
 	
 	/** Evaluates the expression and stores its value in the variable. */
-	public void run()
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
-		varPath.getValue().assignValue( expression.evaluate() );
+		varPath.getValue( ctx ).assignValue( expression.evaluate() );
 	}
 	
 	public Value evaluate()

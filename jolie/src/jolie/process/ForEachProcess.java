@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
@@ -29,6 +29,37 @@ import jolie.runtime.VariablePath;
 
 public class ForEachProcess implements Process
 {
+	private class UpdateKeyPathProcess implements Process {
+		
+		private final String id;
+		private final VariablePath keyPath;
+
+		public UpdateKeyPathProcess( String id, VariablePath keyPath )
+		{
+			this.id = id;
+			this.keyPath = keyPath;
+		}
+		
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			keyPath.getValue( ctx ).setValue( id );
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+
+		@Override
+		public boolean isKillable()
+		{
+			return true;
+		}
+		
+	}
+	
 	final private VariablePath keyPath, targetPath;
 	final private Process process;
 
@@ -42,6 +73,7 @@ public class ForEachProcess implements Process
 		this.process = process;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ForEachProcess(
@@ -51,10 +83,11 @@ public class ForEachProcess implements Process
 				);
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -66,13 +99,14 @@ public class ForEachProcess implements Process
 				keys = v.children().keySet().toArray( keys );
 			}
 			
-			for( String id : keys ) {
-				keyPath.getValue().setValue( id );
-				process.run();
+			for( int i = keys.length - 1; i >= 0; i-- ) {
+				ctx.executeNext( new UpdateKeyPathProcess( keys[i], keyPath ), 
+					process);
 			}
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

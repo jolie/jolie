@@ -25,53 +25,64 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.SessionThread;
+import jolie.SessionContext;
+import jolie.SessionListener;
+import jolie.TransparentContext;
 import jolie.process.Process;
+import jolie.process.SimpleProcess;
 import jolie.process.SpawnProcess;
 
 public class SpawnExecution
 {
-	private class SpawnedThread extends SessionThread
+	private class SpawnedContext extends TransparentContext
 	{
 		private final int index;
 		private final CountDownLatch latch;
 
-		public SpawnedThread(
-			ExecutionThread parentThread,
+		public SpawnedContext(
+			SessionContext parentContext,
 			Process process,
 			int index,
 			CountDownLatch latch
 		)
 		{
-			super( process, parentThread );
+			super( process, parentContext );
 			this.index = index;
 			this.latch = latch;
-		}
+			super.addSessionListener( new SessionListener()
+			{
+				@Override
+				public void onSessionExecuted( SessionContext session )
+				{
+					terminationNotify( SpawnedContext.this );
+				}
 
-		@Override
-		public void runProcess()
-		{
-			parentSpawnProcess.indexPath().getValue().setValue( index );
-			try {
-				process().run();
-			} catch( FaultException f ) {}
-			catch( ExitingException e ) {}
-			
-			terminationNotify( this );
+				@Override
+				public void onSessionError( SessionContext session, FaultException fault )
+				{
+					terminationNotify( SpawnedContext.this );
+				}
+			});
+			executeNext( new SimpleProcess()
+			{
+				@Override
+				public void run( SessionContext ctx ) throws FaultException, ExitingException
+				{
+					parentSpawnProcess.indexPath().getValue().setValue( index );
+				}
+			});
 		}
 	}
 	
-	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
+	private final Collection< SpawnedContext > threads = new HashSet<>();
 	private final SpawnProcess parentSpawnProcess;
-	private final ExecutionThread ethread;
+	private final SessionContext context;
 	private CountDownLatch latch;
 
-	public SpawnExecution( SpawnProcess parent )
+	public SpawnExecution( SessionContext ctx, SpawnProcess parent )
 	{
 		this.parentSpawnProcess = parent;
-		this.ethread = ExecutionThread.currentThread();
+		this.context = ctx;
 	}
 	
 	public void run()
@@ -82,11 +93,11 @@ public class SpawnExecution
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
 		latch = new CountDownLatch( upperBound );
-		SpawnedThread thread;
+		SpawnedContext thread;
 		
 		for( int i = 0; i < upperBound; i++ ) {
-			thread = new SpawnedThread(
-				ethread,
+			thread = new SpawnedContext(
+				context,
 				parentSpawnProcess.body(),
 				i,
 				latch
@@ -94,7 +105,7 @@ public class SpawnExecution
 			threads.add( thread );
 		}
 
-		for( SpawnedThread t : threads ) {
+		for( SpawnedContext t : threads ) {
 			// We start threads in this other cycle to avoid race conditions on inPath
 			t.start();
 		}
@@ -102,15 +113,15 @@ public class SpawnExecution
 		try {
 			latch.await();
 		} catch( InterruptedException e ) {
-			Interpreter.getInstance().logWarning( e );
+			context.interpreter().logWarning( e );
 		}
 	}
 	
-	private void terminationNotify( SpawnedThread thread )
+	private void terminationNotify( SpawnedContext childContext )
 	{
 		synchronized( this ) {
 			if ( parentSpawnProcess.inPath() != null ) {
-				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( thread.index )
+				parentSpawnProcess.inPath().getValueVector( context.state().root() ).get( childContext.index )
 					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
 			}
 			

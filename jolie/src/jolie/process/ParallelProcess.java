@@ -21,6 +21,7 @@
 
 package jolie.process;
 
+import jolie.SessionContext;
 import jolie.runtime.FaultException;
 import jolie.runtime.ParallelExecution;
 
@@ -33,17 +34,20 @@ public class ParallelProcess implements Process
 		this.children = children;
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		(new ParallelExecution( children )).run();
+		(new ParallelExecution( children, ctx )).run();
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ParallelProcess( children );
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		for( Process child : children ) {

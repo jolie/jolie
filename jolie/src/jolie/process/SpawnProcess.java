@@ -21,6 +21,7 @@
 
 package jolie.process;
 
+import jolie.SessionContext;
 import jolie.runtime.FaultException;
 import jolie.runtime.SpawnExecution;
 import jolie.runtime.VariablePath;
@@ -55,10 +56,10 @@ public class SpawnProcess implements Process
 				);
 	}
 	
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		new SpawnExecution( this ).run();
+		new SpawnExecution( ctx, this ).run();
 	}
 
 	public Expression upperBound()

@@ -1,53 +1,40 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+/**
+ * *************************************************************************
+ *   Copyright (C) 2006-2008 by Fabrizio Montesi <famontesi@gmail.com> * * This
+ * program is free software; you can redistribute it and/or modify * it under
+ * the terms of the GNU Library General Public License as * published by the
+ * Free Software Foundation; either version 2 of the * License, or (at your
+ * option) any later version. * * This program is distributed in the hope that
+ * it will be useful, * but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the *
+ * GNU General Public License for more details. * * You should have received a
+ * copy of the GNU Library General Public * License along with this program; if
+ * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
+ * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
+ * software, see the AUTHORS file. *
+ **************************************************************************
+ */
 package jolie;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.lang.Constants;
-import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
-import jolie.runtime.VariablePath;
 
 /**
- * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
- * @see JolieThread
- * @see VariablePath
- * @see jolie.State
- * @author Fabrizio Montesi
+ * Replaces ExecutionThread.
+ * 
+ * @author martin
  */
-@Deprecated
-public abstract class ExecutionThread extends JolieThread
+public abstract class ScopableContext extends JolieContext
 {
 	/**
 	 * A Scope object represents a fault handling scope,
@@ -159,18 +146,13 @@ public abstract class ExecutionThread extends JolieThread
 		}
 	}
 
-	protected final Process process;
-	protected final Deque< Scope > scopeStack = new ArrayDeque<>();
-	protected final ExecutionThread parent;
-	private final Deque< WeakReference< Future< ? > > > futureToCancel = new ArrayDeque<>();
+	protected Deque< Scope > scopeStack = new ArrayDeque<>();
+	private Deque< WeakReference< Future< ? > > > futureToCancel = new ArrayDeque<>();
 	private boolean canBeInterrupted = false;
 	private FaultException killerFault = null;
-	private Future<?> taskFuture;
-	
-	private void setTaskFuture( Future<?> taskFuture )
-	{
-		this.taskFuture = taskFuture;
-	}
+	protected final ScopableContext parent;
+	protected Deque<Process> processStack = new ArrayDeque<>();
+	protected boolean pauseExecution = false;
 	
 	/**
 	 * Sets if this thread can be interrupted by a fault signal or not.
@@ -185,10 +167,11 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param process the Process to be executed by this thread
 	 * @param parent the parent of this thread
 	 */
-	public ExecutionThread( Process process, ExecutionThread parent )
+	public ScopableContext( Process process, ScopableContext parent )
 	{
 		super( parent.interpreter() );
-		this.process = process;
+		if (process != null)
+			this.processStack.push( process );
 		this.parent = parent;
 	}
 	
@@ -197,10 +180,11 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param interpreter the Interpreter this thread should refer to
 	 * @param process the Process to be executed by this thread
 	 */
-	public ExecutionThread( Interpreter interpreter, Process process )
+	public ScopableContext( Interpreter interpreter, Process process )
 	{
 		super( interpreter );
-		this.process = process;
+		if (process != null)
+			this.processStack.push( process );
 		this.parent = null;
 	}
 
@@ -219,9 +203,10 @@ public abstract class ExecutionThread extends JolieThread
 			}
 		}
 		
-		if( canBeInterrupted ) {
-			taskFuture.cancel( canBeInterrupted );
-		}
+		// TODO handle this
+//		if( canBeInterrupted ) {
+//			taskFuture.cancel( canBeInterrupted );
+//		}
 	}
 	
 	/**
@@ -350,7 +335,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void pushScope( String id )
 	{
-		scopeStack.push( new Scope( id ) );
+		scopeStack.push( new ScopableContext.Scope( id ) );
 	}
 	
 	/**
@@ -360,7 +345,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void popScope( boolean merge )
 	{
-		final Scope s = scopeStack.pop();
+		final ScopableContext.Scope s = scopeStack.pop();
 		if ( merge ) {
 			mergeCompensations( s );
 		}
@@ -375,7 +360,7 @@ public abstract class ExecutionThread extends JolieThread
 		popScope( true );
 	}
 	
-	private synchronized void mergeCompensations( Scope s )
+	private synchronized void mergeCompensations( ScopableContext.Scope s )
 	{
 		if ( scopeStack.isEmpty() ) {
 			if ( parent != null ) {
@@ -412,24 +397,6 @@ public abstract class ExecutionThread extends JolieThread
 			scopeStack.peek().installFaultHandler( id, process );
 		}
 	}
-	
-	/**
-	 * Returns the ExecutionThread the current thread should refer to.
-	 * This method can be useful, e.g., for resolving VariablePaths outside the
-	 * execution of an ExecutionThread.
-	 * @return the ExecutionThread the current thread should refer to.
-	 */
-	public static ExecutionThread currentThread()
-	{
-		Thread currThread = Thread.currentThread();
-		if ( currThread instanceof JolieExecutorThread ) {
-			return ((JolieExecutorThread)currThread).executionThread();
-		} else if ( currThread instanceof CommChannelHandler ) {
-			return ((CommChannelHandler)currThread).executionThread();
-		}
-
-		return null;
-	}
 
 	/**
 	 * Returns the State this ExecutionThread refers to.
@@ -441,49 +408,48 @@ public abstract class ExecutionThread extends JolieThread
 	/**
 	 * Requests a message from the currently executing session.
 	 * @param operation the operation on which the process wants to receive the message
+	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( InputOperation operation, ExecutionThread ethread );
+	public abstract Future< SessionMessage > requestMessage( InputOperation operation, ScopableContext ctx );
 
 	/**
 	 * Requests a message from the currently executing session.
 	 * @param operations the map of possible operations on which the process wants to receive the message
+	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread );
-	
-	protected Process process()
-	{
-		return process;
-	}
+	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ScopableContext ctx);
 
 	public abstract String getSessionId();
 	
-	public abstract void runProcess();
-	
-	@Override
-	public final void run()
-	{
-		JolieExecutorThread t = JolieExecutorThread.currentThread();
-		t.setExecutionThread( this );
-		t.setContextClassLoader( interpreter().getClassLoader() );
-		runProcess();
-	}
-	
 	public void start()
 	{
-		setTaskFuture( interpreter().runJolieThread( this ) );
+		interpreter().runJolieThread( this );
 	}
 	
-	public void join()
-		throws InterruptedException
-	{
-		try {
-			taskFuture.get();
-		} catch( ExecutionException e ) {
-			ByteArrayOutputStream bs = new ByteArrayOutputStream();
-			e.printStackTrace( new PrintStream( bs ) );
-			throw new InterruptedException( bs.toString() );
+	public void executeNext(Process process) {
+		System.out.println( "Adding process to stack: " + process );
+		processStack.push( process );
+	}
+	
+	public void executeNext(Process ... processes) {
+		for( int i = processes.length  - 1; i >= 0; i-- ) {
+			executeNext( processes[ i ] );
 		}
 	}
+	
+	public void executeLast(Process process) {
+		processStack.addLast( process );
+	}
+	
+	/**
+	 * Breaks execution at next before next process is run.
+	 * This SessionContext should be rescheduled for execution at a later point 
+	 * in time.
+	 */
+	public void pauseExecution() {
+		pauseExecution = true;
+	}
+
 }

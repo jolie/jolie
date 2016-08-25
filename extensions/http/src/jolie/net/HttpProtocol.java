@@ -34,6 +34,7 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -79,7 +80,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;
@@ -198,9 +198,14 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
-		pipeline.addLast( new HttpServerCodec() );
-		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
-		pipeline.addLast( new HttpContentCompressor() );
+		if (inInputPort) {
+			pipeline.addLast( new HttpServerCodec() );
+			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+			pipeline.addLast( new HttpContentCompressor() );
+		} else {
+			pipeline.addLast( new HttpClientCodec() );
+			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+		}
 		pipeline.addLast( new HttpCommMessageCodec() );
 	}
 
@@ -209,9 +214,11 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception
-		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread( ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-
+		{			
+			//((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
+			
+			NioSocketCommChannel channel = ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get();
+			sessionContext = channel.context;
 			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
@@ -220,8 +227,11 @@ public class HttpProtocol extends AsyncCommProtocol
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread( ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-			System.out.println( "HTTP message recv: " + ExecutionThread.currentThread() );
+			//((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
+			
+			NioSocketCommChannel channel = ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get();
+			sessionContext = channel.context;
+			System.out.println( "HTTP message recv: " + channel.sessionContext() );
 			if ( msg instanceof FullHttpRequest ) {
 				FullHttpRequest request = (FullHttpRequest) msg;
 				System.out.println( "HTTP request ! (" + request.uri() + ")" );
@@ -842,7 +852,7 @@ public class HttpProtocol extends AsyncCommProtocol
 	private void send_appendRequestHeaders( CommMessage message, HttpHeaders headers )
 		throws IOException
 	{
-		headers.add( HttpHeaderNames.HOST, uri.getHost() + HttpUtils.CRLF );
+		headers.add( HttpHeaderNames.HOST, uri.getHost() );
 		send_appendCookies( message, uri.getHost(), headers );
 		send_appendAuthorizationHeader( message, headers );
 		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
@@ -895,15 +905,21 @@ public class HttpProtocol extends AsyncCommProtocol
 			}
 
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
-			String compressionTypes = getStringParameter(
-				Parameters.COMPRESSION_TYPES,
+			String compressionTypes = getStringParameter( Parameters.COMPRESSION_TYPES,
 				"text/html text/css text/plain text/xml text/x-js text/x-gwt-rpc application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml"
 			).toLowerCase();
+			
 			if ( compression && !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
 			if ( compression ) {
-				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
+				// encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
+				// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
+				if ( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
+					headers.add( HttpHeaderNames.CONTENT_ENCODING, "gzip" );
+				} else if ( encoding.contains( "deflate" ) ) {
+					headers.add( HttpHeaderNames.CONTENT_ENCODING, "deflate" );
+				}
 			}
 
 			headers.add( HttpHeaderNames.CONTENT_LENGTH, encodedContent.content.size() );

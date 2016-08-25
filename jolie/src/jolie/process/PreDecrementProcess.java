@@ -21,10 +21,10 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
-import jolie.runtime.VariablePath;
+import jolie.SessionContext;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 public class PreDecrementProcess implements Process, Expression
 {
@@ -35,24 +35,28 @@ public class PreDecrementProcess implements Process, Expression
 		this.path = varPath;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}
 	
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new PreDecrementProcess( (VariablePath)path.cloneExpression( reason ) );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
-		Value val = path.getValue();
+		Value val = path.getValue( ctx );
 		val.setValue( val.intValue() - 1 );
 	}
 	
+	@Override
 	public Value evaluate()
 	{
 		Value val = path.getValue();
@@ -60,6 +64,7 @@ public class PreDecrementProcess implements Process, Expression
 		return val;
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

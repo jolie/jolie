@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.net.protocols.AsyncCommProtocol;
 
 /**
@@ -26,13 +26,13 @@ import jolie.net.protocols.AsyncCommProtocol;
 public class NioSocketCommChannel extends StreamingCommChannel
 {
 
-	public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf( "ExecutionContext" );
-	public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf( "CommChannel" );
+	public static AttributeKey<NioSocketCommChannel> COMMCHANNEL = AttributeKey.valueOf( "CommChannel" );
 
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected final NioSocketCommChannelHandler nioSocketCommChannelHandler;
+	public SessionContext context;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
@@ -40,10 +40,10 @@ public class NioSocketCommChannel extends StreamingCommChannel
 		nioSocketCommChannelHandler = new NioSocketCommChannelHandler( this );
 	}
 
-	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
+	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, SessionContext ctx )
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
+		channel.sessionContext( ctx );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
 			.channel( NioSocketChannel.class )
@@ -56,7 +56,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 					ChannelPipeline p = ch.pipeline();
 					protocol.setupPipeline( p );
 					p.addLast( channel.nioSocketCommChannelHandler );
-					ch.attr( EXECUTION_CONTEXT ).set( ethread );
+					ch.attr( COMMCHANNEL ).set( channel );
 				}
 			} );
 		return channel;
@@ -99,23 +99,35 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message ) throws IOException
+	protected void sendImpl( CommMessage message, SessionContext ctx ) throws IOException
 	{
-		try {
-			nioSocketCommChannelHandler.write( message ).sync();
-		} catch( InterruptedException ex ) {
-			throw new IOException( ex );
-		}
+		ctx.pauseExecution();
+		ChannelFuture future = nioSocketCommChannelHandler.write( message );
+		future.addListener(( ChannelFuture future1 ) -> {
+			if ( future1.isSuccess() ) {
+				ctx.start();
+			} else {
+				throw new IOException( future1.cause() );
+			}
+		});
 	}
 
 	@Override
 	protected void closeImpl() throws IOException
 	{
-		try {
-			nioSocketCommChannelHandler.close().sync();
-		} catch( InterruptedException ex ) {
-			throw new IOException( ex );
-		}
+//		try {
+//			nioSocketCommChannelHandler.close().sync();
+//		} catch( InterruptedException ex ) {
+//			throw new IOException( ex );
+//		}
+	}
+	
+	public SessionContext sessionContext() {
+		return context;
+	}
+	
+	public void sessionContext(SessionContext ctx) {
+		this.context = ctx;
 	}
 
 }

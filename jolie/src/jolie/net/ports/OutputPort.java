@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -164,7 +165,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @return a new message with same operation and value, but updated resource
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommMessage createAggregatedRequest( CommMessage message )
+	public CommMessage createAggregatedRequest(CommMessage message )
 		throws URISyntaxException
 	{
 		return new CommMessage(
@@ -182,10 +183,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		return iface;
 	}
 
-	public void optimizeLocation()
+	public void optimizeLocation( SessionContext ctx )
 	{
 		if ( isConstant ) {
-			locationExpression = locationVariablePath.getValue();
+			locationExpression = locationVariablePath.getValue( ctx );
 		}
 	}
 
@@ -201,10 +202,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommProtocol getProtocol()
+	public CommProtocol getProtocol(SessionContext ctx)
 		throws IOException, URISyntaxException
 	{
-		String protocolId = protocolVariablePath.getValue().strValue();
+		String protocolId = protocolVariablePath.getValue( ctx ).strValue();
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
@@ -216,7 +217,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	}
 
 	
-	private CommChannel getCommChannel( boolean forceNew )
+	private CommChannel getCommChannel(SessionContext ctx,  boolean forceNew )
 		throws URISyntaxException, IOException
 	{
 		CommChannel ret;
@@ -231,13 +232,13 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
-				ret = interpreter.commCore().createCommChannel( uri, this );
+				ret = interpreter.commCore().createCommChannel( uri, this, ctx );
 			} else {
 				// Try reusing an existing channel first
-				String protocol = protocolVariablePath.getValue().strValue();
+				String protocol = protocolVariablePath.getValue( ctx ).strValue();
 				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
 				if ( ret == null ) {
-					ret = interpreter.commCore().createCommChannel( uri, this );
+					ret = interpreter.commCore().createCommChannel( uri, this, ctx );
 				}
 			}
 		}
@@ -291,10 +292,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public final CommChannel getNewCommChannel()
+	public final CommChannel getNewCommChannel(SessionContext ctx)
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( true );
+		return getCommChannel(ctx, true );
 	}
 
 	/**
@@ -304,10 +305,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public final CommChannel getCommChannel()
+	public final CommChannel getCommChannel(SessionContext ctx)
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( false );
+		return getCommChannel(ctx, false );
 	}
 
 	/**

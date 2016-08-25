@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -53,16 +52,17 @@ public class ProvideUntilProcess implements Process
 		this.inputOperationsMap = Collections.unmodifiableMap( this.inputOperationsMap );
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ProvideUntilProcess( (NDChoiceProcess)provide.clone( reason ), (NDChoiceProcess)until.clone( reason ) );
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 		
@@ -70,7 +70,7 @@ public class ProvideUntilProcess implements Process
 
 		try {
 			while( keepRun ) {
-				Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
+				Future< SessionMessage > f = ctx.requestMessage( inputOperationsMap, ctx );
 
 				SessionMessage m = f.get();
 				Pair< InputOperationProcess, Process > branch = provide.branches().get( m.message().operationName() );
@@ -79,18 +79,19 @@ public class ProvideUntilProcess implements Process
 					branch = until.branches().get( m.message().operationName() );
 					keepRun = false;
 				}
-				branch.key().receiveMessage( m, ethread.state() ).run();
-				branch.value().run();
+				branch.key().receiveMessage( m, ctx ).run( ctx );
+				branch.value().run( ctx );
 			}
 		} catch( CancellationException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( ExecutionException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( InterruptedException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

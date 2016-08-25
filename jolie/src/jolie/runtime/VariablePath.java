@@ -23,6 +23,7 @@ package jolie.runtime;
 
 
 import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
@@ -126,8 +127,17 @@ public class VariablePath implements Expression, Cloneable
 		this.path = path;
 	}
 	
+	protected Value getRootValue( SessionContext ctx ) 
+	{
+		return ctx.state().root();
+	}
+	
 	protected Value getRootValue()
 	{
+		System.out.println( "Trying to get executionThread from: " + Thread.currentThread() + " (" + Thread.currentThread().getClass().getName() + ")" );
+		System.out.println( "Found context: " +  SessionContext.currentContext() );
+		if (ExecutionThread.currentThread() == null)
+			return SessionContext.currentContext().state().root();
 		return ExecutionThread.currentThread().state().root();
 	}
 	
@@ -176,6 +186,10 @@ public class VariablePath implements Expression, Cloneable
 	public final Value getValue()
 	{
 		return getValue( getRootValue() );
+	}	
+	public final Value getValue( SessionContext ctx )
+	{
+		return getValue( getRootValue( ctx ) );
 	}
 
 	public final Value getValue( Value currValue )
@@ -366,6 +380,12 @@ public class VariablePath implements Expression, Cloneable
 				myVec.get( i ).deepCopy( rightVec.get( i ) );
 			}
 		}
+	}
+	
+	// TODO - Remove this
+	public final Value evaluate(SessionContext ctx)
+	{
+		return evaluate();
 	}
 	
 	public final Value evaluate()

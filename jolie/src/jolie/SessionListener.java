@@ -28,18 +28,19 @@ import jolie.runtime.FaultException;
  * by sessions.
  * @author Fabrizio Montesi
  */
+@Deprecated
 public interface SessionListener
 {
 	/**
 	 * Received when a session successfully ends its execution.
 	 * @param session the executed session
 	 */
-	public void onSessionExecuted( SessionThread session );
+	public void onSessionExecuted( SessionContext session );
 
 	/**
 	 * Received when a session raises a fault.
 	 * @param session the session raising a fault
 	 * @param fault the fault raised by the session
 	 */
-	public void onSessionError( SessionThread session, FaultException fault );
+	public void onSessionError( SessionContext session, FaultException fault );
 }

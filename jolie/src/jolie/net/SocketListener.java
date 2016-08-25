@@ -83,7 +83,8 @@ public class SocketListener extends CommListener
 				final CommChannel channel = new SocketCommChannel(
 							socketChannel,
 							inputPort().location(),
-							createProtocol() );
+							createProtocol(),
+							interpreter().initContext());
 				channel.setParentInputPort( inputPort() );
 				interpreter().commCore().scheduleReceive( channel, inputPort() );
 			}

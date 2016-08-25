@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.InternalLink;
 
 
@@ -34,18 +34,21 @@ public class LinkOutProcess implements Process
 		this.link = link;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new LinkOutProcess( link );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
 		InternalLink.getById( link ).recvMessage( null, null );
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

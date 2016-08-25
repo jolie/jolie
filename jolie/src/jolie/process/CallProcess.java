@@ -21,6 +21,7 @@
 
 package jolie.process;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
@@ -50,12 +51,12 @@ public class CallProcess implements Process
 	}
 	
 	/** Executes the definition. */
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
 		try {
 			DefinitionProcess definition = Interpreter.getInstance().getDefinition( definitionName );
-			definition.run();
+			definition.run( ctx );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "FatalError", "Definition not found: " + definitionName );
 		}

@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SelectableChannel;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
 
@@ -71,13 +72,13 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 	abstract public SelectableChannel selectableChannel();
 
 	@Override
-	public final void send( CommMessage message )
+	public final void send( CommMessage message, SessionContext ctx )
 		throws IOException
 	{
-		Helpers.lockAndThen( lock, () -> _send( message ) );
+		Helpers.lockAndThen( lock, () -> _send( message, ctx ) );
 	}
 
-	private void _send( CommMessage message )
+	private void _send( CommMessage message, SessionContext ctx )
 		throws IOException
 	{
 		final CommCore commCore = Interpreter.getInstance().commCore();
@@ -86,10 +87,10 @@ public abstract class SelectableStreamingCommChannel extends StreamingCommChanne
 			if ( System.currentTimeMillis() - creationTime > LIFETIME ) {
 				setToBeClosed( true );
 			}
-			sendImpl( message );
+			sendImpl( message, ctx );
 			commCore.registerForSelection( this );
 		} else {
-			sendImpl( message );
+			sendImpl( message, ctx );
 		}
 	}
 

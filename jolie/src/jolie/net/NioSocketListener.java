@@ -65,13 +65,14 @@ public class NioSocketListener extends CommListener
 						assert (protocol instanceof AsyncCommProtocol);
 
 						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
+						channel.sessionContext( interpreter().initContext() );
 						channel.setParentInputPort( inputPort() );
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
 						((AsyncCommProtocol) protocol).setupPipeline( p );
 						p.addLast( channel.nioSocketCommChannelHandler );
-						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
+						ch.attr( NioSocketCommChannel.COMMCHANNEL ).set( channel );
 					}
 				} );
 			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();

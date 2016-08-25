@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.monitoring.events.OperationEndedEvent;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -45,6 +46,57 @@ import jolie.tracer.Tracer;
 
 public class RequestResponseProcess implements InputOperationProcess
 {
+	private final Process ListenProcess = new SimpleProcess()
+	{
+
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+
+		}
+	};
+	
+	private class RequestResponseListenProcess implements Process {
+		
+		private final Future< SessionMessage > future;
+
+		public RequestResponseListenProcess( Future<SessionMessage> future )
+		{
+			this.future = future;
+		}
+		
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			System.out.println( "Try get message..." );
+			try {
+				SessionMessage m = future.get();
+				if ( m != null ) {
+					ctx.executeNext( receiveMessage( m, ctx ) );
+				} else if ( !future.isDone() && !future.isCancelled() ) {
+					ctx.executeNext( this );
+					ctx.pauseExecution();
+				}
+				// If it is null, we got killed by a fault
+			} catch( Exception e ) {
+				ctx.interpreter().logSevere( e );
+			}
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+
+		@Override
+		public boolean isKillable()
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+		
+	}
+	
 	private final RequestResponseOperation operation;
 	private final VariablePath inputVarPath; // may be null
 	private final Expression outputExpression; // may be null
@@ -99,29 +151,34 @@ public class RequestResponseProcess implements InputOperationProcess
 				);
 	}
 	
-	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
+	@Override
+	public Process receiveMessage( final SessionMessage sessionMessage, SessionContext ctx )
 	{
-		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
+		if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
+			ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
 		}
 
 		log( "RECEIVED", sessionMessage.message() );
 		if ( inputVarPath != null ) {
-			inputVarPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
+			inputVarPath.getValue( ctx.state().root() ).refCopy( sessionMessage.message().value() );
 		}
 
 		return new Process() {
-			public void run()
+			
+			@Override
+			public void run( SessionContext ctx )
 				throws FaultException, ExitingException
 			{
-				runBehaviour( sessionMessage.channel(), sessionMessage.message() );
+				runBehaviour( ctx, sessionMessage.channel(), sessionMessage.message() );
 			}
 
+			@Override
 			public Process clone( TransformationReason reason )
 			{
 				return this;
 			}
 
+			@Override
 			public boolean isKillable()
 			{
 				return false;
@@ -129,27 +186,16 @@ public class RequestResponseProcess implements InputOperationProcess
 		};
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
-		try {
-			SessionMessage m = f.get();
-			if ( m != null ) { // If it is null, we got killed by a fault
-				receiveMessage( m, ethread.state() ).run();
-			}
-		} catch( FaultException e ) {
-			throw e;
-		} catch( ExitingException e ) {
-			throw e;
-		} catch( Exception e ) {
-			Interpreter.getInstance().logSevere( e );
-		}
+		Future< SessionMessage > f = ctx.requestMessage( operation, ctx );
+		ctx.executeNext( new RequestResponseListenProcess( f ) );
 	}
 	
 	public VariablePath inputVarPath()
@@ -174,7 +220,7 @@ public class RequestResponseProcess implements InputOperationProcess
 		return CommMessage.createFaultResponse( request, f );
 	}
 	
-	private void runBehaviour( CommChannel channel, CommMessage message )
+	private void runBehaviour( SessionContext ctx, CommChannel channel, CommMessage message )
 		throws FaultException
 	{
 		// Variables for monitor
@@ -186,16 +232,15 @@ public class RequestResponseProcess implements InputOperationProcess
 		CommMessage response;
 		try {
 			try {
-				process.run();
+				process.run( ctx );
 			} catch( ExitingException e ) {}
-			ExecutionThread ethread = ExecutionThread.currentThread();
-			if ( ethread.isKilled() ) {
+			if ( ctx.isKilled() ) {
 				try {
-					response = createFaultMessage( message, ethread.killerFault() );
+					response = createFaultMessage( message, ctx.killerFault() );
 					responseStatus = OperationEndedEvent.FAULT;
-					details = ethread.killerFault().faultName();
+					details = ctx.killerFault().faultName();
 				} catch( TypeCheckingException e ) {
-					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ethread.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ctx.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
 					response = CommMessage.createFaultResponse( message, typeMismatch );
 					responseStatus = OperationEndedEvent.ERROR;
 					details = typeMismatch.faultName();
@@ -234,7 +279,7 @@ public class RequestResponseProcess implements InputOperationProcess
 		}
 
 		try {
-			channel.send( response );
+			channel.send( response, ctx );
 			Value monitorValue;
 			if ( response.isFault() ) {
 				log( "SENT FAULT", response );					

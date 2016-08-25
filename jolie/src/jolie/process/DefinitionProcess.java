@@ -22,6 +22,7 @@
 
 package jolie.process;
 
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
@@ -39,11 +40,11 @@ public class DefinitionProcess implements Process
 		return new DefinitionProcess( process.clone( reason ) );
 	}
 
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
 		if ( process != null ) {
-			process.run();
+			process.run( ctx );
 		}
 	}
 	

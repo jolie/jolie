@@ -24,117 +24,115 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
-import jolie.ExecutionThread;
-import jolie.TransparentExecutionThread;
+import jolie.SessionContext;
+import jolie.SessionListener;
+import jolie.TransparentContext;
 import jolie.process.Process;
+import jolie.process.SimpleProcess;
 
 public class ParallelExecution
 {
-	private class ParallelThread extends TransparentExecutionThread
+	private class ParallelContext extends TransparentContext
 	{
-		public ParallelThread( Process process )
+		public ParallelContext( Process process, SessionContext parentCtx )
 		{
-			super( process, ExecutionThread.currentThread() );
-		}
+			super( process, parentCtx );
+			super.addSessionListener( new SessionListener()
+			{
+				@Override
+				public void onSessionExecuted( SessionContext session )
+				{
+					terminationNotify( session );
+				}
 
-		@Override
-		public void runProcess()
-		{
-			try {
-				process().run();
-				terminationNotify( this );
-			} catch( FaultException f ) {
-				signalFault( this, f );
-			} catch( ExitingException f ) {
-				terminationNotify( this );
-			}
+				@Override
+				public void onSessionError( SessionContext session, FaultException fault )
+				{
+					signalFault( session, fault );
+				}
+			});
 		}
 	}
 	
-	final private Collection< ParallelThread > threads = new HashSet< ParallelThread >();
+	final private Collection< SessionContext > runningContexts = new HashSet<>();
+	private final SessionContext context;
 	private FaultException fault = null;
 	private boolean isKilled = false;
+	private boolean childrenKilled = false;
 
-	public ParallelExecution( Process[] procs )
+	public ParallelExecution( Process[] procs, SessionContext parentCtx)
 	{
 		for( Process proc : procs ) {
-			threads.add( new ParallelThread( proc ) );
+			runningContexts.add( new ParallelContext( proc, parentCtx ) );
 		}
+		context = parentCtx;
 	}
 	
 	public void run()
 		throws FaultException
 	{
+		context.pauseExecution();
 		synchronized( this ) {
-			for( ParallelThread t : threads ) {
+			for( SessionContext t : runningContexts ) {
 				t.start();
-			}
-
-			ExecutionThread ethread;
-			while ( fault == null && !threads.isEmpty() ) {
-				ethread = ExecutionThread.currentThread();
-				try {
-					ethread.setCanBeInterrupted( true );
-					wait();
-					ethread.setCanBeInterrupted( false );
-				} catch( InterruptedException e ) {
-					synchronized( this ) {
-						if ( ethread.isKilled() && !threads.isEmpty() ) {
-							isKilled = true;
-							for( ParallelThread t : threads ) {
-								t.kill( ethread.killerFault() );
-							}
-							try {
-								wait();
-							} catch( InterruptedException ie ) {}
-						}
-					}
-				}
-			}
-
-			if ( fault != null ) {
-				for( ParallelThread t : threads ) {
-					t.kill( fault );
-				}
-				while ( !threads.isEmpty() ) {
-					try {
-						wait();
-					} catch( InterruptedException e ) {}
-				}
-				throw fault;
 			}
 		}
 	}
 	
-	private void terminationNotify( ParallelThread thread )
+	private void terminationNotify( SessionContext ctx )
 	{
 		synchronized( this ) {
-			threads.remove( thread );
+			runningContexts.remove( ctx );
 			
-			if ( threads.isEmpty() ) {
-				notify();
+			if ( runningContexts.isEmpty() ) {
+				childTerminated( ctx );
 			}
 		}
 	}
 	
 		
-	private void signalFault( ParallelThread thread, FaultException f )
+	private void signalFault( SessionContext ctx, FaultException f )
 	{
 		synchronized( this ) {
-			threads.remove( thread );
-			if ( isKilled ) {
-				if ( threads.isEmpty() ) {
-					notify();
-				}
-			} else {
-				if ( fault == null ) {
-					fault = f;
-					notify();
-				} else if ( threads.isEmpty() ) {
-					notify();
-				}
+			runningContexts.remove( ctx );
+			if ( !isKilled && fault == null ) {
+				fault = f;
+				childTerminated( ctx );
+			} else if ( runningContexts.isEmpty() ) {
+				childTerminated( ctx );
 			}
 		}
+	}
+	
+	private void childTerminated(SessionContext childCtx) {
+		
+		synchronized( this ) {
+			if ( context.isKilled() && !runningContexts.isEmpty() && !isKilled) {
+				isKilled = true;
+				for( SessionContext	runningCtx : runningContexts ) {
+					runningCtx.kill( context.killerFault() );
+				}
+			} else if ( fault != null && !childrenKilled && !isKilled ) {
+				childrenKilled = true;
+				for( SessionContext	runningCtx : runningContexts ) {
+					runningCtx.kill( fault );
+				}
+			}
+			if (runningContexts.isEmpty()) {
+				if (fault != null) {
+					context.executeNext( new SimpleProcess()
+					{
+						@Override
+						public void run( SessionContext ctx ) throws FaultException, ExitingException
+						{
+							throw fault;
+						}
+					});
+				}
+				context.start();
+			}
+		}
+		
 	}
 
 }

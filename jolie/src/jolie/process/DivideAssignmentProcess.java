@@ -21,10 +21,10 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
-import jolie.runtime.expression.Expression;
+import jolie.SessionContext;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.expression.Expression;
 
 /**
  * Divide a VariablePath's value with an expression value, assigning the resulting
@@ -49,6 +49,7 @@ public class DivideAssignmentProcess implements Process, Expression
 		this.expression = expression;
 	}
 
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new DivideAssignmentProcess(
@@ -56,6 +57,7 @@ public class DivideAssignmentProcess implements Process, Expression
 			expression.cloneExpression( reason ) );
 	}
 
+	@Override
 	public Expression cloneExpression( TransformationReason reason )
 	{
 		return new DivideAssignmentProcess(
@@ -64,12 +66,13 @@ public class DivideAssignmentProcess implements Process, Expression
 	}
 
 	/** Evaluates the expression and adds its value to the variable's value. */
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
-		varPath.getValue().divide( expression.evaluate() );
+		varPath.getValue( ctx ).divide( expression.evaluate() );
 	}
 
 	public Value evaluate()

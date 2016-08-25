@@ -23,8 +23,8 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -86,10 +86,11 @@ public class ForwardNotificationProcess implements Process
 		) );
 	}
 
-	public void run()
+	@Override
+	public void run( SessionContext ctx )
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -102,11 +103,11 @@ public class ForwardNotificationProcess implements Process
 			aggregatedTypeDescription.requestType().check( messageValue );
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
-			channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel( ctx );
 			
 			log( "SENDING", message );
 			
-			channel.send( message );
+			channel.send( message, ctx );
 			
 			log( "SENT", message );
 			
@@ -130,7 +131,7 @@ public class ForwardNotificationProcess implements Process
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
@@ -138,12 +139,13 @@ public class ForwardNotificationProcess implements Process
 				try {
 					channel.release();
 				} catch( IOException e ) {
-					Interpreter.getInstance().logWarning( e );
+					ctx.interpreter().logWarning( e );
 				}
 			}
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

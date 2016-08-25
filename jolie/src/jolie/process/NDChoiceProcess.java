@@ -27,8 +27,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -76,39 +75,42 @@ public class NDChoiceProcess implements Process
 		return inputOperationsMap;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		Pair< InputOperationProcess, Process >[] b = new Pair[ branches.values().size() ];
 		int i = 0;
 		for( Pair< InputOperationProcess, Process > pair : branches.values() ) {
-			b[ i++ ] = new Pair< InputOperationProcess, Process >( pair.key(), pair.value().clone( reason ) );
+			b[ i++ ] = new Pair<>( pair.key(), pair.value().clone( reason ) );
 		}
 		return new NDChoiceProcess( b );
 	}
 	
 	/** Runs the non-deterministic choice behaviour.
+	 * @param ctx
 	 * @throws jolie.runtime.FaultException
 	 * @throws jolie.runtime.ExitingException
 	 */
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( inputOperationsMap, ethread );
+		Future< SessionMessage > f = ctx.requestMessage( inputOperationsMap, ctx );
 		try {
 			SessionMessage m = f.get();
 			Pair< InputOperationProcess, Process > branch = branches.get( m.message().operationName() );
-			branch.key().receiveMessage( m, ethread.state() ).run();
-			branch.value().run();
+			branch.key().receiveMessage( m, ctx ).run( ctx );
+			branch.value().run( ctx );
 		} catch( CancellationException | ExecutionException | InterruptedException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

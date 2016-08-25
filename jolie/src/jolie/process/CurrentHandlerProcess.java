@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.HandlerInstallationReason;
 
 
@@ -56,7 +57,7 @@ public class CurrentHandlerProcess implements Process
 		return ret;
 	}
 	
-	public void run()
+	public void run(SessionContext ctx)
 	{
 		// We should never execute this process node.
 		assert( false );

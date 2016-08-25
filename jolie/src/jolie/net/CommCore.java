@@ -25,7 +25,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
@@ -47,11 +46,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
-import jolie.lang.Constants;
+import jolie.SessionContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -59,15 +57,8 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.Process;
-import jolie.runtime.FaultException;
-import jolie.runtime.InputOperation;
-import jolie.runtime.InvalidIdException;
-import jolie.runtime.OneWayOperation;
 import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
-import jolie.runtime.correlation.CorrelationError;
-import jolie.runtime.typing.TypeCheckingException;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.
@@ -268,7 +259,7 @@ public class CommCore
 	public class ExecutionContextThread extends Thread
 	{
 		private Interpreter interpreter;
-		private ExecutionThread executionThread = null;
+		private SessionContext executionContext = null;
 
 		private ExecutionContextThread( Runnable r, Interpreter interpreter )
 		{
@@ -276,14 +267,14 @@ public class CommCore
 			this.interpreter = interpreter;
 		}
 
-		public void executionThread( ExecutionThread ethread )
+		public void executionContext( SessionContext context )
 		{
-			executionThread = ethread;
+			executionContext = context;
 		}
 
-		public ExecutionThread executionThread()
+		public SessionContext executionContext()
 		{
-			return executionThread;
+			return executionContext;
 		}
 
 		public Interpreter interpreter()
@@ -356,7 +347,7 @@ public class CommCore
 		return factory;
 	}
 
-	public CommChannel createCommChannel( URI uri, OutputPort port )
+	public CommChannel createCommChannel( URI uri, OutputPort port, SessionContext ctx  )
 		throws IOException
 	{
 		String medium = uri.getScheme();
@@ -365,7 +356,7 @@ public class CommCore
 			throw new UnsupportedCommMediumException( medium );
 		}
 
-		return factory.createChannel( uri, port );
+		return factory.createChannel( uri, port, ctx );
 	}
 
 	private final Map< String, CommProtocolFactory> protocolFactories = new HashMap<>();
@@ -496,206 +487,6 @@ public class CommCore
 
 	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
 
-	private class CommChannelHandlerRunnable implements Runnable
-	{
-		private final CommChannel channel;
-		private final InputPort port;
-
-		public CommChannelHandlerRunnable( CommChannel channel, InputPort port )
-		{
-			this.channel = channel;
-			this.port = port;
-		}
-
-		private void forwardResponse( CommMessage message )
-			throws IOException
-		{
-			message = new CommMessage(
-				channel.redirectionMessageId(),
-				message.operationName(),
-				message.resourcePath(),
-				message.value(),
-				message.fault()
-			);
-			try {
-				try {
-					channel.redirectionChannel().send( message );
-				} finally {
-					try {
-						if ( channel.redirectionChannel().toBeClosed() ) {
-							channel.redirectionChannel().close();
-						} else {
-							channel.redirectionChannel().disposeForInput();
-						}
-					} finally {
-						channel.setRedirectionChannel( null );
-					}
-				}
-			} finally {
-				channel.closeImpl();
-			}
-		}
-
-		private void handleRedirectionInput( CommMessage message, String[] ss )
-			throws IOException, URISyntaxException
-		{
-			// Redirection
-			String rPath;
-			if ( ss.length <= 2 ) {
-				rPath = "/";
-			} else {
-				StringBuilder builder = new StringBuilder();
-				for( int i = 2; i < ss.length; i++ ) {
-					builder.append( '/' );
-					builder.append( ss[ i ] );
-				}
-				rPath = builder.toString();
-			}
-			OutputPort oPort = port.redirectionMap().get( ss[ 1 ] );
-			if ( oPort == null ) {
-				String error = "Discarded a message for resource " + ss[ 1 ]
-					+ ", not specified in the appropriate redirection table.";
-				interpreter.logWarning( error );
-				throw new IOException( error );
-			}
-			try {
-				CommChannel oChannel = oPort.getNewCommChannel();
-				CommMessage rMessage
-					= new CommMessage(
-						message.id(),
-						message.operationName(),
-						rPath,
-						message.value(),
-						message.fault()
-					);
-				oChannel.setRedirectionChannel( channel );
-				oChannel.setRedirectionMessageId( rMessage.id() );
-				oChannel.send( rMessage );
-				oChannel.setToBeClosed( false );
-				oChannel.disposeForInput();
-			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
-				channel.disposeForInput();
-				throw e;
-			}
-		}
-
-		private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
-			throws IOException, URISyntaxException
-		{
-			operation.runAggregationBehaviour( message, channel );
-		}
-
-		private void handleDirectMessage( CommMessage message )
-			throws IOException
-		{
-			try {
-				InputOperation operation
-					= interpreter.getInputOperation( message.operationName() );
-				try {
-					operation.requestType().check( message.value() );
-					interpreter.correlationEngine().onMessageReceive( message, channel );
-					if ( operation instanceof OneWayOperation ) {
-						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( message ) );
-						//channel.release();
-					}
-				} catch( TypeCheckingException e ) {
-					interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
-					try {
-						channel.send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
-					} catch( IOException ioe ) {
-						Interpreter.getInstance().logSevere( ioe );
-					}
-				} catch( CorrelationError e ) {
-					interpreter.logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
-					channel.send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
-				}
-			} catch( InvalidIdException e ) {
-				interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
-				channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
-			} finally {
-				channel.disposeForInput();
-			}
-		}
-
-		private void handleMessage( CommMessage message )
-			throws IOException
-		{
-			try {
-				String[] ss = pathSplitPattern.split( message.resourcePath() );
-				if ( ss.length > 1 ) {
-					handleRedirectionInput( message, ss );
-				} else if ( port.canHandleInputOperationDirectly( message.operationName() ) ) {
-					handleDirectMessage( message );
-				} else {
-					AggregatedOperation operation = port.getAggregatedOperation( message.operationName() );
-					if ( operation == null ) {
-						interpreter.logWarning(
-							"Received a message for operation " + message.operationName()
-							+ ", not specified in the input port at the receiving service. Sending IOException to the caller."
-						);
-						try {
-							channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
-						} finally {
-							channel.disposeForInput();
-						}
-					} else {
-						handleAggregatedInput( message, operation );
-					}
-				}
-			} catch( URISyntaxException e ) {
-				interpreter.logSevere( e );
-			}
-		}
-
-		@Override
-		public void run()
-		{
-			final CommChannelHandler thread = CommChannelHandler.currentThread();
-			thread.setExecutionThread( interpreter().initThread() );
-			channel.lock.lock();
-			channelHandlersLock.readLock().lock();
-			try {
-				if ( channel.redirectionChannel() == null ) {
-					assert (port != null);
-					final CommMessage message = channel.recv();
-					if ( message != null ) {
-						handleMessage( message );
-					} else {
-						channel.disposeForInput();
-					}
-				} else {
-					channel.lock.unlock();
-					CommMessage response = null;
-					try {
-						response = channel.recvResponseFor( new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
-					} finally {
-						if ( response == null ) {
-							response = new CommMessage( channel.redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
-						}
-						forwardResponse( response );
-					}
-				}
-			} catch( ChannelClosingException e ) {
-				interpreter.logFine( e );
-			} catch( IOException e ) {
-				interpreter.logSevere( e );
-				try {
-					channel.closeImpl();
-				} catch( IOException e2 ) {
-					interpreter.logSevere( e2 );
-				}
-			} finally {
-				channelHandlersLock.readLock().unlock();
-				if ( channel.lock.isHeldByCurrentThread() ) {
-					channel.lock.unlock();
-				}
-				thread.setExecutionThread( null );
-			}
-		}
-	}
-
 	/**
 	 * Schedules the receiving of a message on this <code>CommCore</code>
 	 * instance.
@@ -704,9 +495,10 @@ public class CommCore
 	 * message
 	 * @param port the <code>Port</code> responsible for the message receiving
 	 */
+	@Deprecated
 	public void scheduleReceive( CommChannel channel, InputPort port )
 	{
-		executorService.execute( new CommChannelHandlerRunnable( channel, port ) );
+		//executorService.execute( new CommChannelHandlerRunnable( channel, port ) );
 	}
 
 	/**

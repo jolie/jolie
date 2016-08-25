@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.FaultException;
@@ -159,7 +160,7 @@ public abstract class AbstractCommChannel extends CommChannel
 	/* Handle messages received on InputPort */
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 
-	private void forwardResponse( CommMessage message )
+	private void forwardResponse( SessionContext ctx, CommMessage message )
 		throws IOException
 	{
 		message = new CommMessage(
@@ -171,7 +172,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		);
 		try {
 			try {
-				redirectionChannel().send( message );
+				redirectionChannel().send( message, ctx );
 			} finally {
 				try {
 					if ( redirectionChannel().toBeClosed() ) {
@@ -188,7 +189,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 	}
 
-	private void handleRedirectionInput( CommMessage message, String[] ss )
+	private void handleRedirectionInput( SessionContext ctx, CommMessage message, String[] ss )
 		throws IOException, URISyntaxException
 	{
 		// Redirection
@@ -207,11 +208,11 @@ public abstract class AbstractCommChannel extends CommChannel
 		if ( oPort == null ) {
 			String error = "Discarded a message for resource " + ss[ 1 ]
 				+ ", not specified in the appropriate redirection table.";
-			Interpreter.getInstance().logWarning( error );
+			ctx.interpreter().logWarning( error );
 			throw new IOException( error );
 		}
 		try {
-			CommChannel oChannel = oPort.getNewCommChannel();
+			CommChannel oChannel = oPort.getNewCommChannel( ctx );
 			CommMessage rMessage
 				= new CommMessage(
 					message.id(),
@@ -222,50 +223,50 @@ public abstract class AbstractCommChannel extends CommChannel
 				);
 			oChannel.setRedirectionChannel( this );
 			oChannel.setRedirectionMessageId( rMessage.id() );
-			oChannel.send( rMessage );
+			oChannel.send( rMessage, ctx );
 			oChannel.setToBeClosed( false );
 			oChannel.disposeForInput();
 		} catch( IOException e ) {
-			send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
+			send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ), ctx );
 			disposeForInput();
 			throw e;
 		}
 	}
 
-	private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
+	private void handleAggregatedInput( SessionContext ctx, CommMessage message, AggregatedOperation operation )
 		throws IOException, URISyntaxException
 	{
-		operation.runAggregationBehaviour( message, this );
+		operation.runAggregationBehaviour( ctx, message, this );
 	}
 
-	private void handleDirectMessage( CommMessage message )
+	private void handleDirectMessage( SessionContext ctx, CommMessage message )
 		throws IOException
 	{
 		try {
 			InputOperation operation
-				= Interpreter.getInstance().getInputOperation( message.operationName() );
+				= ctx.interpreter().getInputOperation( message.operationName() );
 			try {
 				operation.requestType().check( message.value() );
-				Interpreter.getInstance().correlationEngine().onMessageReceive( message, this );
+				ctx.interpreter().correlationEngine().onMessageReceive( message, this );
 				if ( operation instanceof OneWayOperation ) {
 					// We need to send the acknowledgement
-					send( CommMessage.createEmptyResponse( message ) );
+					send( CommMessage.createEmptyResponse( message ), ctx );
 					//channel.release();
 				}
 			} catch( TypeCheckingException e ) {
-				Interpreter.getInstance().logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
+				ctx.interpreter().logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ), ctx );
 				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
+					ctx.interpreter().logSevere( ioe );
 				}
 			} catch( CorrelationError e ) {
-				Interpreter.getInstance().logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
-				send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+				ctx.interpreter().logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
+				send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ), ctx );
 			}
 		} catch( InvalidIdException e ) {
-			Interpreter.getInstance().logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
-			send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+			ctx.interpreter().logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
+			send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ), ctx );
 		} finally {
 			disposeForInput();
 		}
@@ -273,15 +274,15 @@ public abstract class AbstractCommChannel extends CommChannel
 
 	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
 
-	private void handleRecvMessage( CommMessage message )
+	private void handleRecvMessage( SessionContext ctx, CommMessage message )
 		throws IOException
 	{
 		try {
 			String[] ss = pathSplitPattern.split( message.resourcePath() );
 			if ( ss.length > 1 ) {
-				handleRedirectionInput( message, ss );
+				handleRedirectionInput( ctx, message, ss );
 			} else if ( parentInputPort().canHandleInputOperationDirectly( message.operationName() ) ) {
-				handleDirectMessage( message );
+				handleDirectMessage( ctx, message );
 			} else {
 				AggregatedOperation operation = parentInputPort().getAggregatedOperation( message.operationName() );
 				if ( operation == null ) {
@@ -290,20 +291,20 @@ public abstract class AbstractCommChannel extends CommChannel
 						+ ", not specified in the input port at the receiving service. Sending IOException to the caller."
 					);
 					try {
-						send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+						send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ), ctx );
 					} finally {
 						disposeForInput();
 					}
 				} else {
-					handleAggregatedInput( message, operation );
+					handleAggregatedInput( ctx, message, operation );
 				}
 			}
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		}
 	}
 
-	protected void messageRecv( CommMessage message )
+	protected void messageRecv( SessionContext ctx, CommMessage message )
 	{
 		assert (parentInputPort() != null);
 		lock.lock();
@@ -311,7 +312,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		try {
 			if ( redirectionChannel() == null ) {
 				if ( message != null ) {
-					handleRecvMessage( message );
+					handleRecvMessage( ctx, message );
 				} else {
 					disposeForInput();
 				}
@@ -324,17 +325,17 @@ public abstract class AbstractCommChannel extends CommChannel
 					if ( response == null ) {
 						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
 					}
-					forwardResponse( response );
+					forwardResponse( ctx, response );
 				}
 			}
 		} catch( ChannelClosingException e ) {
-			Interpreter.getInstance().logFine( e );
+			ctx.interpreter().logFine( e );
 		} catch( IOException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 			try {
 				closeImpl();
 			} catch( IOException e2 ) {
-				Interpreter.getInstance().logSevere( e2 );
+				ctx.interpreter().logSevere( e2 );
 			}
 		} finally {
 			channelHandlersLock.readLock().unlock();

@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
 
@@ -37,15 +37,17 @@ public class ThrowProcess implements Process
 		this.expression = expression;
 	}
 
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new ThrowProcess( faultName, expression );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
 		
 		if ( expression == null ) {
@@ -55,6 +57,7 @@ public class ThrowProcess implements Process
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

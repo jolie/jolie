@@ -19,7 +19,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.expression.Expression;
@@ -74,10 +74,10 @@ public final class IfProcess implements Process
 	}
 	
 	@Override
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -87,15 +87,15 @@ public final class IfProcess implements Process
 		while( keepRun && i < pairs.length ) {
 			final CPPair pair = pairs[ i ];
 			if ( pair.condition().evaluate().boolValue() ) {
-				keepRun = false;
-				pair.process().run();
+				ctx.executeNext( pair.process() );
+				return;
 			}
 			i++;
 		}
 
 		// No valid condition found, run the else process
-		if ( keepRun && elseProcess != null ) {
-			elseProcess.run();
+		if ( elseProcess != null ) {
+			ctx.executeNext( elseProcess );
 		}
 	}
 	

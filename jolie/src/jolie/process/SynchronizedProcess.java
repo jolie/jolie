@@ -21,9 +21,9 @@
 
 package jolie.process;
 
-import jolie.runtime.FaultException;
-import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
 
 public class SynchronizedProcess implements Process
 {
@@ -36,19 +36,23 @@ public class SynchronizedProcess implements Process
 		this.process = process;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new SynchronizedProcess( id, process.clone( reason ) );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		synchronized( Interpreter.getInstance().getLock( id ) ) {
-			process.run();
+		// TODO This is not safe in the async environment, as run can return before execution is completed.
+		synchronized( ctx.interpreter().getLock( id ) ) {
+			process.run(ctx);
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return process.isKillable();

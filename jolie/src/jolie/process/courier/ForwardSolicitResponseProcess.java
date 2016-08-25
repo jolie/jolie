@@ -23,8 +23,8 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -90,10 +90,10 @@ public class ForwardSolicitResponseProcess implements Process
 		) );
 	}
 
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -106,11 +106,11 @@ public class ForwardSolicitResponseProcess implements Process
 			aggregatedTypeDescription.requestType().check( messageValue );
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
-			channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel( ctx );
 			
 			log( "SENDING", message );
 			
-			channel.send( message );
+			channel.send( message, ctx );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
 			CommMessage response = null;

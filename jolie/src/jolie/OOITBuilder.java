@@ -342,7 +342,7 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException e ) {
 			interpreter.register( "init",
 			new InitDefinitionProcess(
-				new ScopeProcess( "main", new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ), false )
+				new ScopeProcess( "main", new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) ), false )
 			));
 		}
 	}
@@ -796,7 +796,7 @@ public class OOITBuilder implements OLVisitor
 			break;
 		case "init":
 			final Process[] initChildren = {
-				new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) ),
+				new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) ),
 				buildProcess( n.body() )
 			};
 			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
@@ -1473,7 +1473,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( SpawnStatement n )
 	{
 		Process[] children = new Process[2];
-		children[ 0 ] = new InstallProcess( SessionThread.createDefaultFaultHandlers( interpreter ) );
+		children[ 0 ] = new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) );
 		children[ 1 ] = buildProcess( n.body() );
 		currProcess = new SpawnProcess(
 			buildVariablePath( n.indexVariablePath() ),

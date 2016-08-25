@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.VariablePath;
 
 public class MakePointerProcess implements Process
@@ -34,6 +34,7 @@ public class MakePointerProcess implements Process
 		this.rightPath = rightPath;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new MakePointerProcess(
@@ -42,14 +43,16 @@ public class MakePointerProcess implements Process
 				);
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
 
 		leftPath.makePointer( rightPath );
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

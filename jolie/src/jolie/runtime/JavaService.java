@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -83,7 +84,7 @@ public abstract class JavaService
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( message );
+				c.send( message, null );
 			} catch( IOException e ) {
 				// This should never happen
 				e.printStackTrace();
@@ -95,7 +96,7 @@ public abstract class JavaService
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( request );
+				c.send( request, null );
 				CommMessage response = c.recvResponseFor( request );
 				if ( response.isFault() ) {
 					throw response.fault();
@@ -347,11 +348,11 @@ public abstract class JavaService
 		return interpreter;
 	}
 	
-	public CommChannel sendMessage( CommMessage message )
+	public CommChannel sendMessage( CommMessage message, SessionContext ctx )
 	{
 		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 		try {
-			c.send( message );
+			c.send( message, ctx );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}

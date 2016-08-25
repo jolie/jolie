@@ -21,9 +21,10 @@
 
 package jolie.process;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.monitoring.events.OperationStartedEvent;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
@@ -67,50 +68,42 @@ public class OneWayProcess implements InputOperationProcess
 		return varPath;
 	}
 
-	public Process receiveMessage( final SessionMessage sessionMessage, jolie.State state )
+	public Process receiveMessage( final SessionMessage sessionMessage, SessionContext ctx )
 	{
-		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
-			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
+		if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
+			ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
 		}
 
-		log( "RECEIVED", sessionMessage.message() );
+		log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );
 		if ( varPath != null ) {
-			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
+			varPath.getValue( ctx.state().root() ).refCopy( sessionMessage.message().value() );
 		}
 
 		return NullProcess.getInstance();
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		ExecutionThread ethread = ExecutionThread.currentThread();
-		if ( ethread.isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
-		Future< SessionMessage > f = ethread.requestMessage( operation, ethread );
+		Future< SessionMessage > f = ctx.requestMessage( operation, ctx );
 		try {
 			SessionMessage m = f.get();
 			if ( m != null ) { // If it is null, we got killed by a fault
-				receiveMessage( m, ethread.state() ).run();
+				ctx.executeNext( receiveMessage( m, ctx ) );
 			}
-		} catch( FaultException e ) {
-			// Should never happen since receiveMessage always
-			// returns a NullProcess here.
-			throw e;
-		} catch( ExitingException e ) {
-			// Should never happen since receiveMessage always
-			// returns a NullProcess here.
-			throw e;
-		} catch( Exception e ) {
-			Interpreter.getInstance().logSevere( e );
+		} catch( InterruptedException | ExecutionException e ) {
+			ctx.interpreter().logSevere( e );
 		}
 	}
 
-	private void log( String log, CommMessage message )
+	private void log(Interpreter interpreter, String log, CommMessage message )
 	{
-		final Tracer tracer = Interpreter.getInstance().tracer();
+		final Tracer tracer = interpreter.tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
@@ -120,6 +113,7 @@ public class OneWayProcess implements InputOperationProcess
 	}
 
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

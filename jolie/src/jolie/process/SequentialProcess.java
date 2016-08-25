@@ -22,12 +22,42 @@
 package jolie.process;
 
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 
 public class SequentialProcess implements Process
 {
+	
+	private final Process step = new Process()
+	{
+		private int currentChild = 0;
+		@Override
+		public void run( SessionContext ctx ) throws FaultException, ExitingException
+		{
+			if (currentChild < children.length ) {
+				final Process child = children[currentChild];
+				if ( ctx.isKilled() && child.isKillable() ) {
+					return;
+				}
+				ctx.executeNext( child, step );
+			}
+			currentChild++;
+		}
+
+		@Override
+		public Process clone( TransformationReason reason )
+		{
+			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+
+		@Override
+		public boolean isKillable()
+		{
+			return true;
+		}
+	};
+	
 	final private Process[] children;
 	
 	public SequentialProcess( Process[] children )
@@ -48,16 +78,10 @@ public class SequentialProcess implements Process
 		return new SequentialProcess( p );
 	}
 	
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException, ExitingException
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
-		for( Process proc : children ) {
-			if ( ethread.isKilled() && proc.isKillable() ){
-				return;
-			}
-			proc.run();
-		}
+		ctx.executeNext( step );
 	}
 	
 	public boolean isKillable()

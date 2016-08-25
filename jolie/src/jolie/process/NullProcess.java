@@ -1,4 +1,5 @@
-/***************************************************************************
+/**
+ * *************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,35 +18,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+ **************************************************************************
+ */
 package jolie.process;
+
+import jolie.SessionContext;
 
 /**
  * No-op process.
+ *
  * @author Fabrizio Montesi
  */
 public class NullProcess implements Process
 {
-	private NullProcess() {}
-	
-	private static class LazyHolder {
+	private NullProcess() {  }
+
+	private static class LazyHolder
+	{
 		private static final NullProcess instance = new NullProcess();
 	}
-	
+
 	static public NullProcess getInstance()
 	{
 		return NullProcess.LazyHolder.instance;
 	}
-	
+
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return this;
 	}
-	
-	public void run()
-	{}
-	
+
+	@Override
+	public void run( SessionContext ctx ) { }
+
+	@Override
 	public boolean isKillable()
 	{
 		return true;

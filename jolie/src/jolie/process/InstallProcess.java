@@ -22,7 +22,7 @@
 package jolie.process;
 
 import java.util.List;
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.HandlerInstallationReason;
 import jolie.util.Pair;
 
@@ -37,24 +37,26 @@ public class InstallProcess implements Process
 		this.pairs = pairs;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new InstallProcess( pairs );
 	}
 
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		final ExecutionThread ethread = ExecutionThread.currentThread();
 		for( Pair< String, Process > pair : pairs ) {
 			final Process handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null ) {
-				ethread.installCompensation( handler );
+				ctx.installCompensation( handler );
 			} else {
-				ethread.installFaultHandler( pair.key(), handler );
+				ctx.installFaultHandler( pair.key(), handler );
 			}
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return false;

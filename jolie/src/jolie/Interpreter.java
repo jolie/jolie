@@ -76,6 +76,7 @@ import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
 import jolie.process.DefinitionProcess;
 import jolie.process.InputOperationProcess;
+import jolie.process.Process;
 import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -102,17 +103,19 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
-    private class InitSessionThread extends SessionThread
+    private class InitSessionContext extends SessionContext
 	{
-		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
+		public InitSessionContext( Interpreter interpreter, Process process )
 		{
 			super( interpreter, process );
-			addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+			super.addSessionListener( new SessionListener() {
+				@Override
+				public void onSessionExecuted( SessionContext session )
 				{
 					onSuccessfulInitExecution();
 				}
-				public void onSessionError( SessionThread session, FaultException fault )
+				@Override
+				public void onSessionError( SessionContext session, FaultException fault )
 				{
 					exit();
 				}
@@ -124,7 +127,7 @@ public class Interpreter
 			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				synchronized( correlationEngine ) {
 					try {
-						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+						mainSession = new SessionContext( getDefinition( "main" ), initExecutionThread );
 						correlationEngine.onSingleExecutionSessionStart( mainSession );
 						mainSession.addSessionListener( correlationEngine );
 						correlationEngine.onSessionExecuted( this );
@@ -151,7 +154,9 @@ public class Interpreter
 						} catch( CorrelationError e ) {
 							logWarning( e );
 							try {
-								message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+								message.channel().send( 
+									CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ),
+									InitSessionContext.this ); 
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}
@@ -187,6 +192,8 @@ public class Interpreter
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
 			if ( r instanceof ExecutionThread ) {
 				t.setExecutionThread( (ExecutionThread)r );
+			} else if ( r instanceof SessionContext ) {
+				t.sessionContext( (SessionContext) r );
 			}
 			return t;
 		}
@@ -319,8 +326,8 @@ public class Interpreter
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
 			CommChannel channel = null;
 			try {
-				channel = monitor.getCommChannel();
-				channel.send( m );
+				channel = monitor.getCommChannel( null ); // TODO - What context should be passed here?
+				channel.send( m, null ); // TODO - What context should be passed here?
 				CommMessage response;
 				do {
 					response = channel.recvResponseFor( m );
@@ -783,6 +790,7 @@ public class Interpreter
 	 * Returns the Interpreter the current thread is referring to.
 	 * @return the Interpreter the current thread is referring to
 	 */
+	@Deprecated
 	public static Interpreter getInstance()
 	{
 		Thread t = Thread.currentThread();
@@ -953,15 +961,15 @@ public class Interpreter
 		return globalValue;
 	}
 	
-	private InitSessionThread initExecutionThread;
-	private SessionThread mainSession = null;
-	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
+	private InitSessionContext initExecutionThread;
+	private SessionContext mainSession = null;
+	private final Queue< SessionContext > waitingSessionThreads = new LinkedList<>();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
 	 * @return the {@link SessionThread} of the Interpreter that started the program execution
 	 */
-	public SessionThread initThread()
+	public SessionContext initContext()
 	{
 		return initExecutionThread;
 	}
@@ -1040,7 +1048,7 @@ public class Interpreter
             } else {
                 sessionStarters = Collections.unmodifiableMap( sessionStarters );
                 try {
-                    initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
+                    initExecutionThread = new InitSessionContext( this, getDefinition( "init" ) );
 
                     commCore.init();
 
@@ -1297,28 +1305,35 @@ public class Interpreter
 			return false;
 		}
 		
-		final SessionThread spawnedSession;
+		final SessionContext spawnedSession;
 
 		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
+			
+			spawnedSession = new SessionContext(
+				null, state, initExecutionThread );
+			
 			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession), // TODO - This is ugly
 				starter.body
 			} );
-			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread
-			);
+			
+			spawnedSession.executeNext( sequence );
+			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
 							message.id(), message.value() );
+			
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+				@Override
+				public void onSessionExecuted( SessionContext session )
 				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 				
-				public void onSessionError( SessionThread session, FaultException fault )
+				@Override
+				public void onSessionError( SessionContext session, FaultException fault )
 				{
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
@@ -1329,17 +1344,22 @@ public class Interpreter
 			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
 			State state = initExecutionThread.state().clone();
+			
+			spawnedSession = new SessionContext(
+				null, state, initExecutionThread
+			);
+			
 			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession ), // TODO - Should parent sessioncontext be set here?
 				starter.body
 			} );
-			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread
-			);
+			
+			spawnedSession.executeNext( sequence );
+			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+				public void onSessionExecuted( SessionContext session )
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {
@@ -1352,7 +1372,7 @@ public class Interpreter
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 
-				public void onSessionError( SessionThread session, FaultException fault )
+				public void onSessionError( SessionContext session, FaultException fault )
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {

@@ -33,6 +33,7 @@ import java.nio.channels.IllegalBlockingModeException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
 
@@ -58,7 +59,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @see CommProtocol
 	 * @see SocketChannel
 	 */
-	public SocketCommChannel( SocketChannel socketChannel, URI location, CommProtocol protocol )
+	public SocketCommChannel( SocketChannel socketChannel, URI location, CommProtocol protocol, SessionContext ctx )
 		throws IOException
 	{
 		super( location, protocol );
@@ -110,7 +111,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @throws IOException if an error sending the message occurs
 	 */
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( CommMessage message, SessionContext ctx )
 		throws IOException
 	{
 		try {

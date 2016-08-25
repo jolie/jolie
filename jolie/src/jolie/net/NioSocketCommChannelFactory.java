@@ -5,6 +5,7 @@ import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import jolie.SessionContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
@@ -26,12 +27,12 @@ public class NioSocketCommChannelFactory extends CommChannelFactory
 	}
 
 	@Override
-	public CommChannel createChannel( URI location, OutputPort port )
+	public CommChannel createChannel( URI location, OutputPort port, SessionContext ctx )
 		throws IOException
 	{
 		CommProtocol protocol;
 		try {
-			protocol = port.getProtocol();
+			protocol = port.getProtocol( ctx );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
@@ -40,7 +41,7 @@ public class NioSocketCommChannelFactory extends CommChannelFactory
 			throw new UnsupportedCommProtocolException( "Use an async protocol" );
 		}
 
-		NioSocketCommChannel channel = NioSocketCommChannel.CreateChannel( location, (AsyncCommProtocol) protocol, workerGroup );
+		NioSocketCommChannel channel = NioSocketCommChannel.CreateChannel( location, (AsyncCommProtocol) protocol, workerGroup, ctx );
 
 		try {
 			ChannelFuture f = channel.connect( location );

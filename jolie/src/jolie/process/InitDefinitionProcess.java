@@ -22,6 +22,7 @@
 package jolie.process;
 
 import jolie.Interpreter;
+import jolie.SessionContext;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -38,14 +39,14 @@ public class InitDefinitionProcess extends DefinitionProcess
 	}
 	
 	@Override
-	public void run()
+	public void run(SessionContext ctx)
 		throws FaultException
 	{
-		Interpreter interpreter = Interpreter.getInstance();
+		Interpreter interpreter = ctx.interpreter();
 		try {
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
 				try {
-					outputPort.configurationProcess().run();
+					outputPort.configurationProcess().run( ctx );
 				} catch( FaultException fe ) {
 					// If this happens, it's been caused by a bug in the SemanticVerifier
 					assert( false );
@@ -60,14 +61,14 @@ public class InitDefinitionProcess extends DefinitionProcess
 			}
 
 			for( OutputPort outputPort : interpreter.outputPorts() ) {
-				outputPort.optimizeLocation();
+				outputPort.optimizeLocation( ctx );
 			}
 
 			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
 			
 			for( Process p : interpreter.commCore().protocolConfigurations() ) {
 				try {
-					p.run();
+					p.run( ctx );
 				} catch( ExitingException e ) {
 					interpreter.logSevere( e );
 					assert false;
@@ -76,19 +77,19 @@ public class InitDefinitionProcess extends DefinitionProcess
 			
 			// If an internal service, copy over the output port locations from the parent service
 			if ( interpreter.parentInterpreter() != null ) {
-				Value parentInitRoot = interpreter.parentInterpreter().initThread().state().root();
+				Value parentInitRoot = interpreter.parentInterpreter().initContext().state().root();
 				for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 					try {
 						OutputPort port = interpreter.getOutputPort( parentPort.id() );
 						port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
 						port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
-						port.optimizeLocation();
+						port.optimizeLocation( ctx );
 					} catch( InvalidIdException e ) {}
 				}
 			}
 
 			try {
-				super.run();
+				super.run( ctx );
 			} catch( ExitingException e ) {}
 		} catch( EmbeddedServiceLoadingException e ) {
 			interpreter.logSevere( e );

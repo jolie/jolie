@@ -21,7 +21,7 @@
 
 package jolie.process;
 
-import jolie.ExecutionThread;
+import jolie.SessionContext;
 import jolie.runtime.VariablePath;
 
 public class UndefProcess implements Process
@@ -33,19 +33,22 @@ public class UndefProcess implements Process
 		this.varPath = varPath;
 	}
 	
+	@Override
 	public Process clone( TransformationReason reason )
 	{
 		return new UndefProcess( (VariablePath)varPath.cloneExpression( reason ) );
 	}
 	
-	public void run()
+	@Override
+	public void run(SessionContext ctx)
 	{
-		if ( ExecutionThread.currentThread().isKilled() )
+		if ( ctx.isKilled() )
 			return;
 		
 		varPath.undef();
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;
