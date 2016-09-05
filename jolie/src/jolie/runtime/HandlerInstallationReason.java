@@ -22,7 +22,7 @@
 
 package jolie.runtime;
 
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 
 public class HandlerInstallationReason implements TransformationReason
 {

@@ -23,8 +23,8 @@ package jolie.runtime;
 
 
 import jolie.ExecutionThread;
-import jolie.SessionContext;
-import jolie.process.TransformationReason;
+import jolie.StatefulContext;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
@@ -127,7 +127,7 @@ public class VariablePath implements Expression, Cloneable
 		this.path = path;
 	}
 	
-	protected Value getRootValue( SessionContext ctx ) 
+	protected Value getRootValue( StatefulContext ctx ) 
 	{
 		return ctx.state().root();
 	}
@@ -135,9 +135,9 @@ public class VariablePath implements Expression, Cloneable
 	protected Value getRootValue()
 	{
 		System.out.println( "Trying to get executionThread from: " + Thread.currentThread() + " (" + Thread.currentThread().getClass().getName() + ")" );
-		System.out.println( "Found context: " +  SessionContext.currentContext() );
+		System.out.println("Found context: " +  StatefulContext.currentContext() );
 		if (ExecutionThread.currentThread() == null)
-			return SessionContext.currentContext().state().root();
+			return StatefulContext.currentContext().state().root();
 		return ExecutionThread.currentThread().state().root();
 	}
 	
@@ -187,7 +187,7 @@ public class VariablePath implements Expression, Cloneable
 	{
 		return getValue( getRootValue() );
 	}	
-	public final Value getValue( SessionContext ctx )
+	public final Value getValue( StatefulContext ctx )
 	{
 		return getValue( getRootValue( ctx ) );
 	}
@@ -383,7 +383,7 @@ public class VariablePath implements Expression, Cloneable
 	}
 	
 	// TODO - Remove this
-	public final Value evaluate(SessionContext ctx)
+	public final Value evaluate(StatefulContext ctx)
 	{
 		return evaluate();
 	}

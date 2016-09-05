@@ -23,7 +23,7 @@
 package jolie.runtime;
 
 import jolie.runtime.expression.Expression;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 
 public class ValueVectorSizeExpression implements Expression
 {

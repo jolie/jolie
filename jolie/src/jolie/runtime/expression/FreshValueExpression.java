@@ -22,7 +22,7 @@
 package jolie.runtime.expression;
 
 import java.util.UUID;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.Value;
 
 public class FreshValueExpression implements Expression

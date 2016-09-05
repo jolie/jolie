@@ -132,47 +132,45 @@ import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
 import jolie.net.ports.InterfaceExtender;
 import jolie.net.ports.OutputPort;
-import jolie.process.AddAssignmentProcess;
-import jolie.process.AssignmentProcess;
-import jolie.process.CallProcess;
-import jolie.process.CompensateProcess;
-import jolie.process.CurrentHandlerProcess;
-import jolie.process.DeepCopyProcess;
-import jolie.process.DefinitionProcess;
-import jolie.process.DivideAssignmentProcess;
-import jolie.process.ExitProcess;
-import jolie.process.ForEachProcess;
-import jolie.process.ForProcess;
-import jolie.process.IfProcess;
-import jolie.process.InitDefinitionProcess;
-import jolie.process.InputOperationProcess;
-import jolie.process.InstallProcess;
-import jolie.process.LinkInProcess;
-import jolie.process.LinkOutProcess;
-import jolie.process.MakePointerProcess;
-import jolie.process.MultiplyAssignmentProcess;
-import jolie.process.NDChoiceProcess;
-import jolie.process.NotificationProcess;
-import jolie.process.NullProcess;
-import jolie.process.OneWayProcess;
-import jolie.process.ParallelProcess;
-import jolie.process.PostDecrementProcess;
-import jolie.process.PostIncrementProcess;
-import jolie.process.PreDecrementProcess;
-import jolie.process.PreIncrementProcess;
-import jolie.process.Process;
-import jolie.process.ProvideUntilProcess;
-import jolie.process.RequestResponseProcess;
-import jolie.process.RunProcess;
-import jolie.process.ScopeProcess;
-import jolie.process.SequentialProcess;
-import jolie.process.SolicitResponseProcess;
-import jolie.process.SpawnProcess;
-import jolie.process.SubtractAssignmentProcess;
-import jolie.process.SynchronizedProcess;
-import jolie.process.ThrowProcess;
-import jolie.process.UndefProcess;
-import jolie.process.WhileProcess;
+import jolie.behaviours.AddAssignmentBehaviour;
+import jolie.behaviours.AssignmentBehaviour;
+import jolie.behaviours.CallBehaviour;
+import jolie.behaviours.CompensateBehaviour;
+import jolie.behaviours.CurrentHandlerBehaviour;
+import jolie.behaviours.DeepCopyBehaviour;
+import jolie.behaviours.DefinitionBehaviour;
+import jolie.behaviours.DivideAssignmentBehaviour;
+import jolie.behaviours.ExitBehaviour;
+import jolie.behaviours.ForEachBehaviour;
+import jolie.behaviours.ForBehaviour;
+import jolie.behaviours.IfBehaviour;
+import jolie.behaviours.InitDefinitionBehaviour;
+import jolie.behaviours.InstallBehaviour;
+import jolie.behaviours.LinkInBehaviour;
+import jolie.behaviours.LinkOutBehaviour;
+import jolie.behaviours.MakePointerBehaviour;
+import jolie.behaviours.MultiplyAssignmentBehaviour;
+import jolie.behaviours.NDChoiceBehaviour;
+import jolie.behaviours.NotificationBehaviour;
+import jolie.behaviours.NullBehaviour;
+import jolie.behaviours.OneWayBehaviour;
+import jolie.behaviours.ParallelBehaviour;
+import jolie.behaviours.PostDecrementBehaviour;
+import jolie.behaviours.PostIncrementBehaviour;
+import jolie.behaviours.PreDecrementBehaviour;
+import jolie.behaviours.PreIncrementBehaviour;
+import jolie.behaviours.ProvideUntilBehaviour;
+import jolie.behaviours.RequestResponseBehaviour;
+import jolie.behaviours.RunBehaviour;
+import jolie.behaviours.ScopeBehaviour;
+import jolie.behaviours.SequentialBehaviour;
+import jolie.behaviours.SolicitResponseBehaviour;
+import jolie.behaviours.SpawnBehaviour;
+import jolie.behaviours.SubtractAssignmentBehaviour;
+import jolie.behaviours.SynchronizedBehaviour;
+import jolie.behaviours.ThrowBehaviour;
+import jolie.behaviours.UndefBehaviour;
+import jolie.behaviours.WhileBehaviour;
 import jolie.process.courier.ForwardNotificationProcess;
 import jolie.process.courier.ForwardSolicitResponseProcess;
 import jolie.runtime.ClosedVariablePath;
@@ -220,6 +218,8 @@ import jolie.runtime.typing.Type;
 import jolie.util.ArrayListMultiMap;
 import jolie.util.MultiMap;
 import jolie.util.Pair;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.InputOperationBehaviour;
 
 /**
  * Builds an interpretation tree by visiting a Jolie abstract syntax tree.
@@ -340,9 +340,9 @@ public class OOITBuilder implements OLVisitor
 		try {
 			interpreter.getDefinition( "init" );
 		} catch( InvalidIdException e ) {
-			interpreter.register( "init",
-			new InitDefinitionProcess(
-				new ScopeProcess( "main", new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) ), false )
+			interpreter.register("init",
+			new InitDefinitionBehaviour(
+				new ScopeBehaviour( "main", new InstallBehaviour( StatefulContext.createDefaultFaultHandlers( interpreter ) ), false )
 			));
 		}
 	}
@@ -419,9 +419,9 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( OutputPortInfo n )
 	{
-		final Process protocolConfigurationProcess =
+		final Behaviour protocolConfigurationProcess =
 			( n.protocolConfiguration() != null ) ? buildProcess( n.protocolConfiguration() )
-			: NullProcess.getInstance();
+			: NullBehaviour.getInstance();
 		
 		final boolean isConstant = isConstantMap.computeIfAbsent( n.id(), k -> false );
 
@@ -586,9 +586,9 @@ public class OOITBuilder implements OLVisitor
 			.add( n.id(), 0 )
 			.add( Constants.PROTOCOL_NODE_NAME, 0 )
 			.toVariablePath();
-		Process assignProtocol = new AssignmentProcess( protocolPath, Value.create( n.protocolId() ) );
-		Process[] confChildren = new Process[] { assignProtocol, buildProcess( n.protocolConfiguration() ) };
-		SequentialProcess protocolConfigurationSequence = new SequentialProcess( confChildren );
+		Behaviour assignProtocol = new AssignmentBehaviour( protocolPath, Value.create( n.protocolId() ) );
+		Behaviour[] confChildren = new Behaviour[] { assignProtocol, buildProcess( n.protocolConfiguration() ) };
+		SequentialBehaviour protocolConfigurationSequence = new SequentialBehaviour( confChildren );
 
 		InputPort inputPort = new InputPort(
 			n.id(),
@@ -623,7 +623,7 @@ public class OOITBuilder implements OLVisitor
 		currentPortInterface = null;
 	}
 
-	private Process currProcess;
+	private Behaviour currProcess;
 	private Expression currExpression;
 	private Type currType;
 	boolean insideType = false;
@@ -777,7 +777,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( DefinitionNode n )
 	{
-		final DefinitionProcess def;
+		final DefinitionBehaviour def;
 		
 		switch( n.id() ) {
 		case "main":
@@ -785,24 +785,24 @@ public class OOITBuilder implements OLVisitor
 			case SINGLE:
 				// We are a single-session service, so we will not spawn sessions
 				registerSessionStarters = false;
-				def = new DefinitionProcess( buildProcess( n.body() ) );
+				def = new DefinitionBehaviour( buildProcess( n.body() ) );
 				break;
 			default:
 				registerSessionStarters = true;
-				def = new DefinitionProcess( buildProcess( n.body() ) );
+				def = new DefinitionBehaviour( buildProcess( n.body() ) );
 				registerSessionStarters = false;
 				break;
 			}
 			break;
 		case "init":
-			final Process[] initChildren = {
-				new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) ),
+			final Behaviour[] initChildren = {
+				new InstallBehaviour( StatefulContext.createDefaultFaultHandlers( interpreter ) ),
 				buildProcess( n.body() )
 			};
-			def = new InitDefinitionProcess( new ScopeProcess( "main", new SequentialProcess( initChildren ), false ) );
+			def = new InitDefinitionBehaviour( new ScopeBehaviour( "main", new SequentialBehaviour( initChildren ), false ) );
 			break;
 		default:
-			def = new DefinitionProcess( buildProcess( n.body() ) );
+			def = new DefinitionBehaviour( buildProcess( n.body() ) );
 			break;
 		}
 
@@ -811,19 +811,19 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( ParallelStatement n )
 	{
-		Process[] children = new Process[ n.children().size() ];
+		Behaviour[] children = new Behaviour[ n.children().size() ];
 		int i = 0;
 		for( OLSyntaxNode node : n.children() ) {
 			node.accept( this );
 			children[ i++ ] = currProcess;
 		}
-		currProcess = new ParallelProcess( children );
+		currProcess = new ParallelBehaviour( children );
 	}
 	
 	public void visit( SynchronizedStatement n )
 	{
 		n.body().accept( this );
-		currProcess = new SynchronizedProcess( n.id(), currProcess );
+		currProcess = new SynchronizedBehaviour( n.id(), currProcess );
 	}
 
 	@Override
@@ -832,25 +832,24 @@ public class OOITBuilder implements OLVisitor
 		final boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
 
-		final List< Process > children = new ArrayList<>( n.children().size() );
+		final List< Behaviour > children = new ArrayList<>( n.children().size() );
 		n.children().forEach( ( child ) -> {
 			children.add( buildProcess( child ) );
 		} );
-		currProcess = new SequentialProcess( children.toArray( new Process[0] ) );
+		currProcess = new SequentialBehaviour( children.toArray(new Behaviour[0] ) );
 
-		if ( origRegisterSessionStarters && children.get( 0 ) instanceof InputOperationProcess ) {
+		if ( origRegisterSessionStarters && children.get( 0 ) instanceof InputOperationBehaviour ) {
 			// We must register this sequence as a starter guarded by the first input process
-			InputOperationProcess first = (InputOperationProcess) children.remove( 0 );
-			registerSessionStarter(
-				first,
-				new SequentialProcess( children.toArray( new Process[0] ) )
+			InputOperationBehaviour first = (InputOperationBehaviour) children.remove( 0 );
+			registerSessionStarter(first,
+				new SequentialBehaviour( children.toArray(new Behaviour[0] ) )
 			);
 		}
 
 		registerSessionStarters = origRegisterSessionStarters;
 	}
 
-	private void registerSessionStarter( InputOperationProcess guard, Process body )
+	private void registerSessionStarter( InputOperationBehaviour guard, Behaviour body )
 	{
 		guard.setSessionStarter( true );
 		interpreter.registerSessionStarter( guard, body );
@@ -861,16 +860,15 @@ public class OOITBuilder implements OLVisitor
 		boolean origRegisterSessionStarters = registerSessionStarters;
 		registerSessionStarters = false;
 
-		List< Pair< InputOperationProcess, Process > > branches =
+		List< Pair< InputOperationBehaviour, Behaviour > > branches =
 					new ArrayList<>( n.children().size() );
-		InputOperationProcess guard;
+		InputOperationBehaviour guard;
 		for( Pair< OLSyntaxNode, OLSyntaxNode > pair : n.children() ) {
 			pair.key().accept( this );
 			try {
-				guard = (InputOperationProcess) currProcess;
+				guard = (InputOperationBehaviour) currProcess;
 				pair.value().accept( this );
-				branches.add(
-					new Pair< InputOperationProcess, Process >( guard, currProcess )
+				branches.add(new Pair< InputOperationBehaviour, Behaviour >( guard, currProcess )
 				);
 				if ( origRegisterSessionStarters ) {
 					registerSessionStarter( guard, currProcess );
@@ -880,7 +878,7 @@ public class OOITBuilder implements OLVisitor
 			}
 		}
 		
-		currProcess = new NDChoiceProcess( branches.toArray( new Pair[0] ) );
+		currProcess = new NDChoiceBehaviour( branches.toArray( new Pair[0] ) );
 		
 		registerSessionStarters = origRegisterSessionStarters;
 	}
@@ -891,14 +889,14 @@ public class OOITBuilder implements OLVisitor
 		registerSessionStarters = false;
 
 		try {
-			InputOperationProcess inputProcess;
+			InputOperationBehaviour inputProcess;
 			currProcess = inputProcess =
-				new OneWayProcess(
+				new OneWayBehaviour(
 					interpreter.getOneWayOperation( n.id() ),
 					buildVariablePath( n.inputVarPath() )
 				);
 			if ( origRegisterSessionStarters ) {
-				registerSessionStarter( inputProcess, NullProcess.getInstance() );
+				registerSessionStarter(inputProcess, NullBehaviour.getInstance() );
 			}
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
@@ -918,16 +916,16 @@ public class OOITBuilder implements OLVisitor
 			outputExpression = currExpression;
 		}
 		try {
-			InputOperationProcess inputProcess;
+			InputOperationBehaviour inputProcess;
 			currProcess = inputProcess =
-				new RequestResponseProcess(
+				new RequestResponseBehaviour(
 						interpreter.getRequestResponseOperation( n.id() ),
 						buildVariablePath( n.inputVarPath() ),
 						outputExpression,
 						buildProcess( n.process() )
 						);
 			if ( origRegisterSessionStarters ) {
-				registerSessionStarter( inputProcess, NullProcess.getInstance() );
+				registerSessionStarter(inputProcess, NullBehaviour.getInstance() );
 			}
 		} catch( InvalidIdException e ) {
 			error( n.context(), e ); 
@@ -945,7 +943,7 @@ public class OOITBuilder implements OLVisitor
 		}
 		try {
 			currProcess =
-				new NotificationProcess(
+				new NotificationBehaviour(
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
 						outputExpression,
@@ -959,11 +957,11 @@ public class OOITBuilder implements OLVisitor
 	public void visit( SolicitResponseOperationStatement n )
 	{
 		try {
-			Process installProcess = NullProcess.getInstance();
+			Behaviour installProcess = NullBehaviour.getInstance();
 			if ( n.handlersFunction() != null )
-				installProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
+				installProcess = new InstallBehaviour( getHandlersFunction( n.handlersFunction() ) );
 			currProcess =
-				new SolicitResponseProcess(
+				new SolicitResponseBehaviour(
 						n.id(),
 						interpreter.getOutputPort( n.outputPortId() ),
 						buildExpression( n.outputExpression() ),
@@ -978,12 +976,12 @@ public class OOITBuilder implements OLVisitor
 		
 	public void visit( LinkInStatement n )
 	{
-		currProcess = new LinkInProcess( n.id() );
+		currProcess = new LinkInBehaviour( n.id() );
 	}
 	
 	public void visit( LinkOutStatement n )
 	{
-		currProcess = new LinkOutProcess( n.id() );
+		currProcess = new LinkOutBehaviour( n.id() );
 	}
 	
 	public void visit( ThrowStatement n )
@@ -993,31 +991,31 @@ public class OOITBuilder implements OLVisitor
 			n.expression().accept( this );
 			expression = currExpression;
 		}
-		currProcess = new ThrowProcess( n.id(), expression );
+		currProcess = new ThrowBehaviour( n.id(), expression );
 	}
 	
 	public void visit( CompensateStatement n )
 	{
-		currProcess = new CompensateProcess( n.id() );
+		currProcess = new CompensateBehaviour( n.id() );
 	}
 		
 	public void visit( Scope n )
 	{
 		n.body().accept( this );
-		currProcess = new ScopeProcess( n.id(), currProcess );
+		currProcess = new ScopeBehaviour( n.id(), currProcess );
 	}
 		
 	public void visit( InstallStatement n )
 	{
-		currProcess = new InstallProcess( getHandlersFunction( n.handlersFunction() ) );
+		currProcess = new InstallBehaviour( getHandlersFunction( n.handlersFunction() ) );
 	}
 	
-	private List< Pair< String, Process > > getHandlersFunction( InstallFunctionNode n )
+	private List< Pair< String, Behaviour > > getHandlersFunction( InstallFunctionNode n )
 	{
-		List< Pair< String, Process > > pairs = new ArrayList<>( n.pairs().length );
+		List< Pair< String, Behaviour > > pairs = new ArrayList<>( n.pairs().length );
 		for( Pair< String, OLSyntaxNode > pair : n.pairs() ) {
 			pair.value().accept( this );
-			pairs.add( new Pair< String, Process >( pair.key(), currProcess ) );
+			pairs.add(new Pair< String, Behaviour >( pair.key(), currProcess ) );
 		}
 		return pairs;
 	}
@@ -1026,8 +1024,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 			
-		AssignmentProcess p = 
-			new AssignmentProcess(
+		AssignmentBehaviour p = 
+			new AssignmentBehaviour(
 				buildVariablePath( n.variablePath() ),
 				currExpression
 				);
@@ -1039,8 +1037,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		AddAssignmentProcess p =
-			new AddAssignmentProcess(
+		AddAssignmentBehaviour p =
+			new AddAssignmentBehaviour(
 			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
@@ -1051,8 +1049,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		SubtractAssignmentProcess p =
-			new SubtractAssignmentProcess(
+		SubtractAssignmentBehaviour p =
+			new SubtractAssignmentBehaviour(
 			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
@@ -1063,8 +1061,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		MultiplyAssignmentProcess p =
-			new MultiplyAssignmentProcess(
+		MultiplyAssignmentBehaviour p =
+			new MultiplyAssignmentBehaviour(
 			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
@@ -1075,8 +1073,8 @@ public class OOITBuilder implements OLVisitor
 	{
 		n.expression().accept( this );
 
-		DivideAssignmentProcess p =
-			new DivideAssignmentProcess(
+		DivideAssignmentBehaviour p =
+			new DivideAssignmentBehaviour(
 			buildVariablePath( n.variablePath() ),
 			currExpression );
 		currProcess = p;
@@ -1126,7 +1124,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( PointerStatement n )
 	{
 		currProcess =
-			new MakePointerProcess(
+			new MakePointerBehaviour(
 				buildVariablePath( n.leftPath() ),
 				buildVariablePath( n.rightPath() )
 			);
@@ -1135,7 +1133,7 @@ public class OOITBuilder implements OLVisitor
 	public void visit( DeepCopyStatement n )
 	{
 		currProcess =
-			new DeepCopyProcess(
+			new DeepCopyBehaviour(
 				buildVariablePath( n.leftPath() ),
 				buildExpression( n.rightExpression() )
 			);
@@ -1143,8 +1141,8 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( IfStatement n )
 	{
-		IfProcess.CPPair[] pairs = new IfProcess.CPPair[ n.children().size() ];
-		Process elseProcess = null;
+		IfBehaviour.CPPair[] pairs = new IfBehaviour.CPPair[ n.children().size() ];
+		Behaviour elseProcess = null;
 
 		Expression condition;
 		int i = 0;
@@ -1152,7 +1150,7 @@ public class OOITBuilder implements OLVisitor
 			pair.key().accept( this );
 			condition = currExpression;
 			pair.value().accept( this );
-			pairs[ i++ ] = new IfProcess.CPPair( condition, currProcess );
+			pairs[ i++ ] = new IfBehaviour.CPPair( condition, currProcess );
 		}
 		
 		if ( n.elseProcess() != null ) {
@@ -1160,23 +1158,23 @@ public class OOITBuilder implements OLVisitor
 			elseProcess = currProcess;
 		}
 		
-		currProcess = new IfProcess( pairs, elseProcess );
+		currProcess = new IfBehaviour( pairs, elseProcess );
 	}
 
 	public void visit( CurrentHandlerStatement n )
 	{
-		currProcess = CurrentHandlerProcess.getInstance();
+		currProcess = CurrentHandlerBehaviour.getInstance();
 	}
 
 	public void visit( DefinitionCallStatement n )
 	{
-		currProcess = new CallProcess( n.id() );
+		currProcess = new CallBehaviour( n.id() );
 	}
 
 	public void visit( RunStatement n )
 	{
 		n.expression().accept( this );
-		currProcess = new RunProcess( currExpression );
+		currProcess = new RunBehaviour( currExpression );
 	}
 
 	public void visit( WhileStatement n )
@@ -1184,7 +1182,7 @@ public class OOITBuilder implements OLVisitor
 		n.condition().accept( this );
 		Expression condition = currExpression;
 		n.body().accept( this );
-		currProcess = new WhileProcess( condition, currProcess );
+		currProcess = new WhileBehaviour( condition, currProcess );
 	}
 	
 	public void visit( OrConditionNode n )
@@ -1303,12 +1301,12 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( NullProcessStatement n )
 	{
-		currProcess = NullProcess.getInstance();
+		currProcess = NullBehaviour.getInstance();
 	}
 	
 	public void visit( ExitStatement n )
 	{
-		currProcess = ExitProcess.getInstance();
+		currProcess = ExitBehaviour.getInstance();
 	}
 	
 	public void visit( VoidExpressionNode n )
@@ -1323,16 +1321,16 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( PreDecrementStatement n )
 	{
-		PreDecrementProcess p =
-			new PreDecrementProcess( buildVariablePath( n.variablePath() ) );
+		PreDecrementBehaviour p =
+			new PreDecrementBehaviour( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p; 
 	}
 	
 	public void visit( PostDecrementStatement n )
 	{
-		PostDecrementProcess p =
-			new PostDecrementProcess( buildVariablePath( n.variablePath() ) );
+		PostDecrementBehaviour p =
+			new PostDecrementBehaviour( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1406,16 +1404,16 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( PreIncrementStatement n )
 	{
-		PreIncrementProcess p =
-			new PreIncrementProcess( buildVariablePath( n.variablePath() ) );
+		PreIncrementBehaviour p =
+			new PreIncrementBehaviour( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p; 
 	}
 	
 	public void visit( PostIncrementStatement n )
 	{
-		PostIncrementProcess p =
-			new PostIncrementProcess( buildVariablePath( n.variablePath() ) );
+		PostIncrementBehaviour p =
+			new PostIncrementBehaviour( buildVariablePath( n.variablePath() ) );
 		currProcess = p;
 		currExpression = p;
 	}
@@ -1423,20 +1421,20 @@ public class OOITBuilder implements OLVisitor
 	public void visit( ForStatement n )
 	{
 		n.init().accept( this );
-		Process init = currProcess;
+		Behaviour init = currProcess;
 		n.post().accept( this );
-		Process post = currProcess;
+		Behaviour post = currProcess;
 		n.condition().accept( this );
 		Expression condition = currExpression;
 		n.body().accept( this );
-		currProcess = new ForProcess( init, condition, post, currProcess );
+		currProcess = new ForBehaviour( init, condition, post, currProcess );
 	}
 	
 	public void visit( ForEachStatement n )
 	{
 		n.body().accept( this );
 		currProcess =
-			new ForEachProcess(
+			new ForEachBehaviour(
 				buildVariablePath( n.keyPath() ),
 				buildVariablePath( n.targetPath() ),
 				currProcess
@@ -1452,7 +1450,7 @@ public class OOITBuilder implements OLVisitor
 		return currExpression;
 	}
 
-	private Process buildProcess( OLSyntaxNode n )
+	private Behaviour buildProcess( OLSyntaxNode n )
 	{
 		if ( n == null ) {
 			return null;
@@ -1472,20 +1470,20 @@ public class OOITBuilder implements OLVisitor
 
 	public void visit( SpawnStatement n )
 	{
-		Process[] children = new Process[2];
-		children[ 0 ] = new InstallProcess( SessionContext.createDefaultFaultHandlers( interpreter ) );
+		Behaviour[] children = new Behaviour[2];
+		children[ 0 ] = new InstallBehaviour( StatefulContext.createDefaultFaultHandlers( interpreter ) );
 		children[ 1 ] = buildProcess( n.body() );
-		currProcess = new SpawnProcess(
+		currProcess = new SpawnBehaviour(
 			buildVariablePath( n.indexVariablePath() ),
 			buildExpression( n.upperBoundExpression() ),
 			buildVariablePath( n.inVariablePath() ),
-			new SequentialProcess( children )
+			new SequentialBehaviour( children )
 		);
 	}
 	
 	public void visit( UndefStatement n )
 	{
-		currProcess = new UndefProcess( buildVariablePath( n.variablePath() ) );
+		currProcess = new UndefBehaviour( buildVariablePath( n.variablePath() ) );
 	}
 
 	public void visit( InterfaceDefinition n ) {}
@@ -1668,7 +1666,7 @@ public class OOITBuilder implements OLVisitor
 	
 	public void visit( ProvideUntilStatement n )
 	{
-		currProcess = new ProvideUntilProcess( (NDChoiceProcess)buildProcess( n.provide() ), (NDChoiceProcess)buildProcess( n.until() ) );
+		currProcess = new ProvideUntilBehaviour( (NDChoiceBehaviour)buildProcess( n.provide() ), (NDChoiceBehaviour)buildProcess( n.until() ) );
 	}
 
 	@Override

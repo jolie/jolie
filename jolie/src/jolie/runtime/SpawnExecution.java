@@ -25,12 +25,12 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.SessionListener;
 import jolie.TransparentContext;
-import jolie.process.Process;
-import jolie.process.SimpleProcess;
-import jolie.process.SpawnProcess;
+import jolie.behaviours.SimpleBehaviour;
+import jolie.behaviours.SpawnBehaviour;
+import jolie.behaviours.Behaviour;
 
 public class SpawnExecution
 {
@@ -40,8 +40,8 @@ public class SpawnExecution
 		private final CountDownLatch latch;
 
 		public SpawnedContext(
-			SessionContext parentContext,
-			Process process,
+			StatefulContext parentContext,
+			Behaviour process,
 			int index,
 			CountDownLatch latch
 		)
@@ -49,24 +49,24 @@ public class SpawnExecution
 			super( process, parentContext );
 			this.index = index;
 			this.latch = latch;
-			super.addSessionListener( new SessionListener()
+			super.addSessionListener(new SessionListener()
 			{
 				@Override
-				public void onSessionExecuted( SessionContext session )
+				public void onSessionExecuted( StatefulContext session )
 				{
 					terminationNotify( SpawnedContext.this );
 				}
 
 				@Override
-				public void onSessionError( SessionContext session, FaultException fault )
+				public void onSessionError( StatefulContext session, FaultException fault )
 				{
 					terminationNotify( SpawnedContext.this );
 				}
 			});
-			executeNext( new SimpleProcess()
+			executeNext(new SimpleBehaviour()
 			{
 				@Override
-				public void run( SessionContext ctx ) throws FaultException, ExitingException
+				public void run( StatefulContext ctx ) throws FaultException, ExitingException
 				{
 					parentSpawnProcess.indexPath().getValue().setValue( index );
 				}
@@ -75,11 +75,11 @@ public class SpawnExecution
 	}
 	
 	private final Collection< SpawnedContext > threads = new HashSet<>();
-	private final SpawnProcess parentSpawnProcess;
-	private final SessionContext context;
+	private final SpawnBehaviour parentSpawnProcess;
+	private final StatefulContext context;
 	private CountDownLatch latch;
 
-	public SpawnExecution( SessionContext ctx, SpawnProcess parent )
+	public SpawnExecution( StatefulContext ctx, SpawnBehaviour parent )
 	{
 		this.parentSpawnProcess = parent;
 		this.context = ctx;

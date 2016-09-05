@@ -29,7 +29,7 @@ package jolie;
 public class JolieExecutorThread extends Thread implements InterpreterThread
 {
 	private ExecutionThread executionThread;
-	private SessionContext sessionContext;
+	private StatefulContext sessionContext;
 	
 	public JolieExecutorThread( Runnable r, Interpreter interpreter )
 	{
@@ -45,7 +45,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 		executionThread = thread;
 	}
 	
-	public final void sessionContext( SessionContext ctx ) 
+	public final void sessionContext( StatefulContext ctx ) 
 	{
 		System.out.println( "Set Thread SessionContext to: " + this + " for: " + Thread.currentThread() );
 		sessionContext = ctx;
@@ -60,7 +60,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 		return executionThread;
 	}
 	
-	public final SessionContext sessionContext() 
+	public final StatefulContext sessionContext() 
 	{
 		return sessionContext;
 	}

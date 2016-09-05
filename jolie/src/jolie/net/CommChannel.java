@@ -23,7 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
@@ -223,7 +223,7 @@ public abstract class CommChannel
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public void send( final CommMessage message, SessionContext ctx )
+	public void send( final CommMessage message, StatefulContext ctx )
 		throws IOException
 	{
 		try {
@@ -237,7 +237,7 @@ public abstract class CommChannel
 	protected abstract CommMessage recvImpl()
 		throws IOException;
 
-	protected abstract void sendImpl( CommMessage message, SessionContext ctx )
+	protected abstract void sendImpl( CommMessage message, StatefulContext ctx )
 		throws IOException;
 
 	/**

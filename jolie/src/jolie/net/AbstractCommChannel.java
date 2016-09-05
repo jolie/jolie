@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.FaultException;
@@ -160,7 +160,7 @@ public abstract class AbstractCommChannel extends CommChannel
 	/* Handle messages received on InputPort */
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 
-	private void forwardResponse( SessionContext ctx, CommMessage message )
+	private void forwardResponse( StatefulContext ctx, CommMessage message )
 		throws IOException
 	{
 		message = new CommMessage(
@@ -189,7 +189,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 	}
 
-	private void handleRedirectionInput( SessionContext ctx, CommMessage message, String[] ss )
+	private void handleRedirectionInput( StatefulContext ctx, CommMessage message, String[] ss )
 		throws IOException, URISyntaxException
 	{
 		// Redirection
@@ -233,13 +233,13 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 	}
 
-	private void handleAggregatedInput( SessionContext ctx, CommMessage message, AggregatedOperation operation )
+	private void handleAggregatedInput( StatefulContext ctx, CommMessage message, AggregatedOperation operation )
 		throws IOException, URISyntaxException
 	{
 		operation.runAggregationBehaviour( ctx, message, this );
 	}
 
-	private void handleDirectMessage( SessionContext ctx, CommMessage message )
+	private void handleDirectMessage( StatefulContext ctx, CommMessage message )
 		throws IOException
 	{
 		try {
@@ -274,7 +274,7 @@ public abstract class AbstractCommChannel extends CommChannel
 
 	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
 
-	private void handleRecvMessage( SessionContext ctx, CommMessage message )
+	private void handleRecvMessage( StatefulContext ctx, CommMessage message )
 		throws IOException
 	{
 		try {
@@ -304,7 +304,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 	}
 
-	protected void messageRecv( SessionContext ctx, CommMessage message )
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
 	{
 		assert (parentInputPort() != null);
 		lock.lock();

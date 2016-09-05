@@ -22,7 +22,7 @@
 package jolie.runtime;
 
 import jolie.runtime.expression.Expression;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.util.Pair;
 
 /**

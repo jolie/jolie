@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.lang.Constants.ExecutionMode;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -45,7 +45,7 @@ import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
  */
 public class SimpleCorrelationEngine extends CorrelationEngine
 {
-	private final Set< SessionContext > sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
+	private final Set< StatefulContext > sessions = Collections.newSetFromMap( new ConcurrentHashMap<>() );
 
 	public SimpleCorrelationEngine( Interpreter interpreter )
 	{
@@ -55,7 +55,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 	@Override
 	public boolean routeMessage( CommMessage message, CommChannel channel )
 	{
-		for( SessionContext session : sessions ) {
+		for( StatefulContext session : sessions ) {
 			if ( correlate( session, message ) ) {
 				session.pushMessage( new SessionMessage( message, channel ) );
 				return true;
@@ -65,31 +65,31 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 	}
 
 	@Override
-	public void onSessionStart( SessionContext session, Interpreter.SessionStarter starter, CommMessage message )
+	public void onSessionStart( StatefulContext session, Interpreter.SessionStarter starter, CommMessage message )
 	{
 		sessions.add( session );
 		initCorrelationValues( session, starter, message );
 	}
 
 	@Override
-	public void onSingleExecutionSessionStart( SessionContext session )
+	public void onSingleExecutionSessionStart( StatefulContext session )
 	{
 		sessions.add( session );
 	}
 
 	@Override
-	public void onSessionExecuted( SessionContext session )
+	public void onSessionExecuted( StatefulContext session )
 	{
 		sessions.remove( session );
 	}
 
 	@Override
-	public void onSessionError( SessionContext session, FaultException fault )
+	public void onSessionError( StatefulContext session, FaultException fault )
 	{
 		onSessionExecuted( session );
 	}
 
-	private boolean correlate( SessionContext session, CommMessage message )
+	private boolean correlate( StatefulContext session, CommMessage message )
 	{
 		if ( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)

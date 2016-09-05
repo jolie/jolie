@@ -24,16 +24,16 @@ package jolie;
 import java.util.Map;
 import java.util.concurrent.Future;
 import jolie.net.SessionMessage;
-import jolie.process.Process;
 import jolie.runtime.InputOperation;
+import jolie.behaviours.Behaviour;
 
 /**
  *
  * @author Fabrizio Montesi
  */
-public abstract class TransparentContext extends SessionContext
+public abstract class TransparentContext extends StatefulContext
 {
-	public TransparentContext( Process process, ScopableContext parent )
+	public TransparentContext( Behaviour process, ExecutionContext parent )
 	{
 		super( process, parent );
 	}
@@ -45,13 +45,13 @@ public abstract class TransparentContext extends SessionContext
 	}
 
 	@Override
-	public Future< SessionMessage> requestMessage( InputOperation operation, ScopableContext ctx )
+	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionContext ctx )
 	{
 		return parent.requestMessage( operation, ctx );
 	}
 
 	@Override
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ScopableContext ctx )
+	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionContext ctx )
 	{
 		return parent.requestMessage( operations, ctx );
 	}

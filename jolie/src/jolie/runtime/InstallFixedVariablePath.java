@@ -22,7 +22,7 @@
 
 package jolie.runtime;
 
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.expression.Expression;
 
 public class InstallFixedVariablePath implements Expression

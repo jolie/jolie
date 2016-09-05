@@ -24,29 +24,29 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.SessionListener;
 import jolie.TransparentContext;
-import jolie.process.Process;
-import jolie.process.SimpleProcess;
+import jolie.behaviours.SimpleBehaviour;
+import jolie.behaviours.Behaviour;
 
 public class ParallelExecution
 {
 	private class ParallelContext extends TransparentContext
 	{
-		public ParallelContext( Process process, SessionContext parentCtx )
+		public ParallelContext( Behaviour process, StatefulContext parentCtx )
 		{
 			super( process, parentCtx );
-			super.addSessionListener( new SessionListener()
+			super.addSessionListener(new SessionListener()
 			{
 				@Override
-				public void onSessionExecuted( SessionContext session )
+				public void onSessionExecuted( StatefulContext session )
 				{
 					terminationNotify( session );
 				}
 
 				@Override
-				public void onSessionError( SessionContext session, FaultException fault )
+				public void onSessionError( StatefulContext session, FaultException fault )
 				{
 					signalFault( session, fault );
 				}
@@ -54,15 +54,15 @@ public class ParallelExecution
 		}
 	}
 	
-	final private Collection< SessionContext > runningContexts = new HashSet<>();
-	private final SessionContext context;
+	final private Collection< StatefulContext > runningContexts = new HashSet<>();
+	private final StatefulContext context;
 	private FaultException fault = null;
 	private boolean isKilled = false;
 	private boolean childrenKilled = false;
 
-	public ParallelExecution( Process[] procs, SessionContext parentCtx)
+	public ParallelExecution( Behaviour[] procs, StatefulContext parentCtx)
 	{
-		for( Process proc : procs ) {
+		for( Behaviour proc : procs ) {
 			runningContexts.add( new ParallelContext( proc, parentCtx ) );
 		}
 		context = parentCtx;
@@ -73,13 +73,13 @@ public class ParallelExecution
 	{
 		context.pauseExecution();
 		synchronized( this ) {
-			for( SessionContext t : runningContexts ) {
+			for( StatefulContext t : runningContexts ) {
 				t.start();
 			}
 		}
 	}
 	
-	private void terminationNotify( SessionContext ctx )
+	private void terminationNotify( StatefulContext ctx )
 	{
 		synchronized( this ) {
 			runningContexts.remove( ctx );
@@ -91,7 +91,7 @@ public class ParallelExecution
 	}
 	
 		
-	private void signalFault( SessionContext ctx, FaultException f )
+	private void signalFault( StatefulContext ctx, FaultException f )
 	{
 		synchronized( this ) {
 			runningContexts.remove( ctx );
@@ -104,26 +104,26 @@ public class ParallelExecution
 		}
 	}
 	
-	private void childTerminated(SessionContext childCtx) {
+	private void childTerminated(StatefulContext childCtx) {
 		
 		synchronized( this ) {
 			if ( context.isKilled() && !runningContexts.isEmpty() && !isKilled) {
 				isKilled = true;
-				for( SessionContext	runningCtx : runningContexts ) {
+				for( StatefulContext	runningCtx : runningContexts ) {
 					runningCtx.kill( context.killerFault() );
 				}
 			} else if ( fault != null && !childrenKilled && !isKilled ) {
 				childrenKilled = true;
-				for( SessionContext	runningCtx : runningContexts ) {
+				for( StatefulContext	runningCtx : runningContexts ) {
 					runningCtx.kill( fault );
 				}
 			}
 			if (runningContexts.isEmpty()) {
 				if (fault != null) {
-					context.executeNext( new SimpleProcess()
+					context.executeNext(new SimpleBehaviour()
 					{
 						@Override
-						public void run( SessionContext ctx ) throws FaultException, ExitingException
+						public void run( StatefulContext ctx ) throws FaultException, ExitingException
 						{
 							throw fault;
 						}

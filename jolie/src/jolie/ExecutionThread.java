@@ -33,11 +33,11 @@ import java.util.concurrent.Future;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
-import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.VariablePath;
+import jolie.behaviours.Behaviour;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -54,8 +54,8 @@ public abstract class ExecutionThread extends JolieThread
 	 * containing mappings for fault handlers and termination/compensation handlers.
 	 */
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
-		private final Map< String, Process > faultMap;
-		private final Map< String, Process > compMap;
+		private final Map< String, Behaviour > faultMap;
+		private final Map< String, Behaviour > compMap;
 
 		
 		@Override
@@ -64,7 +64,7 @@ public abstract class ExecutionThread extends JolieThread
 			return new Scope( id, new HashMap<>( faultMap ), new HashMap<>( compMap ) );
 		}
 		
-		private Scope( String id, Map< String, Process > faultMap, Map< String, Process > compMap )
+		private Scope( String id, Map< String, Behaviour > faultMap, Map< String, Behaviour > compMap )
 		{
 			super( id );
 			this.faultMap = faultMap;
@@ -84,7 +84,7 @@ public abstract class ExecutionThread extends JolieThread
 		 * Installs a termination/compensation handler for this <code>Scope</code>.
 		 * @param process the termination/compensation handler to install.
 		 */
-		public void installCompensation( Process process )
+		public void installCompensation( Behaviour process )
 		{
 			compMap.put( id, process );
 		}
@@ -94,7 +94,7 @@ public abstract class ExecutionThread extends JolieThread
 		 * @param faultName the fault name to install this handler for
 		 * @param process the fault handler to install
 		 */
-		public void installFaultHandler( String faultName, Process process )
+		public void installFaultHandler( String faultName, Behaviour process )
 		{
 			faultMap.put( faultName, process );
 		}
@@ -107,9 +107,9 @@ public abstract class ExecutionThread extends JolieThread
 		 * @param erase <code>true</code> if after getting the fault handler it is to be uninstalled from the scope, <code>false</code> otherwise
 		 * @return the installed fault handler for the specified fault name
 		 */
-		public Process getFaultHandler( String faultName, boolean erase )
+		public Behaviour getFaultHandler( String faultName, boolean erase )
 		{
-			Process p = faultMap.get( faultName );
+			Behaviour p = faultMap.get( faultName );
 			if ( erase ) { // Not called by cH (TODO: this is obscure!)
 				if ( p == null ) {
 					// Give the default handler
@@ -130,7 +130,7 @@ public abstract class ExecutionThread extends JolieThread
 		 * The handler does not get uninstalled.
 		 * @return the termination/compensation handler for this scope
 		 */
-		public Process getSelfCompensation()
+		public Behaviour getSelfCompensation()
 		{
 			return compMap.get( id );
 		}
@@ -141,9 +141,9 @@ public abstract class ExecutionThread extends JolieThread
 		 * @param scopeName the scope name of the termination/compensation handler to retrieve
 		 * @return the termination/compensation handler for the specified sub-scope
 		 */
-		public Process getCompensation( String scopeName )
+		public Behaviour getCompensation( String scopeName )
 		{
-			Process p = compMap.get( scopeName );
+			Behaviour p = compMap.get( scopeName );
 			if ( p != null )
 				compMap.remove( scopeName );
 			return p;
@@ -159,7 +159,7 @@ public abstract class ExecutionThread extends JolieThread
 		}
 	}
 
-	protected final Process process;
+	protected final Behaviour process;
 	protected final Deque< Scope > scopeStack = new ArrayDeque<>();
 	protected final ExecutionThread parent;
 	private final Deque< WeakReference< Future< ? > > > futureToCancel = new ArrayDeque<>();
@@ -185,7 +185,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param process the Process to be executed by this thread
 	 * @param parent the parent of this thread
 	 */
-	public ExecutionThread( Process process, ExecutionThread parent )
+	public ExecutionThread( Behaviour process, ExecutionThread parent )
 	{
 		super( parent.interpreter() );
 		this.process = process;
@@ -197,7 +197,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param interpreter the Interpreter this thread should refer to
 	 * @param process the Process to be executed by this thread
 	 */
-	public ExecutionThread( Interpreter interpreter, Process process )
+	public ExecutionThread( Interpreter interpreter, Behaviour process )
 	{
 		super( interpreter );
 		this.process = process;
@@ -254,7 +254,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * Returns the compensator of the current executing scope.
 	 * @return the compensator of the current executing scope.
 	 */
-	public synchronized Process getCurrentScopeCompensation()
+	public synchronized Behaviour getCurrentScopeCompensation()
 	{
 		if( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCurrentScopeCompensation();
@@ -268,7 +268,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param id the scope name owning the compensator to retrieve
 	 * @return the compensator for scope name id.
 	 */
-	public synchronized Process getCompensation( String id )
+	public synchronized Behaviour getCompensation( String id )
 	{
 		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getCompensation( id );
@@ -335,7 +335,7 @@ public abstract class ExecutionThread extends JolieThread
 	 *		removed before returning it.
 	 * @return the current fault handler for fault id.
 	 */
-	public synchronized Process getFaultHandler( String id, boolean erase )
+	public synchronized Behaviour getFaultHandler( String id, boolean erase )
 	{
 		if ( scopeStack.isEmpty() && parent != null ) {
 			return parent.getFaultHandler( id, erase );
@@ -390,7 +390,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * Installs process as the compensator for the current scope.
 	 * @param process the process to install as compensator for the current scope
 	 */
-	public synchronized void installCompensation( Process process )
+	public synchronized void installCompensation( Behaviour process )
 	{
 		if ( scopeStack.isEmpty() && parent != null ) {
 			parent.installCompensation( process );
@@ -404,7 +404,7 @@ public abstract class ExecutionThread extends JolieThread
 	 * @param id the fault to be handled by process
 	 * @param process the Process to be called for handling fault id
 	 */
-	public synchronized void installFaultHandler( String id, Process process )
+	public synchronized void installFaultHandler( String id, Behaviour process )
 	{
 		if ( scopeStack.isEmpty() && parent != null ) {
 			parent.installFaultHandler( id, process );
@@ -452,7 +452,7 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionThread ethread );
 	
-	protected Process process()
+	protected Behaviour process()
 	{
 		return process;
 	}

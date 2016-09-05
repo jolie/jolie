@@ -25,7 +25,7 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -44,7 +44,7 @@ public abstract class CommProtocol
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends AbstractCommChannel {
 			public void closeImpl() {}
-			public void sendImpl( CommMessage message, SessionContext ctx ) {}
+			public void sendImpl( CommMessage message, StatefulContext ctx ) {}
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
@@ -55,7 +55,7 @@ public abstract class CommProtocol
 		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
 
-	protected SessionContext sessionContext;
+	protected StatefulContext sessionContext;
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
 

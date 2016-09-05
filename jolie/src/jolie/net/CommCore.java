@@ -49,16 +49,16 @@ import java.util.regex.Pattern;
 import jolie.Interpreter;
 import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
-import jolie.process.Process;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.VariablePath;
+import jolie.behaviours.Behaviour;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.
@@ -259,7 +259,7 @@ public class CommCore
 	public class ExecutionContextThread extends Thread
 	{
 		private Interpreter interpreter;
-		private SessionContext executionContext = null;
+		private StatefulContext executionContext = null;
 
 		private ExecutionContextThread( Runnable r, Interpreter interpreter )
 		{
@@ -267,12 +267,12 @@ public class CommCore
 			this.interpreter = interpreter;
 		}
 
-		public void executionContext( SessionContext context )
+		public void executionContext( StatefulContext context )
 		{
 			executionContext = context;
 		}
 
-		public SessionContext executionContext()
+		public StatefulContext executionContext()
 		{
 			return executionContext;
 		}
@@ -320,9 +320,9 @@ public class CommCore
 		return threadGroup;
 	}
 
-	private final Collection< Process> protocolConfigurations = new LinkedList<>();
+	private final Collection< Behaviour> protocolConfigurations = new LinkedList<>();
 
-	public Collection< Process> protocolConfigurations()
+	public Collection< Behaviour> protocolConfigurations()
 	{
 		return protocolConfigurations;
 	}
@@ -347,7 +347,7 @@ public class CommCore
 		return factory;
 	}
 
-	public CommChannel createCommChannel( URI uri, OutputPort port, SessionContext ctx  )
+	public CommChannel createCommChannel( URI uri, OutputPort port, StatefulContext ctx  )
 		throws IOException
 	{
 		String medium = uri.getScheme();
@@ -454,7 +454,7 @@ public class CommCore
 	public void addInputPort(
 		InputPort inputPort,
 		CommProtocolFactory protocolFactory,
-		Process protocolConfigurationProcess
+		Behaviour protocolConfigurationProcess
 	)
 		throws IOException
 	{

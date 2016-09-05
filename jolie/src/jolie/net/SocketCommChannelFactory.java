@@ -26,7 +26,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
@@ -41,7 +41,7 @@ public class SocketCommChannelFactory extends CommChannelFactory
 		super( commCore );
 	}
 
-	public CommChannel createChannel( URI location, OutputPort port, SessionContext ctx )
+	public CommChannel createChannel( URI location, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );

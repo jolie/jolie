@@ -23,7 +23,7 @@ package jolie.net.ext;
 
 import java.io.IOException;
 import java.net.URI;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.ports.OutputPort;
@@ -53,6 +53,6 @@ public abstract class CommChannelFactory
 	 * @return a valid communication channel
 	 * @throws java.io.IOException if the channel could not be created
 	 */
-	abstract public CommChannel createChannel( URI location, OutputPort port, SessionContext ctx )
+	abstract public CommChannel createChannel( URI location, OutputPort port, StatefulContext ctx )
 		throws IOException;
 }

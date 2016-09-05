@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.net.protocols.AsyncCommProtocol;
 
 /**
@@ -32,7 +32,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected final NioSocketCommChannelHandler nioSocketCommChannelHandler;
-	public SessionContext context;
+	public StatefulContext context;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
@@ -40,7 +40,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 		nioSocketCommChannelHandler = new NioSocketCommChannelHandler( this );
 	}
 
-	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, SessionContext ctx )
+	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, StatefulContext ctx )
 	{
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
 		channel.sessionContext( ctx );
@@ -99,7 +99,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, SessionContext ctx ) throws IOException
+	protected void sendImpl( CommMessage message, StatefulContext ctx ) throws IOException
 	{
 		ctx.pauseExecution();
 		ChannelFuture future = nioSocketCommChannelHandler.write( message );
@@ -122,11 +122,11 @@ public class NioSocketCommChannel extends StreamingCommChannel
 //		}
 	}
 	
-	public SessionContext sessionContext() {
+	public StatefulContext sessionContext() {
 		return context;
 	}
 	
-	public void sessionContext(SessionContext ctx) {
+	public void sessionContext(StatefulContext ctx) {
 		this.context = ctx;
 	}
 

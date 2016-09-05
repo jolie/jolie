@@ -24,13 +24,12 @@ package jolie.process.courier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import jolie.Interpreter;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.process.Process;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -38,12 +37,13 @@ import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
+import jolie.behaviours.Behaviour;
 
 /**
  * 
  * @author Fabrizio Montesi
  */
-public class ForwardNotificationProcess implements Process
+public class ForwardNotificationProcess implements Behaviour
 {
 	private final String operationName;
 	private final OutputPort outputPort;
@@ -64,7 +64,7 @@ public class ForwardNotificationProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Behaviour clone( TransformationReason reason )
 	{
 		return new ForwardNotificationProcess(
 			operationName,
@@ -87,7 +87,7 @@ public class ForwardNotificationProcess implements Process
 	}
 
 	@Override
-	public void run( SessionContext ctx )
+	public void run( StatefulContext ctx )
 		throws FaultException
 	{
 		if ( ctx.isKilled() ) {

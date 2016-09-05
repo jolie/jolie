@@ -24,22 +24,22 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import jolie.Interpreter;
-import jolie.SessionContext;
+import jolie.StatefulContext;
 import jolie.SessionListener;
 import jolie.State;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
 import jolie.net.ports.OutputPort;
-import jolie.process.OneWayProcess;
-import jolie.process.Process;
-import jolie.process.RequestResponseProcess;
-import jolie.process.SequentialProcess;
+import jolie.behaviours.OneWayBehaviour;
+import jolie.behaviours.RequestResponseBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.runtime.FaultException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
+import jolie.behaviours.Behaviour;
 
 /**
  * An AggregatedOperation instance contains information about an operation that is aggregated by an input port.
@@ -49,13 +49,13 @@ public abstract class AggregatedOperation
 {
 	private static class CourierOneWayAggregatedOperation extends AggregatedOperation {
 		private final OneWayOperation operation;
-		private final Process courierProcess;
+		private final Behaviour courierProcess;
 		private final VariablePath inputVariablePath;
 		
 		public CourierOneWayAggregatedOperation(
 			OneWayOperation operation,
 			VariablePath inputVariablePath,
-			Process courierProcess
+			Behaviour courierProcess
 		) {
 			super( operation.id() );
 			this.operation = operation;
@@ -70,14 +70,14 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( final SessionContext ctx, final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( final StatefulContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
 			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				SessionContext initContext = interpreter.initContext();
+				StatefulContext initContext = interpreter.initContext();
 				try {
 					initContext.join();
 				} catch( InterruptedException e ) {
@@ -85,21 +85,21 @@ public abstract class AggregatedOperation
 				}
 
 				State state = initContext.state().clone();
-				Process p = new SequentialProcess( new Process[] {
-					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), ctx ),
+				Behaviour p = new SequentialBehaviour( new Behaviour[] {
+					new OneWayBehaviour( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), ctx ),
 					courierProcess
 				});
-				SessionContext c = new SessionContext( p, state, initContext );
+				StatefulContext c = new StatefulContext( p, state, initContext );
 				
 				final FaultException[] f = new FaultException[1];
 				f[0] = null;
-				c.addSessionListener( new SessionListener() {
+				c.addSessionListener(new SessionListener() {
 					@Override
-					public void onSessionExecuted( SessionContext session )
+					public void onSessionExecuted( StatefulContext session )
 					{}
 
 					@Override
-					public void onSessionError( SessionContext session, FaultException fault )
+					public void onSessionError( StatefulContext session, FaultException fault )
 					{
 						// We need to send the acknowledgement
 						if ( fault.faultName().equals( "CorrelationError" )
@@ -151,7 +151,7 @@ public abstract class AggregatedOperation
 	
 	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation {
 		private final RequestResponseOperation operation;
-		private final Process courierProcess;
+		private final Behaviour courierProcess;
 		private final VariablePath inputVariablePath;
 		private final VariablePath outputVariablePath;
 		
@@ -159,7 +159,7 @@ public abstract class AggregatedOperation
 			RequestResponseOperation operation,
 			VariablePath inputVariablePath,
 			VariablePath outputVariablePath,
-			Process courierProcess
+			Behaviour courierProcess
 		) {
 			super( operation.id() );
 			this.operation = operation;
@@ -175,14 +175,14 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( SessionContext ctx, final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( StatefulContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
 			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				SessionContext initContext = interpreter.initContext();
+				StatefulContext initContext = interpreter.initContext();
 				try {
 					initContext.join();
 				} catch( InterruptedException e ) {
@@ -190,9 +190,9 @@ public abstract class AggregatedOperation
 				}
 
 				State state = initContext.state().clone();
-				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess )
+				Behaviour p = new RequestResponseBehaviour( operation, inputVariablePath, outputVariablePath, courierProcess )
 								.receiveMessage( new SessionMessage( requestMessage, channel ), ctx );
-				new SessionContext( p, state, initContext ).start();
+				new StatefulContext( p, state, initContext ).start();
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
@@ -232,7 +232,7 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( SessionContext ctx, CommMessage requestMessage, CommChannel channel )
+		public void runAggregationBehaviour( StatefulContext ctx, CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
 			CommChannel oChannel = null;
@@ -278,7 +278,7 @@ public abstract class AggregatedOperation
 	public static AggregatedOperation createWithCourier(
 		OneWayOperation operation,
 		VariablePath inputVariablePath,
-		Process courierProcess
+		Behaviour courierProcess
 	) {
 		return new CourierOneWayAggregatedOperation( operation, inputVariablePath, courierProcess );
 	}
@@ -287,7 +287,7 @@ public abstract class AggregatedOperation
 		RequestResponseOperation operation,
 		VariablePath inputVariablePath,
 		VariablePath outputVariablePath,
-		Process courierProcess
+		Behaviour courierProcess
 	) {
 		return new CourierRequestResponseAggregatedOperation( operation, inputVariablePath, outputVariablePath, courierProcess );
 	}
@@ -310,6 +310,6 @@ public abstract class AggregatedOperation
 		return name;
 	}
         
-	public abstract void runAggregationBehaviour( SessionContext ctx, CommMessage requestMessage, CommChannel channel )
+	public abstract void runAggregationBehaviour( StatefulContext ctx, CommMessage requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }
