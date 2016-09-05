@@ -42,6 +42,8 @@ public abstract class AbstractParser
 	protected Scanner.Token token;	///< The current token.
 	private final List< Scanner.Token > tokens = new ArrayList<>();
 	private final StringBuilder stringBuilder = new StringBuilder( 256 );
+	private boolean backup = false;
+	private final List< Scanner.Token > backupTokens = new ArrayList<>();
 	
 	protected final String build( String... args )
 	{
@@ -83,7 +85,39 @@ public abstract class AbstractParser
 		} else {
 			token = scanner.getToken();
 		}
+		
+		if ( backup ) {
+			backupTokens.add( token );
+		}
 	}
+	
+	/** Recovers the backed up tokens. */
+	protected final void recoverBackup()
+		throws IOException
+	{
+		backup = false;
+		if ( !backupTokens.isEmpty() ) {
+			addTokens( backupTokens );
+			backupTokens.clear();
+			getToken();
+		}
+	}
+	
+	/** Discards the backed up tokens. */
+	protected final void discardBackup()
+	{
+		backup = false;
+		backupTokens.clear();
+	}
+	
+	protected void startBackup()
+	{
+		if ( token != null ) {
+			backupTokens.add( token );
+		}
+		backup = true;
+	}
+	
 	
 	/** Gets a new token, and throws an {@link EOFException} if such token is of type {@code jolie.lang.parse.Scanner.TokenType.EOF}.
 	 * 

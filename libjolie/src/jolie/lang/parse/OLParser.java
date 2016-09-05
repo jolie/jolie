@@ -52,8 +52,8 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -1613,21 +1613,6 @@ public class OLParser extends AbstractParser
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 			break;
-		case FOR:
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			OLSyntaxNode init = parseProcess();
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			OLSyntaxNode condition = parseExpression();
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			OLSyntaxNode post = parseProcess();
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-
-			OLSyntaxNode body = parseBasicStatement();
-
-			retVal =
-				new ForStatement( getContext(), init, condition, post, body );
-			break;
 		case SYNCHRONIZED:
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1668,33 +1653,60 @@ public class OLParser extends AbstractParser
 				process
 			);
 			break;
+		case FOR:
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			
+			startBackup();
+			VariablePathNode leftPath = null;
+			
+			try {
+				leftPath = parseVariablePath();
+			} catch( ParserException e ) {}
+
+			if ( leftPath != null && token.isKeyword( "in" ) ) {
+				// for( elem in path ) { ... }
+				discardBackup();
+
+				getToken();
+				VariablePathNode targetPath = parseVariablePath();
+				if ( targetPath.path().get( targetPath.path().size() - 1 ).value() != null ) {
+					System.out.println( targetPath.path().get( targetPath.path().size() - 1 ).value() );
+					throwException( "target in for ( elem -> array ) { ... } should be an array (cannot specify an index): " + targetPath.toPrettyString() );
+				}
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				final OLSyntaxNode forEachBody = parseBasicStatement();
+
+				retVal = new ForEachArrayItemStatement( getContext(), leftPath, targetPath, forEachBody );
+			} else {
+				// for( init, condition, post ) { ... }
+				recoverBackup();
+				OLSyntaxNode init = parseProcess();
+				eat( Scanner.TokenType.COMMA, "expected ," );
+				OLSyntaxNode condition = parseExpression();
+				eat( Scanner.TokenType.COMMA, "expected ," );
+				OLSyntaxNode post = parseProcess();
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+
+				OLSyntaxNode body = parseBasicStatement();
+
+				retVal = new ForStatement( getContext(), init, condition, post, body );
+			}
+			break;
 		case FOREACH:
+			// foreach( k : path ) { ... }
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
 
 			final VariablePathNode keyPath = parseVariablePath();
 			
-			if ( token.is( Scanner.TokenType.COLON ) ) {
-				// foreach( k : path ) { ... }
-				getToken();
-				final VariablePathNode targetPath = parseVariablePath();
-				eat( Scanner.TokenType.RPAREN, "expected )" );
-				final OLSyntaxNode forEachBody = parseBasicStatement();
-				retVal = new ForEachSubNodeStatement( getContext(), keyPath, targetPath, forEachBody );
-			} else if ( token.is( Scanner.TokenType.POINTS_TO ) ) {
-				// foreach( item -> path ) { ... }
-				getToken();
-				final VariablePathNode targetPath = parseVariablePath();
-				if ( targetPath.path().get( targetPath.path().size() - 1 ).value() != null ) {
-					throwException( "target array in foreach cannot specify an index: " + targetPath.toPrettyString() );
-				}
-				eat( Scanner.TokenType.RPAREN, "expected )" );
-				final OLSyntaxNode forEachBody = parseBasicStatement();
-				
-				retVal = new ForEachArrayItemStatement( getContext(), keyPath, targetPath, forEachBody );
-			} else {
-				throwException( "expected : or ->" );
-			}
+			eat( Scanner.TokenType.COLON, "expected :" );
+
+			getToken();
+			final VariablePathNode targetPath = parseVariablePath();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
+			final OLSyntaxNode forEachBody = parseBasicStatement();
+			retVal = new ForEachSubNodeStatement( getContext(), keyPath, targetPath, forEachBody );
 			break;
 		case LINKIN:
 			retVal = parseLinkInStatement();
@@ -2022,7 +2034,8 @@ public class OLParser extends AbstractParser
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
 				expr = null;
-			}	path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), expr ) );
+			}
+			path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), expr ) );
 			break;
 		}
 
