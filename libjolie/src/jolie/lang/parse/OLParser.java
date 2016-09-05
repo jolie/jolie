@@ -1702,7 +1702,6 @@ public class OLParser extends AbstractParser
 			
 			eat( Scanner.TokenType.COLON, "expected :" );
 
-			getToken();
 			final VariablePathNode targetPath = parseVariablePath();
 			eat( Scanner.TokenType.RPAREN, "expected )" );
 			final OLSyntaxNode forEachBody = parseBasicStatement();
