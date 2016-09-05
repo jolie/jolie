@@ -13,54 +13,54 @@ define doTest
 	numbers[2] = 10;
 
   i = 0;
-	foreach( k -> animals.pets ) {
+	for( k in animals.pets ) {
 		if( k != animals.pets[i++] ) {
-			throw( TestFailed, "foreach doesn't work with subnodes (item comparison)" )
+			throw( TestFailed, "for -> doesn't work with subnodes (item comparison)" )
 		}
 	};
 
   if( i != 3 ) {
-		throw( TestFailed, "foreach doesn't work with subnodes (index)" )
+		throw( TestFailed, "for -> doesn't work with subnodes (index)" )
 	};
 
   i = 0;
-	foreach( k -> numbers ) {
+	for( k in numbers ) {
 		if( k != numbers[i++] ) {
-			throw( TestFailed, "foreach doesn't work with root nodes" )
+			throw( TestFailed, "for -> doesn't work with root nodes" )
 		}
 	};
 
 	if( i != 3 ) {
-    throw( TestFailed, "foreach doesn't work with root nodes" )
+    throw( TestFailed, "for -> doesn't work with root nodes" )
 	};
 
-  foreach( k -> emptyArray ) {
-		throw( TestFailed, "foreach doesn't work with empty nodes" )
+  for( k in emptyArray ) {
+		throw( TestFailed, "for -> doesn't work with empty nodes" )
 	};
 
   i = 0;
-	foreach( k[3] -> animals.pets ) {
+	for( k[3] in animals.pets ) {
 		if( k[3] != animals.pets[i++] ) {
-			throw( TestFailed, "foreach doesn't work with indexed key paths (item comparison)" )
+			throw( TestFailed, "for -> doesn't work with indexed key paths (item comparison)" )
 		}
 	};
 
 	if( i != 3 ) {
-		throw( TestFailed, "foreach doesn't work with indexed key paths (index)" )
+		throw( TestFailed, "for -> doesn't work with indexed key paths (index)" )
 	};
 
   i = 0;
-	foreach( k[33] -> numbers ) {
+	for( k[33] in numbers ) {
 		if( k[33] != numbers[i++] ) {
-			throw( TestFailed, "foreach doesn't work with indexed key paths and root nodes (item comparison)" )
+			throw( TestFailed, "for -> doesn't work with indexed key paths and root nodes (item comparison)" )
 		}
 	};
 
 	if( i != 3 ) {
-    throw( TestFailed, "foreach doesn't work with indexed key paths and root nodes (index)" )
+    throw( TestFailed, "for -> doesn't work with indexed key paths and root nodes (index)" )
 	};
 
-  foreach( k[33] -> emptyArray ) {
-		throw( TestFailed, "foreach doesn't work with indexed key paths and empty nodes" )
+  for( k[33] in emptyArray ) {
+		throw( TestFailed, "for -> doesn't work with indexed key paths and empty nodes" )
 	}
 }

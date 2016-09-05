@@ -133,6 +133,12 @@ public class OLParseTreeOptimizer
 			return program;
 		}
 		
+		private OLSyntaxNode optimize( OLSyntaxNode n )
+		{
+			n.accept( this );
+			return currNode;
+		}
+		
 		@Override
 		public void visit( Program p )
 		{
@@ -934,5 +940,10 @@ public class OLParseTreeOptimizer
 	public static Program optimize( Program originalProgram )
 	{
 		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
+	}
+	
+	public static OLSyntaxNode optimize( OLSyntaxNode node )
+	{
+		return (new OptimizerVisitor( node.context() )).optimize( node );
 	}
 }
