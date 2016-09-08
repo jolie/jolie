@@ -21,8 +21,6 @@
 
 package jolie.behaviours;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.monitoring.events.OperationStartedEvent;
@@ -90,15 +88,15 @@ public class OneWayBehaviour implements InputOperationBehaviour
 			return;
 		}
 
-		Future< SessionMessage > f = ctx.requestMessage( operation, ctx );
-		try {
-			SessionMessage m = f.get();
-			if ( m != null ) { // If it is null, we got killed by a fault
-				ctx.executeNext( receiveMessage( m, ctx ) );
-			}
-		} catch( InterruptedException | ExecutionException e ) {
-			ctx.interpreter().logSevere( e );
+		SessionMessage message = ctx.requestMessage( operation, ctx );
+		if ( message == null) {
+			ctx.executeNext( this );
+			ctx.pauseExecution();
+			return;
 		}
+		
+		// If it is null, we got killed by a fault
+		ctx.executeNext( receiveMessage( message, ctx ) );
 	}
 
 	private void log(Interpreter interpreter, String log, CommMessage message )

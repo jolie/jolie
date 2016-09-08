@@ -23,6 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import jolie.StatefulContext;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
@@ -217,17 +218,28 @@ public abstract class CommChannel
 	public abstract CommMessage recvResponseFor( CommMessage request )
 		throws IOException;
 	
+		
+	public void send( final CommMessage message, StatefulContext ctx )
+		throws IOException
+	{
+		try {
+			Helpers.lockAndThen( lock, () -> sendImpl( message, ctx, null ) );
+		} catch( IOException e ) {
+			setToBeClosed( true );
+			throw e;
+		}
+	}
 	/**
 	 * Sends a message through this channel.
 	 *
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public void send( final CommMessage message, StatefulContext ctx )
+	public void send( final CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( message, ctx ) );
+			Helpers.lockAndThen( lock, () -> sendImpl( message, ctx, completionHandler ) );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -237,7 +249,7 @@ public abstract class CommChannel
 	protected abstract CommMessage recvImpl()
 		throws IOException;
 
-	protected abstract void sendImpl( CommMessage message, StatefulContext ctx )
+	protected abstract void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
 		throws IOException;
 
 	/**

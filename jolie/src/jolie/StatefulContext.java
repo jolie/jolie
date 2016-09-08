@@ -23,16 +23,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.TransformationReason;
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
-import jolie.behaviours.TransformationReason;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -41,7 +36,6 @@ import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
 import jolie.util.Pair;
-import jolie.behaviours.Behaviour;
 
 /**
  *
@@ -49,132 +43,6 @@ import jolie.behaviours.Behaviour;
  */
  public class StatefulContext extends ExecutionContext
 {
-	
-	private class SessionMessageFuture implements Future< SessionMessage >
-	{
-		private final Lock lock;
-		private final Condition condition;
-		private SessionMessage sessionMessage = null;
-		private boolean isDone = false;
-		private boolean isCancelled = false;
-		private final ExecutionContext context;
-
-		public SessionMessageFuture(ExecutionContext ctx)
-		{
-			lock = new ReentrantLock();
-			condition = lock.newCondition();
-			this.context = ctx;
-		}
-
-		@Override
-		public boolean cancel( boolean mayInterruptIfRunning )
-		{
-			lock.lock();
-			try {
-				if ( !isDone ) {
-					this.sessionMessage = null;
-					isDone = true;
-					isCancelled = true;
-					condition.signalAll();
-				}
-			} finally {
-				lock.unlock();
-			}
-			
-			return true;
-		}
-
-		@Override
-		public SessionMessage get( long timeout, TimeUnit unit )
-			throws InterruptedException, TimeoutException
-		{
-			try {
-				lock.lock();
-				if ( isDone ) {
-					return sessionMessage;
-				} else {
-					context.pauseExecution();
-//					if ( !condition.await( timeout, unit ) ) {
-//						throw new TimeoutException();
-//					}
-					return null;
-				}
-			} finally {
-				lock.unlock();
-			}
-			//return sessionMessage;
-		}
-
-		@Override
-		public SessionMessage get()
-			throws InterruptedException
-		{
-			try {
-				lock.lock();
-				if ( isDone ) {
-					return sessionMessage;
-					//condition.await();
-				} else {
-					context.pauseExecution();
-					return null;
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
-
-		@Override
-		public boolean isCancelled()
-		{
-			return isCancelled;
-		}
-
-		@Override
-		public boolean isDone()
-		{
-			return isDone;
-		}
-
-		protected void setResult( SessionMessage sessionMessage )
-		{
-			lock.lock();
-			try {
-				if ( !isDone ) {
-					this.sessionMessage = sessionMessage;
-					isDone = true;
-					//condition.signalAll();
-					context.start();
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
-	}
-
-	private class SessionMessageNDFuture extends SessionMessageFuture
-	{
-		private final String[] operationNames;
-
-		public SessionMessageNDFuture( ExecutionContext ctx, String[] operationNames )
-		{
-			super( ctx );
-			this.operationNames = operationNames;
-		}
-	
-		@Override
-		protected void setResult( SessionMessage sessionMessage )
-		{
-			for( String operationName : operationNames ) {
-				if ( operationName.equals( sessionMessage.message().operationName() ) == false ) {
-					Deque< SessionMessageFuture > waitersList = messageWaiters.get( operationName );
-					if ( waitersList != null ) {
-						waitersList.remove( this );
-					}
-				}
-			}
-			super.setResult( sessionMessage );
-		}
-	}
 
 	private static final AtomicLong idCounter = new AtomicLong( 1L );
 	
@@ -183,7 +51,7 @@ import jolie.behaviours.Behaviour;
 	private final List< SessionListener > listeners = new ArrayList<>();
 	protected final Map< CorrelationSet, Deque< SessionMessage > > messageQueues = new HashMap<>();
 	protected final Deque< SessionMessage > uncorrelatedMessageQueue = new ArrayDeque<>();
-	private final Map< String, Deque< StatefulContext.SessionMessageFuture > > messageWaiters =	new HashMap<>();
+	private final Map< String, Deque< ExecutionContext > > messageWaiters =	new HashMap<>();
 	private boolean executionCompleted = false;
 
 	private final static VariablePath typeMismatchPath;
@@ -226,7 +94,7 @@ import jolie.behaviours.Behaviour;
 			((JolieExecutorThread)t).sessionContext( this );
 		}
 		
-		System.out.println( "SessionContext Loop started: " + this.toString() );
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop started: " + this.toString() );
 		while( !processStack.isEmpty() && !pauseExecution ) {
 			try {
 				try {
@@ -235,7 +103,7 @@ import jolie.behaviours.Behaviour;
 					for( int i = 0; i < processStack.size(); i++ ) {
 						pad += "  ";
 					}
-					System.out.println( this + " - " + pad + p );
+					System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  " - " + pad + p );
 					p.run( this );
 				} catch( ExitingException e ) {
 				}
@@ -247,7 +115,7 @@ import jolie.behaviours.Behaviour;
 
 				try {
 					if ( p == null ) {
-						Interpreter.getInstance().logUnhandledFault( f );
+						interpreter().logUnhandledFault( f );
 						throw f;
 					} else {
 						Value scopeValue
@@ -274,11 +142,12 @@ import jolie.behaviours.Behaviour;
 			markExecutionFinished();
 		}
 		
-		pauseExecution = false;
-		System.out.println( "SessionContext Loop stopped: " + this.toString() );
+		pauseExecution = false;		
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop stopped: " + this.toString() );
 	}
 	
 	private void markExecutionFinished() {
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Marked as finished: " + this.toString() );
 		synchronized (completionLock) {
 			assert(!executionCompleted);
 			executionCompleted = true;
@@ -348,13 +217,11 @@ import jolie.behaviours.Behaviour;
 	}
 
 	@Override
-	public Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionContext scope )
+	public SessionMessage requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx )
 	{
-		final StatefulContext.SessionMessageFuture future = new StatefulContext.SessionMessageNDFuture( scope, operations.keySet().toArray( new String[0] ) );
-		scope.cancelIfKilled( future );
+		SessionMessage message = null;
 		synchronized( messageQueues ) {
 			Deque< SessionMessage > queue = null;
-			SessionMessage message = null;
 			InputOperation operation = null;
 
 			Iterator< Deque< SessionMessage > > it = messageQueues.values().iterator();
@@ -375,56 +242,54 @@ import jolie.behaviours.Behaviour;
 
 			if ( message == null || operation == null ) {
 				operations.entrySet().forEach(
-					entry -> addMessageWaiter( entry.getValue(), future )
+					entry -> addMessageWaiter( entry.getValue(), ctx )
 				);
+				System.out.println( "Added Messagewaiter for: " + operations.toString() );
 			} else {
-				future.setResult( message );
+				System.out.println( "Found Messagewaiter for: " + message.message().operationName() );
 				queue.removeFirst();
 
 				// Check if we unlocked other receives
-				boolean keepRun = true;
-				StatefulContext.SessionMessageFuture f;
-				while( keepRun && !queue.isEmpty() ) {
-					message = queue.peekFirst();
-					f = getMessageWaiter( message.message().operationName() );
-					if ( f != null ) { // We found a waiter for the unlocked message
-						f.setResult( message );
-						queue.removeFirst();
-					} else {
-						keepRun = false;
+				SessionMessage otherMessage;
+				ExecutionContext waitingContext;
+				if( !queue.isEmpty() ) {
+					otherMessage = queue.peekFirst();
+					waitingContext = getMessageWaiter( otherMessage.message().operationName() );
+					if ( waitingContext != null ) {
+						// We found a waiter for the unlocked message
+						waitingContext.start();
+						System.out.println( "Unlocked additional Messagewaiter for: " + otherMessage.message().operationName() );
 					}
 				}
 			}
 		}
-		return future;
+		return message;
 	}
 
 	@Override
-	public Future< SessionMessage > requestMessage( InputOperation operation, ExecutionContext ctx )
+	public SessionMessage requestMessage( InputOperation operation, ExecutionContext ctx )
 	{
-		final StatefulContext.SessionMessageFuture future = new StatefulContext.SessionMessageFuture( ctx );
-		ctx.cancelIfKilled( future );
 		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
 		final Deque< SessionMessage > queue =
 				cset == null ? uncorrelatedMessageQueue
 				: messageQueues.get( cset );
+		SessionMessage message = null;
 		synchronized( messageQueues ) {
-			final SessionMessage message = queue.peekFirst();
+			message = queue.peekFirst();
 			if ( message == null
 				|| message.message().operationName().equals( operation.id() ) == false
 			) {
-				addMessageWaiter( operation, future );
+				addMessageWaiter( operation, ctx );
 			} else {
-				future.setResult( message );
 				queue.removeFirst();
 
 				// Check if we unlocked other receives
 				boolean keepRun = true;
 				while( keepRun && !queue.isEmpty() ) {
 					final SessionMessage otherMessage = queue.peekFirst();
-					final StatefulContext.SessionMessageFuture currFuture = getMessageWaiter( otherMessage.message().operationName() );
-					if ( currFuture != null ) { // We found a waiter for the unlocked message
-						currFuture.setResult( otherMessage );
+					final ExecutionContext waitingCtx = getMessageWaiter( otherMessage.message().operationName() );
+					if ( waitingCtx != null ) { // We found a waiter for the unlocked message
+						waitingCtx.start();
 						queue.removeFirst();
 					} else {
 						keepRun = false;
@@ -432,22 +297,22 @@ import jolie.behaviours.Behaviour;
 				}
 			}
 		}
-		return future;
+		return message;
 	}
 
-	private void addMessageWaiter( InputOperation operation, StatefulContext.SessionMessageFuture future )
+	private void addMessageWaiter( InputOperation operation, ExecutionContext ctx )
 	{
-		Deque< StatefulContext.SessionMessageFuture > waitersList = messageWaiters.get( operation.id() );
+		Deque< ExecutionContext > waitersList = messageWaiters.get( operation.id() );
 		if ( waitersList == null ) {
 			waitersList = new ArrayDeque<>();
 			messageWaiters.put( operation.id(), waitersList );
 		}
-		waitersList.addLast( future );
+		waitersList.addLast( ctx );
 	}
 
-	private StatefulContext.SessionMessageFuture getMessageWaiter( String operationName )
+	private ExecutionContext getMessageWaiter( String operationName )
 	{
-		Deque< StatefulContext.SessionMessageFuture > waitersList = messageWaiters.get( operationName );
+		Deque< ExecutionContext > waitersList = messageWaiters.get( operationName );
 		if ( waitersList == null || waitersList.isEmpty() ) {
 			return null;
 		}
@@ -469,12 +334,12 @@ import jolie.behaviours.Behaviour;
 			} else {
 				queue = uncorrelatedMessageQueue;
 			}
-			StatefulContext.SessionMessageFuture future = getMessageWaiter( message.message().operationName() );
-			if ( future != null && queue.isEmpty() ) {
-				future.setResult( message );
-			} else {
-				queue.addLast( message );
+			ExecutionContext waitingCtx = getMessageWaiter( message.message().operationName() );
+			if ( waitingCtx != null && queue.isEmpty() ) {
+				waitingCtx.start();
 			}
+			// We will add the message to the queue in any case so that it can be fetched from the queue by requestMessage.
+			queue.addLast( message );
 		}
 	}
 

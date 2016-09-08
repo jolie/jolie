@@ -32,6 +32,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.IllegalBlockingModeException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import java.util.function.Function;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.protocols.CommProtocol;
@@ -111,7 +112,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @throws IOException if an error sending the message occurs
 	 */
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx )
+	protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {

@@ -22,12 +22,12 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
+import jolie.behaviours.Behaviour;
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
-import jolie.behaviours.Behaviour;
 
 /**
  * Replaces ExecutionThread.
@@ -411,7 +411,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( InputOperation operation, ExecutionContext ctx );
+	public abstract SessionMessage requestMessage( InputOperation operation, ExecutionContext ctx );
 
 	/**
 	 * Requests a message from the currently executing session.
@@ -419,17 +419,19 @@ public abstract class ExecutionContext extends JolieContext
 	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract Future< SessionMessage > requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx);
+	public abstract SessionMessage requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx);
 
 	public abstract String getSessionId();
 	
 	public void start()
 	{
+		//assert( !pauseExecution );
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "START execution context" );
 		interpreter().runJolieThread( this );
 	}
 	
 	public void executeNext(Behaviour process) {
-		System.out.println( "Adding process to stack: " + process );
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "Adding process to stack: " + process );
 		processStack.push( process );
 	}
 	
@@ -449,6 +451,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * in time.
 	 */
 	public void pauseExecution() {
+		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "PAUSE execution context" );
 		pauseExecution = true;
 	}
 

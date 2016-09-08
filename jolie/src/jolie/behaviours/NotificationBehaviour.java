@@ -41,33 +41,60 @@ import jolie.tracer.Tracer;
 
 public class NotificationBehaviour implements Behaviour
 {
-	private class SendCompleteBehaviour implements Behaviour
-	{
+	private class NotificationOnAckBehaviour implements Behaviour {
+		
+		private final CommChannel channel;
 		private final CommMessage message;
-		public SendCompleteBehaviour(CommMessage message)
+
+		public NotificationOnAckBehaviour( CommChannel channel, CommMessage message )
 		{
+			this.channel = channel;
 			this.message = message;
 		}
 		
 		@Override
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
-			log( "SENT", message );
-			if ( ctx.interpreter().isMonitoring() ) {
-				ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
-			}
+			try {
+				CommMessage response = channel.recvResponseFor( message );
+				if ( response == null) {
+					System.out.println( "did not recieve ack yet go to sleep." );
+					ctx.executeNext( this );
+					ctx.pauseExecution();
+					return;
+				}
+
+				log( ctx.interpreter(), "RECEIVED ACK", response );
+
+				if ( response.isFault() ) {
+					if ( response.fault().faultName().equals( "CorrelationError" )
+						|| response.fault().faultName().equals( "IOException" )
+						|| response.fault().faultName().equals( "TypeMismatch" )
+						) {
+						throw response.fault();
+					} else {
+						ctx.interpreter().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
+					}
+				}
+
+			} catch( IOException e ) {
+				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+			} 
 		}
 
 		@Override
 		public Behaviour clone( TransformationReason reason )
 		{
-			throw new UnsupportedOperationException( "Should not be cloned" );
+			return new NotificationOnAckBehaviour( channel, message );
 		}
 
 		@Override
 		public boolean isKillable()
-		{ return false; }
-	};
+		{
+			return true;
+		}
+		
+	}
 	
 	private final String operationId;
 	private final OutputPort outputPort;
@@ -87,6 +114,7 @@ public class NotificationBehaviour implements Behaviour
 		this.oneWayDescription = outputType;
 	}
 	
+	@Override
 	public Behaviour clone( TransformationReason reason )
 	{
 		return new NotificationBehaviour(
@@ -97,9 +125,9 @@ public class NotificationBehaviour implements Behaviour
 				);
 	}
 
-	private void log( String log, CommMessage message )
+	private void log( Interpreter interpreter, String log, CommMessage message )
 	{
-		final Tracer tracer = Interpreter.getInstance().tracer();
+		final Tracer tracer = interpreter.tracer();
 		tracer.trace( () -> new MessageTraceAction(
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
@@ -126,40 +154,30 @@ public class NotificationBehaviour implements Behaviour
 				try  {
 				oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
-					if ( Interpreter.getInstance().isMonitoring() ) {
-						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+					if ( ctx.interpreter().isMonitoring() ) {
+						ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 					throw( e );
 				}
 			}
 			channel = outputPort.getCommChannel( ctx );
 
-			log( "SENDING", message );
+			log( ctx.interpreter(), "SENDING", message );
 
-			ctx.executeNext(new SendCompleteBehaviour(message) );
-			channel.send( message, ctx );
+			ctx.executeNext(new NotificationOnAckBehaviour(channel, message) );
 			
-//			CommMessage response = null;
-//			do {
-//				response = channel.recvResponseFor( message );
-//			} while( response == null );
-//			
-//			log( "RECEIVED ACK", response );
-//			
-//			if ( response.isFault() ) {
-//				if ( response.fault().faultName().equals( "CorrelationError" )
-//					|| response.fault().faultName().equals( "IOException" )
-//					|| response.fault().faultName().equals( "TypeMismatch" )
-//					) {
-//					throw response.fault();
-//				} else {
-//					Interpreter.getInstance().logSevere( "Notification process for operation " + operationId + " received an unexpected fault: " + response.fault().faultName() );
-//				}
-//			}
+			channel.send( message, ctx, ( Void ) -> {
+				log( ctx.interpreter(), "SENT", message );
+				if ( ctx.interpreter().isMonitoring() ) {
+					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+				}
+				return null;
+			});
+			
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
@@ -173,6 +191,7 @@ public class NotificationBehaviour implements Behaviour
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

@@ -14,6 +14,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.StatefulContext;
@@ -99,13 +100,15 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx ) throws IOException
+		protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler ) throws IOException
 	{
-		ctx.pauseExecution();
+		//ctx.pauseExecution();
 		ChannelFuture future = nioSocketCommChannelHandler.write( message );
 		future.addListener(( ChannelFuture future1 ) -> {
 			if ( future1.isSuccess() ) {
-				ctx.start();
+				//ctx.start();
+				if (completionHandler != null)
+					completionHandler.apply( null );
 			} else {
 				throw new IOException( future1.cause() );
 			}

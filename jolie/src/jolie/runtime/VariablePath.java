@@ -134,8 +134,7 @@ public class VariablePath implements Expression, Cloneable
 	
 	protected Value getRootValue()
 	{
-		System.out.println( "Trying to get executionThread from: " + Thread.currentThread() + " (" + Thread.currentThread().getClass().getName() + ")" );
-		System.out.println("Found context: " +  StatefulContext.currentContext() );
+//		System.out.println( "Trying to get executionThread from: " + Thread.currentThread() + " (" + Thread.currentThread().getClass().getName() + ") Found: " +  StatefulContext.currentContext());
 		if (ExecutionThread.currentThread() == null)
 			return StatefulContext.currentContext().state().root();
 		return ExecutionThread.currentThread().state().root();

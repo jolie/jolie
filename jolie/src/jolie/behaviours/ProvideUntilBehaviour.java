@@ -24,9 +24,6 @@ package jolie.behaviours;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import jolie.StatefulContext;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
@@ -39,9 +36,9 @@ import jolie.util.Pair;
  */
 public class ProvideUntilBehaviour implements Behaviour
 {
+	
 	private final NDChoiceBehaviour provide, until;
-	private Map< String, InputOperation > inputOperationsMap =
-		new HashMap< String, InputOperation >();
+	private Map< String, InputOperation > inputOperationsMap = new HashMap<>();
 	
 	public ProvideUntilBehaviour( NDChoiceBehaviour provide, NDChoiceBehaviour until )
 	{
@@ -65,30 +62,26 @@ public class ProvideUntilBehaviour implements Behaviour
 		if ( ctx.isKilled() ) {
 			return;
 		}
-		
-		boolean keepRun = true;
 
-		try {
-			while( keepRun ) {
-				Future< SessionMessage > f = ctx.requestMessage( inputOperationsMap, ctx );
-
-				SessionMessage m = f.get();
-				Pair< InputOperationBehaviour, Behaviour > branch = provide.branches().get( m.message().operationName() );
-				if ( branch == null ) {
-					// It is an until branch
-					branch = until.branches().get( m.message().operationName() );
-					keepRun = false;
-				}
-				branch.key().receiveMessage( m, ctx ).run( ctx );
-				branch.value().run( ctx );
-			}
-		} catch( CancellationException e ) {
-			ctx.interpreter().logSevere( e );
-		} catch( ExecutionException e ) {
-			ctx.interpreter().logSevere( e );
-		} catch( InterruptedException e ) {
-			ctx.interpreter().logSevere( e );
+		SessionMessage message = ctx.requestMessage( inputOperationsMap, ctx );
+		if ( message == null) {
+			System.out.println( "did not find any waiting messages. go to sleep.." );
+			ctx.executeNext( this );
+			ctx.pauseExecution();
+			return;
 		}
+
+		Pair< InputOperationBehaviour, Behaviour > branch = provide.branches().get( message.message().operationName() );
+		if ( branch == null ) {
+			// It is an until branch
+			branch = until.branches().get( message.message().operationName() );
+		} else {
+			// It is not
+			ctx.executeNext( this );
+		}
+		Behaviour b1 = branch.key().receiveMessage( message, ctx );
+		Behaviour b2 = branch.value();
+		ctx.executeNext( b1, b2 );
 	}
 	
 	@Override

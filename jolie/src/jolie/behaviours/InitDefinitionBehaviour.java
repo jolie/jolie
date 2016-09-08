@@ -21,6 +21,7 @@
 
 package jolie.behaviours;
 
+import java.util.ArrayList;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.ports.OutputPort;
@@ -42,57 +43,77 @@ public class InitDefinitionBehaviour extends DefinitionBehaviour
 	public void run(StatefulContext ctx)
 		throws FaultException
 	{
+		ArrayList<Behaviour> behaviours = new ArrayList(64);
 		Interpreter interpreter = ctx.interpreter();
-		try {
-			for( OutputPort outputPort : interpreter.outputPorts() ) {
-				try {
-					outputPort.configurationProcess().run( ctx );
-				} catch( FaultException fe ) {
-					// If this happens, it's been caused by a bug in the SemanticVerifier
-					assert( false );
-				} catch( ExitingException e ) {
-					interpreter.logSevere( e );
-					assert false;
-				}
-			}
-			
-			for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
-				loader.load();
-			}
-
-			for( OutputPort outputPort : interpreter.outputPorts() ) {
-				outputPort.optimizeLocation( ctx );
-			}
-
-			interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
-			
-			for( Behaviour p : interpreter.commCore().protocolConfigurations() ) {
-				try {
-					p.run( ctx );
-				} catch( ExitingException e ) {
-					interpreter.logSevere( e );
-					assert false;
-				}
-			}
-			
-			// If an internal service, copy over the output port locations from the parent service
-			if ( interpreter.parentInterpreter() != null ) {
-				Value parentInitRoot = interpreter.parentInterpreter().initContext().state().root();
-				for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
-					try {
-						OutputPort port = interpreter.getOutputPort( parentPort.id() );
-						port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
-						port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
-						port.optimizeLocation( ctx );
-					} catch( InvalidIdException e ) {}
-				}
-			}
-
-			try {
-				super.run( ctx );
-			} catch( ExitingException e ) {}
-		} catch( EmbeddedServiceLoadingException e ) {
-			interpreter.logSevere( e );
+		
+		for( OutputPort outputPort : interpreter.outputPorts() ) {
+			//outputPort.configurationProcess().run( ctx );
+			behaviours.add( outputPort.configurationProcess() );
 		}
+
+		behaviours.add( new SimpleBehaviour()
+		{
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
+					try {
+						loader.load();
+					} catch( EmbeddedServiceLoadingException ex ) {
+						interpreter.logSevere( ex );
+					}
+				}
+			}
+		});
+
+		behaviours.add( new SimpleBehaviour()
+		{
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				for( OutputPort outputPort : interpreter.outputPorts() ) {
+					outputPort.optimizeLocation( ctx );
+				}
+			}
+		});
+
+		behaviours.add( new SimpleBehaviour()
+		{
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
+			}
+		});
+
+		for( Behaviour p : interpreter.commCore().protocolConfigurations() ) {
+			behaviours.add( p );
+		}
+
+		behaviours.add( new SimpleBehaviour()
+		{
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				// If an internal service, copy over the output port locations from the parent service
+				if ( interpreter.parentInterpreter() != null ) {
+					Value parentInitRoot = interpreter.parentInterpreter().initContext().state().root();
+					for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
+						try {
+							OutputPort port = interpreter.getOutputPort( parentPort.id() );
+							port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
+							port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
+							port.optimizeLocation( ctx );
+						} catch( InvalidIdException e ) {}
+					}
+				}
+			}
+		});
+
+		ctx.executeNext( new SequentialBehaviour(behaviours.toArray(new Behaviour[behaviours.size()])) );
+
+		try {
+			super.run( ctx );
+		} catch( ExitingException e ) {}
 	}
 }

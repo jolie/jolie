@@ -39,7 +39,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 			this.commChannel.messageRecv( commChannel.sessionContext(), msg );
 		}
 		// Wake up the context to handle the message
-		commChannel.context.start();
+		// commChannel.context.start();
 	}
 
 	protected ChannelFuture write( CommMessage msg )

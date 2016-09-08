@@ -24,9 +24,6 @@ package jolie.behaviours;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import jolie.StatefulContext;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
@@ -41,7 +38,7 @@ import jolie.util.Pair;
  * the receiving of a communication on one of its InputProcess objects.
  * When a communication is received, the following happens:
  * \li the communication is resolved by the corresponding InputProcess instance.
- * \li the paired Process object is executed.
+ * \li the paired Process object is executed.	
  * 
  * After that, the ChoiceProcess terminates, so the other pairs are ignored.
  * 
@@ -99,15 +96,15 @@ public class NDChoiceBehaviour implements Behaviour
 			return;
 		}
 
-		Future< SessionMessage > f = ctx.requestMessage( inputOperationsMap, ctx );
-		try {
-			SessionMessage m = f.get();
-			Pair< InputOperationBehaviour, Behaviour > branch = branches.get( m.message().operationName() );
-			branch.key().receiveMessage( m, ctx ).run( ctx );
-			branch.value().run( ctx );
-		} catch( CancellationException | ExecutionException | InterruptedException e ) {
-			ctx.interpreter().logSevere( e );
+		SessionMessage message = ctx.requestMessage( inputOperationsMap, ctx );
+		if ( message == null) {
+			ctx.executeNext( this );
+			ctx.pauseExecution();
+			return;
 		}
+		
+		Pair< InputOperationBehaviour, Behaviour > branch = branches.get( message.message().operationName() );
+		ctx.executeNext( branch.key().receiveMessage( message, ctx ), branch.value());
 	}
 	
 	@Override

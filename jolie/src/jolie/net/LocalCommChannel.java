@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 
@@ -56,7 +57,7 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		@Override
-		protected void sendImpl( CommMessage message, StatefulContext ctx )
+		protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
 			throws IOException
 		{
 			CompletableFuture< CommMessage> f = senderChannel.responseWaiters.get( message.id() );
@@ -116,7 +117,7 @@ public class LocalCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx )
+	protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
 	{
 		responseWaiters.put( message.id(), new CompletableFuture<>() );
 		workerGroup.execute(new Runnable()

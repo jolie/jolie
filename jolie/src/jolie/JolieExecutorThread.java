@@ -47,7 +47,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	
 	public final void sessionContext( StatefulContext ctx ) 
 	{
-		System.out.println( "Set Thread SessionContext to: " + this + " for: " + Thread.currentThread() );
+//		System.out.println( "Set Thread SessionContext to: " + this + " for: " + Thread.currentThread() );
 		sessionContext = ctx;
 	}
 

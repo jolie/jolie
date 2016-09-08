@@ -22,7 +22,6 @@
 package jolie;
 
 import java.util.Map;
-import java.util.concurrent.Future;
 import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
 import jolie.behaviours.Behaviour;
@@ -45,13 +44,13 @@ public abstract class TransparentContext extends StatefulContext
 	}
 
 	@Override
-	public Future< SessionMessage> requestMessage( InputOperation operation, ExecutionContext ctx )
+	public SessionMessage requestMessage( InputOperation operation, ExecutionContext ctx )
 	{
 		return parent.requestMessage( operation, ctx );
 	}
 
 	@Override
-	public Future< SessionMessage> requestMessage( Map< String, InputOperation> operations, ExecutionContext ctx )
+	public SessionMessage requestMessage( Map< String, InputOperation> operations, ExecutionContext ctx )
 	{
 		return parent.requestMessage( operations, ctx );
 	}
