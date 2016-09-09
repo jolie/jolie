@@ -56,7 +56,7 @@ public class NotificationBehaviour implements Behaviour
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
 			try {
-				CommMessage response = channel.recvResponseFor( message );
+				CommMessage response = channel.recvResponseFor( ctx, message );
 				if ( response == null) {
 					System.out.println( "did not recieve ack yet go to sleep." );
 					ctx.executeNext( this );

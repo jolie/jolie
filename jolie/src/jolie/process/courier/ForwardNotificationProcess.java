@@ -25,11 +25,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import jolie.Interpreter;
 import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.TransformationReason;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.behaviours.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -37,7 +38,6 @@ import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
-import jolie.behaviours.Behaviour;
 
 /**
  * 
@@ -113,7 +113,7 @@ public class ForwardNotificationProcess implements Behaviour
 			
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				response = channel.recvResponseFor( ctx, message );
 			} while( response == null );
 			
 			log( "RECEIVED ACK", response );
@@ -125,7 +125,7 @@ public class ForwardNotificationProcess implements Behaviour
 					) {
 					throw response.fault();
 				} else {
-					Interpreter.getInstance().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
+					ctx.interpreter().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
 				}
 			}
 		} catch( IOException e ) {

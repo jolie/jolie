@@ -55,6 +55,10 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.DefinitionBehaviour;
+import jolie.behaviours.InputOperationBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
@@ -74,8 +78,6 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
-import jolie.behaviours.DefinitionBehaviour;
-import jolie.behaviours.SequentialBehaviour;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -92,8 +94,6 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.DummyTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
-import jolie.behaviours.Behaviour;
-import jolie.behaviours.InputOperationBehaviour;
 
 /**
  * The Jolie interpreter engine.
@@ -330,7 +330,7 @@ public class Interpreter
 				channel.send( m, null ); // TODO - What context should be passed here?
 				CommMessage response;
 				do {
-					response = channel.recvResponseFor( m );
+					response = channel.recvResponseFor( null, m ); // TODO - What conext should be passed here?
 				} while( response == null );
 			} catch( URISyntaxException e ) {
 				logWarning( e );

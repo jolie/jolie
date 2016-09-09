@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import jolie.ExecutionContext;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.CommChannel;
@@ -97,7 +98,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		return messages.remove( request.id() );

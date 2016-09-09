@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
+import jolie.ExecutionContext;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.lang.Constants;
@@ -43,52 +44,45 @@ public abstract class AbstractCommChannel extends CommChannel
 	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
 	private final Map< Long, CommMessage> pendingResponses = new HashMap<>();
-	private final Map< Long, ResponseContainer> waiters = new HashMap<>();
+	private final Map< Long, ExecutionContext> waiters = new HashMap<>();
 	private final List< CommMessage> pendingGenericResponses = new LinkedList<>();
 
 	private final Object responseRecvMutex = new Object();
 
-	private static class ResponseContainer
-	{
-		private ResponseContainer()
-		{
-		}
-		private CommMessage response = null;
-	}
-
 	/* Handle messages received on OutputPort */
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		CommMessage response;
-		ResponseContainer monitor = null;
+		
 		synchronized( responseRecvMutex ) {
 			response = pendingResponses.remove( request.id() );
 			if ( response == null ) {
 				if ( pendingGenericResponses.isEmpty() ) {
 					assert (waiters.containsKey( request.id() ) == false);
-					monitor = new ResponseContainer();
-					waiters.put( request.id(), monitor );
+					waiters.put( request.id(), ctx );
 					//responseRecvMutex.notify();
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}
 			}
 		}
-		if ( response == null ) {
-			synchronized( monitor ) {
-				if ( monitor.response == null ) {
-					try {
-						monitor.wait();
-					} catch( InterruptedException e ) {
-						Interpreter.getInstance().logSevere( e );
-					}
-				}
-				response = monitor.response;
-			}
-		}
+		
 		return response;
+//		if ( response == null ) {
+//			synchronized( monitor ) {
+//				if ( monitor.response == null ) {
+//					try {
+//						monitor.wait();
+//					} catch( InterruptedException e ) {
+//						Interpreter.getInstance().logSevere( e );
+//					}
+//				}
+//				response = monitor.response;
+//			}
+//		}
+//		return response;
 	}
 
 	protected void recievedResponse( CommMessage response )
@@ -102,56 +96,55 @@ public abstract class AbstractCommChannel extends CommChannel
 
 	private void handleGenericMessage( CommMessage response )
 	{
-		ResponseContainer monitor;
-		if ( waiters.isEmpty() ) {
-			pendingGenericResponses.add( response );
-		} else {
-			Entry< Long, ResponseContainer> entry
+		ExecutionContext waitingContext;
+		// Add the message in any case, so that the message can be fetched from 
+		// the queue by the ExecutionContext.
+		pendingGenericResponses.add( response );
+		if ( !waiters.isEmpty() ) {
+			Entry< Long, ExecutionContext> entry 
 				= waiters.entrySet().iterator().next();
-			monitor = entry.getValue();
+			waitingContext = entry.getValue();
 			waiters.remove( entry.getKey() );
-			synchronized( monitor ) {
-				monitor.response = new CommMessage(
-					entry.getKey(),
-					response.operationName(),
-					response.resourcePath(),
-					response.value(),
-					response.fault()
-				);
-				monitor.notify();
-			}
+			waitingContext.start();
+//			synchronized( waitingContext ) {
+//				monitor.response = new CommMessage(
+//					entry.getKey(),
+//					response.operationName(),
+//					response.resourcePath(),
+//					response.value(),
+//					response.fault()
+//				);
+//				monitor.notify();
+//			}
 		}
 	}
 
 	private void handleMessage( CommMessage response )
 	{
-		ResponseContainer monitor;
-		if ( (monitor = waiters.remove( response.id() )) == null ) {
-			pendingResponses.put( response.id(), response );
-		} else {
-			synchronized( monitor ) {
-				monitor.response = response;
-				monitor.notify();
-			}
+		ExecutionContext waitingContext;
+		// Add to queue in any case. See handleGenericMessage.
+		pendingResponses.put( response.id(), response );
+		if ( (waitingContext = waiters.remove( response.id() )) != null ) {
+			waitingContext.start();
 		}
 	}
 
 	private void throwIOExceptionFault( IOException e )
 	{
 		if ( waiters.isEmpty() == false ) {
-			ResponseContainer monitor;
-			for( Entry< Long, ResponseContainer> entry : waiters.entrySet() ) {
-				monitor = entry.getValue();
-				synchronized( monitor ) {
-					monitor.response = new CommMessage(
+			ExecutionContext waitingContext;
+			for( Entry< Long, ExecutionContext> entry : waiters.entrySet() ) {
+				waitingContext = entry.getValue();
+				pendingResponses.put( entry.getKey(),
+					new CommMessage(
 						entry.getKey(),
 						"",
 						Constants.ROOT_RESOURCE_PATH,
 						Value.create(),
 						new FaultException( "IOException", e )
-					);
-					monitor.notify();
-				}
+					)
+				);
+				waitingContext.start();
 			}
 			waiters.clear();
 		}
@@ -320,7 +313,7 @@ public abstract class AbstractCommChannel extends CommChannel
 				lock.unlock();
 				CommMessage response = null;
 				try {
-					response = recvResponseFor( new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+					response = recvResponseFor( ctx, new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
 				} finally {
 					if ( response == null ) {
 						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );

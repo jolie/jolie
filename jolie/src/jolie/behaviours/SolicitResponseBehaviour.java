@@ -64,9 +64,8 @@ public class SolicitResponseBehaviour implements Behaviour
 		@Override
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
-			System.out.println( "SolicitResponseBehaviour: RECEIVE" );
 			try {
-				CommMessage response = channel.recvResponseFor( message );
+				CommMessage response = channel.recvResponseFor( ctx, message );
 				
 				if (response == null) {
 					ctx.executeNext( this );

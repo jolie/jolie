@@ -23,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import jolie.ExecutionContext;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 
@@ -68,7 +69,7 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		@Override
-		public CommMessage recvResponseFor( CommMessage request )
+		public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 			throws IOException
 		{
 			throw new IOException( "Unsupported operation" );
@@ -133,7 +134,7 @@ public class LocalCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		final CompletableFuture< CommMessage> f = responseWaiters.get( request.id() );

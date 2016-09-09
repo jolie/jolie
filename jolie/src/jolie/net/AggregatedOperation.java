@@ -24,22 +24,22 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import jolie.Interpreter;
-import jolie.StatefulContext;
 import jolie.SessionListener;
 import jolie.State;
-import jolie.lang.Constants;
-import jolie.lang.Constants.OperationType;
-import jolie.net.ports.OutputPort;
+import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
 import jolie.behaviours.OneWayBehaviour;
 import jolie.behaviours.RequestResponseBehaviour;
 import jolie.behaviours.SequentialBehaviour;
+import jolie.lang.Constants;
+import jolie.lang.Constants.OperationType;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.FaultException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.runtime.typing.TypeCheckingException;
-import jolie.behaviours.Behaviour;
 
 /**
  * An AggregatedOperation instance contains information about an operation that is aggregated by an input port.
@@ -240,7 +240,7 @@ public abstract class AggregatedOperation
 				oChannel = outputPort.getNewCommChannel( ctx );
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
 				oChannel.send( requestToAggregated, ctx );
-				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
+				final CommMessage response = oChannel.recvResponseFor( ctx, requestToAggregated );
 				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ), ctx );
 			} catch( IOException e ) {
 				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ), ctx );
