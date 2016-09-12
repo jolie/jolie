@@ -41,8 +41,7 @@ public class NioSocketCommChannelFactory extends CommChannelFactory
 			throw new UnsupportedCommProtocolException( "Use an async protocol" );
 		}
 
-		NioSocketCommChannel channel = NioSocketCommChannel.CreateChannel( location, (AsyncCommProtocol) protocol, workerGroup, ctx );
-
+		NioSocketCommChannel channel = NioSocketCommChannel.CreateChannel( location, (AsyncCommProtocol) protocol, workerGroup );
 		try {
 			ChannelFuture f = channel.connect( location );
 			f.sync();

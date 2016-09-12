@@ -110,7 +110,7 @@ public class ForwardSolicitResponseProcess implements Behaviour
 			
 			log( "SENDING", message );
 			
-			channel.send( message, ctx );
+			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
 			CommMessage response = null;

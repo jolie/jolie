@@ -125,15 +125,15 @@ public abstract class AggregatedOperation
 				synchronized( f ) {
 					if ( f[0] == null ) {
 						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( requestMessage ), c );
+						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
 					} else {
-						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ), c );
+						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ) );
 					}
 				}
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ), ctx );
+					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
 					interpreter.logSevere( ioe );
 				}
@@ -196,7 +196,7 @@ public abstract class AggregatedOperation
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ), ctx );
+					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
 					interpreter.logSevere( ioe );
 				}
@@ -239,11 +239,11 @@ public abstract class AggregatedOperation
 			try {
 				oChannel = outputPort.getNewCommChannel( ctx );
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
-				oChannel.send( requestToAggregated, ctx );
+				oChannel.send( requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( ctx, requestToAggregated );
-				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ), ctx );
+				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ), ctx );
+				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
 			} finally {
 				if ( oChannel != null ) {
 					oChannel.close();

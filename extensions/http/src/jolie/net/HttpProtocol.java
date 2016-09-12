@@ -214,11 +214,9 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception
-		{			
-			//((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
+		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
 			
-			NioSocketCommChannel channel = ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get();
-			sessionContext = channel.context;
 			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
@@ -227,16 +225,12 @@ public class HttpProtocol extends AsyncCommProtocol
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
 		{
-			//((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
-			
-			NioSocketCommChannel channel = ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get();
-			sessionContext = channel.context;
-			System.out.println( "HTTP message recv: " + channel.sessionContext() );
+//			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
 			if ( msg instanceof FullHttpRequest ) {
 				FullHttpRequest request = (FullHttpRequest) msg;
 				System.out.println( "HTTP request ! (" + request.uri() + ")" );
 			} else if ( msg instanceof FullHttpResponse ) {
-				FullHttpResponse response = (FullHttpResponse) msg;
+//				FullHttpResponse response = (FullHttpResponse) msg;
 				System.out.println( "HTTP response !" );
 			}
 			CommMessage message = recv_internal( msg );

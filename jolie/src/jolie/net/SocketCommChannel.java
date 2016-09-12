@@ -112,7 +112,7 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @throws IOException if an error sending the message occurs
 	 */
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {

@@ -155,8 +155,7 @@ public class Interpreter
 							logWarning( e );
 							try {
 								message.channel().send( 
-									CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ),
-									InitSessionContext.this ); 
+									CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) ); 
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}

@@ -68,7 +68,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, CommMessage msg, ByteBuf out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 
@@ -79,7 +79,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		protected void decode( ChannelHandlerContext ctx, ByteBuf in, List<Object> out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext(ctx.channel().attr( NioSocketCommChannel.COMMCHANNEL ).get().context );
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
 			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
 			updateCharset();
 

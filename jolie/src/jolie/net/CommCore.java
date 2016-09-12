@@ -50,6 +50,7 @@ import jolie.Interpreter;
 import jolie.JolieThreadPoolExecutor;
 import jolie.NativeJolieThread;
 import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
@@ -58,7 +59,6 @@ import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.TimeoutHandler;
 import jolie.runtime.VariablePath;
-import jolie.behaviours.Behaviour;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.
@@ -105,7 +105,7 @@ public class CommCore
 		}
 	}
 
-	public CommChannel getPersistentChannel( URI location, String protocol )
+	public CommChannel getPersistentChannel( URI location, String protocol, StatefulContext context )
 	{
 		CommChannel ret = null;
 		synchronized( persistentChannels ) {
@@ -144,7 +144,10 @@ public class CommCore
 				}
 			}
 		}
-
+		
+		if (ret != null)
+			ret.context( context );
+		
 		return ret;
 	}
 
@@ -178,6 +181,7 @@ public class CommCore
 
 	public void putPersistentChannel( URI location, String protocol, final CommChannel channel )
 	{
+		channel.context( null ); // Reset context.
 		synchronized( persistentChannels ) {
 			Map< String, CommChannel> protocolChannels = persistentChannels.get( location );
 			if ( protocolChannels == null ) {
@@ -355,8 +359,10 @@ public class CommCore
 		if ( factory == null ) {
 			throw new UnsupportedCommMediumException( medium );
 		}
-
-		return factory.createChannel( uri, port, ctx );
+		
+		CommChannel ret = factory.createChannel( uri, port, ctx );
+		ret.context( ctx );
+		return ret;
 	}
 
 	private final Map< String, CommProtocolFactory> protocolFactories = new HashMap<>();

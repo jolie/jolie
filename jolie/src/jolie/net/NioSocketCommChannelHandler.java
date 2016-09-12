@@ -36,8 +36,9 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 		if(commChannel.parentPort() instanceof OutputPort) {
 			this.commChannel.recievedResponse( msg );
 		} else {
-			this.commChannel.messageRecv( commChannel.sessionContext(), msg );
+			this.commChannel.messageRecv( msg );
 		}
+		
 		// Wake up the context to handle the message
 		// commChannel.context.start();
 	}

@@ -30,13 +30,14 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import jolie.Interpreter;
 import jolie.StatefulContext;
+import jolie.behaviours.AssignmentBehaviour;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.NullBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.protocols.CommProtocol;
-import jolie.behaviours.AssignmentBehaviour;
-import jolie.behaviours.NullBehaviour;
-import jolie.behaviours.SequentialBehaviour;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -44,7 +45,6 @@ import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.OperationTypeDescription;
 import jolie.util.LocationParser;
-import jolie.behaviours.Behaviour;
 
 /**
  * This class represents a JOLIE output port, offering methods for getting
@@ -236,7 +236,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			} else {
 				// Try reusing an existing channel first
 				String protocol = protocolVariablePath.getValue( ctx ).strValue();
-				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
+				ret = interpreter.commCore().getPersistentChannel( uri, protocol, ctx );
 				if ( ret == null ) {
 					ret = interpreter.commCore().createCommChannel( uri, this, ctx );
 				}

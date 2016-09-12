@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jolie.StatefulContext;
 import jolie.net.protocols.AsyncCommProtocol;
 
 /**
@@ -33,7 +32,6 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected final NioSocketCommChannelHandler nioSocketCommChannelHandler;
-	public StatefulContext context;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
@@ -41,10 +39,9 @@ public class NioSocketCommChannel extends StreamingCommChannel
 		nioSocketCommChannelHandler = new NioSocketCommChannelHandler( this );
 	}
 
-	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, StatefulContext ctx )
+	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
 	{
 		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
-		channel.sessionContext( ctx );
 		channel.bootstrap = new Bootstrap();
 		channel.bootstrap.group( workerGroup )
 			.channel( NioSocketChannel.class )
@@ -100,7 +97,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-		protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler ) throws IOException
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler ) throws IOException
 	{
 		//ctx.pauseExecution();
 		ChannelFuture future = nioSocketCommChannelHandler.write( message );
@@ -123,14 +120,6 @@ public class NioSocketCommChannel extends StreamingCommChannel
 //		} catch( InterruptedException ex ) {
 //			throw new IOException( ex );
 //		}
-	}
-	
-	public StatefulContext sessionContext() {
-		return context;
-	}
-	
-	public void sessionContext(StatefulContext ctx) {
-		this.context = ctx;
 	}
 
 }

@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import jolie.ExecutionContext;
 import jolie.Interpreter;
-import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
@@ -70,14 +69,14 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override	
-	public void send( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
+	public void send( CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
-		sendImpl( message, ctx, completionHandler );
+		sendImpl( message, completionHandler );
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {

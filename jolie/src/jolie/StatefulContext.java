@@ -244,21 +244,20 @@ import jolie.util.Pair;
 				operations.entrySet().forEach(
 					entry -> addMessageWaiter( entry.getValue(), ctx )
 				);
-				System.out.println( "Added Messagewaiter for: " + operations.toString() );
 			} else {
-				System.out.println( "Found Messagewaiter for: " + message.message().operationName() );
 				queue.removeFirst();
 
 				// Check if we unlocked other receives
-				SessionMessage otherMessage;
-				ExecutionContext waitingContext;
 				if( !queue.isEmpty() ) {
-					otherMessage = queue.peekFirst();
-					waitingContext = getMessageWaiter( otherMessage.message().operationName() );
+					/* 
+						Only unlock/wake-up 1 waitingContext at the time, without 
+						popping the message from the queue. So that the waiting 
+						context can retrieve the message from the queue.
+					*/
+					final SessionMessage otherMessage = queue.peekFirst();
+					final ExecutionContext waitingContext = getMessageWaiter( otherMessage.message().operationName() );
 					if ( waitingContext != null ) {
-						// We found a waiter for the unlocked message
 						waitingContext.start();
-						System.out.println( "Unlocked additional Messagewaiter for: " + otherMessage.message().operationName() );
 					}
 				}
 			}
@@ -282,17 +281,12 @@ import jolie.util.Pair;
 				addMessageWaiter( operation, ctx );
 			} else {
 				queue.removeFirst();
-
 				// Check if we unlocked other receives
-				boolean keepRun = true;
-				while( keepRun && !queue.isEmpty() ) {
+				if( !queue.isEmpty() ) {
 					final SessionMessage otherMessage = queue.peekFirst();
 					final ExecutionContext waitingCtx = getMessageWaiter( otherMessage.message().operationName() );
 					if ( waitingCtx != null ) { // We found a waiter for the unlocked message
 						waitingCtx.start();
-						queue.removeFirst();
-					} else {
-						keepRun = false;
 					}
 				}
 			}

@@ -65,7 +65,6 @@ public class ProvideUntilBehaviour implements Behaviour
 
 		SessionMessage message = ctx.requestMessage( inputOperationsMap, ctx );
 		if ( message == null) {
-			System.out.println( "did not find any waiting messages. go to sleep.." );
 			ctx.executeNext( this );
 			ctx.pauseExecution();
 			return;
@@ -76,12 +75,10 @@ public class ProvideUntilBehaviour implements Behaviour
 			// It is an until branch
 			branch = until.branches().get( message.message().operationName() );
 		} else {
-			// It is not
+			// Since it is not an until branch, we re-schedule for execution.
 			ctx.executeNext( this );
 		}
-		Behaviour b1 = branch.key().receiveMessage( message, ctx );
-		Behaviour b2 = branch.value();
-		ctx.executeNext( b1, b2 );
+		ctx.executeNext( branch.key().receiveMessage( message, ctx ), branch.value() );
 	}
 	
 	@Override

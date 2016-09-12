@@ -96,7 +96,7 @@ public abstract class JavaService
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( request, null ); // TODO - missing context.
+				c.send( request );
 				CommMessage response = c.recvResponseFor( null, request ); // TODO - missing conext.
 				if ( response.isFault() ) {
 					throw response.fault();
@@ -352,7 +352,7 @@ public abstract class JavaService
 	{
 		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 		try {
-			c.send( message, ctx );
+			c.send( message );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}

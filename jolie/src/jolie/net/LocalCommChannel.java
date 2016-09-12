@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import jolie.ExecutionContext;
 import jolie.Interpreter;
-import jolie.StatefulContext;
 
 /**
  * An in-memory channel that can be used to communicate directly with a specific
@@ -58,7 +57,7 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		@Override
-		protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
+		protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
 			throws IOException
 		{
 			CompletableFuture< CommMessage> f = senderChannel.responseWaiters.get( message.id() );
@@ -118,7 +117,7 @@ public class LocalCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, StatefulContext ctx, Function<Void, Void> completionHandler )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
 	{
 		responseWaiters.put( message.id(), new CompletableFuture<>() );
 		workerGroup.execute(new Runnable()
@@ -127,7 +126,7 @@ public class LocalCommChannel extends AbstractCommChannel
 			public void run()
 			{
 				CoLocalCommChannel coChannel = new CoLocalCommChannel( LocalCommChannel.this, message );
-				coChannel.messageRecv( ctx, message );
+				coChannel.messageRecv( message );
 			}
 		});
 		//interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
