@@ -121,10 +121,13 @@ import jolie.util.Pair;
 						Value scopeValue
 							= new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue( this );
 						scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-						try {
-							p.run( this );
-						} catch( ExitingException e ) {
-						}
+//						processStack.clear();
+						executeNext( p );
+						continue;
+//						try {
+//							p.run( this );
+//						} catch( ExitingException e ) {
+//						}
 					}
 				} catch( FaultException fault ) {
 					listeners.forEach( listener -> listener.onSessionError( this, fault ) );
