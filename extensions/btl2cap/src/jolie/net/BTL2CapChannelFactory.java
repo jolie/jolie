@@ -20,7 +20,6 @@
  ***************************************************************************/
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,7 +29,9 @@ import javax.bluetooth.BTL2CapHelper;
 import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.ServiceRecord;
 import javax.microedition.io.Connector;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.AndJarDeps;
 
 @AndJarDeps({"bluetooth.jar"})
@@ -70,7 +71,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		map.put( uuidStr, record);
 	}
 	
-	public CommChannel createChannel( URI uri, OutputPort port )
+	public CommChannel createChannel( URI uri, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		if ( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {
@@ -79,7 +80,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		try {
 			String connectionURL = BTL2CapHelper.getConnectionURL( uri, this );
 			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
-			return new BTL2CapCommChannel( conn, uri, port.getProtocol() );
+			return new BTL2CapCommChannel( conn, uri, port.getProtocol( ctx ) );
 		} catch( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
 		} catch( URISyntaxException e ) {

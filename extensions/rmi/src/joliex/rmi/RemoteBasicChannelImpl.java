@@ -22,6 +22,7 @@
 package joliex.rmi;
 
 import java.io.IOException;
+import jolie.ExecutionContext;
 import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
 
@@ -48,7 +49,7 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel
 
 	public boolean isReady()
 	{
-		return channel.isReady();
+		return channel.isOpen(); // TODO Fix this 
 	}
 
 	public void close()
@@ -63,9 +64,9 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel
 		//return channel.recv();
 	}
 	
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
-		return channel.recvResponseFor( request );
+		return channel.recvResponseFor( ctx, request );
 	}
 }

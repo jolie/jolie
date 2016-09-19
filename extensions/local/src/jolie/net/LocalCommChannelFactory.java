@@ -20,17 +20,19 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
 public class LocalCommChannelFactory extends CommChannelFactory
 {
+	
 	public LocalCommChannelFactory( CommCore commCore )
 	{
 		super( commCore );
 	}
 
-	public CommChannel createChannel( URI location, OutputPort port )
+	public CommChannel createChannel( URI location, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		LocalListener localListener = LocalListenerFactory.getListener( location.getHost() );

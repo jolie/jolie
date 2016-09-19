@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.function.Function;
 import javax.bluetooth.L2CAPConnection;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
@@ -46,7 +47,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel implements Pollable
 		setToBeClosed( false ); // Bluetooth connections are kept open by default.
 	}
 	
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completion )
 		throws IOException
 	{
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();

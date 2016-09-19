@@ -91,17 +91,17 @@ public class LocalCommChannel extends AbstractCommChannel
 	private final Map< Long, CompletableFuture< CommMessage>> responseWaiters = new ConcurrentHashMap<>();
 	private final EventLoopGroup workerGroup;
 
-	public LocalCommChannel( Interpreter interpreter, CommListener listener, EventLoopGroup workerGroup )
+	public LocalCommChannel( Interpreter interpreter, CommListener listener )
 	{
 		this.interpreter = interpreter;
 		this.listener = listener;
-		this.workerGroup = workerGroup;
+		this.workerGroup = interpreter.commCore().getWorkerGroup();
 	}
 
 	@Override
 	public CommChannel createDuplicate()
 	{
-		return new LocalCommChannel( interpreter, listener, workerGroup );
+		return new LocalCommChannel( interpreter, listener );
 	}
 
 	public Interpreter interpreter()

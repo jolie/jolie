@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.function.Function;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
@@ -49,11 +50,12 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler  )
 		throws IOException
 	{
 		protocol().send( socketOutputStream, message, bufferedInputStream );
 		socketOutputStream.flush();
+		completionHandler.apply( null );
 	}
 	
 	protected CommMessage recvImpl()

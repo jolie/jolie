@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
-import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -348,7 +347,7 @@ public abstract class JavaService
 		return interpreter;
 	}
 	
-	public CommChannel sendMessage( CommMessage message, StatefulContext ctx )
+	public CommChannel sendMessage( CommMessage message )
 	{
 		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 		try {

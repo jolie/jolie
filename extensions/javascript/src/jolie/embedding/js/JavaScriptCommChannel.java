@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import javax.script.Invocable;
 import javax.script.ScriptException;
+import jolie.ExecutionContext;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
@@ -63,7 +65,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		Object returnValue = null;
@@ -119,7 +121,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 	
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		return messages.remove( request.id() );

@@ -406,14 +406,18 @@ public class CommCore
 
 	private final LocalListener localListener;
 
+	public EventLoopGroup getWorkerGroup() {
+		return workerGroup;
+	}
+	
 	public LocalCommChannel getLocalCommChannel()
 	{
-		return new LocalCommChannel( interpreter, localListener, workerGroup );
+		return new LocalCommChannel( interpreter, localListener );
 	}
 
 	public LocalCommChannel getLocalCommChannel( CommListener listener )
 	{
-		return new LocalCommChannel( interpreter, listener, workerGroup );
+		return new LocalCommChannel( interpreter, listener );
 	}
 
 	public CommListenerFactory getCommListenerFactory( String name )
