@@ -112,11 +112,11 @@ public class SocketCommChannel extends SelectableStreamingCommChannel
 	 * @throws IOException if an error sending the message occurs
 	 */
 	@Override
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {
-			protocol().send( ostream, message, istream );
+			protocol().send( ostream, msg.message(), istream );
 			ostream.flush();
 		} catch( IllegalBlockingModeException e ) {
 			throw new IOException( e );

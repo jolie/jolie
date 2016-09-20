@@ -57,14 +57,14 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		@Override
-		protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+		protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 			throws IOException
 		{
-			CompletableFuture< CommMessage> f = senderChannel.responseWaiters.get( message.id() );
+			CompletableFuture< CommMessage> f = senderChannel.responseWaiters.get( msg.message().id() );
 			if ( f == null ) {
-				throw new IOException( "Unexpected response message with id " + message.id() + " for operation " + message.operationName() + " in local channel" );
+				throw new IOException( "Unexpected response message with id " + msg.message().id() + " for operation " + msg.message().operationName() + " in local channel" );
 			}
-			f.complete( message );
+			f.complete( msg.message() );
 		}
 
 		@Override
@@ -117,16 +117,16 @@ public class LocalCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 	{
-		responseWaiters.put( message.id(), new CompletableFuture<>() );
+		responseWaiters.put( msg.message().id(), new CompletableFuture<>() );
 		workerGroup.execute(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				CoLocalCommChannel coChannel = new CoLocalCommChannel( LocalCommChannel.this, message );
-				coChannel.messageRecv( message );
+				CoLocalCommChannel coChannel = new CoLocalCommChannel( LocalCommChannel.this, msg.message() );
+				coChannel.messageRecv( msg.context(), msg.message() );
 			}
 		});
 		//interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );

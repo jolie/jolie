@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -79,23 +80,23 @@ public abstract class JavaService
 			this.interpreter = interpreter;
 		}
 
-		public void callOneWay( CommMessage message )
+		public void callOneWay( StatefulContext ctx, CommMessage message )
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( message, null );
+				c.send( ctx, message, null );
 			} catch( IOException e ) {
 				// This should never happen
 				e.printStackTrace();
 			}
 		}
 
-		public Value callRequestResponse( CommMessage request )
+		public Value callRequestResponse( StatefulContext ctx, CommMessage request )
 			throws FaultException
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( request );
+				c.send( ctx, request );
 				CommMessage response = c.recvResponseFor( null, request ); // TODO - missing conext.
 				if ( response.isFault() ) {
 					throw response.fault();
@@ -347,11 +348,11 @@ public abstract class JavaService
 		return interpreter;
 	}
 	
-	public CommChannel sendMessage( CommMessage message )
+	public CommChannel sendMessage( StatefulContext ctx, CommMessage message)
 	{
 		LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 		try {
-			c.send( message );
+			c.send( ctx, message );
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}

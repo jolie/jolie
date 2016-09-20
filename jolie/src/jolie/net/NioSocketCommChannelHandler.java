@@ -12,7 +12,7 @@ import jolie.net.ports.OutputPort;
  * @author martin
  */
 @ChannelHandler.Sharable
-public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<CommMessage>
+public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<StatefulMessage>
 {
 
 	private Channel channel;
@@ -31,19 +31,16 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 	}
 
 	@Override
-	protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg ) throws Exception
+	protected void channelRead0( ChannelHandlerContext ctx, StatefulMessage msg ) throws Exception
 	{
 		if(commChannel.parentPort() instanceof OutputPort) {
-			this.commChannel.recievedResponse( msg );
+			this.commChannel.recievedResponse( msg.message() );
 		} else {
-			this.commChannel.messageRecv( msg );
+			this.commChannel.messageRecv( msg.context(), msg.message() );
 		}
-		
-		// Wake up the context to handle the message
-		// commChannel.context.start();
 	}
 
-	protected ChannelFuture write( CommMessage msg )
+	protected ChannelFuture write( StatefulMessage msg )
 	{
 		return this.channel.writeAndFlush( msg );
 	}

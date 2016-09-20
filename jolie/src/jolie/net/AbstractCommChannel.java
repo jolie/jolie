@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import jolie.ExecutionContext;
+import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.net.ports.OutputPort;
@@ -47,6 +48,22 @@ public abstract class AbstractCommChannel extends CommChannel
 	private final List< CommMessage> pendingGenericResponses = new LinkedList<>();
 
 	private final Object responseRecvMutex = new Object();
+
+	@Override
+	public StatefulContext getContextFor( Long id )
+	{
+		if (parentPort() instanceof OutputPort) {
+			ExecutionContext ctx = waiters.get( id );
+			if (ctx instanceof StatefulContext)
+				return (StatefulContext) ctx;
+			else {
+				assert false;
+			}
+			return null;
+		} else {
+			return Interpreter.getInstance().initContext();
+		}
+	}
 
 	@Override
 	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
@@ -137,7 +154,7 @@ public abstract class AbstractCommChannel extends CommChannel
 	/* Handle messages received on InputPort */
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
 
-	private void forwardResponse( CommMessage message )
+	private void forwardResponse( StatefulContext ctx, CommMessage message )
 		throws IOException
 	{
 		message = new CommMessage(
@@ -149,7 +166,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		);
 		try {
 			try {
-				redirectionChannel().send( message );
+				redirectionChannel().send( ctx, message );
 			} finally {
 				try {
 					if ( redirectionChannel().toBeClosed() ) {
@@ -200,11 +217,11 @@ public abstract class AbstractCommChannel extends CommChannel
 				);
 			oChannel.setRedirectionChannel( this );
 			oChannel.setRedirectionMessageId( rMessage.id() );
-			oChannel.send( rMessage );
+			oChannel.send( ctx, rMessage );
 			oChannel.setToBeClosed( false );
 			oChannel.disposeForInput();
 		} catch( IOException e ) {
-			send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
+			send( ctx, CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
 			disposeForInput();
 			throw e;
 		}
@@ -227,23 +244,23 @@ public abstract class AbstractCommChannel extends CommChannel
 				ctx.interpreter().correlationEngine().onMessageReceive( message, this );
 				if ( operation instanceof OneWayOperation ) {
 					// We need to send the acknowledgement
-					send( CommMessage.createEmptyResponse( message ) );
+					send( ctx, CommMessage.createEmptyResponse( message ) );
 					//channel.release();
 				}
 			} catch( TypeCheckingException e ) {
 				ctx.interpreter().logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					send( ctx, CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
 					ctx.interpreter().logSevere( ioe );
 				}
 			} catch( CorrelationError e ) {
 				ctx.interpreter().logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
-				send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+				send( ctx, CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
 			}
 		} catch( InvalidIdException e ) {
 			ctx.interpreter().logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
-			send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+			send( ctx, CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
 		} finally {
 			disposeForInput();
 		}
@@ -268,7 +285,7 @@ public abstract class AbstractCommChannel extends CommChannel
 						+ ", not specified in the input port at the receiving service. Sending IOException to the caller."
 					);
 					try {
-						send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+						send( ctx, CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
 					} finally {
 						disposeForInput();
 					}
@@ -281,9 +298,8 @@ public abstract class AbstractCommChannel extends CommChannel
 		}
 	}
 
-	protected void messageRecv( CommMessage message )
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
 	{
-		StatefulContext ctx = context();
 		assert (parentInputPort() != null);
 		lock.lock();
 		channelHandlersLock.readLock().lock();
@@ -303,7 +319,7 @@ public abstract class AbstractCommChannel extends CommChannel
 					if ( response == null ) {
 						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
 					}
-					forwardResponse( response );
+					forwardResponse( ctx, response );
 				}
 			}
 		} catch( ChannelClosingException e ) {

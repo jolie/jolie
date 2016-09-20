@@ -58,7 +58,6 @@ import java.util.logging.Logger;
 import jolie.behaviours.Behaviour;
 import jolie.behaviours.DefinitionBehaviour;
 import jolie.behaviours.InputOperationBehaviour;
-import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
@@ -155,6 +154,7 @@ public class Interpreter
 							logWarning( e );
 							try {
 								message.channel().send( 
+									InitSessionContext.this,
 									CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) ); 
 							} catch( IOException ioe ) {
 								logSevere( ioe );
@@ -326,7 +326,7 @@ public class Interpreter
 			CommChannel channel = null;
 			try {
 				channel = monitor.getCommChannel( null ); // TODO - What context should be passed here?
-				channel.send( m, null ); // TODO - What context should be passed here?
+				channel.send( null, m, null ); // TODO - What context should be passed here?
 				CommMessage response;
 				do {
 					response = channel.recvResponseFor( null, m ); // TODO - What conext should be passed here?
@@ -1312,12 +1312,10 @@ public class Interpreter
 			spawnedSession = new StatefulContext(
 				null, state, initExecutionThread );
 			
-			jolie.behaviours.Behaviour sequence = new SequentialBehaviour( new jolie.behaviours.Behaviour[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession), // TODO - This is ugly
+			spawnedSession.executeNext( 
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession),
 				starter.body
-			} );
-			
-			spawnedSession.executeNext( sequence );
+			);
 			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
@@ -1348,16 +1346,15 @@ public class Interpreter
 				null, state, initExecutionThread
 			);
 			
-			jolie.behaviours.Behaviour sequence = new SequentialBehaviour( new jolie.behaviours.Behaviour[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession ), // TODO - Should parent sessioncontext be set here?
-				starter.body
-			} );
-			
-			spawnedSession.executeNext( sequence );
+			spawnedSession.executeNext( 
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession ),
+				starter.body 
+			);
 			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
+				@Override
 				public void onSessionExecuted( StatefulContext session )
 				{
 					synchronized( waitingSessionThreads ) {
@@ -1371,6 +1368,7 @@ public class Interpreter
 					logSessionEnd( message.operationName(), session.getSessionId() );
 				}
 
+				@Override
 				public void onSessionError( StatefulContext session, FaultException fault )
 				{
 					synchronized( waitingSessionThreads ) {
@@ -1411,7 +1409,7 @@ public class Interpreter
 		}
 	}
 	
-	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<> ();
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<>();
 	
 	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
 		throws IOException

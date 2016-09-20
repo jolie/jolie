@@ -97,10 +97,10 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler ) throws IOException
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler ) throws IOException
 	{
 		//ctx.pauseExecution();
-		ChannelFuture future = nioSocketCommChannelHandler.write( message );
+		ChannelFuture future = nioSocketCommChannelHandler.write( msg );
 		future.addListener(( ChannelFuture future1 ) -> {
 			if ( future1.isSuccess() ) {
 				//ctx.start();

@@ -27,9 +27,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import jolie.ExecutionContext;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.PollableCommChannel;
+import jolie.net.StatefulMessage;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 
@@ -69,19 +71,19 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override	
-	public void send( CommMessage message, Function<Void, Void> completionHandler )
+	public void send( StatefulContext ctx, CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
-		sendImpl( message, completionHandler );
+		sendImpl( new StatefulMessage( message, ctx ), completionHandler );
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {
-			final CommMessage response = javaService.callOperation( message );
-			messages.put( message.id(), response );
+			final CommMessage response = javaService.callOperation( msg.message() );
+			messages.put( msg.message().id(), response );
 			if (completionHandler != null)
 				completionHandler.apply(null);
 		} catch( IllegalAccessException | InvalidIdException e ) {
@@ -106,4 +108,10 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void closeImpl()
 	{}
+
+	@Override
+	public StatefulContext getContextFor( Long id )
+	{
+		throw new UnsupportedOperationException( "Not supported yet." ); // TODO
+	}
 }

@@ -65,7 +65,6 @@ public class NioSocketListener extends CommListener
 						assert (protocol instanceof AsyncCommProtocol);
 
 						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
-						channel.context( interpreter().initContext() );
 						channel.setParentInputPort( inputPort() );
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());

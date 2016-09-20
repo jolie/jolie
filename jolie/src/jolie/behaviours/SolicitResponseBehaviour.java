@@ -214,7 +214,7 @@ public class SolicitResponseBehaviour implements Behaviour
 			
 			// Make sure completion handler is registered before sending, to avoid racecondition.
 			ctx.executeNext( new SolicitResponseOnReceiveBehaviour(channel, message) );
-			channel.send( message, (Void) -> {
+			channel.send( ctx, message, (Void) -> {
 				System.out.println( "SolicitResponseBehaviour: SEND" );
 				log( ctx, "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {

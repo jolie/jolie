@@ -107,7 +107,7 @@ public class ForwardNotificationProcess implements Behaviour
 			
 			log( "SENDING", message );
 			
-			channel.send( message );
+			channel.send( ctx, message );
 			
 			log( "SENT", message );
 			

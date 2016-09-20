@@ -229,7 +229,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 			final CommMessage msg = response;
 			final String fDetails = details;
 			final int rStatus = responseStatus;
-			channel.send( response, ( Void ) -> {
+			channel.send( ctx, response, ( Void ) -> {
 				Value monitorValue;
 				if ( msg.isFault() ) {
 					log( ctx.interpreter(), "SENT FAULT", msg );					

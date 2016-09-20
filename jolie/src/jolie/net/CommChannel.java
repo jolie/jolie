@@ -57,7 +57,6 @@ public abstract class CommChannel
 	private InputPort inputPort = null;
 	private OutputPort outputPort = null;
 	private boolean isOpen = true;
-	private StatefulContext context = null;
 
 	private long redirectionMessageId = 0L;
 
@@ -221,11 +220,11 @@ public abstract class CommChannel
 		throws IOException;
 	
 		
-	public void send( final CommMessage message )
+	public void send( final StatefulContext ctx, final CommMessage message )
 		throws IOException
 	{
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( message, null ) );
+			Helpers.lockAndThen( lock, () -> sendImpl( new StatefulMessage( message, ctx ), null ) );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -237,11 +236,11 @@ public abstract class CommChannel
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public void send( final CommMessage message, Function<Void, Void> completionHandler )
+	public void send( final StatefulContext ctx, final CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( message, completionHandler ) );
+			Helpers.lockAndThen( lock, () -> sendImpl( new StatefulMessage( message, ctx ), completionHandler ) );
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
@@ -250,8 +249,8 @@ public abstract class CommChannel
 
 	protected abstract CommMessage recvImpl()
 		throws IOException;
-
-	protected abstract void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+	
+	protected abstract void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler )
 		throws IOException;
 
 	/**
@@ -336,13 +335,6 @@ public abstract class CommChannel
 	protected abstract void closeImpl()
 		throws IOException;
 	
-	public StatefulContext context() {
-		assert (context != null);
-		return context;
-	}
+	public abstract StatefulContext getContextFor( Long id );
 	
-	public void context(StatefulContext ctx) {
-		assert (ctx == null || context == null);
-		context = ctx;
-	}
 }

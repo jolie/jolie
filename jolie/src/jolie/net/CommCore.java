@@ -144,10 +144,6 @@ public class CommCore
 				}
 			}
 		}
-		
-		if (ret != null)
-			ret.context( context );
-		
 		return ret;
 	}
 
@@ -181,7 +177,6 @@ public class CommCore
 
 	public void putPersistentChannel( URI location, String protocol, final CommChannel channel )
 	{
-		channel.context( null ); // Reset context.
 		synchronized( persistentChannels ) {
 			Map< String, CommChannel> protocolChannels = persistentChannels.get( location );
 			if ( protocolChannels == null ) {
@@ -361,7 +356,6 @@ public class CommCore
 		}
 		
 		CommChannel ret = factory.createChannel( uri, port, ctx );
-		ret.context( ctx );
 		return ret;
 	}
 

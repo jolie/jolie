@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.StatefulContext;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -62,30 +63,26 @@ public class SodepProtocol extends AsyncCommProtocol
 		return true;
 	}
 
-	public class SodepCommMessageCodec extends ByteToMessageCodec<CommMessage>
+	public class SodepCommMessageCodec extends ByteToMessageCodec<StatefulMessage>
 	{
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessage msg, ByteBuf out )
+		protected void encode( ChannelHandlerContext ctx, StatefulMessage msg, ByteBuf out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
-			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
-			updateCharset();
-
-			writeMessage( out, msg );
+			channel().setToBeClosed( !checkBooleanParameter( msg.context(), "keepAlive", true ) );
+			updateCharset( msg.context() );
+			writeMessage( out, msg.message() );
 		}
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, ByteBuf in, List<Object> out )
 			throws Exception
 		{
-			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
-			channel().setToBeClosed( !checkBooleanParameter( "keepAlive", true ) );
-			updateCharset();
-
+			StatefulMessage msg;
 			in.markReaderIndex();
 			try {
-				out.add( readMessage( in ) );
+				msg = readMessage( in );
+				out.add( msg );
 			} catch( IndexOutOfBoundsException iex ) {
 				/*
 				 * Not enough bytes were available. Reset the buffer.
@@ -96,16 +93,20 @@ public class SodepProtocol extends AsyncCommProtocol
 				 * complete message is read.
 				 */
 				in.resetReaderIndex();
+				return;
 			}
+			
+			channel().setToBeClosed( !checkBooleanParameter( msg.context(), "keepAlive", true ) );
+
 		}
 
 	}
 	
 	private Charset stringCharset = Charset.forName( "UTF8" );
 
-	private void updateCharset()
+	private void updateCharset(StatefulContext ctx)
 	{
-		String charset = getStringParameter( "charset" );
+		String charset = getStringParameter( ctx, "charset" );
 		if ( !charset.isEmpty() ) {
 			stringCharset = Charset.forName( charset );
 		}
@@ -281,7 +282,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		return new FaultException( faultName, value );
 	}
 
-	private CommMessage readMessage( ByteBuf in )
+	private StatefulMessage readMessage( ByteBuf in )
 		throws IndexOutOfBoundsException
 	{
 		Long id = in.readLong();
@@ -291,8 +292,11 @@ public class SodepProtocol extends AsyncCommProtocol
 		if ( in.readBoolean() == true ) {
 			fault = readFault( in );
 		}
+		StatefulContext ctx = channel().getContextFor( id );
+		updateCharset( ctx );
 		Value value = readValue( in );
-		return new CommMessage( id, operationName, resourcePath, value, fault );
+		CommMessage message = new CommMessage( id, operationName, resourcePath, value, fault );
+		return new StatefulMessage( message, ctx );
 	}
 
 	public SodepProtocol( VariablePath configurationPath )

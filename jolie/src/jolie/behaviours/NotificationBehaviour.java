@@ -166,7 +166,7 @@ public class NotificationBehaviour implements Behaviour
 
 			ctx.executeNext(new NotificationOnAckBehaviour(channel, message) );
 			
-			channel.send( message, ( Void ) -> {
+			channel.send( ctx, message, ( Void ) -> {
 				log( ctx.interpreter(), "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
 					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
