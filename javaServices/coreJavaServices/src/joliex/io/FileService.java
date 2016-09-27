@@ -675,6 +675,10 @@ public class FileService extends JavaService
 	public Value list( Value request )
 	{
 		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
+                boolean fileInfo = false;
+                if ( request.getFirstChild("fileInfo").isDefined() ) {
+                    fileInfo = request.getFirstChild("fileInfo").boolValue();
+                }
 		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
 			regex = request.getFirstChild( "regex" ).strValue();
@@ -703,7 +707,17 @@ public class FileService extends JavaService
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
 			for( String file : files ) {
-				results.add( Value.create( file ) );
+                                Value fileValue = Value.create( file );
+                                if( fileInfo ) {
+                                    File currFile = new File ( dir + File.separator + file );
+                                    fileValue.getFirstChild("lastModified").setValue( currFile.lastModified() );
+                                    fileValue.getFirstChild("size").setValue( currFile.length() );
+                                    fileValue.getFirstChild("absolutePath").setValue( currFile.getAbsolutePath() );
+                                    fileValue.getFirstChild("isHidden").setValue( currFile.isHidden() );
+                                    fileValue.getFirstChild("isDirectory").setValue( currFile.isDirectory() );
+                                    
+                                }
+				results.add( fileValue );
 			}
 		}
 		return response;

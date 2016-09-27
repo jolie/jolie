@@ -68,23 +68,30 @@ type ListRequest:void {
 	.order?: void {
 		.byname?: bool
 	}
+	.fileInfo?: bool // it returns also file infos. Default is false
 }
 
 type ListResponse:void {
-	.result[0,*]:string
+	.result[0,*]:string {
+			.lastModified?: long
+			.size?: long
+			.absolutePath?: string
+			.isHidden?: bool
+			.isDirectory?: bool
+	}
 }
 
 interface FileInterface {
 RequestResponse:
 	/**!
-	 * Constructs an absolute path to the target file or directory. 
+	 * Constructs an absolute path to the target file or directory.
 	 * Can be used to construct an absolute path for new files that does not exist yet.
 	 * Throws a InvalidPathException fault if input is a relative path is not system recognized path.
 	 */
 	toAbsolutePath( string )( string ) throws InvalidPathException( JavaExceptionType ),
 
 	/**!
-	 * Constructs the path to the parent directory. 
+	 * Constructs the path to the parent directory.
 	 * Can be used to construct paths that does not exist so long as the path uses the system's filesystem path conventions.
 	 * Throws a InvalidPathException fault if input path is not a recognized system path or if the parent has no parent.
 	 */
@@ -130,19 +137,19 @@ RequestResponse:
 	 * - json: each child value corresponds to an attribute, the base values are saved as the default values (attribute "$" or singular value), the "_" helper childs disappear (e.g. a._[i]._[j] -> a[i][j]), the rest gets read out recursively
 	 */
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
-	
+
 	/**!
 	  it copies a source directory into a destination one
 	*/
 	copyDir( CopyDirRequest )( bool ) throws IOException FileNotFound,
-	
+
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),
 
 	/**!
 	   it deletes a directory recursively removing all its contents
 	*/
 	deleteDir( string )( bool ) throws IOException(IOExceptionType),
-	
+
 	/**!
 	 * The size of any basic type variable.
 	 * - raw: buffer size
@@ -154,12 +161,12 @@ RequestResponse:
 	 *   equal to the string's length, on Unicode (UTF-8 etc.) >= string's length
 	 */
 	getSize( any )( int ),
-	
+
 	rename(RenameRequest)(void) throws IOException(IOExceptionType),
 	list(ListRequest)(ListResponse),
 	/**!
-	* 
-	* it creates the directory specified in the request root. Returns true if the directory has been 
+	*
+	* it creates the directory specified in the request root. Returns true if the directory has been
 	* created with success, false otherwise
 	*/
 	mkdir( string )( bool ),
