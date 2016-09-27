@@ -230,6 +230,11 @@ public abstract class CommChannel
 			throw e;
 		}
 	}
+	
+	protected abstract void recievedResponse( CommMessage msg );
+	
+	protected abstract void messageRecv( StatefulContext ctx, CommMessage message );
+	
 	/**
 	 * Sends a message through this channel.
 	 *

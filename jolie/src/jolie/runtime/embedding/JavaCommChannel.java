@@ -112,6 +112,18 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	public StatefulContext getContextFor( Long id )
 	{
-		throw new UnsupportedOperationException( "Not supported yet." ); // TODO
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void recievedResponse( CommMessage msg )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
 	}
 }

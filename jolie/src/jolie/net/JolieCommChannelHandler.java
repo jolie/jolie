@@ -12,13 +12,13 @@ import jolie.net.ports.OutputPort;
  * @author martin
  */
 @ChannelHandler.Sharable
-public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<StatefulMessage>
+public class JolieCommChannelHandler extends SimpleChannelInboundHandler<StatefulMessage>
 {
 
 	private Channel channel;
-	private final NioSocketCommChannel commChannel;
+	private final CommChannel commChannel;
 
-	NioSocketCommChannelHandler( NioSocketCommChannel channel )
+	JolieCommChannelHandler( AbstractCommChannel channel )
 	{
 		this.commChannel = channel;
 	}

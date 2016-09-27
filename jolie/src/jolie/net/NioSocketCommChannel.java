@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.net.protocols.AsyncCommProtocol;
 
 /**
@@ -31,12 +28,12 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
-	protected final NioSocketCommChannelHandler nioSocketCommChannelHandler;
+	protected final JolieCommChannelHandler nioSocketCommChannelHandler;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
 		super( location, protocol );
-		nioSocketCommChannelHandler = new NioSocketCommChannelHandler( this );
+		nioSocketCommChannelHandler = new JolieCommChannelHandler( this );
 	}
 
 	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
@@ -69,18 +66,6 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	@Override
 	protected CommMessage recvImpl() throws IOException
 	{
-		// This is blocking to integrate with existing CommCore and ExecutionThreads.
-		try {
-			if ( waitingForMsg != null ) {
-				throw new UnsupportedOperationException( "Waiting for multiple messages is currently not supported!" );
-			}
-			waitingForMsg = new CompletableFuture<>();
-			CommMessage msg = waitingForMsg.get();
-			waitingForMsg = null;
-			return msg;
-		} catch( InterruptedException | ExecutionException ex ) {
-			Logger.getLogger( NioSocketCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
-		}
 		return null;
 	}
 
@@ -115,11 +100,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	@Override
 	protected void closeImpl() throws IOException
 	{
-//		try {
-//			nioSocketCommChannelHandler.close().sync();
-//		} catch( InterruptedException ex ) {
-//			throw new IOException( ex );
-//		}
+		
 	}
 
 }

@@ -86,6 +86,7 @@ public abstract class AbstractCommChannel extends CommChannel
 		return response;
 	}
 
+	@Override
 	protected void recievedResponse( CommMessage response )
 	{
 		if ( response.hasGenericId() ) {
