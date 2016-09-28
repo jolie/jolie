@@ -21,20 +21,26 @@
 
 package jolie.net;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
 import java.net.URI;
 import java.util.function.Function;
 import javax.bluetooth.L2CAPConnection;
+import static jolie.net.NioSocketCommChannel.COMMCHANNEL;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 import joliex.net.BluetoothSocketWrapper;
 
 public class BTL2CapCommChannel extends StreamingCommChannel
 {
 	protected final JolieCommChannelHandler jolieCommChannelHandler;
-	private final BluetoothSocketWrapper connection;
+	private final BluetoothSocketWrapper connection;	
+	private Bootstrap bootstrap;
 	
 	public BTL2CapCommChannel( L2CAPConnection connection, URI location, CommProtocol protocol )
 		throws IOException
@@ -43,6 +49,19 @@ public class BTL2CapCommChannel extends StreamingCommChannel
 		this.connection = new BluetoothSocketWrapper( connection, location );
 		setToBeClosed( false ); // Bluetooth connections are kept open by default.
 		jolieCommChannelHandler = new JolieCommChannelHandler( this );
+	}
+	
+	public static BTL2CapCommChannel CreateChannel( L2CAPConnection connection, URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup ) 
+		throws IOException
+	{
+		final BTL2CapCommChannel channel = new BTL2CapCommChannel( connection, location, protocol );
+		channel.bootstrap = new Bootstrap();
+		channel.bootstrap.group( workerGroup );
+		ChannelPipeline p = channel.connection.pipeline();
+		protocol.setupPipeline( p );
+		p.addLast( channel.jolieCommChannelHandler );
+		channel.connection.attr( COMMCHANNEL ).set( channel );
+		return channel;
 	}
 	
 	protected void sendImpl( StatefulMessage message, final Function<Void, Void> completionHandler ) 

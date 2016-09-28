@@ -32,6 +32,8 @@ import javax.microedition.io.Connector;
 import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
 @AndJarDeps({"bluetooth.jar"})
@@ -45,6 +47,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 	{
 		super( commCore );
 	}
+	
 
 	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
 	{
@@ -77,10 +80,18 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		if ( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {
 			throw new IOException( "Malformed output btl2cap location: " + uri.toString() );
 		}
+		
+
+		
 		try {
+			CommProtocol protocol = port.getProtocol( ctx );
+			if ( !(protocol instanceof AsyncCommProtocol) ) {
+				throw new UnsupportedCommProtocolException( "Use an async protocol" );
+			}
+			
 			String connectionURL = BTL2CapHelper.getConnectionURL( uri, this );
 			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
-			return new BTL2CapCommChannel( conn, uri, port.getProtocol( ctx ) );
+			return BTL2CapCommChannel.CreateChannel( conn, uri, (AsyncCommProtocol)port.getProtocol( ctx ), commCore().getBlockingEventLoopGroup() );
 		} catch( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
 		} catch( URISyntaxException e ) {

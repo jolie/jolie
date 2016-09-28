@@ -23,7 +23,7 @@ import jolie.net.protocols.AsyncCommProtocol;
 public class NioSocketCommChannel extends StreamingCommChannel
 {
 
-	public static AttributeKey<NioSocketCommChannel> COMMCHANNEL = AttributeKey.valueOf( "CommChannel" );
+	public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf( "CommChannel" );
 
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;

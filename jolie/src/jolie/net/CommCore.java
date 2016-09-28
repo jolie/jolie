@@ -23,6 +23,7 @@ package jolie.net;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.ClosedChannelException;
@@ -85,8 +86,13 @@ public class CommCore
 	// Location URI -> Protocol name -> Persistent CommChannel object
 	private final Map< URI, Map< String, CommChannel>> persistentChannels = new HashMap<>();
 	
+	private final EventLoopGroup oioGroup;
 	private final EventLoopGroup workerGroup;
 	private final EventLoopGroup bossGroup;
+	
+	public EventLoopGroup getBlockingEventLoopGroup() {
+		return oioGroup;
+	}
 
 	private void removePersistentChannel( URI location, String protocol, Map< String, CommChannel> protocolChannels )
 	{
@@ -248,6 +254,7 @@ public class CommCore
 
 		bossGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
 		workerGroup = new NioEventLoopGroup( 4, new ExecutionContextThreadFactory() );
+		oioGroup = new OioEventLoopGroup(0, new ExecutionContextThreadFactory() );
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new NioSocketListenerFactory( this, bossGroup, workerGroup );
 		listenerFactories.put( "socket", listenerFactory );
