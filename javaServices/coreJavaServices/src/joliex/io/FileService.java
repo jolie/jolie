@@ -676,8 +676,8 @@ public class FileService extends JavaService
 	{
 		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
                 boolean fileInfo = false;
-                if ( request.getFirstChild("fileInfo").isDefined() ) {
-                    fileInfo = request.getFirstChild("fileInfo").boolValue();
+                if ( request.getFirstChild( "fileInfo" ).isDefined() ) {
+                    fileInfo = request.getFirstChild( "fileInfo" ).boolValue();
                 }
 		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
@@ -709,12 +709,13 @@ public class FileService extends JavaService
 			for( String file : files ) {
                                 Value fileValue = Value.create( file );
                                 if( fileInfo ) {
+                                    Value info = fileValue.getFirstChild( "info" );
                                     File currFile = new File ( dir + File.separator + file );
-                                    fileValue.getFirstChild("lastModified").setValue( currFile.lastModified() );
-                                    fileValue.getFirstChild("size").setValue( currFile.length() );
-                                    fileValue.getFirstChild("absolutePath").setValue( currFile.getAbsolutePath() );
-                                    fileValue.getFirstChild("isHidden").setValue( currFile.isHidden() );
-                                    fileValue.getFirstChild("isDirectory").setValue( currFile.isDirectory() );
+                                    info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+                                    info.getFirstChild( "size" ).setValue( currFile.length() );
+                                    info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+                                    info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+                                    info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
                                     
                                 }
 				results.add( fileValue );

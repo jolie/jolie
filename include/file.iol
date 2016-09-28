@@ -73,11 +73,13 @@ type ListRequest:void {
 
 type ListResponse:void {
 	.result[0,*]:string {
-			.lastModified?: long
-			.size?: long
-			.absolutePath?: string
-			.isHidden?: bool
-			.isDirectory?: bool
+		.info?: void {
+			.lastModified: long
+			.size: long
+			.absolutePath: string
+			.isHidden: bool
+			.isDirectory: bool
+		}
 	}
 }
 
