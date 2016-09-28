@@ -68,7 +68,7 @@ type ListRequest:void {
 	.order?: void {
 		.byname?: bool
 	}
-	.fileInfo?: bool // it returns also file infos. Default is false
+	.info?: bool // it returns also file infos. Default is false
 }
 
 type ListResponse:void {

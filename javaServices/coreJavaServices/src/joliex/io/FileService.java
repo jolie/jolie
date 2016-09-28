@@ -676,8 +676,8 @@ public class FileService extends JavaService
 	{
 		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
                 boolean fileInfo = false;
-                if ( request.getFirstChild( "fileInfo" ).isDefined() ) {
-                    fileInfo = request.getFirstChild( "fileInfo" ).boolValue();
+                if ( request.getFirstChild( "info" ).isDefined() ) {
+                    fileInfo = request.getFirstChild( "info" ).boolValue();
                 }
 		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
