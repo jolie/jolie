@@ -93,9 +93,19 @@ type DateTimeType:void{
 	.second:int
 }
 
+
 type SetNextTimeOutRequest: int {
 	.operation?: string
 	.message?: undefined
+}
+
+type ScheduleTimeOutRequest: int {
+	.operation?: string
+	.message?: undefined
+	/*
+	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS 
+	*/
+	.timeunit?: string
 }
 
 interface TimeInterface{
@@ -106,7 +116,11 @@ interface TimeInterface{
 		  ( default: timeout )
 		*/
 		setNextTimeout(SetNextTimeOutRequest), 
-		setNextTimeoutByDateTime, setNextTimeoutByTime
+		setNextTimeoutByDateTime, setNextTimeoutByTime,
+		/**!
+		* Cancels a time from a UUID created from #scheduleTimeout
+		*/
+		cancelTimeout(string),
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
@@ -136,7 +150,11 @@ interface TimeInterface{
 		getTimeDiff(GetTimeDiffRequest)(int),
 		getTimeFromMilliSeconds(int)(TimeValuesType),
 		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
-		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
+		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException,
+		/**!
+		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is SECONDS.
+		*/
+		scheduleTimeout(SetNextTimeOutRequest)(string),
 }
 
 outputPort Time {

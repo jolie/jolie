@@ -25,6 +25,11 @@ package joliex.util;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -67,6 +72,8 @@ public class TimeService extends JavaService
 
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
+	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private Set< String > tasks = Collections.synchronizedSet( new HashSet<>() );
 
 	public TimeService()
 	{
@@ -289,7 +296,7 @@ public class TimeService extends JavaService
 			}
 			if ( request.hasChildren( "language" ) ) {
 				String language = request.getFirstChild( "language" ).strValue();
-				if ( language.equals( "us" ) ) {
+				if ( language.equals( "uk" ) ) {
 					sdf = new SimpleDateFormat( format, Locale.ENGLISH );
 				} else if ( language.equals( "it" ) ) {
 					sdf = new SimpleDateFormat( format, Locale.ITALIAN );
@@ -415,4 +422,38 @@ public class TimeService extends JavaService
 			throw new FaultException( "InvalidTimestamp", pe );
 		}
 	}
+
+	@RequestResponse
+	public String scheduleTimeout( Value request ) {
+		final String uuid = UUID.randomUUID().toString();
+		TimeUnit unit;
+
+		if (request.getFirstChild("timeunit") != null) {
+			try {
+				unit = TimeUnit.valueOf(request.getFirstChild("timeunit").strValue().toUpperCase());
+			} catch (Exception e) {
+				System.err.println(e);
+				System.err.println("Defaulting to timeunit seconds");
+			}
+			finally {
+				unit = TimeUnit.SECONDS;
+			}
+		} else {
+			unit = TimeUnit.SECONDS;
+		}
+
+		tasks.add( uuid );
+		executor.schedule( () -> {
+			if ( tasks.contains( uuid ) ) {
+				sendMessage(CommMessage.createRequest(request.getFirstChild("operation").strValue(), "/", request.getFirstChild("message")));
+				tasks.remove(uuid);
+			}
+		}, request.intValue(), unit );
+		return uuid;
+	}
+
+	public void cancelTimeout( Value request ) {
+		tasks.remove( request.strValue() );
+	}
+
 }
