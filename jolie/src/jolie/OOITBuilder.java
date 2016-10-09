@@ -184,7 +184,6 @@ import jolie.runtime.InvalidIdException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
-import jolie.runtime.expression.ValueVectorSizeExpression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.correlation.CorrelationSet;
@@ -214,6 +213,7 @@ import jolie.runtime.expression.NotExpression;
 import jolie.runtime.expression.OrCondition;
 import jolie.runtime.expression.ProductExpression;
 import jolie.runtime.expression.SumExpression;
+import jolie.runtime.expression.ValueVectorSizeExpression;
 import jolie.runtime.expression.VoidExpression;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -1556,7 +1556,7 @@ public class OOITBuilder implements OLVisitor
 
 		return new OneWayOperation(
 			operationName,
-			Type.extend( desc.requestType(), extenderType )
+			( extenderType == null ) ? desc.requestType() : Type.extend( desc.requestType(), extenderType )
 		);
 	}
 	
