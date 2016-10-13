@@ -118,7 +118,7 @@ interface TimeInterface{
 		setNextTimeout(SetNextTimeOutRequest), 
 		setNextTimeoutByDateTime, setNextTimeoutByTime,
 		/**!
-		* Cancels a time from a UUID created from #scheduleTimeout
+		* Cancels a timeout from a UUID created from #scheduleTimeout
 		*/
 		cancelTimeout(long),
 	RequestResponse:
