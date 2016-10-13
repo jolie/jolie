@@ -26,15 +26,14 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicLong;
+
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -73,7 +72,9 @@ public class TimeService extends JavaService
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
 	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private Set< String > tasks = Collections.synchronizedSet( new HashSet<>() );
+	private HashMap<Long, ScheduledFuture> scheduledFutureHashMap = new HashMap<>();
+	private AtomicLong atomicLong = new AtomicLong();
+	private final Object lock = new Object();
 
 	public TimeService()
 	{
@@ -296,7 +297,7 @@ public class TimeService extends JavaService
 			}
 			if ( request.hasChildren( "language" ) ) {
 				String language = request.getFirstChild( "language" ).strValue();
-				if ( language.equals( "uk" ) ) {
+				if ( language.equals( "us" ) ) {
 					sdf = new SimpleDateFormat( format, Locale.ENGLISH );
 				} else if ( language.equals( "it" ) ) {
 					sdf = new SimpleDateFormat( format, Locale.ITALIAN );
@@ -424,36 +425,45 @@ public class TimeService extends JavaService
 	}
 
 	@RequestResponse
-	public String scheduleTimeout( Value request ) {
-		final String uuid = UUID.randomUUID().toString();
+	public Long scheduleTimeout( Value request )
+	{
+		final long timeoutId = atomicLong.getAndIncrement();
 		TimeUnit unit;
 
-		if (request.getFirstChild("timeunit") != null) {
+		if (request.hasChildren( "timeunit" )) {
 			try {
-				unit = TimeUnit.valueOf(request.getFirstChild("timeunit").strValue().toUpperCase());
-			} catch (Exception e) {
-				System.err.println(e);
-				System.err.println("Defaulting to timeunit seconds");
-			}
-			finally {
-				unit = TimeUnit.SECONDS;
+				unit = TimeUnit.valueOf( request.getFirstChild( "timeunit" ).strValue().toUpperCase() );
+			} catch ( Exception e ) {
+				System.err.println( e );
+				System.err.println( "Defaulting to MILLISECONDS" );
+				unit = TimeUnit.MILLISECONDS;
 			}
 		} else {
-			unit = TimeUnit.SECONDS;
+			unit = TimeUnit.MILLISECONDS;
 		}
 
-		tasks.add( uuid );
-		executor.schedule( () -> {
-			if ( tasks.contains( uuid ) ) {
-				sendMessage(CommMessage.createRequest(request.getFirstChild("operation").strValue(), "/", request.getFirstChild("message")));
-				tasks.remove(uuid);
-			}
+		ScheduledFuture scheduledFuture = executor.schedule( () -> {
+				sendMessage( CommMessage.createRequest(request.getFirstChild( "operation" ).strValue(), "/", request.getFirstChild( "message" )));
 		}, request.intValue(), unit );
-		return uuid;
+		synchronized (lock) {
+			scheduledFutureHashMap.put(timeoutId, scheduledFuture);
+		}
+		return timeoutId;
 	}
 
-	public void cancelTimeout( Value request ) {
-		tasks.remove( request.strValue() );
-	}
+	public void cancelTimeout( Value request )
+	{
+		long timeoutId = request.longValue();
 
+		synchronized (lock) {
+			ScheduledFuture scheduledFuture = scheduledFutureHashMap.get( timeoutId );
+			if ( scheduledFuture != null ) {
+				scheduledFutureHashMap.get(timeoutId).cancel(false);
+				scheduledFutureHashMap.remove(timeoutId);
+			}
+			else {
+				System.out.println("No entry in hashmap with key " + timeoutId);
+			}
+		}
+	}
 }

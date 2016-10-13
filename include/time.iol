@@ -103,7 +103,7 @@ type ScheduleTimeOutRequest: int {
 	.operation?: string
 	.message?: undefined
 	/*
-	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS 
+	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS. If the value is not set or recognized, it will default to MILLISECONDS
 	*/
 	.timeunit?: string
 }
@@ -120,7 +120,7 @@ interface TimeInterface{
 		/**!
 		* Cancels a time from a UUID created from #scheduleTimeout
 		*/
-		cancelTimeout(string),
+		cancelTimeout(long),
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
@@ -152,9 +152,9 @@ interface TimeInterface{
 		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
 		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException,
 		/**!
-		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is SECONDS.
+		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS.
 		*/
-		scheduleTimeout(SetNextTimeOutRequest)(string),
+		scheduleTimeout(ScheduleTimeOutRequest)(long),
 }
 
 outputPort Time {
