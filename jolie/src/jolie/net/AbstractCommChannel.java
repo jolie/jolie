@@ -52,13 +52,16 @@ public abstract class AbstractCommChannel extends CommChannel
 	@Override
 	public StatefulContext getContextFor( Long id )
 	{
+		ExecutionContext ctx = null;
 		if (parentPort() instanceof OutputPort) {
-			ExecutionContext ctx = waiters.get( id );
+			if ( id == CommMessage.GENERIC_ID){
+				ctx = waiters.entrySet().iterator().next().getValue();
+			} else {
+				ctx = waiters.get( id );
+			}
 			if (ctx instanceof StatefulContext)
 				return (StatefulContext) ctx;
-			else {
-				assert false;
-			}
+			assert false;
 			return null;
 		} else {
 			return Interpreter.getInstance().initContext();

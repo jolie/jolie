@@ -30,7 +30,6 @@ import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
 import jolie.net.StatefulMessage;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
@@ -41,7 +40,7 @@ import jolie.runtime.JavaService;
 /**
  * @author Fabrizio Montesi
  */
-public class JavaCommChannel extends CommChannel implements PollableCommChannel
+public class JavaCommChannel extends CommChannel
 {
 	private final JavaService javaService;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
@@ -49,12 +48,6 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
-	}
-
-	@Override
-	public boolean isReady()
-	{
-		return messages.isEmpty() == false;
 	}
 
 	@Override

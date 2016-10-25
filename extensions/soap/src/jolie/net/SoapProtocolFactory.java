@@ -24,6 +24,7 @@ package jolie.net;
 import java.io.IOException;
 import java.net.URI;
 import javax.xml.soap.SOAPException;
+import javax.xml.transform.TransformerConfigurationException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
@@ -44,6 +45,8 @@ public class SoapProtocolFactory extends CommProtocolFactory
 			return new SoapProtocol( configurationPath, location, true, commCore().interpreter() );
 		} catch( SOAPException e ) {
 			throw new IOException( e );
+		} catch( TransformerConfigurationException e ) {
+			throw new IOException( e );
 		}
 	}
 
@@ -51,8 +54,11 @@ public class SoapProtocolFactory extends CommProtocolFactory
 		throws IOException
 	{
 		try {
-			return new SoapProtocol( configurationPath, location, false, commCore().interpreter() );
+			CommProtocol protocol =  new SoapProtocol( configurationPath, location, false, commCore().interpreter() );
+			return protocol;
 		} catch( SOAPException e ) {
+			throw new IOException( e );
+		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
 		}
 	}

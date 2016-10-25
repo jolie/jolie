@@ -35,8 +35,10 @@ import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
+import jolie.runtime.CanUseJars;
 
 @AndJarDeps({"bluetooth.jar"})
+@CanUseJars({"bluecove-gpl-2.1.0.jar"})
 public class BTL2CapChannelFactory extends CommChannelFactory
 {
 	private final static int cacheLimit = 1000; // Must be > 0
@@ -80,8 +82,6 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		if ( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {
 			throw new IOException( "Malformed output btl2cap location: " + uri.toString() );
 		}
-		
-
 		
 		try {
 			CommProtocol protocol = port.getProtocol( ctx );

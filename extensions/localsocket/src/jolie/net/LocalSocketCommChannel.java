@@ -30,7 +30,7 @@ import java.util.function.Function;
 import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
-public class LocalSocketCommChannel extends StreamingCommChannel implements PollableCommChannel
+public class LocalSocketCommChannel extends StreamingCommChannel
 {
 	private final UnixSocket socket;
 	private final PreBufferedInputStream bufferedInputStream;
@@ -50,10 +50,10 @@ public class LocalSocketCommChannel extends StreamingCommChannel implements Poll
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler  )
+	protected void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler  )
 		throws IOException
 	{
-		protocol().send( socketOutputStream, message, bufferedInputStream );
+		protocol().send( socketOutputStream, message.message(), bufferedInputStream );
 		socketOutputStream.flush();
 		completionHandler.apply( null );
 	}

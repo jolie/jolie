@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import jolie.ExecutionContext;
+import jolie.StatefulContext;
 import jolie.net.CommMessage;
 
 /**
@@ -37,7 +38,7 @@ public interface RemoteBasicChannel extends Remote
 		throws RemoteException, IOException;
 	public CommMessage recv()
 		throws IOException;
-	public void send( CommMessage message )
+	public void send( StatefulContext ctx, CommMessage message )
 		throws IOException;
 	public boolean isReady()
 		throws RemoteException;

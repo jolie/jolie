@@ -23,6 +23,7 @@ package joliex.rmi;
 
 import java.io.IOException;
 import jolie.ExecutionContext;
+import jolie.StatefulContext;
 import jolie.net.CommMessage;
 import jolie.net.LocalCommChannel;
 
@@ -41,10 +42,10 @@ public class RemoteBasicChannelImpl implements RemoteBasicChannel
 		this.parent = parent;
 	}
 
-	public void send( CommMessage message )
+	public void send( StatefulContext ctx, CommMessage message )
 		throws IOException
 	{
-		channel.send( message );
+		channel.send( ctx, message );
 	}
 
 	public boolean isReady()

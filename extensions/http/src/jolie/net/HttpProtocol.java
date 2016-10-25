@@ -199,6 +199,12 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
+		setupHttpPipelineHandlers( pipeline );
+		pipeline.addLast( new HttpCommMessageCodec() );
+	}
+	
+	protected final void setupHttpPipelineHandlers( ChannelPipeline pipeline )
+	{
 		if (inInputPort) {
 			pipeline.addLast( new HttpServerCodec() );
 			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
@@ -206,8 +212,8 @@ public class HttpProtocol extends AsyncCommProtocol
 		} else {
 			pipeline.addLast( new HttpClientCodec() );
 			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+			//pipeline.addLast( new HttpContentDecompressor() );
 		}
-		pipeline.addLast( new HttpCommMessageCodec() );
 	}
 
 	public class HttpCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, StatefulMessage>
@@ -908,7 +914,7 @@ public class HttpProtocol extends AsyncCommProtocol
 				compression = false;
 			}
 			if ( compression ) {
-				// encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
+				//encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
 				// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
 				if ( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
 					headers.add( HttpHeaderNames.CONTENT_ENCODING, "gzip" );

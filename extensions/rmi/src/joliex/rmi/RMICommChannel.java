@@ -27,9 +27,9 @@ import jolie.ExecutionContext;
 import jolie.Interpreter;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
+import jolie.net.StatefulMessage;
 
-public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel
+public class RMICommChannel extends AbstractCommChannel
 {
 	final private RemoteBasicChannel remoteChannel;
 
@@ -40,10 +40,10 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
-		remoteChannel.send( message );
+		remoteChannel.send( message.context(), message.message() );
 	}
 
 	@Override

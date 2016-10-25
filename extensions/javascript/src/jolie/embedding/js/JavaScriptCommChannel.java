@@ -34,7 +34,6 @@ import jolie.StatefulContext;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
 import jolie.net.StatefulMessage;
 import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
@@ -44,7 +43,7 @@ import jolie.runtime.typing.Type;
  * 
  * TODO: this shouldn't be polled
  */
-public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
+public class JavaScriptCommChannel extends CommChannel
 {
 	private final Invocable invocable;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
@@ -157,10 +156,4 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	@Override
 	protected void closeImpl()
 	{}
-
-	@Override
-	public boolean isReady()
-	{
-		return( !messages.isEmpty() );
-	}
 }

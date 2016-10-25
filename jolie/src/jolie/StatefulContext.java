@@ -137,6 +137,8 @@ import jolie.util.Pair;
 				listeners.forEach( listener -> listener.onSessionExecuted( this ) );
 				markExecutionFinished();
 				return;
+			} catch( Exception e ) {
+				System.out.println( String.format( "[%s][%s][ERROR] - ", Thread.currentThread(), this ) +  "\n" + e.getMessage() );
 			}
 		}
 		
