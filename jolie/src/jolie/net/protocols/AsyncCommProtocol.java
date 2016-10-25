@@ -4,6 +4,7 @@ import io.netty.channel.ChannelPipeline;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import jolie.StatefulContext;
 import jolie.net.CommMessage;
 import jolie.runtime.VariablePath;
 
@@ -31,6 +32,10 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	public CommMessage recv( InputStream istream, OutputStream ostream ) throws IOException
 	{
 		throw new UnsupportedOperationException( "Should not be called." );
+	}
+	
+	public void initialize(StatefulContext ctx) {
+		// Do nothing.
 	}
 
 }

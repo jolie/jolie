@@ -37,6 +37,7 @@ import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
@@ -209,11 +210,13 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
-		return interpreter.commCore().createOutputCommProtocol(
+		AsyncCommProtocol protocol = (AsyncCommProtocol)interpreter.commCore().createOutputCommProtocol(
 			protocolId,
 			protocolVariablePath,
 			new URI( locationExpression.evaluate().strValue() )
 		);
+		protocol.initialize( ctx );
+		return protocol;
 	}
 
 	

@@ -69,6 +69,7 @@ public class NioSocketListener extends CommListener
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
+						((AsyncCommProtocol) protocol).initialize( interpreter().initContext() ); // Use init context to initialize protocol.
 						((AsyncCommProtocol) protocol).setupPipeline( p );
 						p.addLast( channel.nioSocketCommChannelHandler );
 						ch.attr( NioSocketCommChannel.COMMCHANNEL ).set( channel );
