@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -199,21 +200,15 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
-		setupHttpPipelineHandlers( pipeline );
-		pipeline.addLast( new HttpCommMessageCodec() );
-	}
-	
-	protected final void setupHttpPipelineHandlers( ChannelPipeline pipeline )
-	{
 		if (inInputPort) {
 			pipeline.addLast( new HttpServerCodec() );
-			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
 			pipeline.addLast( new HttpContentCompressor() );
 		} else {
 			pipeline.addLast( new HttpClientCodec() );
-			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
-			//pipeline.addLast( new HttpContentDecompressor() );
+			pipeline.addLast( new HttpContentDecompressor() );
 		}
+		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+		pipeline.addLast( new HttpCommMessageCodec() );
 	}
 
 	public class HttpCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, StatefulMessage>
@@ -230,12 +225,11 @@ public class HttpProtocol extends AsyncCommProtocol
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
 		{
-//			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( channel().context() );
 			if ( msg instanceof FullHttpRequest ) {
 				FullHttpRequest request = (FullHttpRequest) msg;
 				System.out.println( "HTTP request ! (" + request.uri() + ")" );
 			} else if ( msg instanceof FullHttpResponse ) {
-//				FullHttpResponse response = (FullHttpResponse) msg;
+				FullHttpResponse response = (FullHttpResponse) msg;
 				System.out.println( "HTTP response !" );
 			}
 			StatefulMessage message = recv_internal( msg );
@@ -916,10 +910,11 @@ public class HttpProtocol extends AsyncCommProtocol
 			if ( compression ) {
 				//encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
 				// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
+				// Set accept encoding headers to let Netty handle compression.
 				if ( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
-					headers.add( HttpHeaderNames.CONTENT_ENCODING, "gzip" );
+					headers.add( HttpHeaderNames.ACCEPT_ENCODING, "gzip" );
 				} else if ( encoding.contains( "deflate" ) ) {
-					headers.add( HttpHeaderNames.CONTENT_ENCODING, "deflate" );
+					headers.add( HttpHeaderNames.ACCEPT_ENCODING, "deflate" );
 				}
 			}
 

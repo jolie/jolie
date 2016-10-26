@@ -163,12 +163,11 @@ public class SoapProtocol extends AsyncCommProtocol
 		if (inInputPort) {
 			pipeline.addLast( new HttpServerCodec() );
 			pipeline.addLast( new HttpContentCompressor() );
-			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
 		} else {
 			pipeline.addLast( new HttpClientCodec() );
 			pipeline.addLast( new HttpContentDecompressor() );
-			pipeline.addLast( new HttpObjectAggregator( 65536 ) );
 		}
+		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
 		pipeline.addLast( new SoapCommMessageCodec() );
 	}
 

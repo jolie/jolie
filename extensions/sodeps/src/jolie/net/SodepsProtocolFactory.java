@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URI;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
-import jolie.StatefulContext;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.net.ssl.SSLProtocol;
@@ -40,24 +39,24 @@ public class SodepsProtocolFactory extends CommProtocolFactory
 		super( commCore );
 	}
 
-	public CommProtocol createInputProtocol( StatefulContext ctx, VariablePath configurationPath, URI location )
+	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createInputCommProtocol( ctx, "sodep", configurationPath, location ),
+			commCore().createInputCommProtocol( "sodep", configurationPath, location ),
 			false
 		);
 	}
 
-	public CommProtocol createOutputProtocol( StatefulContext ctx, VariablePath configurationPath, URI location )
+	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
 		return new SSLProtocol(
 			configurationPath,
 			location,
-			commCore().createOutputCommProtocol( ctx, "sodep", configurationPath, location ),
+			commCore().createOutputCommProtocol( "sodep", configurationPath, location ),
 			true
 		);
 	}
