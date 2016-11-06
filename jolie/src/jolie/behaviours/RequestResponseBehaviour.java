@@ -22,6 +22,7 @@
 package jolie.behaviours;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.lang.Constants;
@@ -36,14 +37,240 @@ import jolie.runtime.InputOperation;
 import jolie.runtime.RequestResponseOperation;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
+import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.tracer.MessageTraceAction;
 import jolie.tracer.Tracer;
+import jolie.util.Pair;
 
 public class RequestResponseBehaviour implements InputOperationBehaviour
 {
+	
+	private class RequestResponseExecutionBehaviour extends SimpleBehaviour {
+		
+		private final SessionMessage sessionMessage;
+		private final ReThrowBehaviour reThrowBehaviour = new ReThrowBehaviour();
+		private final String scopeId;
+
+		public RequestResponseExecutionBehaviour( SessionMessage sessionMessage )
+		{
+			this.sessionMessage = sessionMessage;
+			this.scopeId = sessionMessage.message().id() + "-RequestResponseScope";
+		}
+		
+		@Override
+		public void run( StatefulContext ctx ) throws FaultException, ExitingException
+		{
+			if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
+				ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
+			}
+
+			log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );
+			if ( inputVarPath != null ) {
+				inputVarPath.getValue( ctx.state().root() ).refCopy( sessionMessage.message().value() );
+			}
+
+			// This scope id must not collide with user defined scope
+			ArrayList<Pair<String, Behaviour>> faultHandlers = new ArrayList<>();
+			faultHandlers.add( new Pair( Constants.Keywords.DEFAULT_HANDLER_NAME, new FaultBehaviour( sessionMessage.channel(), sessionMessage.message() ) ) );
+			ctx.executeNext(
+				new SequentialBehaviour(new Behaviour[] {
+					new ScopeBehaviour(
+						scopeId,
+						new SequentialBehaviour(new Behaviour[] {
+							new InstallBehaviour( faultHandlers ),
+							process,
+							new PostBehaviour( sessionMessage.channel(), sessionMessage.message() )
+						}),
+						true
+					),
+					reThrowBehaviour
+				})
+			);
+		}
+		
+			
+		private class PostBehaviour extends SimpleBehaviour {
+
+			private final CommMessage message;
+			private final CommChannel channel;
+
+			public PostBehaviour(CommChannel channel, CommMessage message)
+			{			
+				this.channel = channel;
+				this.message = message;
+			}
+
+			@Override
+			public void run( StatefulContext ctx )
+				throws FaultException, ExitingException
+			{			
+				// Variables for monitor
+				int responseStatus;
+				String details;
+
+				FaultException typeMismatch = null;
+				CommMessage response;
+				if ( ctx.isKilled() ) {
+					try {
+						response = createFaultMessage( ctx.interpreter(), message, ctx.killerFault() );
+						responseStatus = OperationEndedEvent.FAULT;
+						details = ctx.killerFault().faultName();
+					} catch( TypeCheckingException e ) {
+						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ctx.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
+						response = CommMessage.createFaultResponse( message, typeMismatch );
+						responseStatus = OperationEndedEvent.ERROR;
+						details = typeMismatch.faultName();
+					}
+				} else {
+					response =
+						CommMessage.createResponse(
+							message,
+							( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
+						);
+						responseStatus = OperationEndedEvent.SUCCESS;
+						details = "";
+					if ( operation.typeDescription().responseType() != null ) {
+						try {
+							operation.typeDescription().responseType().check( response.value() );
+						} catch( TypeCheckingException e ) {						
+							typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
+							response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
+							responseStatus = OperationEndedEvent.ERROR;
+							details =  Constants.TYPE_MISMATCH_FAULT_NAME;
+						}
+					}
+				}
+				ctx.executeNext( new FinallyBehaviour(response, details, responseStatus, typeMismatch, channel, null ));
+			}
+		}
+
+		private class FaultBehaviour extends SimpleBehaviour {
+
+			private final CommChannel channel;
+			private final CommMessage message;
+
+			public FaultBehaviour(CommChannel channel, CommMessage message)
+			{
+				this.channel = channel;
+				this.message = message;
+			}
+
+			@Override
+			public Behaviour clone( TransformationReason reason )
+			{
+				return new FaultBehaviour( channel, message);
+			}
+
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				// Variables for monitor
+				int responseStatus;
+				String details;
+
+				FaultException typeMismatch = null;
+				CommMessage response;
+
+				Value scopeValue = new VariablePathBuilder( false ).add( scopeId, 0 ).toVariablePath().getValue( ctx );
+				Value defaultFaultValue = scopeValue.getChildren( Constants.Keywords.DEFAULT_HANDLER_NAME ).get( 0 );
+				Value userFaultValueValue = scopeValue.getChildren( defaultFaultValue.strValue() ).get( 0 );
+				FaultException fault = new FaultException( defaultFaultValue.strValue(), userFaultValueValue );
+				
+				try {
+					response = createFaultMessage( ctx.interpreter(), message, fault );
+					responseStatus = OperationEndedEvent.FAULT;
+					details = fault.faultName();
+				} catch( TypeCheckingException e ) {
+					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + fault.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );				
+					response = CommMessage.createFaultResponse( message, typeMismatch );
+					responseStatus = OperationEndedEvent.ERROR;
+					details = typeMismatch.faultName();
+				}
+				ctx.executeNext( new FinallyBehaviour(response, details, responseStatus, typeMismatch, channel, fault ) );
+			}
+
+		}
+
+		private class FinallyBehaviour extends SimpleBehaviour {
+
+			private final CommMessage response;
+			private final String details;
+			private final int responseStatus;
+			private final FaultException typeMismatch;
+			private final CommChannel channel;
+			private final FaultException fault;
+
+			public FinallyBehaviour( CommMessage response, String details, int responseStatus, FaultException typeMismatch, CommChannel channel, FaultException fault)
+			{
+				this.response = response;
+				this.details = details;
+				this.responseStatus = responseStatus;
+				this.typeMismatch = typeMismatch;
+				this.channel = channel;
+				this.fault = fault;
+			}
+
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				try {
+					final CommMessage msg = response;
+					final String fDetails = details;
+					final int rStatus = responseStatus;
+					channel.send( ctx, response, ( Void ) -> {
+						Value monitorValue;
+						if ( msg.isFault() ) {
+							log( ctx.interpreter(), "SENT FAULT", msg );					
+							monitorValue = msg.fault().value();
+						} else {
+							log( ctx.interpreter(), "SENT", msg );
+							monitorValue = msg.value();
+						}
+						if ( ctx.interpreter().isMonitoring() ) {
+							ctx.interpreter().fireMonitorEvent(
+								new OperationEndedEvent(operation.id(), ctx.getSessionId(), Long.toString( msg.id() ), rStatus, fDetails, monitorValue ));
+						}
+						System.out.println( "ReuestResponseBehaviour - SEND" );
+						return null;
+					});
+
+				} catch( IOException e ) {
+					//Interpreter.getInstance().logSevere( e );
+					throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
+				} 
+
+				if ( fault != null ) {
+					if ( typeMismatch != null ) {
+						ctx.interpreter().logWarning( typeMismatch.value().strValue() );
+					}
+					reThrowBehaviour.setFault( fault );
+				} else if ( typeMismatch != null ) {
+					reThrowBehaviour.setFault( typeMismatch );
+				}
+			}
+
+		}
+
+		private class ReThrowBehaviour extends SimpleBehaviour {
+
+			private FaultException fault = null;
+
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				if (fault != null)
+					throw fault;
+			}
+
+			protected void setFault(FaultException fault) {
+				this.fault = fault;
+			}
+		}
+	}
+	
 	private final RequestResponseOperation operation;
 	private final VariablePath inputVarPath; // may be null
 	private final Expression outputExpression; // may be null
@@ -95,41 +322,13 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 	public Behaviour clone( TransformationReason reason )
 	{
 		return new RequestResponseBehaviour(
-					operation,
-					( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
-					( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
-					process.clone( reason )
-				);
+			operation,
+			( inputVarPath == null ) ? null : (VariablePath)inputVarPath.cloneExpression( reason ),
+			( outputExpression == null ) ? null : (VariablePath)outputExpression.cloneExpression( reason ),
+			process.clone( reason )
+		);
 	}
 	
-	@Override
-	public Behaviour receiveMessage( final SessionMessage sessionMessage, StatefulContext ctx )
-	{
-		if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
-			ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
-		}
-
-		log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );
-		if ( inputVarPath != null ) {
-			inputVarPath.getValue( ctx.state().root() ).refCopy( sessionMessage.message().value() );
-		}
-
-		return new SequentialBehaviour(new Behaviour[] {
-			process,
-			new SimpleBehaviour() {
-				
-				@Override
-				public void run( StatefulContext ctx )
-					throws FaultException, ExitingException
-				{
-					runBehaviour( ctx, sessionMessage.channel(), sessionMessage.message() );
-				}
-				
-			}
-		});
-			
-	}
-
 	@Override
 	public void run(StatefulContext ctx)
 		throws FaultException, ExitingException
@@ -170,95 +369,10 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 		return CommMessage.createFaultResponse( request, f );
 	}
 	
-	private void runBehaviour( StatefulContext ctx, CommChannel channel, CommMessage message )
-		throws FaultException
+	@Override
+	public Behaviour receiveMessage( SessionMessage sessionMessage, StatefulContext ctx )
 	{
-		// Variables for monitor
-		int responseStatus;
-		String details;
-
-		FaultException typeMismatch = null;
-		FaultException fault = null;
-		CommMessage response;
-//		try {
-			if ( ctx.isKilled() ) {
-				try {
-					response = createFaultMessage( ctx.interpreter(), message, ctx.killerFault() );
-					responseStatus = OperationEndedEvent.FAULT;
-					details = ctx.killerFault().faultName();
-				} catch( TypeCheckingException e ) {
-					typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + ctx.killerFault().faultName() + " (operation " + operation.id() + "): " + e.getMessage() );
-					response = CommMessage.createFaultResponse( message, typeMismatch );
-					responseStatus = OperationEndedEvent.ERROR;
-					details = typeMismatch.faultName();
-				}
-			} else {
-				response =
-					CommMessage.createResponse(
-						message,
-						( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
-					);
-					responseStatus = OperationEndedEvent.SUCCESS;
-					details = "";
-				if ( operation.typeDescription().responseType() != null ) {
-					try {
-						operation.typeDescription().responseType().check( response.value() );
-					} catch( TypeCheckingException e ) {						
-						typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response input operation output value TypeMismatch (operation " + operation.id() + "): " + e.getMessage() );						
-						response = CommMessage.createFaultResponse( message, new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Internal server error (TypeMismatch)" ) );
-						responseStatus = OperationEndedEvent.ERROR;
-						details =  Constants.TYPE_MISMATCH_FAULT_NAME;
-					}
-				}
-			}
-//		} catch( FaultException f ) {
-//			try {
-//				response = createFaultMessage( message, f );
-//				responseStatus = OperationEndedEvent.FAULT;
-//				details = f.faultName();
-//			} catch( TypeCheckingException e ) {
-//				typeMismatch = new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Request-Response process TypeMismatch for fault " + f.faultName() + " (operation " + operation.id() + "): " + e.getMessage() );				
-//				response = CommMessage.createFaultResponse( message, typeMismatch );
-//				responseStatus = OperationEndedEvent.ERROR;
-//				details = typeMismatch.faultName();
-//			}
-//			fault = f;
-//		}
-
-		try {
-			final CommMessage msg = response;
-			final String fDetails = details;
-			final int rStatus = responseStatus;
-			channel.send( ctx, response, ( Void ) -> {
-				Value monitorValue;
-				if ( msg.isFault() ) {
-					log( ctx.interpreter(), "SENT FAULT", msg );					
-					monitorValue = msg.fault().value();
-				} else {
-					log( ctx.interpreter(), "SENT", msg );
-					monitorValue = msg.value();
-				}
-				if ( ctx.interpreter().isMonitoring() ) {
-					ctx.interpreter().fireMonitorEvent(
-						new OperationEndedEvent(operation.id(), ctx.getSessionId(), Long.toString( msg.id() ), rStatus, fDetails, monitorValue ));
-				}
-				System.out.println( "ReuestResponseBehaviour - SEND" );
-				return null;
-			});
-
-		} catch( IOException e ) {
-			//Interpreter.getInstance().logSevere( e );
-			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
-		} 
-
-//		if ( fault != null ) {
-//			if ( typeMismatch != null ) {
-//				ctx.interpreter().logWarning( typeMismatch.value().strValue() );
-//			}
-//			throw fault;
-//		} else 
-		if ( typeMismatch != null ) {
-			throw typeMismatch;
-		}
+		return new RequestResponseExecutionBehaviour( sessionMessage );
 	}
+	
 }

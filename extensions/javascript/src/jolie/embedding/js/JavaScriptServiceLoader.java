@@ -32,6 +32,7 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import jolie.StatefulContext;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderCreationException;
 import jolie.runtime.embedding.EmbeddedServiceLoadingException;
@@ -76,7 +77,7 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 	}
 
 	@Override
-	public void load()
+	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
 		try {

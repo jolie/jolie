@@ -58,7 +58,7 @@ public class InitDefinitionBehaviour extends DefinitionBehaviour
 			{
 				for( EmbeddedServiceLoader loader : interpreter.embeddedServiceLoaders() ) {
 					try {
-						loader.load();
+						loader.load( ctx );
 					} catch( EmbeddedServiceLoadingException ex ) {
 						interpreter.logSevere( ex );
 					}
@@ -101,8 +101,8 @@ public class InitDefinitionBehaviour extends DefinitionBehaviour
 					for ( OutputPort parentPort : interpreter.parentInterpreter().outputPorts() ) {
 						try {
 							OutputPort port = interpreter.getOutputPort( parentPort.id() );
-							port.locationVariablePath().setValue( parentPort.locationVariablePath().getValue( parentInitRoot ) );
-							port.protocolConfigurationPath().setValue( parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
+							port.locationVariablePath().setValue( ctx, parentPort.locationVariablePath().getValue( parentInitRoot ) );
+							port.protocolConfigurationPath().setValue( ctx, parentPort.protocolConfigurationPath().getValue( parentInitRoot ) );
 							port.optimizeLocation( ctx );
 						} catch( InvalidIdException e ) {}
 					}
@@ -110,10 +110,11 @@ public class InitDefinitionBehaviour extends DefinitionBehaviour
 			}
 		});
 
-		ctx.executeNext( new SequentialBehaviour(behaviours.toArray(new Behaviour[behaviours.size()])) );
 
 		try {
 			super.run( ctx );
 		} catch( ExitingException e ) {}
+		
+		ctx.executeNext( new SequentialBehaviour(behaviours.toArray(new Behaviour[behaviours.size()])) );
 	}
 }

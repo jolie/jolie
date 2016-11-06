@@ -22,15 +22,16 @@
 package joliex.lang.reflection;
 
 import java.io.IOException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionListener;
-import jolie.SessionThread;
-import jolie.TransparentExecutionThread;
+import jolie.StatefulContext;
+import jolie.TransparentContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.NotificationBehaviour;
+import jolie.behaviours.NullBehaviour;
+import jolie.behaviours.SimpleBehaviour;
+import jolie.behaviours.SolicitResponseBehaviour;
 import jolie.net.ports.OutputPort;
-import jolie.process.NotificationProcess;
-import jolie.process.NullProcess;
-import jolie.process.SolicitResponseProcess;
 import jolie.runtime.ClosedVariablePath;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -49,42 +50,48 @@ public class Reflection extends JavaService
 		private FaultException fault = null;
 	}
 	
-	private final Interpreter interpreter;
+	private Interpreter interpreter;
 
 	public Reflection()
 	{
-		this.interpreter = Interpreter.getInstance();
+		//this.interpreter = super.context().interpreter();
 	}
 	
 	private Value runSolicitResponseInvocation( String operationName, OutputPort port, Value data, RequestResponseTypeDescription desc )
 		throws FaultException, InterruptedException
 	{
 		Value ret = Value.create();
-		jolie.process.Process p = new SolicitResponseProcess(
+		Behaviour b = new SolicitResponseBehaviour(
 			operationName,
 			port,
 			data,
 			new ClosedVariablePath( new Pair[0], ret ),
-			NullProcess.getInstance(),
+			NullBehaviour.getInstance(),
 			desc
 		);
+		
 		final FaultReference ref = new FaultReference();
-		ExecutionThread t = new TransparentExecutionThread( p, ExecutionThread.currentThread() ) {
+		Behaviour wrap = new SimpleBehaviour()
+		{
 			@Override
-			public void runProcess()
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
 				try {
-					process().run();
+					b.run( ctx );
 				} catch( FaultException f ) {
 					ref.fault = f;
 				} catch( ExitingException e ) {}
 			}
 		};
-		t.start();
-		t.join();
+		
+		StatefulContext tranparentContext = new TransparentContext(wrap, context() ) {};
+		tranparentContext.start();
+		tranparentContext.join();
+		
 		if ( ref.fault != null ) {
 			throw ref.fault;
 		}
+		
 		return ret;
 	}
 	
@@ -92,25 +99,28 @@ public class Reflection extends JavaService
 		throws FaultException, InterruptedException
 	{
 		Value ret = Value.create();
-		jolie.process.Process p = new NotificationProcess(
+		Behaviour b = new NotificationBehaviour (
 			operationName,
 			port,
 			data,
 			desc
 		);
-		SessionThread t = new SessionThread( p, interpreter.initThread() );
+		
+		StatefulContext ctx = new StatefulContext( b, interpreter.initContext() );
 		final FaultReference ref = new FaultReference();
-		t.addSessionListener( new SessionListener() {
-			public void onSessionExecuted( SessionThread session )
+		ctx.addSessionListener( new SessionListener() {
+			@Override
+			public void onSessionExecuted( StatefulContext session )
 			{}
 
-			public void onSessionError( SessionThread session, FaultException fault )
+			@Override
+			public void onSessionError( StatefulContext session, FaultException fault )
 			{
 				ref.fault = fault;
 			}
 		} );
-		t.start();
-		t.join();
+		ctx.start();
+		ctx.join();
 		if ( ref.fault != null ) {
 			throw ref.fault;
 		}
@@ -147,5 +157,12 @@ public class Reflection extends JavaService
 			v.getChildren( "data" ).set( 0, e.value() );
 			throw new FaultException( "InvocationFault", v );
 		}
+	}
+	
+	@Override
+	public void setContext( StatefulContext context )
+	{
+		super.setContext( context );
+		interpreter = context.interpreter();
 	}
 }

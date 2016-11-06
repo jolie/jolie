@@ -52,7 +52,7 @@ public class DeepCopyBehaviour implements Behaviour
 			return;
 
 		if ( rightExpression instanceof VariablePath ) {
-			leftPath.deepCopy( (VariablePath) rightExpression );
+			leftPath.deepCopy( ctx, (VariablePath) rightExpression );
 		} else {
 			leftPath.getValue( ctx ).deepCopy( rightExpression.evaluate() );
 		}

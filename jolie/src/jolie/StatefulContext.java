@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import jolie.behaviours.Behaviour;
+import jolie.behaviours.ScopeBehaviour;
 import jolie.behaviours.TransformationReason;
 import jolie.lang.Constants;
+import jolie.net.CommCore;
 import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -108,9 +110,16 @@ import jolie.util.Pair;
 				} catch( ExitingException e ) {
 				}
 			} catch( FaultException f ) {
+				ScopeBehaviour.Execution e = getCurrentScopeExecution();
+				if ( e != null ) {
+					processStack.clear();
+					e.catchFault( this, f );
+					continue;
+				}
+						
 				Behaviour p = null;
 				while( hasScope() && (p = getFaultHandler( f.faultName(), true )) == null ) {
-					popScope();
+					popScope( null );
 				}
 
 				try {
@@ -131,14 +140,10 @@ import jolie.util.Pair;
 					}
 				} catch( FaultException fault ) {
 					listeners.forEach( listener -> listener.onSessionError( this, fault ) );
-					markExecutionFinished();
 				}
-
-				listeners.forEach( listener -> listener.onSessionExecuted( this ) );
-				markExecutionFinished();
-				return;
 			} catch( Exception e ) {
-				System.out.println( String.format( "[%s][%s][ERROR] - ", Thread.currentThread(), this ) +  "\n" + e.getMessage() );
+				System.out.println( String.format( "[%s][%s][ERROR] - [%s]\n", Thread.currentThread(), this, e.getMessage() ) );
+				e.printStackTrace();
 			}
 		}
 		
@@ -147,7 +152,7 @@ import jolie.util.Pair;
 			markExecutionFinished();
 		}
 		
-		pauseExecution = false;		
+		pauseExecution = false;
 		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop stopped: " + this.toString() );
 	}
 	
@@ -207,7 +212,7 @@ import jolie.util.Pair;
 		initMessageQueues();
 		assert( parent != null );
 		state = parent.state().clone();
-		parent.scopeStack.forEach( s -> scopeStack.push( s.clone() ) );
+		parent.scopeStack.forEach( s -> scopeStack.add( s.clone() ) );
 	}
 	
 	/**
@@ -423,7 +428,8 @@ import jolie.util.Pair;
 		Thread t = Thread.currentThread();
 		if (t instanceof JolieExecutorThread) {
 			return ((JolieExecutorThread)t).sessionContext();
-		}
+		} else if (t instanceof CommCore.ExecutionContextThread) 
+			return ((CommCore.ExecutionContextThread)t).executionContext();
 		return null;
 	}
 }

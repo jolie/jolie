@@ -39,12 +39,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.Interpreter;
@@ -874,6 +877,14 @@ public class CommCore
 			} catch( InterruptedException e ) {
 			}
 			executorService.shutdown();
+			Future workerShutdown = workerGroup.shutdownGracefully(0, interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS);
+			Future bossShutdown = bossGroup.shutdownGracefully(0, interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS);
+			try {
+				workerShutdown.get();
+				bossShutdown.get();
+			} catch( InterruptedException | ExecutionException ex ) {
+				Logger.getLogger( CommCore.class.getName() ).log( Level.SEVERE, null, ex );
+			}
 			try {
 				executorService.awaitTermination( interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
 			} catch( InterruptedException e ) {

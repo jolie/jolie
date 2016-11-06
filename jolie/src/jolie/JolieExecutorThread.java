@@ -68,7 +68,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	@Override
 	public Interpreter interpreter()
 	{
-		return executionThread.interpreter();
+		return sessionContext.interpreter();
 	}
 	
 	public static JolieExecutorThread currentThread()

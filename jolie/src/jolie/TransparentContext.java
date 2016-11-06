@@ -22,9 +22,9 @@
 package jolie;
 
 import java.util.Map;
+import jolie.behaviours.Behaviour;
 import jolie.net.SessionMessage;
 import jolie.runtime.InputOperation;
-import jolie.behaviours.Behaviour;
 
 /**
  *

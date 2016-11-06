@@ -84,6 +84,11 @@ public class LocalCommChannel extends AbstractCommChannel
 		protected void closeImpl()
 		{
 		}
+
+		private void messageRecv( CommMessage message )
+		{
+			messageRecv( getContextFor( message.id()), message );
+		}
 	}
 
 	private final Interpreter interpreter;
@@ -119,6 +124,7 @@ public class LocalCommChannel extends AbstractCommChannel
 	@Override
 	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 	{
+		System.out.println( "Sending message over LocalCommChannel " + msg.context().interpreter().logPrefix() + " -->> " + interpreter.logPrefix() );
 		responseWaiters.put( msg.message().id(), new CompletableFuture<>() );
 		workerGroup.execute(new Runnable()
 		{
@@ -126,7 +132,7 @@ public class LocalCommChannel extends AbstractCommChannel
 			public void run()
 			{
 				CoLocalCommChannel coChannel = new CoLocalCommChannel( LocalCommChannel.this, msg.message() );
-				coChannel.messageRecv( msg.context(), msg.message() );
+				coChannel.messageRecv( msg.message() );
 			}
 		});
 		//interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
@@ -148,13 +154,6 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		return m;
-	}
-
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	@Override

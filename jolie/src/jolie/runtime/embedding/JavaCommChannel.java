@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import jolie.ExecutionContext;
-import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
@@ -48,13 +47,6 @@ public class JavaCommChannel extends CommChannel
 	public JavaCommChannel( JavaService javaService )
 	{
 		this.javaService = javaService;
-	}
-
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
 	}
 
 	@Override

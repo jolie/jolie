@@ -69,6 +69,7 @@ public class SodepProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage msg, ByteBuf out )
 			throws Exception
 		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( msg.context() );
 			channel().setToBeClosed( !checkBooleanParameter( msg.context(), "keepAlive", true ) );
 			updateCharset( msg.context() );
 			writeMessage( out, msg.message() );

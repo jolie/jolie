@@ -26,15 +26,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import jolie.StatefulContext;
-import jolie.SessionListener;
-import jolie.TransparentContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.behaviours.SimpleBehaviour;
 import jolie.behaviours.SpawnBehaviour;
-import jolie.behaviours.Behaviour;
 
 public class SpawnExecution
 {
-	private class SpawnedContext extends TransparentContext
+	private class SpawnedContext extends StatefulContext
 	{
 		private final int index;
 		private final CountDownLatch latch;
@@ -46,31 +45,29 @@ public class SpawnExecution
 			CountDownLatch latch
 		)
 		{
-			super( process, parentContext );
+			super(
+				new SequentialBehaviour(new Behaviour[] {
+					new SimpleBehaviour()
+					{
+						@Override
+						public void run( StatefulContext ctx ) throws FaultException, ExitingException
+						{
+							parentSpawnProcess.indexPath().getValue( ctx ).setValue( index );
+						}
+					},
+					parentSpawnProcess.body(),
+					new SimpleBehaviour()
+					{
+						@Override
+						public void run( StatefulContext ctx ) throws FaultException, ExitingException
+						{
+							terminationNotify( (SpawnedContext)ctx );
+						}
+					}
+				}), 
+				parentContext );
 			this.index = index;
 			this.latch = latch;
-			super.addSessionListener(new SessionListener()
-			{
-				@Override
-				public void onSessionExecuted( StatefulContext session )
-				{
-					terminationNotify( SpawnedContext.this );
-				}
-
-				@Override
-				public void onSessionError( StatefulContext session, FaultException fault )
-				{
-					terminationNotify( SpawnedContext.this );
-				}
-			});
-			executeNext(new SimpleBehaviour()
-			{
-				@Override
-				public void run( StatefulContext ctx ) throws FaultException, ExitingException
-				{
-					parentSpawnProcess.indexPath().getValue().setValue( index );
-				}
-			});
 		}
 	}
 	
@@ -89,13 +86,15 @@ public class SpawnExecution
 		throws FaultException
 	{		
 		if ( parentSpawnProcess.inPath() != null ) {
-			parentSpawnProcess.inPath().undef();
+			parentSpawnProcess.inPath().undef( context );
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
 		latch = new CountDownLatch( upperBound );
 		SpawnedContext thread;
 		
-		for( int i = 0; i < upperBound; i++ ) {
+		
+		
+		for( int i = 0; i < upperBound; i++ ) {			
 			thread = new SpawnedContext(
 				context,
 				parentSpawnProcess.body(),
@@ -122,7 +121,7 @@ public class SpawnExecution
 		synchronized( this ) {
 			if ( parentSpawnProcess.inPath() != null ) {
 				parentSpawnProcess.inPath().getValueVector( context.state().root() ).get( childContext.index )
-					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
+					.deepCopy( parentSpawnProcess.inPath().getValueVector( childContext.state().root() ).first() );
 			}
 			
 			latch.countDown();

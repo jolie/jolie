@@ -49,7 +49,7 @@ public class MakePointerBehaviour implements Behaviour
 		if ( ctx.isKilled() )
 			return;
 
-		leftPath.makePointer( rightPath );
+		leftPath.makePointer( ctx, rightPath );
 	}
 	
 	@Override

@@ -76,7 +76,7 @@ public class SolicitResponseBehaviour implements Behaviour
 				log( ctx, "RECEIVED", response );
 
 				if ( inputVarPath != null )	 {
-					inputVarPath.setValue( response.value() );
+					inputVarPath.setValue( ctx, response.value() );
 				}
 
 				if ( response.isFault() ) {				
@@ -119,9 +119,10 @@ public class SolicitResponseBehaviour implements Behaviour
 					}
 				}
 
-				try {
-					installProcess.run( ctx );
-				} catch( ExitingException e ) { assert false; }
+				ctx.executeNext( installProcess );
+//				try {
+//					installProcess.run( ctx );
+//				} catch( ExitingException e ) { assert false; }
 			} catch( IOException e ) {
 				throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 			}

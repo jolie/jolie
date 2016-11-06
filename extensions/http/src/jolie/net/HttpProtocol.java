@@ -217,6 +217,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		@Override
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
 		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
 			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
@@ -883,7 +884,7 @@ public class HttpProtocol extends AsyncCommProtocol
 			encodedContent.contentType = contentType.toLowerCase();
 		}
 		if ( charset != null ) {
-			encodedContent.contentType.concat( new AsciiString( "charset=" + charset.toLowerCase() ) );
+			encodedContent.contentType = encodedContent.contentType.concat( new AsciiString( ";charset=" + charset.toLowerCase() ) );
 		}
 		headers.add( HttpHeaderNames.CONTENT_TYPE, encodedContent.contentType );
 
@@ -1053,7 +1054,7 @@ public class HttpProtocol extends AsyncCommProtocol
 			Value cookieConfig;
 			Value v;
 			ServerCookieDecoder decoder = ServerCookieDecoder.STRICT;
-			for( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.SET_COOKIE ) ) ) {
+			for( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.SET_COOKIE, "") ) ) {
 				if ( cookies.hasChildren( cookie.name() ) ) {
 					cookieConfig = cookies.getFirstChild( cookie.name() );
 					if ( cookieConfig.isString() ) {

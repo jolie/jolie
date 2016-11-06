@@ -45,7 +45,7 @@ public class UndefBehaviour implements Behaviour
 		if ( ctx.isKilled() )
 			return;
 		
-		varPath.undef();
+		varPath.undef( ctx );
 	}
 	
 	@Override

@@ -24,11 +24,11 @@ package jolie.runtime;
 
 import java.util.Collection;
 import java.util.HashSet;
-import jolie.StatefulContext;
 import jolie.SessionListener;
+import jolie.StatefulContext;
 import jolie.TransparentContext;
-import jolie.behaviours.SimpleBehaviour;
 import jolie.behaviours.Behaviour;
+import jolie.behaviours.SimpleBehaviour;
 
 public class ParallelExecution
 {

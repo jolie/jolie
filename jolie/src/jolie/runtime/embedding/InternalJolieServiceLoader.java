@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.expression.Expression;
 
@@ -54,7 +55,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
-	public void load()
+	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
 		Future< Exception > f = interpreter.start();

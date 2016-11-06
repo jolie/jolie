@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
@@ -108,7 +109,7 @@ public abstract class EmbeddedServiceLoader
 		}
 	}
 	
-	public abstract void load()
+	public abstract void load( StatefulContext ctx)
 		throws EmbeddedServiceLoadingException;
 
 	public static abstract class EmbeddedServiceConfiguration

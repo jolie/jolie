@@ -22,16 +22,112 @@
 package jolie.behaviours;
 
 import jolie.StatefulContext;
+import jolie.lang.Constants;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePathBuilder;
 
 public class ScopeBehaviour implements Behaviour
 {
-	private class Execution implements Behaviour
+	public class Execution implements Behaviour
 	{
+		
+		private class MergeScopeBehaviour extends SimpleBehaviour {
+			
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				if ( autoPop ) {
+					ctx.popScope( shouldMerge, replacedExecution );
+				}
+				if ( shouldMerge && fault != null ) {
+					throw fault;
+				}
+			}
+		}
+		
+		private class ScopeTerminationBehaviour extends SimpleBehaviour {
+			
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				if ( ctx.isKilled() ) {
+					shouldMerge = false;
+					Behaviour b = ctx.getCompensation( id );
+					if ( b != null ) { // Termination handling
+						FaultException f = ctx.killerFault();
+						ctx.clearKill();
+						ctx.executeNext( b, new ScopeKillBehaviour( f ) );
+					}
+				}
+			}
+		}		
+		
+		private class ScopeKillBehaviour extends SimpleBehaviour {
+			private final FaultException fault;
+
+			public ScopeKillBehaviour( FaultException fault )
+			{
+				this.fault = fault;
+			}
+			
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				ctx.kill( fault );
+			}
+		}		
+		
+		private class RunScopeBehaviour extends SimpleBehaviour {
+			
+			private final Behaviour behaviour;
+
+			public RunScopeBehaviour( Behaviour behaviour )
+			{
+				this.behaviour = behaviour;
+			}
+			
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				ctx.executeNext( behaviour, terminationBehaviour );
+	//			try {
+	//				p.run( ctx );
+	//				if ( ctx.isKilled() ) {
+	//					shouldMerge = false;
+	//					p = ctx.getCompensation( id );
+	//					if ( p != null ) { // Termination handling
+	//						FaultException f = ctx.killerFault();
+	//						ctx.clearKill();
+	//						this.runScope( p );
+	//						ctx.kill( f );
+	//					}
+	//				}
+	//			} catch( FaultException f ) {
+	//				p = ctx.getFaultHandler( f.faultName(), true );
+	//				if ( p != null ) {
+	//					Value scopeValue =
+	//							new VariablePathBuilder( false )
+	//							.add( ctx.currentScopeId(), 0 )
+	//							.toVariablePath()
+	//							.getValue( ctx );
+	//					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
+	//                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+	//					this.runScope( p );
+	//				} else {
+	//					fault = f;
+	//				}
+	//			}
+			}
+		}
+		
 		final private ScopeBehaviour parent;
+		private Execution replacedExecution = null;
 		private boolean shouldMerge = true;
 		private FaultException fault = null;
+		private final ScopeTerminationBehaviour terminationBehaviour = new ScopeTerminationBehaviour();
+		private final MergeScopeBehaviour mergeScopeBehaviour =  new MergeScopeBehaviour();
 		
 		public Execution( ScopeBehaviour parent )
 		{
@@ -42,86 +138,10 @@ public class ScopeBehaviour implements Behaviour
 		public void run(StatefulContext ctx)
 			throws FaultException, ExitingException
 		{
-			ctx.pushScope( parent.id );
-			ctx.executeNext(
-				new SimpleBehaviour()
-				{
-					@Override
-					public void run( StatefulContext ctx ) throws FaultException, ExitingException
-					{
-						if ( autoPop ) {
-							ctx.popScope( shouldMerge );
-						}
-						if ( shouldMerge && fault != null ) {
-							throw fault;
-						}
-					}
-				}
-			);
-			runScope( ctx, parent.process );
+			replacedExecution = ctx.pushScope( parent.id, this );
+			ctx.executeNext( new RunScopeBehaviour( parent.process), mergeScopeBehaviour);
 		}
 		
-		private void runScope( StatefulContext ctx, Behaviour behaviour )
-			throws ExitingException
-		{
-			ctx.executeNext( 
-				behaviour,
-				new SimpleBehaviour()
-				{
-					@Override
-					public void run( StatefulContext ctx ) throws FaultException, ExitingException
-					{
-						if ( ctx.isKilled() ) {
-							shouldMerge = false;
-							Behaviour b = ctx.getCompensation( id );
-							if ( b != null ) { // Termination handling
-								FaultException f = ctx.killerFault();
-								ctx.clearKill();
-								ctx.executeNext( new SimpleBehaviour()
-									{
-										@Override
-										public void run( StatefulContext ctx ) throws FaultException, ExitingException
-										{
-											ctx.kill( f );
-										}
-									}
-								);
-								runScope( ctx, b );
-							}
-						}
-					}
-				}
-			);
-//			
-//			try {
-//				p.run( ctx );
-//				if ( ctx.isKilled() ) {
-//					shouldMerge = false;
-//					p = ctx.getCompensation( id );
-//					if ( p != null ) { // Termination handling
-//						FaultException f = ctx.killerFault();
-//						ctx.clearKill();
-//						this.runScope( p );
-//						ctx.kill( f );
-//					}
-//				}
-//			} catch( FaultException f ) {
-//				p = ctx.getFaultHandler( f.faultName(), true );
-//				if ( p != null ) {
-//					Value scopeValue =
-//							new VariablePathBuilder( false )
-//							.add( ctx.currentScopeId(), 0 )
-//							.toVariablePath()
-//							.getValue( ctx );
-//					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-//                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
-//					this.runScope( p );
-//				} else {
-//					fault = f;
-//				}
-//			}
-		}
-
 		@Override
 		public Behaviour clone( TransformationReason reason )
 		{
@@ -132,6 +152,27 @@ public class ScopeBehaviour implements Behaviour
 		public boolean isKillable()
 		{
 			throw new UnsupportedOperationException( "Not supported yet." );
+		}
+		
+		public void pop(StatefulContext ctx) {
+			ctx.popScope( replacedExecution );
+		}
+		
+		public void catchFault(StatefulContext ctx, FaultException f) {
+			Behaviour behaviour = ctx.getFaultHandler( f.faultName(), true );
+			if ( behaviour != null ) {
+				Value scopeValue =
+						new VariablePathBuilder(false )
+						.add( ctx.currentScopeId(), 0 )
+						.toVariablePath()
+						.getValue( ctx );
+				scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
+				scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
+				ctx.executeNext( new RunScopeBehaviour( behaviour ), mergeScopeBehaviour );
+			} else {
+				fault = f;
+				ctx.executeNext( mergeScopeBehaviour );
+			}
 		}
 	}
 	

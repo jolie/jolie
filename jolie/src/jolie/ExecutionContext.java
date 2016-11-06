@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
 import jolie.behaviours.Behaviour;
+import jolie.behaviours.ScopeBehaviour;
 import jolie.lang.Constants;
 import jolie.net.SessionMessage;
 import jolie.runtime.AbstractIdentifiableObject;
@@ -152,6 +153,7 @@ public abstract class ExecutionContext extends JolieContext
 	private FaultException killerFault = null;
 	protected final ExecutionContext parent;
 	protected Deque<Behaviour> processStack = new ArrayDeque<>();
+	protected Deque<Deque<Behaviour>> scopeProcessStack = new ArrayDeque<>();
 	protected boolean pauseExecution = false;
 	
 	/**
@@ -329,13 +331,28 @@ public abstract class ExecutionContext extends JolieContext
 		return scopeStack.peek().getFaultHandler( id, erase );
 	}
 	
+	private ScopeBehaviour.Execution scopeExecution;
+	public ScopeBehaviour.Execution getCurrentScopeExecution() {
+		return scopeExecution;
+	}
+	
 	/**
 	 * Pushes scope id as the new current executing scope in the scope stack of this thread.
 	 * @param id the id of the scope to push.
 	 */
-	public synchronized void pushScope( String id )
+	public synchronized ScopeBehaviour.Execution pushScope( String id, ScopeBehaviour.Execution replacingExecution)
 	{
 		scopeStack.push(new ExecutionContext.Scope( id ) );
+		String tmp = "";
+		for (ExecutionContext.Scope scope : scopeStack) {
+			tmp = " [" + scope.id() + "]" + tmp;
+		}
+		System.out.println( "PUSH SCOPE:" + tmp );
+		ScopeBehaviour.Execution replacedExecution = scopeExecution;
+		scopeExecution = replacingExecution;
+		scopeProcessStack.push( processStack );
+		processStack = new ArrayDeque<Behaviour>();
+		return replacedExecution;
 	}
 	
 	/**
@@ -343,21 +360,34 @@ public abstract class ExecutionContext extends JolieContext
 	 * @param merge <code>true</code> if the popped scope compensators
 	 *		should be propagated upstream to the parent scope.
 	 */
-	public synchronized void popScope( boolean merge )
+	public synchronized void popScope( boolean merge, ScopeBehaviour.Execution replacingExecution )
 	{
 		final ExecutionContext.Scope s = scopeStack.pop();
+		
+		String tmp = "";
+		for (ExecutionContext.Scope scope : scopeStack) {
+			tmp = " [" + scope.id() + "]" + tmp;
+		}
+		System.out.println( "POP SCOPE:" + tmp );
+		
 		if ( merge ) {
 			mergeCompensations( s );
 		}
+		
+		if ( !scopeProcessStack.isEmpty() ){
+			processStack = scopeProcessStack.pop();
+		}
+		
+		scopeExecution = replacingExecution;
 	}
 	
 	/**
 	 * Pops the current executing scope from the scope stack of this thread.
 	 * This method is a shortcut for <code>popScope(true)</code>.
 	 */
-	public synchronized void popScope()
+	public synchronized void popScope(ScopeBehaviour.Execution replacingExecution)
 	{
-		popScope( true );
+		popScope( true, replacingExecution );
 	}
 	
 	private synchronized void mergeCompensations( ExecutionContext.Scope s )
@@ -451,7 +481,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * in time.
 	 */
 	public void pauseExecution() {
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "PAUSE execution context" );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "PAUSE execution context" );
 		pauseExecution = true;
 	}
 

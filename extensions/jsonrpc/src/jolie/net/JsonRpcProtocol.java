@@ -23,27 +23,43 @@
 
 package jolie.net;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpVersion;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import jolie.Interpreter;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
+import jolie.StatefulContext;
+import jolie.js.JsUtils;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
-import jolie.net.protocols.SequentialCommProtocol;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.typing.Type;
-import jolie.js.JsUtils;
 
 /**
  * 
@@ -53,7 +69,7 @@ import jolie.js.JsUtils;
  *
  * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
  */
-public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
+public class JsonRpcProtocol extends AsyncCommProtocol
 {
 	private final URI uri;
 	private final Interpreter interpreter;
@@ -70,7 +86,7 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 	{
 		return "jsonrpc";
 	}
-
+	
 	public JsonRpcProtocol( VariablePath configurationPath, URI uri,
 				Interpreter interpreter, boolean inInputPort )
 	{
@@ -83,20 +99,65 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		this.jsonRpcIdMap = new HashMap<Long, String>(INITIAL_CAPACITY, LOAD_FACTOR);
 		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
 	}
+	
+	public class JsonRpcCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, StatefulMessage>
+	{
 
-	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+		@Override
+		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
+		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
+			System.out.println( "Sending: " + message.toString() );
+			FullHttpMessage msg = buildJsonRpcMessage(message );
+			out.add( msg );
+		}
+
+		@Override
+		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
+		{
+			if ( msg instanceof FullHttpRequest ) {
+				FullHttpRequest request = (FullHttpRequest) msg;
+				System.out.println( "HTTP request ! (" + request.uri() + ")" );
+			} else if ( msg instanceof FullHttpResponse ) {
+				FullHttpResponse response = (FullHttpResponse) msg;
+				System.out.println( "HTTP response !" );
+			}
+			StatefulMessage message = recv_internal( msg );
+			System.out.println( "Decoded Soap message for operation: " + message.message().operationName() );
+			out.add( message );
+		}
+
+	}
+	
+	@Override
+	public void setupPipeline( ChannelPipeline pipeline )
+	{
+		if (inInputPort) {
+			pipeline.addLast( new HttpServerCodec() );
+			pipeline.addLast( new HttpContentCompressor() );
+		} else {
+			pipeline.addLast( new HttpClientCodec() );
+			pipeline.addLast( new HttpContentDecompressor() );
+		}
+		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+		pipeline.addLast( new JsonRpcCommMessageCodec() );
+	}
+
+	public FullHttpMessage buildJsonRpcMessage( StatefulMessage msg )
 		throws IOException
 	{
-		channel().setToBeClosed(!checkBooleanParameter("keepAlive", true));
+		CommMessage message = msg.message();
+		StatefulContext ctx = msg.context();
+		FullHttpMessage httpMessage;
+		
+		channel().setToBeClosed(!checkBooleanParameter(ctx, "keepAlive", true));
 
 		if (!message.isFault() && message.hasGenericId() && inInputPort) {
 			// JSON-RPC notification mechanism (method call with dropped result)
 			// we just send HTTP status code 204
-			StringBuilder httpMessage = new StringBuilder();
-			httpMessage.append( "HTTP/1.1 204 No Content" + HttpUtils.CRLF );
-			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF + HttpUtils.CRLF );
-			ostream.write( httpMessage.toString().getBytes( "utf-8" ) );
-			return;
+			FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT);
+			response.headers().add( HttpHeaderNames.SERVER, "Jolie" );
+			return response;
 		}
 				
 		Value value = Value.create();
@@ -127,116 +188,106 @@ public class JsonRpcProtocol extends SequentialCommProtocol implements HttpUtils
 		JsUtils.valueToJsonString( value, true, Type.UNDEFINED, json );
 		ByteArray content = new ByteArray( json.toString().getBytes( "utf-8" ) );
 				
-		StringBuilder httpMessage = new StringBuilder();
 		if (inInputPort) {
 			// We're responding to a request
-			httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
-			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+			httpMessage = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK );
+			httpMessage.headers().add( HttpHeaderNames.SERVER, "Jolie" );
 		} else {
 			// We're sending a request
 			String path = uri.getRawPath(); // TODO: fix this to consider resourcePaths
 			if (path == null || path.length() == 0) {
 				path = "*";
 			}
-			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
-			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+			httpMessage = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path);
+			httpMessage.headers().add( HttpHeaderNames.USER_AGENT, "Jolie" );
+			httpMessage.headers().add( HttpHeaderNames.HOST, uri.getHost() );
 
-			if ( checkBooleanParameter( "compression", true ) ) {
-				String requestCompression = getStringParameter( "requestCompression" );
+			if ( checkBooleanParameter( ctx, "compression", true ) ) {
+				String requestCompression = getStringParameter( ctx, "requestCompression" );
 				if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 					encoding = requestCompression;
-					httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+					httpMessage.headers().add( HttpHeaderNames.ACCEPT_ENCODING, encoding );
 				} else {
-					httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+					httpMessage.headers().add( HttpHeaderNames.ACCEPT_ENCODING, "gzip, deflate");
 				}
 			}
 		}
 
 		if (channel().toBeClosed()) {
-			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
-		}
-
-		if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
-			content = HttpUtils.encode( encoding, content, httpMessage );
+			httpMessage.headers().add( HttpHeaderNames.CONNECTION, "close" );
 		}
 
 		//httpMessage.append( "Content-Type: application/json-rpc; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Type: application/json; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
+		httpMessage.headers().add( HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8" );
+		httpMessage.headers().add( HttpHeaderNames.CONTENT_LENGTH, content.size() );
 
-		if (checkBooleanParameter("debug", false)) {
+		if (checkBooleanParameter(ctx, "debug", false)) {
 			interpreter.logInfo("[JSON-RPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ));
 		}
-
-		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
-		ostream.write( content.getBytes() );
+		httpMessage.content().writeBytes( content.getBytes() );
+		return httpMessage;
 	}
 
-	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+	public StatefulMessage recv_internal( FullHttpMessage message )
 		throws IOException
 	{
-		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
-	}
-
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
-		HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
 		String charset = HttpUtils.getCharset( null, message );
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if (message.isError()) {
-			throw new IOException("HTTP error: " + new String(message.content(), charset));
+		if ( (message instanceof FullHttpResponse) && ((FullHttpResponse)message).status().code() >= 400) {
+			throw new IOException("HTTP error: " + message.content().toString( Charset.forName( charset )) );
 		}
-		if (inInputPort && message.type() != HttpMessage.Type.POST) {
+		if (inInputPort && ((FullHttpRequest)message).method() != HttpMethod.POST) {
 			throw new UnsupportedMethodException("Only HTTP method POST allowed!", Method.POST);
 		}
 
-		encoding = message.getProperty( "accept-encoding" );
-
+		encoding = message.headers().get( HttpHeaderNames.ACCEPT_ENCODING );
+		
 		Value value = Value.create();
-		if ( message.size() > 0 ) {
-			if ( checkBooleanParameter( "debug", false ) ) {
-				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + new String( message.content(), charset ) );
+		if ( message.content().readableBytes() > 0 ) {
+			
+			if ( checkBooleanParameter( channel().getContextFor( CommMessage.GENERIC_ID ), "debug", false ) ) { // TODO figure out what context touse here...
+				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + message.content().toString( Charset.forName( charset) ));
 			}
-
-			JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(message.content()), charset), value, false);
+			
+			byte[] content = new byte[message.content().readableBytes()];
+			message.content().readBytes( content, 0, content.length);
+			JsUtils.parseJsonIntoValue(new InputStreamReader(new ByteArrayInputStream(content), charset), value, false);
 
 			if (!value.hasChildren("id")) {
 				// JSON-RPC notification mechanism (method call with dropped result)
 				if (!inInputPort) {
 					throw new IOException("A JSON-RPC notification (message without \"id\") needs to be a request, not a response!");
 				}
-				return new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
-						    "/", value.getFirstChild("params"), null);
+				return new StatefulMessage( new CommMessage(CommMessage.GENERIC_ID, value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null), channel().getContextFor( CommMessage.GENERIC_ID ));
 			}
 			String jsonRpcId = value.getFirstChild("id").strValue();
+			StatefulContext ctx = channel().getContextFor( Long.valueOf(jsonRpcId) );
 			if ( inInputPort ) {
 				jsonRpcIdMap.put((long)jsonRpcId.hashCode(), jsonRpcId);
-				return new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
-						    "/", value.getFirstChild("params"), null);
+				return new StatefulMessage( new CommMessage(jsonRpcId.hashCode(), value.getFirstChild("method").strValue(),
+						    "/", value.getFirstChild("params"), null), ctx);
 			} else if (value.hasChildren("error")) {
 				String operationName = jsonRpcOpMap.get(jsonRpcId);
-				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
+				return new StatefulMessage( new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", null,
 					new FaultException(
 						value.getFirstChild( "error" ).getFirstChild( "message" ).strValue(),
 						value.getFirstChild( "error" ).getFirstChild( "data" )
 					)
-				);
+				), ctx);
 			} else {
 				// Certain implementations do not provide a result if it is "void"
 				String operationName = jsonRpcOpMap.get(jsonRpcId);
-				return new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null);
+				return new StatefulMessage( new CommMessage(Long.valueOf(jsonRpcId), operationName, "/", value.getFirstChild("result"), null), ctx);
 			}
 		}
 		return null; // error situation
 	}
-
-	public CommMessage recv( InputStream istream, OutputStream ostream )
-		throws IOException
+	
+	@Override
+	public boolean isThreadSafe()
 	{
-		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
+		return false;
 	}
 }

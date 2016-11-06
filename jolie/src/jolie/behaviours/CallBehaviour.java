@@ -20,7 +20,6 @@
  ***************************************************************************/
 
 package jolie.behaviours;
-import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
@@ -45,30 +44,34 @@ public class CallBehaviour implements Behaviour
 		this.definitionName = definitionName;
 	}
 	
+	@Override
 	public Behaviour clone( TransformationReason reason )
 	{
 		return new CallBehaviour( definitionName );
 	}
 	
 	/** Executes the definition. */
+	@Override
 	public void run(StatefulContext ctx)
 		throws FaultException, ExitingException
 	{
 		try {
-			DefinitionBehaviour definition = Interpreter.getInstance().getDefinition( definitionName );
-			definition.run( ctx );
+			DefinitionBehaviour definition = ctx.interpreter().getDefinition( definitionName );
+			ctx.executeNext( definition );
 		} catch( InvalidIdException e ) {
 			throw new FaultException( "FatalError", "Definition not found: " + definitionName );
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
-		try {
-			DefinitionBehaviour definition = Interpreter.getInstance().getDefinition( definitionName );
-			return definition.isKillable();
-		} catch( InvalidIdException e ) {
-			return true;
-		}
+		return false;
+//		try {
+//			DefinitionBehaviour definition = Interpreter.getInstance().getDefinition( definitionName );
+//			return definition.isKillable();
+//		} catch( InvalidIdException e ) {
+//			return true;
+//		}
 	}
 }

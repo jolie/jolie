@@ -44,6 +44,11 @@ import jolie.runtime.embedding.RequestResponse;
  */
 public abstract class JavaService
 {
+	public CommChannel sendMessage( CommMessage requestMesg )
+	{
+		return sendMessage( context(), requestMesg);
+	}
+	
 	@FunctionalInterface
 	private interface JavaOperationCallable {
 		public CommMessage call( JavaService service, JavaOperation javaOperation, CommMessage message )
@@ -97,7 +102,7 @@ public abstract class JavaService
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
 				c.send( ctx, request );
-				CommMessage response = c.recvResponseFor( null, request ); // TODO - missing conext.
+				CommMessage response = c.recvResponseFor( ctx, request );
 				if ( response.isFault() ) {
 					throw response.fault();
 				}
@@ -108,6 +113,7 @@ public abstract class JavaService
 		}
 	}
 
+	private StatefulContext context;
 	private Interpreter interpreter;
 	private final Map< String, JavaOperation > operations;
 
@@ -346,6 +352,16 @@ public abstract class JavaService
 	protected Interpreter interpreter()
 	{
 		return interpreter;
+	}
+	
+	public void setContext( StatefulContext context )
+	{
+		this.context = context;
+	}
+	
+	public StatefulContext context()
+	{
+		return context;
 	}
 	
 	public CommChannel sendMessage( StatefulContext ctx, CommMessage message)

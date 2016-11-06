@@ -49,7 +49,7 @@ public class JolieAdapter
 	{
 		CommMessage requestMesg = CommMessage.createRequest( operationName, resourcePath, request );
 		try {
-			CommMessage response = javaService.sendMessage( requestMesg ).recvResponseFor( null, requestMesg );
+			CommMessage response = javaService.sendMessage( requestMesg ).recvResponseFor( javaService.context(), requestMesg );
 			if ( response.isFault() ) {
 				throw response.fault();
 			}

@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.runtime.expression.Expression;
 
 
@@ -54,7 +55,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
-	public void load()
+	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
 		Future< Exception > f = interpreter.start();

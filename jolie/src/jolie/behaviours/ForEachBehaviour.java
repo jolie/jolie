@@ -91,7 +91,7 @@ public class ForEachBehaviour implements Behaviour
 			return;
 		}
 
-		Value v = targetPath.getValueOrNull();
+		Value v = targetPath.getValueOrNull( ctx );
 		if ( v != null && v.hasChildren() ) {
 			String keys[];
 			synchronized( v ) {

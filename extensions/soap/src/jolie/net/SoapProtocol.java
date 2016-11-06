@@ -233,6 +233,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		@Override
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
 		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
 			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildSoapMessage(message );
 			out.add( msg );

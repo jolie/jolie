@@ -158,12 +158,13 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
 	
-	public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, StatefulMessage>
+	public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, StatefulMessage>
 	{
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
 		{
+			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
 			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildXmlRpcMessage( message );
 			out.add( msg );
@@ -197,7 +198,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			pipeline.addLast( new HttpContentDecompressor() );
 		}
 		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
-		pipeline.addLast( new SoapCommMessageCodec() );
+		pipeline.addLast(new XmlCommMessageCodec() );
 	}
 
 	@Override

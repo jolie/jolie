@@ -120,7 +120,7 @@ public class ForwardSolicitResponseProcess implements Behaviour
 			log( "RECEIVED", message );
 			
 			if ( inputVariablePath != null )	 {
-				inputVariablePath.setValue( response.value() );
+				inputVariablePath.setValue( ctx, response.value() );
 			}
 			
 			if ( response.isFault() ) {

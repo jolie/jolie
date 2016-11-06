@@ -29,6 +29,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.lang.Constants.EmbeddedServiceType;
 import jolie.net.CommListener;
@@ -48,12 +49,7 @@ import jolie.runtime.embedding.RequestResponse;
 
 public class RuntimeService extends JavaService
 {
-	private final Interpreter interpreter;
-
-	public RuntimeService()
-	{
-		this.interpreter = Interpreter.getInstance();
-	}
+	private Interpreter interpreter;
 
 	public Value getLocalLocation()
 	{
@@ -68,12 +64,12 @@ public class RuntimeService extends JavaService
 		final VariablePath locationPath = new VariablePathBuilder( true )
 				.add( Constants.MONITOR_OUTPUTPORT_NAME, 0 )
 				.add( Constants.LOCATION_NODE_NAME, 0 ).toVariablePath();
-		locationPath.setValue( request.getFirstChild( Constants.LOCATION_NODE_NAME ) );
+		locationPath.setValue( context(), request.getFirstChild( Constants.LOCATION_NODE_NAME ) );
 
 		final VariablePath protocolPath = new VariablePathBuilder( true )
 				.add( Constants.MONITOR_OUTPUTPORT_NAME, 0 )
 				.add( Constants.PROTOCOL_NODE_NAME, 0 ).toVariablePath();
-		protocolPath.setValue( request.getFirstChild( Constants.PROTOCOL_NODE_NAME ) );
+		protocolPath.setValue( context(), request.getFirstChild( Constants.PROTOCOL_NODE_NAME ) );
 
 		OutputPort port = new OutputPort(
 				interpreter(),
@@ -82,7 +78,7 @@ public class RuntimeService extends JavaService
 				protocolPath,
 				null,
 				true );
-		port.optimizeLocation();
+		port.optimizeLocation( context() );
 
 		interpreter.setMonitor( port );
 	}
@@ -98,7 +94,7 @@ public class RuntimeService extends JavaService
 				interpreter(),
 				name );
 		Value l;
-		Value r = interpreter.initThread().state().root();
+		Value r = interpreter.initContext().state().root();
 		l = r.getFirstChild( name ).getFirstChild( Constants.LOCATION_NODE_NAME );
 		if ( locationValue.isChannel() ) {
 			l.setValue( locationValue.channelValue() );
@@ -134,7 +130,7 @@ public class RuntimeService extends JavaService
 		} else {
 			ret.getFirstChild( "name" ).setValue( foundOp.id() );
 			try {
-				ret.getFirstChild( "protocol" ).setValue( foundOp.getProtocol().name() );
+				ret.getFirstChild( "protocol" ).setValue( foundOp.getProtocol( context() ).name() );
 			} catch ( Exception e ) {
 				ret.getFirstChild( "protocol" ).setValue( "" );
 			}
@@ -151,7 +147,7 @@ public class RuntimeService extends JavaService
 		for ( OutputPort o : interpreter.outputPorts() ) {
 			ret.getChildren( "port" ).get( counter ).getFirstChild( "name" ).setValue( o.id() );
 			try {
-				ret.getChildren( "port" ).get( counter ).getFirstChild( "protocol" ).setValue( o.getProtocol().name() );
+				ret.getChildren( "port" ).get( counter ).getFirstChild( "protocol" ).setValue( o.getProtocol( context() ).name() );
 			} catch ( Exception e ) {
 				ret.getChildren( "port" ).get( counter ).getFirstChild( "protocol" ).setValue( "" );
 			}
@@ -164,7 +160,7 @@ public class RuntimeService extends JavaService
 	@RequestResponse
 	public Value getProcessId() {
 		Value response = Value.create();
-		response.setValue( ExecutionThread.currentThread().getSessionId() );
+		response.setValue( context().getSessionId() );
 		return response;
 	}
 
@@ -254,7 +250,7 @@ public class RuntimeService extends JavaService
                 new EmbeddedServiceLoader.ExternalEmbeddedServiceConfiguration(type, filePath);
 			EmbeddedServiceLoader loader =
 					EmbeddedServiceLoader.create( interpreter(), configuration, channel );
-			loader.load();
+			loader.load( context() );
 
 			return channel;
 		} catch ( EmbeddedServiceLoaderCreationException e ) {
@@ -336,4 +332,12 @@ public class RuntimeService extends JavaService
 			stats.setFirstChild( "maxCount", unixBean.getMaxFileDescriptorCount() );
 		}
 	}
+
+	@Override
+	public void setContext( StatefulContext context )
+	{
+		super.setContext( context );
+		interpreter = context.interpreter();
+	}
+	
 }

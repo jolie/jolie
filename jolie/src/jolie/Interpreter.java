@@ -846,8 +846,7 @@ public class Interpreter
 		arguments = cmdParser.arguments();
         
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		
-                commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
@@ -883,6 +882,7 @@ public class Interpreter
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @param parentInterpreter
 	 * @param internalServiceProgram
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
