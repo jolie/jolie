@@ -22,35 +22,80 @@
 package jolie.runtime;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import jolie.SessionListener;
+import java.util.concurrent.atomic.AtomicInteger;
 import jolie.StatefulContext;
 import jolie.TransparentContext;
 import jolie.behaviours.Behaviour;
+import jolie.behaviours.InstallBehaviour;
+import jolie.behaviours.ScopeBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.behaviours.SimpleBehaviour;
+import jolie.behaviours.TransformationReason;
+import jolie.lang.Constants;
+import jolie.util.Pair;
 
 public class ParallelExecution
 {
+	private static AtomicInteger count = new AtomicInteger();
 	private class ParallelContext extends TransparentContext
 	{
+		
+		private final String scopeId = count.getAndIncrement() + "-ParallelContext";
+		
 		public ParallelContext( Behaviour process, StatefulContext parentCtx )
 		{
-			super( process, parentCtx );
-			super.addSessionListener(new SessionListener()
-			{
-				@Override
-				public void onSessionExecuted( StatefulContext session )
-				{
-					terminationNotify( session );
-				}
+			super( null, parentCtx );
 
-				@Override
-				public void onSessionError( StatefulContext session, FaultException fault )
-				{
-					signalFault( session, fault );
+			ArrayList<Pair<String, Behaviour>> faultHandlers = new ArrayList<>();
+			faultHandlers.add( new Pair( Constants.Keywords.DEFAULT_HANDLER_NAME, new CatchBehaviour() ) );
+			super.executeNext(
+				new SequentialBehaviour(new Behaviour[] {
+					new ScopeBehaviour(
+						scopeId,
+						new SequentialBehaviour(new Behaviour[] {
+							new InstallBehaviour( faultHandlers ),
+							process,
+							new PostBehaviour()
+						}),
+						true, true
+					)
+				})
+			);
+		}
+		
+		private class PostBehaviour extends SimpleBehaviour {
+
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				terminationNotify( ParallelContext.this );
+			}
+		}
+		
+		private class CatchBehaviour extends SimpleBehaviour {
+			
+			@Override
+			public void run( StatefulContext ctx ) throws FaultException, ExitingException
+			{
+				Value scopeValue = new VariablePathBuilder( false ).add( scopeId, 0 ).toVariablePath().getValue( ctx );
+				Value defaultFaultValue = scopeValue.getChildren( Constants.Keywords.DEFAULT_HANDLER_NAME ).get( 0 );
+				Value userFaultValueValue = scopeValue.getChildren( defaultFaultValue.strValue() ).get( 0 );
+				FaultException fault = new FaultException( defaultFaultValue.strValue(), userFaultValueValue );
+				
+				if (fault instanceof FaultException) {
+					signalFault( ParallelContext.this, fault );
 				}
-			});
+			}
+
+			@Override
+			public Behaviour clone( TransformationReason reason )
+			{
+				return this;
+			}
+			
 		}
 	}
 	
@@ -132,7 +177,5 @@ public class ParallelExecution
 				context.start();
 			}
 		}
-		
 	}
-
 }

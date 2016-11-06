@@ -39,9 +39,9 @@ public class ScopeBehaviour implements Behaviour
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
 				if ( autoPop ) {
-					ctx.popScope( shouldMerge, replacedExecution );
+					ctx.popScope( shouldMerge || forceMerge, replacedExecution );
 				}
-				if ( shouldMerge && fault != null ) {
+				if ( (shouldMerge || forceMerge) && fault != null ) {
 					throw fault;
 				}
 			}
@@ -179,17 +179,24 @@ public class ScopeBehaviour implements Behaviour
 	private final String id;
 	private final Behaviour process;
 	private final boolean autoPop;
+	private final boolean forceMerge;
 	
 	public ScopeBehaviour( String id, Behaviour process, boolean autoPop )
+	{
+		this( id, process, autoPop, false );
+	}
+	
+		public ScopeBehaviour( String id, Behaviour process, boolean autoPop, boolean forceMerge )
 	{
 		this.id = id;
 		this.process = process;
 		this.autoPop = autoPop;
+		this.forceMerge = forceMerge;
 	}
 
 	public ScopeBehaviour( String id, Behaviour process )
 	{
-		this( id, process, true );
+		this( id, process, true, false );
 	}
 	
 	@Override

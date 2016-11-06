@@ -49,6 +49,7 @@ public class InstallBehaviour implements Behaviour
 		for( Pair< String, Behaviour > pair : pairs ) {
 			final Behaviour handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null ) {
+				System.out.println( "INSTALL COMPENSATION: " + handler + " in " + ctx + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 				ctx.installCompensation( handler );
 			} else {
 				ctx.installFaultHandler( pair.key(), handler );

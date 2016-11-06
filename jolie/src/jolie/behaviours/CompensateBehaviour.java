@@ -47,7 +47,7 @@ public class CompensateBehaviour implements Behaviour
 			return;
 		Behaviour c = ctx.getCompensation( id ); 
 		if ( c != null ) {
-			c.run( ctx );
+			ctx.executeNext( c );
 		}
 	}
 	

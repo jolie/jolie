@@ -197,7 +197,7 @@ public abstract class ExecutionContext extends JolieContext
 	public synchronized void kill( FaultException fault )
 	{
 		killerFault = fault;
-
+		System.out.println( "KILLED: " + this + " by " + fault.faultName()  + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		while( !futureToCancel.isEmpty() ) {
 			final WeakReference< Future< ? > > ref = futureToCancel.poll();
 			if ( ref.get() != null ) {

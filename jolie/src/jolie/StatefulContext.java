@@ -212,7 +212,7 @@ import jolie.util.Pair;
 		initMessageQueues();
 		assert( parent != null );
 		state = parent.state().clone();
-		parent.scopeStack.forEach( s -> scopeStack.add( s.clone() ) );
+		//parent.scopeStack.forEach( s -> scopeStack.add( s.clone() ) );
 	}
 	
 	/**

@@ -84,7 +84,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 							process,
 							new PostBehaviour( sessionMessage.channel(), sessionMessage.message() )
 						}),
-						true
+						true, true
 					),
 					reThrowBehaviour
 				})

@@ -57,7 +57,7 @@ public class SequentialBehaviour implements Behaviour
 		@Override
 		public boolean isKillable()
 		{
-			return true;
+			return false;
 		}
 	};
 	
