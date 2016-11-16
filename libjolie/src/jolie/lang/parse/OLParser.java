@@ -644,8 +644,8 @@ public class OLParser extends AbstractParser
 		if ( includeURL != null ) {
 			File f = new File( includeURL.toString() );
 			try {
-				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), f.toURI() );
-			} catch( IOException e ) {
+				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), includeURL.toURI() );
+			} catch( IOException | URISyntaxException e ) {
 				e.printStackTrace();
 			}
 		}
