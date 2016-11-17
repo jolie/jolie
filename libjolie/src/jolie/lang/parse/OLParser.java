@@ -21,13 +21,14 @@ package jolie.lang.parse;
 
 import java.io.BufferedInputStream;
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -642,9 +643,9 @@ public class OLParser extends AbstractParser
 		);
 		
 		if ( includeURL != null ) {
-			File f = new File( includeURL.toString() );
 			try {
-				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), includeURL.toURI() );
+				Path path = Paths.get( includeURL.toURI() );	
+				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), path.getParent().toString(), path.toUri() );
 			} catch( IOException | URISyntaxException e ) {
 				e.printStackTrace();
 			}
