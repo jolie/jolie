@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2010-2016 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
+ *   Copyright (C) 2016 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,43 +19,42 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.context;
+include "../AbstractTestUnit.iol"
 
-import java.net.URI;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+constants {
+	MyLocation = "socket://localhost:8005"
+}
 
-/**
- * A very simple {@code ParsingContext} based upon an URI.
- * @author Fabrizio Montesi
- */
-public class URIParsingContext extends AbstractParsingContext
+interface TestIface {
+RequestResponse:
+	id(int)(int)
+}
+
+outputPort Self {
+Location: MyLocation
+Protocol: sodep
+Interfaces: TestIface
+}
+
+inputPort MyInput {
+Location: MyLocation
+Protocol: sodep
+Interfaces: TestIface
+}
+
+define doTest
 {
-	private final URI uri;
-
-	public static final URIParsingContext DEFAULT = new URIParsingContext( URI.create( "urn:undefined" ), 0 );
-
-	public URIParsingContext( URI uri, int line )
+	i = k = 0;
 	{
-		super( line );
-		this.uri = uri;
-	}
-
-	@Override
-	public URI source()
-	{
-		return uri;
-	}
-
-	@Override
-	public String sourceName()
-	{
-		try {
-			Path path = Paths.get( uri );
-			return path.toString();
-		} catch( IllegalArgumentException | FileSystemNotFoundException e ) {
-			return uri.toString();
+		while( i++ < 20 ) {
+			id@Self( i )( x );
+			if ( x != i ) {
+				throw( TestFailed, "Unexpected result" )
+			}
+		}
+		|
+		while( k++ < 20 ) {
+			id( u )( y ) { y = u }
 		}
 	}
 }
