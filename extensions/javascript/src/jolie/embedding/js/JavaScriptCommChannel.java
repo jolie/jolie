@@ -29,7 +29,6 @@ import java.util.function.Function;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.ExecutionContext;
-import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
@@ -149,9 +148,7 @@ public class JavaScriptCommChannel extends CommChannel
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
+	{}
 
 	@Override
 	protected void closeImpl()

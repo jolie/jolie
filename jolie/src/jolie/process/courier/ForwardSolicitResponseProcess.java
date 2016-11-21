@@ -90,6 +90,7 @@ public class ForwardSolicitResponseProcess implements Behaviour
 		) );
 	}
 
+	@Override
 	public void run(StatefulContext ctx)
 		throws FaultException
 	{
@@ -149,7 +150,7 @@ public class ForwardSolicitResponseProcess implements Behaviour
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
@@ -157,7 +158,7 @@ public class ForwardSolicitResponseProcess implements Behaviour
 				try {
 					channel.release();
 				} catch( IOException e ) {
-					Interpreter.getInstance().logWarning( e );
+					ctx.interpreter().logWarning( e );
 				}
 			}
 		}

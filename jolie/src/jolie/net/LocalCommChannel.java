@@ -19,9 +19,7 @@ package jolie.net;
 import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import jolie.ExecutionContext;
 import jolie.Interpreter;
@@ -48,23 +46,23 @@ public class LocalCommChannel extends AbstractCommChannel
 		protected CommMessage recvImpl()
 			throws IOException
 		{
-			if ( request == null ) {
-				throw new IOException( "Unsupported operation" );
-			}
-			CommMessage r = request;
-			request = null;
-			return r;
+			throw new IOException( "Unsupported operation" );
 		}
 
 		@Override
 		protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 			throws IOException
 		{
-			CompletableFuture< CommMessage> f = senderChannel.responseWaiters.get( msg.message().id() );
-			if ( f == null ) {
-				throw new IOException( "Unexpected response message with id " + msg.message().id() + " for operation " + msg.message().operationName() + " in local channel" );
+			synchronized( senderChannel ) {
+				ExecutionContext waitingContext = senderChannel.responseWaiters.get( msg.message().id() );
+				senderChannel.pendingResponses.put( msg.message().id(), msg.message() );
+				if (waitingContext != null)
+					waitingContext.start();		
 			}
-			f.complete( msg.message() );
+			
+			//if ( waitingContext == null ) {
+				//throw new IOException( "Unexpected response message with id " + msg.message().id() + " for operation " + msg.message().operationName() + " in local channel" );
+			//}
 		}
 
 		@Override
@@ -93,7 +91,8 @@ public class LocalCommChannel extends AbstractCommChannel
 
 	private final Interpreter interpreter;
 	private final CommListener listener;
-	private final Map< Long, CompletableFuture< CommMessage>> responseWaiters = new ConcurrentHashMap<>();
+	private final Map< Long, ExecutionContext> responseWaiters = new ConcurrentHashMap<>();
+	private final Map< Long,  CommMessage> pendingResponses = new ConcurrentHashMap<>();
 	private final EventLoopGroup workerGroup;
 
 	public LocalCommChannel( Interpreter interpreter, CommListener listener )
@@ -124,8 +123,6 @@ public class LocalCommChannel extends AbstractCommChannel
 	@Override
 	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 	{
-		System.out.println( "Sending message over LocalCommChannel " + msg.context().interpreter().logPrefix() + " -->> " + interpreter.logPrefix() );
-		responseWaiters.put( msg.message().id(), new CompletableFuture<>() );
 		workerGroup.execute(new Runnable()
 		{
 			@Override
@@ -135,25 +132,19 @@ public class LocalCommChannel extends AbstractCommChannel
 				coChannel.messageRecv( msg.message() );
 			}
 		});
-		//interpreter.commCore().scheduleReceive( new CoLocalCommChannel( this, message ), listener.inputPort() );
 	}
 
 	@Override
 	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
-		final CompletableFuture< CommMessage> f = responseWaiters.get( request.id() );
-		final CommMessage m;
-
-		try {
-			m = f.get();
-		} catch( ExecutionException | InterruptedException e ) {
-			throw new IOException( e );
-		} finally {
-			responseWaiters.remove( request.id() );
+		CommMessage response = null;
+		synchronized( this ) {
+			response = pendingResponses.get( request.id() );
+			if (response == null)
+				responseWaiters.put( request.id(), ctx );
 		}
-
-		return m;
+		return response;
 	}
 
 	@Override

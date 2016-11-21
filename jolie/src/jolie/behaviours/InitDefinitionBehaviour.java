@@ -82,7 +82,7 @@ public class InitDefinitionBehaviour extends DefinitionBehaviour
 			@Override
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
-				interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
+//				interpreter.embeddedServiceLoaders().clear(); // Clean up for GC
 			}
 		});
 

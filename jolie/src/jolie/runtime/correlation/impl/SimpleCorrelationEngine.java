@@ -56,6 +56,7 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 	public boolean routeMessage( CommMessage message, CommChannel channel )
 	{
 		for( StatefulContext session : sessions ) {
+//			System.out.println( "Correlation on channel: " + channel );
 			if ( correlate( session, message ) ) {
 				session.pushMessage( new SessionMessage( message, channel ) );
 				return true;
@@ -91,36 +92,44 @@ public class SimpleCorrelationEngine extends CorrelationEngine
 
 	private boolean correlate( StatefulContext session, CommMessage message )
 	{
+		
+		
 		if ( (interpreter().correlationSets().isEmpty()
 			&& interpreter().executionMode() == ExecutionMode.SINGLE)
 			||
 			session.isInitialisingThread()
 		) {
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + true);
 			return true;
 		}
 
 		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.operationName() );
 		if ( cset == null ) {
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + (interpreter().executionMode() == ExecutionMode.SINGLE));
 			return interpreter().executionMode() == ExecutionMode.SINGLE; // It must be a session starter.
 		}
 		final List< CorrelationPair > pairs = cset.getOperationCorrelationPairs( message.operationName() );
 		for( CorrelationPair cpair : pairs ) {
 			final Value sessionValue = cpair.sessionPath().getValueOrNull( session.state().root() );
 			if ( sessionValue == null ) {
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + false);
 				return false;
 			} else {
 				Value messageValue = cpair.messagePath().getValueOrNull( message.value() );
 				if ( messageValue == null ) {
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + false);
 					return false;
 				} else {
 					// TODO: Value.equals is type insensitive, fix this with an additional check.
 					if ( !sessionValue.isDefined() || !messageValue.isDefined() || !sessionValue.equals( messageValue ) ) {
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + false);
 						return false;
 					}
 				}
 			}
 		}
 
+//		System.out.println( "Try correlate " + message.operationName() + "(" + message.id() + ") Session: " + session.getSessionId() + "... " + false);
 		return true;
 	}
 }

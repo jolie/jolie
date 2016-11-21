@@ -1,5 +1,6 @@
 package jolie.net;
 
+import io.netty.channel.ChannelException;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
@@ -49,6 +50,8 @@ public class NioSocketCommChannelFactory extends CommChannelFactory
 				throw (IOException) f.cause();
 			}
 		} catch( InterruptedException e ) {
+			throw new IOException( e );
+		} catch (ChannelException e) {
 			throw new IOException( e );
 		}
 		return channel;

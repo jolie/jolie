@@ -57,14 +57,14 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 		public RequestResponseExecutionBehaviour( SessionMessage sessionMessage )
 		{
 			this.sessionMessage = sessionMessage;
-			this.scopeId = sessionMessage.message().id() + "-RequestResponseScope";
+			this.scopeId = Math.random() + sessionMessage.message().id() + "-RequestResponseScope";
 		}
 		
 		@Override
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
 			if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
-				ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
+				ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( ctx, operation.id(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
 			}
 
 			log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );
@@ -231,9 +231,8 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 						}
 						if ( ctx.interpreter().isMonitoring() ) {
 							ctx.interpreter().fireMonitorEvent(
-								new OperationEndedEvent(operation.id(), ctx.getSessionId(), Long.toString( msg.id() ), rStatus, fDetails, monitorValue ));
+								new OperationEndedEvent( ctx, operation.id(), Long.toString( msg.id() ), rStatus, fDetails, monitorValue ));
 						}
-						System.out.println( "ReuestResponseBehaviour - SEND" );
 						return null;
 					});
 

@@ -42,6 +42,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 		this.servicePath = servicePath;
 	}
 
+	@Override
 	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
@@ -55,7 +56,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			final JavaService service = (JavaService)obj;
 			service.setInterpreter( interpreter );
 			service.setContext( ctx );
-			setChannel(	new JavaCommChannel( service ) );
+			setChannel(	ctx, new JavaCommChannel( service ) );
 			
 			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
@@ -66,4 +67,5 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}
+	
 }

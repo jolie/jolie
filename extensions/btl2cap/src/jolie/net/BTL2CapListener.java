@@ -71,6 +71,7 @@ public class BTL2CapListener extends CommListener
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	@Override

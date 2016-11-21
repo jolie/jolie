@@ -31,7 +31,7 @@ public class NioSocketListenerFactory extends CommListenerFactory
 		InputPort inputPort
 	)
 		throws IOException
-	{
+	{ 
 		return new NioSocketListener( interpreter, protocolFactory, inputPort, bossGroup, workerGroup );
 	}
 }

@@ -58,7 +58,6 @@ public class NotificationBehaviour implements Behaviour
 			try {
 				CommMessage response = channel.recvResponseFor( ctx, message );
 				if ( response == null) {
-					System.out.println( "did not recieve ack yet go to sleep." );
 					ctx.executeNext( this );
 					ctx.pauseExecution();
 					return;
@@ -144,7 +143,6 @@ public class NotificationBehaviour implements Behaviour
 			return;
 		}
 
-		CommChannel channel = null;
 		try {
 			CommMessage message =
 				( outputExpression == null ) ?
@@ -155,22 +153,37 @@ public class NotificationBehaviour implements Behaviour
 				oneWayDescription.requestType().check( message.value() );
 				} catch( TypeCheckingException e ) {
 					if ( ctx.interpreter().isMonitoring() ) {
-						ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+						ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 					throw( e );
 				}
 			}
-			channel = outputPort.getCommChannel( ctx );
+			CommChannel channel = outputPort.getCommChannel( ctx );
 
 			log( ctx.interpreter(), "SENDING", message );
 
-			ctx.executeNext(new NotificationOnAckBehaviour(channel, message) );
+			ctx.executeNext(new NotificationOnAckBehaviour(channel, message),
+				new SimpleBehaviour()
+				{
+				@Override
+				public void run( StatefulContext ctx ) throws FaultException, ExitingException
+				{
+					if ( channel != null ) {
+						try {
+							channel.release();
+						} catch( IOException e ) {
+							ctx.interpreter().logWarning( e );
+						}
+					}
+				}
+			});
 			
 			channel.send( ctx, message, ( Void ) -> {
 				log( ctx.interpreter(), "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
-					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 				}
+				
 				return null;
 			});
 			
@@ -180,14 +193,6 @@ public class NotificationBehaviour implements Behaviour
 			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
-		} finally {
-			if ( channel != null ) {
-				try {
-					channel.release();
-				} catch( IOException e ) {
-					ctx.interpreter().logWarning( e );
-				}
-			}
 		}
 	}
 	

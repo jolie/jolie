@@ -19,7 +19,6 @@
 
 package jolie.behaviours;
 
-import jolie.Interpreter;
 import jolie.StatefulContext;
 
 
@@ -46,8 +45,7 @@ public class ExitBehaviour implements Behaviour
 	@Override
 	public void run(StatefulContext ctx)
 	{
-		final Interpreter interpreter = Interpreter.getInstance();
-		interpreter.execute( () -> interpreter.exit() );
+		ctx.interpreter().exit();
 	}
 	
 	@Override

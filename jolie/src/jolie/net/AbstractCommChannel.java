@@ -53,21 +53,35 @@ public abstract class AbstractCommChannel extends CommChannel
 	public StatefulContext getContextFor( Long id )
 	{
 		ExecutionContext ctx = null;
-		if (parentPort() instanceof OutputPort) {
-			if ( id == CommMessage.GENERIC_ID){
-				ctx = waiters.entrySet().iterator().next().getValue();
+		synchronized( responseRecvMutex ) {
+//			System.out.println( "[" + Thread.currentThread().getName() + "] GET CONTEXT FOR: " + id );
+			if (parentPort() instanceof OutputPort) {
+				if ( id == CommMessage.GENERIC_ID){
+					ctx = waiters.entrySet().iterator().next().getValue();
+				} else {
+					ctx = waiters.get( id );
+				}
+				if (ctx instanceof StatefulContext)
+					return (StatefulContext) ctx;
+				assert false;
+				return null;
 			} else {
-				ctx = waiters.get( id );
+				return Interpreter.getInstance().initContext();
 			}
-			if (ctx instanceof StatefulContext)
-				return (StatefulContext) ctx;
-			assert false;
-			return null;
-		} else {
-			return Interpreter.getInstance().initContext();
 		}
 	}
 
+	public void registerWaiterFor( ExecutionContext ctx, CommMessage request )
+		throws IOException
+	{
+		synchronized( responseRecvMutex ) {
+//			System.out.println( "[" + Thread.currentThread().getName() + "] REGISTER WAITER FOR: " + request.id() + "(" + ctx + ")");
+			// Ingore responses
+			if ( !waiters.containsKey( request.id() ) )
+				waiters.put( request.id(), ctx );
+		}
+	}
+	
 	@Override
 	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
@@ -75,11 +89,12 @@ public abstract class AbstractCommChannel extends CommChannel
 		CommMessage response;
 		
 		synchronized( responseRecvMutex ) {
+//			System.out.println( "[" + Thread.currentThread().getName() + "] RECV REQSPONSE FOR: " + request.id() );
 			response = pendingResponses.remove( request.id() );
 			if ( response == null ) {
 				if ( pendingGenericResponses.isEmpty() ) {
-					assert (waiters.containsKey( request.id() ) == false);
-					waiters.put( request.id(), ctx );
+					assert (waiters.containsKey( request.id() ) == true);
+					//waiters.put( request.id(), ctx );
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}

@@ -21,6 +21,7 @@
 
 package jolie.monitoring;
 
+import jolie.StatefulContext;
 import jolie.runtime.JavaService.ValueConverter;
 import jolie.runtime.Value;
 
@@ -35,23 +36,26 @@ public class MonitoringEvent implements ValueConverter
 	private final long timestamp;
 	private final long memory;
 	private final Value data;
+	private final StatefulContext context;
 	
-	public MonitoringEvent( String type, Value data )
+	public MonitoringEvent( String type, Value data, StatefulContext context )
 	{
 		this(
 			type,
 			System.currentTimeMillis(),
 			Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
-			data
+			data,
+			context
 		);
 	}
 	
-	private MonitoringEvent( String type, long timestamp, long memory, Value data )
+	private MonitoringEvent( String type, long timestamp, long memory, Value data, StatefulContext context )
 	{
 		this.type = type;
 		this.timestamp = timestamp;
 		this.memory = memory;
 		this.data = data;
+		this.context = context;
 	}
 	
 	public String type()
@@ -74,13 +78,14 @@ public class MonitoringEvent implements ValueConverter
 		return data;
 	}
 	
-	public static MonitoringEvent fromValue( Value value )
+	public static MonitoringEvent fromValue( StatefulContext sessionContext, Value value )
 	{
 		return new MonitoringEvent(
 			value.getFirstChild( "type" ).strValue(),
 			value.getFirstChild( "timestamp" ).longValue(),
 			value.getFirstChild( "memory" ).longValue(),
-			value.getFirstChild( "data" )
+			value.getFirstChild( "data" ),
+			sessionContext
 		);
 	}
 	
@@ -92,5 +97,10 @@ public class MonitoringEvent implements ValueConverter
 		ret.getFirstChild( "memory" ).setValue( e.memory );
 		ret.getChildren( "data" ).add( e.data );
 		return ret;
+	}
+	
+	public StatefulContext context()
+	{
+		return context;
 	}
 }

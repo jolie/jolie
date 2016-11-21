@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
@@ -62,7 +63,7 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
-				setChannel( interpreter.commCore().getLocalCommChannel() );
+				setChannel( ctx, interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
@@ -74,6 +75,15 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 	public Interpreter interpreter()
 	{
 		return interpreter;
+	}
+
+	@Override
+	public void shutdown()
+	{
+		interpreter().exit();
+		try {
+			interpreter().awaitExit();
+		} catch( InterruptedException | ExecutionException ex ) { }
 	}
     
 }

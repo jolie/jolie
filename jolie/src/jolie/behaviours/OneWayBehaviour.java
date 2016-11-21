@@ -66,10 +66,11 @@ public class OneWayBehaviour implements InputOperationBehaviour
 		return varPath;
 	}
 
+	@Override
 	public Behaviour receiveMessage( final SessionMessage sessionMessage, StatefulContext ctx )
 	{
 		if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
-			ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( operation.id(), ctx.getSessionId(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
+			ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( ctx, operation.id(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
 		}
 
 		log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );
@@ -95,7 +96,6 @@ public class OneWayBehaviour implements InputOperationBehaviour
 			return;
 		}
 		
-		// If it is null, we got killed by a fault
 		ctx.executeNext( receiveMessage( message, ctx ) );
 	}
 

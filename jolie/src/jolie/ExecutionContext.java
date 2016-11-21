@@ -197,7 +197,6 @@ public abstract class ExecutionContext extends JolieContext
 	public synchronized void kill( FaultException fault )
 	{
 		killerFault = fault;
-		System.out.println( "KILLED: " + this + " by " + fault.faultName()  + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		while( !futureToCancel.isEmpty() ) {
 			final WeakReference< Future< ? > > ref = futureToCancel.poll();
 			if ( ref.get() != null ) {
@@ -343,11 +342,11 @@ public abstract class ExecutionContext extends JolieContext
 	public synchronized ScopeBehaviour.Execution pushScope( String id, ScopeBehaviour.Execution replacingExecution)
 	{
 		scopeStack.push(new ExecutionContext.Scope( id ) );
-		String tmp = "";
-		for (ExecutionContext.Scope scope : scopeStack) {
-			tmp = " [" + scope.id() + "]" + tmp;
-		}
-		System.out.println( "PUSH SCOPE:" + tmp );
+//		String tmp = "";
+//		for (ExecutionContext.Scope scope : scopeStack) {
+//			tmp = " [" + scope.id() + "]" + tmp;
+//		}
+//		System.out.println( "PUSH SCOPE:" + tmp );
 		ScopeBehaviour.Execution replacedExecution = scopeExecution;
 		scopeExecution = replacingExecution;
 		scopeProcessStack.push( processStack );
@@ -364,11 +363,11 @@ public abstract class ExecutionContext extends JolieContext
 	{
 		final ExecutionContext.Scope s = scopeStack.pop();
 		
-		String tmp = "";
-		for (ExecutionContext.Scope scope : scopeStack) {
-			tmp = " [" + scope.id() + "]" + tmp;
-		}
-		System.out.println( "POP SCOPE:" + tmp );
+//		String tmp = "";
+//		for (ExecutionContext.Scope scope : scopeStack) {
+//			tmp = " [" + scope.id() + "]" + tmp;
+//		}
+//		System.out.println( "POP SCOPE:" + tmp );
 		
 		if ( merge ) {
 			mergeCompensations( s );
@@ -456,12 +455,12 @@ public abstract class ExecutionContext extends JolieContext
 	public void start()
 	{
 		//assert( !pauseExecution );
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "START execution context" );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "START execution context" );
 		interpreter().runJolieThread( this );
 	}
 	
 	public void executeNext(Behaviour process) {
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "Adding process to stack: " + process );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "Adding process to stack: " + process );
 		processStack.push( process );
 	}
 	

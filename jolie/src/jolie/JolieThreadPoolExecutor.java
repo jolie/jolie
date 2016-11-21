@@ -19,7 +19,7 @@
 
 package jolie;
 
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -33,13 +33,12 @@ public final class JolieThreadPoolExecutor extends ThreadPoolExecutor
 	public JolieThreadPoolExecutor( final ThreadFactory factory )
 	{
 		super(
-			0,
-			Integer.MAX_VALUE - 8,
+			4,
+			8,
 			60L,
 			TimeUnit.SECONDS,
-			new SynchronousQueue<>(),
-			factory,
-			new ThreadPoolExecutor.AbortPolicy()
+			new LinkedBlockingQueue<>(), // new SynchronousQueue<>(),
+			factory
 		);
 	}
 }

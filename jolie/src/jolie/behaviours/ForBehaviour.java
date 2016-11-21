@@ -35,8 +35,6 @@ public final class ForBehaviour implements Behaviour
 		{
 			if ( condition.evaluate().boolValue() ) {
 				ctx.executeNext( process , postStep );
-			} else {
-				System.out.println( "FOR LOOP CONDITION FALSE... " + ForBehaviour.this );
 			}
 		}
 
@@ -82,7 +80,6 @@ public final class ForBehaviour implements Behaviour
 			@Override
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
-				System.out.println( "RUN FOR INIT "  + ForBehaviour.this );
 				init.run( ctx );
 			}
 		};
@@ -92,7 +89,6 @@ public final class ForBehaviour implements Behaviour
 			@Override
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
-				System.out.println( "RUN FOR POST "  + ForBehaviour.this );
 				post.run( ctx );
 			}
 		};
@@ -101,7 +97,6 @@ public final class ForBehaviour implements Behaviour
 			@Override
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
-				System.out.println( "RUN FOR PROCESS "  + ForBehaviour.this );
 				process.run( ctx );
 			}
 		};

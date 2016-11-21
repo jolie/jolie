@@ -223,12 +223,7 @@ public abstract class CommChannel
 	public void send( final StatefulContext ctx, final CommMessage message )
 		throws IOException
 	{
-		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( new StatefulMessage( message, ctx ), null ) );
-		} catch( IOException e ) {
-			setToBeClosed( true );
-			throw e;
-		}
+		send(ctx, message, null);
 	}
 	
 	protected abstract void recievedResponse( CommMessage msg );
@@ -245,12 +240,19 @@ public abstract class CommChannel
 		throws IOException
 	{
 		try {
-			Helpers.lockAndThen( lock, () -> sendImpl( new StatefulMessage( message, ctx ), completionHandler ) );
+			Helpers.lockAndThen( lock, () -> {
+				registerWaiterFor( ctx, message );
+				sendImpl( new StatefulMessage( message, ctx ), completionHandler );
+			});
 		} catch( IOException e ) {
 			setToBeClosed( true );
 			throw e;
 		}
 	}
+		
+	public void registerWaiterFor( ExecutionContext ctx, CommMessage request )
+		throws IOException
+	{ }
 
 	protected abstract CommMessage recvImpl()
 		throws IOException;

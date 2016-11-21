@@ -94,18 +94,21 @@ import jolie.util.Pair;
 		Thread t = Thread.currentThread();
 		if ( t instanceof JolieExecutorThread ) {
 			((JolieExecutorThread)t).sessionContext( this );
+		} else if ( t instanceof CommCore.ExecutionContextThread ) {
+			((CommCore.ExecutionContextThread)t).executionContext( this );
 		}
 		
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop started: " + this.toString() );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop started" );
+		synchronized (this) {
 		while( !processStack.isEmpty() && !pauseExecution ) {
 			try {
 				try {
 					Behaviour p = processStack.pop();
-					String pad = "";
-					for( int i = 0; i < processStack.size(); i++ ) {
-						pad += "  ";
-					}
-					System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  " - " + pad + p );
+//					String pad = "";
+//					for( int i = 0; i < processStack.size(); i++ ) {
+//						pad += "  ";
+//					}
+//					System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  " - " + pad + p );
 					p.run( this );
 				} catch( ExitingException e ) {
 				}
@@ -142,9 +145,10 @@ import jolie.util.Pair;
 					listeners.forEach( listener -> listener.onSessionError( this, fault ) );
 				}
 			} catch( Exception e ) {
-				System.out.println( String.format( "[%s][%s][ERROR] - [%s]\n", Thread.currentThread(), this, e.getMessage() ) );
+//				System.out.println( String.format( "[%s][%s][ERROR] - [%s]\n", Thread.currentThread(), this, e.getMessage() ) );
 				e.printStackTrace();
 			}
+		}
 		}
 		
 		if (processStack.isEmpty() && !pauseExecution) {
@@ -153,11 +157,11 @@ import jolie.util.Pair;
 		}
 		
 		pauseExecution = false;
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop stopped: " + this.toString() );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Loop stopped: " + this.toString() );
 	}
 	
 	private void markExecutionFinished() {
-		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Marked as finished: " + this.toString() );
+//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "SessionContext Marked as finished: " + this.toString() );
 		synchronized (completionLock) {
 			assert(!executionCompleted);
 			executionCompleted = true;
@@ -338,12 +342,15 @@ import jolie.util.Pair;
 			} else {
 				queue = uncorrelatedMessageQueue;
 			}
+			
 			ExecutionContext waitingCtx = getMessageWaiter( message.message().operationName() );
-			if ( waitingCtx != null && queue.isEmpty() ) {
+			if ( waitingCtx != null && queue.isEmpty() ) {			
+				queue.addLast( message );
 				waitingCtx.start();
+			} else {
+				// We will add the message to the queue in any case so that it can be fetched from the queue by requestMessage.
+				queue.addLast( message );
 			}
-			// We will add the message to the queue in any case so that it can be fetched from the queue by requestMessage.
-			queue.addLast( message );
 		}
 	}
 
@@ -359,7 +366,6 @@ import jolie.util.Pair;
 			if (!executionCompleted)
 				completionLock.wait();
 		}
-		System.out.println( this + " - JOINED with - " + Thread.currentThread() );
 	}
 	
 	/**

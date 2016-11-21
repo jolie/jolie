@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import jolie.CommandLineException;
@@ -55,6 +56,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
+	@Override
 	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
@@ -62,7 +64,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
-				setChannel( interpreter.commCore().getLocalCommChannel() );
+				setChannel( ctx, interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
@@ -75,4 +77,14 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 	{
 		return interpreter;
 	}
+
+	@Override
+	public void shutdown()
+	{
+		interpreter().exit();
+		try {
+			interpreter().awaitExit();
+		} catch( InterruptedException | ExecutionException ex ) { }
+	}
+	
 }

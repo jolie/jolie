@@ -107,7 +107,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
 		{
 			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
-			System.out.println( "Sending: " + message.toString() );
+//			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildJsonRpcMessage(message );
 			out.add( msg );
 		}
@@ -117,13 +117,13 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		{
 			if ( msg instanceof FullHttpRequest ) {
 				FullHttpRequest request = (FullHttpRequest) msg;
-				System.out.println( "HTTP request ! (" + request.uri() + ")" );
+//				System.out.println( "HTTP request ! (" + request.uri() + ")" );
 			} else if ( msg instanceof FullHttpResponse ) {
 				FullHttpResponse response = (FullHttpResponse) msg;
-				System.out.println( "HTTP response !" );
+//				System.out.println( "HTTP response !" );
 			}
 			StatefulMessage message = recv_internal( msg );
-			System.out.println( "Decoded Soap message for operation: " + message.message().operationName() );
+//			System.out.println( "Decoded JSON-RPC message for operation: " + message.message().operationName() );
 			out.add( message );
 		}
 

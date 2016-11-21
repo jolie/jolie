@@ -35,7 +35,7 @@ public class SequentialBehaviour implements Behaviour
 		@Override
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
-			System.out.println( "SEQUENTIAL RUN STEP: [ " + (currentChild+1) + " / " + children.length + " ]" );
+//			System.out.println( "SEQUENTIAL RUN STEP: [ " + (currentChild+1) + " / " + children.length + " ]" );
 			if (currentChild < children.length ) {
 				final Behaviour child = children[currentChild];
 				if ( ctx.isKilled() && child.isKillable() ) {

@@ -85,17 +85,17 @@ public class SolicitResponseBehaviour implements Behaviour
 						try {
 							faultType.check( response.fault().value() );
 							if ( ctx.interpreter().isMonitoring() ) {
-								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
+								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
 							}
 						} catch( TypeCheckingException e ) {
 							if ( ctx.interpreter().isMonitoring() ) {
-								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.FAULT, "TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(), outputPort.id(), response.fault().value() ) );
+								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.FAULT, "TypeMismatch on fault:" + response.fault().faultName() + "." + e.getMessage(), outputPort.id(), response.fault().value() ) );
 							}
 							throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received fault " + response.fault().faultName() + " TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 						}
 					} else {
 						if ( ctx.interpreter().isMonitoring() ) {
-							ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
+							ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.FAULT, response.fault().faultName(), outputPort.id(), response.fault().value() ) );
 						}
 					}
 					throw response.fault();
@@ -104,17 +104,17 @@ public class SolicitResponseBehaviour implements Behaviour
 						try {
 							types.responseType().check( response.value() );
 							if ( ctx.interpreter().isMonitoring() ) {
-								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
+								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
 							}
 						} catch( TypeCheckingException e ) {
 							if ( ctx.interpreter().isMonitoring() ) {
-								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.FAULT, e.getMessage(), outputPort.id(), response.value() ) );
+								ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.FAULT, e.getMessage(), outputPort.id(), response.value() ) );
 							}
 							throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Received message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 						}					
 					} else {
 						if ( ctx.interpreter().isMonitoring() ) {
-							ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( operationId, ctx.getSessionId(), Long.toString(response.id()), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
+							ctx.interpreter().fireMonitorEvent( new OperationReplyEvent( ctx, operationId, Long.toString(response.id()), OperationReplyEvent.SUCCESS, "", outputPort.id(), response.value() ) );
 						}
 					}
 				}
@@ -190,7 +190,7 @@ public class SolicitResponseBehaviour implements Behaviour
 			return;
 		}
 		
-		CommChannel channel = null;
+		
 		try {
 			CommMessage message =
 				CommMessage.createRequest(
@@ -204,22 +204,36 @@ public class SolicitResponseBehaviour implements Behaviour
 					types.requestType().check( message.value() );
 				} catch ( TypeCheckingException e ) {
 					if ( ctx.interpreter().isMonitoring() ) {
-						ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
+						ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString(message.id()), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
 					throw( e );
 				}
 			}
-
-			channel = outputPort.getCommChannel( ctx );
+			
+			CommChannel channel = outputPort.getCommChannel( ctx );
+			
 			log( ctx, "SENDING", message );
 			
-			// Make sure completion handler is registered before sending, to avoid racecondition.
-			ctx.executeNext( new SolicitResponseOnReceiveBehaviour(channel, message) );
+			ctx.executeNext( new SolicitResponseOnReceiveBehaviour(channel, message),
+				new SimpleBehaviour()
+				{
+				@Override
+				public void run( StatefulContext ctx ) throws FaultException, ExitingException
+				{
+					if ( channel != null ) {
+						try {
+							channel.release();
+						} catch( IOException e ) {
+							ctx.interpreter().logWarning( e );
+						}
+					}
+				}
+			});
+			
 			channel.send( ctx, message, (Void) -> {
-				System.out.println( "SolicitResponseBehaviour: SEND" );
 				log( ctx, "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
-					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( operationId, ctx.getSessionId(), Long.toString ( message.id() ), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
+					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString ( message.id() ), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 				}
 				return null;
 			});
@@ -231,14 +245,6 @@ public class SolicitResponseBehaviour implements Behaviour
 			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {			
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
-		} finally {
-			if ( channel != null ) {
-				try {
-					channel.release();
-				} catch( IOException e ) {
-					ctx.interpreter().logWarning( e );
-				}
-			}
 		}
 	}
 	

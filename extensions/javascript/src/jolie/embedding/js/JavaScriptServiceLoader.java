@@ -82,7 +82,7 @@ public class JavaScriptServiceLoader extends EmbeddedServiceLoader
 	{
 		try {
 			final Object json = engine.eval( "JSON" );
-			setChannel( new JavaScriptCommChannel( (Invocable)engine, json ) );
+			setChannel( ctx, new JavaScriptCommChannel( (Invocable)engine, json ) );
 		} catch( ScriptException e ) {
 			throw new EmbeddedServiceLoadingException( e );
 		}

@@ -15,6 +15,7 @@ import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import jolie.net.protocols.AsyncCommProtocol;
+import jolie.util.Helpers;
 
 /**
  *
@@ -28,12 +29,12 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	private Bootstrap bootstrap;
 	private static final int SO_LINGER = 10000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
-	protected final JolieCommChannelHandler nioSocketCommChannelHandler;
+	protected final JolieCommChannelHandler jolieCommChannelHandler;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
 		super( location, protocol );
-		nioSocketCommChannelHandler = new JolieCommChannelHandler( this );
+		jolieCommChannelHandler = new JolieCommChannelHandler( this );
 	}
 
 	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
@@ -43,14 +44,14 @@ public class NioSocketCommChannel extends StreamingCommChannel
 		channel.bootstrap.group( workerGroup )
 			.channel( NioSocketChannel.class )
 			.option( ChannelOption.SO_LINGER, SO_LINGER )
-			.handler( new ChannelInitializer()
+			.handler(new ChannelInitializer()
 			{
 				@Override
 				protected void initChannel( Channel ch ) throws Exception
 				{
 					ChannelPipeline p = ch.pipeline();
 					protocol.setupPipeline( p );
-					p.addLast( channel.nioSocketCommChannelHandler );
+					p.addLast(channel.jolieCommChannelHandler );
 					ch.attr( COMMCHANNEL ).set( channel );
 				}
 			} );
@@ -84,23 +85,24 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	@Override
 	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler ) throws IOException
 	{
-		//ctx.pauseExecution();
-		ChannelFuture future = nioSocketCommChannelHandler.write( msg );
-		future.addListener(( ChannelFuture future1 ) -> {
-			if ( future1.isSuccess() ) {
-				//ctx.start();
-				if (completionHandler != null)
-					completionHandler.apply( null );
-			} else {
-				throw new IOException( future1.cause() );
-			}
-		});
+		jolieCommChannelHandler.write( msg )
+			.addListener(( ChannelFuture future1 ) -> {
+				Helpers.lockAndThen( lock, () -> {
+					
+				});
+				if ( future1.isSuccess() ) {
+					if (completionHandler != null)
+						completionHandler.apply( null );
+				} else {
+					throw new IOException( future1.cause() );
+				}
+			});
 	}
 
 	@Override
 	protected void closeImpl() throws IOException
 	{
-		
+		jolieCommChannelHandler.close();
 	}
 
 }

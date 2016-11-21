@@ -42,7 +42,6 @@ public class ParallelExecution
 	private static AtomicInteger count = new AtomicInteger();
 	private class ParallelContext extends TransparentContext
 	{
-		
 		private final String scopeId = count.getAndIncrement() + "-ParallelContext";
 		
 		public ParallelContext( Behaviour process, StatefulContext parentCtx )

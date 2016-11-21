@@ -22,15 +22,21 @@
 package joliex.lang.reflection;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import jolie.Interpreter;
 import jolie.SessionListener;
 import jolie.StatefulContext;
 import jolie.TransparentContext;
 import jolie.behaviours.Behaviour;
+import jolie.behaviours.InstallBehaviour;
 import jolie.behaviours.NotificationBehaviour;
 import jolie.behaviours.NullBehaviour;
+import jolie.behaviours.ScopeBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.behaviours.SimpleBehaviour;
 import jolie.behaviours.SolicitResponseBehaviour;
+import jolie.behaviours.TransformationReason;
+import jolie.lang.Constants;
 import jolie.net.ports.OutputPort;
 import jolie.runtime.ClosedVariablePath;
 import jolie.runtime.ExitingException;
@@ -38,6 +44,7 @@ import jolie.runtime.FaultException;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
+import jolie.runtime.VariablePathBuilder;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.OperationTypeDescription;
@@ -46,6 +53,58 @@ import jolie.util.Pair;
 
 public class Reflection extends JavaService
 {
+	
+	private class FaultBehaviour extends SimpleBehaviour {
+		
+		private final String scopeId;
+		private final FaultReference faultReference;
+
+		public FaultBehaviour( String scopeId, FaultReference faultReference )
+		{
+			this.scopeId = scopeId;
+			this.faultReference = faultReference;
+		}
+		
+		@Override
+		public void run( StatefulContext ctx ) throws FaultException, ExitingException
+		{
+			
+			Value scopeValue = new VariablePathBuilder( false ).add( scopeId, 0 ).toVariablePath().getValue( ctx );
+			Value defaultFaultValue = scopeValue.getChildren( Constants.Keywords.DEFAULT_HANDLER_NAME ).get( 0 );
+			Value userFaultValueValue = scopeValue.getChildren( defaultFaultValue.strValue() ).get( 0 );
+			FaultException fault = new FaultException( defaultFaultValue.strValue(), userFaultValueValue );
+			faultReference.fault = fault;
+		}
+
+		@Override
+		public Behaviour clone( TransformationReason reason )
+		{
+			return this;
+		}
+		
+	}
+	
+	private class FinallyBehaviour extends SimpleBehaviour {
+		
+		private final FaultReference faultReference;
+
+		public FinallyBehaviour( FaultReference faultReference )
+		{
+			this.faultReference = faultReference;
+		}
+		
+		@Override
+		public void run( StatefulContext ctx ) throws FaultException, ExitingException
+		{
+
+			if ( faultReference.fault != null ) {
+				throw faultReference.fault;
+			}
+			context().start();
+		}
+		
+	}
+	
 	private static class FaultReference {
 		private FaultException fault = null;
 	}
@@ -71,23 +130,26 @@ public class Reflection extends JavaService
 		);
 		
 		final FaultReference ref = new FaultReference();
-		Behaviour wrap = new SimpleBehaviour()
-		{
-			@Override
-			public void run( StatefulContext ctx ) throws FaultException, ExitingException
-			{
-				try {
-					b.run( ctx );
-				} catch( FaultException f ) {
-					ref.fault = f;
-				} catch( ExitingException e ) {}
-			}
-		};
 		
-		StatefulContext tranparentContext = new TransparentContext(wrap, context() ) {};
+		// This scope id must not collide with user defined scope
+		String scopeId = b.hashCode() + "-" + operationName + "-ReflectionScope";
+		ArrayList<Pair<String, Behaviour>> faultHandlers = new ArrayList<>();
+		faultHandlers.add( new Pair( Constants.Keywords.DEFAULT_HANDLER_NAME, new FaultBehaviour( scopeId, ref ) ) );
+		Behaviour scopedBehaviour = new SequentialBehaviour(new Behaviour[] {
+			new ScopeBehaviour(
+				scopeId,
+				new SequentialBehaviour(new Behaviour[] {
+					new InstallBehaviour( faultHandlers ),
+					b
+				}),
+				true, true
+			)
+		});
+		
+//		context().executeNext( new FinallyBehaviour( ref ));
+		StatefulContext tranparentContext = new TransparentContext(scopedBehaviour, context() ) {};
 		tranparentContext.start();
 		tranparentContext.join();
-		
 		if ( ref.fault != null ) {
 			throw ref.fault;
 		}

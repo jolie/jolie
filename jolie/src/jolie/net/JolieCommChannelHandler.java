@@ -44,5 +44,9 @@ public class JolieCommChannelHandler extends SimpleChannelInboundHandler<Statefu
 	{
 		return this.channel.writeAndFlush( msg );
 	}
+	
+	protected ChannelFuture close() {
+		return this.channel.close();
+	}
 
 };

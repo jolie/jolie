@@ -98,11 +98,11 @@ public abstract class EmbeddedServiceLoader
 		return createLoader( interpreter, configuration, channelPath );
 	}
 
-	protected void setChannel( CommChannel channel )
+	protected void setChannel( StatefulContext ctx, CommChannel channel )
 	{
 		if ( channelDest != null ) {
 			if ( channelDest instanceof VariablePath ) {
-				((VariablePath) channelDest).getValue().setValue( channel );
+				((VariablePath) channelDest).getValue( ctx ).setValue( channel );
 			} else if ( channelDest instanceof Value ) {
 				((Value) channelDest).setValue( channel );
 			}
@@ -183,5 +183,9 @@ public abstract class EmbeddedServiceLoader
 			return servicePath;
 		}
 
+	}
+	
+	public void shutdown() {
+		// Do nothing
 	}
 }

@@ -41,8 +41,10 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.behaviours.Behaviour;
 import jolie.behaviours.DefinitionBehaviour;
@@ -145,6 +148,7 @@ public class Interpreter
 			 * were to call that directly from here.
 			 */
 			execute( new Runnable() {
+				
 				private void pushMessages( Deque< SessionMessage > queue )
 				{
 					for( SessionMessage message : queue ) {
@@ -288,6 +292,11 @@ public class Interpreter
 		new PriorityQueue<>( 11, new TimeoutHandler.Comparator() );
 	
 	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
+	private final ExecutorService nativeExecutorService =
+		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService processExecutorService =
+		//Executors.newFixedThreadPool( 8, new JolieExecutionThreadFactory( this ) );
+		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
 
 	private final String programFilename;
 	private final File programDirectory;
@@ -323,26 +332,25 @@ public class Interpreter
 	{
 		if ( monitor != null ) {
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
-			CommChannel channel = null;
+			
 			try {
-				channel = monitor.getCommChannel( null ); // TODO - What context should be passed here?
-				channel.send( null, m, null ); // TODO - What context should be passed here?
-				CommMessage response;
-				do {
-					response = channel.recvResponseFor( null, m ); // TODO - What conext should be passed here?
-				} while( response == null );
-			} catch( URISyntaxException e ) {
-				logWarning( e );
-			} catch( IOException e ) {
-				logWarning( e );
-			} finally {
-				if ( channel != null ) {
+				CommChannel channel = monitor.getCommChannel( event.context() );
+				channel.send( event.context(), m, (Void) -> {
 					try {
 						channel.release();
 					} catch( IOException e ) {
 						logWarning( e );
 					}
-				}
+					return null;
+				});
+				CommMessage response;
+				do {
+					response = channel.recvResponseFor( event.context(), m );
+				} while( response == null );
+			} catch( URISyntaxException e ) {
+				logWarning( e );
+			} catch( IOException e ) {
+				logWarning( e );
 			}
 		}
 	}
@@ -627,12 +635,18 @@ public class Interpreter
 				exiting = true;
 			}
 		}
+		
+		for( EmbeddedServiceLoader loader : embeddedServiceLoaders() ) {
+			loader.shutdown();
+		}
+		
 		exitingLock.lock();
 		try {
 			exitingCondition.signalAll();
 		} finally {
 			exitingLock.unlock();
 		}
+		
 		timer.cancel();
 		checkForExpiredTimeoutHandlers();
 		processExecutorService.shutdown();
@@ -644,7 +658,9 @@ public class Interpreter
 		try {
 			processExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
+		commCore.shutdownNetty();
 		free();
+		exitFuture.complete( null );
 	}
 
 	/**
@@ -655,6 +671,12 @@ public class Interpreter
 	public boolean exiting()
 	{
 		return exiting;
+	}
+	
+	
+	private CompletableFuture<Void> exitFuture = new CompletableFuture<Void>();
+	public void awaitExit() throws InterruptedException, ExecutionException {
+		exitFuture.get();
 	}
 
 	/**
@@ -938,12 +960,14 @@ public class Interpreter
 	 */
 	public Object getLock( String id )
 	{
-		Object l = locksMap.get( id );
-		if ( l == null ) {
-			l = new Object();
-			locksMap.put( id, l );
+		synchronized(locksMap) {
+			Object l = locksMap.get( id );
+			if ( l == null ) {
+				l = new Object();
+				locksMap.put( id, l );
+			}
+			return l;
 		}
-		return l;
 	}
 
 	public SessionStarter getSessionStarter( String operationName )
@@ -1090,13 +1114,10 @@ public class Interpreter
 					logSevere( e );
 				}
 			} else {
-				exitingLock.lock();
 				try {
-					exitingCondition.await();
-				} catch( InterruptedException e ) {
-					logSevere( e );
-				} finally {
-					exitingLock.unlock();
+					exitFuture.get();
+				} catch( InterruptedException | ExecutionException ex ) {
+					Logger.getLogger( Interpreter.class.getName() ).log( Level.SEVERE, null, ex );
 				}
 			}
 		}
@@ -1117,13 +1138,6 @@ public class Interpreter
 		init();
 		runCode();
 	}
-
-	private final ExecutorService nativeExecutorService =
-		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
-		// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
-	private final ExecutorService processExecutorService =
-		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
-		// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
 
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
@@ -1319,20 +1333,20 @@ public class Interpreter
 			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
+			logSessionStart( spawnedSession, message.operationName(), 
 							message.id(), message.value() );
 			
 			spawnedSession.addSessionListener( new SessionListener() {
 				@Override
 				public void onSessionExecuted( StatefulContext session )
 				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 				
 				@Override
 				public void onSessionError( StatefulContext session, FaultException fault )
 				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 			} );
 			spawnedSession.start();
@@ -1365,7 +1379,7 @@ public class Interpreter
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 
 				@Override
@@ -1379,7 +1393,7 @@ public class Interpreter
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 			} );
 			synchronized ( waitingSessionThreads ) {
@@ -1394,18 +1408,18 @@ public class Interpreter
 		return true;
 	}
 	
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message )
+	private void logSessionStart( StatefulContext sessionContext, String operationName, long messageId, Value message )
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
-			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+			fireMonitorEvent( new SessionStartedEvent( sessionContext, operationName ) );
+			fireMonitorEvent( new OperationStartedEvent( sessionContext, operationName, Long.toString( messageId ), message ) );
 		}
 	}
 	
-	private void logSessionEnd( String operationName, String sessionId )
+	private void logSessionEnd( StatefulContext sessionContext, String operationName )
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionEndedEvent( sessionContext, operationName ) );
 		}
 	}
 	

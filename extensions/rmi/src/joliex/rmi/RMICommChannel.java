@@ -24,7 +24,6 @@ package joliex.rmi;
 import java.io.IOException;
 import java.util.function.Function;
 import jolie.ExecutionContext;
-import jolie.Interpreter;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommMessage;
 import jolie.net.StatefulMessage;
@@ -77,7 +76,5 @@ public class RMICommChannel extends AbstractCommChannel
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
+	{ }
 }

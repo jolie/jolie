@@ -9,8 +9,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
@@ -42,19 +40,22 @@ public class NioSocketListener extends CommListener
 	public void shutdown()
 	{
 		if ( serverChannel != null ) {
-			serverChannel.close();
+			try {
+				serverChannel.close().sync();
+			} catch( InterruptedException ex ) {
+				interpreter().logWarning( ex );
+			}
 		}
 	}
 
 	@Override
-	public void run()
+	public void init()
 	{
 		try {
-
 			bootstrap.group( bossGroup, workerGroup )
 				.channel( NioServerSocketChannel.class )
-				.option( ChannelOption.SO_BACKLOG, 100 )
-				.handler( new LoggingHandler( LogLevel.INFO ) )
+				.option( ChannelOption.SO_BACKLOG, 4096 )
+				//.handler( new LoggingHandler( LogLevel.INFO ) )
 				.childHandler( new ChannelInitializer<SocketChannel>()
 				{
 
@@ -71,20 +72,24 @@ public class NioSocketListener extends CommListener
 						ChannelPipeline p = ch.pipeline();
 						((AsyncCommProtocol) protocol).initialize( interpreter().initContext() ); // Use init context to initialize protocol.
 						((AsyncCommProtocol) protocol).setupPipeline( p );
-						p.addLast( channel.nioSocketCommChannelHandler );
+						p.addLast(channel.jolieCommChannelHandler );
 						ch.attr( NioSocketCommChannel.COMMCHANNEL ).set( channel );
 					}
 				} );
 			ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
 			serverChannel = f.channel();
+		} catch( InterruptedException ioe ) {
+			interpreter().logWarning( ioe );
+		}
+	}
+
+	@Override
+	public void run()
+	{
+		try {
 			serverChannel.closeFuture().sync();
 		} catch( InterruptedException ioe ) {
 			interpreter().logWarning( ioe );
-		} finally {
-			bossGroup.shutdownGracefully();
-			workerGroup.shutdownGracefully();
 		}
-
 	}
-
 }

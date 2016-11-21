@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.function.Function;
-import jolie.Interpreter;
 import jolie.net.protocols.CommProtocol;
 
 public class LocalSocketCommChannel extends StreamingCommChannel
@@ -91,7 +90,5 @@ public class LocalSocketCommChannel extends StreamingCommChannel
 	@Override
 	public void disposeForInputImpl()
 		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
+	{ }
 }

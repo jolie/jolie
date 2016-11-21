@@ -58,6 +58,7 @@ public class Jolie
 				}
 			} );
 			interpreter.run();
+			Thread.sleep( 200 );
 		} catch( CommandLineException cle ) {
 			System.out.println( cle.getMessage() );
 		} catch( FileNotFoundException fe ) {

@@ -21,6 +21,7 @@
 
 package jolie.monitoring.events;
 
+import jolie.StatefulContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -34,11 +35,11 @@ public class OperationCallEvent extends MonitoringEvent
 	public static final int FAULT = 1;
 	
 	
-	public OperationCallEvent( String operationName, String processId, String messageId, int status, String details, String outputPort, Value message ) {
-		super( "OperationCall", Value.create() );
+	public OperationCallEvent( StatefulContext sessionContext, String operationName, String messageId, int status, String details, String outputPort, Value message ) {
+		super( "OperationCall", Value.create(), sessionContext );
 		
 		data().getFirstChild( "operationName" ).setValue( operationName );
-		data().getFirstChild( "processId" ).setValue( processId );
+		data().getFirstChild( "processId" ).setValue( sessionContext.getSessionId() );
 		data().getFirstChild( "messageId" ).setValue( messageId );
 		data().getFirstChild( "status" ).setValue( status );
 		data().getFirstChild( "details" ).setValue( details );
