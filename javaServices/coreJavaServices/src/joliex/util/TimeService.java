@@ -450,7 +450,8 @@ public class TimeService extends JavaService
 	}
 
 	@RequestResponse
-	public Boolean cancelTimeout( Value request ) {
+	public Boolean cancelTimeout( Value request )
+	{
 		long timeoutId = request.longValue();
 		ScheduledFuture f = scheduledFutureHashMap.remove( timeoutId );
 		return f != null && f.cancel( false );
