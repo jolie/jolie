@@ -117,10 +117,6 @@ interface TimeInterface{
 		*/
 		setNextTimeout(SetNextTimeOutRequest), 
 		setNextTimeoutByDateTime, setNextTimeoutByTime,
-		/**!
-		* Cancels a timeout from a UUID created from #scheduleTimeout
-		*/
-		cancelTimeout(long),
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
@@ -155,6 +151,10 @@ interface TimeInterface{
 		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS.
 		*/
 		scheduleTimeout(ScheduleTimeOutRequest)(long),
+		/**!
+		* Cancels a timeout from a long-value created from #scheduleTimeout
+		*/
+		cancelTimeout(long)(bool),
 }
 
 outputPort Time {

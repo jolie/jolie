@@ -449,18 +449,10 @@ public class TimeService extends JavaService
 		return timeoutId;
 	}
 
-	public void cancelTimeout( Value request )
-	{
+	@RequestResponse
+	public Boolean cancelTimeout( Value request ) {
 		long timeoutId = request.longValue();
-		synchronized (lock) {
-			ScheduledFuture scheduledFuture = scheduledFutureHashMap.get( timeoutId );
-			if ( scheduledFuture != null ) {
-				scheduledFutureHashMap.get(timeoutId).cancel(false);
-				scheduledFutureHashMap.remove(timeoutId);
-			}
-			else {
-				System.out.println("No entry in hashmap with key " + timeoutId);
-			}
-		}
+		ScheduledFuture f = scheduledFutureHashMap.remove( timeoutId );
+		return f != null && f.cancel( false );
 	}
 }
