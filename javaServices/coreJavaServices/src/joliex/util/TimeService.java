@@ -426,6 +426,7 @@ public class TimeService extends JavaService
 
 	@RequestResponse
 	public Long scheduleTimeout( Value request )
+		throws FaultException
 	{
 		final long timeoutId = atomicLong.getAndIncrement();
 		TimeUnit unit;
@@ -434,16 +435,21 @@ public class TimeService extends JavaService
 			try {
 				unit = TimeUnit.valueOf( request.getFirstChild( "timeunit" ).strValue().toUpperCase() );
 			} catch ( Exception e ) {
-				System.err.println( e );
-				System.err.println( "Defaulting to MILLISECONDS" );
-				unit = TimeUnit.MILLISECONDS;
+				throw new FaultException( "InvalidTimeUnit", e );
 			}
 		} else {
 			unit = TimeUnit.MILLISECONDS;
 		}
 
+		String operationName;
+		if (request.hasChildren( "operation" )) {
+			operationName = request.getFirstChild( "operation" ).strValue();
+		} else {
+			operationName = "timeout";
+		}
+
 		ScheduledFuture scheduledFuture = executor.schedule( () -> {
-				sendMessage( CommMessage.createRequest(request.getFirstChild( "operation" ).strValue(), "/", request.getFirstChild( "message" )));
+				sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" )));
 		}, request.intValue(), unit );
 		scheduledFutureHashMap.put(timeoutId, scheduledFuture);
 		return timeoutId;

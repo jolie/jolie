@@ -101,9 +101,14 @@ type SetNextTimeOutRequest: int {
 
 type ScheduleTimeOutRequest: int {
 	.operation?: string
+	/*
+	* If the value is not set, it will default to "timeout"
+	*
+	*/
 	.message?: undefined
 	/*
-	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS. If the value is not set or recognized, it will default to MILLISECONDS
+	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS. 
+	*   If the value is not set or recognized, it will default to MILLISECONDS
 	*/
 	.timeunit?: string
 }
@@ -148,7 +153,7 @@ interface TimeInterface{
 		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
 		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException,
 		/**!
-		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS.
+		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS, .operation default is "timeout".
 		*/
 		scheduleTimeout(ScheduleTimeOutRequest)(long),
 		/**!
