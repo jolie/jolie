@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map.Entry;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InterfaceDefinition;
@@ -46,90 +47,52 @@ import jolie.lang.parse.util.ProgramInspector;
 public class JolieDummyDocumentCreator
 {
 	private ProgramInspector inspector;
-	private String directorySourceFile;
 	private StringBuilder stringBuilder;
-	private String nameSourceFile;
+	private File sourceFile;
+        private final int MAX_ARRAY_ITEMS = 5;
+        private final String mockFilename = "mock_main.ol";
 
-	public JolieDummyDocumentCreator( ProgramInspector inspector, File directorySourceFile )
+	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile )
 	{
 
 		this.inspector = inspector;
-		this.directorySourceFile = directorySourceFile.getParent() + File.separator;
-		this.nameSourceFile = directorySourceFile.getName();
 		stringBuilder = new StringBuilder();
+                this.sourceFile = sourceFile;
 	}
 
 	public void createDocument()
 		throws FileNotFoundException, IOException
 	{
-		String lineOriginalFile = "include  \"string_utils.iol\"";
-		System.out.print( "The directory of the file ol is " + directorySourceFile + "\n" );
-		BufferedReader reader = new BufferedReader( new FileReader( directorySourceFile + nameSourceFile ) );
 
-		while( !(lineOriginalFile.contains( "nullProcess" )) ) {
-
-			stringBuilder.append( lineOriginalFile + "\n" );
-
-			lineOriginalFile = reader.readLine();
-			if ( lineOriginalFile == null )
-				break;
-			if ( (lineOriginalFile.contains( "include" )) && (lineOriginalFile.contains( "/" )) ) {
-
-				int indexSlash = lineOriginalFile.indexOf( "/" );
-				lineOriginalFile = lineOriginalFile.substring( 0, indexSlash ) + ".." + lineOriginalFile.substring( indexSlash );
-			}
-
-		}
-
+            
+                String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
+                stringBuilder.append( "main {\n" );
 		for( InputPortInfo inputPortInfo : inspector.getInputPorts() ) {
-			if ( inputPortInfo.context().source().getSchemeSpecificPart().contains( directorySourceFile ) ) {
-				System.out.print( "The port is part of the soa " + inputPortInfo.context().source().getSchemeSpecificPart() + "\n" );
-				for( OperationDeclaration operationDeclaration : inputPortInfo.operations() ) {
-
+			for( OperationDeclaration operationDeclaration : inputPortInfo.operations() ) {
 					convertOperation( operationDeclaration, stringBuilder );
-					//Input
-
-				}
-
-
-			} else {
-
-
-				System.out.print( "The port is not part of the soa " + inputPortInfo.context().source().getSchemeSpecificPart() + "\n" );
-
 			}
 		}
-
-
-
-
 
 		stringBuilder.append( "}" );
-		System.out.print( stringBuilder.toString() );
-		File pippo = new File( directorySourceFile + "test/" );
-		pippo.mkdir();
-		BufferedWriter writer = new BufferedWriter( new FileWriter( directorySourceFile + "test/" + nameSourceFile ) );
+                int mainIndex = fileContent.indexOf("main");
+		stringBuilder.insert(0, fileContent.substring(0, mainIndex) );
+                        
+
+		BufferedWriter writer = new BufferedWriter( new FileWriter( mockFilename ) );
 		writer.append( stringBuilder.toString() );
 		writer.flush();
 		writer.close();
-	}
-
-	private void convertInterfaces( InterfaceDefinition insterfaceDefinition, StringBuilder stringBuilder )
-	{
 	}
 
 	private void convertOperation( OperationDeclaration operatationDeclaration, StringBuilder stringBuilder )
 	{
 
 		if ( operatationDeclaration instanceof RequestResponseOperationDeclaration ) {
-			stringBuilder.append( "[" ).append( operatationDeclaration.id() ).append( "(request)(response){\n" );
-			stringBuilder.append( "\t" ).append( "valueToPrettyString@StringUtils( request )( s)" ).append( ";\n" );
-			stringBuilder.append( "\t" ).append( "println@Console(s)();\n" );
-
+			stringBuilder.append( "\n[ " ).append( operatationDeclaration.id() ).append( "( request )( response ){ \n" );
 			TypeDefinition typeDefinition = ( ( RequestResponseOperationDeclaration ) operatationDeclaration ).responseType();
 			convertTypes( typeDefinition, stringBuilder, "dummyResponse" );
-			stringBuilder.append( "response<<dummyResponse\n" );
-			stringBuilder.append( "\n}]{nullProcess}\n" );
+			stringBuilder.append( "\tresponse << dummyResponse\n" );
+			stringBuilder.append( "} ] { nullProcess }\n\n" );
 		}
 
 	}
@@ -152,14 +115,16 @@ public class JolieDummyDocumentCreator
 				}
 			} else {
 				//get cardinality indexes. if maximum cardinality is considerably big (more than 5), print only first 5 entries; or print less otherwise; don't print cardinality, if it equals 1
-				int typeCardinality = ( typeInlineDefinition.cardinality().max() > 5 ? 5 : typeInlineDefinition.cardinality().max() );
+				int typeCardinality = ( typeInlineDefinition.cardinality().max() > MAX_ARRAY_ITEMS ? MAX_ARRAY_ITEMS : typeInlineDefinition.cardinality().max() );
 				for ( int cardinalityIndex = 0; cardinalityIndex < typeCardinality; cardinalityIndex++ ) {
-					String cardinalityString = typeCardinality == 1 ? "" : "[" + String.valueOf( cardinalityIndex ) + "]";
+					String cardinalityString = typeCardinality == 1 ? "" : "[ " + String.valueOf( cardinalityIndex ) + " ]";
 					if ( !( typeInlineDefinition.nativeType().id().equals( "void" ) ) ) {
 						if ( typeInlineDefinition.nativeType().id().equals( "int" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "42;\n" );
 						} else if ( typeInlineDefinition.nativeType().id().equals( "double" ) ) {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "1.54;\n" );
+						} else if ( typeInlineDefinition.nativeType().id().equals( "long" ) ) {
+							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "424242L;\n" );
 						} else {
 							stringBuilder.append( "\t" + nameVariable ).append( cardinalityString ).append( "=" ).append( "\"dummy" ).append( typeDefinition.id() ).append( "\"" ).append( ";\n" );
 						}
