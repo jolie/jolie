@@ -230,6 +230,7 @@ public class SolicitResponseBehaviour implements Behaviour
 				}
 			});
 			
+			channel.registerWaiterFor( ctx, message );
 			channel.send( ctx, message, (Void) -> {
 				log( ctx, "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
@@ -237,7 +238,6 @@ public class SolicitResponseBehaviour implements Behaviour
 				}
 				return null;
 			});
-			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );

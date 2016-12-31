@@ -59,7 +59,7 @@ public class ParallelExecution
 							process,
 							new PostBehaviour()
 						}),
-						true, true
+						true, false
 					)
 				})
 			);

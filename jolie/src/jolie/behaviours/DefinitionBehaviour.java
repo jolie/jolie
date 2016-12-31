@@ -44,7 +44,8 @@ public class DefinitionBehaviour implements Behaviour
 		throws FaultException, ExitingException
 	{
 		if ( process != null ) {
-			process.run( ctx );
+			ctx.executeNext( process );
+//			process.run( ctx );
 		}
 	}
 	

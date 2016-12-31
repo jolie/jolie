@@ -26,9 +26,9 @@ package jolie.runtime;
 import java.util.LinkedList;
 import java.util.List;
 import jolie.ExecutionThread;
+import jolie.behaviours.LinkInBehaviour;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.behaviours.LinkInBehaviour;
 
 
 /** Internal synchronization link for parallel processes.
@@ -45,7 +45,7 @@ public class InternalLink extends AbstractIdentifiableObject
 	public InternalLink( String id )
 	{
 		super( id );
-		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null );
+		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null, true );
 	}
 	
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )

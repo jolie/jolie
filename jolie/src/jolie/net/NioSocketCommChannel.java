@@ -3,16 +3,21 @@ package jolie.net;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.pool.ChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Function;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.util.Helpers;
@@ -26,15 +31,28 @@ public class NioSocketCommChannel extends StreamingCommChannel
 
 	public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf( "CommChannel" );
 
+	static NioSocketCommChannel CreateChannel( ChannelPool get, URI location, AsyncCommProtocol asyncCommProtocol, EventLoopGroup workerGroup )
+	{
+		throw new UnsupportedOperationException( "Not supported yet." );
+	}
+
 	private Bootstrap bootstrap;
-	private static final int SO_LINGER = 10000;
+	protected static final int SO_LINGER = 60 * 1000;
 	protected CompletableFuture<CommMessage> waitingForMsg = null;
 	protected final JolieCommChannelHandler jolieCommChannelHandler;
+	protected Channel channel;
+	private final ChannelPool channelPool;
 
 	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol )
 	{
+		this( location, protocol, null );
+	}
+	
+	public NioSocketCommChannel( URI location, AsyncCommProtocol protocol, ChannelPool pool )
+	{
 		super( location, protocol );
 		jolieCommChannelHandler = new JolieCommChannelHandler( this );
+		channelPool = pool;
 	}
 
 	public static NioSocketCommChannel CreateChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup )
@@ -51,11 +69,41 @@ public class NioSocketCommChannel extends StreamingCommChannel
 				{
 					ChannelPipeline p = ch.pipeline();
 					protocol.setupPipeline( p );
+					channel.setChanel( ch );
 					p.addLast(channel.jolieCommChannelHandler );
 					ch.attr( COMMCHANNEL ).set( channel );
 				}
 			} );
 		return channel;
+	}
+	
+	public static NioSocketCommChannel CreateChannelFromPool( ChannelPool pool, URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup ) throws InterruptedException, ExecutionException
+	{
+		Channel ch = pool.acquire().get();
+		clearChannelPipeline(ch);
+		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol, pool );
+		ChannelPipeline p = ch.pipeline();
+		protocol.setupPipeline( p );
+		channel.setChanel( ch );
+		p.addLast(channel.jolieCommChannelHandler );
+		ch.attr( COMMCHANNEL ).set( channel );
+		return channel;
+	}
+	
+	public void setChanel(Channel ch) {
+		channel = ch;
+		jolieCommChannelHandler.setChannel( ch );
+	}
+	
+	public JolieCommChannelHandler getJolieHandler() {
+		return jolieCommChannelHandler;
+	}
+	
+	protected static void clearChannelPipeline( Channel ch ) {
+		ChannelPipeline pipeline = ch.pipeline();
+		for( Entry<String, ChannelHandler> entry: pipeline.toMap().entrySet()) {
+			pipeline.remove( entry.getValue() );
+		}
 	}
 
 	protected ChannelFuture connect( URI location ) throws InterruptedException
@@ -93,6 +141,8 @@ public class NioSocketCommChannel extends StreamingCommChannel
 				if ( future1.isSuccess() ) {
 					if (completionHandler != null)
 						completionHandler.apply( null );
+				} else if (future1.cause() instanceof RejectedExecutionException) {
+					// Ignore. Interpreter must be shutting down.
 				} else {
 					throw new IOException( future1.cause() );
 				}
@@ -104,5 +154,23 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	{
 		jolieCommChannelHandler.close();
 	}
-
+	
+//	@Override
+//	protected void disposeForInputImpl()
+//		throws IOException
+//	{
+//		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().registerForSelection( this ) );
+//	}
+//
+	@Override
+	protected void releaseImpl()
+		throws IOException
+	{
+		Helpers.lockAndThen( lock, () -> {
+			if (channelPool != null)
+				channelPool.release( channel );
+			else
+				super.releaseImpl();
+		} );
+	}
 }

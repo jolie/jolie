@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import jolie.Interpreter;
 import jolie.StatefulContext;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
@@ -290,18 +291,24 @@ public class SodepProtocol extends AsyncCommProtocol
 		String resourcePath = readString( in );
 		String operationName = readString( in );
 		FaultException fault = null;
+		
 		if ( in.readBoolean() == true ) {
 			fault = readFault( in );
 		}
-		StatefulContext ctx = channel().getContextFor( id );
+		
+		StatefulContext ctx = channel().getContextFor( id, inInputport );
 		updateCharset( ctx );
 		Value value = readValue( in );
-		CommMessage message = new CommMessage( id, operationName, resourcePath, value, fault );
+		CommMessage message = new CommMessage( id, operationName, resourcePath, value, fault, ctx == interpreter.initContext());
 		return new StatefulMessage( message, ctx );
 	}
 
-	public SodepProtocol( VariablePath configurationPath )
+	private final Interpreter interpreter;
+	private final boolean inInputport;
+	public SodepProtocol( VariablePath configurationPath, Interpreter interpreter, boolean inInputport )
 	{
 		super( configurationPath );
+		this.interpreter = interpreter;
+		this.inInputport = inInputport;
 	}
 }

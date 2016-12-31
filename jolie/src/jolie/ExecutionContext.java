@@ -42,6 +42,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * containing mappings for fault handlers and termination/compensation handlers.
 	 */
 	protected class Scope extends AbstractIdentifiableObject implements Cloneable {
+		
 		private final Map< String, Behaviour > faultMap;
 		private final Map< String, Behaviour > compMap;
 
@@ -454,24 +455,13 @@ public abstract class ExecutionContext extends JolieContext
 	
 	public void start()
 	{
-		//assert( !pauseExecution );
-//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "START execution context" );
 		interpreter().runJolieThread( this );
 	}
 	
-	public void executeNext(Behaviour process) {
-//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "Adding process to stack: " + process );
-		processStack.push( process );
-	}
-	
-	public void executeNext(Behaviour ... processes) {
-		for( int i = processes.length  - 1; i >= 0; i-- ) {
-			executeNext( processes[ i ] );
+	public void executeNext(Behaviour ... behaviours) {
+		for( int i = behaviours.length  - 1; i >= 0; i-- ) {
+			processStack.push( behaviours[ i ] );
 		}
-	}
-	
-	public void executeLast(Behaviour process) {
-		processStack.addLast( process );
 	}
 	
 	/**
@@ -480,7 +470,6 @@ public abstract class ExecutionContext extends JolieContext
 	 * in time.
 	 */
 	public void pauseExecution() {
-//		System.out.println( String.format( "[%s][%s] - ", Thread.currentThread(), this ) +  "PAUSE execution context" );
 		pauseExecution = true;
 	}
 

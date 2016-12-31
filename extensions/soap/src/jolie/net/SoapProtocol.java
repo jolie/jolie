@@ -1046,7 +1046,7 @@ public class SoapProtocol extends AsyncCommProtocol
 		FaultException fault = null;
 		Value value = Value.create();
 
-		StatefulContext ctx = channel().getContextFor( CommMessage.GENERIC_ID );
+		StatefulContext ctx = channel().getContextFor( CommMessage.GENERIC_ID, message instanceof FullHttpRequest );
 		
 		try {
 			if ( message.content().readableBytes() > 0 ) {
@@ -1125,12 +1125,12 @@ public class SoapProtocol extends AsyncCommProtocol
 				if ( fault != null && ((FullHttpResponse)message).status() == HttpResponseStatus.INTERNAL_SERVER_ERROR ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault, false );
 			} else /* if ( !message.isError() )*/ { // TODO It appears that a message of type ERROR cannot be returned from the old parser.
 				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault, true );
 			}
 		} catch( SOAPException e ) {
 			throw new IOException( e );
@@ -1138,7 +1138,7 @@ public class SoapProtocol extends AsyncCommProtocol
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
+			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ), message instanceof FullHttpRequest );
 		}
 
 		received = true;

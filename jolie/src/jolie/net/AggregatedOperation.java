@@ -241,7 +241,7 @@ public abstract class AggregatedOperation
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
 				oChannel.send( ctx, requestToAggregated );
 				final CommMessage response = oChannel.recvResponseFor( ctx, requestToAggregated );
-				channel.send( ctx, new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
+				channel.send( ctx, new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault(), response.isRequest() ) );
 			} catch( IOException e ) {
 				channel.send( ctx, CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
 			} finally {

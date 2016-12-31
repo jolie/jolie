@@ -84,7 +84,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 							process,
 							new PostBehaviour( sessionMessage.channel(), sessionMessage.message() )
 						}),
-						true, true
+						true, false
 					),
 					reThrowBehaviour
 				})
@@ -216,6 +216,9 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 			@Override
 			public void run( StatefulContext ctx ) throws FaultException, ExitingException
 			{
+				if (ctx.isKilled())
+					return;
+				
 				try {
 					final CommMessage msg = response;
 					final String fDetails = details;
@@ -233,13 +236,21 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 							ctx.interpreter().fireMonitorEvent(
 								new OperationEndedEvent( ctx, operation.id(), Long.toString( msg.id() ), rStatus, fDetails, monitorValue ));
 						}
+						
+						try {
+							channel.release(); // TODO: what if the channel is in disposeForInput?
+						} catch( IOException e ) {
+							ctx.interpreter().logSevere( e );
+						}
+					
 						return null;
 					});
 
 				} catch( IOException e ) {
 					//Interpreter.getInstance().logSevere( e );
 					throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
-				} 
+				}  finally {
+				}
 
 				if ( fault != null ) {
 					if ( typeMismatch != null ) {

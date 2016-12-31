@@ -77,49 +77,6 @@ public class ScopeBehaviour implements Behaviour
 			{
 				ctx.kill( fault );
 			}
-		}		
-		
-		private class RunScopeBehaviour extends SimpleBehaviour {
-			
-			private final Behaviour behaviour;
-
-			public RunScopeBehaviour( Behaviour behaviour )
-			{
-				this.behaviour = behaviour;
-			}
-			
-			@Override
-			public void run( StatefulContext ctx ) throws FaultException, ExitingException
-			{
-				ctx.executeNext( behaviour, terminationBehaviour );
-	//			try {
-	//				p.run( ctx );
-	//				if ( ctx.isKilled() ) {
-	//					shouldMerge = false;
-	//					p = ctx.getCompensation( id );
-	//					if ( p != null ) { // Termination handling
-	//						FaultException f = ctx.killerFault();
-	//						ctx.clearKill();
-	//						this.runScope( p );
-	//						ctx.kill( f );
-	//					}
-	//				}
-	//			} catch( FaultException f ) {
-	//				p = ctx.getFaultHandler( f.faultName(), true );
-	//				if ( p != null ) {
-	//					Value scopeValue =
-	//							new VariablePathBuilder( false )
-	//							.add( ctx.currentScopeId(), 0 )
-	//							.toVariablePath()
-	//							.getValue( ctx );
-	//					scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-	//                                        scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
-	//					this.runScope( p );
-	//				} else {
-	//					fault = f;
-	//				}
-	//			}
-			}
 		}
 		
 		final private ScopeBehaviour parent;
@@ -139,7 +96,7 @@ public class ScopeBehaviour implements Behaviour
 			throws FaultException, ExitingException
 		{
 			replacedExecution = ctx.pushScope( parent.id, this );
-			ctx.executeNext( new RunScopeBehaviour( parent.process), mergeScopeBehaviour);
+			ctx.executeNext( parent.process, terminationBehaviour, mergeScopeBehaviour);
 		}
 		
 		@Override
@@ -168,7 +125,7 @@ public class ScopeBehaviour implements Behaviour
 						.getValue( ctx );
 				scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
 				scopeValue.getFirstChild( Constants.Keywords.DEFAULT_HANDLER_NAME ).setValue( f.faultName() );
-				ctx.executeNext( new RunScopeBehaviour( behaviour ), mergeScopeBehaviour );
+				ctx.executeNext( behaviour, terminationBehaviour, mergeScopeBehaviour );
 			} else {
 				fault = f;
 				ctx.executeNext( mergeScopeBehaviour );

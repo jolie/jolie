@@ -521,7 +521,7 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 
 		encoding = message.headers().get( HttpHeaderNames.ACCEPT_ENCODING );
 		
-		StatefulContext ctx = channel().getContextFor( CommMessage.GENERIC_ID );
+		StatefulContext ctx = channel().getContextFor( CommMessage.GENERIC_ID, inInputPort );
 		
 		if ( message.content().readableBytes() > 0 ) {
 			if ( getParameterVector( ctx, "debug" ).first().intValue() > 0 ) {
@@ -564,11 +564,11 @@ public class XmlRpcProtocol extends AsyncCommProtocol
 			if ( message instanceof FullHttpResponse ) {
 				//fault = new FaultException( "InternalServerError", "" );
 				//TODO support resourcePath
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault, false );
 			} else /* if ( !message.isError() ) */ { // TODO It appears that a message of type ERROR cannot be returned from the old parser.
 				//TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
-				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
+				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault, true );
 			}
 		}
 		received = true;

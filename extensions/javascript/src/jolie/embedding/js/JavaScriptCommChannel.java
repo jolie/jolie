@@ -49,7 +49,7 @@ public class JavaScriptCommChannel extends CommChannel
 	private final Object json;
 
 	@Override
-	public StatefulContext getContextFor( Long id )
+	public StatefulContext getContextFor( Long id, boolean isRequest )
 	{
 		throw new UnsupportedOperationException( "Not supported." );
 	}
@@ -122,7 +122,8 @@ public class JavaScriptCommChannel extends CommChannel
 				msg.message().operationName(),
 				msg.message().resourcePath(),
 				value,
-				null
+				null,
+				false
 			);
 		} else {
 			response = CommMessage.createEmptyResponse( msg.message() );

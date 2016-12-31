@@ -162,6 +162,7 @@ public class NotificationBehaviour implements Behaviour
 
 			log( ctx.interpreter(), "SENDING", message );
 
+			channel.registerWaiterFor( ctx, message );
 			ctx.executeNext(new NotificationOnAckBehaviour(channel, message),
 				new SimpleBehaviour()
 				{
@@ -177,7 +178,6 @@ public class NotificationBehaviour implements Behaviour
 					}
 				}
 			});
-			
 			channel.send( ctx, message, ( Void ) -> {
 				log( ctx.interpreter(), "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {

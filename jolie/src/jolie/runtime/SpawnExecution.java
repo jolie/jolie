@@ -63,13 +63,13 @@ public class SpawnExecution
 				@Override
 				public void onSessionExecuted( StatefulContext session )
 				{
-					terminationNotify( (SpawnedContext)session );
+					terminationNotify( SpawnedContext.this );
 				}
 
 				@Override
 				public void onSessionError( StatefulContext session, FaultException fault )
 				{
-					terminationNotify( (SpawnedContext)session );
+					terminationNotify( SpawnedContext.this );
 				}
 			});
 			
@@ -121,8 +121,6 @@ public class SpawnExecution
 			if ( parentSpawnProcess.inPath() != null ) {
 				parentSpawnProcess.inPath().getValueVector( context.state().root() ).get( childContext.index )
 					.deepCopy( parentSpawnProcess.inPath().getValueVector( childContext.state().root() ).first() );
-				Object value =  parentSpawnProcess.inPath().getValueVector( childContext.state().root() );
-				value = null;
 			}
 			latch.countDown();
 			if (latch.getCount() == 0)

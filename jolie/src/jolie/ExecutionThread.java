@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import jolie.behaviours.Behaviour;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.SessionMessage;
@@ -37,7 +38,6 @@ import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.VariablePath;
-import jolie.behaviours.Behaviour;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -423,7 +423,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		Thread currThread = Thread.currentThread();
 		if ( currThread instanceof JolieExecutorThread ) {
-			return ((JolieExecutorThread)currThread).executionThread();
+			//return ((JolieExecutorThread)currThread).executionThread();
 		} else if ( currThread instanceof CommChannelHandler ) {
 			return ((CommChannelHandler)currThread).executionThread();
 		}
@@ -465,7 +465,7 @@ public abstract class ExecutionThread extends JolieThread
 	public final void run()
 	{
 		JolieExecutorThread t = JolieExecutorThread.currentThread();
-		t.setExecutionThread( this );
+		//t.setExecutionThread( this );
 		t.setContextClassLoader( interpreter().getClassLoader() );
 		runProcess();
 	}

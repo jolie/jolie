@@ -130,12 +130,9 @@ import jolie.util.Pair;
 						interpreter().logUnhandledFault( f );
 						throw f;
 					} else {
-						Value scopeValue
-							= new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue( this );
+						Value scopeValue = new VariablePathBuilder( false ).add( currentScopeId(), 0 ).toVariablePath().getValue( this );
 						scopeValue.getChildren( f.faultName() ).set( 0, f.value() );
-//						processStack.clear();
 						executeNext( p );
-						continue;
 //						try {
 //							p.run( this );
 //						} catch( ExitingException e ) {

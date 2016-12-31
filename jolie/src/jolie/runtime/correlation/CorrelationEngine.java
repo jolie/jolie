@@ -22,12 +22,13 @@
 package jolie.runtime.correlation;
 
 import jolie.Interpreter;
-import jolie.StatefulContext;
 import jolie.SessionListener;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
+import jolie.runtime.correlation.impl.HashCorrelationEngine;
 import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
 
 /**
@@ -46,8 +47,7 @@ public abstract class CorrelationEngine implements SessionListener
 		HASH {
 			@Override
 			public CorrelationEngine createInstance( Interpreter interpreter ) {
-				//return new HashCorrelationEngine( interpreter );
-				return null;
+				return new HashCorrelationEngine( interpreter );
 			}
 		};
 

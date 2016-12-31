@@ -174,7 +174,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			message.operationName(),
 			getResourcePath(),
 			message.value(),
-			message.fault()
+			message.fault(),
+			message.isRequest()
 		);
 	}
 

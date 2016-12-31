@@ -21,6 +21,10 @@ public abstract class AsyncCommProtocol extends CommProtocol
 	}
 
 	abstract public void setupPipeline( ChannelPipeline pipeline );
+	
+	public void setupWrapablePipeline( ChannelPipeline pipeline ) {
+		setupPipeline( pipeline );
+	};
 
 	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException

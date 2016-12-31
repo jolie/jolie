@@ -29,13 +29,12 @@ import jolie.runtime.FaultException;
 public class SequentialBehaviour implements Behaviour
 {
 	
-	private class SequentialStepBehaviour implements Behaviour
+	private class SequentialBehaviourExecution implements Behaviour
 	{
 		private int currentChild = 0;
 		@Override
 		public void run( StatefulContext ctx ) throws FaultException, ExitingException
 		{
-//			System.out.println( "SEQUENTIAL RUN STEP: [ " + (currentChild+1) + " / " + children.length + " ]" );
 			if (currentChild < children.length ) {
 				final Behaviour child = children[currentChild];
 				if ( ctx.isKilled() && child.isKillable() ) {
@@ -44,8 +43,8 @@ public class SequentialBehaviour implements Behaviour
 				if (currentChild + 1 < children.length )
 					ctx.executeNext( this );
 				ctx.executeNext( child );
+				currentChild++;
 			}
-			currentChild++;
 		}
 
 		@Override
@@ -84,7 +83,7 @@ public class SequentialBehaviour implements Behaviour
 	public void run(StatefulContext ctx)
 		throws FaultException, ExitingException
 	{
-		ctx.executeNext( new SequentialStepBehaviour() );
+		ctx.executeNext( new SequentialBehaviourExecution() );
 	}
 	
 	public boolean isKillable()

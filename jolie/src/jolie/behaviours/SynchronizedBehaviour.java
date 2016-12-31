@@ -66,7 +66,7 @@ public class SynchronizedBehaviour implements Behaviour
 						new InstallBehaviour( faultHandlers ),
 						process
 					}),
-					true, true
+					true, false
 				),
 				finallyBehaviour
 			});

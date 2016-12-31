@@ -50,13 +50,13 @@ public abstract class AbstractCommChannel extends CommChannel
 	private final Object responseRecvMutex = new Object();
 
 	@Override
-	public StatefulContext getContextFor( Long id )
+	public StatefulContext getContextFor( Long id, boolean isRequest )
 	{
 		ExecutionContext ctx = null;
 		synchronized( responseRecvMutex ) {
-//			System.out.println( "[" + Thread.currentThread().getName() + "] GET CONTEXT FOR: " + id );
-			if (parentPort() instanceof OutputPort) {
-				if ( id == CommMessage.GENERIC_ID){
+			if (!isRequest) {
+//				System.out.println( "[" + Thread.currentThread().getName() + "] GET CONTEXT FOR: " + id );
+				if ( id == CommMessage.GENERIC_ID) {
 					ctx = waiters.entrySet().iterator().next().getValue();
 				} else {
 					ctx = waiters.get( id );
@@ -66,6 +66,7 @@ public abstract class AbstractCommChannel extends CommChannel
 				assert false;
 				return null;
 			} else {
+//				System.out.println( "[" + Thread.currentThread().getName() + "] GET CONTEXT FOR: " + id + " (in inputport return init context)");
 				return Interpreter.getInstance().initContext();
 			}
 		}
@@ -161,7 +162,8 @@ public abstract class AbstractCommChannel extends CommChannel
 						"",
 						Constants.ROOT_RESOURCE_PATH,
 						Value.create(),
-						new FaultException( "IOException", e )
+						new FaultException( "IOException", e ),
+						false
 					)
 				);
 				waitingContext.start();
@@ -181,7 +183,8 @@ public abstract class AbstractCommChannel extends CommChannel
 			message.operationName(),
 			message.resourcePath(),
 			message.value(),
-			message.fault()
+			message.fault(),
+			message.isRequest()
 		);
 		try {
 			try {
@@ -232,7 +235,8 @@ public abstract class AbstractCommChannel extends CommChannel
 					message.operationName(),
 					rPath,
 					message.value(),
-					message.fault()
+					message.fault(),
+					message.isRequest()
 				);
 			oChannel.setRedirectionChannel( this );
 			oChannel.setRedirectionMessageId( rMessage.id() );
@@ -333,10 +337,10 @@ public abstract class AbstractCommChannel extends CommChannel
 				lock.unlock();
 				CommMessage response = null;
 				try {
-					response = recvResponseFor( ctx, new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null ) );
+					response = recvResponseFor( ctx, new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null, true ) );
 				} finally {
 					if ( response == null ) {
-						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ) );
+						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ), false );
 					}
 					forwardResponse( ctx, response );
 				}

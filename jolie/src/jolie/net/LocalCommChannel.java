@@ -85,7 +85,7 @@ public class LocalCommChannel extends AbstractCommChannel
 
 		private void messageRecv( CommMessage message )
 		{
-			messageRecv( getContextFor( message.id()), message );
+			messageRecv( getContextFor( message.id(), message.isRequest() ), message );
 		}
 	}
 

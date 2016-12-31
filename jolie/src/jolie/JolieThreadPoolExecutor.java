@@ -33,11 +33,12 @@ public final class JolieThreadPoolExecutor extends ThreadPoolExecutor
 	public JolieThreadPoolExecutor( final ThreadFactory factory )
 	{
 		super(
-			4,
-			8,
+			Runtime.getRuntime().availableProcessors(),
+			Runtime.getRuntime().availableProcessors(),
 			60L,
 			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<>(), // new SynchronousQueue<>(),
+//			new SynchronousQueue<>(),
+			new LinkedBlockingQueue<>(), 
 			factory
 		);
 	}

@@ -5,7 +5,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import jolie.net.ports.OutputPort;
 
 /**
  *
@@ -22,18 +21,22 @@ public class JolieCommChannelHandler extends SimpleChannelInboundHandler<Statefu
 	{
 		this.commChannel = channel;
 	}
+	
+	public void setChannel(Channel channel) {
+		this.channel = channel;
+	}
 
 	@Override
 	public void channelRegistered( ChannelHandlerContext ctx ) throws Exception
 	{
 		super.channelRegistered( ctx );
-		this.channel = ctx.pipeline().channel();
+		//this.channel = ctx.pipeline().channel();
 	}
 
 	@Override
 	protected void channelRead0( ChannelHandlerContext ctx, StatefulMessage msg ) throws Exception
 	{
-		if(commChannel.parentPort() instanceof OutputPort) {
+		if(!msg.message().isRequest()) {
 			this.commChannel.recievedResponse( msg.message() );
 		} else {
 			this.commChannel.messageRecv( msg.context(), msg.message() );
@@ -48,5 +51,13 @@ public class JolieCommChannelHandler extends SimpleChannelInboundHandler<Statefu
 	protected ChannelFuture close() {
 		return this.channel.close();
 	}
+
+	@Override
+	public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause ) throws Exception
+	{
+		cause.printStackTrace();
+		ctx.close();
+	}
+	
 
 };

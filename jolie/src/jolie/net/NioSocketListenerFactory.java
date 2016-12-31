@@ -14,8 +14,8 @@ import jolie.net.ports.InputPort;
 public class NioSocketListenerFactory extends CommListenerFactory
 {
 
-	private final EventLoopGroup bossGroup;
-	private final EventLoopGroup workerGroup;
+	protected final EventLoopGroup bossGroup;
+	protected final EventLoopGroup workerGroup;
 
 	public NioSocketListenerFactory( CommCore commCore, EventLoopGroup bossGroup, EventLoopGroup workerGroup )
 	{

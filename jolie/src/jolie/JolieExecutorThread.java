@@ -28,36 +28,18 @@ package jolie;
  */
 public class JolieExecutorThread extends Thread implements InterpreterThread
 {
-	private ExecutionThread executionThread;
 	private StatefulContext sessionContext;
+	private Interpreter interpreter;
 	
 	public JolieExecutorThread( Runnable r, Interpreter interpreter )
 	{
 		super( r, interpreter.programFilename() + "-" + JolieThread.createThreadName() );
-	}
-	
-	/**
-	 * Sets the <code>ExecutionThread</code> this thread must refer to.
-	 * @param thread the <code>ExecutionThread</code> this thread must refer to for variable state resolution
-	 */
-	public final void setExecutionThread( ExecutionThread thread )
-	{
-		executionThread = thread;
-	}
-	
-	public final void sessionContext( StatefulContext ctx ) 
-	{
-//		System.out.println( "Set Thread SessionContext to: " + this + " for: " + Thread.currentThread() );
-		sessionContext = ctx;
+		this.interpreter = interpreter;
 	}
 
-	/**
-	 * Returns the <code>ExecutionThread</code> this thread is referring to for variable state resolution.
-	 * @return the <code>ExecutionThread</code> this thread is referring to for variable state resolution
-	 */
-	public final ExecutionThread executionThread()
+	public final void sessionContext( StatefulContext ctx ) 
 	{
-		return executionThread;
+		sessionContext = ctx;
 	}
 	
 	public final StatefulContext sessionContext() 
@@ -68,7 +50,7 @@ public class JolieExecutorThread extends Thread implements InterpreterThread
 	@Override
 	public Interpreter interpreter()
 	{
-		return sessionContext.interpreter();
+		return interpreter;
 	}
 	
 	public static JolieExecutorThread currentThread()

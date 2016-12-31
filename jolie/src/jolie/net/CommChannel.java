@@ -241,7 +241,6 @@ public abstract class CommChannel
 	{
 		try {
 			Helpers.lockAndThen( lock, () -> {
-				registerWaiterFor( ctx, message );
 				sendImpl( new StatefulMessage( message, ctx ), completionHandler );
 			});
 		} catch( IOException e ) {
@@ -342,6 +341,6 @@ public abstract class CommChannel
 	protected abstract void closeImpl()
 		throws IOException;
 	
-	public abstract StatefulContext getContextFor( Long id );
+	public abstract StatefulContext getContextFor( Long id, boolean isRequest );
 	
 }

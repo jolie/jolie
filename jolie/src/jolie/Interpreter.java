@@ -193,9 +193,10 @@ public class Interpreter
 		public Thread newThread( Runnable r )
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
-			if ( r instanceof ExecutionThread ) {
-				t.setExecutionThread( (ExecutionThread)r );
-			} else if ( r instanceof StatefulContext ) {
+			//if ( r instanceof ExecutionThread ) {
+				//t.setExecutionThread( (ExecutionThread)r );
+			//} else
+			if ( r instanceof StatefulContext ) {
 				t.sessionContext( (StatefulContext) r );
 			}
 			return t;
@@ -279,7 +280,7 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
-        private boolean check = false;
+    private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
@@ -1155,7 +1156,14 @@ public class Interpreter
 	
 	public Future<?> runJolieThread( Runnable task )
 	{
+		if (exiting)
+			return null;
 		return processExecutorService.submit( task );
+	}
+	
+	public Executor processExecutor()
+	{
+		return processExecutorService;
 	}
 
 	private static final AtomicInteger starterThreadCounter = new AtomicInteger();

@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package jolie.net;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -9,6 +14,12 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
@@ -20,15 +31,14 @@ import jolie.net.protocols.CommProtocol;
  *
  * @author martin
  */
-public class NioSocketListener extends CommListener
+public class WebSocketListener extends CommListener
 {
-
 	private final ServerBootstrap bootstrap;
 	private Channel serverChannel;
 	private final EventLoopGroup bossGroup;
 	private final EventLoopGroup workerGroup;
 
-	public NioSocketListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort, EventLoopGroup bossGroup, EventLoopGroup workerGroup )
+	public WebSocketListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort, EventLoopGroup bossGroup, EventLoopGroup workerGroup )
 	{
 		super( interpreter, protocolFactory, inputPort );
 		bootstrap = new ServerBootstrap();
@@ -55,25 +65,35 @@ public class NioSocketListener extends CommListener
 			bootstrap.group( bossGroup, workerGroup )
 				.channel( NioServerSocketChannel.class )
 				.option( ChannelOption.SO_BACKLOG, 4096 )
-				//.handler( new LoggingHandler( LogLevel.INFO ) )
+				.option( ChannelOption.SO_LINGER, NioSocketCommChannel.SO_LINGER )
+				.handler( new LoggingHandler( LogLevel.INFO ) )
 				.childHandler( new ChannelInitializer<SocketChannel>()
 				{
 
 					@Override
 					protected void initChannel( SocketChannel ch ) throws Exception
 					{
+						//CommProtocol protocol = new WebSocketProtocol(inputPort().protocolConfigurationPath(), inputPort().location(), interpreter(), true );
 						CommProtocol protocol = createProtocol();
 						assert (protocol instanceof AsyncCommProtocol);
+						
+						WebSocketProtocol websocketProtocol = new WebSocketProtocol( inputPort().protocolConfigurationPath(), protocol );
 
-						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
+						WebSocketCommChannel channel = new WebSocketCommChannel( null, (AsyncCommProtocol) protocol );
 						channel.setParentInputPort( inputPort() );
 
-						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
-						((AsyncCommProtocol) protocol).initialize( interpreter().initContext() ); // Use init context to initialize protocol.
-						((AsyncCommProtocol) protocol).setupPipeline( p );
-						channel.jolieCommChannelHandler.setChannel( ch );
-						p.addLast(channel.jolieCommChannelHandler );
+						p.addLast(new HttpServerCodec());
+						p.addLast(new HttpObjectAggregator(65536));
+						p.addLast(new WebSocketServerCompressionHandler());
+						p.addLast(new WebSocketServerProtocolHandler( "/", null, true ));
+						//p.addLast(new WebSocketFrameHandler());
+						
+						websocketProtocol.initialize( interpreter().initContext() ); // Use init context to initialize protocol.
+						websocketProtocol.setupPipeline( p );
+						
+						channel.setChanel( ch );
+						p.addLast(channel.getJolieHandler() );
 						ch.attr( NioSocketCommChannel.COMMCHANNEL ).set( channel );
 					}
 				} );
@@ -88,7 +108,7 @@ public class NioSocketListener extends CommListener
 	public void run()
 	{
 //		try {
-			//serverChannel.closeFuture().sync();
+//			serverChannel.closeFuture().sync();
 //		} catch( InterruptedException ioe ) {
 //			interpreter().logWarning( ioe );
 //		}

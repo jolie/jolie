@@ -228,11 +228,11 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
-		<!--<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>-->
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
-		<!--<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>-->
+		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
-		<!--<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>-->
+		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.local}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.localsocket}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="jar"/>
@@ -245,6 +245,7 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.websocket}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
@@ -260,11 +261,11 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
-		<!--<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>-->
-		<!--<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>-->
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
-		<!--<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>-->
+		<ant antfile="${project.xmlrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2plasma}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie2dummy}/build.xml" inheritall="false" target="clean"/>
@@ -277,6 +278,7 @@ Please make sure that:
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.websocket}/build.xml" inheritall="false" target="jar"/>
 	</target>
     
 	<target name="dist" depends="-init,jar">
@@ -308,13 +310,14 @@ Please make sure that:
 				<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
-				<!--<file file="${project.soap}/dist/soap.jar"/>-->
+				<file file="${project.soap}/dist/soap.jar"/>
 				<file file="${project.sodep}/dist/sodep.jar"/>
-				<!--<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>-->
+				<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>
 				<file file="${project.sodeps}/dist/sodeps.jar"/>
-				<!--<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>-->
+				<file file="${project.xmlrpc}/dist/xmlrpc.jar"/>
 				<file file="${project.localsocket}/dist/localsocket.jar"/>
 				<file file="${project.local}/dist/local.jar"/>
+				<file file="${project.websocket}/dist/websocket.jar"/>
 			</resources>
 		</copy>
 		<copy todir="${dist.jolie}/javaServices" flatten="true">

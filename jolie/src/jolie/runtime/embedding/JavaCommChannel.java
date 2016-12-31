@@ -95,7 +95,7 @@ public class JavaCommChannel extends CommChannel
 	{}
 
 	@Override
-	public StatefulContext getContextFor( Long id )
+	public StatefulContext getContextFor( Long id, boolean isRequest )
 	{
 		throw new UnsupportedOperationException( "Not supported." );
 	}

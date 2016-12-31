@@ -218,7 +218,6 @@ public class HttpProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, StatefulMessage message, List<Object> out ) throws Exception
 		{
 			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( message.context() );
-//			System.out.println( "Sending: " + message.toString() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
 		}
@@ -226,15 +225,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
 		{
-			if ( msg instanceof FullHttpRequest ) {
-				FullHttpRequest request = (FullHttpRequest) msg;
-//				System.out.println( "HTTP request ! (" + request.uri() + ")" );
-			} else if ( msg instanceof FullHttpResponse ) {
-				FullHttpResponse response = (FullHttpResponse) msg;
-//				System.out.println( "HTTP response !" );
-			}
 			StatefulMessage message = recv_internal( msg );
-//			System.out.println( "Decoded Http request for operation: " + message.message().operationName() );
 			out.add( message );
 		}
 	}
@@ -1371,7 +1362,7 @@ public class HttpProtocol extends AsyncCommProtocol
 				}
 			}
 		//}
-		StatefulContext context = channel().getContextFor( decodedMessage.id );
+		StatefulContext context = channel().getContextFor( decodedMessage.id, message instanceof FullHttpRequest );
 		
 		StatefulMessage retVal = new StatefulMessage( null, context );
 		
@@ -1420,11 +1411,11 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		if ( message instanceof FullHttpResponse ) {
 			recv_checkForSetCookie( context, (FullHttpResponse) message, decodedMessage.value );
-			retVal.message( new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null ) );
+			retVal.message( new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null, false ) );
 		} else if ( true /* message.isError() == false */ ) { // TODO message 
 			recv_checkReceivingOperation( context, (FullHttpRequest) message, decodedMessage );
 			recv_checkForMessageProperties( context, (FullHttpRequest) message, decodedMessage );
-			retVal.message( new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null ) );
+			retVal.message( new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null, true ) );
 		}
 
 		if ( retVal.message() != null && "/".equals( retVal.message().resourcePath() ) && channel().parentPort() != null
