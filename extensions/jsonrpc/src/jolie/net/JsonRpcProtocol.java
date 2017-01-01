@@ -293,7 +293,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		if (!value.hasChildren("id")) {
 			StatefulContext genericContext = channel().getContextFor( CommMessage.GENERIC_ID, isRequest );
 			((CommCore.ExecutionContextThread) Thread.currentThread()).executionContext( genericContext );
-			if ( checkBooleanParameter( genericContext , "debug", false ) ) { // TODO figure out what context touse here...
+			if ( checkBooleanParameter( genericContext , "debug", false ) ) {
 				interpreter.logInfo( "[JSON-RPC debug] Receiving:\n" + content.text() );
 			}
 			// JSON-RPC notification mechanism (method call with dropped result)

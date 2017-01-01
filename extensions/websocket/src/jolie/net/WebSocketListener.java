@@ -18,8 +18,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
@@ -66,14 +64,12 @@ public class WebSocketListener extends CommListener
 				.channel( NioServerSocketChannel.class )
 				.option( ChannelOption.SO_BACKLOG, 4096 )
 				.option( ChannelOption.SO_LINGER, NioSocketCommChannel.SO_LINGER )
-				.handler( new LoggingHandler( LogLevel.INFO ) )
 				.childHandler( new ChannelInitializer<SocketChannel>()
 				{
 
 					@Override
 					protected void initChannel( SocketChannel ch ) throws Exception
 					{
-						//CommProtocol protocol = new WebSocketProtocol(inputPort().protocolConfigurationPath(), inputPort().location(), interpreter(), true );
 						CommProtocol protocol = createProtocol();
 						assert (protocol instanceof AsyncCommProtocol);
 						
@@ -87,7 +83,6 @@ public class WebSocketListener extends CommListener
 						p.addLast(new HttpObjectAggregator(65536));
 						p.addLast(new WebSocketServerCompressionHandler());
 						p.addLast(new WebSocketServerProtocolHandler( "/", null, true ));
-						//p.addLast(new WebSocketFrameHandler());
 						
 						websocketProtocol.initialize( interpreter().initContext() ); // Use init context to initialize protocol.
 						websocketProtocol.setupPipeline( p );
