@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Claudio Guidi <guidiclaudio@gmail.com>
+ * Copyright (C) 2014-2016 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
