@@ -36,10 +36,10 @@ public final class LocationParser
 		String ret = "/";
 		String path = uri.getPath();
                 if ( path != null ) {
-		    Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
-		    if ( m.find() ) {
-			ret += path.substring( m.end(), path.length() );
-		    }
+                    Matcher m = RESOURCE_SEPARATOR_PATTERN.matcher( path );
+                    if ( m.find() ) {
+                        ret += path.substring( m.end(), path.length() );
+                    }
                 }
 		return ret;
 	}

@@ -49,14 +49,13 @@ public class AutoChannelFactory extends CommChannelFactory {
 
                 String location = null;
                 if ( !locationMap.containsKey(locationURI) ) {
-		   String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
-		
-		   if ( "ini".equals( ss[0] ) ) {
-			  location = AutoHelper.getLocationFromIni( ss[1] );
-                          locationMap.put(locationURI, location);
-		   } else {
-		          AutoHelper.throwIOException( "unsupported scheme: " + locationURI.getScheme() );
-		   }
+                    String[] ss = locationURI.getSchemeSpecificPart().split( ":", 2 );
+                    if ( "ini".equals( ss[0] ) ) {
+                        location = AutoHelper.getLocationFromIni( ss[1] );
+                        locationMap.put(locationURI, location);
+                    } else {
+                        AutoHelper.throwIOException( "unsupported scheme: " + locationURI.getScheme() );
+                    }
                 } else {
                     location = locationMap.get(locationURI);
                 }
@@ -65,8 +64,8 @@ public class AutoChannelFactory extends CommChannelFactory {
 		AutoHelper.assertIOException( location.equals( Constants.LOCAL_LOCATION_KEYWORD ), "autoconf does not support local locations" );
 		
 		try {
-			URI uri = new URI( location );
-                        return commCore.createCommChannel(uri, port);
+                    URI uri = new URI( location );
+                    return commCore.createCommChannel(uri, port);
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
