@@ -913,20 +913,33 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
+                StringBuffer tmpNodeValue = new StringBuffer();
+                boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
+                       
+                        
 			switch( currNode.getNodeType() ) {
 				case Node.ELEMENT_NODE:
 					childValue = value.getNewChild( currNode.getLocalName() );
 					xmlNodeToValue( childValue, currNode, false );
+                                        foundSubElements = true;
 					break;
 				case Node.TEXT_NODE:
-					if ( !isRecRoot ) {
-						value.setValue( currNode.getNodeValue() );
-					}
+                                        tmpNodeValue.append( currNode.getNodeValue() );
 					break;
 			}
+                        
+                        
 		}
+                
+                if ( !foundSubElements ) {
+                    //B mixed elemeents are not considered
+                    if ( !isRecRoot ) {
+			value.setValue( tmpNodeValue.toString() );
+                    }
+                }
+                
 
 		if ( "xsd:int".equals( type ) ) {
 			value.setValue( value.intValue() );
