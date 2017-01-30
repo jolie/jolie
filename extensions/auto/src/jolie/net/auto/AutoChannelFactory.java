@@ -33,11 +33,13 @@ import jolie.runtime.AndJarDeps;
  *
  * @author Claudio Guidi
  */
-@AndJarDeps({"ini4j.jar"})
+@AndJarDeps({
+	"ini4j.jar"
+})
 public class AutoChannelFactory extends CommChannelFactory {
     
-    CommCore commCore;
-    HashMap<URI,String> locationMap = new HashMap<URI,String>();
+    private final CommCore commCore;
+    private final HashMap<URI,String> locationMap = new HashMap<URI,String>();
 
     public AutoChannelFactory(CommCore commCore) {
         super(commCore);
