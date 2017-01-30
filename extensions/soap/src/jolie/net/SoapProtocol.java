@@ -929,12 +929,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
                                         tmpNodeValue.append( currNode.getNodeValue() );
 					break;
 			}
-                        
-                        
 		}
-                
-                if ( !foundSubElements ) {
-                    //B mixed elemeents are not considered
+               
+                // the content of the root of a mixed element is not extracted
+                if ( !foundSubElements ) {   
                     if ( !isRecRoot ) {
 			value.setValue( tmpNodeValue.toString() );
                     }
@@ -991,7 +989,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		encoding = message.getProperty( "accept-encoding" );
 
 		CommMessage retVal = null;
-		String messageId = message.getPropertyOrEmptyString( "soapaction" );
+		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
 
@@ -1028,6 +1026,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
+                                        
+                                        if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+                                            String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+                                            messageId = soapAction[ soapAction.length - 1 ];
+                                            System.out.println( "Operation from SoapAction:" + messageId );
+                                        }
+                                        
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
 
