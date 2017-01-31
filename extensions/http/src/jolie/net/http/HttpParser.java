@@ -313,17 +313,17 @@ public class HttpParser
 			// parse optional trailer (additional HTTP headers)
 			parseHeaderProperties( message );
 			ByteBuffer b = ByteBuffer.allocate( totalLen );
-			for( byte[] c : chunks )
-				b.put( c );
+			chunks.forEach( b::put );
 			buffer = b.array();
 		} else if ( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
 			blockingRead( stream, buffer, 0, contentLength );
 		} else {
-			HttpMessage.Version version = message.version();
+			HttpMessage.Version version =
+				( message.version() == null ? HttpMessage.Version.HTTP_1_1 : message.version() );
 			if ( // Will the connection be closed?
 				// HTTP 1.1
-				((version == null || version.equals( HttpMessage.Version.HTTP_1_1 ))
+				(version.equals( HttpMessage.Version.HTTP_1_1 )
 				&&
 				message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ))
 				||
