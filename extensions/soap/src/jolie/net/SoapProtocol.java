@@ -1030,7 +1030,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
                                         if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
                                             String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
                                             messageId = soapAction[ soapAction.length - 1 ];
-                                            System.out.println( "Operation from SoapAction:" + messageId );
+											if ( checkBooleanParameter( "debug" ) ) {
+												interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+											}
+                                           
                                         }
                                         
 					// explanation: https://github.com/jolie/jolie/issues/5
