@@ -98,7 +98,9 @@ public class SolicitResponseProcess implements Process
 		}
 		
 		CommChannel channel = null;
+		
 		try {
+
 			CommMessage message =
 				CommMessage.createRequest(
 					operationId,
@@ -106,6 +108,7 @@ public class SolicitResponseProcess implements Process
 					( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 				);
 
+			log( "SENDING", message );
 			if ( types.requestType() != null ) {
 				try {
 					types.requestType().check( message.value() );
@@ -113,12 +116,13 @@ public class SolicitResponseProcess implements Process
 					if ( Interpreter.getInstance().isMonitoring() ) {
 						Interpreter.getInstance().fireMonitorEvent( new OperationCallEvent( operationId, ExecutionThread.currentThread().getSessionId(), Long.valueOf( message.id()).toString(), OperationCallEvent.FAULT, "TypeMismatch:" + e.getMessage(), outputPort.id(), message.value() ) );
 					}
+					
 					throw( e );
 				}
 			}
 
 			channel = outputPort.getCommChannel();
-			log( "SENDING", message );
+
 			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
@@ -183,7 +187,7 @@ public class SolicitResponseProcess implements Process
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
 			Interpreter.getInstance().logSevere( e );
-		} catch( TypeCheckingException e ) {			
+		} catch( TypeCheckingException e ) {	
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationId + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
 			if ( channel != null ) {
