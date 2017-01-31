@@ -871,7 +871,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Method method = send_getRequestMethod( message );
 		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
 		String format = send_getFormat();
-		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+		String contentType = null;
 		StringBuilder headerBuilder = new StringBuilder();
 
 		if ( inInputPort ) {
@@ -884,11 +884,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( method == Method.GET && getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					qsFormat = format = "json";
-					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
+					contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
                         send_appendRequestUserHeader(message, headerBuilder);
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
+		}
+		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+		if (contentType != null) {
+			encodedContent.contentType = contentType;
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
