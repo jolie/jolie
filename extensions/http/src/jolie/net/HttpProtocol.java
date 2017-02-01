@@ -1304,7 +1304,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		recv_checkForStatusCode( message );
-
+		
 		encoding = message.getProperty( "accept-encoding" );
 		headRequest = inInputPort && message.isHead();
 
@@ -1340,6 +1340,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 
 		if ( message.isResponse() ) {
 			recv_checkForSetCookie( message, decodedMessage.value );
+                        decodedMessage.value.getFirstChild("@header").getFirstChild("statusCode").setValue(message.statusCode());
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
 			recv_checkReceivingOperation( message, decodedMessage );

@@ -54,29 +54,29 @@ public class HttpParser
 
 	private static final Pattern cookiesSplitPattern = Pattern.compile( ";" );
 	private static final Pattern cookieNameValueSplitPattern = Pattern.compile( "=" );
-	
+
 	private final HttpScanner scanner;
 	private Scanner.Token token;
-	
+
 	private void getToken()
 		throws IOException
 	{
 		token = scanner.getToken();
 	}
-	
+
 	public HttpParser( InputStream istream )
 		throws IOException
 	{
 		scanner = new HttpScanner( istream, URI.create( "urn:network" ) );
 	}
-	
+
 	private void tokenAssert( Scanner.TokenType type )
 		throws IOException
 	{
 		if ( token.isNot( type ) )
 			throwException();
 	}
-	
+
 	private void throwException()
 		throws IOException
 	{
@@ -116,7 +116,7 @@ public class HttpParser
 			getToken();
 		}
 	}
-	
+
 	private HttpMessage.Cookie parseSetCookie( String cookieString )
 	{
 		String ss[] = cookiesSplitPattern.split( cookieString );
@@ -157,7 +157,7 @@ public class HttpParser
 		}
 		return null;
 	}
-	
+
 	private HttpMessage parseRequest()
 		throws IOException
 	{
@@ -186,7 +186,7 @@ public class HttpParser
 		getToken();
 		if ( !token.isKeywordIgnoreCase( HTTP ) )
 			throw new UnsupportedHttpVersionException( "Invalid HTTP header: expected HTTP version" );
-		
+
 		if ( scanner.currentCharacter() != '/' )
 			throw new UnsupportedHttpVersionException( "Expected HTTP version" );
 
@@ -197,10 +197,10 @@ public class HttpParser
 			message.setVersion( HttpMessage.Version.HTTP_1_1 );
 		else
 			throw new UnsupportedHttpVersionException( "Unsupported HTTP version specified: " + version );
-		
+
 		return message;
 	}
-	
+
 	private HttpMessage parseMessageType()
 		throws IOException
 	{
@@ -210,7 +210,7 @@ public class HttpParser
 			return parseRequest();
 		}
 	}
-	
+
 	private HttpMessage parseResponse()
 		throws IOException
 	{
@@ -229,7 +229,7 @@ public class HttpParser
 
 		return message;
 	}
-	
+
 	private static void blockingRead( InputStream stream, byte[] buffer, int offset, int length )
 		throws IOException
 	{
@@ -244,7 +244,7 @@ public class HttpParser
 	}
 
 	private static final int BLOCK_SIZE = 0x1000; // 4K
-	
+
 	private static byte[] readAll( InputStream stream )
 		throws IOException
 	{
@@ -257,7 +257,7 @@ public class HttpParser
 		}
 		return c.toByteArray();
 	}
-	
+
 	private void readContent( HttpMessage message )
 		throws IOException
 	{
@@ -265,6 +265,7 @@ public class HttpParser
 		int contentLength = -1;
 
 		String p = message.getProperty( "transfer-encoding" );
+
 		if ( p != null && p.startsWith( "chunked" ) ) {
 			// Transfer-encoding has the precedence over Content-Length
 			chunked = true;
@@ -313,17 +314,17 @@ public class HttpParser
 			// parse optional trailer (additional HTTP headers)
 			parseHeaderProperties( message );
 			ByteBuffer b = ByteBuffer.allocate( totalLen );
-			for( byte[] c : chunks )
-				b.put( c );
+			chunks.forEach( b::put );
 			buffer = b.array();
 		} else if ( contentLength > 0 ) {
 			buffer = new byte[ contentLength ];
 			blockingRead( stream, buffer, 0, contentLength );
 		} else {
-			HttpMessage.Version version = message.version();
+			HttpMessage.Version version =	( message.version() == null ? HttpMessage.Version.HTTP_1_1 : message.version() );
+
 			if ( // Will the connection be closed?
 				// HTTP 1.1
-				((version == null || version.equals( HttpMessage.Version.HTTP_1_1 ))
+				(version.equals( HttpMessage.Version.HTTP_1_1 )
 				&&
 				message.getPropertyOrEmptyString( "connection" ).equalsIgnoreCase( "close" ))
 				||
