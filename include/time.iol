@@ -93,9 +93,24 @@ type DateTimeType:void{
 	.second:int
 }
 
+
 type SetNextTimeOutRequest: int {
 	.operation?: string
 	.message?: undefined
+}
+
+type ScheduleTimeOutRequest: int {
+	.operation?: string
+	/*
+	* If the value is not set, it will default to "timeout"
+	*
+	*/
+	.message?: undefined
+	/*
+	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS. 
+	*   If the value is not set or recognized, it will default to MILLISECONDS
+	*/
+	.timeunit?: string
 }
 
 interface TimeInterface{
@@ -106,7 +121,7 @@ interface TimeInterface{
 		  ( default: timeout )
 		*/
 		setNextTimeout(SetNextTimeOutRequest), 
-		setNextTimeoutByDateTime, setNextTimeoutByTime
+		setNextTimeoutByDateTime, setNextTimeoutByTime,
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
@@ -136,7 +151,15 @@ interface TimeInterface{
 		getTimeDiff(GetTimeDiffRequest)(int),
 		getTimeFromMilliSeconds(int)(TimeValuesType),
 		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
-		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
+		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException,
+		/**!
+		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS, .operation default is "timeout".
+		*/
+		scheduleTimeout(ScheduleTimeOutRequest)(long),
+		/**!
+		* Cancels a timeout from a long-value created from #scheduleTimeout
+		*/
+		cancelTimeout(long)(bool),
 }
 
 outputPort Time {
