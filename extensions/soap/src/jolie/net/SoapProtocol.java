@@ -781,7 +781,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
-							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
+						soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
 						// adding forced attributes to operation
 						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
 							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
@@ -800,7 +800,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 										opBody.addAttribute( attrName, attribute.getFirstChild( "value" ).strValue() );
 									}
 								}
-
 							}
 						}
 					}
@@ -838,9 +837,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
 				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 				/*
-                 * soapAction = "SOAPAction: \"" + messageNamespace + "/" +
-                 * message.operationName() + '\"' + HttpUtils.CRLF;
-				 */
+				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
+				* message.operationName() + '\"' + HttpUtils.CRLF;
+				*/
 				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + HttpUtils.CRLF;
 
 				if ( checkBooleanParameter( "compression", true ) ) {
@@ -913,28 +912,28 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
-    StringBuffer tmpNodeValue = new StringBuffer();
-    boolean foundSubElements = false;
+		StringBuffer tmpNodeValue = new StringBuffer();
+		boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
 			switch( currNode.getNodeType() ) {
 				case Node.ELEMENT_NODE:
 					childValue = value.getNewChild( currNode.getLocalName() );
 					xmlNodeToValue( childValue, currNode, false );
-          foundSubElements = true;
+					foundSubElements = true;
 					break;
 				case Node.TEXT_NODE:
-          tmpNodeValue.append( currNode.getNodeValue() );
+					tmpNodeValue.append( currNode.getNodeValue() );
 					break;
 			}
 		}
 
-    // the content of the root of a mixed element is not extracted
-    if ( !foundSubElements ) {
-      if ( !isRecRoot ) {
-			    value.setValue( tmpNodeValue.toString() );
-      }
-    }
+	// the content of the root of a mixed element is not extracted
+	if ( !foundSubElements ) {
+		if ( !isRecRoot ) {
+			value.setValue( tmpNodeValue.toString() );
+		}
+	}
 
 
 		if ( "xsd:int".equals( type ) ) {
@@ -960,18 +959,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	}
 
 	/*
-     * private Schema getRecvMessageValidationSchema() throws IOException {
-     * List< Source > sources = new ArrayList< Source >(); Definition definition
-     * = getWSDLDefinition(); if ( definition != null ) { Types types =
-     * definition.getTypes(); if ( types != null ) { List< ExtensibilityElement
-     * > list = types.getExtensibilityElements(); for( ExtensibilityElement
-     * element : list ) { if ( element instanceof SchemaImpl ) { sources.add(
-     * new DOMSource( ((SchemaImpl)element).getElement() ) ); } } } }
-     * SchemaFactory schemaFactory = SchemaFactory.newInstance(
-     * XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
-     * schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
-     * } catch( SAXException e ) { throw new IOException( e ); } }
-	 */
+	* private Schema getRecvMessageValidationSchema() throws IOException {
+	* List< Source > sources = new ArrayList< Source >(); Definition definition
+	* = getWSDLDefinition(); if ( definition != null ) { Types types =
+	* definition.getTypes(); if ( types != null ) { List< ExtensibilityElement
+	* > list = types.getExtensibilityElements(); for( ExtensibilityElement
+	* element : list ) { if ( element instanceof SchemaImpl ) { sources.add(
+	* new DOMSource( ((SchemaImpl)element).getElement() ) ); } } } }
+	* SchemaFactory schemaFactory = SchemaFactory.newInstance(
+	* XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
+	* schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
+	* } catch( SAXException e ) { throw new IOException( e ); } }
+	*/
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -1000,11 +999,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				/*
-                 * Schema messageSchema = getRecvMessageValidationSchema(); if (
-                 * messageSchema != null ) {
-                 * factory.setIgnoringElementContentWhitespace( true );
-                 * factory.setSchema( messageSchema ); }
-				 */
+				* Schema messageSchema = getRecvMessageValidationSchema(); if (
+				* messageSchema != null ) {
+				* factory.setIgnoringElementContentWhitespace( true );
+				* factory.setSchema( messageSchema ); }
+				*/
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
@@ -1014,24 +1013,24 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				soapMessage.getSOAPPart().setContent( dom );
 
 				/*
-                 * if ( checkBooleanParameter( "debugAfter" ) ) {
-                 * ByteArrayOutputStream tmpStream = new
-                 * ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
-                 * interpreter.logInfo( "[SOAP debug] Receiving:\n" +
-                 * tmpStream.toString() ); }
-				 */
+				* if ( checkBooleanParameter( "debugAfter" ) ) {
+				* ByteArrayOutputStream tmpStream = new
+				* ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
+				* interpreter.logInfo( "[SOAP debug] Receiving:\n" +
+				* tmpStream.toString() ); }
+				*/
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault();
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
 
-          if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-                String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
-                messageId = soapAction[ soapAction.length - 1 ];
-								if ( checkBooleanParameter( "debug" ) ) {
-										interpreter.logInfo( "Operation from SoapAction:" + messageId  );
-					  		}
-          }
+				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+					String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+					messageId = soapAction[ soapAction.length - 1 ];
+						if ( checkBooleanParameter( "debug" ) ) {
+							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+						}
+				}
 
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );

@@ -342,11 +342,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 					if ( (type.getName() != null) && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( parentParticle ) ) );
 					}
-          if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
-                  XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
-                  checkType( restriction.getBaseType() );
-                  jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
-          }
+			if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
+					XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
+					checkType( restriction.getBaseType() );
+					jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
+			}
 				} else if ( type.isComplexType() ) {
 					XSComplexType complexType = type.asComplexType();
 					XSParticle particle;
@@ -447,8 +447,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( type.getName() != null && (type.getName().contains( "date" ) || type.getName().contains( "time" ) || type.getName().contains( "boolean" )) ) {
 			log( Level.WARNING, WARNING_CONVERT_STRING + " Type: " + type.getName() );
-
-
 		}
 	}
 
@@ -459,14 +457,10 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( element.getDefaultValue() != null ) {
 			log( Level.WARNING, WARNING_DEFAULT_ATTRIBUTE + " Element: " + element.getName() );
-
-
 		}
 
 		if ( element.getFixedValue() != null ) {
 			log( Level.WARNING, WARNING_FIXED_ATTRIBUTE + " Element: " + element.getName() );
-
-
 		}
 
 	}
@@ -474,11 +468,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private TypeInlineDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
 	{
 		checkType( type );
-                if ( element.isNillable() ) {
-                        return new TypeInlineDefinition( parsingContext, element.getName(), NativeType.ANY, range );
-                } else {
-                        return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
-                }
+		if ( element.isNillable() ) {
+			return new TypeInlineDefinition( parsingContext, element.getName(), NativeType.ANY, range );
+		} else {
+			return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
+		}
 
 
 
@@ -488,12 +482,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( complexType.isMixed() ) {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, getRange( particle ) );
-
-
 		} else {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.VOID, getRange( particle ) );
-
-
 		}
 	}
 
@@ -501,24 +491,16 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( (modelGroupDecl = term.asModelGroupDecl()) != null ) {
 			return modelGroupDecl.getModelGroup();
-
-
 		} else if ( term.isModelGroup() ) {
 			return term.asModelGroup();
-
-
 		} else {
 			return null;
-
-
 		}
 	}
 
 	private boolean strict()
 	{
 		return strict;
-
-
 	}
 
 	/**
@@ -541,36 +523,24 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( !strict() ) {
 			log( Level.WARNING, WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
-
-
 		} else {
 			throw new ConversionException( ERROR_SIMPLE_TYPE + WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
-
-
 		}
 	}
 
 	private Range getRange( XSParticle part )
 	{
 		int min = 1;
-
-
 		int max = Integer.MAX_VALUE;
-
 
 		if ( part.getMinOccurs() != -1 ) {
 			min = part.getMinOccurs();
-
-
 		}
 
 		if ( part.getMaxOccurs() != -1 ) {
 			max = part.getMaxOccurs();
-
-
 		}
 
 		return new Range( min, max );
-
 	}
 }
