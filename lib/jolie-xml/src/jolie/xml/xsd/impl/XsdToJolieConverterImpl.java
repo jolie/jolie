@@ -198,7 +198,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				}
 				if ( jolieComplexType != null ) {
 					jolieTypes.add( jolieComplexType );
-				} 
+				}
 			}
 		}
 
@@ -242,7 +242,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 			if ( type.isSimpleType() ) { // Element is a simple type
 				checkForNativeType( type, WARNING_1 );
 			} else if ( type.isComplexType() ) { // Element is a complex type
-
 				XSComplexType complexType = type.asComplexType();
 				XSParticle particle;
 				XSContentType contentType;
@@ -343,11 +342,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 					if ( (type.getName() != null) && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( parentParticle ) ) );
 					}
-                                        if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
-                                                XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
-                                                checkType( restriction.getBaseType() );
-                                                jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
-                                        }
+          if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
+                  XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
+                  checkType( restriction.getBaseType() );
+                  jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
+          }
 				} else if ( type.isComplexType() ) {
 					XSComplexType complexType = type.asComplexType();
 					XSParticle particle;
@@ -480,7 +479,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
                 } else {
                         return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
                 }
-		
+
 
 
 	}

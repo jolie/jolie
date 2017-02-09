@@ -43,8 +43,8 @@ public class JolieDummyCreator {
         try{
             JolieDummyCommandLineParser cmdParser= JolieDummyCommandLineParser.create( args, JolieDummyCommandLineParser.class.getClassLoader() );
             Program program = ParsingUtils.parseProgram( cmdParser.programStream(),
-                cmdParser.programFilepath().toURI(), cmdParser.charset(),
-                cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
+            cmdParser.programFilepath().toURI(), cmdParser.charset(),
+            cmdParser.includePaths(), cmdParser.jolieClassLoader(), cmdParser.definedConstants());
             ProgramInspector inspector=ParsingUtils.createInspector( program );
             JolieDummyDocumentCreator document= new JolieDummyDocumentCreator( inspector,cmdParser.programFilepath());
             document.createDocument();

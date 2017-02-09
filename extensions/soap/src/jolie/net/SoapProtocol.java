@@ -152,15 +152,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		private static final String STYLE = "style";
 	}
 
-	/* 
+	/*
      * it forced the insertion of namespaces within the soap message
-     * 
-     * 
+     *
+     *
      * type Attribute: void {
      *	.name: string
      *  .value: string
      * }
-     * 
+     *
      * parameter add_attribute: void {
      *	.envelope: void {
      *      .attribute*: Attribute
@@ -782,7 +782,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
 							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
-						// adding forced attributes to operation 
+						// adding forced attributes to operation
 						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
 							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
 							if ( add_parameter.hasChildren( Parameters.OPERATION ) ) {
@@ -913,31 +913,29 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
-                StringBuffer tmpNodeValue = new StringBuffer();
-                boolean foundSubElements = false;
+    StringBuffer tmpNodeValue = new StringBuffer();
+    boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
-                       
-                        
 			switch( currNode.getNodeType() ) {
 				case Node.ELEMENT_NODE:
 					childValue = value.getNewChild( currNode.getLocalName() );
 					xmlNodeToValue( childValue, currNode, false );
-                                        foundSubElements = true;
+          foundSubElements = true;
 					break;
 				case Node.TEXT_NODE:
-                                        tmpNodeValue.append( currNode.getNodeValue() );
+          tmpNodeValue.append( currNode.getNodeValue() );
 					break;
 			}
 		}
-               
-                // the content of the root of a mixed element is not extracted
-                if ( !foundSubElements ) {   
-                    if ( !isRecRoot ) {
-			value.setValue( tmpNodeValue.toString() );
-                    }
-                }
-                
+
+    // the content of the root of a mixed element is not extracted
+    if ( !foundSubElements ) {
+      if ( !isRecRoot ) {
+			    value.setValue( tmpNodeValue.toString() );
+      }
+    }
+
 
 		if ( "xsd:int".equals( type ) ) {
 			value.setValue( value.intValue() );
@@ -1026,16 +1024,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
-                                        
-                                        if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-                                            String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
-                                            messageId = soapAction[ soapAction.length - 1 ];
-											if ( checkBooleanParameter( "debug" ) ) {
-												interpreter.logInfo( "Operation from SoapAction:" + messageId  );
-											}
-                                           
-                                        }
-                                        
+
+          if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+                String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+                messageId = soapAction[ soapAction.length - 1 ];
+								if ( checkBooleanParameter( "debug" ) ) {
+										interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+					  		}
+          }
+
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
 

@@ -49,8 +49,8 @@ public class JolieDummyDocumentCreator
 	private ProgramInspector inspector;
 	private StringBuilder stringBuilder;
 	private File sourceFile;
-        private final int MAX_ARRAY_ITEMS = 5;
-        private final String mockFilename = "mock_main.ol";
+  private final int MAX_ARRAY_ITEMS = 5;
+  private final String mockFilename = "mock_main.ol";
 
 	public JolieDummyDocumentCreator( ProgramInspector inspector, File sourceFile )
 	{
@@ -63,10 +63,8 @@ public class JolieDummyDocumentCreator
 	public void createDocument()
 		throws FileNotFoundException, IOException
 	{
-
-            
-                String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
-                stringBuilder.append( "main {\n" );
+    String fileContent = new String( Files.readAllBytes( sourceFile.toPath() ) );
+    stringBuilder.append( "main {\n" );
 		for( InputPortInfo inputPortInfo : inspector.getInputPorts() ) {
 			for( OperationDeclaration operationDeclaration : inputPortInfo.operations() ) {
 					convertOperation( operationDeclaration, stringBuilder );
@@ -74,10 +72,8 @@ public class JolieDummyDocumentCreator
 		}
 
 		stringBuilder.append( "}" );
-                int mainIndex = fileContent.indexOf("main");
+    int mainIndex = fileContent.indexOf("main");
 		stringBuilder.insert(0, fileContent.substring(0, mainIndex) );
-                        
-
 		BufferedWriter writer = new BufferedWriter( new FileWriter( mockFilename ) );
 		writer.append( stringBuilder.toString() );
 		writer.flush();
