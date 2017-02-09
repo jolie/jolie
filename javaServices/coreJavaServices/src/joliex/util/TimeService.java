@@ -71,10 +71,9 @@ public class TimeService extends JavaService
 
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
-	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private ConcurrentHashMap<Long, ScheduledFuture> scheduledFutureHashMap = new ConcurrentHashMap<>();
-	private AtomicLong atomicLong = new AtomicLong();
-	private final Object lock = new Object();
+	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private final Map<Long, ScheduledFuture> scheduledFutureHashMap = new ConcurrentHashMap<>();
+	private final AtomicLong atomicLong = new AtomicLong();
 
 	public TimeService()
 	{
