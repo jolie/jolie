@@ -27,13 +27,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicLong;
-
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -71,10 +65,9 @@ public class TimeService extends JavaService
 
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
-	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private ConcurrentHashMap<Long, ScheduledFuture> scheduledFutureHashMap = new ConcurrentHashMap<>();
-	private AtomicLong atomicLong = new AtomicLong();
-	private final Object lock = new Object();
+	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private final Map<Long, ScheduledFuture> scheduledFutureHashMap = new ConcurrentHashMap<>();
+	private final AtomicLong atomicLong = new AtomicLong();
 
 	public TimeService()
 	{
@@ -449,7 +442,7 @@ public class TimeService extends JavaService
 		}
 
 		ScheduledFuture scheduledFuture = executor.schedule( () -> {
-				sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" )));
+			sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" ) ) );
 		}, request.intValue(), unit );
 		scheduledFutureHashMap.put(timeoutId, scheduledFuture);
 		return timeoutId;
