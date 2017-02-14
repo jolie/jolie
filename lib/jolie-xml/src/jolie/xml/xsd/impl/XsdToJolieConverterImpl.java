@@ -164,7 +164,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 			XSComplexType complexType = (XSComplexType) complexNameIter.next();
 			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
 				// avoinding simple type insertion
-				complexTypeNames.add( complexType.getName() + TYPE_SUFFIX );
+				complexTypeNames.add( complexType.getName().replace( "-", "_" ) + TYPE_SUFFIX );
 			}
 		}
 
@@ -384,11 +384,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 			if ( simpleType.isRestriction() ) {
 				XSRestrictionSimpleType restriction = simpleType.asRestriction();
 				checkType( restriction.getBaseType() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName() + TYPE_SUFFIX, XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_") + TYPE_SUFFIX, XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
 
 			} else {
 				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName(), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_"), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
 
 			}
 		}
@@ -412,7 +412,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		if ( lazy ) {
 			jolieType = (TypeInlineDefinition) lazyType;
 		} else {
-			jolieType = createComplexType( complexType, complexType.getName() + TYPE_SUFFIX, particle );
+			jolieType = createComplexType( complexType, complexType.getName().replace("-","_") + TYPE_SUFFIX, particle );
 		}
 
 		if ( contentType.asSimpleType() != null ) {
@@ -469,9 +469,9 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		checkType( type );
 		if ( element.isNillable() ) {
-			return new TypeInlineDefinition( parsingContext, element.getName(), NativeType.ANY, range );
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), NativeType.ANY, range );
 		} else {
-			return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), XsdUtils.xsdToNativeType( type.getName() ), range );
 		}
 
 
