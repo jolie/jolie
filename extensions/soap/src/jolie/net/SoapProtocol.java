@@ -497,8 +497,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			for( XSAttributeUse attrUse : attributeUses ) {
 				name = attrUse.getDecl().getName();
 				if ( (currValue = getAttributeOrNull( value, name )) != null ) {
-					QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
-					element.addAttribute( attrName, currValue.strValue() );
+					String prefix = getPrefixOrNull( attrUse.getDecl() );
+					if ( prefix == null ) {
+						element.addAttribute( envelope.createName( name ), currValue.strValue() );
+					} else {
+						QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
+						element.addAttribute( attrName, currValue.strValue() );
+					}
 				}
 			}
 
