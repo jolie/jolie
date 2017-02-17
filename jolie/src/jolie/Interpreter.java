@@ -1067,16 +1067,27 @@ public class Interpreter
 	private void runCode()
 	{
 		if ( !check ) {
+			SessionThread t;
+			synchronized( this ) {
+				t = initExecutionThread;
+			}
 			try {
-				initExecutionThread.join();
+				if ( t != null ) {
+					t.join();
+				}
 			} catch( InterruptedException e ) {
 				logSevere( e );
 			}
 
 			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
+				synchronized( this ) {
+					t = mainSession;
+				}
 				try {
-					mainSession.start();
-					mainSession.join();
+					if ( t != null ) {
+						mainSession.start();
+						mainSession.join();
+					}
 				} catch( InterruptedException e ) {
 					logSevere( e );
 				}
