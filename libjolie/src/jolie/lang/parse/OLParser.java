@@ -27,6 +27,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -644,8 +645,17 @@ public class OLParser extends AbstractParser
 		
 		if ( includeURL != null ) {
 			try {
-				Path path = Paths.get( includeURL.toURI() );	
-				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), path.getParent().toString(), path.toUri() );
+				String parent;
+				URI uri;
+				try {
+					Path path = Paths.get( includeURL.toURI() );
+					parent = path.getParent().toString();
+					uri = path.toUri();
+				} catch( FileSystemNotFoundException e ) {
+					parent = null;
+					uri = includeURL.toURI();
+				}
+				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), parent, uri );
 			} catch( IOException | URISyntaxException e ) {
 				e.printStackTrace();
 			}
