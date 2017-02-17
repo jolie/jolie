@@ -48,9 +48,9 @@ public class JolieDummyCommandLineParser extends CommandLineParser
 				nameOperation = argumentsList.get( index );
 				index++;
 			}
-//			} else {
-//				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
-//			}
+			//			} else {
+			//				throw new CommandLineException( "Unrecognized command line option: " + argumentsList.get( index ) );
+			//			}
 
 			return index;
 		}

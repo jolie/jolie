@@ -302,8 +302,12 @@ public class OLParser extends AbstractParser
 
 				// SubType id
 				String id = token.content();
-				eatIdentifier( "expected type name" );
-
+				if ( token.is( Scanner.TokenType.STRING ) ) {
+					getToken();
+				} else {
+					eatIdentifier( "expected type name" );
+				}
+				
 				Range cardinality = parseCardinality();
 				eat( Scanner.TokenType.COLON, "expected COLON" );
 
