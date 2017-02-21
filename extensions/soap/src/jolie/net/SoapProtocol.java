@@ -882,8 +882,36 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							}
 						}
 					}
-					
-					valueToTypedSOAP( valueToSend, elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
+					// check if the body has been defined with more than one parts
+					Operation operation = getWSDLPort().getBinding().getPortType().getOperation( message.operationName(), null, null );
+					Message wsdlMessage;
+					List<ExtensibilityElement> listExt;
+					if ( received ) {
+						// We are sending a response
+						wsdlMessage = operation.getOutput().getMessage();
+						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingOutput().getExtensibilityElements();
+					} else {
+						// We are sending a request
+						wsdlMessage = operation.getInput().getMessage();
+						listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingInput().getExtensibilityElements();
+					}
+					boolean partsInBody = false;
+					String partName = "";
+					for( ExtensibilityElement element : listExt ) {
+						if ( element instanceof SOAPBodyImpl ) {
+							SOAPBodyImpl sBodyImpl = (SOAPBodyImpl) element;
+							if ( sBodyImpl.getParts().size() > 0 ) {
+								partName = sBodyImpl.getParts().get( 0 ).toString();
+								partsInBody = true;
+							} 
+						}
+					}
+					if ( !partsInBody ) {
+						valueToTypedSOAP( valueToSend, elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
+					} else {
+						// we support only body with one element as a root
+						valueToTypedSOAP( valueToSend.getFirstChild( partName ), elementDecl, opBody, soapEnvelope, !wrapped, sSet, messageNamespace );
+					}
 				}
 			}
 
