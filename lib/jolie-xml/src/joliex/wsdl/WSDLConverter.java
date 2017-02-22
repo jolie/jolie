@@ -277,11 +277,21 @@ public class WSDLConverter
 				}
 			}
 		} else if ( type instanceof TypeChoiceDefinition ) {
-			writeLine( builder.toString() );
 			TypeChoiceDefinition choice = (TypeChoiceDefinition)type;
-			writeType( choice.left(), true );
-			writeLine( " | " );
-			writeType( choice.right(), true );
+			if ( choice.left() instanceof TypeInlineDefinition 
+				&& !((TypeInlineDefinition) choice.left()).hasSubTypes()
+				&& choice.right() instanceof TypeInlineDefinition 
+				&& !((TypeInlineDefinition) choice.right()).hasSubTypes()) {
+				builder.append( ((TypeInlineDefinition) choice.left()).nativeType().id());
+				builder.append( " | " );
+				builder.append(((TypeInlineDefinition) choice.right()).nativeType().id());
+				writeLine( builder.toString() );
+			} else {
+				writeLine( builder.toString() );
+				writeType( choice.left(), true );
+				writeLine( " | " );
+				writeType( choice.right(), true );
+			}
 		}
 	}
 
