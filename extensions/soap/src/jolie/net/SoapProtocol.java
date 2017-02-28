@@ -652,7 +652,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			for( ExtensibilityElement element : listExt ) {
 				if ( element instanceof SOAPBodyImpl ) {
 					SOAPBodyImpl sBodyImpl = (SOAPBodyImpl) element;
-					if ( sBodyImpl.getParts().size() > 0 ) {
+					if ( sBodyImpl.getParts() != null && sBodyImpl.getParts().size() > 0 ) {
 						String partName = sBodyImpl.getParts().get( 0 ).toString();
 						messageNamespace = soapMessage.getPart( partName ).getElementName().getNamespaceURI();
 					} else {
@@ -900,7 +900,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					for( ExtensibilityElement element : listExt ) {
 						if ( element instanceof SOAPBodyImpl ) {
 							SOAPBodyImpl sBodyImpl = (SOAPBodyImpl) element;
-							if ( sBodyImpl.getParts().size() > 0 ) {
+							if ( sBodyImpl.getParts() != null && sBodyImpl.getParts().size() > 0 ) {
 								partName = sBodyImpl.getParts().get( 0 ).toString();
 								partsInBody = true;
 							} 
