@@ -375,6 +375,10 @@ public class CommandLineParser implements Closeable
 		List< String > programArgumentsList = new ArrayList< String >();
 		LinkedList< String > includeList = new LinkedList< String >();
 		List< String > libList = new ArrayList< String >();
+		List< String > extensionsList = new ArrayList< String >();
+		List< String > channelsExtensionsList = new ArrayList< String >();
+		List< String > embeddingExtensionsList = new ArrayList< String >();
+		List< String > listenersExtensionsList = new ArrayList< String >();
 		int cLimit = -1;
 		int cCache = 100;
 		String pwd = new File( "" ).getCanonicalPath();
@@ -416,6 +420,26 @@ public class CommandLineParser implements Closeable
 				}
 				String[] tmp = pathSeparatorPattern.split( argsList.get( i ) );
 				Collections.addAll( libList, tmp );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-ext".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				extensionsList.add( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-chn".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				channelsExtensionsList.add( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-lis".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				listenersExtensionsList.add( argsList.get( i ) );
+				optionsList.add( argsList.get( i ) );
+			} else if ( "-emb".equals( argsList.get( i ) ) ) {
+				optionsList.add( argsList.get( i ) );
+				i++;
+				embeddingExtensionsList.add( argsList.get( i ) );
 				optionsList.add( argsList.get( i ) );
 			} else if ( "--connlimit".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
@@ -568,6 +592,18 @@ public class CommandLineParser implements Closeable
 		urls.add( new URL( "file:/" ) );
 		libURLs = urls.toArray( new URL[]{} );
 		jolieClassLoader = new JolieClassLoader( libURLs, parentClassLoader );
+		for( String extension : extensionsList ) {
+			jolieClassLoader.setProtocolExtension( extension );
+		}
+		for( String listener : listenersExtensionsList ) {
+			jolieClassLoader.setListenerExtension( listener );
+		}
+		for( String embedding : embeddingExtensionsList ) {
+			jolieClassLoader.setListenerExtension( embedding );
+		}
+		for( String channel : channelsExtensionsList ) {
+			jolieClassLoader.setListenerExtension( channel );
+		}
 		
 		GetOLStreamResult olResult = getOLStream( olFilepath, includeList, jolieClassLoader );
 

@@ -239,6 +239,18 @@ public class JolieClassLoader extends URLClassLoader
 		}
 	}
 	
+	public void setChannelExtension( String extension ) 
+		throws IOException {
+		String[] pair = extensionSplitPattern.split( extension );
+		if ( pair.length == 2 ) {
+			channelExtensionClassNames.put( pair[0], pair[1] );
+		} else {
+			throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+		}
+	}
+	
+	
+	
 	private void checkForEmbeddingExtension( Attributes attrs )
 		throws IOException
 	{
@@ -250,6 +262,16 @@ public class JolieClassLoader extends URLClassLoader
 			} else {
 				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
 			}
+		}
+	}
+	
+	public void setEmbeddingExtension( String extension ) 
+		throws IOException {
+		String[] pair = extensionSplitPattern.split( extension );
+		if ( pair.length == 2 ) {
+			embeddingExtensionClassNames.put( pair[0], pair[1] );
+		} else {
+			throw new IOException( "Invalid extension definition found in manifest file: " + extension );
 		}
 	}
 
@@ -302,6 +324,16 @@ public class JolieClassLoader extends URLClassLoader
 			}
 		}
 	}
+	
+	public void setListenerExtension( String extension ) 
+		throws IOException {
+		String[] pair = extensionSplitPattern.split( extension );
+		if ( pair.length == 2 ) {
+			listenerExtensionClassNames.put( pair[0], pair[1] );
+		} else {
+			throw new IOException( "Invalid extension definition found in manifest file: " + extension );
+		}
+	}
 
 	/**
 	 * Creates and returns a <code>CommProtocolFactory</code>, selecting it
@@ -350,6 +382,16 @@ public class JolieClassLoader extends URLClassLoader
 			} else {
 				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
 			}
+		}
+	}
+	
+	public void setProtocolExtension( String extension ) 
+		throws IOException {
+		String[] pair = extensionSplitPattern.split( extension );
+		if ( pair.length == 2 ) {
+			protocolExtensionClassNames.put( pair[0], pair[1] );
+		} else {
+			throw new IOException( "Invalid extension definition found in manifest file: " + extension );
 		}
 	}
 	
