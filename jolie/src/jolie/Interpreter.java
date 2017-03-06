@@ -277,7 +277,7 @@ public class Interpreter
         private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private final long persistentConnectionTimeout = 1; // 60 * 60 * 1000; // 1 hour
+	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
 	private final long awaitTerminationTimeout = 1; //60 * 1000; // 1 minute
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
