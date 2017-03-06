@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
@@ -276,8 +277,8 @@ public class Interpreter
         private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
-	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
-	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
+	private final long persistentConnectionTimeout = 1; // 60 * 60 * 1000; // 1 hour
+	private final long awaitTerminationTimeout = 1; //60 * 1000; // 1 minute
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -285,7 +286,7 @@ public class Interpreter
 	private final Queue< WeakReference< TimeoutHandler > > timeoutHandlerQueue =
 		new PriorityQueue< WeakReference< TimeoutHandler > >( 11, new TimeoutHandler.Comparator() );
 	
-	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor();
+	private final ExecutorService timeoutHandlerExecutor = Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
 
 	private final String programFilename;
 	private final File programDirectory;
@@ -362,23 +363,29 @@ public class Interpreter
 		}
 	}
 
-	public void addTimeoutHandler( TimeoutHandler handler )
+	public boolean addTimeoutHandler( TimeoutHandler handler )
 	{
-		synchronized( timeoutHandlerQueue ) {
-			timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
-			if ( timeoutHandlerQueue.size() == 1 ) {
-				schedule( new TimerTask() {
-					public void run()
-					{
-						synchronized( timeoutHandlerQueue ) {
-							checkForExpiredTimeoutHandlers();
+		if ( exiting == false ) {
+			synchronized( timeoutHandlerQueue ) {
+				timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
+				if ( timeoutHandlerQueue.size() == 1 ) {
+					schedule( new TimerTask() {
+						public void run()
+						{
+							synchronized( timeoutHandlerQueue ) {
+								checkForExpiredTimeoutHandlers();
+							}
 						}
-					}
-				}, handler.time() - System.currentTimeMillis() + 1 );
-			} else {
-				checkForExpiredTimeoutHandlers();
+					}, handler.time() - System.currentTimeMillis() + 1 );
+				} else {
+					checkForExpiredTimeoutHandlers();
+				}
 			}
+			return true;
+		} else {
+			return false;
 		}
+		
 	}
 
 	/*public void removeTimeoutHandler( TimeoutHandler handler )
@@ -636,12 +643,17 @@ public class Interpreter
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
 		commCore.shutdown();
+		
 		try {
 			nativeExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
 		try {
 			processExecutorService.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
+		try {
+ 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
+ 		} catch ( InterruptedException e ) {}
+		timeoutHandlerExecutor.shutdown();
 		free();
 	}
 
@@ -1085,6 +1097,7 @@ public class Interpreter
 					logSevere( e );
 				}
 			} else {
+				
 				exitingLock.lock();
 				try {
 					exitingCondition.await();

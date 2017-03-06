@@ -137,12 +137,20 @@ public abstract class AbstractCommChannel extends CommChannel
 					receiver.timeout();
 				}
 			};
-			ethread.interpreter().addTimeoutHandler( timeoutHandler );
-			try {
+			
+			if ( ethread.interpreter().addTimeoutHandler( timeoutHandler ) ) {
+				try {
+					keepRun = false;
+					parent.responseRecvMutex.wait();
+				} catch( InterruptedException e ) {
+					Interpreter.getInstance().logSevere( e );
+				}
+			} else {
 				keepRun = false;
-				parent.responseRecvMutex.wait();
-			} catch( InterruptedException e ) {
-				Interpreter.getInstance().logSevere( e );
+				if ( parent.waiters.isEmpty() ) {
+					timeoutHandler = null;
+					parent.responseReceiver = null;
+				}
 			}
 		}
 
@@ -219,7 +227,7 @@ public abstract class AbstractCommChannel extends CommChannel
 			 * otherwise we are messing with correlation set checking.
 			 */
 			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
-
+			
 			CommMessage response;
 			while( keepRun ) {
 				synchronized( parent.responseRecvMutex ) {
