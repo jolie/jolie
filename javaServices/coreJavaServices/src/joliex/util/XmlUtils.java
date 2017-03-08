@@ -104,6 +104,31 @@ public class XmlUtils extends JavaService
 		}
 	}
 
+	public String plainValueToXml( Value request )
+		throws FaultException
+	{
+		try {
+			Document doc = documentBuilderFactory.newDocumentBuilder().newDocument();
+			jolie.xml.XmlUtils.plainValueToDocument( request, doc );
+			
+			Transformer t = transformerFactory.newTransformer();
+			t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+			StringWriter writer = new StringWriter();
+			StreamResult result = new StreamResult( writer );
+			t.transform( new DOMSource( doc ), result );
+			return writer.toString();
+		} catch( ParserConfigurationException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( TransformerConfigurationException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( TransformerException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		}
+	}
+	
 	public Value xmlToValue( Value request )
 		throws FaultException
 	{
@@ -158,6 +183,43 @@ public class XmlUtils extends JavaService
 			documentBuilderFactory.setSchema(null); // reset schema
 		}
 	}
+	
+	public Value xmlToPlainValue( Value request )
+		throws FaultException
+	{
+		try {
+			
+			Value result = Value.create();
+			InputSource src;
+			if ( request.isByteArray() ) {
+				src = new InputSource( new ByteArrayInputStream( request.byteArrayValue().getBytes() ) );
+			} else {
+				src = new InputSource( new StringReader( request.strValue() ) );
+			}
+			
+			if ( request.getFirstChild( "options" ).hasChildren( "charset" ) ) {
+				src.setEncoding( request.getFirstChild( "options" ).getFirstChild( "charset" ).strValue() );
+			}
+		
+			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+			Document doc = builder.parse( src );
+			jolie.xml.XmlUtils.documentToPlainValue( doc, result );
+			
+			return result;
+		} catch( ParserConfigurationException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( SAXException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} catch( IOException e ) {
+			e.printStackTrace();
+			throw new FaultException( e );
+		} finally {
+			documentBuilderFactory.setSchema(null); // reset schema
+		}
+	}
+
 
 	public String transform( Value request )
 		throws FaultException

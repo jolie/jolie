@@ -39,6 +39,12 @@ type XMLToValueRequest:any {
 	}
 }
 
+type XMLToPlainValueRequest:any {
+	.options?:void {
+		.charset?:string // set the encoding. Default: system (eg. for Unix-like OS UTF-8) or header specification
+	}
+}
+
 type ValueToXmlRequest: void {
 	.root: any { ? }
 	.rootNodeName: string
@@ -47,21 +53,40 @@ type ValueToXmlRequest: void {
 	.indent?:bool // Default: false
 }
 
+type PlainValueToXmlRequest: void {
+	.root: any { ? }
+}
+
+
 interface XmlUtilsInterface{
 	RequestResponse:
-		transform( XMLTransformationRequest )(string) throws TransformerException(JavaExceptionType),
+		transform( XMLTransformationRequest )( string ) throws TransformerException(JavaExceptionType),
 		/**!
 		 * Transforms the value contained within the root node into an xml string.
 		 *
 		 * The base value of ValueToXmlRequest.root will be discarded, the rest gets converted recursively
 		 */
-		valueToXml( ValueToXmlRequest )(string) throws IOException(IOExceptionType),
+		valueToXml( ValueToXmlRequest )( string ) throws IOException(IOExceptionType),
+		/**!
+		 * Transforms the plain value contained within the root node into an xml string.
+		 *
+		 * The base value of ValueToXmlRequest.root will be discarded, the rest gets converted recursively
+		 */
+		plainValueToXml( PlainValueToXmlRequest )( string ) throws IOException(IOExceptionType),
 		/**!
 		 * Transforms the base value in XML format (data types string, raw) into a Jolie value
 		 *
 		 * The XML root node will be discarded, the rest gets converted recursively
 		 */
-		xmlToValue( XMLToValueRequest )(undefined) throws IOException(IOExceptionType)
+		xmlToValue( XMLToValueRequest )( undefined ) throws IOException(IOExceptionType),
+
+		/**!
+		 * Transforms the base value in XML format (data types string, raw) into a plain Jolie value
+		 * without any lossing of information
+		 *
+		 * The XML root node will be discarded, the rest gets converted recursively
+		 */
+		xmlToPlainValue( XMLToPlainValueRequest )( undefined ) throws IOException(IOExceptionType)
 }
 
 outputPort XmlUtils {

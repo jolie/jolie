@@ -42,6 +42,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import jolie.runtime.ValueVector;
+import org.w3c.dom.Entity;
+import org.w3c.dom.EntityReference;
+import org.w3c.dom.Notation;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -242,6 +245,69 @@ public class XmlUtils
 			}
 		}
 	}
+	
+	/**
+	 * Transforms a plain jolie.Value object to an XML Document instance.
+	 * @see Document
+	 * @param value the source Value
+	 * @param rootNodeName the name to give to the root node of the document
+	 * @param document the XML document receiving the transformation
+	 */
+	public static void plainValueToDocument( Value value, Document document )
+	{
+		Element root = document.createElement( value.getFirstChild( "root" ).getFirstChild( "Name").strValue() );
+		document.appendChild( root );
+		_plainValueToDocument( value.getFirstChild( "root" ), root, document );
+	}
+	
+	private static void _plainValueToDocument(
+			Value value,
+			Element element,
+			Document doc
+	) {
+		
+		for( int a = 0; a < value.getChildren( "Attribute" ).size(); a++ ) {
+			Value attr = value.getChildren( "Attribute" ).get( a );
+			element.setAttribute(
+					attr.getFirstChild( "Name").strValue(),
+					attr.getFirstChild( "Value" ).strValue()
+				);
+			
+		}
+		for( int n = 0; n < value.getChildren( "Node" ).size(); n++ ) {
+			Value currentNode = value.getChildren( "Node" ).get( n );
+			if ( currentNode.hasChildren( "Element" ) ) {
+				Value elem = currentNode.getFirstChild( "Element" );
+				Element currentElement;
+				currentElement = doc.createElement( elem.getFirstChild( "Name" ).strValue() );
+					element.appendChild( currentElement );
+					_plainValueToDocument( elem, currentElement, doc );
+			}
+			if ( currentNode.hasChildren( "Text" ) ) {
+				Value text = currentNode.getFirstChild( "Text" );
+				element.appendChild( doc.createTextNode( text.getFirstChild( "Value" ).strValue() ) );
+			}
+			if ( currentNode.hasChildren( "CDATA" ) ) {
+				Value cdata = currentNode.getFirstChild( "CDATA" );
+				element.appendChild( doc.createCDATASection( value.getFirstChild( "Value").strValue() ) );
+			}
+			if ( currentNode.hasChildren( "Comment" ) ) {
+				Value comment = currentNode.getFirstChild( "Comment" );
+				element.appendChild( doc.createComment( comment.getFirstChild( "Value" ).strValue() ) );
+			}
+			if ( currentNode.hasChildren( "EntityReference" ) ) {
+				Value entityReference = currentNode.getFirstChild( "EntityReference" );
+				element.appendChild( doc.createEntityReference( entityReference.getFirstChild( "EntityReference" ).strValue() ) );
+			}
+			
+			// TODO: Entity and Notations
+
+		}
+		
+		
+
+
+	}
 
 	/*
 	 * author Claudio Guidi
@@ -332,6 +398,23 @@ public class XmlUtils
 				false
 			);
 		}
+	}
+	
+	/**
+	 * Transforms an XML Document to a Plain Value representation
+	 * a plain value representation maintains all the information of the original document
+	 * @see Document
+	 * @param document the source XML document
+	 * @param value the Value receiving the JOLIE representation of document
+	 */
+	public static void documentToPlainValue( Document document, Value value )
+	{ 
+		value.getFirstChild( "root" ).getFirstChild( "Name" ).setValue(  document.getDocumentElement().getNodeName() );
+		setPlainAttributes( value.getFirstChild( "root" ), document.getDocumentElement() );
+		elementsToPlainSubValues(
+			value.getFirstChild( "root" ),
+			document.getDocumentElement().getChildNodes()
+		);
 	}
         
 
@@ -447,7 +530,7 @@ public class XmlUtils
 			}
 		}
 	}
-
+	
 	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )
 	{
 		Node node;
@@ -476,6 +559,78 @@ public class XmlUtils
 		}
 		if ( builder.length() > 0 ) {
 			value.setValue( builder.toString() );
+		}
+	}
+	
+	private static void setPlainAttributes( Value value, Node node ) {
+		NamedNodeMap map = node.getAttributes();
+		if ( map != null ) {
+			Node attr;
+			for( int a = 0; a < map.getLength(); a++ ) {
+				Value attrNode = value.getChildren( "Attribute" ).get( a );
+				attr = map.item( a );
+				attrNode.getFirstChild( "Name" ).setValue( ( attr.getLocalName() == null ) ? attr.getNodeName() : attr.getLocalName() );
+				attrNode.getFirstChild( "Value" ).setValue( attr.getNodeValue() );
+				attrNode.getFirstChild( "Namespace" ).setValue( attr.getNamespaceURI() );
+				attrNode.getFirstChild( "Prefix" ).setValue( attr.getPrefix() );
+			}
+		}
+	}
+
+	private static void elementsToPlainSubValues( Value value, NodeList list )
+	{
+		Node node;
+		
+		for( int i = 0; i < list.getLength(); i++ ) {
+			Value currentNodeValue = value.getChildren( "Node" ).get( i );
+			node = list.item( i );
+			
+			
+			switch( node.getNodeType() ) {
+			/*case Node.ATTRIBUTE_NODE:
+				Value attrNode = currentNodeValue.getFirstChild( "Attribute" );
+				attrNode.getFirstChild( "Name" ).setValue( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
+				attrNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+				attrNode.getFirstChild( "Namespace" ).setValue( node.getNamespaceURI() );
+				attrNode.getFirstChild( "Prefix" ).setValue( node.getPrefix() );
+				break;*/
+			case Node.ELEMENT_NODE:
+				Value elementNode = currentNodeValue.getFirstChild( "Element" );
+				elementNode.getFirstChild( "Name" ).setValue( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
+				elementNode.getFirstChild( "Namespace" ).setValue( node.getNamespaceURI() );
+				elementNode.getFirstChild( "Prefix" ).setValue( node.getPrefix() );
+				// adding attributes
+				setPlainAttributes( elementNode, node );
+				elementsToPlainSubValues( elementNode, node.getChildNodes() );
+				break;
+			case Node.CDATA_SECTION_NODE:
+				Value cdataNode = currentNodeValue.getFirstChild( "CDATA" );
+				cdataNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+			case Node.TEXT_NODE:
+				Value textNode = currentNodeValue.getFirstChild( "Text" );
+				textNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+				break;
+			case Node.COMMENT_NODE:
+				Value commentNode = currentNodeValue.getFirstChild( "Comment" );
+				commentNode.getFirstChild( "Value" ).setValue( node.getNodeValue());
+				break;
+			case Node.ENTITY_NODE:
+				Value entityNode = currentNodeValue.getFirstChild( "Entity" );
+				entityNode.getFirstChild( "Name" ).setValue( ((Entity) node).getNodeName());
+				entityNode.getFirstChild( "Value" ).setValue( ((Entity) node).getNodeValue() );
+				elementsToPlainSubValues( entityNode, node.getChildNodes() );
+				break;
+			case Node.ENTITY_REFERENCE_NODE:
+				Value entityReferenceNode = currentNodeValue.getFirstChild( "EntityReference" );
+				entityReferenceNode.getFirstChild( "Value" ).setValue( ((EntityReference) node).getNodeValue());
+				elementsToPlainSubValues( entityReferenceNode, node.getChildNodes() );
+				break;
+			case Node.NOTATION_NODE:
+				Value notationNode = currentNodeValue.getFirstChild( "Notation" );
+				notationNode.getFirstChild( "Value" ).setValue( ((Notation) node).getNodeValue() );
+				break;
+			}
+			
 		}
 	}
 }
