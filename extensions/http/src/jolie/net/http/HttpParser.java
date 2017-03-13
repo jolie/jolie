@@ -320,7 +320,8 @@ public class HttpParser
 			buffer = new byte[ contentLength ];
 			blockingRead( stream, buffer, 0, contentLength );
 		} else {
-			HttpMessage.Version version =	( message.version() == null ? HttpMessage.Version.HTTP_1_1 : message.version() );
+			HttpMessage.Version version =
+				( message.version() == null ? HttpMessage.Version.HTTP_1_1 : message.version() );
 
 			if ( // Will the connection be closed?
 				// HTTP 1.1
