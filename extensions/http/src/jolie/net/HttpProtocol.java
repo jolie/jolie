@@ -191,11 +191,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String COMPRESSION_TYPES = "compressionTypes";
 		private static final String REQUEST_COMPRESSION = "requestCompression";
 		private static final String FORMAT = "format";
-                private static final String RESPONSE_HEADER = "responseHeaders";
+		private static final String RESPONSE_HEADER = "responseHeaders";
 		private static final String JSON_ENCODING = "json_encoding";
-                private static final String REQUEST_USER = "request";
-                private static final String RESPONSE_USER = "response";
-                private static final String HEADER_USER = "headers";
+		private static final String REQUEST_USER = "request";
+		private static final String RESPONSE_USER = "response";
+		private static final String HEADER_USER = "headers";
 		private static final String CHARSET = "charset";
 		private static final String CONTENT_TYPE = "contentType";
 		private static final String CONTENT_TRANSFER_ENCODING = "contentTransferEncoding";
@@ -892,7 +892,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
-		if (contentType != null) {
+		if ( contentType != null ) {
 			encodedContent.contentType = contentType;
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
@@ -1340,19 +1340,18 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if ( message.isResponse() ) {
-                        String responseHeader = "";
-                        if( hasParameter( Parameters.RESPONSE_HEADER ) || hasOperationSpecificParameter(inputId, Parameters.RESPONSE_HEADER)){
-                            if(hasOperationSpecificParameter(inputId, Parameters.RESPONSE_HEADER)){
-                                responseHeader = getOperationSpecificStringParameter(inputId, Parameters.RESPONSE_HEADER);
-                            }
-                            else {
-                                responseHeader = getStringParameter(Parameters.RESPONSE_HEADER);
-                            }
-                            for(Entry<String, String> param : message.properties()){
-                                decodedMessage.value.getFirstChild(responseHeader).getFirstChild(param.getKey()).setValue(param.getValue());
-                            }
-                        }
-                        decodedMessage.value.getFirstChild(responseHeader).getFirstChild("statusCode").setValue(message.statusCode());
+			String responseHeader = "";
+			if ( hasParameter( Parameters.RESPONSE_HEADER ) || hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+				if ( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+					responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
+				} else {
+					responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
+				}
+				for( Entry<String, String> param : message.properties() ) {
+					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() ).setValue( param.getValue() );
+				}
+			}
+			decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( "statusCode" ).setValue( message.statusCode() );
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
