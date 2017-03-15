@@ -64,7 +64,7 @@ public class SurfaceCreator
 
 	}
 
-	public void ConvertDocument( String inputPortToCreate )
+	public void ConvertDocument( String inputPortToCreate, boolean noOutputOutputPort, boolean noLocation, boolean noProtocol )
 		throws Exception
 	{
 
@@ -112,7 +112,7 @@ public class SurfaceCreator
 		}
 
 		// create oputput
-		createOutput( inputPort );
+		createOutput( inputPort, noOutputOutputPort, noLocation, noProtocol );
 
 	}
 
@@ -267,7 +267,7 @@ public class SurfaceCreator
 
 	}
 
-	private void createOutput( InputPortInfo inputPort )
+	private void createOutput( InputPortInfo inputPort, boolean noOutputPort, boolean noLocation, boolean noProtocol )
 	{
 		// types creation
 		if ( ow_vector.size() > 0 ) {
@@ -333,10 +333,12 @@ public class SurfaceCreator
 		System.out.println();
 
 		// outputPort definition
-		System.out.println( "outputPort " + inputPort.id() + "{" );
-		System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
-		System.out.println( "\tProtocol:" + inputPort.protocolId() );
-		System.out.println( "\tInterfaces:" + inputPort.id() + "Surface" );
-		System.out.println( "}" );
+		if ( !noOutputPort ) {
+			System.out.println( "outputPort " + inputPort.id() + "{" );
+			if ( !noLocation ) System.out.println( "\tLocation:\"" + inputPort.location() + "\"" );
+			if ( !noProtocol ) System.out.println( "\tProtocol:" + inputPort.protocolId() );
+			System.out.println( "\tInterfaces:" + inputPort.id() + "Surface" );
+			System.out.println( "}" );
+		}
 	}
 }
