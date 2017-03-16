@@ -64,7 +64,7 @@ public class SurfaceCreator
 
 	}
 
-	public void ConvertDocument( String inputPortToCreate, boolean noOutputOutputPort, boolean noLocation, boolean noProtocol )
+	public void ConvertDocument( String inputPortToCreate, boolean noOutputPort, boolean noLocation, boolean noProtocol )
 		throws Exception
 	{
 
@@ -112,7 +112,7 @@ public class SurfaceCreator
 		}
 
 		// create oputput
-		createOutput( inputPort, noOutputOutputPort, noLocation, noProtocol );
+		createOutput( inputPort, noOutputPort, noLocation, noProtocol );
 
 	}
 
