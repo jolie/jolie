@@ -448,7 +448,7 @@ public class TimeService extends JavaService
 		}
 
 		ScheduledFuture scheduledFuture = executor.schedule( () -> {
-				sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" )));
+			sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" ) ) );
 		}, request.intValue(), unit );
 		scheduledFutureHashMap.put(timeoutId, scheduledFuture);
 		return timeoutId;
