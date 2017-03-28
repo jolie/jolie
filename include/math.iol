@@ -38,6 +38,9 @@ RequestResponse:
 	/**! Returns the absolute value of the input integer. */
 	abs(int)(int),
 
+	/**! Returns the absolute value of the input double. */
+	fabs(double)(double),
+
 	/**! Returns a random number d such that 0.0 <= d < 1.0. */
 	random(void)(double),
 
