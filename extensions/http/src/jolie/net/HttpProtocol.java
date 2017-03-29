@@ -1350,8 +1350,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				for( Entry<String, String> param : message.properties() ) {
 					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() ).setValue( param.getValue() );
 				}
+				decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE ).setValue( message.statusCode() );
 			}
-			decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( "statusCode" ).setValue( message.statusCode() );
+			
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {
