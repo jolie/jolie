@@ -951,7 +951,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		if ( !foundSubElements && !nil ) {
 			if ( !isRecRoot ) {
 				value.setValue( tmpNodeValue.toString() );
-				System.out.println( node.getLocalName() + " " + tmpNodeValue.toString() );
 			}
 		}
 
