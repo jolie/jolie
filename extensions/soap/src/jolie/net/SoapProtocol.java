@@ -917,7 +917,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
-		StringBuffer tmpNodeValue = new StringBuffer();
+		StringBuilder tmpNodeValue = new StringBuilder();
 		boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
@@ -933,13 +933,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 		}
 
-	// the content of the root of a mixed element is not extracted
-	if ( !foundSubElements ) {
-		if ( !isRecRoot ) {
-			value.setValue( tmpNodeValue.toString() );
+		// the content of the root of a mixed element is not extracted
+		if ( !foundSubElements ) {
+			if ( !isRecRoot ) {
+				value.setValue( tmpNodeValue.toString() );
+			}
 		}
-	}
-
 
 		if ( "xsd:int".equals( type ) ) {
 			value.setValue( value.intValue() );
