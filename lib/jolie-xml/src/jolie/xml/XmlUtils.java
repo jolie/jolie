@@ -432,19 +432,18 @@ public class XmlUtils
 					break;
 			}
 		}
-		
-                if ( type.equals( "string" ) ) {
-                        value.setValue( builder.toString() );
-                } else if ( type.equals( "int" ) ) {
-                        value.setValue( new Integer( builder.toString() ) );
-                } else if ( type.equals( "long" ) ) {
-                        value.setValue( new Long( builder.toString() ) );
-                } else if ( type.equals( "double" ) ) {
-                        value.setValue( new Double( builder.toString() ) );
-                } else if ( type.equals( "bool" ) ) {
-                        value.setValue( new Boolean( builder.toString() ) );
-                }
-		
+
+		if ( type.equals( "string" ) ) {
+			value.setValue( builder.toString() );
+		} else if ( type.equals( "int" ) ) {
+			value.setValue( new Integer( builder.toString() ) );
+		} else if ( type.equals( "long" ) ) {
+			value.setValue( new Long( builder.toString() ) );
+		} else if ( type.equals( "double" ) ) {
+			value.setValue( new Double( builder.toString() ) );
+		} else if ( type.equals( "bool" ) ) {
+			value.setValue( new Boolean( builder.toString() ) );
+		}
 	}
 
 	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )
