@@ -1064,8 +1064,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						Node n = d.getFirstChild();
 						if ( n != null ) {
 							faultName = n.getLocalName();
-							xmlNodeToValue(
-								faultValue, n, true );
+							xmlNodeToValue( faultValue, n, true );
 						} else {
 							faultValue.setValue( soapFault.getFaultString() );
 						}
