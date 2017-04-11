@@ -22,13 +22,17 @@
 
 package jolie.net;
 
+import com.sun.management.UnixOperatingSystemMXBean;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,6 +70,7 @@ import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.correlation.CorrelationError;
 import jolie.runtime.typing.TypeCheckingException;
+import sun.misc.VM;
 
 /** 
  * Handles the communications mechanisms for an Interpreter instance.
@@ -238,7 +243,6 @@ public class CommCore
 		} else {
 			executorService = Executors.newCachedThreadPool( new CommThreadFactory() );
 		}
-		
 		selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
 		for( int i = 0; i < selectorThreads.length; i++ ) {
 			selectorThreads[ i ] = new SelectorThread( interpreter );
@@ -971,10 +975,15 @@ public class CommCore
 			}
 			
 			for( SelectorThread t : selectorThreads ) {
+				
 				t.selector.wakeup();
 				try {
 					t.join();
 				} catch( InterruptedException e ) {}
+				try {
+					t.selector.close();
+				} catch( IOException e ) {}
+				
 			}
 			
 			try {
@@ -984,6 +993,7 @@ public class CommCore
 			try {
 				executorService.awaitTermination( interpreter.persistentConnectionTimeout(), TimeUnit.MILLISECONDS );
 			} catch( InterruptedException e ) {}
+			
 			threadGroup.interrupt();
 		}
 	}

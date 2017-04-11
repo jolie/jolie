@@ -21,12 +21,15 @@
 
 package jolie;
 
+import com.sun.management.UnixOperatingSystemMXBean;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.lang.ref.WeakReference;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -278,7 +281,7 @@ public class Interpreter
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
-	private final long awaitTerminationTimeout = 1; //60 * 1000; // 1 minute
+	private final long awaitTerminationTimeout = 60 * 1000; // 1 minute
 	// private long persistentConnectionTimeout = 2 * 60 * 1000; // 4 minutes
 	// private long persistentConnectionTimeout = 1;
 
@@ -365,25 +368,27 @@ public class Interpreter
 
 	public boolean addTimeoutHandler( TimeoutHandler handler )
 	{
-		if ( exiting == false ) {
-			synchronized( timeoutHandlerQueue ) {
-				timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
-				if ( timeoutHandlerQueue.size() == 1 ) {
-					schedule( new TimerTask() {
-						public void run()
-						{
-							synchronized( timeoutHandlerQueue ) {
-								checkForExpiredTimeoutHandlers();
+		synchronized( this ) {
+			if ( exiting == false ) {
+				synchronized( timeoutHandlerQueue ) {
+					timeoutHandlerQueue.add( new WeakReference< TimeoutHandler >( handler ) );
+					if ( timeoutHandlerQueue.size() == 1 ) {
+						schedule( new TimerTask() {
+							public void run()
+							{
+								synchronized( timeoutHandlerQueue ) {
+									checkForExpiredTimeoutHandlers();
+								}
 							}
-						}
-					}, handler.time() - System.currentTimeMillis() + 1 );
-				} else {
-					checkForExpiredTimeoutHandlers();
+						}, handler.time() - System.currentTimeMillis() + 1 );
+					} else {
+						checkForExpiredTimeoutHandlers();
+					}
 				}
+				return true;
+			} else {
+				return false;
 			}
-			return true;
-		} else {
-			return false;
 		}
 		
 	}
@@ -642,6 +647,7 @@ public class Interpreter
 		checkForExpiredTimeoutHandlers();
 		processExecutorService.shutdown();
 		nativeExecutorService.shutdown();
+		timeoutHandlerExecutor.shutdown();
 		commCore.shutdown();
 		
 		try {
@@ -653,7 +659,7 @@ public class Interpreter
 		try {
  			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
  		} catch ( InterruptedException e ) {}
-		timeoutHandlerExecutor.shutdown();
+
 		free();
 	}
 
@@ -851,12 +857,10 @@ public class Interpreter
 		optionArgs = cmdParser.optionArgs();
 		programFilename = cmdParser.programFilepath().getName();
 		arguments = cmdParser.arguments();
-        
+        OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		
         commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
-
 		StringBuilder builder = new StringBuilder();
 		builder.append( '[' );
 		builder.append( programFilename );
