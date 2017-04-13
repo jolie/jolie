@@ -103,6 +103,7 @@ import jolie.net.ports.Interface;
 import jolie.net.protocols.SequentialCommProtocol;
 import jolie.net.soap.WSDLCache;
 import jolie.runtime.ByteArray;
+import jolie.runtime.CanUseJars;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -113,9 +114,12 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCastingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Entity;
+import org.w3c.dom.EntityReference;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Notation;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -129,6 +133,7 @@ import org.xml.sax.SAXException;
  * initial support for WSDL documents.
  *
  */
+
 public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
 
@@ -1065,6 +1070,83 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 		return null;
 	}
+	
+	/* repetion of code from XmlUtils. Required because jolie-xml library cannot be directly used by SoapProtocol */
+	private static void setPlainAttributes( Value value, Node node ) {
+		NamedNodeMap map = node.getAttributes();
+		if ( map != null ) {
+			Node attr;
+			for( int a = 0; a < map.getLength(); a++ ) {
+				Value attrNode = value.getChildren( "Attribute" ).get( a );
+				attr = map.item( a );
+				attrNode.getFirstChild( "Name" ).setValue( ( attr.getLocalName() == null ) ? attr.getNodeName() : attr.getLocalName() );
+				attrNode.getFirstChild( "Value" ).setValue( attr.getNodeValue() );
+				attrNode.getFirstChild( "Namespace" ).setValue( attr.getNamespaceURI() );
+				attrNode.getFirstChild( "Prefix" ).setValue( attr.getPrefix() );
+			}
+		}
+	}
+	
+	/* repetion of code from XmlUtils. Required because jolie-xml library cannot be directly used by SoapProtocol */
+	private static void elementsToPlainSubValues( Value value, NodeList list )
+	{
+		Node node;
+		
+		for( int i = 0; i < list.getLength(); i++ ) {
+			Value currentNodeValue = value.getChildren( "Node" ).get( i );
+			node = list.item( i );
+			
+			
+			switch( node.getNodeType() ) {
+			/*case Node.ATTRIBUTE_NODE:
+				Value attrNode = currentNodeValue.getFirstChild( "Attribute" );
+				attrNode.getFirstChild( "Name" ).setValue( ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName() );
+				attrNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+				attrNode.getFirstChild( "Namespace" ).setValue( node.getNamespaceURI() );
+				attrNode.getFirstChild( "Prefix" ).setValue( node.getPrefix() );
+				break;*/
+			case Node.ELEMENT_NODE:
+				Value elementNode = currentNodeValue.getFirstChild( "Element" );
+				String nodeName = ( node.getLocalName() == null ) ? node.getNodeName() : node.getLocalName();
+				elementNode.getFirstChild( "Name" ).setValue( nodeName );
+				elementNode.getFirstChild( "Namespace" ).setValue( node.getNamespaceURI() );
+				elementNode.getFirstChild( "Prefix" ).setValue( node.getPrefix() );
+				// adding attributes
+				setPlainAttributes( elementNode, node );
+				elementsToPlainSubValues( elementNode, node.getChildNodes() );
+				break;
+			case Node.CDATA_SECTION_NODE:
+				Value cdataNode = currentNodeValue.getFirstChild( "CDATA" );
+				cdataNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+			case Node.TEXT_NODE:
+				Value textNode = currentNodeValue.getFirstChild( "Text" );
+				textNode.getFirstChild( "Value" ).setValue( node.getNodeValue() );
+				break;
+			case Node.COMMENT_NODE:
+				Value commentNode = currentNodeValue.getFirstChild( "Comment" );
+				commentNode.getFirstChild( "Value" ).setValue( node.getNodeValue());
+				break;
+			case Node.ENTITY_NODE:
+				Value entityNode = currentNodeValue.getFirstChild( "Entity" );
+				String entityName = ((Entity) node).getNodeName();
+				entityNode.getFirstChild( "Name" ).setValue( entityName );
+				entityNode.getFirstChild( "Value" ).setValue( ((Entity) node).getNodeValue() );
+				elementsToPlainSubValues( entityNode, node.getChildNodes() );
+				break;
+			case Node.ENTITY_REFERENCE_NODE:
+				Value entityReferenceNode = currentNodeValue.getFirstChild( "EntityReference" );
+				String entityReferenceName = ((EntityReference) node).getNodeName();
+				entityReferenceNode.getFirstChild( "Value" ).setValue( ((EntityReference) node).getNodeValue());
+				elementsToPlainSubValues( entityReferenceNode, node.getChildNodes() );
+				break;
+			case Node.NOTATION_NODE:
+				Value notationNode = currentNodeValue.getFirstChild( "Notation" );
+				notationNode.getFirstChild( "Value" ).setValue( ((Notation) node).getNodeValue() );
+				break;
+			}
+			
+		}
+	}
 
 	/*
 	* private Schema getRecvMessageValidationSchema() throws IOException {
@@ -1132,16 +1214,22 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
 
-				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-					String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
-					messageId = soapAction[ soapAction.length - 1 ];
-						if ( checkBooleanParameter( "debug" ) ) {
-							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
-						}
-				}
+					if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+						String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+						messageId = soapAction[ soapAction.length - 1 ];
+							if ( checkBooleanParameter( "debug" ) ) {
+								interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+							}
+					}
 
-					// explanation: https://github.com/jolie/jolie/issues/5
-					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
+					if (  checkBooleanParameter( "plainXmlResponse" ) ) {
+						value.getFirstChild( "root" ).getFirstChild( "Name" ).setValue( "Body" );
+						setPlainAttributes( value.getFirstChild( "root" ), soapValueElement );
+						elementsToPlainSubValues( value.getFirstChild( "root" ), soapValueElement.getChildNodes() );
+					} else {
+						// explanation: https://github.com/jolie/jolie/issues/5
+						xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
+					};
 
 					ValueVector schemaPaths = getParameterVector( "schema" );
 					if ( schemaPaths.size() > 0 ) {
