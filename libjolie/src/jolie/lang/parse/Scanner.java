@@ -54,7 +54,6 @@ public class Scanner
 		RSQUARE,			///< ]
 		LCURLY,				///< {
 		RCURLY,				///< }
-		//DOLLAR,			///< $
 		STRING,				///< "[[:graph:]]*"
 		INCREMENT,			///< ++
 		MINUS,				///< The minus sign -
@@ -102,6 +101,7 @@ public class Scanner
 		INCLUDE,			///< include
 		CONSTANTS,			///< constants
 		POINTS_TO,			///< ->
+		HOOK,				///< =$
 		QUESTION_MARK,		///< ?
 		ARROW,				///< =>
 		DEEP_COPY_LEFT,		///< <<
@@ -612,9 +612,8 @@ public class Scanner
 							retval = new Token( TokenType.CARET );
 						} else if ( ch == '?' ) {
 							retval = new Token( TokenType.QUESTION_MARK );
-						}
-						/*else if ( ch == '$' )
-							retval = new Token( TokenType.DOLLAR );*/
+						} else if ( ch == '$' ) 
+							retval = new Token( TokenType.HOOK );
 						
 						readChar();
 					}
@@ -702,6 +701,9 @@ public class Scanner
 						readChar();
 					} else if ( ch == '>' ) {
 						retval = new Token( TokenType.ARROW );
+						readChar();
+					} else if ( ch == '$' ) {
+						retval = new Token( TokenType.HOOK );
 						readChar();
 					} else
 						retval = new Token( TokenType.ASSIGN );

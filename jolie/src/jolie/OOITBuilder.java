@@ -59,6 +59,7 @@ import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.HookStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -141,6 +142,7 @@ import jolie.process.DivideAssignmentProcess;
 import jolie.process.ExitProcess;
 import jolie.process.ForEachProcess;
 import jolie.process.ForProcess;
+import jolie.process.HookProcess;
 import jolie.process.IfProcess;
 import jolie.process.InitDefinitionProcess;
 import jolie.process.InputOperationProcess;
@@ -1308,6 +1310,7 @@ public class OOITBuilder implements OLVisitor
 				);
 	}
 	
+
 	public void visit( NullProcessStatement n )
 	{
 		currProcess = NullProcess.getInstance();
@@ -1693,6 +1696,15 @@ public class OOITBuilder implements OLVisitor
 		} catch( InvalidIdException e ) {
 			error( n.context(), e );
 		}
+	}
+	
+	public void visit( HookStatement n )
+	{
+		currProcess =
+			new HookProcess(
+				buildVariablePath( n.leftPath() ),
+				buildVariablePath( n.rightPath() )
+				);
 	}
 }
 
