@@ -223,7 +223,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 					final CommMessage msg = response;
 					final String fDetails = details;
 					final int rStatus = responseStatus;
-					channel.send( ctx, response, ( Void ) -> {
+					channel.send( ctx, response, () -> {
 						Value monitorValue;
 						if ( msg.isFault() ) {
 							log( ctx.interpreter(), "SENT FAULT", msg );					
@@ -244,7 +244,8 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 						}
 					
 						return null;
-					});
+					}, () -> {}
+					);
 
 				} catch( IOException e ) {
 					//Interpreter.getInstance().logSevere( e );
@@ -340,7 +341,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 	}
 	
 	@Override
-	public void run(StatefulContext ctx)
+	public void run( StatefulContext ctx )
 		throws FaultException, ExitingException
 	{
 		if ( ctx.isKilled() ) {
@@ -348,12 +349,12 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 		}
 
 		SessionMessage message = ctx.requestMessage( operation, ctx );
-		if ( message == null) {
+		if ( message == null ) {
 			ctx.executeNext( this );
 			ctx.pauseExecution();
 			return;
 		}
-		
+
 		ctx.executeNext( receiveMessage( message, ctx ) );
 	}
 	

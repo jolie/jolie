@@ -29,17 +29,17 @@ import jolie.runtime.VariablePath;
 
 public abstract class AsyncCommProtocol extends CommProtocol
 {
-
 	public AsyncCommProtocol( VariablePath configurationPath )
 	{
 		super( configurationPath );
 	}
 
 	abstract public void setupPipeline( ChannelPipeline pipeline );
-	
-	public void setupWrapablePipeline( ChannelPipeline pipeline ) {
+
+	public void setupWrappablePipeline( ChannelPipeline pipeline )
+	{
 		setupPipeline( pipeline );
-	};
+	}
 
 	@Override
 	public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException
@@ -53,8 +53,6 @@ public abstract class AsyncCommProtocol extends CommProtocol
 		throw new UnsupportedOperationException( "Should not be called." );
 	}
 	
-	public void initialize(StatefulContext ctx) {
-		// Do nothing.
-	}
-
+	public void initialize( StatefulContext ctx )
+	{}
 }

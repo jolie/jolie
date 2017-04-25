@@ -18,7 +18,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.util.Helpers;
 
@@ -131,21 +131,19 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	}
 
 	@Override
-	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler ) throws IOException
+	protected void sendImpl( StatefulMessage msg, Runnable successHandler, Consumer<Throwable> failureHandler ) throws IOException
 	{
 		jolieCommChannelHandler.write( msg )
-			.addListener(( ChannelFuture future1 ) -> {
+			.addListener( f -> {
 				Helpers.lockAndThen( lock, () -> {
-					
+					if ( f.isSuccess() ) {
+						successHandler.run();
+					} else if (f.cause() instanceof RejectedExecutionException) {
+						// Ignore. Interpreter must be shutting down.
+					} else {
+						failureHandler.accept( f.cause() );
+					}
 				});
-				if ( future1.isSuccess() ) {
-					if (completionHandler != null)
-						completionHandler.apply( null );
-				} else if (future1.cause() instanceof RejectedExecutionException) {
-					// Ignore. Interpreter must be shutting down.
-				} else {
-					throw new IOException( future1.cause() );
-				}
 			});
 	}
 

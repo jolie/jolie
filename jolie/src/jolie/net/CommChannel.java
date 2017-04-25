@@ -23,7 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.ExecutionContext;
 import jolie.StatefulContext;
 import jolie.net.ports.InputPort;
@@ -219,11 +219,11 @@ public abstract class CommChannel
 	public abstract CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException;
 	
-		
+	@Deprecated
 	public void send( final StatefulContext ctx, final CommMessage message )
 		throws IOException
 	{
-		send(ctx, message, null);
+		send( ctx, message, () -> {}, () -> {} );
 	}
 	
 	protected abstract void receivedResponse( CommMessage msg );
@@ -236,17 +236,16 @@ public abstract class CommChannel
 	 * @param message the message to send
 	 * @throws java.io.IOException in case of some communication error
 	 */
-	public void send( final StatefulContext ctx, final CommMessage message, Function<Void, Void> completionHandler )
+	public void send( final StatefulContext ctx, final CommMessage message, Runnable successHandler, Consumer<Throwable> failureHandler )
 		throws IOException
 	{
-		try {
-			Helpers.lockAndThen( lock, () -> {
-				sendImpl( new StatefulMessage( message, ctx ), completionHandler );
-			});
-		} catch( IOException e ) {
-			setToBeClosed( true );
-			throw e;
-		}
+		Helpers.lockAndThen( lock, () -> {
+			sendImpl(
+				new StatefulMessage( message, ctx ),
+				successHandler,
+				t -> { setToBeClosed( true ); failureHandler.accept( t ); }
+			);
+		});
 	}
 		
 	public void registerWaiterFor( ExecutionContext ctx, CommMessage request )
@@ -256,7 +255,7 @@ public abstract class CommChannel
 	protected abstract CommMessage recvImpl()
 		throws IOException;
 	
-	protected abstract void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler )
+	protected abstract void sendImpl( StatefulMessage message, Runnable successHandler, Consumer<Throwable> failureHandler )
 		throws IOException;
 
 	/**

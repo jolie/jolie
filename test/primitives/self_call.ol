@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
+include "console.iol"
 
 constants {
 	MyLocation = "socket://localhost:8005"
