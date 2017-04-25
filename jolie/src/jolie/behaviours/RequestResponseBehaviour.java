@@ -59,10 +59,16 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 		}
 		
 		@Override
-		public void run( StatefulContext ctx ) throws FaultException, ExitingException
+		public void run( StatefulContext ctx )
+			throws FaultException, ExitingException
 		{
 			if ( ctx.interpreter().isMonitoring() && !isSessionStarter ) {
-				ctx.interpreter().fireMonitorEvent( new OperationStartedEvent( ctx, operation.id(), Long.toString(sessionMessage.message().id()), sessionMessage.message().value() ) );
+				ctx.interpreter().fireMonitorEvent(	new OperationStartedEvent(
+					ctx,
+					operation.id(),
+					Long.toString( sessionMessage.message().id() ),
+					sessionMessage.message().value()
+				) );
 			}
 
 			log( ctx.interpreter(), "RECEIVED", sessionMessage.message() );

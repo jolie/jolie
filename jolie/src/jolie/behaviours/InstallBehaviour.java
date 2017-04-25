@@ -44,7 +44,7 @@ public class InstallBehaviour implements Behaviour
 	}
 
 	@Override
-	public void run(StatefulContext ctx)
+	public void run( StatefulContext ctx )
 	{
 		for( Pair< String, Behaviour > pair : pairs ) {
 			final Behaviour handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );

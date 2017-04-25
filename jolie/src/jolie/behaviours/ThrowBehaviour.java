@@ -44,7 +44,7 @@ public class ThrowBehaviour implements Behaviour
 	}
 	
 	@Override
-	public void run(StatefulContext ctx)
+	public void run( StatefulContext ctx )
 		throws FaultException
 	{
 		if ( ctx.isKilled() )
