@@ -28,7 +28,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import jolie.behaviours.Behaviour;
 import jolie.behaviours.ScopeBehaviour;
 import jolie.behaviours.TransformationReason;
@@ -46,14 +48,24 @@ import jolie.util.Pair;
 
 public class StatefulContext extends ExecutionContext
 {
-	private static final AtomicLong idCounter = new AtomicLong( 1L );
+	private static class MessageWaiter {
+		final ExecutionContext context;
+		Consumer< SessionMessage > then;
+		public MessageWaiter( ExecutionContext context, Consumer< SessionMessage > then )
+		{
+			this.context = context;
+			this.then = then;
+		}
+	}
+	
+	private static final AtomicLong ID_COUNTER = new AtomicLong( 1L );
 
-	private final long id = idCounter.getAndIncrement();
+	private final long id = ID_COUNTER.getAndIncrement();
 	private final jolie.State state;
-	private final List< SessionListener> listeners = new ArrayList<>();
+	private final List< SessionListener > listeners = new ArrayList<>();
 	protected final Map< CorrelationSet, Deque< SessionMessage>> messageQueues = new HashMap<>();
 	protected final Deque< SessionMessage> uncorrelatedMessageQueue = new ArrayDeque<>();
-	private final Map< String, Deque< ExecutionContext>> messageWaiters = new HashMap<>();
+	private final Map< String, Deque< MessageWaiter > > messageWaiters = new HashMap<>();
 	private boolean executionCompleted = false;
 
 	private final static VariablePath TYPE_MISMATCH_PATH;
@@ -216,9 +228,28 @@ public class StatefulContext extends ExecutionContext
 	{
 		return state;
 	}
+	
+	private class NDMessageWaiter extends MessageWaiter
+	{
+		private NDMessageWaiter( String[] operations, ExecutionContext ctx, Consumer< SessionMessage > then )
+		{
+			super( ctx, then );
+			this.then = m -> {
+				for( String op : operations ) {
+					if ( !op.equals( m.message().operationName() ) ) {
+						Deque< MessageWaiter > waiters = messageWaiters.get( op );
+						if ( waiters != null ) {
+							waiters.remove( this );
+						}
+					}
+				}
+				then.accept( m );
+			};
+		}
+	}
 
 	@Override
-	public SessionMessage requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx )
+	public void requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx, Consumer< SessionMessage > then )
 	{
 		SessionMessage message = null;
 		synchronized( messageQueues ) {
@@ -242,72 +273,66 @@ public class StatefulContext extends ExecutionContext
 			}
 
 			if ( message == null || operation == null ) {
-				operations.entrySet().forEach(
-					entry -> addMessageWaiter( entry.getValue(), ctx )
-				);
+				final String[] ops = new String[ operations.entrySet().size() ];
+				int i = 0;
+				for( Entry< String, InputOperation > entry : operations.entrySet() ) {
+					ops[i++] = entry.getKey();
+				}
+				operations.entrySet().forEach( entry -> addMessageWaiter(
+					entry.getValue(),
+					new NDMessageWaiter( ops, ctx, then )
+				));
 			} else {
 				queue.removeFirst();
-
-				// Check if we unlocked other receives
-				if( !queue.isEmpty() ) {
-					/* 
-						Only unlock/wake-up 1 waitingContext at the time, without 
-						popping the message from the queue. So that the waiting 
-						context can retrieve the message from the queue.
-					*/
+				then.accept( message );
+				while( !queue.isEmpty() ) {
 					final SessionMessage otherMessage = queue.peekFirst();
-					final ExecutionContext waitingContext = getMessageWaiter( otherMessage.message().operationName() );
-					if ( waitingContext != null ) {
-						waitingContext.start();
+					final MessageWaiter waiter = getMessageWaiter( otherMessage.message().operationName() );
+					if ( waiter != null ) { // We found a waiter for the unlocked message
+						waiter.then.accept( message );
+						waiter.context.start();
 					}
 				}
 			}
 		}
-		return message;
 	}
 
 	@Override
-	public SessionMessage requestMessage( InputOperation operation, ExecutionContext ctx )
+	public void requestMessage( InputOperation operation, ExecutionContext ctx, Consumer< SessionMessage > then )
 	{
 		final CorrelationSet cset = interpreter().getCorrelationSetForOperation( operation.id() );
-		final Deque< SessionMessage > queue =
-				cset == null ? uncorrelatedMessageQueue
-				: messageQueues.get( cset );
-		final SessionMessage message;
+		final Deque< SessionMessage > queue = cset == null ? uncorrelatedMessageQueue : messageQueues.get( cset );
 		synchronized( messageQueues ) {
-			message = queue.peekFirst();
+			final SessionMessage message = queue.peekFirst();
 			if ( message == null
 				|| message.message().operationName().equals( operation.id() ) == false
 			) {
-				addMessageWaiter( operation, ctx );
+				ctx.pauseExecution();
+				addMessageWaiter( operation, new MessageWaiter( ctx, then ) );
 			} else {
 				queue.removeFirst();
+				then.accept( message );
 				// Check if we unlocked other receives
-				if( !queue.isEmpty() ) {
+				while( !queue.isEmpty() ) {
 					final SessionMessage otherMessage = queue.peekFirst();
-					final ExecutionContext waitingCtx = getMessageWaiter( otherMessage.message().operationName() );
-					if ( waitingCtx != null ) { // We found a waiter for the unlocked message
-						waitingCtx.start();
+					final MessageWaiter waiter = getMessageWaiter( otherMessage.message().operationName() );
+					if ( waiter != null ) { // We found a waiter for the unlocked message
+						waiter.then.accept( message );
+						waiter.context.start();
 					}
 				}
 			}
 		}
-		return message;
 	}
 
-	private void addMessageWaiter( InputOperation operation, ExecutionContext ctx )
+	private void addMessageWaiter( InputOperation operation, MessageWaiter waiter )
 	{
-		Deque< ExecutionContext > waitersList = messageWaiters.get( operation.id() );
-		if ( waitersList == null ) {
-			waitersList = new ArrayDeque<>();
-			messageWaiters.put( operation.id(), waitersList );
-		}
-		waitersList.addLast( ctx );
+		messageWaiters.computeIfAbsent( operation.id(), new ArrayDeque<>() ).addLast( waiter );
 	}
 
-	private ExecutionContext getMessageWaiter( String operationName )
+	private MessageWaiter getMessageWaiter( String operationName )
 	{
-		Deque< ExecutionContext > waitersList = messageWaiters.get( operationName );
+		Deque< MessageWaiter > waitersList = messageWaiters.get( operationName );
 		if ( waitersList == null || waitersList.isEmpty() ) {
 			return null;
 		}
@@ -322,20 +347,14 @@ public class StatefulContext extends ExecutionContext
 	public void pushMessage( SessionMessage message )
 	{
 		synchronized( messageQueues ) {
-			Deque< SessionMessage > queue;
 			CorrelationSet cset = interpreter().getCorrelationSetForOperation( message.message().operationName() );
-			if ( cset != null ) {
-				queue = messageQueues.get( cset );
-			} else {
-				queue = uncorrelatedMessageQueue;
-			}
+			Deque< SessionMessage > queue = ( cset == null ) ? uncorrelatedMessageQueue : messageQueues.get( cset );
 			
-			ExecutionContext waitingCtx = getMessageWaiter( message.message().operationName() );
-			if ( waitingCtx != null && queue.isEmpty() ) {			
-				queue.addLast( message );
-				waitingCtx.start();
+			MessageWaiter waiter = getMessageWaiter( message.message().operationName() );
+			if ( waiter != null && queue.isEmpty() ) {
+				waiter.then.accept( message );
+				waiter.context.start();
 			} else {
-				// We will add the message to the queue in any case so that it can be fetched from the queue by requestMessage.
 				queue.addLast( message );
 			}
 		}
@@ -347,11 +366,15 @@ public class StatefulContext extends ExecutionContext
 		return Long.toString( id );
 	}
 	
-	private final Object completionLock = new Object(); 
-	public void join() throws InterruptedException {
-		synchronized (completionLock) {
-			if (!executionCompleted)
+	private final Object completionLock = new Object();
+
+	public void join()
+		throws InterruptedException
+	{
+		synchronized( completionLock ) {
+			if ( !executionCompleted ) {
 				completionLock.wait();
+			}
 		}
 	}
 	
@@ -411,18 +434,21 @@ public class StatefulContext extends ExecutionContext
 		return instList;
 	}
 
-	/***
+	/**
 	 * Returns current Context.
+	 *
 	 * @return
 	 * @deprecated
 	 */
 	@Deprecated
-	public static final StatefulContext currentContext() {
+	public static final StatefulContext currentContext()
+	{
 		Thread t = Thread.currentThread();
-		if (t instanceof JolieExecutorThread) {
-			return ((JolieExecutorThread)t).context();
-		} else if (t instanceof CommCore.ExecutionContextThread) 
-			return ((CommCore.ExecutionContextThread)t).executionContext();
+		if ( t instanceof JolieExecutorThread ) {
+			return ((JolieExecutorThread) t).context();
+		} else if ( t instanceof CommCore.ExecutionContextThread ) {
+			return ((CommCore.ExecutionContextThread) t).executionContext();
+		}
 		return null;
 	}
 }

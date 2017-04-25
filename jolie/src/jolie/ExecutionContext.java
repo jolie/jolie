@@ -22,6 +22,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import jolie.behaviours.Behaviour;
 import jolie.behaviours.ScopeBehaviour;
 import jolie.lang.Constants;
@@ -440,7 +441,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract SessionMessage requestMessage( InputOperation operation, ExecutionContext ctx );
+	public abstract void requestMessage( InputOperation operation, ExecutionContext ctx, Consumer< SessionMessage > then );
 
 	/**
 	 * Requests a message from the currently executing session.
@@ -448,7 +449,7 @@ public abstract class ExecutionContext extends JolieContext
 	 * @param ctx
 	 * @return a {@link Future} that will return the received message.
 	 */
-	public abstract SessionMessage requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx);
+	public abstract void requestMessage( Map< String, InputOperation > operations, ExecutionContext ctx, Consumer< SessionMessage > then );
 
 	public abstract String getSessionId();
 	

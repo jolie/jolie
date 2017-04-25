@@ -47,9 +47,7 @@ import jolie.util.Pair;
 
 public class RequestResponseBehaviour implements InputOperationBehaviour
 {
-	
 	private class RequestResponseExecutionBehaviour implements UnkillableBehaviour {
-		
 		private final SessionMessage sessionMessage;
 		private final ReThrowBehaviour reThrowBehaviour = new ReThrowBehaviour();
 		private final String scopeId;
@@ -354,7 +352,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 			m -> ctx.executeNext( receiveMessage( m, ctx ) )
 		);
 	}
-	
+
 	public VariablePath inputVarPath()
 	{
 		return inputVarPath;
@@ -382,5 +380,4 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 	{
 		return new RequestResponseExecutionBehaviour( sessionMessage );
 	}
-	
 }
