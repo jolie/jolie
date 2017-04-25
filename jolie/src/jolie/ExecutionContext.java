@@ -457,7 +457,7 @@ public abstract class ExecutionContext extends JolieContext
 		interpreter().runJolieThread( this );
 	}
 	
-	public void executeNext( Behaviour ... behaviours )
+	public void executeNext( Behaviour... behaviours )
 	{
 		for( int i = behaviours.length  - 1; i >= 0; i-- ) {
 			processStack.push( behaviours[ i ] );

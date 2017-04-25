@@ -273,7 +273,7 @@ public class StatefulContext extends ExecutionContext
 		final Deque< SessionMessage > queue =
 				cset == null ? uncorrelatedMessageQueue
 				: messageQueues.get( cset );
-		SessionMessage message = null;
+		final SessionMessage message;
 		synchronized( messageQueues ) {
 			message = queue.peekFirst();
 			if ( message == null

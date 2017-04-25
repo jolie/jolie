@@ -347,15 +347,12 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 		if ( ctx.isKilled() ) {
 			return;
 		}
-
-		SessionMessage message = ctx.requestMessage( operation, ctx );
-		if ( message == null ) {
-			ctx.executeNext( this );
-			ctx.pauseExecution();
-			return;
-		}
-
-		ctx.executeNext( receiveMessage( message, ctx ) );
+		
+		ctx.requestMessage(
+			operation,
+			ctx,
+			m -> ctx.executeNext( receiveMessage( m, ctx ) )
+		);
 	}
 	
 	public VariablePath inputVarPath()
