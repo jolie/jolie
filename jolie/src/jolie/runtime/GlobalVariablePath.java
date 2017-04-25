@@ -22,9 +22,10 @@
 package jolie.runtime;
 
 
-import jolie.runtime.expression.Expression;
 import jolie.Interpreter;
-import jolie.process.TransformationReason;
+import jolie.StatefulContext;
+import jolie.behaviours.TransformationReason;
+import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
 /**
@@ -60,5 +61,11 @@ public class GlobalVariablePath extends VariablePath
 	protected Value getRootValue()
 	{
 		return Interpreter.getInstance().globalValue();
+	}
+	
+	@Override
+	protected Value getRootValue( StatefulContext ctx ) 
+	{
+		return ctx.interpreter().globalValue();
 	}
 }

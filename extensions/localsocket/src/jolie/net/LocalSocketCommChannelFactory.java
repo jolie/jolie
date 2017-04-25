@@ -20,14 +20,15 @@
  ***************************************************************************/
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
 import cx.ath.matthew.unix.UnixSocket;
 import cx.ath.matthew.unix.UnixSocketAddress;
-import java.io.IOException;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.AndJarDeps;
 
 @AndJarDeps({"unix.jar"})
@@ -38,7 +39,7 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory
 		super( commCore );
 	}
 
-	public CommChannel createChannel( URI location, OutputPort port )
+	public CommChannel createChannel( URI location, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		String path = location.getPath();
@@ -48,7 +49,7 @@ public class LocalSocketCommChannelFactory extends CommChannelFactory
 		UnixSocket socket = new UnixSocket( new UnixSocketAddress( path, location.getHost() != null ? location.getHost().equals( "abs" ) : false ) );
 		CommChannel ret = null;
 		try {
-			ret = new LocalSocketCommChannel( socket, location, port.getProtocol() );
+			ret = new LocalSocketCommChannel( socket, location, port.getProtocol( ctx ) );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}

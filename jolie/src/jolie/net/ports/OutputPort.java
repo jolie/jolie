@@ -29,14 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import jolie.Interpreter;
+import jolie.StatefulContext;
+import jolie.behaviours.AssignmentBehaviour;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.NullBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
-import jolie.process.AssignmentProcess;
-import jolie.process.NullProcess;
-import jolie.process.Process;
-import jolie.process.SequentialProcess;
 import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -54,7 +56,7 @@ import jolie.util.LocationParser;
 public class OutputPort extends AbstractIdentifiableObject implements Port
 {
 	private final Interpreter interpreter;
-	private final Process configurationProcess;
+	private final Behaviour configurationProcess;
 	private Expression locationExpression;
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
@@ -103,7 +105,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.protocolVariablePath = protocolVariablePath;
 		this.iface = iface;
 		this.locationExpression = locationVariablePath;
-		this.configurationProcess = NullProcess.getInstance();
+		this.configurationProcess = NullBehaviour.getInstance();
 	}
 	
 	/**
@@ -120,7 +122,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			Interpreter interpreter,
 			String id,
 			String protocolId,
-			Process protocolConfigurationProcess,
+			Behaviour protocolConfigurationProcess,
 			URI locationURI,
 			Interface iface,
 			boolean isConstant
@@ -145,16 +147,16 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		this.locationExpression = locationVariablePath;
 		
 		// Create the configuration Process
-		Process a = ( locationURI == null ) ? NullProcess.getInstance() : 
-			new AssignmentProcess( this.locationVariablePath, Value.create( locationURI.toString() ) );
+		Behaviour a = ( locationURI == null ) ? NullBehaviour.getInstance() : 
+			new AssignmentBehaviour( this.locationVariablePath, Value.create( locationURI.toString() ) );
 
-		List< Process > children = new LinkedList<>();
+		List< Behaviour > children = new LinkedList<>();
 		children.add( a );
 		if ( protocolId != null ) {
-			children.add( new AssignmentProcess( this.protocolVariablePath, Value.create( protocolId ) ) );
+			children.add(new AssignmentBehaviour( this.protocolVariablePath, Value.create( protocolId ) ) );
 		}
 		children.add( protocolConfigurationProcess );
-		this.configurationProcess = new SequentialProcess( children.toArray( new Process[ children.size() ] ) );
+		this.configurationProcess = new SequentialBehaviour( children.toArray(new Behaviour[ children.size() ] ) );
 	}
 	
 	/**
@@ -164,7 +166,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @return a new message with same operation and value, but updated resource
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommMessage createAggregatedRequest( CommMessage message )
+	public CommMessage createAggregatedRequest(CommMessage message )
 		throws URISyntaxException
 	{
 		return new CommMessage(
@@ -172,7 +174,8 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			message.operationName(),
 			getResourcePath(),
 			message.value(),
-			message.fault()
+			message.fault(),
+			message.isRequest()
 		);
 	}
 
@@ -182,10 +185,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		return iface;
 	}
 
-	public void optimizeLocation()
+	public void optimizeLocation( StatefulContext ctx )
 	{
 		if ( isConstant ) {
-			locationExpression = locationVariablePath.getValue();
+			locationExpression = locationVariablePath.getValue( ctx );
 		}
 	}
 
@@ -201,22 +204,24 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.io.IOException
 	 * @throws java.net.URISyntaxException
 	 */
-	public CommProtocol getProtocol()
+	public CommProtocol getProtocol(StatefulContext ctx)
 		throws IOException, URISyntaxException
 	{
-		String protocolId = protocolVariablePath.getValue().strValue();
+		String protocolId = protocolVariablePath.getValue( ctx ).strValue();
 		if ( protocolId.isEmpty() ) {
 			throw new IOException( "Unspecified protocol for output port " + id() );
 		}
-		return interpreter.commCore().createOutputCommProtocol(
+		AsyncCommProtocol protocol = (AsyncCommProtocol)interpreter.commCore().createOutputCommProtocol(
 			protocolId,
 			protocolVariablePath,
 			new URI( locationExpression.evaluate().strValue() )
 		);
+		protocol.initialize( ctx );
+		return protocol;
 	}
 
 	
-	private CommChannel getCommChannel( boolean forceNew )
+	private CommChannel getCommChannel(StatefulContext ctx,  boolean forceNew )
 		throws URISyntaxException, IOException
 	{
 		CommChannel ret;
@@ -231,13 +236,13 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
-				ret = interpreter.commCore().createCommChannel( uri, this );
+				ret = interpreter.commCore().createCommChannel( uri, this, ctx );
 			} else {
 				// Try reusing an existing channel first
-				String protocol = protocolVariablePath.getValue().strValue();
-				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
+				String protocol = protocolVariablePath.getValue( ctx ).strValue();
+				ret = interpreter.commCore().getPersistentChannel( uri, protocol, ctx );
 				if ( ret == null ) {
-					ret = interpreter.commCore().createCommChannel( uri, this );
+					ret = interpreter.commCore().createCommChannel( uri, this, ctx );
 				}
 			}
 		}
@@ -291,10 +296,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public final CommChannel getNewCommChannel()
+	public final CommChannel getNewCommChannel( StatefulContext ctx )
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( true );
+		return getCommChannel(ctx, true );
 	}
 
 	/**
@@ -304,10 +309,10 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * @throws java.net.URISyntaxException
 	 * @throws java.io.IOException
 	 */
-	public final CommChannel getCommChannel()
+	public final CommChannel getCommChannel( StatefulContext ctx )
 		throws URISyntaxException, IOException
 	{
-		return getCommChannel( false );
+		return getCommChannel( ctx, false );
 	}
 
 	/**
@@ -323,7 +328,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	 * Returns the protocol configuration process of this output port.
 	 * @return the protocol configuration process of this output port
 	 */
-	public Process configurationProcess()
+	public Behaviour configurationProcess()
 	{
 		return configurationProcess;
 	}

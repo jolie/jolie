@@ -76,10 +76,10 @@ public class ConsoleService extends JavaService
 							Value v = Value.create();
 							v.getFirstChild( "token" ).setValue( it.next() );
 							v.setValue( line );
-							sendMessage( CommMessage.createRequest( "in", "/", v ) );
+							sendMessage( context(), CommMessage.createRequest( "in", "/", v ) );
 						}
 					} else {
-						sendMessage( CommMessage.createRequest( "in", "/", Value.create( line ) ) );
+						sendMessage( context(), CommMessage.createRequest( "in", "/", Value.create( line ) ) );
 					}
 				}
 			} catch( ClosedByInterruptException ce ) {

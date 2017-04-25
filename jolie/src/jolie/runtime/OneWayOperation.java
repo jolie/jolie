@@ -41,7 +41,7 @@ public class OneWayOperation extends InputOperation
 		return requestType;
 	}
         
-        public OneWayTypeDescription getOneWayTypeDescription() {
-                return new OneWayTypeDescription(requestType);
-        }
+	public OneWayTypeDescription getOneWayTypeDescription() {
+			return new OneWayTypeDescription(requestType);
+	}
 }

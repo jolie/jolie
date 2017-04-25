@@ -22,13 +22,12 @@
 package jolie.net;
 
 import java.util.HashMap;
-import jolie.net.ports.OutputPort;
 import java.util.Map;
-
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.Interface;
+import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.ClosedVariablePath;
 import jolie.runtime.VariablePath;

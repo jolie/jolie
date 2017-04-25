@@ -24,10 +24,12 @@ package jolie.runtime.embedding;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import jolie.Interpreter;
+import java.util.function.Function;
+import jolie.ExecutionContext;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
+import jolie.net.StatefulMessage;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.JavaService;
 
@@ -37,7 +39,7 @@ import jolie.runtime.JavaService;
 /**
  * @author Fabrizio Montesi
  */
-public class JavaCommChannel extends CommChannel implements PollableCommChannel
+public class JavaCommChannel extends CommChannel
 {
 	private final JavaService javaService;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap<>();
@@ -48,38 +50,27 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	public boolean isReady()
-	{
-		return messages.isEmpty() == false;
-	}
-
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
-
-	@Override
 	public CommChannel createDuplicate()
 	{
 		return new JavaCommChannel( javaService );
 	}
 
-	@Override
-	public void send( CommMessage message )
+	@Override	
+	public void send( StatefulContext ctx, CommMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
-		sendImpl( message );
+		sendImpl( new StatefulMessage( message, ctx ), completionHandler );
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		try {
-			final CommMessage response = javaService.callOperation( message );
-			messages.put( message.id(), response );
+			final CommMessage response = javaService.callOperation( msg.message() );
+			messages.put( msg.message().id(), response );
+			if (completionHandler != null)
+				completionHandler.apply(null);
 		} catch( IllegalAccessException | InvalidIdException e ) {
 			throw new IOException( e );
 		}
@@ -93,7 +84,7 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		return messages.remove( request.id() );
@@ -102,4 +93,22 @@ public class JavaCommChannel extends CommChannel implements PollableCommChannel
 	@Override
 	protected void closeImpl()
 	{}
+
+	@Override
+	public StatefulContext getContextFor( Long id, boolean isRequest )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void receivedResponse( CommMessage msg )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
 }

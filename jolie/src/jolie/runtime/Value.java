@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import jolie.behaviours.TransformationReason;
 import jolie.net.CommChannel;
-import jolie.process.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.typing.TypeCastingException;
 

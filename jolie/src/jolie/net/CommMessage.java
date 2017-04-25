@@ -56,13 +56,14 @@ public class CommMessage implements Serializable
 
 	private static final AtomicLong idCounter = new AtomicLong( 1L );
 	public static final long GENERIC_ID = 0L;
-	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null );
+	public static final CommMessage UNDEFINED_MESSAGE = new CommMessage( GENERIC_ID, "", Constants.ROOT_RESOURCE_PATH, Value.UNDEFINED_VALUE, null, false );
 	
 	private final long id;
 	private final String operationName;
 	private final String resourcePath;
 	private final Value value;
 	private final FaultException fault;
+	private final  boolean isRequest;
 
 	/**
 	 * Returns the resource path of this message.
@@ -111,7 +112,7 @@ public class CommMessage implements Serializable
 	 */
 	public static CommMessage createRequest( String operationName, String resourcePath, Value value )
 	{
-		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null );
+		return new CommMessage( getNewMessageId(), operationName, resourcePath, Value.createDeepCopy( value ), null, true );
 	}
 
 	/**
@@ -133,7 +134,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createResponse( CommMessage request, Value value )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null );
+		return new CommMessage( request.id, request.operationName, "/", Value.createDeepCopy( value ), null, false );
 	}
 
 	/**
@@ -145,7 +146,7 @@ public class CommMessage implements Serializable
 	public static CommMessage createFaultResponse( CommMessage request, FaultException fault )
 	{
 		//TODO support resourcePath
-		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault );
+		return new CommMessage( request.id, request.operationName, "/", Value.create(), fault, false );
 	}
 
 	/**
@@ -156,13 +157,14 @@ public class CommMessage implements Serializable
 	 * @param value the message data to equip the message with
 	 * @param fault the fault to equip the message with
 	 */
-	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault )
+	public CommMessage( long id, String operationName, String resourcePath, Value value, FaultException fault, boolean isRequest )
 	{
 		this.id = id;
 		this.operationName = operationName;
 		this.resourcePath = resourcePath;
 		this.value = value;
 		this.fault = fault;
+		this.isRequest = isRequest;
 	}
 
 	/**
@@ -244,5 +246,9 @@ public class CommMessage implements Serializable
 	public FaultException fault()
 	{
 		return fault;
+	}
+	
+	public boolean isRequest() {
+		return isRequest;
 	}
 }

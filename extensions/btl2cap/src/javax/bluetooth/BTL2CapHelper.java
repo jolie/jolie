@@ -20,13 +20,14 @@ public class BTL2CapHelper
 		throws BluetoothStateException, IOException
 	{
 		String[] ss = uri.getSchemeSpecificPart().split( ":" );
-		String uuidStr = ss[1].split( "/" )[0];
+		String uuidStr = ss[1].split( ";" )[0];
 		String btAddr = ss[0].substring( 2 );
 		ServiceRecord record = factory.getFromServiceCache( btAddr, uuidStr );
 
 		if ( record == null ) {
 			UUID uuid = new UUID( uuidStr, false );
 			BTServiceDiscoveryListener listener = new BTServiceDiscoveryListener( uuid );
+			// Cannot use localhost as btAddress. And cannot search for other services on local device.
 			LocalDevice.getLocalDevice().getDiscoveryAgent().searchServices( null, new UUID[] { uuid }, new RemoteDevice( btAddr ), listener );
 			record = listener.getResult();
 			factory.putInServiceCache( btAddr, uuidStr, record );

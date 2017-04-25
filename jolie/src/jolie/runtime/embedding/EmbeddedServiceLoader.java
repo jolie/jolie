@@ -23,6 +23,7 @@
 package jolie.runtime.embedding;
 
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
 import jolie.lang.parse.ast.Program;
 import jolie.net.CommChannel;
@@ -97,18 +98,18 @@ public abstract class EmbeddedServiceLoader
 		return createLoader( interpreter, configuration, channelPath );
 	}
 
-	protected void setChannel( CommChannel channel )
+	protected void setChannel( StatefulContext ctx, CommChannel channel )
 	{
 		if ( channelDest != null ) {
 			if ( channelDest instanceof VariablePath ) {
-				((VariablePath) channelDest).getValue().setValue( channel );
+				((VariablePath) channelDest).getValue( ctx ).setValue( channel );
 			} else if ( channelDest instanceof Value ) {
 				((Value) channelDest).setValue( channel );
 			}
 		}
 	}
 	
-	public abstract void load()
+	public abstract void load( StatefulContext ctx)
 		throws EmbeddedServiceLoadingException;
 
 	public static abstract class EmbeddedServiceConfiguration
@@ -182,5 +183,9 @@ public abstract class EmbeddedServiceLoader
 			return servicePath;
 		}
 
+	}
+	
+	public void shutdown() {
+		// Do nothing
 	}
 }

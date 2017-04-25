@@ -23,13 +23,13 @@ package jolie.net;
 
 import java.io.IOException;
 import java.nio.channels.ClosedByInterruptException;
-
 import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.L2CAPConnectionNotifier;
 import javax.microedition.io.Connector;
 import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
+import jolie.net.protocols.AsyncCommProtocol;
 
 public class BTL2CapListener extends CommListener
 {
@@ -57,12 +57,9 @@ public class BTL2CapListener extends CommListener
 			L2CAPConnection clientConnection;
 			CommChannel channel;
 			while ( (clientConnection = connectionNotifier.acceptAndOpen()) != null ) {
-				channel = new BTL2CapCommChannel(
-							clientConnection,
-							inputPort().location(),
-							createProtocol() );
+				channel = BTL2CapCommChannel.CreateChannel( clientConnection, inputPort().location(), (AsyncCommProtocol)createProtocol(), interpreter().commCore().getBlockingEventLoopGroup());
 				channel.setParentInputPort( inputPort() );
-				interpreter().commCore().scheduleReceive( channel, inputPort() );
+				//interpreter().commCore().scheduleReceive( channel, inputPort() );
 				channel = null; // Dispose for garbage collection
 			}
 		} catch( ClosedByInterruptException ce ) {
@@ -74,6 +71,7 @@ public class BTL2CapListener extends CommListener
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	@Override

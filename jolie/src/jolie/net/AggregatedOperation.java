@@ -23,18 +23,17 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.SessionListener;
-import jolie.SessionThread;
 import jolie.State;
+import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.OneWayBehaviour;
+import jolie.behaviours.RequestResponseBehaviour;
+import jolie.behaviours.SequentialBehaviour;
 import jolie.lang.Constants;
 import jolie.lang.Constants.OperationType;
 import jolie.net.ports.OutputPort;
-import jolie.process.OneWayProcess;
-import jolie.process.Process;
-import jolie.process.RequestResponseProcess;
-import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.OneWayOperation;
 import jolie.runtime.RequestResponseOperation;
@@ -50,13 +49,13 @@ public abstract class AggregatedOperation
 {
 	private static class CourierOneWayAggregatedOperation extends AggregatedOperation {
 		private final OneWayOperation operation;
-		private final Process courierProcess;
+		private final Behaviour courierProcess;
 		private final VariablePath inputVariablePath;
 		
 		public CourierOneWayAggregatedOperation(
 			OneWayOperation operation,
 			VariablePath inputVariablePath,
-			Process courierProcess
+			Behaviour courierProcess
 		) {
 			super( operation.id() );
 			this.operation = operation;
@@ -71,36 +70,36 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( final StatefulContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			final Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				ExecutionThread initThread = Interpreter.getInstance().initThread();
+				StatefulContext initContext = interpreter.initContext();
 				try {
-					initThread.join();
+					initContext.join();
 				} catch( InterruptedException e ) {
 					throw new IOException( e );
 				}
 
-				State state = initThread.state().clone();
-				Process p = new SequentialProcess( new Process[] {
-					new OneWayProcess( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), state ),
+				State state = initContext.state().clone();
+				Behaviour p = new SequentialBehaviour( new Behaviour[] {
+					new OneWayBehaviour( operation, inputVariablePath ).receiveMessage( new SessionMessage( requestMessage, channel ), ctx ),
 					courierProcess
 				});
-				SessionThread t = new SessionThread( p, state, initThread );
+				StatefulContext c = new StatefulContext( p, state, initContext );
 				
 				final FaultException[] f = new FaultException[1];
 				f[0] = null;
-				t.addSessionListener( new SessionListener() {
+				c.addSessionListener(new SessionListener() {
 					@Override
-					public void onSessionExecuted( SessionThread session )
+					public void onSessionExecuted( StatefulContext session )
 					{}
 
 					@Override
-					public void onSessionError( SessionThread session, FaultException fault )
+					public void onSessionError( StatefulContext session, FaultException fault )
 					{
 						// We need to send the acknowledgement
 						if ( fault.faultName().equals( "CorrelationError" )
@@ -111,32 +110,32 @@ public abstract class AggregatedOperation
 								f[0] = fault;
 							}
 						} else {
-							Interpreter.getInstance().logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
+							interpreter.logSevere( "Courier session for operation " + operation.id() + " has thrown fault " + fault.faultName() + ", which cannot be forwarded to the caller. Forwarding IOException." );
 							synchronized( f ) {
 								f[0] = new FaultException( jolie.lang.Constants.IO_EXCEPTION_FAULT_NAME, fault.faultName() );
 							}
 						}
 					}
 				} );
-				t.start();
+				c.start();
 				try {
-					t.join();
+					c.join();
 				} catch( InterruptedException e ) {}
 				
 				synchronized( f ) {
 					if ( f[0] == null ) {
 						// We need to send the acknowledgement
-						channel.send( CommMessage.createEmptyResponse( requestMessage ) );
+						channel.send( ctx, CommMessage.createEmptyResponse( requestMessage ) );
 					} else {
-						channel.send( CommMessage.createFaultResponse( requestMessage, f[0] ) );
+						channel.send( ctx, CommMessage.createFaultResponse( requestMessage, f[0] ) );
 					}
 				}
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "TypeMismatch for received message (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.send( ctx, CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
+					interpreter.logSevere( ioe );
 				}
 			} finally {
 				channel.disposeForInput();
@@ -152,7 +151,7 @@ public abstract class AggregatedOperation
 	
 	private static class CourierRequestResponseAggregatedOperation extends AggregatedOperation {
 		private final RequestResponseOperation operation;
-		private final Process courierProcess;
+		private final Behaviour courierProcess;
 		private final VariablePath inputVariablePath;
 		private final VariablePath outputVariablePath;
 		
@@ -160,7 +159,7 @@ public abstract class AggregatedOperation
 			RequestResponseOperation operation,
 			VariablePath inputVariablePath,
 			VariablePath outputVariablePath,
-			Process courierProcess
+			Behaviour courierProcess
 		) {
 			super( operation.id() );
 			this.operation = operation;
@@ -176,30 +175,30 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( final CommMessage requestMessage, final CommChannel channel )
+		public void runAggregationBehaviour( StatefulContext ctx, final CommMessage requestMessage, final CommChannel channel )
 			throws IOException, URISyntaxException
 		{
-			final Interpreter interpreter = Interpreter.getInstance();
+			final Interpreter interpreter = ctx.interpreter();
 			try {
 				operation.requestType().check( requestMessage.value() );
 
-				ExecutionThread initThread = Interpreter.getInstance().initThread();
+				StatefulContext initContext = interpreter.initContext();
 				try {
-					initThread.join();
+					initContext.join();
 				} catch( InterruptedException e ) {
 					throw new IOException( e );
 				}
 
-				State state = initThread.state().clone();
-				Process p = new RequestResponseProcess( operation, inputVariablePath, outputVariablePath, courierProcess )
-								.receiveMessage( new SessionMessage( requestMessage, channel ), state );
-				new SessionThread( p, state, initThread ).start();
+				State state = initContext.state().clone();
+				Behaviour p = new RequestResponseBehaviour( operation, inputVariablePath, outputVariablePath, courierProcess )
+								.receiveMessage( new SessionMessage( requestMessage, channel ), ctx );
+				new StatefulContext( p, state, initContext ).start();
 			} catch( TypeCheckingException e ) {
 				interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
 				try {
-					channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+					channel.send( ctx, CommMessage.createFaultResponse( requestMessage, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
 				} catch( IOException ioe ) {
-					Interpreter.getInstance().logSevere( ioe );
+					interpreter.logSevere( ioe );
 				}
 			} finally {
 				channel.disposeForInput();
@@ -233,18 +232,18 @@ public abstract class AggregatedOperation
 		}
 		
 		@Override
-		public void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+		public void runAggregationBehaviour( StatefulContext ctx, CommMessage requestMessage, CommChannel channel )
 			throws IOException, URISyntaxException
 		{
 			CommChannel oChannel = null;
 			try {
-				oChannel = outputPort.getNewCommChannel();
+				oChannel = outputPort.getNewCommChannel( ctx );
 				final CommMessage requestToAggregated = outputPort.createAggregatedRequest( requestMessage );
-				oChannel.send( requestToAggregated );
-				final CommMessage response = oChannel.recvResponseFor( requestToAggregated );
-				channel.send( new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault() ) );
+				oChannel.send( ctx, requestToAggregated );
+				final CommMessage response = oChannel.recvResponseFor( ctx, requestToAggregated );
+				channel.send( ctx, new CommMessage( requestMessage.id(), response.operationName(), response.resourcePath(), response.value(), response.fault(), response.isRequest() ) );
 			} catch( IOException e ) {
-				channel.send( CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
+				channel.send( ctx, CommMessage.createFaultResponse( requestMessage, new FaultException( e ) ) );
 			} finally {
 				if ( oChannel != null ) {
 					oChannel.close();
@@ -279,7 +278,7 @@ public abstract class AggregatedOperation
 	public static AggregatedOperation createWithCourier(
 		OneWayOperation operation,
 		VariablePath inputVariablePath,
-		Process courierProcess
+		Behaviour courierProcess
 	) {
 		return new CourierOneWayAggregatedOperation( operation, inputVariablePath, courierProcess );
 	}
@@ -288,7 +287,7 @@ public abstract class AggregatedOperation
 		RequestResponseOperation operation,
 		VariablePath inputVariablePath,
 		VariablePath outputVariablePath,
-		Process courierProcess
+		Behaviour courierProcess
 	) {
 		return new CourierRequestResponseAggregatedOperation( operation, inputVariablePath, outputVariablePath, courierProcess );
 	}
@@ -311,6 +310,6 @@ public abstract class AggregatedOperation
 		return name;
 	}
         
-	public abstract void runAggregationBehaviour( CommMessage requestMessage, CommChannel channel )
+	public abstract void runAggregationBehaviour( StatefulContext ctx, CommMessage requestMessage, CommChannel channel )
 		throws IOException, URISyntaxException;
 }

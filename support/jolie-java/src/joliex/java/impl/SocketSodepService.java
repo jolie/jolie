@@ -61,7 +61,7 @@ public class SocketSodepService extends Service
 	{
 		super( factory, location );
 		socketChannel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
-		protocol = new SodepProtocol( new ClosedVariablePath( new Pair[0], protocolConfiguration ) );
+		protocol = new SodepProtocol( new ClosedVariablePath( new Pair[0], protocolConfiguration ), null, false );
 		istream = Channels.newInputStream( socketChannel );
 		ostream = Channels.newOutputStream( socketChannel );
 	}

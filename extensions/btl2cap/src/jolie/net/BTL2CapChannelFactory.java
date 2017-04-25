@@ -20,7 +20,6 @@
  ***************************************************************************/
 package jolie.net;
 
-import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,10 +29,16 @@ import javax.bluetooth.BTL2CapHelper;
 import javax.bluetooth.L2CAPConnection;
 import javax.bluetooth.ServiceRecord;
 import javax.microedition.io.Connector;
+import jolie.StatefulContext;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.OutputPort;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
+import jolie.runtime.CanUseJars;
 
 @AndJarDeps({"bluetooth.jar"})
+@CanUseJars({"bluecove-gpl-2.1.0.jar"})
 public class BTL2CapChannelFactory extends CommChannelFactory
 {
 	private final static int cacheLimit = 1000; // Must be > 0
@@ -44,6 +49,7 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 	{
 		super( commCore );
 	}
+	
 
 	public ServiceRecord getFromServiceCache( String btAddr, String uuidStr )
 	{
@@ -70,16 +76,22 @@ public class BTL2CapChannelFactory extends CommChannelFactory
 		map.put( uuidStr, record);
 	}
 	
-	public CommChannel createChannel( URI uri, OutputPort port )
+	public CommChannel createChannel( URI uri, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		if ( uri.getHost() != null && uri.getHost().equals( "localhost" ) ) {
 			throw new IOException( "Malformed output btl2cap location: " + uri.toString() );
 		}
+		
 		try {
+			CommProtocol protocol = port.getProtocol( ctx );
+			if ( !(protocol instanceof AsyncCommProtocol) ) {
+				throw new UnsupportedCommProtocolException( "Use an async protocol" );
+			}
+			
 			String connectionURL = BTL2CapHelper.getConnectionURL( uri, this );
 			L2CAPConnection conn = (L2CAPConnection)Connector.open( connectionURL );
-			return new BTL2CapCommChannel( conn, uri, port.getProtocol() );
+			return BTL2CapCommChannel.CreateChannel( conn, uri, (AsyncCommProtocol)port.getProtocol( ctx ), commCore().getBlockingEventLoopGroup() );
 		} catch( ClassCastException e ) {
 			throw new IOException( "CastException: malformed output btl2cap location: " + uri.toString() );
 		} catch( URISyntaxException e ) {

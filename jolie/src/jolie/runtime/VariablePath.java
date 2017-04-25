@@ -23,7 +23,8 @@ package jolie.runtime;
 
 
 import jolie.ExecutionThread;
-import jolie.process.TransformationReason;
+import jolie.StatefulContext;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.expression.Expression;
 import jolie.util.Pair;
 
@@ -126,16 +127,25 @@ public class VariablePath implements Expression, Cloneable
 		this.path = path;
 	}
 	
+	protected Value getRootValue( StatefulContext ctx ) 
+	{
+		return ctx.state().root();
+	}
+	
+	@Deprecated
 	protected Value getRootValue()
 	{
+//		System.out.println( "Trying to get executionThread from: " + Thread.currentThread() + " (" + Thread.currentThread().getClass().getName() + ") Found: " +  StatefulContext.currentContext());
+		if (ExecutionThread.currentThread() == null)
+			return StatefulContext.currentContext().state().root();
 		return ExecutionThread.currentThread().state().root();
 	}
 	
-	public final void undef()
+	public final void undef(StatefulContext ctx)
 	{
 		Pair< Expression, Expression > pair = null;
 		ValueVector currVector = null;
-		Value currValue = getRootValue();
+		Value currValue = getRootValue( ctx );
 		int index;
 		String keyStr;
 
@@ -173,9 +183,15 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
+	@Deprecated
 	public final Value getValue()
 	{
 		return getValue( getRootValue() );
+	}	
+	
+	public final Value getValue( StatefulContext ctx )
+	{
+		return getValue( getRootValue( ctx ) );
 	}
 
 	public final Value getValue( Value currValue )
@@ -191,11 +207,11 @@ public class VariablePath implements Expression, Cloneable
 		return currValue;
 	}
 
-	public final void setValue( Value value )
+	public final void setValue( StatefulContext ctx, Value value )
 	{
 		Pair< Expression, Expression > pair;
 		ValueVector currVector;
-		Value currValue = getRootValue();
+		Value currValue = getRootValue( ctx );
 		int index;
 		String keyStr;
 
@@ -232,9 +248,15 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 
+	@Deprecated
 	public final Value getValueOrNull()
 	{
 		return getValueOrNull( getRootValue() );
+	}
+	
+	public final Value getValueOrNull( StatefulContext ctx )
+	{
+		return getValueOrNull( getRootValue( ctx ) );
 	}
 	
 	public final Value getValueOrNull( Value currValue )
@@ -327,11 +349,11 @@ public class VariablePath implements Expression, Cloneable
 		return getValueVector( getRootValue() );
 	}
 	
-	public final void makePointer( VariablePath rightPath )
+	public final void makePointer( StatefulContext ctx, VariablePath rightPath )
 	{
 		Pair< Expression, Expression > pair;
 		ValueVector currVector;
-		Value currValue = getRootValue();
+		Value currValue = getRootValue( ctx );
 		int index;
 		String keyStr;
 
@@ -356,11 +378,11 @@ public class VariablePath implements Expression, Cloneable
 		}
 	}
 	
-	private Object getValueOrValueVector()
+	private Object getValueOrValueVector( StatefulContext ctx )
 	{	
 		Pair< Expression, Expression > pair;
 		ValueVector currVector;
-		Value currValue = getRootValue();
+		Value currValue = getRootValue( ctx );
 		int index;
 
 		for( int i = 0; i < path.length; i++ ) {
@@ -386,11 +408,11 @@ public class VariablePath implements Expression, Cloneable
 	}
 	
 	@SuppressWarnings("unchecked")
-	public final void deepCopy( VariablePath rightPath )
+	public final void deepCopy( StatefulContext ctx, VariablePath rightPath )
 	{
-		Object myObj = getValueOrValueVector();
+		Object myObj = getValueOrValueVector( ctx );
 		if ( myObj instanceof Value ) {
-			((Value) myObj).deepCopy( rightPath.getValue() );
+			((Value) myObj).deepCopy( rightPath.getValue( ctx ) );
 		} else {
 			ValueVector myVec = (ValueVector) myObj;
 			ValueVector rightVec = rightPath.getValueVector();
@@ -398,6 +420,12 @@ public class VariablePath implements Expression, Cloneable
 				myVec.get( i ).deepCopy( rightVec.get( i ) );
 			}
 		}
+	}
+	
+	// TODO - Remove this
+	public final Value evaluate(StatefulContext ctx)
+	{
+		return evaluate();
 	}
 	
 	public final Value evaluate()

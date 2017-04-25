@@ -21,8 +21,9 @@
 
 package jolie.runtime;
 
+import jolie.StatefulContext;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.expression.Expression;
-import jolie.process.TransformationReason;
 import jolie.util.Pair;
 
 /**
@@ -60,5 +61,11 @@ public class ClosedVariablePath extends VariablePath
 	protected Value getRootValue()
 	{
 		return rootValue;
+	}	
+	
+	@Override
+	protected Value getRootValue(StatefulContext ctx)
+	{
+		return getRootValue();
 	}
 }

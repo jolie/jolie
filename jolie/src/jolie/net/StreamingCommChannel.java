@@ -60,4 +60,8 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	{
 		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this ) );
 	}
+	
+	protected URI location() {
+		return location;
+	}
 }

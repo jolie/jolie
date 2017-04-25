@@ -23,11 +23,12 @@ package jolie.runtime.correlation;
 
 import jolie.Interpreter;
 import jolie.SessionListener;
-import jolie.SessionThread;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.Value;
 import jolie.runtime.correlation.CorrelationSet.CorrelationPair;
+import jolie.runtime.correlation.impl.HashCorrelationEngine;
 import jolie.runtime.correlation.impl.SimpleCorrelationEngine;
 
 /**
@@ -46,8 +47,7 @@ public abstract class CorrelationEngine implements SessionListener
 		HASH {
 			@Override
 			public CorrelationEngine createInstance( Interpreter interpreter ) {
-				//return new HashCorrelationEngine( interpreter );
-				return null;
+				return new HashCorrelationEngine( interpreter );
 			}
 		};
 
@@ -66,8 +66,8 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 	}
 
-	public abstract void onSessionStart( SessionThread session, Interpreter.SessionStarter starter, CommMessage message );
-	public abstract void onSingleExecutionSessionStart( SessionThread session );
+	public abstract void onSessionStart( StatefulContext session, Interpreter.SessionStarter starter, CommMessage message );
+	public abstract void onSingleExecutionSessionStart( StatefulContext session );
 	protected abstract boolean routeMessage( CommMessage message, CommChannel channel );
 
 	private final Interpreter interpreter;
@@ -82,7 +82,7 @@ public abstract class CorrelationEngine implements SessionListener
 		return interpreter;
 	}
 
-	protected void initCorrelationValues( SessionThread session, Interpreter.SessionStarter starter, CommMessage message )
+	protected void initCorrelationValues( StatefulContext session, Interpreter.SessionStarter starter, CommMessage message )
 	{
 		Value messageValue;
 		CorrelationSet correlationSet = starter.correlationInitializer();
@@ -106,7 +106,7 @@ public abstract class CorrelationEngine implements SessionListener
 		}
 
 		// We did not find any correlating session
-		if ( interpreter.startServiceSession( message, channel ) ) {
+		if ( interpreter.startServiceProcess( message, channel ) ) {
 			return;
 		}
 

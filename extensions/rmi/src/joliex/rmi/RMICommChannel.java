@@ -22,12 +22,13 @@
 package joliex.rmi;
 
 import java.io.IOException;
-import jolie.Interpreter;
+import java.util.function.Function;
+import jolie.ExecutionContext;
 import jolie.net.AbstractCommChannel;
-import jolie.net.PollableCommChannel;
 import jolie.net.CommMessage;
+import jolie.net.StatefulMessage;
 
-public class RMICommChannel extends AbstractCommChannel implements PollableCommChannel
+public class RMICommChannel extends AbstractCommChannel
 {
 	final private RemoteBasicChannel remoteChannel;
 
@@ -38,10 +39,10 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler )
 		throws IOException
 	{
-		remoteChannel.send( message );
+		remoteChannel.send( message.context(), message.message() );
 	}
 
 	@Override
@@ -52,10 +53,11 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 		//return remoteChannel.recv();
 	}
 	
-	public CommMessage recvResponseFor( CommMessage request )
+	@Override
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
-		return remoteChannel.recvResponseFor( request );
+		return remoteChannel.recvResponseFor( ctx, request );
 	}
 
 	public boolean isReady()
@@ -74,7 +76,5 @@ public class RMICommChannel extends AbstractCommChannel implements PollableCommC
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
+	{ }
 }

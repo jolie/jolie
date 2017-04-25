@@ -21,89 +21,76 @@
 
 package jolie.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.function.Function;
 import javax.bluetooth.L2CAPConnection;
-import jolie.Interpreter;
+import static jolie.net.NioSocketCommChannel.COMMCHANNEL;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
+import joliex.net.BluetoothSocketWrapper;
 
-public class BTL2CapCommChannel extends StreamingCommChannel implements PollableCommChannel
+public class BTL2CapCommChannel extends StreamingCommChannel
 {
-	private final L2CAPConnection connection;
-	private final int sendMTU;
-	private final int recvMTU;
+	protected final JolieCommChannelHandler jolieCommChannelHandler;
+	private final BluetoothSocketWrapper connection;	
+	private Bootstrap bootstrap;
 	
 	public BTL2CapCommChannel( L2CAPConnection connection, URI location, CommProtocol protocol )
 		throws IOException
 	{
 		super( location, protocol );
-		this.connection = connection;
-		sendMTU = connection.getTransmitMTU();
-		recvMTU = connection.getReceiveMTU();
+		this.connection = new BluetoothSocketWrapper( connection, location );
 		setToBeClosed( false ); // Bluetooth connections are kept open by default.
+		jolieCommChannelHandler = new JolieCommChannelHandler( this );
 	}
 	
-	protected void sendImpl( CommMessage message )
+	public static BTL2CapCommChannel CreateChannel( L2CAPConnection connection, URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup ) 
 		throws IOException
 	{
-		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		protocol().send( ostream, message, null ); // TODO Fix this null pointer.
-		byte[] result = ostream.toByteArray();
-		if ( result.length > sendMTU ) {
-			int times = (result.length / sendMTU);
-			byte[] chunk;
-			int i;
-			for( i = 0; i < times; i++ ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, ((i+1)*sendMTU) );
-				connection.send( chunk );
+		final BTL2CapCommChannel channel = new BTL2CapCommChannel( connection, location, protocol );
+		channel.bootstrap = new Bootstrap();
+		channel.bootstrap.group( workerGroup );
+		ChannelPipeline p = channel.connection.pipeline();
+		protocol.setupPipeline( p );
+		p.addLast( channel.jolieCommChannelHandler );
+		channel.connection.attr( COMMCHANNEL ).set( channel );
+		return channel;
+	}
+	
+	protected void sendImpl( StatefulMessage message, final Function<Void, Void> completionHandler ) 
+		throws IOException
+	{
+		ChannelFuture future = jolieCommChannelHandler.write( message );
+		future.addListener( new GenericFutureListener<Future<Void>>()
+		{
+			public void operationComplete( Future<Void> future1 ) throws Exception
+			{
+				if ( future1.isSuccess() ) {
+					if (completionHandler != null)
+						completionHandler.apply( null );
+				} else {
+					throw new IOException( future1.cause() );
+				}
 			}
-			int remaining = result.length % sendMTU;
-			if ( remaining > 0 ) {
-				chunk = Arrays.copyOfRange( result, i*sendMTU, (i*sendMTU) + remaining );
-				connection.send( chunk );
-			}
-		} else {
-			connection.send( result );
-		}
+		});
 	}
 
 	protected CommMessage recvImpl()
 		throws IOException
 	{
-		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		byte[] chunk;
-		int len = recvMTU;
-		while( len >= recvMTU ) {
-			chunk = new byte[ recvMTU ]; // Most probably we do not need to re-initialize this
-			len = connection.receive( chunk );
-			ostream.write( chunk, 0, len );
-		}
-		ByteArrayInputStream istream = new ByteArrayInputStream( ostream.toByteArray() );
-		return protocol().recv( istream, null ); // TODO fix this null pointer
+		return null;
 	}
 	
 	protected void closeImpl()
 		throws IOException
 	{
 		connection.close();
-	}
-	
-	@Override
-	protected void disposeForInputImpl()
-		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
-	
-	public boolean isReady()
-	{
-		try {
-			return connection.ready();
-		} catch( IOException e ) {
-			return false;
-		}
 	}
 }

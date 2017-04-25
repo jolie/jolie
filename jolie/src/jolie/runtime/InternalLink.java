@@ -26,9 +26,9 @@ package jolie.runtime;
 import java.util.LinkedList;
 import java.util.List;
 import jolie.ExecutionThread;
+import jolie.behaviours.LinkInBehaviour;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.process.LinkInProcess;
 
 
 /** Internal synchronization link for parallel processes.
@@ -37,15 +37,15 @@ import jolie.process.LinkInProcess;
  */
 public class InternalLink extends AbstractIdentifiableObject
 {
-	private final List< LinkInProcess.Execution > procsList =
-					new LinkedList< LinkInProcess.Execution > ();
+	private final List< LinkInBehaviour.Execution > procsList =
+					new LinkedList< LinkInBehaviour.Execution > ();
 	private int signals = 0;
 	private final CommMessage linkMessage;
 	
 	public InternalLink( String id )
 	{
 		super( id );
-		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null );
+		linkMessage = new CommMessage( CommMessage.GENERIC_ID, id, "/", Value.UNDEFINED_VALUE, null, true );
 	}
 	
 	public synchronized void recvMessage( CommChannel channel, CommMessage message )
@@ -59,7 +59,7 @@ public class InternalLink extends AbstractIdentifiableObject
 		signals++;
 	}
 
-	public synchronized void signForMessage( LinkInProcess.Execution process )
+	public synchronized void signForMessage( LinkInBehaviour.Execution process )
 	{
 		if ( signals > 0 && process.recvMessage( null, linkMessage ) ) {
 			signals--;
@@ -68,7 +68,7 @@ public class InternalLink extends AbstractIdentifiableObject
 		}
 	}
 	
-	public synchronized void cancelWaiting( LinkInProcess.Execution process )
+	public synchronized void cancelWaiting( LinkInBehaviour.Execution process )
 	{
 		procsList.remove( process );
 	}

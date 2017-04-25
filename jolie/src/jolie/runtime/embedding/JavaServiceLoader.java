@@ -24,6 +24,7 @@ package jolie.runtime.embedding;
 
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
+import jolie.StatefulContext;
 import jolie.runtime.JavaService;
 import jolie.runtime.expression.Expression;
 import jolie.tracer.EmbeddingTraceAction;
@@ -41,7 +42,8 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 		this.servicePath = servicePath;
 	}
 
-	public void load()
+	@Override
+	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
 		try {
@@ -53,7 +55,8 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			}
 			final JavaService service = (JavaService)obj;
 			service.setInterpreter( interpreter );
-			setChannel(	new JavaCommChannel( service ) );
+			service.setContext( ctx );
+			setChannel(	ctx, new JavaCommChannel( service ) );
 			
 			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
@@ -64,4 +67,5 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			throw new EmbeddedServiceLoadingException( e );
 		}
 	}
+	
 }

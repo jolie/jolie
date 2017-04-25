@@ -25,13 +25,15 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import javax.script.Invocable;
 import javax.script.ScriptException;
-import jolie.Interpreter;
+import jolie.ExecutionContext;
+import jolie.StatefulContext;
 import jolie.js.JsUtils;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
-import jolie.net.PollableCommChannel;
+import jolie.net.StatefulMessage;
 import jolie.runtime.Value;
 import jolie.runtime.typing.Type;
 
@@ -40,11 +42,29 @@ import jolie.runtime.typing.Type;
  * 
  * TODO: this shouldn't be polled
  */
-public class JavaScriptCommChannel extends CommChannel implements PollableCommChannel
+public class JavaScriptCommChannel extends CommChannel
 {
 	private final Invocable invocable;
 	private final Map< Long, CommMessage > messages = new ConcurrentHashMap< Long, CommMessage >();
 	private final Object json;
+
+	@Override
+	public StatefulContext getContextFor( Long id, boolean isRequest )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void receivedResponse( CommMessage msg )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
+
+	@Override
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
+	{
+		throw new UnsupportedOperationException( "Not supported." );
+	}
 	
 	private final static class JsonMethods {
 		private final static String STRINGIFY = "stringify", PARSE = "parse";
@@ -63,15 +83,15 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 
 	@Override
-	protected void sendImpl( CommMessage message )
+	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
 		throws IOException
 	{
 		Object returnValue = null;
 		try {
 			StringBuilder builder = new StringBuilder();
-			JsUtils.valueToJsonString( message.value(), true, Type.UNDEFINED, builder );
+			JsUtils.valueToJsonString( msg.message().value(), true, Type.UNDEFINED, builder );
 			Object param = invocable.invokeMethod( json, JsonMethods.PARSE, builder.toString() );
-			returnValue = invocable.invokeFunction( message.operationName(), param );
+			returnValue = invocable.invokeFunction( msg.message().operationName(), param );
 		} catch( ScriptException e ) {
 			throw new IOException( e );
 		} catch( NoSuchMethodException e ) {
@@ -98,17 +118,18 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 			}
 			
 			response = new CommMessage(
-				message.id(),
-				message.operationName(),
-				message.resourcePath(),
+				msg.message().id(),
+				msg.message().operationName(),
+				msg.message().resourcePath(),
 				value,
-				null
+				null,
+				false
 			);
 		} else {
-			response = CommMessage.createEmptyResponse( message );
+			response = CommMessage.createEmptyResponse( msg.message() );
 		}
 		
-		messages.put( message.id(), response );
+		messages.put( msg.message().id(), response );
 	}
 	
 	@Override
@@ -119,7 +140,7 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	}
 	
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		return messages.remove( request.id() );
@@ -128,17 +149,9 @@ public class JavaScriptCommChannel extends CommChannel implements PollableCommCh
 	@Override
 	protected void disposeForInputImpl()
 		throws IOException
-	{
-		Interpreter.getInstance().commCore().registerForPolling( this );
-	}
+	{}
 
 	@Override
 	protected void closeImpl()
 	{}
-
-	@Override
-	public boolean isReady()
-	{
-		return( !messages.isEmpty() );
-	}
 }

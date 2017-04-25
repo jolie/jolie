@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -18,228 +18,346 @@
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import jolie.ExecutionThread;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
+import jolie.ExecutionContext;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.Constants;
+import jolie.net.ports.OutputPort;
 import jolie.runtime.FaultException;
-import jolie.runtime.TimeoutHandler;
+import jolie.runtime.InputOperation;
+import jolie.runtime.InvalidIdException;
+import jolie.runtime.OneWayOperation;
 import jolie.runtime.Value;
+import jolie.runtime.correlation.CorrelationError;
+import jolie.runtime.typing.TypeCheckingException;
 
 public abstract class AbstractCommChannel extends CommChannel
 {
-	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
-
-	private final Map< Long, CommMessage > pendingResponses = new HashMap<>();
-	private final Map< Long, ResponseContainer > waiters = new HashMap<>();
-	private final List< CommMessage > pendingGenericResponses = new LinkedList<>();
+	private final Map< Long, CommMessage> pendingResponses = new HashMap<>();
+	private final Map< Long, ExecutionContext> waiters = new HashMap<>();
+	private final List< CommMessage> pendingGenericResponses = new LinkedList<>();
 
 	private final Object responseRecvMutex = new Object();
 
-	private static class ResponseContainer
+	@Override
+	public StatefulContext getContextFor( Long id, boolean isRequest )
 	{
-		private ResponseContainer() {}
-		private CommMessage response = null;
+		ExecutionContext ctx = null;
+		synchronized( responseRecvMutex ) {
+			if ( !isRequest ) {
+				if ( id == CommMessage.GENERIC_ID ) {
+					ctx = waiters.entrySet().iterator().next().getValue();
+				} else {
+					ctx = waiters.get( id );
+				}
+				if ( ctx instanceof StatefulContext ) {
+					return (StatefulContext) ctx;
+				}
+				assert false;
+				return null;
+			} else {
+				return Interpreter.getInstance().initContext();
+			}
+		}
 	}
 
 	@Override
-	public CommMessage recvResponseFor( CommMessage request )
+	public void registerWaiterFor( ExecutionContext ctx, CommMessage request )
+		throws IOException
+	{
+		synchronized( responseRecvMutex ) {
+			// Ingnore responses
+			if ( !waiters.containsKey( request.id() ) ) {
+				waiters.put( request.id(), ctx );
+			}
+		}
+	}
+	
+	@Override
+	public CommMessage recvResponseFor( ExecutionContext ctx, CommMessage request )
 		throws IOException
 	{
 		CommMessage response;
-		ResponseContainer monitor = null;
+		
 		synchronized( responseRecvMutex ) {
 			response = pendingResponses.remove( request.id() );
 			if ( response == null ) {
 				if ( pendingGenericResponses.isEmpty() ) {
-					assert( waiters.containsKey( request.id() ) == false );
-					monitor = new ResponseContainer();
-					waiters.put( request.id(), monitor );
-					//responseRecvMutex.notify();
+					assert( waiters.containsKey( request.id() ) );
 				} else {
 					response = pendingGenericResponses.remove( 0 );
 				}
 			}
 		}
-		if ( response == null ) {
-			synchronized( responseRecvMutex ) {
-				if ( responseReceiver == null ) {
-					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
-				} else {
-					responseReceiver.wakeUp();
-				}
-			}
-			synchronized( monitor ) {
-				if ( monitor.response == null ) {
-					try {
-						monitor.wait();
-					} catch( InterruptedException e ) {
-						Interpreter.getInstance().logSevere( e );
-					}
-				}
-				response = monitor.response;
-			}
-		}
+		
 		return response;
 	}
 
-	private ResponseReceiver responseReceiver = null;
-
-	private static class ResponseReceiver implements Runnable
+	@Override
+	protected void receivedResponse( CommMessage response )
 	{
-		private final AbstractCommChannel parent;
-		private final ExecutionThread ethread;
-		private boolean keepRun;
-		private TimeoutHandler timeoutHandler;
-
-		private void timeout()
-		{
-			synchronized( parent.responseRecvMutex ) {
-				if ( keepRun == false ) {
-					if ( parent.waiters.isEmpty() ) {
-						timeoutHandler = null;
-						parent.responseReceiver = null;
-					} else {
-						keepRun = true;
-					}
-					parent.responseRecvMutex.notify();
-				}
-			}
+		if ( response.hasGenericId() ) {
+			handleGenericMessage( response );
+		} else {
+			handleMessage( response );
 		}
+	}
 
-		private void wakeUp()
-		{
-			// TODO: check race conditions on timeoutHandler, should we sync it?
-			if ( timeoutHandler != null ) {
-				timeoutHandler.cancel();
-			}
-			keepRun = true;
-			parent.responseRecvMutex.notify();
+	private void handleGenericMessage( CommMessage response )
+	{
+		ExecutionContext waitingContext;
+		// Add the message in any case, so that the message can be fetched from 
+		// the queue by the ExecutionContext.
+		pendingGenericResponses.add( response );
+		if ( !waiters.isEmpty() ) {
+			Entry< Long, ExecutionContext> entry 
+				= waiters.entrySet().iterator().next();
+			waitingContext = entry.getValue();
+			waiters.remove( entry.getKey() );
+			waitingContext.start();
+//			synchronized( waitingContext ) {
+//				monitor.response = new CommMessage(
+//					entry.getKey(),
+//					response.operationName(),
+//					response.resourcePath(),
+//					response.value(),
+//					response.fault()
+//				);
+//				monitor.notify();
+//			}
 		}
+	}
 
-		private void sleep()
-		{
-			final ResponseReceiver receiver = this;
-			timeoutHandler = new TimeoutHandler( RECEIVER_KEEP_ALIVE ) {
-				@Override
-				public void onTimeout() {
-					receiver.timeout();
-				}
-			};
-			ethread.interpreter().addTimeoutHandler( timeoutHandler );
-			try {
-				keepRun = false;
-				parent.responseRecvMutex.wait();
-			} catch( InterruptedException e ) {
-				Interpreter.getInstance().logSevere( e );
-			}
+	private void handleMessage( CommMessage response )
+	{
+		ExecutionContext waitingContext;
+		// Add to queue in any case. See handleGenericMessage.
+		pendingResponses.put( response.id(), response );
+		if ( (waitingContext = waiters.remove( response.id() )) != null ) {
+			waitingContext.start();
 		}
+	}
 
-		private ResponseReceiver( AbstractCommChannel parent, ExecutionThread ethread )
-		{
-			this.ethread = ethread;
-			this.parent = parent;
-			this.keepRun = true;
-			this.timeoutHandler = null;
-		}
-
-		private void handleGenericMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( parent.waiters.isEmpty() ) {
-				parent.pendingGenericResponses.add( response );
-			} else {
-				Entry< Long, ResponseContainer > entry =
-					parent.waiters.entrySet().iterator().next();
-				monitor = entry.getValue();
-				parent.waiters.remove( entry.getKey() );
-				synchronized( monitor ) {
-					monitor.response = new CommMessage(
+	private void throwIOExceptionFault( IOException e )
+	{
+		if ( waiters.isEmpty() == false ) {
+			ExecutionContext waitingContext;
+			for( Entry< Long, ExecutionContext> entry : waiters.entrySet() ) {
+				waitingContext = entry.getValue();
+				pendingResponses.put( entry.getKey(),
+					new CommMessage(
 						entry.getKey(),
-						response.operationName(),
-						response.resourcePath(),
-						response.value(),
-						response.fault()
-					);
-					monitor.notify();
+						"",
+						Constants.ROOT_RESOURCE_PATH,
+						Value.create(),
+						new FaultException( "IOException", e ),
+						false
+					)
+				);
+				waitingContext.start();
+			}
+			waiters.clear();
+		}
+	}
+	
+	/* Handle messages received on InputPort */
+	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
+
+	private void forwardResponse( StatefulContext ctx, CommMessage message )
+		throws IOException
+	{
+		message = new CommMessage(
+			redirectionMessageId(),
+			message.operationName(),
+			message.resourcePath(),
+			message.value(),
+			message.fault(),
+			message.isRequest()
+		);
+		try {
+			try {
+				redirectionChannel().send( ctx, message );
+			} finally {
+				try {
+					if ( redirectionChannel().toBeClosed() ) {
+						redirectionChannel().close();
+					} else {
+						redirectionChannel().disposeForInput();
+					}
+				} finally {
+					setRedirectionChannel( null );
 				}
 			}
+		} finally {
+			closeImpl();
 		}
+	}
 
-		private void handleMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( (monitor=parent.waiters.remove( response.id() )) == null ) {
-				parent.pendingResponses.put( response.id(), response );
+	private void handleRedirectionInput( StatefulContext ctx, CommMessage message, String[] ss )
+		throws IOException, URISyntaxException
+	{
+		// Redirection
+		String rPath;
+		if ( ss.length <= 2 ) {
+			rPath = "/";
+		} else {
+			StringBuilder builder = new StringBuilder();
+			for( int i = 2; i < ss.length; i++ ) {
+				builder.append( '/' );
+				builder.append( ss[ i ] );
+			}
+			rPath = builder.toString();
+		}
+		OutputPort oPort = parentInputPort().redirectionMap().get( ss[ 1 ] );
+		if ( oPort == null ) {
+			String error = "Discarded a message for resource " + ss[ 1 ]
+				+ ", not specified in the appropriate redirection table.";
+			ctx.interpreter().logWarning( error );
+			throw new IOException( error );
+		}
+		try {
+			CommChannel oChannel = oPort.getNewCommChannel( ctx );
+			CommMessage rMessage
+				= new CommMessage(
+					message.id(),
+					message.operationName(),
+					rPath,
+					message.value(),
+					message.fault(),
+					message.isRequest()
+				);
+			oChannel.setRedirectionChannel( this );
+			oChannel.setRedirectionMessageId( rMessage.id() );
+			oChannel.send( ctx, rMessage );
+			oChannel.setToBeClosed( false );
+			oChannel.disposeForInput();
+		} catch( IOException e ) {
+			send( ctx, CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
+			disposeForInput();
+			throw e;
+		}
+	}
+
+	private void handleAggregatedInput( StatefulContext ctx, CommMessage message, AggregatedOperation operation )
+		throws IOException, URISyntaxException
+	{
+		operation.runAggregationBehaviour( ctx, message, this );
+	}
+
+	private void handleDirectMessage( StatefulContext ctx, CommMessage message )
+		throws IOException
+	{
+		try {
+			InputOperation operation
+				= ctx.interpreter().getInputOperation( message.operationName() );
+			try {
+				operation.requestType().check( message.value() );
+				ctx.interpreter().correlationEngine().onMessageReceive( message, this );
+				if ( operation instanceof OneWayOperation ) {
+					// We need to send the acknowledgement
+					send( ctx, CommMessage.createEmptyResponse( message ) );
+					//channel.release();
+				}
+			} catch( TypeCheckingException e ) {
+				ctx.interpreter().logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
+				try {
+					send( ctx, CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+				} catch( IOException ioe ) {
+					ctx.interpreter().logSevere( ioe );
+				}
+			} catch( CorrelationError e ) {
+				ctx.interpreter().logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
+				send( ctx, CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+			}
+		} catch( InvalidIdException e ) {
+			ctx.interpreter().logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
+			send( ctx, CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+		} finally {
+			disposeForInput();
+		}
+	}
+
+	private final static Pattern pathSplitPattern = Pattern.compile( "/" );
+
+	private void handleRecvMessage( StatefulContext ctx, CommMessage message )
+		throws IOException
+	{
+		try {
+			String[] ss = pathSplitPattern.split( message.resourcePath() );
+			if ( ss.length > 1 ) {
+				handleRedirectionInput( ctx, message, ss );
+			} else if ( parentInputPort().canHandleInputOperationDirectly( message.operationName() ) ) {
+				handleDirectMessage( ctx, message );
 			} else {
-				synchronized( monitor ) {
-					monitor.response = response;
-					monitor.notify();
-				}
-			}
-		}
-
-		private void throwIOExceptionFault( IOException e )
-		{
-			if ( parent.waiters.isEmpty() == false ) {
-				ResponseContainer monitor;
-				for( Entry< Long, ResponseContainer > entry : parent.waiters.entrySet() ) {
-					monitor = entry.getValue();
-					synchronized( monitor ) {
-						monitor.response = new CommMessage(
-							entry.getKey(),
-							"",
-							Constants.ROOT_RESOURCE_PATH,
-							Value.create(),
-							new FaultException( "IOException", e )
-						);
-						monitor.notify();
-					}
-				}
-				parent.waiters.clear();
-			}
-		}
-
-		@Override
-		public void run()
-		{
-			/*
-			 * Warning: the following line implies that this
-			 * whole thing is safe iff the CommChannel is used only for outputs,
-			 * otherwise we are messing with correlation set checking.
-			 */
-			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
-
-			CommMessage response;
-			while( keepRun ) {
-				synchronized( parent.responseRecvMutex ) {
+				AggregatedOperation operation = parentInputPort().getAggregatedOperation( message.operationName() );
+				if ( operation == null ) {
+					ctx.interpreter().logWarning(
+						"Received a message for operation " + message.operationName()
+						+ ", not specified in the input port at the receiving service. Sending IOException to the caller."
+					);
 					try {
-						response = parent.recv();
-						if ( response != null ) {
-							if ( response.hasGenericId() ) {
-								handleGenericMessage( response );
-							} else {
-								handleMessage( response );
-							}
-						}
-						if ( parent.waiters.isEmpty() ) {
-							sleep();
-						}
-					} catch( IOException e ) {
-						throwIOExceptionFault( e );
-						keepRun = false;
-						parent.responseReceiver = null;
+						send( ctx, CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+					} finally {
+						disposeForInput();
 					}
+				} else {
+					handleAggregatedInput( ctx, message, operation );
 				}
+			}
+		} catch( URISyntaxException e ) {
+			ctx.interpreter().logSevere( e );
+		}
+	}
+
+	protected void messageRecv( StatefulContext ctx, CommMessage message )
+	{
+		assert (parentInputPort() != null);
+		lock.lock();
+		channelHandlersLock.readLock().lock();
+		try {
+			if ( redirectionChannel() == null ) {
+				if ( message != null ) {
+					handleRecvMessage( ctx, message );
+				} else {
+					disposeForInput();
+				}
+			} else {
+				lock.unlock();
+				CommMessage response = null;
+				try {
+					response = recvResponseFor( ctx, new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, null, true ) );
+				} finally {
+					if ( response == null ) {
+						response = new CommMessage( redirectionMessageId(), "", "/", Value.UNDEFINED_VALUE, new FaultException( "IOException", "Internal server error" ), false );
+					}
+					forwardResponse( ctx, response );
+				}
+			}
+		} catch( ChannelClosingException e ) {
+			ctx.interpreter().logFine( e );
+		} catch( IOException e ) {
+			ctx.interpreter().logSevere( e );
+			try {
+				closeImpl();
+			} catch( IOException e2 ) {
+				ctx.interpreter().logSevere( e2 );
+			}
+		} finally {
+			channelHandlersLock.readLock().unlock();
+			if ( lock.isHeldByCurrentThread() ) {
+				lock.unlock();
 			}
 		}
 	}

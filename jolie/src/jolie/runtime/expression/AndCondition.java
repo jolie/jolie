@@ -24,7 +24,7 @@ package jolie.runtime.expression;
 
 
 import java.util.concurrent.locks.Condition;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.Value;
 
 /** Provides the support for a "logical and" chain of other conditions. 

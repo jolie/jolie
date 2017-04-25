@@ -24,7 +24,7 @@ package jolie.runtime.expression;
 
 
 import jolie.lang.Constants;
-import jolie.process.TransformationReason;
+import jolie.behaviours.TransformationReason;
 import jolie.runtime.Value;
 
 public final class SumExpression implements Expression

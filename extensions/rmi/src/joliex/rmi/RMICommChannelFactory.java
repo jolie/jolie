@@ -25,9 +25,10 @@ import java.net.URI;
 import java.rmi.NotBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import jolie.net.ext.CommChannelFactory;
+import jolie.StatefulContext;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.OutputPort;
 
 public class RMICommChannelFactory extends CommChannelFactory
@@ -37,7 +38,7 @@ public class RMICommChannelFactory extends CommChannelFactory
 		super( commCore );
 	}
 
-	public CommChannel createChannel( URI location, OutputPort port )
+	public CommChannel createChannel( URI location, OutputPort port, StatefulContext ctx )
 		throws IOException
 	{
 		try {

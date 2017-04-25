@@ -37,12 +37,12 @@ public class SodepProtocolFactory extends CommProtocolFactory
 	public CommProtocol createOutputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new SodepProtocol( configurationPath );
+		return new SodepProtocol( configurationPath, commCore().interpreter(), false );
 	}
 
 	public CommProtocol createInputProtocol( VariablePath configurationPath, URI location )
 		throws IOException
 	{
-		return new SodepProtocol( configurationPath );
+		return new SodepProtocol( configurationPath, commCore().interpreter(), true );
 	}
 }

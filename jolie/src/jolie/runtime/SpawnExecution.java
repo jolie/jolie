@@ -25,96 +25,105 @@ package jolie.runtime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.SessionThread;
-import jolie.process.Process;
-import jolie.process.SpawnProcess;
+import jolie.SessionListener;
+import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.SequentialBehaviour;
+import jolie.behaviours.SpawnBehaviour;
+import jolie.behaviours.UnkillableBehaviour;
 
 public class SpawnExecution
 {
-	private class SpawnedThread extends SessionThread
+	private class SpawnedContext extends StatefulContext
 	{
 		private final int index;
-		private final CountDownLatch latch;
 
-		public SpawnedThread(
-			ExecutionThread parentThread,
-			Process process,
-			int index,
-			CountDownLatch latch
+		public SpawnedContext(
+			StatefulContext parentContext,
+			Behaviour process,
+			int index
 		)
 		{
-			super( process, parentThread );
-			this.index = index;
-			this.latch = latch;
-		}
-
-		@Override
-		public void runProcess()
-		{
-			parentSpawnProcess.indexPath().getValue().setValue( index );
-			try {
-				process().run();
-			} catch( FaultException f ) {}
-			catch( ExitingException e ) {}
+			super(new SequentialBehaviour(new Behaviour[] {
+					new UnkillableBehaviour()
+					{
+						@Override
+						public void run( StatefulContext ctx ) throws FaultException, ExitingException
+						{
+							parentSpawnProcess.indexPath().getValue( ctx ).setValue( index );
+						}
+					},
+					parentSpawnProcess.body()
+				}), 
+				parentContext );
 			
-			terminationNotify( this );
+			super.addSessionListener(new SessionListener()
+			{
+				@Override
+				public void onSessionExecuted( StatefulContext session )
+				{
+					terminationNotify( SpawnedContext.this );
+				}
+
+				@Override
+				public void onSessionError( StatefulContext session, FaultException fault )
+				{
+					terminationNotify( SpawnedContext.this );
+				}
+			});
+			
+			this.index = index;
 		}
 	}
 	
-	private final Collection< SpawnedThread > threads = new HashSet< SpawnedThread >();
-	private final SpawnProcess parentSpawnProcess;
-	private final ExecutionThread ethread;
+	private final Collection< SpawnedContext > threads = new HashSet<>();
+	private final SpawnBehaviour parentSpawnProcess;
+	private final StatefulContext context;
 	private CountDownLatch latch;
 
-	public SpawnExecution( SpawnProcess parent )
+	public SpawnExecution( StatefulContext ctx, SpawnBehaviour parent )
 	{
 		this.parentSpawnProcess = parent;
-		this.ethread = ExecutionThread.currentThread();
+		this.context = ctx;
 	}
 	
 	public void run()
 		throws FaultException
 	{		
 		if ( parentSpawnProcess.inPath() != null ) {
-			parentSpawnProcess.inPath().undef();
+			parentSpawnProcess.inPath().undef( context );
 		}
 		int upperBound = parentSpawnProcess.upperBound().evaluate().intValue();
 		latch = new CountDownLatch( upperBound );
-		SpawnedThread thread;
+		SpawnedContext thread;
 		
-		for( int i = 0; i < upperBound; i++ ) {
-			thread = new SpawnedThread(
-				ethread,
+		for( int i = 0; i < upperBound; i++ ) {			
+			thread = new SpawnedContext(
+				context,
 				parentSpawnProcess.body(),
-				i,
-				latch
+				i
 			);
 			threads.add( thread );
 		}
 
-		for( SpawnedThread t : threads ) {
+		for( SpawnedContext t : threads ) {
 			// We start threads in this other cycle to avoid race conditions on inPath
 			t.start();
 		}
 		
-		try {
-			latch.await();
-		} catch( InterruptedException e ) {
-			Interpreter.getInstance().logWarning( e );
-		}
+		context.pauseExecution();
 	}
 	
-	private void terminationNotify( SpawnedThread thread )
+	private void terminationNotify( SpawnedContext childContext )
 	{
 		synchronized( this ) {
 			if ( parentSpawnProcess.inPath() != null ) {
-				parentSpawnProcess.inPath().getValueVector( ethread.state().root() ).get( thread.index )
-					.deepCopy( parentSpawnProcess.inPath().getValueVector().first() );
+				parentSpawnProcess.inPath().getValueVector( context.state().root() ).get( childContext.index )
+					.deepCopy( parentSpawnProcess.inPath().getValueVector( childContext.state().root() ).first() );
 			}
-			
 			latch.countDown();
+			if (latch.getCount() == 0)
+				context.start();
 		}
 	}
 }

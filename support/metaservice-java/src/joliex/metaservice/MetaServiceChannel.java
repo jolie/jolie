@@ -22,6 +22,8 @@
 package joliex.metaservice;
 
 import java.io.IOException;
+import jolie.StatefulContext;
+import jolie.behaviours.NullBehaviour;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
@@ -73,6 +75,7 @@ public class MetaServiceChannel implements Cloneable
 			channel = metaService.createCommChannel();
 		}*/
 		channel.send(
+			new StatefulContext( null, NullBehaviour.getInstance() ),
 			CommMessage.createRequest( operationName, resourceName, value )
 		);
 	}

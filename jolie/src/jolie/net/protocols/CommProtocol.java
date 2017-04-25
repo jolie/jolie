@@ -25,9 +25,12 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.function.Function;
+import jolie.StatefulContext;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.StatefulMessage;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
@@ -43,7 +46,7 @@ public abstract class CommProtocol
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends AbstractCommChannel {
 			public void closeImpl() {}
-			public void sendImpl( CommMessage message ) {}
+			public void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler ) {}
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 
@@ -53,7 +56,6 @@ public abstract class CommProtocol
 	private static class Parameters {
 		private static final String OPERATION_SPECIFIC_CONFIGURATION = "osc";
 	}
-
 
 	private final VariablePath configurationPath;
 	private CommChannel channel = null;
@@ -83,24 +85,24 @@ public abstract class CommProtocol
 		return this.channel;
 	}
 	
-	protected ValueVector getParameterVector( String id )
+	protected ValueVector getParameterVector( StatefulContext ctx, String id )
 	{
-		return configurationPath.getValue().getChildren( id );
+		return configurationPath.getValue( ctx ).getChildren( id );
 	}
 	
-	protected boolean hasParameter( String id )
+	protected boolean hasParameter( StatefulContext ctx, String id )
 	{
-		if ( configurationPath.getValue().hasChildren( id ) ) {
-			Value v = configurationPath.getValue().getFirstChild( id );
+		if ( configurationPath.getValue( ctx ).hasChildren( id ) ) {
+			Value v = configurationPath.getValue( ctx ).getFirstChild( id );
 			return v.isDefined() || v.hasChildren();
 		}
 		return false;
 	}
 	
-	protected boolean hasParameterValue( String id )
+	protected boolean hasParameterValue( StatefulContext ctx, String id )
 	{
-		if ( configurationPath.getValue().hasChildren( id ) ) {
-			Value v = configurationPath.getValue().getFirstChild( id );
+		if ( configurationPath.getValue( ctx ).hasChildren( id ) ) {
+			Value v = configurationPath.getValue( ctx ).getFirstChild( id );
 			return v.isDefined();
 		}
 		return false;
@@ -109,28 +111,28 @@ public abstract class CommProtocol
 	/**
 	 * Shortcut for getParameterVector( id ).first()
 	 */
-	protected Value getParameterFirstValue( String id )
+	protected Value getParameterFirstValue( StatefulContext ctx, String id )
 	{
-		return getParameterVector( id ).first();
+		return getParameterVector( ctx, id ).first();
 	}
 	
 	/**
 	 * Shortcut for checking if a parameter intValue() equals 1
 	 * @param id the parameter identifier
 	 */
-	protected boolean checkBooleanParameter( String id )
+	protected boolean checkBooleanParameter( StatefulContext ctx, String id )
 	{
-		return hasParameter( id ) && getParameterFirstValue( id ).boolValue();
+		return hasParameter( ctx, id ) && getParameterFirstValue( ctx, id ).boolValue();
 	}
 
 	/**
 	 * Shortcut for checking if a parameter intValue() equals 1
 	 * @param id the parameter identifier
 	 */
-	protected boolean checkBooleanParameter( String id, boolean defaultValue )
+	protected boolean checkBooleanParameter( StatefulContext ctx, String id, boolean defaultValue )
 	{
-		if ( hasParameter( id ) ) {
-			return getParameterFirstValue( id ).boolValue();
+		if ( hasParameter( ctx, id ) ) {
+			return getParameterFirstValue( ctx, id ).boolValue();
 		} else {
 			return defaultValue;
 		}
@@ -142,10 +144,10 @@ public abstract class CommProtocol
 	 * @param value the value for checking the parameter with
 	 * @return {@code true} if the parameter has the expected value, {@code false} otherwise
 	 */
-	protected boolean checkStringParameter( String id, String value )
+	protected boolean checkStringParameter( StatefulContext ctx, String id, String value )
 	{
-		if ( hasParameter( id ) ) {
-			return getParameterFirstValue( id ).strValue().equals( value );
+		if ( hasParameter( ctx, id ) ) {
+			return getParameterFirstValue( ctx, id ).strValue().equals( value );
 		} else {
 			return false;
 		}
@@ -155,20 +157,20 @@ public abstract class CommProtocol
 	 * Shortcut for <code>getParameterFirstValue( id ).strValue()</code>
 	 * @param id the parameter identifier
 	 */
-	protected String getStringParameter( String id )
+	protected String getStringParameter( StatefulContext ctx, String id )
 	{
-		return getStringParameter( id, "" );
+		return getStringParameter( ctx, id, "" );
 	}
 	
-	protected String getStringParameter( String id, String defaultValue )
+	protected String getStringParameter( StatefulContext ctx, String id, String defaultValue )
 	{
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).strValue() : defaultValue );
+		return ( hasParameter( ctx, id ) ? getParameterFirstValue( ctx, id ).strValue() : defaultValue );
 	}
 
-	protected boolean hasOperationSpecificParameter( String operationName, String parameterName )
+	protected boolean hasOperationSpecificParameter( StatefulContext ctx, String operationName, String parameterName )
 	{
-		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
-			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+		if ( hasParameter( ctx, Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
+			Value osc = getParameterFirstValue( ctx, Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 			if ( osc.hasChildren( operationName ) ) {
 				return osc.getFirstChild( operationName ).hasChildren( parameterName );
 			}
@@ -176,10 +178,10 @@ public abstract class CommProtocol
 		return false;
 	}
 
-	protected String getOperationSpecificStringParameter( String operationName, String parameterName )
+	protected String getOperationSpecificStringParameter(  StatefulContext ctx, String operationName, String parameterName )
 	{
-		if ( hasParameter( Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
-			Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+		if ( hasParameter( ctx, Parameters.OPERATION_SPECIFIC_CONFIGURATION ) ) {
+			Value osc = getParameterFirstValue( ctx, Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 			if ( osc.hasChildren( operationName ) ) {
 				Value opConfig = osc.getFirstChild( operationName );
 				if ( opConfig.hasChildren( parameterName ) ) {
@@ -193,14 +195,14 @@ public abstract class CommProtocol
 	/**
 	 * Shortcut for getOperationSpecificParameterVector( id ).first()
 	 */
-	protected Value getOperationSpecificParameterFirstValue( String operationName, String parameterName )
+	protected Value getOperationSpecificParameterFirstValue( StatefulContext ctx, String operationName, String parameterName )
 	{
-		return getOperationSpecificParameterVector( operationName, parameterName ).first();
+		return getOperationSpecificParameterVector( ctx, operationName, parameterName ).first();
 	}
 
-	protected ValueVector getOperationSpecificParameterVector( String operationName, String parameterName )
+	protected ValueVector getOperationSpecificParameterVector( StatefulContext ctx, String operationName, String parameterName )
 	{
-		Value osc = getParameterFirstValue( Parameters.OPERATION_SPECIFIC_CONFIGURATION );
+		Value osc = getParameterFirstValue( ctx, Parameters.OPERATION_SPECIFIC_CONFIGURATION );
 		return osc.getFirstChild( operationName ).getChildren( parameterName );
 	}
 
@@ -208,9 +210,9 @@ public abstract class CommProtocol
 	 * Shortcut for <code>getParameterFirstValue( id ).intValue()</code>
 	 * @param id the parameter identifier
 	 */
-	protected int getIntParameter( String id )
+	protected int getIntParameter( StatefulContext ctx, String id )
 	{
-		return ( hasParameter( id ) ? getParameterFirstValue( id ).intValue() : 0 );
+		return ( hasParameter( ctx, id ) ? getParameterFirstValue( ctx, id ).intValue() : 0 );
 	}
 	
 	abstract public CommMessage recv( InputStream istream, OutputStream ostream )

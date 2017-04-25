@@ -34,3 +34,4 @@ build/
 /lib/jolie-js/nbproject/private/
 /tools/jolie2surface/nbproject/private/
 /lib/xsom/build
+/extensions/websocket/nbproject/private/

@@ -23,14 +23,14 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.TransformationReason;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.process.Process;
-import jolie.process.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -43,7 +43,7 @@ import jolie.tracer.Tracer;
  * 
  * @author Fabrizio Montesi
  */
-public class ForwardNotificationProcess implements Process
+public class ForwardNotificationProcess implements Behaviour
 {
 	private final String operationName;
 	private final OutputPort outputPort;
@@ -64,7 +64,7 @@ public class ForwardNotificationProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Behaviour clone( TransformationReason reason )
 	{
 		return new ForwardNotificationProcess(
 			operationName,
@@ -86,10 +86,11 @@ public class ForwardNotificationProcess implements Process
 		) );
 	}
 
-	public void run()
+	@Override
+	public void run( StatefulContext ctx )
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -102,17 +103,17 @@ public class ForwardNotificationProcess implements Process
 			aggregatedTypeDescription.requestType().check( messageValue );
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
-			channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel( ctx );
 			
 			log( "SENDING", message );
 			
-			channel.send( message );
+			channel.send( ctx, message );
 			
 			log( "SENT", message );
 			
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				response = channel.recvResponseFor( ctx, message );
 			} while( response == null );
 			
 			log( "RECEIVED ACK", response );
@@ -124,13 +125,13 @@ public class ForwardNotificationProcess implements Process
 					) {
 					throw response.fault();
 				} else {
-					Interpreter.getInstance().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
+					ctx.interpreter().logSevere( "Forward notification process for operation " + operationName + " received an unexpected fault: " + response.fault().faultName() );
 				}
 			}
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
@@ -138,12 +139,13 @@ public class ForwardNotificationProcess implements Process
 				try {
 					channel.release();
 				} catch( IOException e ) {
-					Interpreter.getInstance().logWarning( e );
+					ctx.interpreter().logWarning( e );
 				}
 			}
 		}
 	}
 	
+	@Override
 	public boolean isKillable()
 	{
 		return true;

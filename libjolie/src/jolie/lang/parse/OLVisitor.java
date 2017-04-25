@@ -179,5 +179,5 @@ public interface OLVisitor
 	public void visit( InlineTreeExpressionNode n );
 	public void visit( VoidExpressionNode n );
 	public void visit( ProvideUntilStatement n );
-	public void visit(TypeChoiceDefinition n);
+	public void visit( TypeChoiceDefinition n );
 }

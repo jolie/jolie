@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+X-JOLIE-ChannelExtension: ws:jolie.net.WebSocketCommChannelFactory
+X-JOLIE-ListenerExtension: ws:jolie.net.WebSocketListenerFactory
+

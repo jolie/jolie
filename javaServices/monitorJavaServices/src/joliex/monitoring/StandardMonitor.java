@@ -63,7 +63,7 @@ public class StandardMonitor extends AbstractMonitorJavaService
 			q.addLast( e );
 			if ( triggerEnabled && !alert ) {
 				if ( q.size() >= triggerThreshold ) {
-					sendMessage( CommMessage.createRequest( "monitorAlert", "/", Value.create( ) ) );
+					sendMessage( context(), CommMessage.createRequest( "monitorAlert", "/", Value.create( ) ) );
 					alert = true;
 				}
 			}

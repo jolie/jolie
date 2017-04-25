@@ -41,8 +41,10 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,7 +56,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.DefinitionBehaviour;
+import jolie.behaviours.InputOperationBehaviour;
 import jolie.lang.Constants;
 import jolie.lang.parse.OLParseTreeOptimizer;
 import jolie.lang.parse.OLParser;
@@ -74,9 +80,6 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.SessionMessage;
 import jolie.net.ports.OutputPort;
-import jolie.process.DefinitionProcess;
-import jolie.process.InputOperationProcess;
-import jolie.process.SequentialProcess;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.InvalidIdException;
@@ -102,17 +105,19 @@ import jolie.tracer.Tracer;
  */
 public class Interpreter
 {
-    private class InitSessionThread extends SessionThread
+    private class InitSessionContext extends StatefulContext
 	{
-		public InitSessionThread( Interpreter interpreter, jolie.process.Process process )
+		public InitSessionContext( Interpreter interpreter, Behaviour process )
 		{
 			super( interpreter, process );
-			addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+			super.addSessionListener(new SessionListener() {
+				@Override
+				public void onSessionExecuted( StatefulContext session )
 				{
 					onSuccessfulInitExecution();
 				}
-				public void onSessionError( SessionThread session, FaultException fault )
+				@Override
+				public void onSessionError( StatefulContext session, FaultException fault )
 				{
 					exit();
 				}
@@ -124,7 +129,7 @@ public class Interpreter
 			if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 				synchronized( correlationEngine ) {
 					try {
-						mainSession = new SessionThread( getDefinition( "main" ), initExecutionThread );
+						mainSession = new StatefulContext( getDefinition( "main" ), initExecutionThread );
 						correlationEngine.onSingleExecutionSessionStart( mainSession );
 						mainSession.addSessionListener( correlationEngine );
 						correlationEngine.onSessionExecuted( this );
@@ -143,6 +148,7 @@ public class Interpreter
 			 * were to call that directly from here.
 			 */
 			execute( new Runnable() {
+				
 				private void pushMessages( Deque< SessionMessage > queue )
 				{
 					for( SessionMessage message : queue ) {
@@ -151,7 +157,9 @@ public class Interpreter
 						} catch( CorrelationError e ) {
 							logWarning( e );
 							try {
-								message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+								message.channel().send( 
+									InitSessionContext.this,
+									CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) ); 
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}
@@ -185,8 +193,11 @@ public class Interpreter
 		public Thread newThread( Runnable r )
 		{
 			JolieExecutorThread t = new JolieExecutorThread( r, interpreter );
-			if ( r instanceof ExecutionThread ) {
-				t.setExecutionThread( (ExecutionThread)r );
+			//if ( r instanceof ExecutionThread ) {
+				//t.setExecutionThread( (ExecutionThread)r );
+			//} else
+			if ( r instanceof StatefulContext ) {
+				t.setContext( (StatefulContext) r );
 			}
 			return t;
 		}
@@ -208,22 +219,22 @@ public class Interpreter
 	
 	public static class SessionStarter
 	{
-		private final InputOperationProcess guard;
-		private final jolie.process.Process body;
+		private final InputOperationBehaviour guard;
+		private final jolie.behaviours.Behaviour body;
 		private CorrelationSet correlationInitializer = null;
 
-		public SessionStarter( InputOperationProcess guard, jolie.process.Process body )
+		public SessionStarter( InputOperationBehaviour guard, jolie.behaviours.Behaviour body )
 		{
 			this.guard = guard;
 			this.body = body;
 		}
 
-		public InputOperationProcess guard()
+		public InputOperationBehaviour guard()
 		{
 			return guard;
 		}
 
-		public jolie.process.Process body()
+		public jolie.behaviours.Behaviour body()
 		{
 			return body;
 		}
@@ -258,7 +269,7 @@ public class Interpreter
 	private final Collection< EmbeddedServiceLoader > embeddedServiceLoaders = new ArrayList<>();
 	private static final Logger logger = Logger.getLogger( "Jolie" );
 	
-	private final Map< String, DefinitionProcess > definitions = new HashMap<>();
+	private final Map< String, DefinitionBehaviour > definitions = new HashMap<>();
 	private final Map< String, OutputPort > outputPorts = new HashMap<>();
 	private final Map< String, InputOperation > inputOperations = new HashMap<>();
 	
@@ -269,7 +280,7 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
-        private boolean check = false;
+    private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
@@ -283,6 +294,11 @@ public class Interpreter
 	
 	private final ExecutorService timeoutHandlerExecutor =
 		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService nativeExecutorService =
+		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
+	private final ExecutorService processExecutorService =
+		//Executors.newFixedThreadPool( 8, new JolieExecutionThreadFactory( this ) );
+		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
 
 	private final String programFilename;
 	private final File programDirectory;
@@ -318,26 +334,25 @@ public class Interpreter
 	{
 		if ( monitor != null ) {
 			CommMessage m = CommMessage.createRequest( "pushEvent", "/", MonitoringEvent.toValue( event ) );
-			CommChannel channel = null;
+			
 			try {
-				channel = monitor.getCommChannel();
-				channel.send( m );
-				CommMessage response;
-				do {
-					response = channel.recvResponseFor( m );
-				} while( response == null );
-			} catch( URISyntaxException e ) {
-				logWarning( e );
-			} catch( IOException e ) {
-				logWarning( e );
-			} finally {
-				if ( channel != null ) {
+				CommChannel channel = monitor.getCommChannel( event.context() );
+				channel.send( event.context(), m, (Void) -> {
 					try {
 						channel.release();
 					} catch( IOException e ) {
 						logWarning( e );
 					}
-				}
+					return null;
+				});
+				CommMessage response;
+				do {
+					response = channel.recvResponseFor( event.context(), m );
+				} while( response == null );
+			} catch( URISyntaxException e ) {
+				logWarning( e );
+			} catch( IOException e ) {
+				logWarning( e );
 			}
 		}
 	}
@@ -431,7 +446,7 @@ public class Interpreter
 	 * @param guard the input guard for this session starter
 	 * @param body the body of this session starter
 	 */
-	public void registerSessionStarter( InputOperationProcess guard, jolie.process.Process body )
+	public void registerSessionStarter( InputOperationBehaviour guard, jolie.behaviours.Behaviour body )
 	{
 		sessionStarters.put( guard.inputOperation().id(), new SessionStarter( guard, body ) );
 	}
@@ -526,10 +541,10 @@ public class Interpreter
 	 * @return the Definition identified by key
 	 * @throws jolie.runtime.InvalidIdException if this Interpreter does not own the requested Definition
 	 */
-	public DefinitionProcess getDefinition( String key )
+	public DefinitionBehaviour getDefinition( String key )
 		throws InvalidIdException
 	{
-		DefinitionProcess ret;
+		DefinitionBehaviour ret;
 		if ( (ret=definitions.get( key )) == null )
 			throw new InvalidIdException( key );
 		return ret;
@@ -550,7 +565,7 @@ public class Interpreter
 	 * @param key the name of the defined sub-routine to register
 	 * @param value the defined sub-routine to register
 	 */
-	public void register( String key, DefinitionProcess value )
+	public void register( String key, DefinitionBehaviour value )
 	{
 		definitions.put( key, value );
 	}
@@ -622,12 +637,18 @@ public class Interpreter
 				exiting = true;
 			}
 		}
+		
+		for( EmbeddedServiceLoader loader : embeddedServiceLoaders() ) {
+			loader.shutdown();
+		}
+		
 		exitingLock.lock();
 		try {
 			exitingCondition.signalAll();
 		} finally {
 			exitingLock.unlock();
 		}
+		
 		timer.cancel();
 		checkForExpiredTimeoutHandlers();
 		processExecutorService.shutdown();
@@ -643,7 +664,9 @@ public class Interpreter
 		try {
 			timeoutHandlerExecutor.awaitTermination( terminationTimeout, TimeUnit.MILLISECONDS );
 		} catch ( InterruptedException e ) {}
+		commCore.shutdownNetty();
 		free();
+		exitFuture.complete( null );
 	}
 
 	/**
@@ -654,6 +677,12 @@ public class Interpreter
 	public boolean exiting()
 	{
 		return exiting;
+	}
+	
+	
+	private CompletableFuture<Void> exitFuture = new CompletableFuture<Void>();
+	public void awaitExit() throws InterruptedException, ExecutionException {
+		exitFuture.get();
 	}
 
 	/**
@@ -788,11 +817,14 @@ public class Interpreter
 	 * Returns the Interpreter the current thread is referring to.
 	 * @return the Interpreter the current thread is referring to
 	 */
+	@Deprecated
 	public static Interpreter getInstance()
 	{
 		Thread t = Thread.currentThread();
 		if ( t instanceof InterpreterThread ) {
 			return ((InterpreterThread)t).interpreter();
+		} else if (t instanceof CommCore.ExecutionContextThread) {
+			return ((CommCore.ExecutionContextThread)t).interpreter();
 		}
 		return null;
 	}
@@ -842,8 +874,7 @@ public class Interpreter
 		arguments = cmdParser.arguments();
         
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
-		
-        commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+		commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();
@@ -879,6 +910,7 @@ public class Interpreter
 	 * @param args The command line arguments.
 	 * @param parentClassLoader the parent ClassLoader to fall back when not finding resources.
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside a JAP file.
+	 * @param parentInterpreter
 	 * @param internalServiceProgram
 	 * @throws CommandLineException if the command line is not valid or asks for simple information. (like --help and --version)
 	 * @throws FileNotFoundException if one of the passed input files is not found.
@@ -934,12 +966,14 @@ public class Interpreter
 	 */
 	public Object getLock( String id )
 	{
-		Object l = locksMap.get( id );
-		if ( l == null ) {
-			l = new Object();
-			locksMap.put( id, l );
+		synchronized(locksMap) {
+			Object l = locksMap.get( id );
+			if ( l == null ) {
+				l = new Object();
+				locksMap.put( id, l );
+			}
+			return l;
 		}
-		return l;
 	}
 
 	public SessionStarter getSessionStarter( String operationName )
@@ -956,15 +990,15 @@ public class Interpreter
 		return globalValue;
 	}
 	
-	private InitSessionThread initExecutionThread;
-	private SessionThread mainSession = null;
-	private final Queue< SessionThread > waitingSessionThreads = new LinkedList<>();
+	private InitSessionContext initExecutionThread;
+	private StatefulContext mainSession = null;
+	private final Queue< StatefulContext > waitingSessionThreads = new LinkedList<>();
 	
 	/**
 	 * Returns the {@link SessionThread} of the Interpreter that started the program execution.
 	 * @return the {@link SessionThread} of the Interpreter that started the program execution
 	 */
-	public SessionThread initThread()
+	public StatefulContext initContext()
 	{
 		return initExecutionThread;
 	}
@@ -1043,7 +1077,7 @@ public class Interpreter
             } else {
                 sessionStarters = Collections.unmodifiableMap( sessionStarters );
                 try {
-                    initExecutionThread = new InitSessionThread( this, getDefinition( "init" ) );
+                    initExecutionThread = new InitSessionContext( this, getDefinition( "init" ) );
 
                     commCore.init();
 
@@ -1072,7 +1106,7 @@ public class Interpreter
 	private void runCode()
 	{
 		if ( !check ) {
-			SessionThread t;
+			StatefulContext t;
 			synchronized( this ) {
 				t = initExecutionThread;
 			}
@@ -1097,13 +1131,10 @@ public class Interpreter
 					logSevere( e );
 				}
 			} else {
-				exitingLock.lock();
 				try {
-					exitingCondition.await();
-				} catch( InterruptedException e ) {
-					logSevere( e );
-				} finally {
-					exitingLock.unlock();
+					exitFuture.get();
+				} catch( InterruptedException | ExecutionException ex ) {
+					Logger.getLogger( Interpreter.class.getName() ).log( Level.SEVERE, null, ex );
 				}
 			}
 		}
@@ -1125,13 +1156,6 @@ public class Interpreter
 		runCode();
 	}
 
-	private final ExecutorService nativeExecutorService =
-		new JolieThreadPoolExecutor( new NativeJolieThreadFactory( this ) );
-		// Executors.newCachedThreadPool( new NativeJolieThreadFactory( this ) );
-	private final ExecutorService processExecutorService =
-		new JolieThreadPoolExecutor( new JolieExecutionThreadFactory( this ) );
-		// Executors.newCachedThreadPool( new JolieExecutionThreadFactory( this ) );
-
 	/**
 	 * Runs an asynchronous task in this Interpreter internal thread pool.
 	 * @param r the Runnable object to execute
@@ -1148,7 +1172,15 @@ public class Interpreter
 	
 	public Future<?> runJolieThread( Runnable task )
 	{
+		if ( exiting ) {
+			return CompletableFuture.completedFuture( null );
+		}
 		return processExecutorService.submit( task );
+	}
+	
+	public Executor processExecutor()
+	{
+		return processExecutorService;
 	}
 
 	private static final AtomicInteger starterThreadCounter = new AtomicInteger();
@@ -1294,7 +1326,7 @@ public class Interpreter
 	 * @param channel the channel of the message triggering the session start
 	 * @return {@code true} if the service session is started, {@code false} otherwise
 	 */
-	public boolean startServiceSession( final CommMessage message, CommChannel channel )
+	public boolean startServiceProcess( final CommMessage message, CommChannel channel )
 	{
 		if ( executionMode == Constants.ExecutionMode.SINGLE ) {
 			return false;
@@ -1311,30 +1343,33 @@ public class Interpreter
 			return false;
 		}
 		
-		final SessionThread spawnedSession;
+		final StatefulContext spawnedSession;
 
 		if ( executionMode == Constants.ExecutionMode.CONCURRENT ) {
 			State state = initExecutionThread.state().clone();
-			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
+			
+			spawnedSession = new StatefulContext( null, state, initExecutionThread );
+			
+			spawnedSession.executeNext( 
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession ),
 				starter.body
-			} );
-			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread
 			);
+			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
-			logSessionStart( message.operationName(), spawnedSession.getSessionId(), 
-							message.id(), message.value() );
+			logSessionStart( spawnedSession, message.operationName(), message.id(), message.value() );
+			
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+				@Override
+				public void onSessionExecuted( StatefulContext session )
 				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 				
-				public void onSessionError( SessionThread session, FaultException fault )
+				@Override
+				public void onSessionError( StatefulContext session, FaultException fault )
 				{
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 			} );
 			spawnedSession.start();
@@ -1343,17 +1378,21 @@ public class Interpreter
 			 * We use sessionThreads to handle sequential execution of spawn requests
 			 */
 			State state = initExecutionThread.state().clone();
-			jolie.process.Process sequence = new SequentialProcess( new jolie.process.Process[] {
-				starter.guard.receiveMessage( new SessionMessage( message, channel ), state ),
-				starter.body
-			} );
-			spawnedSession = new SessionThread(
-				sequence, state, initExecutionThread
+			
+			spawnedSession = new StatefulContext(
+				null, state, initExecutionThread
 			);
+			
+			spawnedSession.executeNext( 
+				starter.guard.receiveMessage( new SessionMessage( message, channel ), spawnedSession ),
+				starter.body 
+			);
+			
 			correlationEngine.onSessionStart( spawnedSession, starter, message );
 			spawnedSession.addSessionListener( correlationEngine );
 			spawnedSession.addSessionListener( new SessionListener() {
-				public void onSessionExecuted( SessionThread session )
+				@Override
+				public void onSessionExecuted( StatefulContext session )
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {
@@ -1363,10 +1402,11 @@ public class Interpreter
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 
-				public void onSessionError( SessionThread session, FaultException fault )
+				@Override
+				public void onSessionError( StatefulContext session, FaultException fault )
 				{
 					synchronized( waitingSessionThreads ) {
 						if ( !waitingSessionThreads.isEmpty() ) {
@@ -1376,7 +1416,7 @@ public class Interpreter
 							}
 						}
 					}
-					logSessionEnd( message.operationName(), session.getSessionId() );
+					logSessionEnd( session, message.operationName() );
 				}
 			} );
 			synchronized ( waitingSessionThreads ) {
@@ -1391,22 +1431,22 @@ public class Interpreter
 		return true;
 	}
 	
-	private void logSessionStart( String operationName, String sessionId, long messageId, Value message )
+	private void logSessionStart( StatefulContext sessionContext, String operationName, long messageId, Value message )
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( new SessionStartedEvent( operationName, sessionId ) );
-			fireMonitorEvent( new OperationStartedEvent( operationName, sessionId, Long.toString( messageId ), message ) );
+			fireMonitorEvent( new SessionStartedEvent( sessionContext, operationName ) );
+			fireMonitorEvent( new OperationStartedEvent( sessionContext, operationName, Long.toString( messageId ), message ) );
 		}
 	}
 	
-	private void logSessionEnd( String operationName, String sessionId )
+	private void logSessionEnd( StatefulContext sessionContext, String operationName )
 	{
 		if ( isMonitoring() ) {
-			fireMonitorEvent( new SessionEndedEvent( operationName, sessionId ) );
+			fireMonitorEvent( new SessionEndedEvent( sessionContext, operationName ) );
 		}
 	}
 	
-	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<> ();
+	private final Map< String, EmbeddedServiceLoaderFactory > embeddingFactories = new ConcurrentHashMap<>();
 	
 	public EmbeddedServiceLoaderFactory getEmbeddedServiceLoaderFactory( String name )
 		throws IOException

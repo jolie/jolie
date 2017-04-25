@@ -21,6 +21,7 @@
 
 package jolie.monitoring.events;
 
+import jolie.StatefulContext;
 import jolie.monitoring.MonitoringEvent;
 import jolie.runtime.Value;
 
@@ -31,11 +32,11 @@ import jolie.runtime.Value;
  */
 public class SessionStartedEvent extends MonitoringEvent {
 
-	public SessionStartedEvent( String operationName, String processId )
+	public SessionStartedEvent( StatefulContext sessionContext, String operationName )
 	{
-		super( "SessionStarted", Value.create() );
+		super( "SessionStarted", Value.create(), sessionContext );
 
-		data().getFirstChild( "processId").setValue( processId );
+		data().getFirstChild( "processId").setValue( sessionContext.getSessionId() );
 		data().getFirstChild( "operationName" ).setValue( operationName );
 
 	}

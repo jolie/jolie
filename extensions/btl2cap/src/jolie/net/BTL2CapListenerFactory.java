@@ -26,8 +26,10 @@ import jolie.net.ext.CommListenerFactory;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.runtime.AndJarDeps;
+import jolie.runtime.CanUseJars;
 
 @AndJarDeps({"bluetooth.jar"})
+@CanUseJars({"bluecove-gpl-2.1.0.jar"})
 public class BTL2CapListenerFactory extends CommListenerFactory
 {
 	public BTL2CapListenerFactory( CommCore commCore )

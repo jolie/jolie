@@ -23,14 +23,14 @@ package jolie.process.courier;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import jolie.ExecutionThread;
 import jolie.Interpreter;
+import jolie.StatefulContext;
+import jolie.behaviours.Behaviour;
+import jolie.behaviours.TransformationReason;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
 import jolie.net.ports.OutputPort;
-import jolie.process.Process;
-import jolie.process.TransformationReason;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
@@ -44,7 +44,7 @@ import jolie.tracer.Tracer;
  * 
  * @author Fabrizio Montesi
  */
-public class ForwardSolicitResponseProcess implements Process
+public class ForwardSolicitResponseProcess implements Behaviour
 {
 	private final String operationName;
 	private final OutputPort outputPort;
@@ -67,7 +67,7 @@ public class ForwardSolicitResponseProcess implements Process
 		this.extenderTypeDescription = extenderTypeDescription;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public Behaviour clone( TransformationReason reason )
 	{
 		return new ForwardSolicitResponseProcess(
 			operationName,
@@ -90,10 +90,11 @@ public class ForwardSolicitResponseProcess implements Process
 		) );
 	}
 
-	public void run()
+	@Override
+	public void run(StatefulContext ctx)
 		throws FaultException
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
+		if ( ctx.isKilled() ) {
 			return;
 		}
 
@@ -106,21 +107,21 @@ public class ForwardSolicitResponseProcess implements Process
 			aggregatedTypeDescription.requestType().check( messageValue );
 			CommMessage message = CommMessage.createRequest( operationName, outputPort.getResourcePath(), messageValue );
 
-			channel = outputPort.getCommChannel();
+			channel = outputPort.getCommChannel( ctx );
 			
 			log( "SENDING", message );
 			
-			channel.send( message );
+			channel.send( ctx, message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );
 			CommMessage response = null;
 			do {
-				response = channel.recvResponseFor( message );
+				response = channel.recvResponseFor( ctx, message );
 			} while( response == null );
 			log( "RECEIVED", message );
 			
 			if ( inputVariablePath != null )	 {
-				inputVariablePath.setValue( response.value() );
+				inputVariablePath.setValue( ctx, response.value() );
 			}
 			
 			if ( response.isFault() ) {
@@ -149,7 +150,7 @@ public class ForwardSolicitResponseProcess implements Process
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );
 		} catch( URISyntaxException e ) {
-			Interpreter.getInstance().logSevere( e );
+			ctx.interpreter().logSevere( e );
 		} catch( TypeCheckingException e ) {
 			throw new FaultException( Constants.TYPE_MISMATCH_FAULT_NAME, "Output message TypeMismatch (" + operationName + "@" + outputPort.id() + "): " + e.getMessage() );
 		} finally {
@@ -157,7 +158,7 @@ public class ForwardSolicitResponseProcess implements Process
 				try {
 					channel.release();
 				} catch( IOException e ) {
-					Interpreter.getInstance().logWarning( e );
+					ctx.interpreter().logWarning( e );
 				}
 			}
 		}

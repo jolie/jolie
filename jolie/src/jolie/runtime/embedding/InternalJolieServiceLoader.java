@@ -22,9 +22,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.CommandLineException;
 import jolie.Interpreter;
+import jolie.StatefulContext;
 import jolie.lang.parse.ast.Program;
 import jolie.runtime.expression.Expression;
 
@@ -54,14 +56,14 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 		);
 	}
 
-	public void load()
+	public void load( StatefulContext ctx )
 		throws EmbeddedServiceLoadingException
 	{
 		Future< Exception > f = interpreter.start();
 		try {
 			Exception e = f.get();
 			if ( e == null ) {
-				setChannel( interpreter.commCore().getLocalCommChannel() );
+				setChannel( ctx, interpreter.commCore().getLocalCommChannel() );
 			} else {
 				throw new EmbeddedServiceLoadingException( e );
 			}
@@ -73,6 +75,15 @@ public class InternalJolieServiceLoader extends EmbeddedServiceLoader
 	public Interpreter interpreter()
 	{
 		return interpreter;
+	}
+
+	@Override
+	public void shutdown()
+	{
+		interpreter().exit();
+		try {
+			interpreter().awaitExit();
+		} catch( InterruptedException | ExecutionException ex ) { }
 	}
     
 }
