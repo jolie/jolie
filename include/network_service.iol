@@ -19,12 +19,18 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-type GetNetworkInterfaceNamesRequest: void 
+type GetNetworkInterfaceNamesRequest: void
 
 type GetNetworkInterfaceNamesResponse: void {
   .interfaceName*: string {
 	.displayName: string
   }
+}
+
+type GetHostNameRequest: void
+
+type GetHostNameResponse: void {
+  .hostname: string
 }
 
 type GetIPAddressesRequest: void {
@@ -37,12 +43,13 @@ type GetIPAddressesResponse: void {
 }
 
 
+
+
 interface NetworkServiceInterface {
 RequestResponse:
   getNetworkInterfaceNames( GetNetworkInterfaceNamesRequest )( GetNetworkInterfaceNamesResponse ),
-  getIPAddresses( GetIPAddressesRequest )( GetIPAddressesResponse )
-    throws InterfaceNotFound
-	
+  getHostName( GetHostNameRequest )( GetHostNameResponse ),
+  getIPAddresses( GetIPAddressesRequest )( GetIPAddressesResponse ) throws InterfaceNotFound
 }
 
 outputPort NetworkService {

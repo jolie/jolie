@@ -24,7 +24,10 @@ package joliex.util;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
@@ -100,5 +103,17 @@ public class NetworkService extends JavaService  {
 		}
 		return response;
 
+	}
+	
+	public Value getHostName( Value request ) throws FaultException {
+		Value response = Value.create();
+		InetAddress addr;
+		try {
+			addr = InetAddress.getLocalHost();
+		} catch( UnknownHostException ex ) {
+			throw new FaultException("UnknownHostException");
+		}
+		response.getFirstChild("hostname").setValue( addr.getHostName() );
+		return response;
 	}
 }
