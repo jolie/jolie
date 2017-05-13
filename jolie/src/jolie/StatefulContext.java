@@ -113,10 +113,10 @@ public class StatefulContext extends ExecutionContext
 		synchronized( this ) {
 			while( !processStack.isEmpty() && !pauseExecution ) {
 				try {
+					final Behaviour behaviour = processStack.pop();
 					try {
-						processStack.pop().run( this );
-					} catch( ExitingException e ) {
-					}
+						behaviour.run( this );
+					} catch( ExitingException e ) {}
 				} catch( FaultException f ) {
 					ScopeBehaviour.Execution e = getCurrentScopeExecution();
 					if ( e != null ) {
@@ -327,7 +327,7 @@ public class StatefulContext extends ExecutionContext
 
 	private void addMessageWaiter( InputOperation operation, MessageWaiter waiter )
 	{
-		messageWaiters.computeIfAbsent( operation.id(), new ArrayDeque<>() ).addLast( waiter );
+		messageWaiters.computeIfAbsent( operation.id(), s -> new ArrayDeque<>() ).addLast( waiter );
 	}
 
 	private MessageWaiter getMessageWaiter( String operationName )

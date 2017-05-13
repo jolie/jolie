@@ -337,14 +337,13 @@ public class Interpreter
 			
 			try {
 				CommChannel channel = monitor.getCommChannel( event.context() );
-				channel.send( event.context(), m, (Void) -> {
+				channel.send( event.context(), m, () -> {
 					try {
 						channel.release();
 					} catch( IOException e ) {
 						logWarning( e );
 					}
-					return null;
-				});
+				}, f -> {} );
 				CommMessage response;
 				do {
 					response = channel.recvResponseFor( event.context(), m );

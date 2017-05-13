@@ -89,7 +89,7 @@ public abstract class JavaService
 		{
 			LocalCommChannel c = interpreter.commCore().getLocalCommChannel();
 			try {
-				c.send( ctx, message, null );
+				c.send( ctx, message );
 			} catch( IOException e ) {
 				// This should never happen
 				e.printStackTrace();

@@ -23,7 +23,7 @@ import io.netty.channel.EventLoopGroup;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.ExecutionContext;
 import jolie.Interpreter;
 
@@ -53,7 +53,7 @@ public class LocalCommChannel extends AbstractCommChannel
 		}
 
 		@Override
-		protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
+		protected void sendImpl( StatefulMessage msg, Runnable successHandler, Consumer<Throwable> failureHandler )
 			throws IOException
 		{
 			synchronized( senderChannel ) {
@@ -124,7 +124,7 @@ public class LocalCommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Runnable completionHandler, Consumer< Throwable > failureHandler )
 	{
 		workerGroup.execute(new Runnable()
 		{

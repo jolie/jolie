@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jolie.StatefulContext;
-import jolie.net.SessionMessage;
 import jolie.runtime.ExitingException;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
@@ -96,15 +95,14 @@ public class NDChoiceBehaviour implements Behaviour
 			return;
 		}
 
-		SessionMessage message = ctx.requestMessage( inputOperationsMap, ctx );
-		if ( message == null) {
-			ctx.executeNext( this );
-			ctx.pauseExecution();
-			return;
-		}
-		
-		Pair< InputOperationBehaviour, Behaviour > branch = branches.get( message.message().operationName() );
-		ctx.executeNext( branch.key().receiveMessage( message, ctx ), branch.value());
+		ctx.requestMessage(
+			inputOperationsMap,
+			ctx,
+			m -> {
+				Pair< InputOperationBehaviour, Behaviour > branch = branches.get( m.message().operationName() );
+				ctx.executeNext( branch.key().receiveMessage( m, ctx ), branch.value());
+			}
+		);
 	}
 	
 	@Override

@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 import jolie.ExecutionContext;
@@ -83,7 +83,7 @@ public class JavaScriptCommChannel extends CommChannel
 	}
 
 	@Override
-	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Runnable completionHandler, Consumer< Throwable > failureHandler )
 		throws IOException
 	{
 		Object returnValue = null;

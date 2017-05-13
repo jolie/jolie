@@ -24,7 +24,7 @@ package jolie.runtime.embedding;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.ExecutionContext;
 import jolie.StatefulContext;
 import jolie.net.CommChannel;
@@ -56,21 +56,21 @@ public class JavaCommChannel extends CommChannel
 	}
 
 	@Override	
-	public void send( StatefulContext ctx, CommMessage message, Function<Void, Void> completionHandler )
+	public void send( StatefulContext ctx, CommMessage message, Runnable completionHandler, Consumer< Throwable > failureHandler )
 		throws IOException
 	{
-		sendImpl( new StatefulMessage( message, ctx ), completionHandler );
+		sendImpl( new StatefulMessage( message, ctx ), completionHandler, failureHandler );
 	}
 
 	@Override
-	protected void sendImpl( StatefulMessage msg, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage msg, Runnable completionHandler, Consumer< Throwable > failureHandler )
 		throws IOException
 	{
 		try {
 			final CommMessage response = javaService.callOperation( msg.message() );
 			messages.put( msg.message().id(), response );
 			if (completionHandler != null)
-				completionHandler.apply(null);
+				completionHandler.run();
 		} catch( IllegalAccessException | InvalidIdException e ) {
 			throw new IOException( e );
 		}

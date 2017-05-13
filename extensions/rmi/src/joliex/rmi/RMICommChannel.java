@@ -22,7 +22,7 @@
 package joliex.rmi;
 
 import java.io.IOException;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.ExecutionContext;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommMessage;
@@ -39,7 +39,7 @@ public class RMICommChannel extends AbstractCommChannel
 	}
 
 	@Override
-	protected void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler )
+	protected void sendImpl( StatefulMessage message, Runnable completionHandler, Consumer< Throwable > failureHandler )
 		throws IOException
 	{
 		remoteChannel.send( message.context(), message.message() );

@@ -1,23 +1,21 @@
-/***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2017 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.behaviours;
 
@@ -101,12 +99,11 @@ public class NotificationBehaviour implements Behaviour
 	private final OneWayTypeDescription oneWayDescription; // may be null
 
 	public NotificationBehaviour(
-			String operationId,
-			OutputPort outputPort,
-			Expression outputExpression,
-			OneWayTypeDescription outputType
-			)
-	{
+		String operationId,
+		OutputPort outputPort,
+		Expression outputExpression,
+		OneWayTypeDescription outputType
+	) {
 		this.operationId = operationId;
 		this.outputPort = outputPort;
 		this.outputExpression = outputExpression;
@@ -117,11 +114,11 @@ public class NotificationBehaviour implements Behaviour
 	public Behaviour clone( TransformationReason reason )
 	{
 		return new NotificationBehaviour(
-					operationId,
-					outputPort,
-					( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
-					oneWayDescription
-				);
+			operationId,
+			outputPort,
+			( outputExpression == null ) ? null : outputExpression.cloneExpression( reason ),
+			oneWayDescription
+		);
 	}
 
 	private void log( Interpreter interpreter, String log, CommMessage message )
@@ -136,7 +133,7 @@ public class NotificationBehaviour implements Behaviour
 	}
 
 	@Override
-	public void run(StatefulContext ctx)
+	public void run( StatefulContext ctx )
 		throws FaultException
 	{
 		if ( ctx.isKilled() ) {
@@ -178,14 +175,12 @@ public class NotificationBehaviour implements Behaviour
 					}
 				}
 			});
-			channel.send( ctx, message, ( Void ) -> {
+			channel.send( ctx, message, () -> {
 				log( ctx.interpreter(), "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
 					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString(message.id()), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 				}
-				
-				return null;
-			});
+			}, f -> {} );
 			
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );

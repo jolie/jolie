@@ -25,7 +25,7 @@ package jolie.net.protocols;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.StatefulContext;
 import jolie.net.AbstractCommChannel;
 import jolie.net.CommChannel;
@@ -46,7 +46,7 @@ public abstract class CommProtocol
 		private LazyDummyChannelHolder() {}
 		private static class DummyChannel extends AbstractCommChannel {
 			public void closeImpl() {}
-			public void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler ) {}
+			public void sendImpl( StatefulMessage message, Runnable completionHandler, Consumer< Throwable > failureHandler ) {}
 			public CommMessage recvImpl() { return CommMessage.UNDEFINED_MESSAGE; }
 		}
 

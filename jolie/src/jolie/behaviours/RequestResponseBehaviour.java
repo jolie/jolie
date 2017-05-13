@@ -75,7 +75,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 			if ( inputVarPath != null ) {
 				inputVarPath.getValue( ctx.state().root() ).refCopy( sessionMessage.message().value() );
 			}
-
+			
 			// This scope id must not collide with user defined scope
 			ArrayList<Pair<String, Behaviour>> faultHandlers = new ArrayList<>();
 			faultHandlers.add( new Pair( Constants.Keywords.DEFAULT_HANDLER_NAME, new FaultBehaviour( sessionMessage.channel(), sessionMessage.message() ) ) );
@@ -246,9 +246,7 @@ public class RequestResponseBehaviour implements InputOperationBehaviour
 						} catch( IOException e ) {
 							ctx.interpreter().logSevere( e );
 						}
-					
-						return null;
-					}, () -> {}
+					}, f -> {}
 					);
 
 				} catch( IOException e ) {

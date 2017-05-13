@@ -29,7 +29,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
 import java.net.URI;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import javax.bluetooth.L2CAPConnection;
 import static jolie.net.NioSocketCommChannel.COMMCHANNEL;
 import jolie.net.protocols.AsyncCommProtocol;
@@ -64,8 +64,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel
 		return channel;
 	}
 	
-	protected void sendImpl( StatefulMessage message, final Function<Void, Void> completionHandler ) 
-		throws IOException
+	protected void sendImpl( StatefulMessage message, final Runnable completionHandler, Consumer< Throwable > failureHandler ) 
 	{
 		ChannelFuture future = jolieCommChannelHandler.write( message );
 		future.addListener( new GenericFutureListener<Future<Void>>()
@@ -74,7 +73,7 @@ public class BTL2CapCommChannel extends StreamingCommChannel
 			{
 				if ( future1.isSuccess() ) {
 					if (completionHandler != null)
-						completionHandler.apply( null );
+						completionHandler.run();
 				} else {
 					throw new IOException( future1.cause() );
 				}

@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import jolie.net.protocols.CommProtocol;
 
 public class LocalSocketCommChannel extends StreamingCommChannel
@@ -49,12 +49,12 @@ public class LocalSocketCommChannel extends StreamingCommChannel
 		setToBeClosed( false ); // LocalSocket connections are kept open by default
 	}
 
-	protected void sendImpl( StatefulMessage message, Function<Void, Void> completionHandler  )
+	protected void sendImpl( StatefulMessage message, Runnable completionHandler, Consumer< Throwable > failureHandler )
 		throws IOException
 	{
 		protocol().send( socketOutputStream, message.message(), bufferedInputStream );
 		socketOutputStream.flush();
-		completionHandler.apply( null );
+		completionHandler.run();
 	}
 	
 	protected CommMessage recvImpl()

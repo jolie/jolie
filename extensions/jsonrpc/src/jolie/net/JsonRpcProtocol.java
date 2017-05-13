@@ -163,7 +163,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		setupWrapablePipeline( pipeline );
 	}
 
-	@Override
+//	@Override
 	public void setupWrapablePipeline( ChannelPipeline pipeline )
 	{
 		pipeline.addLast( new JsonRpcCommMessageCodec() );

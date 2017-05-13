@@ -207,13 +207,12 @@ public class SolicitResponseBehaviour implements Behaviour
 			ctx.executeNext( new SolicitResponseOnReceiveBehaviour( channel, message ) );
 			
 			channel.registerWaiterFor( ctx, message );
-			channel.send( ctx, message, (Void) -> {
+			channel.send( ctx, message, () -> {
 				log( ctx, "SENT", message );
 				if ( ctx.interpreter().isMonitoring() ) {
 					ctx.interpreter().fireMonitorEvent( new OperationCallEvent( ctx, operationId, Long.toString ( message.id() ), OperationCallEvent.SUCCESS, "", outputPort.id(), message.value() ) );
 				}
-				return null;
-			});
+			}, f -> {} );
 			
 		} catch( IOException e ) {
 			throw new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e );

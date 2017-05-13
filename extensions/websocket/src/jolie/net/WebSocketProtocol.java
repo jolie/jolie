@@ -52,7 +52,7 @@ public class WebSocketProtocol extends AsyncCommProtocol
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
 		pipeline.addLast(new WebSocketContentCodec() );
-		wrappedProtocol.setupWrapablePipeline( pipeline );
+		wrappedProtocol.setupWrappablePipeline( pipeline );
 	}
 
 	@Override

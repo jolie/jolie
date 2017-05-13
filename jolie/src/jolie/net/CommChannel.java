@@ -223,7 +223,7 @@ public abstract class CommChannel
 	public void send( final StatefulContext ctx, final CommMessage message )
 		throws IOException
 	{
-		send( ctx, message, () -> {}, () -> {} );
+		send( ctx, message, () -> {}, f -> {} );
 	}
 	
 	protected abstract void receivedResponse( CommMessage msg );
