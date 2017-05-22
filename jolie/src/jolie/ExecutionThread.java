@@ -30,8 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
+import jolie.net.CommCore;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
@@ -425,7 +427,9 @@ public abstract class ExecutionThread extends JolieThread
 			return ((JolieExecutorThread)currThread).executionThread();
 		} else if ( currThread instanceof CommChannelHandler ) {
 			return ((CommChannelHandler)currThread).executionThread();
-		}
+		} else if ( currThread instanceof CommCore.ExecutionContextThread ){
+                        return ( ( ( CommCore.ExecutionContextThread ) currThread ).executionThread() );
+                }
 
 		return null;
 	}

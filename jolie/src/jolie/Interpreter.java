@@ -793,7 +793,9 @@ public class Interpreter
 		Thread t = Thread.currentThread();
 		if ( t instanceof InterpreterThread ) {
 			return ((InterpreterThread)t).interpreter();
-		}
+		} else if ( t instanceof CommCore.ExecutionContextThread ){
+                        return ( ( CommCore.ExecutionContextThread ) t ).interpreter(); 
+                }
 		return null;
 	}
 	
@@ -843,7 +845,7 @@ public class Interpreter
         
 		this.correlationEngine = cmdParser.correlationAlgorithmType().createInstance( this );
 		
-        commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
+                commCore = new CommCore( this, cmdParser.connectionsLimit() /*, cmdParser.connectionsCache() */ );
 		includePaths = cmdParser.includePaths();
 
 		StringBuilder builder = new StringBuilder();

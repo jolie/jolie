@@ -31,14 +31,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+
 import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
+
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class MultiPartFormDataParser
 {
 	private final String boundary;
 	private final Value value;
-	private final HttpMessage message;
+	private final FullHttpMessage message;
 	private final Map< String, PartProperties > partPropertiesMap = new HashMap<>();
 
 	private static final Pattern parametersSplitPattern = Pattern.compile( ";" );
@@ -56,10 +62,10 @@ public class MultiPartFormDataParser
 		}
 	}
 	
-	public MultiPartFormDataParser( HttpMessage message, Value value )
+	public MultiPartFormDataParser( FullHttpMessage message, Value value )
 		throws IOException
 	{
-		final String[] params = parametersSplitPattern.split( message.getProperty( "content-type" ) );
+		final String[] params = parametersSplitPattern.split( message.headers().get( HttpHeaderNames.CONTENT_TYPE ) );
 		String b = null;
 		try {
 			for( String param : params ) {
@@ -144,9 +150,11 @@ public class MultiPartFormDataParser
 		Value child = value.getNewChild( name );
 		if ( hc.length > 1 ) {
 			if ( hasContentType == true ) {
-				child.setValue( new ByteArray( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
+				child.setValue( new ByteArray( 
+                                        message.content().copy( offset, offset + hc[1].length() ).array() 
+                                ) );
 			} else {
-				child.setValue( new String( Arrays.copyOfRange( message.content(), offset, offset + hc[1].length() ) ) );
+				child.setValue( new String( message.content().copy( offset, offset + hc[1].length() ).array() ) );
 			}
 		}/* else {
 			value.getNewChild( name ).setValue( new ByteArray( new byte[0] ) );
@@ -161,7 +169,9 @@ public class MultiPartFormDataParser
 		throws IOException
 	{
 		// this needs to be strictly parsed with US-ASCII, since we are dealing with raw data
-		String[] parts = (HttpUtils.CRLF + new String( message.content(), "US-ASCII" )).split( boundary + "--" );
+		String[] parts = ( 
+                            HttpUtils.CRLF + message.content().toString( StandardCharsets.US_ASCII ) 
+                        ).split( boundary + "--" );
 		parts = (parts[0] + boundary + HttpUtils.CRLF).split( HttpUtils.CRLF + boundary + HttpUtils.CRLF );
 
 		// The first one is always empty, so we start from 1

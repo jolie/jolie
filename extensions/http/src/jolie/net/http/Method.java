@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright (C) 2009-2017 by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -38,7 +38,7 @@ public enum Method
 	private final static Map< String, Method > idMap = new ConcurrentHashMap<>();
 
 	static {
-		for( Method type : Method.values() ) {
+		for ( Method type : Method.values() ) {
 			idMap.put( type.id(), type );
 		}
 	}
@@ -55,8 +55,8 @@ public enum Method
 		return id;
 	}
 
-	public static Method fromString( String id )
-		throws UnsupportedMethodException
+	public static Method fromString( String id ) 
+                throws UnsupportedMethodException
 	{
 		Method m = idMap.get( id.toUpperCase() );
 		if ( m == null ) {
