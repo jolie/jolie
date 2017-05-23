@@ -30,15 +30,6 @@ import jolie.runtime.VariablePath
 import jolie.runtime.typing.Type
 import jolie.js.JsUtils
 
-/**
- * @author Fabrizio Montesi
- * *
- * @author Károly Szántó
- * *
- * @author Giannakis Manthios
- * *
- * * 2014 Matthias Dieter Wallnöfer: conversion to JSONRPC over HTTP
- */
 class MqttProtocol(configurationPath: VariablePath, private val uri: URI,
                       private val interpreter: Interpreter, private val inInputPort: Boolean) : SequentialCommProtocol(configurationPath), HttpUtils.HttpProtocol {
     private var encoding: String? = null
