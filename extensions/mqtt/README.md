@@ -2,27 +2,46 @@
 
 JIoT aims to bring the power of an high level Service Oriented Language into the Internet of Things.
 
-```
-#!Jolie
+```Jolie
+inputPort IN_MQTT {
+  Location: "socket://localhost:8000"
+  Protocol: MQTT {
+    .broker = hostname:port;
+    .clientId = clientId;
+    .osc.getMessage.alias = “planets/earth”
+  }
+  OneWay: getMessage
+}
 
-interface TemperatureInterface {
-  OneWay: publishTemperature( string )
-  RequestResponse: receiveTemperature( void )( string )
+inputPort IN_CoAP {
+  Location: "socket://localhost:8805"
+  Protocol: CoAP
+  OneWay: getMessage
 }
 
 outputPort Broker {
-  Location: "tcp://iot.eclipse.org:1883"
-  Protocol: Mqtt {
-    .retained=true 
-    .qos=2
-  }
-  Interfaces: TemperatureInterface
+ Location: hostname:port
+ Protocol: MQTT {
+  .clientId = clientId;
+  .osc.sendMessage.alias = “planet/earth”
+ }
+ RequestResponse: sendMessage
 }
 
-main
-{
-  publishTemperature@Broker( "22 C" )
-  receiveTemperature@Broker(  )( data )   
+execution { concurrent }
+
+define messageArrived {
+  println@Console( data )
+}
+
+init {
+  sendMessage@Broker( “Hello World!” )
+}
+
+main {
+ install( ConnectionLost => println@Console( “Connection Lost!” );
+ getMessage( data );
+ messageArrived
 }
 ```
 
