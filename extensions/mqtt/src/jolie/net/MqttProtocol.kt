@@ -9,10 +9,6 @@ import java.io.InputStream
  * Created by stefanopiozingaro on 23/05/17.
  */
 
-/**
- * TODO integrate kotlin and mqtt module into the ant build.xml
- */
-
 class MqttProtocol() {
 
     @Throws(IOException::class)
