@@ -1,8 +1,9 @@
-package jolie.net
+package jolie.net;
 
 /**
+ * MQTT protocol implementation
  * Released Under Creative Common License
- * Created by stefanopiozingaro on 23/05/17.
+ * @author Stefano Pio Zingaro on 24th May 2017
  */
 public class MqttProtocol {
     /**
@@ -22,5 +23,6 @@ public class MqttProtocol {
      *  3.4 Handle the event that close the channel
      *
      */
+
 
 }
