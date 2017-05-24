@@ -1,0 +1,7 @@
+<relaxngcc
+  source="xmlschema.rng"
+  targetdir="com/sun/xml/xsom/impl/parser/state"
+>
+	<depends  dir="." includes="*.rng"/>
+	<produces dir="com/sun/xml/xsom/impl/parser/state" includes="Schema.java"/>
+</relaxngcc>

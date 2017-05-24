@@ -1,0 +1,89 @@
+This file contains the formal grammar of the .dol (deploy) input files of JOLIE.
+See the AUTHORS file for information regarding the authors of the JOLIE project.
+See the COPYING file for the distribution license of the following content.
+
+// Tokens
+
+<id>			::=	[a-zA-Z][a-zA-Z0-9]*
+<int>			::=	-?[0-9]+
+<string>		::=	"[[:graph:]]*"
+
+---
+
+// Useful non terminals
+
+<IdList>		:	::=	<id> <IdListNSep>
+<IdListN>			::=	<id> <IdListNSep> | epsilon
+<IdListNSep>		::=	"," <id> <IdListNSep> | epsilon
+
+<IdStringListN>		::=	<IdStringPair> <IdStringListNSep> | epsilon
+<IdStringPairN>		::=	<id> "=" <string>
+<IdStringListNSep>	::=	"," <IdStringPair> <IdStringListNSep> | epsilon
+
+
+---
+
+// Start point:
+
+<Start>				::=	<BaseDeploy> <WSDL>
+
+// Base Deploy:
+
+<BaseDeploy>		::=	<State><Execution><CorrSet><Locations> 
+
+<State>				::= "state" "{" <StateFlag> "}"
+<StateFlag>			::= "persistent" | "not_persistent"
+
+<Execution>		::= "execution" "{" <ExecutionFlag> "}"
+<ExecutionFlag>		::= "concurrent" | "sequential"
+
+<CorrSet>			::= "cset" "{" <IdListN> "}"
+
+<Locations>			::=	"locations" "{" <LocationsListN> "}" | epsilon
+<LocationsListN>	::=	<IdStringListN>
+
+
+// WSDL:
+
+<WSDL>				::=	<Operations> <InputPortTypes> <OutputPortTypes> <PartnerLinkType> <Binding> <Service>
+
+<Operations>		::=	"operations" "{" <OperationsListN> "}"
+<OperationsListN>	::=	<OWOpsListN> <RROpsListN> <NOpsListN> <SROpsListN> <OperationsListN>
+					|	epsilon
+
+<OWOpsListN>		::=	"OneWay" ":" <OWOpBindListN> | epsilon
+<RROpsListN>		::=	"RequestResponse" ":" <RROpBindListN> | epsilon
+<NOpsListN>			::=	"Notification" ":" <NOpBindListN> | epsilon
+<SROpsListN>		::=	"SolicitResponse" ":" <SROpBindListN> | epsilon
+
+<OWOpBindListN>		::= <OWopBind> <OWOpBindListNSep> | epsilon
+<OWOpBindListNSep>	::=	"," <OWopBind> <OWOpBindListNSep> | epsilon
+<OWOpBind>			::= <id> "=" <id> "<" <IdListN> ">"
+
+<NOpBindListN> 		::= <OWOpBindListN>
+
+<RROpBindListN>		::= <RRopBind> <RROpBindListNSep> | epsilon
+<RROpBindListNSep>	::= "," <RRopBind> <RROpBindListNSep> | epsilon
+<RROpBind>			::= <id> "=" <id> "<" <IdListN> ">" "<" <IdListN> ">"
+
+<SROpBindListN>		::= <RROpBindListN>	
+
+<InputPortTypes>	::= "inputPortTypes" "{" <PortListN> "}"
+<PortListN>			::= <Port> <PortListN> | epsilon
+<Port>				::= <id> ":" <IdList>
+
+<OutputPortTypes>	::= "outputPortTypes" "{" <PortListN> "}"
+
+<PartnerLinkType> 	::= "partnerLinkTypes" "{" <PltListN> "}"
+<PltListN>			::= <Plt> <PltListN> | epsilon
+<Plt>				::= <id> ":" <id> "," <id>
+
+<Binding>       	::= "bindings" "{" <BindListN> "}"
+<BindListN>			::= <Bind> <BindListN> | epsilon
+<Bind>				::= <id> ":" <id> ":" <id>
+
+<Service>      		::= "service" "{" <ServiceElementListN> "}"
+<ServiceElListN>	::= <ServiceElement> <ServiceElListN> | epsilon
+<ServiceElement>	::= <string> ":" <IdList>
+
+

@@ -24,6 +24,7 @@ package jolie.js;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
+
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.Type;
@@ -70,7 +71,7 @@ public class JsUtils
 	private static void valueVectorToJsonString( ValueVector vector, StringBuilder builder, boolean isArray, Type type )
 		throws IOException
 	{
-		if ( isArray || ( type != null && type.cardinality().max() > 1 || vector.size() > 1 ) ) {
+		if (isArray || (((type != null) && (type.cardinality().max() > 1)) || (vector.size() > 1))) {
 			builder.append( '[' );
 			for( int i = 0; i < vector.size(); i++ ) {
 				valueToJsonString( vector.get( i ), false, type, builder );
@@ -218,9 +219,7 @@ public class JsUtils
 			} else {
 				getBasicValue( obj, value );
 			}
-		} catch( ParseException e ) {
-			throw new IOException( e );
-		} catch( ClassCastException e ) {
+		} catch( ParseException | ClassCastException e ) {
 			throw new IOException( e );
 		}
 	}

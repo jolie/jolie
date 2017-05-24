@@ -8,9 +8,9 @@ inputPort IN_MQTT {
   Location: "socket://localhost:8000"
   Protocol: MQTT {
     .broker = hostname:port;
-    .clientId = clientId;
-    .osc.getMessage.alias = “planets/earth”
-    .subscriber = on_demand | fixed_up_to | on_start
+    .clientId? = clientId; // default fresh Id
+    .osc.getMessage.alias? = “planets/earth” // default operation name
+    .subscriber? = on_demand | fixed_up_to | on_start // default fixed_up_to
   }
   OneWay: getMessage
 }
@@ -22,7 +22,7 @@ inputPort IN_CoAP {
 }
 
 outputPort Broker {
-  Location: hostname:port
+  Location: hostname:port // "tcp://iot.eclipse.org:1883"
   Protocol: MQTT {
     .clientId = clientId;
     .osc.sendMessage.alias = “planet/earth”

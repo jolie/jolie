@@ -36,3 +36,5 @@ build/
 /lib/xsom/build
 *.iml
 /.idea/
+
+*.class
