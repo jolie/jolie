@@ -44,6 +44,7 @@ main {
  install( ConnectionLost => println@Console( “Connection Lost!” );
  getMessage( data );
  messageArrived
+ sendMessage( "22 C" )( temperature )
 }
 ```
 
@@ -52,6 +53,8 @@ main {
 * Implement Jolie Module for encoding MQTT
 * Add datagram support in Jolie (UDP)
 * Implement Jolie Module for encoding CoAP
+* Integrate kotlin and mqtt module into the ant build.xml
+* 
 
 ### Contact ###
 
