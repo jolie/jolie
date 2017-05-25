@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="jolie-ssl">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../lib/jolie-ssl/dist/jolie-ssl.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

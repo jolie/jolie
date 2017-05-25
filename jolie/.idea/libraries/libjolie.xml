@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="libjolie">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../libjolie/dist/libjolie.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

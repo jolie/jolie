@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="btl2cap">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../extensions/btl2cap/dist/btl2cap.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

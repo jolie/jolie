@@ -9,11 +9,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="Jolie" />
     <orderEntry type="module" module-name="libjolie" />
     <orderEntry type="library" name="gwt-servlet" level="project" />
     <orderEntry type="module" module-name="jolie-js" />
     <orderEntry type="module" module-name="jolie-xml" />
     <orderEntry type="module" module-name="jolie-gwt" />
+    <orderEntry type="module" module-name="Jolie" />
   </component>
 </module>
