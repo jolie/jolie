@@ -11,7 +11,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Jolie" />
     <orderEntry type="module" module-name="libjolie" />
-    <orderEntry type="library" name="xsom" level="project" />
     <orderEntry type="library" name="wsdl4j" level="project" />
+    <orderEntry type="module" module-name="xsom" />
   </component>
 </module>

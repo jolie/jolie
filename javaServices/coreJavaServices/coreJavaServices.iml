@@ -26,6 +26,6 @@
     <orderEntry type="module" module-name="jolie-xml" />
     <orderEntry type="module" module-name="jolie-js" />
     <orderEntry type="module" module-name="jolie-ssl" />
-    <orderEntry type="library" name="xsom" level="project" />
+    <orderEntry type="module" module-name="xsom" />
   </component>
 </module>
