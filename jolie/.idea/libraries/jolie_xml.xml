@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jolie-xml">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/jolie-xml/dist/jolie-xml.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

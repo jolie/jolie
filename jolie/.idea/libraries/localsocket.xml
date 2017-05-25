@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="localsocket">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../extensions/localsocket/dist/localsocket.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

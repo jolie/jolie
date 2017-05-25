@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jolie-gwt">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../support/jolie-gwt/dist/jolie-gwt.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

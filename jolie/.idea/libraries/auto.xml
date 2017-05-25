@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="auto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../extensions/auto/dist/auto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

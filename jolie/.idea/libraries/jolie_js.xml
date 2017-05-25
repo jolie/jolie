@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jolie-js">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../lib/jolie-js/dist/jolie-js.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

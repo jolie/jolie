@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="sodep">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../extensions/sodep/dist/sodep.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="monitorJavaServices">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../javaServices/monitorJavaServices/dist/monitorJavaServices.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
