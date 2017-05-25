@@ -23,56 +23,32 @@
 
 package jolie.net;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
-import jolie.net.ext.CommChannelFactory;
-import jolie.net.ports.OutputPort;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
+import java.nio.charset.Charset;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 
-public class NioSocketCommChannelFactory extends CommChannelFactory
-{
+class EncodedJsonRpcContent {
+    
+    private final ByteBuf content;
+    private final Charset charset;
+    
+    public EncodedJsonRpcContent( ByteBuf content, Charset charset ){
+        this.content = content;
+        this.charset = charset;
+    }
 
-	EventLoopGroup workerGroup;
+    public ByteBuf getContent() {
+        return content;
+    }
 
-	public NioSocketCommChannelFactory( CommCore commCore, EventLoopGroup workerGroup )
-	{
-		super( commCore );
-		this.workerGroup = workerGroup;
-	}
-
-	@Override
-	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
-		CommProtocol protocol;
-		try {
-			protocol = port.getProtocol();
-		} catch( URISyntaxException e ) {
-			throw new IOException( e );
-		}
-
-		if ( !( protocol instanceof AsyncCommProtocol ) ) {
-			throw new UnsupportedCommProtocolException( "Use an async protocol" );
-		}
-
-		NioSocketCommChannel channel = NioSocketCommChannel.CreateChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
-
-		try {
-			ChannelFuture f = channel.connect( location );
-			f.sync();
-			if ( !f.isSuccess() ) {
-				throw ( IOException ) f.cause();
-			}
-		} catch( InterruptedException e ) {
-			throw new IOException( e );
-		}
-		return channel;
-	}
-
+    public Charset getCharset() {
+        return charset;
+    }
+    
+    public String text() {
+        return content.toString( charset );
+    }
+    
 }

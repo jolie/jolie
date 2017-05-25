@@ -23,6 +23,14 @@
 
 package jolie.net;
 
+import java.net.InetSocketAddress;
+
+import jolie.Interpreter;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ports.InputPort;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -34,12 +42,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import java.net.InetSocketAddress;
-import jolie.Interpreter;
-import jolie.net.ext.CommProtocolFactory;
-import jolie.net.ports.InputPort;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
 
 public class NioSocketListener extends CommListener
 {
@@ -81,14 +83,14 @@ public class NioSocketListener extends CommListener
 					protected void initChannel( SocketChannel ch ) throws Exception
 					{
 						CommProtocol protocol = createProtocol();
-						assert (protocol instanceof AsyncCommProtocol);
+						assert ( protocol instanceof AsyncCommProtocol );
 
 						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
 						channel.setParentInputPort( inputPort() );
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());
 						ChannelPipeline p = ch.pipeline();
-						((AsyncCommProtocol) protocol).setupPipeline( p );
+						( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
 						p.addLast( channel.nioSocketCommChannelHandler );
 						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
 					}
