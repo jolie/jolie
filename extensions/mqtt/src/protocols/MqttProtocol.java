@@ -1,10 +1,5 @@
-package jolie.net;
+package protocols;
 
-/**
- * MQTT protocol implementation
- * Released Under Creative Common License
- * @author Stefano Pio Zingaro on 24th May 2017
- */
 public class MqttProtocol {
     /**
      *
