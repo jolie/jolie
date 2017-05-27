@@ -7,10 +7,6 @@ import io.netty.util.CharsetUtil;
 
 import java.text.MessageFormat;
 
-/**
- * Released Under Creative Common License
- * Created by stefanopiozingaro on 27/05/17.
- */
 @ChannelHandler.Sharable
 public class EchoServerHandler extends ChannelInboundHandlerAdapter {
 
@@ -30,6 +26,7 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
+    @SuppressWarnings("CallToPrintStackTrace")
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
