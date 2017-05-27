@@ -38,3 +38,4 @@ build/
 /.idea/
 
 *.class
+/extensions/mqtt/nbproject/private/
