@@ -63,7 +63,7 @@ public class ElementDecl extends DeclarationImpl implements XSElementDecl, Ref.T
         this.substHead = _substHead;
         this.substDisallowed = _substDisallowed;
         this.substExcluded = _substExcluded;
-        this.idConstraints = Collections.unmodifiableList((List<? extends XSIdentityConstraint>)idConstraints);
+        this.idConstraints = (List<XSIdentityConstraint>) Collections.unmodifiableList((List<? extends XSIdentityConstraint>)idConstraints);
 
         for (IdentityConstraintImpl idc : idConstraints)
             idc.setParent(this);

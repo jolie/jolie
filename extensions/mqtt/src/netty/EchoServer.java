@@ -21,12 +21,21 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.local.LocalEventLoopGroup;
+import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.net.InetSocketAddress;
 
 /**
+ * Bootstrapping of the Server:
+ * 1.Bind to the port on which the server will listen 
+ * for and accept incoming connec- tion requests
+ * 2.Configure Channels to notify an EchoServerHandler 
+ * instance about inbound messages
  *
  * @author stefanopiozingaro
  */
@@ -39,12 +48,15 @@ public class EchoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port = 5004;
+        int port = 9999;
         new EchoServer(port).start();
     }
 
     private void start() throws Exception {
         EchoServerHandler serverHandler = new EchoServerHandler();
+        /*
+        EventLoopGroup group = new NioEventLoopGroup();
+        */
         EventLoopGroup group = new NioEventLoopGroup();
             
         try {
@@ -53,7 +65,8 @@ public class EchoServer {
             b.group(group);
             
             /* 
-            Set the type of channel to NioServerSocket 
+            Set the type of channel to 
+            b.channel(NioServerSocketChannel.class);
             */
             b.channel(NioServerSocketChannel.class);
             
@@ -62,7 +75,7 @@ public class EchoServer {
             */
             InetSocketAddress isa = new InetSocketAddress(port);
             b.localAddress(isa);
-
+            
             /*
             Set the channel handler to our EchoServerHandler by istanciating 
             a new Channel Initializer of type SocketChannel (?)

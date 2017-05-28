@@ -16,10 +16,54 @@
  */
 package netty;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.CharsetUtil;
+
 /**
+ * Business Logic for the client
  *
  * @author stefanopiozingaro
  */
-public class EchoClientHandler {
+@Sharable
+public class EchoClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
+    /**
+     * When notified that the channel is active, sends a message
+     * @param ctx
+     * @throws Exception
+     */
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.writeAndFlush(Unpooled.copiedBuffer("Hello!", CharsetUtil.UTF_8));
+    }
+
+    /**
+     * Logs a dump of the received message
+     * @param chc
+     * @param i
+     * @throws Exception
+     */
+    @Override
+    protected void channelRead0(ChannelHandlerContext chc, ByteBuf i) 
+            throws Exception {
+        System.out.println("Il client dice: " + i.toString(CharsetUtil.UTF_8));
+    }
+
+    /**
+     * On exception, logs the error and closes channel
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
+    @Override
+    @SuppressWarnings("CallToPrintStackTrace")
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) 
+            throws Exception {
+        cause.printStackTrace();
+        ctx.close();
+    }
 }

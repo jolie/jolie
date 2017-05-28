@@ -19,26 +19,28 @@ package netty;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.util.CharsetUtil;
 
-import java.text.MessageFormat;
-
 /**
- *
+ * Business Logic for the server
  * @author stefanopiozingaro
  */
-@ChannelHandler.Sharable
+@Sharable
 public class EchoServerHandler extends ChannelInboundHandlerAdapter {
-
+    
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         // effettuo il casting di msg che è un oggetto generico
         ByteBuf buffer = (ByteBuf) msg;
-        System.out.println(MessageFormat.format("Il buffer di byte che è "
-                + "arrivato al server è: {0}"
-                , buffer.toString(CharsetUtil.UTF_8)));
+        System.out.println("Il server ha ricevuto: " 
+                + buffer.toString(CharsetUtil.UTF_8));
     }
 
+    /**
+     *
+     * @param ctx
+     */
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
         ChannelFuture cf;
@@ -46,6 +48,11 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
         cf.addListener(ChannelFutureListener.CLOSE);
     }
 
+    /**
+     *
+     * @param ctx
+     * @param cause
+     */
     @Override
     @SuppressWarnings("CallToPrintStackTrace")
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
