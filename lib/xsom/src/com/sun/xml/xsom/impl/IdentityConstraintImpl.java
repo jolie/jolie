@@ -34,7 +34,7 @@ public class IdentityConstraintImpl extends ComponentImpl implements XSIdentityC
         this.name = name;
         this.selector = selector;
         selector.setParent(this);
-        this.fields = Collections.unmodifiableList((List<? extends XSXPath>)fields);
+        this.fields = (List<XSXPath>) Collections.unmodifiableList((List<? extends XSXPath>)fields);
         for( XPathImpl xp : fields )
             xp.setParent(this);
         this.refer = refer;
