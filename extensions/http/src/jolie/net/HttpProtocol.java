@@ -534,155 +534,168 @@ public class HttpProtocol extends AsyncCommProtocol
 			return ret;
 		}
 
-		if ( "xml".equals( format ) ) {
-			ret.contentType = ContentTypes.TEXT_XML;
-			Document doc = docBuilder.newDocument();
-			Element root = doc.createElement( message.operationName() + ( ( inInputPort ) ? "Response" : "") );
-			doc.appendChild( root );
-			if ( message.isFault() ) {
-				Element faultElement = doc.createElement( message.fault().faultName() );
-				root.appendChild( faultElement );
-				XmlUtils.valueToDocument( message.fault().value(), faultElement, doc );
-			} else {
-				XmlUtils.valueToDocument( message.value(), root, doc );
-			}
-			Source src = new DOMSource( doc );
-			ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
-			Result dest = new StreamResult( tmpStream );
-			transformer.setOutputProperty( OutputKeys.ENCODING, charset );
-			try {
-				transformer.transform( src, dest );
-			} catch( TransformerException e ) {
-				throw new IOException( e );
-			}
-			ret.content = new ByteArray( tmpStream.toByteArray() );
-		} else if ( "binary".equals( format ) ) {
-			ret.contentType = HttpHeaderValues.APPLICATION_OCTET_STREAM;
-			ret.content = message.value().byteArrayValue();
-		} else if ( "html".equals( format ) ) {
-			ret.contentType = ContentTypes.TEXT_HTML;
-			if ( message.isFault() ) {
-				StringBuilder builder = new StringBuilder();
-				builder.append( "<html><head><title>" );
-				builder.append( message.fault().faultName() );
-				builder.append( "</title></head><body>" );
-				builder.append( message.fault().value().strValue() );
-				builder.append( "</body></html>" );
-				ret.content = new ByteArray( builder.toString().getBytes( charset ) );
-			} else {
-				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
-			}
-		} else if ( "multipart/form-data".equals( format ) ) {
-			ret.contentType = HttpHeaderValues.MULTIPART_FORM_DATA.concat( new AsciiString( "; boundary=" + BOUNDARY ) );
-			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-			StringBuilder builder = new StringBuilder();
-			for( Entry< String, ValueVector> entry : message.value().children().entrySet() ) {
-				if ( !entry.getKey().startsWith( "@" ) ) {
-					builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
-					builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
-					boolean isBinary = false;
-					if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
-						Value specOpParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.MULTIPART_HEADERS );
-						if ( specOpParam.hasChildren( "partName" ) ) {
-							ValueVector partNames = specOpParam.getChildren( "partName" );
-							for( int p = 0; p < partNames.size(); p++ ) {
-								if ( partNames.get( p ).hasChildren( "part" ) ) {
-									if ( partNames.get( p ).getFirstChild( "part" ).strValue().equals( entry.getKey() ) ) {
-										isBinary = true;
-										if ( partNames.get( p ).hasChildren( "filename" ) ) {
-											builder.append( "; filename=\"" ).append( partNames.get( p ).getFirstChild( "filename" ).strValue() ).append( "\"" );
-										}
-										if ( partNames.get( p ).hasChildren( "contentType" ) ) {
-											builder.append( HttpUtils.CRLF ).append( "Content-Type:" ).append( partNames.get( p ).getFirstChild( "contentType" ).strValue() );
-										}
-									}
-								}
-							}
-						}
-					}
-
-					builder.append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
-					if ( isBinary ) {
-						bStream.write( builder.toString().getBytes( charset ) );
-						bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
-						builder.delete( 0, builder.length() - 1 );
-						builder.append( HttpUtils.CRLF );
-					} else {
-						builder.append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
-					}
-				}
-			}
-			builder.append( "--" + BOUNDARY + "--" );
-			bStream.write( builder.toString().getBytes( charset ) );
-			ret.content = new ByteArray( bStream.toByteArray() );
-		} else if ( "x-www-form-urlencoded".equals( format ) ) {
-			ret.contentType = HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED;
-			Iterator< Entry< String, ValueVector > > it
-				= message.value().children().entrySet().iterator();
-			StringBuilder builder = new StringBuilder();
-			if ( message.isFault() ) {
-				builder.append( "faultName=" );
-				builder.append( URLEncoder.encode( message.fault().faultName(), HttpUtils.URL_DECODER_ENC ) );
-				builder.append( "&data=" );
-				builder.append( URLEncoder.encode( message.fault().value().strValue(), HttpUtils.URL_DECODER_ENC ) );
-			} else {
-				Entry< String, ValueVector> entry;
-				while( it.hasNext() ) {
-					entry = it.next();
-					builder.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
-						.append( "=" )
-						.append( URLEncoder.encode( entry.getValue().first().strValue(), HttpUtils.URL_DECODER_ENC ) );
-					if ( it.hasNext() ) {
-						builder.append( '&' );
-					}
-				}
-			}
-			ret.content = new ByteArray( builder.toString().getBytes( charset ) );
-		} else if ( "text/x-gwt-rpc".equals( format ) ) {
-			ret.contentType = ContentTypes.TEXT_GWT_RPC;
-			try {
-				if ( inInputPort ) { // It's a response
-					if ( message.isFault() ) {
-						ret.content = new ByteArray(
-							RPC.encodeResponseForFailure( 
-                                                                JolieService.class.getMethods()[ 0 ], 
-                                                                JolieGWTConverter.jolieToGwtFault( message.fault() ) 
-                                                        ).getBytes( charset )
-						);
-					} else {
-						joliex.gwt.client.Value v = new joliex.gwt.client.Value();
-						JolieGWTConverter.jolieToGwtValue( message.value(), v );
-						ret.content = new ByteArray(
-							RPC.encodeResponseForSuccess( JolieService.class.getMethods()[ 0 ], v ).getBytes( charset )
-						);
-					}
-				} else { // It's a request
-					throw new IOException( "Sending requests to a GWT server is currently unsupported." );
-				}
-			} catch( SerializationException e ) {
-				throw new IOException( e );
-			}
-		} else if ( "json".equals( format ) ) {
-			ret.contentType = ContentTypes.APPLICATION_JSON;
-			StringBuilder jsonStringBuilder = new StringBuilder();
-			if ( message.isFault() ) {
-				Value error = message.value().getFirstChild( "error" );
-				error.getFirstChild( "code" ).setValue( -32000 );
-				error.getFirstChild( "message" ).setValue( message.fault().faultName() );
-				error.getChildren( "data" ).set( 0, message.fault().value() );
-				JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
-			} else {
-				JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
-			}
-			ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
-		} else if ( "raw".equals( format ) ) {
-			ret.contentType = HttpHeaderValues.TEXT_PLAIN;
-			if ( message.isFault() ) {
-				ret.content = new ByteArray( message.fault().value().strValue().getBytes( charset ) );
-			} else {
-				ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
-			}
-		}
+		if ( null != format ) switch (format) {
+                case "xml":
+                    ret.contentType = ContentTypes.TEXT_XML;
+                    Document doc = docBuilder.newDocument();
+                    Element root = doc.createElement( message.operationName() + ( ( inInputPort ) ? "Response" : "") );
+                    doc.appendChild( root );
+                    if ( message.isFault() ) {
+                        Element faultElement = doc.createElement( message.fault().faultName() );
+                        root.appendChild( faultElement );
+                        XmlUtils.valueToDocument( message.fault().value(), faultElement, doc );
+                    } else {
+                        XmlUtils.valueToDocument( message.value(), root, doc );
+                    }
+                    Source src = new DOMSource( doc );
+                    ByteArrayOutputStream tmpStream = new ByteArrayOutputStream();
+                    Result dest = new StreamResult( tmpStream );
+                    transformer.setOutputProperty( OutputKeys.ENCODING, charset );
+                    try {
+                        transformer.transform( src, dest );
+                    } catch( TransformerException e ) {
+                        throw new IOException( e );
+                    }
+                    ret.content = new ByteArray( tmpStream.toByteArray() );
+                    break;
+                case "binary":
+                    ret.contentType = HttpHeaderValues.APPLICATION_OCTET_STREAM;
+                    ret.content = message.value().byteArrayValue();
+                    break;
+                case "html":
+                    ret.contentType = ContentTypes.TEXT_HTML;
+                    if ( message.isFault() ) {
+                        StringBuilder builder = new StringBuilder();
+                        builder.append( "<html><head><title>" );
+                        builder.append( message.fault().faultName() );
+                        builder.append( "</title></head><body>" );
+                        builder.append( message.fault().value().strValue() );
+                        builder.append( "</body></html>" );
+                        ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+                    } else {
+                        ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+                    }
+                    break;
+                case "multipart/form-data":{
+                    ret.contentType = HttpHeaderValues.MULTIPART_FORM_DATA.concat( new AsciiString( "; boundary=" + BOUNDARY ) );
+                    ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+                    StringBuilder builder = new StringBuilder();
+                    for( Entry< String, ValueVector> entry : message.value().children().entrySet() ) {
+                        if ( !entry.getKey().startsWith( "@" ) ) {
+                            builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
+                            builder.append( "Content-Disposition: form-data; name=\"" ).append( entry.getKey() ).append( '\"' );
+                            boolean isBinary = false;
+                            if ( hasOperationSpecificParameter( message.operationName(), Parameters.MULTIPART_HEADERS ) ) {
+                                Value specOpParam = getOperationSpecificParameterFirstValue( message.operationName(), Parameters.MULTIPART_HEADERS );
+                                if ( specOpParam.hasChildren( "partName" ) ) {
+                                    ValueVector partNames = specOpParam.getChildren( "partName" );
+                                    for( int p = 0; p < partNames.size(); p++ ) {
+                                        if ( partNames.get( p ).hasChildren( "part" ) ) {
+                                            if ( partNames.get( p ).getFirstChild( "part" ).strValue().equals( entry.getKey() ) ) {
+                                                isBinary = true;
+                                                if ( partNames.get( p ).hasChildren( "filename" ) ) {
+                                                    builder.append( "; filename=\"" ).append( partNames.get( p ).getFirstChild( "filename" ).strValue() ).append( "\"" );
+                                                }
+                                                if ( partNames.get( p ).hasChildren( "contentType" ) ) {
+                                                    builder.append( HttpUtils.CRLF ).append( "Content-Type:" ).append( partNames.get( p ).getFirstChild( "contentType" ).strValue() );
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            builder.append( HttpUtils.CRLF ).append( HttpUtils.CRLF );
+                            if ( isBinary ) {
+                                bStream.write( builder.toString().getBytes( charset ) );
+                                bStream.write( entry.getValue().first().byteArrayValue().getBytes() );
+                                builder.delete( 0, builder.length() - 1 );
+                                builder.append( HttpUtils.CRLF );
+                            } else {
+                                builder.append( entry.getValue().first().strValue() ).append( HttpUtils.CRLF );
+                            }
+                        }
+                    }
+                    builder.append( "--" + BOUNDARY + "--" );
+                    bStream.write( builder.toString().getBytes( charset ) );
+                    ret.content = new ByteArray( bStream.toByteArray() );
+                        break;
+                    }
+                case "x-www-form-urlencoded":{
+                    ret.contentType = HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED;
+                    Iterator< Entry< String, ValueVector > > it
+                            = message.value().children().entrySet().iterator();
+                    StringBuilder builder = new StringBuilder();
+                    if ( message.isFault() ) {
+                        builder.append( "faultName=" );
+                        builder.append( URLEncoder.encode( message.fault().faultName(), HttpUtils.URL_DECODER_ENC ) );
+                        builder.append( "&data=" );
+                        builder.append( URLEncoder.encode( message.fault().value().strValue(), HttpUtils.URL_DECODER_ENC ) );
+                    } else {
+                        Entry< String, ValueVector> entry;
+                        while( it.hasNext() ) {
+                            entry = it.next();
+                            builder.append( URLEncoder.encode( entry.getKey(), HttpUtils.URL_DECODER_ENC ) )
+                                    .append( "=" )
+                                    .append( URLEncoder.encode( entry.getValue().first().strValue(), HttpUtils.URL_DECODER_ENC ) );
+                            if ( it.hasNext() ) {
+                                builder.append( '&' );
+                            }
+                        }
+                    }
+                    ret.content = new ByteArray( builder.toString().getBytes( charset ) );
+                        break;
+                    }
+                case "text/x-gwt-rpc":
+                    ret.contentType = ContentTypes.TEXT_GWT_RPC;
+                    try {
+                        if ( inInputPort ) { // It's a response
+                            if ( message.isFault() ) {
+                                ret.content = new ByteArray(
+                                        RPC.encodeResponseForFailure(
+                                                JolieService.class.getMethods()[ 0 ],
+                                                JolieGWTConverter.jolieToGwtFault( message.fault() )
+                                        ).getBytes( charset )
+                                );
+                            } else {
+                                joliex.gwt.client.Value v = new joliex.gwt.client.Value();
+                                JolieGWTConverter.jolieToGwtValue( message.value(), v );
+                                ret.content = new ByteArray(
+                                        RPC.encodeResponseForSuccess( JolieService.class.getMethods()[ 0 ], v ).getBytes( charset )
+                                );
+                            }
+                        } else { // It's a request
+                            throw new IOException( "Sending requests to a GWT server is currently unsupported." );
+                        }
+                    } catch( SerializationException e ) {
+                        throw new IOException( e );
+                    }
+                    break;
+                case "json":
+                    ret.contentType = ContentTypes.APPLICATION_JSON;
+                    StringBuilder jsonStringBuilder = new StringBuilder();
+                    if ( message.isFault() ) {
+                        Value error = message.value().getFirstChild( "error" );
+                        error.getFirstChild( "code" ).setValue( -32000 );
+                        error.getFirstChild( "message" ).setValue( message.fault().faultName() );
+                        error.getChildren( "data" ).set( 0, message.fault().value() );
+                        JsUtils.faultValueToJsonString( message.value(), getSendType( message ), jsonStringBuilder );
+                    } else {
+                        JsUtils.valueToJsonString( message.value(), true, getSendType( message ), jsonStringBuilder );
+                    }
+                    ret.content = new ByteArray( jsonStringBuilder.toString().getBytes( charset ) );
+                    break;
+                case "raw":
+                    ret.contentType = HttpHeaderValues.TEXT_PLAIN;
+                    if ( message.isFault() ) {
+                        ret.content = new ByteArray( message.fault().value().strValue().getBytes( charset ) );
+                    } else {
+                        ret.content = new ByteArray( message.value().strValue().getBytes( charset ) );
+                    }
+                    break;
+                default:
+                    break;
+            }
 		return ret;
 	}
 
