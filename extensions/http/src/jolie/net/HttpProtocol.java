@@ -98,7 +98,9 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -206,9 +208,15 @@ public class HttpProtocol extends AsyncCommProtocol
 	@Override
 	public void setupPipeline( ChannelPipeline pipeline )
 	{
-		pipeline.addLast( new HttpServerCodec() );
+		if ( inInputPort ){
+            pipeline.addLast( new HttpServerCodec() );
+            pipeline.addLast( new HttpContentCompressor() );
+        } else {
+            pipeline.addLast( new HttpClientCodec() );
+            pipeline.addLast( new HttpContentDecompressor() ); 
+        }
+        
 		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
-		pipeline.addLast( new HttpContentCompressor() );
 		pipeline.addLast( new HttpCommMessageCodec() );
 	}
 
@@ -219,10 +227,10 @@ public class HttpProtocol extends AsyncCommProtocol
 		protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object > out ) 
                         throws Exception
 		{
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
-                                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
+            ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
+              ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
 
-			Interpreter.getInstance().logInfo( "Sending: " + message.toString() );
+			System.out.println( "Encoded HTTP Request for operation " + message.operationName() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
 		}
@@ -231,19 +239,8 @@ public class HttpProtocol extends AsyncCommProtocol
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) 
                         throws Exception
 		{
-			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
-                                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-			
-                        Interpreter.getInstance().logInfo( "HTTP message recv: " + ExecutionThread.currentThread() );
-			if ( msg instanceof FullHttpRequest ) {
-				FullHttpRequest request = ( FullHttpRequest ) msg;
-				Interpreter.getInstance().logInfo( "HTTP request ! (" + request.uri() + ")" );
-			} else if ( msg instanceof FullHttpResponse ) {
-				//FullHttpResponse response = (FullHttpResponse) msg;
-				Interpreter.getInstance().logInfo( "HTTP response !" );
-			}
 			CommMessage message = recv_internal( msg );
-			Interpreter.getInstance().logInfo( "Decoded Http request for operation: " + message.operationName() );
+			System.out.println(  "Decoded Http request for operation: " + message.operationName() );
 			out.add( message );
 		}
 
@@ -278,6 +275,7 @@ public class HttpProtocol extends AsyncCommProtocol
                 private static final String REQUEST_COMPRESSION = "requestCompression";
                 private static final String REQUEST_USER = "request";
                 private static final String RESPONSE_USER = "response";
+                private static final String RESPONSE_HEADER = "responseHeaders";
                 private static final String STATUS_CODE = "statusCode";
                 private static final String USER_AGENT = "userAgent";
 
@@ -433,7 +431,7 @@ public class HttpProtocol extends AsyncCommProtocol
 
 	private String encoding = null;
 	private String responseFormat = null;
-	private boolean headRequest = false;
+	//private final boolean headRequest = false;
 
 	private static void send_appendQuerystring( Value value, StringBuilder headerBuilder )
 		throws IOException
@@ -806,10 +804,11 @@ public class HttpProtocol extends AsyncCommProtocol
 
 	private void send_appendHeader( HttpHeaders headers )
 	{
-		Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
+        Value v = getParameterFirstValue( Parameters.ADD_HEADERS );
 		if ( v != null ) {
 			if ( v.hasChildren( "header" ) ) {
 				for( Value head : v.getChildren( "header" ) ) {
+                    System.err.println( "LOOKING FOR " + head.strValue() );
 					headers.add( head.strValue(), head.getFirstChild( "value" ).strValue() );
 				}
 			}
@@ -862,7 +861,7 @@ public class HttpProtocol extends AsyncCommProtocol
 	private void send_appendRequestHeaders( CommMessage message, HttpHeaders headers )
 		throws IOException
 	{
-		headers.add( HttpHeaderNames.HOST, uri.getHost() + HttpUtils.CRLF );
+		headers.add( HttpHeaderNames.HOST, uri.getHost() );
 		send_appendCookies( message, uri.getHost(), headers );
 		send_appendAuthorizationHeader( message, headers );
 		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
@@ -917,14 +916,22 @@ public class HttpProtocol extends AsyncCommProtocol
 			boolean compression = encoding != null && checkBooleanParameter( Parameters.COMPRESSION, true );
 			String compressionTypes = getStringParameter(
 				Parameters.COMPRESSION_TYPES,
-				"text/html text/css text/plain text/xml text/x-js text/x-gwt-rpc application/json application/javascript application/x-www-form-urlencoded application/xhtml+xml application/xml"
+				"text/html text/css text/plain text/xml text/x-js text/x-gwt-rpc application/json "
+                  + "application/javascript application/x-www-form-urlencoded application/xhtml+xml "
+                  + "application/xml"
 			).toLowerCase();
 			if ( compression && !compressionTypes.equals( "*" ) && !compressionTypes.contains( encodedContent.contentType ) ) {
 				compression = false;
 			}
 			if ( compression ) {
-				encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
-			}
+				//encodedContent.content = HttpUtils.encode( encoding, encodedContent.content, headers );
+				// RFC 7231 section-5.3.4 introduced the "*" (any) option, we opt for gzip as a sane default
+				if ( encoding.contains( "gzip" ) || encoding.contains( "*" ) ) {
+					headers.add( HttpHeaderNames.CONTENT_ENCODING, "gzip" );
+				} else if ( encoding.contains( "deflate" ) ) {
+					headers.add( HttpHeaderNames.CONTENT_ENCODING, "deflate" );
+				}
+            }
 
 			headers.add( HttpHeaderNames.CONTENT_LENGTH, encodedContent.content.size() );
 		} else {
@@ -955,7 +962,8 @@ public class HttpProtocol extends AsyncCommProtocol
 		HttpMethod method = send_getRequestMethod( message );
 		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
 		String format = send_getFormat();
-		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+        AsciiString contentType = null;
+		// EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
 
 		FullHttpMessage httpMessage;
 		if ( inInputPort ) {
@@ -971,8 +979,8 @@ public class HttpProtocol extends AsyncCommProtocol
 			String qsFormat = "";
 			if ( method == HttpMethod.GET && getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
-					qsFormat = "json";
-					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
+					qsFormat = format = "json";
+					contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
 			FullHttpRequest request = new DefaultFullHttpRequest( HttpVersion.HTTP_1_1, method, send_getUri( message, method, qsFormat ) );
@@ -981,7 +989,12 @@ public class HttpProtocol extends AsyncCommProtocol
 			httpMessage = request;
 
 		}
-
+        
+        EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+        if ( contentType != null ){
+            encodedContent.contentType = contentType;
+        }
+        
 		send_appendGenericHeaders( message, encodedContent, charset, httpMessage.headers() );
 
 		send_logDebugInfo( httpMessage.headers(), encodedContent, charset );
@@ -989,13 +1002,13 @@ public class HttpProtocol extends AsyncCommProtocol
 
 		httpMessage.content().writeBytes( encodedContent.content.getBytes() );
 		
-                //ostream.write( headerBuilder.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
+        //ostream.write( headerBuilder.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
 		//if ( encodedContent.content != null && !headRequest ) {
 		//	ostream.write( encodedContent.content.getBytes() );
 		//}
 		//headRequest = false;
 		
-                return httpMessage;
+        return httpMessage;
 	}
 
 	private void parseXML( FullHttpMessage message, Value value, String charset )
@@ -1061,7 +1074,7 @@ public class HttpProtocol extends AsyncCommProtocol
 			Value cookieConfig;
 			Value v;
 			ServerCookieDecoder decoder = ServerCookieDecoder.STRICT;
-			for( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.SET_COOKIE ) ) ) {
+			for( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.SET_COOKIE, "" ) ) ) {
 				if ( cookies.hasChildren( cookie.name() ) ) {
 					cookieConfig = cookies.getFirstChild( cookie.name() );
 					if ( cookieConfig.isString() ) {
@@ -1371,9 +1384,9 @@ public class HttpProtocol extends AsyncCommProtocol
 		throws IOException
 	{
 		String charset = HttpUtils.getCharset( null, message );
-		CommMessage retVal = null;
+		//CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-
+        
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
@@ -1425,8 +1438,29 @@ public class HttpProtocol extends AsyncCommProtocol
 		}
 
 		if ( message instanceof FullHttpResponse ) {
+            String responseHeader = "";
+            if ( hasParameter( Parameters.RESPONSE_HEADER ) || hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ){
+                if ( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ){
+                    responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
+                } else {
+                    responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
+                }
+            }
+            for ( Entry< String, String > param : message.headers() ){
+                decodedMessage.value.getFirstChild( responseHeader )
+                  .getFirstChild( param.getKey() ).setValue( param.getValue() );
+            }
+            
+            if ( message instanceof FullHttpMessage ){
+                decodedMessage.value.getFirstChild( responseHeader )
+                  .getFirstChild( Parameters.STATUS_CODE ).setValue(
+                    ( ( FullHttpResponse ) message ).status().code()
+                  );
+            }
+            
 			recv_checkForSetCookie( ( FullHttpResponse ) message, decodedMessage.value );
-			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
+			
+            retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( true /* message.isError() == false */ ) { // TODO message 
 			recv_checkReceivingOperation( ( FullHttpRequest ) message, decodedMessage );
 			recv_checkForMessageProperties( ( FullHttpRequest ) message, decodedMessage );

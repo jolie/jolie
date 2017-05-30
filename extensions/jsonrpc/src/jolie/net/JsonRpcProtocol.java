@@ -72,7 +72,7 @@ import jolie.js.JsUtils;
  */
 public class JsonRpcProtocol extends AsyncCommProtocol
 {
-    public static EncodedJsonRpcContent notification = new EncodedJsonRpcContent( null, null );
+    private final static EncodedJsonRpcContent NOTIFICATION = new EncodedJsonRpcContent( null, null );
     
 	private final URI uri;
 	private final Interpreter interpreter;
@@ -85,6 +85,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 	private final Map< Long, String > jsonRpcIdMap;
 	private final Map< String, String > jsonRpcOpMap;
 	
+    @Override
 	public String name()
 	{
 		return "jsonrpc";
@@ -99,26 +100,32 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		this.inInputPort = inInputPort;
 		
 		// prepare the two maps
-		this.jsonRpcIdMap = new HashMap<Long, String>(INITIAL_CAPACITY, LOAD_FACTOR);
-		this.jsonRpcOpMap = new HashMap<String, String>(INITIAL_CAPACITY, LOAD_FACTOR);
+		this.jsonRpcIdMap = new HashMap<Long, String>( INITIAL_CAPACITY, LOAD_FACTOR );
+		this.jsonRpcOpMap = new HashMap<String, String>( INITIAL_CAPACITY, LOAD_FACTOR );
 	}
     
-    public class JsonRpcHttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, EncodedJsonRpcContent > {
+    //public class JsonRpcHttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, EncodedJsonRpcContent > {
+    public class JsonRpcHttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, CommMessage > 
+    {
 		
         @Override
-        protected void encode( ChannelHandlerContext ctx, EncodedJsonRpcContent content, List<Object> out ) throws Exception {
+        protected void encode( ChannelHandlerContext ctx, CommMessage content, List<Object> out ) throws Exception {
+            System.out.println( "ENCODING THE MESSAGE" );
             ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
               ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() 
             );
-            FullHttpMessage msg = buildHttpJsonRpcMessage( content );
-            out.add( msg );
+            System.out.println( "PASSING MESSAGE CONTENT" );
+            //FullHttpMessage msg = buildHttpJsonRpcMessage( content );
+            //out.add( msg );
         }
 
         @Override
         protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception {
+            System.out.println( "DECODING THE MESSAGE" );
             EncodedJsonRpcContent content = recv_http_internal( msg );
             out.add( content );
         }
+        
     }
     
     @Override
@@ -132,15 +139,17 @@ public class JsonRpcProtocol extends AsyncCommProtocol
         }
         pipeline.addLast( new HttpObjectAggregator( 65536 ) );
         pipeline.addLast( new JsonRpcHttpCommMessageCodec() );
-         pipeline.addLast( new JsonRpcHttpCommMessageCodec() );
+//        pipeline.addLast( new JsonRpcHttpCommMessageCodec() );
     }
     
+    //private FullHttpMessage buildHttpJsonRpcMessage( CommMessage content )
     private FullHttpMessage buildHttpJsonRpcMessage( EncodedJsonRpcContent content )
         throws IOException
     {
         FullHttpMessage httpMessage;
         
-        if ( content.equals( notification ) ) {
+//        if ( !content.value().isDefined() ) {
+        if ( content.getContent() == null ) {
             FullHttpResponse response = new DefaultFullHttpResponse( 
               HttpVersion.HTTP_1_0, HttpResponseStatus.NO_CONTENT 
             );
@@ -149,7 +158,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
         }
         
         if( inInputPort ){
-            
+            // We're responding to a request
             httpMessage = new DefaultFullHttpResponse(
               HttpVersion.HTTP_1_1, 
               HttpResponseStatus.OK, 
@@ -225,7 +234,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
         
     }
     
- 	public CommMessage recv_internal( EncodedJsonRpcContent content )
+ 	private CommMessage recv_internal( EncodedJsonRpcContent content )
 		throws IOException
 	{
         Value value = Value.create();
