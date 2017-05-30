@@ -229,8 +229,6 @@ public class HttpProtocol extends AsyncCommProtocol
 		{
             ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
               ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
-
-			System.out.println( "Encoded HTTP Request for operation " + message.operationName() );
 			FullHttpMessage msg = buildHttpMessage( message );
 			out.add( msg );
 		}
@@ -240,7 +238,6 @@ public class HttpProtocol extends AsyncCommProtocol
                         throws Exception
 		{
 			CommMessage message = recv_internal( msg );
-			System.out.println(  "Decoded Http request for operation: " + message.operationName() );
 			out.add( message );
 		}
 
@@ -1384,10 +1381,19 @@ public class HttpProtocol extends AsyncCommProtocol
 		throws IOException
 	{
 		String charset = HttpUtils.getCharset( null, message );
-		//CommMessage retVal = null;
 		DecodedMessage decodedMessage = new DecodedMessage();
-        
-		HttpUtils.recv_checkForChannelClosing( message, channel() );
+
+		//if ( checkBooleanParameter( ctx, Parameters.CONCURRENT ) ) {
+			String messageId = message.headers().get( Headers.JOLIE_MESSAGE_ID );
+			if ( messageId != null ) {
+				try {
+					decodedMessage.id = Long.parseLong( messageId );
+				} catch( NumberFormatException e ) {
+				}
+			}
+		//}
+		
+        HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		if ( checkBooleanParameter( Parameters.DEBUG ) ) {
 			recv_logDebugInfo( message, charset );
@@ -1396,10 +1402,9 @@ public class HttpProtocol extends AsyncCommProtocol
 		recv_checkForStatusCode( message );
 
 		encoding = message.headers().get( HttpHeaderNames.ACCEPT_ENCODING );
-		// TODO: integrate HEAD requests
-                // if ( message instanceof FullHttpRequest ) {
-		//	headRequest = inInputPort && ( ( FullHttpRequest ) message ).method() == HttpMethod.HEAD;
-		// }
+		//if ( message instanceof FullHttpRequest ) {
+		//	headRequest = inInputPort && ((FullHttpRequest) message).method() == HttpMethod.HEAD;
+		//}
 
 		String contentType = DEFAULT_CONTENT_TYPE.toString();
 		if ( message.headers().contains( HttpHeaderNames.CONTENT_TYPE ) ) {
@@ -1417,7 +1422,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		/* https://tools.ietf.org/html/rfc7231#section-4.3 */
 		HttpMethod method = null;
 		if ( message instanceof FullHttpRequest ) {
-			method = ( ( FullHttpRequest ) message).method();
+			method = ((FullHttpRequest) message).method();
 		}
 
 		if ( method != HttpMethod.GET && method != HttpMethod.HEAD && method != HttpMethod.DELETE ) {
@@ -1428,48 +1433,52 @@ public class HttpProtocol extends AsyncCommProtocol
 		}
 
 		if ( checkBooleanParameter( Parameters.CONCURRENT ) ) {
-			String messageId = message.headers().get( Headers.JOLIE_MESSAGE_ID );
-			if ( messageId != null ) {
-				try {
-					decodedMessage.id = Long.parseLong( messageId );
-				} catch( NumberFormatException e ) {
-				}
-			}
+			decodedMessage.id = CommMessage.GENERIC_ID;
 		}
 
 		if ( message instanceof FullHttpResponse ) {
-            String responseHeader = "";
-            if ( hasParameter( Parameters.RESPONSE_HEADER ) || hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ){
-                if ( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ){
-                    responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
-                } else {
-                    responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
-                }
-            }
-            for ( Entry< String, String > param : message.headers() ){
-                decodedMessage.value.getFirstChild( responseHeader )
-                  .getFirstChild( param.getKey() ).setValue( param.getValue() );
-            }
-            
-            if ( message instanceof FullHttpMessage ){
-                decodedMessage.value.getFirstChild( responseHeader )
-                  .getFirstChild( Parameters.STATUS_CODE ).setValue(
-                    ( ( FullHttpResponse ) message ).status().code()
-                  );
-            }
-            
+			String responseHeader = "";
+			if ( hasParameter( Parameters.RESPONSE_HEADER ) || 
+                    hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) 
+            {
+				if ( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+					responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
+				} else {
+					responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
+				}
+				for( Entry<String, String> param : message.headers() ) {
+					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() ).setValue( param.getValue() );
+				}
+				if ( message instanceof FullHttpResponse ) {
+					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE ).setValue( ((FullHttpResponse) message).status().code() );
+				}
+			}
 			recv_checkForSetCookie( ( FullHttpResponse ) message, decodedMessage.value );
-			
-            retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
-		} else if ( true /* message.isError() == false */ ) { // TODO message 
+		
+        } else { /* message.isError() == false */ // TODO message 
 			recv_checkReceivingOperation( ( FullHttpRequest ) message, decodedMessage );
 			recv_checkForMessageProperties( ( FullHttpRequest ) message, decodedMessage );
-			retVal = new CommMessage( decodedMessage.id, decodedMessage.operationName, decodedMessage.resourcePath, decodedMessage.value, null );
 		}
-
-		if ( retVal != null && "/".equals( retVal.resourcePath() ) && channel().parentPort() != null
-			&& (channel().parentPort().getInterface().containsOperation( retVal.operationName() )
-			|| channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null) ) {
+        
+        CommMessage retVal = new CommMessage( 
+              decodedMessage.id, 
+              decodedMessage.operationName, 
+              decodedMessage.resourcePath, 
+              decodedMessage.value, null );
+        
+		if ( 
+          /*retVal != null && */ 
+          "/".equals( retVal.resourcePath() ) && 
+            (
+                ( 
+                    channel().parentPort() != null && 
+                    channel().parentPort().getInterface().containsOperation( retVal.operationName() )
+                ) || ( 
+                    channel().parentInputPort() != null && 
+                    channel().parentInputPort().getAggregatedOperation( retVal.operationName() ) != null 
+                )
+            )
+        ) {
 			try {
 				// The message is for this service
 				boolean hasInput = false;
@@ -1520,6 +1529,7 @@ public class HttpProtocol extends AsyncCommProtocol
 		}
 
 		return retVal;
+
 	}
 
 	private Type getSendType( CommMessage message )
