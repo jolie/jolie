@@ -128,7 +128,7 @@ public class VariablePath implements Expression, Cloneable
 	
 	protected Value getRootValue()
 	{
-		return ExecutionThread.currentThread().state().root();
+        return ExecutionThread.currentThread().state().root();
 	}
 	
 	public final void undef()

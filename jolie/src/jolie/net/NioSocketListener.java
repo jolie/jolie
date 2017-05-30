@@ -75,7 +75,7 @@ public class NioSocketListener extends CommListener
 			bootstrap.group( bossGroup, workerGroup )
 				.channel( NioServerSocketChannel.class )
 				.option( ChannelOption.SO_BACKLOG, 100 )
-				.handler( new LoggingHandler( LogLevel.INFO ) )
+//				.handler( new LoggingHandler( LogLevel.INFO ) )
 				.childHandler( new ChannelInitializer<SocketChannel>()
 				{
 
@@ -85,7 +85,7 @@ public class NioSocketListener extends CommListener
 						CommProtocol protocol = createProtocol();
 						assert ( protocol instanceof AsyncCommProtocol );
 
-						NioSocketCommChannel channel = new NioSocketCommChannel( null, (AsyncCommProtocol) protocol );
+						NioSocketCommChannel channel = new NioSocketCommChannel( null, ( AsyncCommProtocol ) protocol );
 						channel.setParentInputPort( inputPort() );
 
 						//interpreter().commCore().scheduleReceive(channel, inputPort());

@@ -27,7 +27,6 @@ package jolie.net;
 import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 
 class EncodedJsonRpcContent {
     
