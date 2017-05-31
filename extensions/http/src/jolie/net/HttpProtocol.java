@@ -55,7 +55,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.js.JsUtils;
 import jolie.lang.Constants;

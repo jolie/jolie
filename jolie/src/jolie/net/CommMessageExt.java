@@ -32,9 +32,17 @@ public class CommMessageExt {
         this.m = new CommMessage(id, operationName, resourcePath, value, fault);
     }
     
+    public CommMessageExt( CommMessage m ){
+        this.m = m;
+    }
+    
     public CommMessageExt setRequest(){
         this.isRequest = true;
         return this; // returns "this" for easier composition e.g., new CommMessageExt( ... ).setRequest();
+    }
+    
+    public CommMessage getCommMessage(){
+        return m;
     }
     
     public boolean isRequest(){
