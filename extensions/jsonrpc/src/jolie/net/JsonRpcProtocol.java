@@ -113,31 +113,32 @@ public class JsonRpcProtocol extends AsyncCommProtocol
         setupWrappablePipeline( pipeline );
     }
     
-    // @Override
+    @Override
     public void setupWrappablePipeline( ChannelPipeline pipeline ){
         pipeline.addLast( new JsonRpcCommMessageCodec() );
     }
     
-    // JsonRpc <-> CommMessageExt
-    public class JsonRpcCommMessageCodec extends MessageToMessageCodec< EncodedJsonRpcContent, CommMessageExt >
+    // EncodedJsonRpcContent <-> CommMessage
+    public class JsonRpcCommMessageCodec extends MessageToMessageCodec< EncodedJsonRpcContent, CommMessage >
 	{
 
 		@Override
-		protected void encode( ChannelHandlerContext ctx, CommMessageExt message, List<Object> out ) throws Exception
+		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) throws Exception
 		{
-            System.out.println( "JsonRpcCommMessageCodec: encode" );
 			( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread( 
               ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() ); 
-            EncodedJsonRpcContent content = buildJsonRpcMessage( message );
+            CommMessageExt messageExt = new CommMessageExt( message );
+            if( inInputPort )
+                messageExt.setRequest();
+            EncodedJsonRpcContent content = buildJsonRpcMessage( messageExt );
 			out.add( content );
 		}
 
 		@Override
 		protected void decode( ChannelHandlerContext ctx, EncodedJsonRpcContent content, List<Object> out ) throws Exception
 		{
-            System.out.println( "JsonRpcCommMessageCodec: decode" );
-            CommMessageExt message = recv_internal( content );
-			out.add( message );
+			CommMessageExt message = recv_internal( content );
+			out.add( message.getCommMessage() );
 		}
 
 	}
@@ -163,6 +164,10 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 			error.getFirstChild( "id" ).setValue( jsonRpcId );
 		} else {
 			if ( message.isRequest() ) {
+				value.getChildren( "result" ).set( 0, message.value() );
+				String jsonRpcId = jsonRpcIdMap.get( message.id() );
+				value.getFirstChild( "id" ).setValue( jsonRpcId );
+			} else {
 				jsonRpcOpMap.put( message.id() + "", message.operationName() );
 				value.getFirstChild( "method" ).setValue( message.operationName() );
 				if ( message.value().isDefined() || message.value().hasChildren() ) {
@@ -171,10 +176,6 @@ public class JsonRpcProtocol extends AsyncCommProtocol
                       .getChildren( JsUtils.JSONARRAY_KEY ).set( 0, message.value() );
 				}
 				value.getFirstChild( "id" ).setValue( message.id() );
-			} else {
-				value.getChildren( "result" ).set( 0, message.value() );
-				String jsonRpcId = jsonRpcIdMap.get( message.id() );
-				value.getFirstChild( "id" ).setValue( jsonRpcId );
 			}
 		}
 		StringBuilder json = new StringBuilder();
@@ -195,6 +196,7 @@ public class JsonRpcProtocol extends AsyncCommProtocol
             new ByteBufInputStream( content.getContent() ), 
             content.getCharset()), value, false 
         );
+        
 		boolean isRequest = value.hasChildren( "method" );
 			
 		if ( !value.hasChildren( "id" ) ) {
@@ -241,15 +243,13 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		}
 	}
     
-    
-    // HTTP <-> CommMessage
+    // HTTP <-> EncodedJsonRpcContent
     public class JsonRpcHttpCommMessageCodec extends MessageToMessageCodec< FullHttpMessage, EncodedJsonRpcContent >
 	{
 
 		@Override
 		protected void encode( ChannelHandlerContext ctx, EncodedJsonRpcContent content, List<Object> out ) throws Exception
 		{
-            System.out.println( "JsonRpcHttpCommMessageCodec: encode" );
 			FullHttpMessage msg = buildHttpJsonRpcMessage( content );
 			out.add( msg );
 		}
@@ -257,7 +257,6 @@ public class JsonRpcProtocol extends AsyncCommProtocol
 		@Override
 		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) throws Exception
 		{
-            System.out.println( "JsonRpcHttpCommMessageCodec: decode" );
 //			if ( msg instanceof FullHttpRequest ) {
 //				FullHttpRequest request = (FullHttpRequest) msg;
 //			} else if ( msg instanceof FullHttpResponse ) {
