@@ -25,11 +25,9 @@ package joliex.util;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import jolie.net.CommMessage;
 import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
@@ -67,6 +65,9 @@ public class TimeService extends JavaService
 
 	private TimeThread thread = null;
 	private final DateFormat dateFormat, dateTimeFormat;
+	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private final Map<Long, ScheduledFuture> scheduledFutureHashMap = new ConcurrentHashMap<>();
+	private final AtomicLong atomicLong = new AtomicLong();
 
 	public TimeService()
 	{
@@ -173,7 +174,7 @@ public class TimeService extends JavaService
 	{
 		return System.currentTimeMillis();
 	}
-	
+
 	public String getCurrentDateTime( Value request )
 	{
 		String result = null;
@@ -209,7 +210,7 @@ public class TimeService extends JavaService
 			final Date timestamp = new Date( tm );
 			result.setValue(sdf.format( timestamp ));
 			GregorianCalendar cal = new GregorianCalendar();
-			cal.setTimeInMillis( timestamp.getTime() );			
+			cal.setTimeInMillis( timestamp.getTime() );
 			result.getFirstChild( "day" ).setValue( cal.get( Calendar.DAY_OF_MONTH ) );
 			result.getFirstChild( "month" ).setValue( cal.get( Calendar.MONTH ) + 1 );
 			result.getFirstChild( "year" ).setValue( cal.get( Calendar.YEAR ) );
@@ -241,8 +242,8 @@ public class TimeService extends JavaService
 	/**
 	 * @author Claudio Guidi
 	 * @param request
-	 * @return 
-	 * @throws jolie.runtime.FaultException 
+	 * @return
+	 * @throws jolie.runtime.FaultException
 	 */
 	public Value getDateValues( Value request )
 		throws FaultException
@@ -316,7 +317,7 @@ public class TimeService extends JavaService
 
 		return v;
 	}
-	
+
 	/**
 	 * @author Balint Maschio
 	 * 10/2011 - Fabrizio Montesi: convert to using IllegalArgumentException
@@ -364,7 +365,7 @@ public class TimeService extends JavaService
 		}
 		return v;
 	}
-        
+
 	public Value getTimeDiff( Value request )
 		throws FaultException
 	{
@@ -374,7 +375,7 @@ public class TimeService extends JavaService
 			DateFormat sdf = new SimpleDateFormat( "kk:mm:ss" );
 			final Date dt1 = sdf.parse( request.getFirstChild( "time1" ).strValue() );
 			final Date dt2 = sdf.parse( request.getFirstChild( "time2" ).strValue() );
-                        
+
 			Long result = new Long( (dt1.getTime() - dt2.getTime()) );
 			v.setValue( result.intValue() );
 		} catch( ParseException pe ) {
@@ -399,7 +400,7 @@ public class TimeService extends JavaService
 
 	public Long getTimestampFromString( Value request )
 		throws FaultException
-	{       
+	{
 		try {
 			String format;
 			if ( request.getFirstChild( "format" ).strValue().isEmpty() ) {
@@ -409,10 +410,49 @@ public class TimeService extends JavaService
 			}
 			SimpleDateFormat sdf = new SimpleDateFormat( format );
 			final Date dt = sdf.parse( request.strValue() );
-                        
+
 			return dt.getTime();
 		} catch( ParseException pe ) {
 			throw new FaultException( "InvalidTimestamp", pe );
 		}
+	}
+
+	@RequestResponse
+	public Long scheduleTimeout( Value request )
+		throws FaultException
+	{
+		final long timeoutId = atomicLong.getAndIncrement();
+		TimeUnit unit;
+
+		if (request.hasChildren( "timeunit" )) {
+			try {
+				unit = TimeUnit.valueOf( request.getFirstChild( "timeunit" ).strValue().toUpperCase() );
+			} catch ( Exception e ) {
+				throw new FaultException( "InvalidTimeUnit", e );
+			}
+		} else {
+			unit = TimeUnit.MILLISECONDS;
+		}
+
+		String operationName;
+		if (request.hasChildren( "operation" )) {
+			operationName = request.getFirstChild( "operation" ).strValue();
+		} else {
+			operationName = "timeout";
+		}
+
+		ScheduledFuture scheduledFuture = executor.schedule( () -> {
+			sendMessage( CommMessage.createRequest( operationName, "/", request.getFirstChild( "message" ) ) );
+		}, request.intValue(), unit );
+		scheduledFutureHashMap.put(timeoutId, scheduledFuture);
+		return timeoutId;
+	}
+
+	@RequestResponse
+	public Boolean cancelTimeout( Value request )
+	{
+		long timeoutId = request.longValue();
+		ScheduledFuture f = scheduledFutureHashMap.remove( timeoutId );
+		return f != null && f.cancel( false );
 	}
 }

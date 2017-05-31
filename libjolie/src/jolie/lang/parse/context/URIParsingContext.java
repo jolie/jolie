@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2010 (C) by Fabrizio Montesi <famontesi@gmail.com>          *
+ *   Copyright 2010-2016 (C) by Fabrizio Montesi <famontesi@gmail.com>     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -22,6 +22,9 @@
 package jolie.lang.parse.context;
 
 import java.net.URI;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * A very simple {@code ParsingContext} based upon an URI.
@@ -48,6 +51,11 @@ public class URIParsingContext extends AbstractParsingContext
 	@Override
 	public String sourceName()
 	{
-		return uri.getSchemeSpecificPart();
+		try {
+			Path path = Paths.get( uri );
+			return path.toString();
+		} catch( IllegalArgumentException | FileSystemNotFoundException e ) {
+			return uri.toString();
+		}
 	}
 }

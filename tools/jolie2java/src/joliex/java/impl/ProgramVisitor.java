@@ -38,7 +38,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -370,7 +371,7 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	{
 	}
 
-	public void visit( ForEachStatement n )
+	public void visit( ForEachSubNodeStatement n )
 	{
 	}
 
@@ -430,6 +431,7 @@ public class ProgramVisitor   extends GeneralProgramVisitor implements OLVisitor
 	public void visit( InlineTreeExpressionNode n ) {}
 	public void visit( VoidExpressionNode n ) {}
 	public void visit( ProvideUntilStatement n ) {}
+	public void visit( ForEachArrayItemStatement n ) {}
 
 	@Override
 	public void visit(TypeChoiceDefinition typeChoiceDefinition) {}

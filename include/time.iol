@@ -66,47 +66,62 @@ type GetTimeDiffRequest:void {
 }
 
 type GetTimestampFromStringRequest:string {
-	.format?:string 
+	.format?:string
 	.language?: string
 }
 
 type GetDateTimeRequest: long {
   .format?: string
- 
+
 }
 
 type GetDateTimeResponse: string {
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
-	.second:int 
+	.second:int
 }
 
 type DateTimeType:void{
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
 	.second:int
 }
+
 
 type SetNextTimeOutRequest: int {
 	.operation?: string
 	.message?: undefined
 }
 
+type ScheduleTimeOutRequest: int {
+	.operation?: string
+	/*
+	* If the value is not set, it will default to "timeout"
+	*
+	*/
+	.message?: undefined
+	/*
+	*	Possible values are DAYS, HOURS, MICROSECONDS, MILLISECONDS, MINUTES, NANOSECONDS, SECONDS.
+	*   If the value is not set or recognized, it will default to MILLISECONDS
+	*/
+	.timeunit?: string
+}
+
 interface TimeInterface{
 	OneWay:
 		/**!
 		  it sets a timeout whose duration is in milliseconds and it is represented by the root value of the message
-		  When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation 
+		  When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation
 		  ( default: timeout )
 		*/
-		setNextTimeout(SetNextTimeOutRequest), 
-		setNextTimeoutByDateTime, setNextTimeoutByTime
+		setNextTimeout(SetNextTimeOutRequest),
+		setNextTimeoutByDateTime, setNextTimeoutByTime,
 	RequestResponse:
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
@@ -117,10 +132,10 @@ interface TimeInterface{
 
 		/**!
 		* Converts an input string into a date expressed by means of
-		* three elements: day, month and year. The request may specify the 
+		* three elements: day, month and year. The request may specify the
 		* date parsing format. See #DateValuesRequestType for details.
 		*/
-		getDateValues(DateValuesRequestType)(DateValuesType),
+		getDateValues(DateValuesRequestType)(DateValuesType) throws InvalidDate,
 
 		/**!
 		* Returns the current date split in three fields: day, month and year
@@ -135,8 +150,16 @@ interface TimeInterface{
 		getTimeValues(string)(TimeValuesType),
 		getTimeDiff(GetTimeDiffRequest)(int),
 		getTimeFromMilliSeconds(int)(TimeValuesType),
-		getTimestampFromString(GetTimestampFromStringRequest)(long) throws FaultException,
-		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws FaultException
+		getTimestampFromString(GetTimestampFromStringRequest)(long) throws InvalidTimestamp,
+		getDateTimeValues(GetTimestampFromStringRequest)(DateTimeType) throws InvalidDate,
+		/**!
+		* Schedules a timeout, which can be cancelled using #cancelTimeout from the returned string. Default .timeunit value is MILLISECONDS, .operation default is "timeout".
+		*/
+		scheduleTimeout(ScheduleTimeOutRequest)(long) throws InvalidTimeUnit,
+		/**!
+		* Cancels a timeout from a long-value created from #scheduleTimeout
+		*/
+		cancelTimeout(long)(bool)
 }
 
 outputPort Time {

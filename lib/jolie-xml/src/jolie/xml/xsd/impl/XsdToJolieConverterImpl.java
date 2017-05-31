@@ -164,7 +164,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 			XSComplexType complexType = (XSComplexType) complexNameIter.next();
 			if ( complexType.getContentType().asSimpleType() == null && !checkSkippedTypes( complexType.getName(), complexType.getTargetNamespace() ) ) {
 				// avoinding simple type insertion
-				complexTypeNames.add( complexType.getName() + TYPE_SUFFIX );
+				complexTypeNames.add( complexType.getName().replace( "-", "_" ) + TYPE_SUFFIX );
 			}
 		}
 
@@ -198,7 +198,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				}
 				if ( jolieComplexType != null ) {
 					jolieTypes.add( jolieComplexType );
-				} 
+				}
 			}
 		}
 
@@ -339,9 +339,14 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 				checkDefaultAndFixed( currElementDecl );
 				if ( type.isSimpleType() ) {
 					checkForNativeType( type, WARNING_2 );
-					if ( type.getName() != null && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
+					if ( (type.getName() != null) && XsdUtils.xsdToNativeType( type.getName() ) != null ) {
 						jolieType.putSubType( createSimpleType( type, currElementDecl, getRange( parentParticle ) ) );
 					}
+			if ( type.getName() == null && type.asSimpleType().isRestriction() ) {
+					XSRestrictionSimpleType restriction = type.asSimpleType().asRestriction();
+					checkType( restriction.getBaseType() );
+					jolieType.putSubType( createSimpleType( restriction.getBaseType(), currElementDecl, Constants.RANGE_ONE_TO_ONE ) );
+			}
 				} else if ( type.isComplexType() ) {
 					XSComplexType complexType = type.asComplexType();
 					XSParticle particle;
@@ -379,11 +384,11 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 			if ( simpleType.isRestriction() ) {
 				XSRestrictionSimpleType restriction = simpleType.asRestriction();
 				checkType( restriction.getBaseType() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName() + TYPE_SUFFIX, XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_") + TYPE_SUFFIX, XsdUtils.xsdToNativeType( restriction.getBaseType().getName() ), Constants.RANGE_ONE_TO_ONE );
 
 			} else {
 				log( Level.WARNING, "SimpleType not processed:" + simpleType.getName() );
-				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName(), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
+				jolietype = new TypeInlineDefinition( parsingContext, simpleType.getName().replace("-","_"), NativeType.VOID, Constants.RANGE_ONE_TO_ONE );
 
 			}
 		}
@@ -407,7 +412,7 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 		if ( lazy ) {
 			jolieType = (TypeInlineDefinition) lazyType;
 		} else {
-			jolieType = createComplexType( complexType, complexType.getName() + TYPE_SUFFIX, particle );
+			jolieType = createComplexType( complexType, complexType.getName().replace("-","_") + TYPE_SUFFIX, particle );
 		}
 
 		if ( contentType.asSimpleType() != null ) {
@@ -442,8 +447,6 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( type.getName() != null && (type.getName().contains( "date" ) || type.getName().contains( "time" ) || type.getName().contains( "boolean" )) ) {
 			log( Level.WARNING, WARNING_CONVERT_STRING + " Type: " + type.getName() );
-
-
 		}
 	}
 
@@ -454,14 +457,10 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( element.getDefaultValue() != null ) {
 			log( Level.WARNING, WARNING_DEFAULT_ATTRIBUTE + " Element: " + element.getName() );
-
-
 		}
 
 		if ( element.getFixedValue() != null ) {
 			log( Level.WARNING, WARNING_FIXED_ATTRIBUTE + " Element: " + element.getName() );
-
-
 		}
 
 	}
@@ -469,12 +468,12 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	private TypeInlineDefinition createSimpleType( XSType type, XSElementDecl element, Range range )
 	{
 		checkType( type );
-                if ( element.isNillable() ) {
-                        return new TypeInlineDefinition( parsingContext, element.getName(), NativeType.ANY, range );
-                } else {
-                        return new TypeInlineDefinition( parsingContext, element.getName(), XsdUtils.xsdToNativeType( type.getName() ), range );
-                }
-		
+		if ( element.isNillable() ) {
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), NativeType.ANY, range );
+		} else {
+			return new TypeInlineDefinition( parsingContext, element.getName().replace("-","_"), XsdUtils.xsdToNativeType( type.getName() ), range );
+		}
+
 
 
 	}
@@ -483,12 +482,8 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( complexType.isMixed() ) {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.ANY, getRange( particle ) );
-
-
 		} else {
 			return new TypeInlineDefinition( parsingContext, typeName, NativeType.VOID, getRange( particle ) );
-
-
 		}
 	}
 
@@ -496,24 +491,16 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( (modelGroupDecl = term.asModelGroupDecl()) != null ) {
 			return modelGroupDecl.getModelGroup();
-
-
 		} else if ( term.isModelGroup() ) {
 			return term.asModelGroup();
-
-
 		} else {
 			return null;
-
-
 		}
 	}
 
 	private boolean strict()
 	{
 		return strict;
-
-
 	}
 
 	/**
@@ -536,36 +523,24 @@ public class XsdToJolieConverterImpl implements XsdToJolieConverter
 	{
 		if ( !strict() ) {
 			log( Level.WARNING, WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
-
-
 		} else {
 			throw new ConversionException( ERROR_SIMPLE_TYPE + WARNING_SIMPLE_TYPE + contentType.asSimpleType().getName() );
-
-
 		}
 	}
 
 	private Range getRange( XSParticle part )
 	{
 		int min = 1;
-
-
 		int max = Integer.MAX_VALUE;
-
 
 		if ( part.getMinOccurs() != -1 ) {
 			min = part.getMinOccurs();
-
-
 		}
 
 		if ( part.getMaxOccurs() != -1 ) {
 			max = part.getMaxOccurs();
-
-
 		}
 
 		return new Range( min, max );
-
 	}
 }

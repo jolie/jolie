@@ -19,62 +19,47 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.process;
+package jolie.lang.parse.ast;
 
-import jolie.ExecutionThread;
-import jolie.runtime.ExitingException;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-import jolie.runtime.VariablePath;
+import jolie.lang.parse.OLVisitor;
+import jolie.lang.parse.context.ParsingContext;
 
-public class ForEachProcess implements Process
+
+public class ForEachSubNodeStatement extends OLSyntaxNode
 {
-	final private VariablePath keyPath, targetPath;
-	final private Process process;
+	private final VariablePathNode keyPath, targetPath;
+	private final OLSyntaxNode body;
 
-	public ForEachProcess(
-			VariablePath keyPath,
-			VariablePath targetPath,
-			Process process )
-	{
+	public ForEachSubNodeStatement(
+			ParsingContext context,
+			VariablePathNode keyPath,
+			VariablePathNode targetPath,
+			OLSyntaxNode body
+	) {
+		super( context );
 		this.keyPath = keyPath;
 		this.targetPath = targetPath;
-		this.process = process;
+		this.body = body;
 	}
 	
-	public Process clone( TransformationReason reason )
+	public OLSyntaxNode body()
 	{
-		return new ForEachProcess(
-					(VariablePath) keyPath.cloneExpression( reason ),
-					(VariablePath) targetPath.cloneExpression( reason ),
-					process.clone( reason )
-				);
+		return body;
 	}
 	
-	public void run()
-		throws FaultException, ExitingException
+	public VariablePathNode keyPath()
 	{
-		if ( ExecutionThread.currentThread().isKilled() ) {
-			return;
-		}
-
-		Value v = targetPath.getValueOrNull();
-		if ( v != null && v.hasChildren() ) {
-			String keys[];
-			synchronized( v ) {
-				keys = new String[ v.children().keySet().size() ];
-				keys = v.children().keySet().toArray( keys );
-			}
-			
-			for( String id : keys ) {
-				keyPath.getValue().setValue( id );
-				process.run();
-			}
-		}
+		return keyPath;
 	}
 	
-	public boolean isKillable()
+	public VariablePathNode targetPath()
 	{
-		return true;
+		return targetPath;
+	}
+	
+	@Override
+	public void accept( OLVisitor visitor )
+	{
+		visitor.visit( this );
 	}
 }

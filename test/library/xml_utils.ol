@@ -21,7 +21,10 @@ define check
 		throw( TestFailed, "xmlToValue: second person's firstName is wrong" )
 	} else if ( v.person[1].lastName != "Duck" ) {
 		throw( TestFailed, "xmlToValue: second person's lastName is wrong" )
+	} else if ( v.person[1].empty != "" ) {
+		throw( TestFailed, "xmlToValue: second person's empty is wrong" )
 	}
+
 }
 
 define doTest
@@ -39,6 +42,7 @@ define doTest
 	<person>
 		<firstName>Donald</firstName>
 		<lastName>Duck</lastName>
+		<empty></empty>
 	</person>
 </people>
 	";

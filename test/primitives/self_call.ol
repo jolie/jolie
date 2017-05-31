@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) by Fabrizio Montesi                                     *
+ *   Copyright (C) 2016 by Fabrizio Montesi <famontesi@gmail.com>          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -19,29 +19,42 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
+include "../AbstractTestUnit.iol"
 
-package jolie.runtime;
+constants {
+	MyLocation = "socket://localhost:8005"
+}
 
-import jolie.runtime.expression.Expression;
-import jolie.process.TransformationReason;
+interface TestIface {
+RequestResponse:
+	id(int)(int)
+}
 
-public class ValueVectorSizeExpression implements Expression
+outputPort Self {
+Location: MyLocation
+Protocol: sodep
+Interfaces: TestIface
+}
+
+inputPort MyInput {
+Location: MyLocation
+Protocol: sodep
+Interfaces: TestIface
+}
+
+define doTest
 {
-	final private VariablePath path;
-	
-	public ValueVectorSizeExpression( VariablePath path )
+	i = k = 0;
 	{
-		this.path = path;
-	}
-	
-	public Expression cloneExpression( TransformationReason reason )
-	{
-		return new ValueVectorSizeExpression( path );
-	}
-	
-	public Value evaluate()
-	{
-		// TODO: if path points to an undefined vector, we are creating a new vector
-		return Value.create( path.getValueVector().size() );
+		while( i++ < 20 ) {
+			id@Self( i )( x );
+			if ( x != i ) {
+				throw( TestFailed, "Unexpected result" )
+			}
+		}
+		|
+		while( k++ < 20 ) {
+			id( u )( y ) { y = u }
+		}
 	}
 }

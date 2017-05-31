@@ -19,48 +19,62 @@
  *   For details about the authors of this software, see the AUTHORS file. *
  ***************************************************************************/
 
-package jolie.lang.parse.ast;
+package jolie.process;
 
-import jolie.lang.parse.OLVisitor;
-import jolie.lang.parse.context.ParsingContext;
+import jolie.ExecutionThread;
+import jolie.runtime.ExitingException;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
+import jolie.runtime.VariablePath;
 
-
-public class ForEachStatement extends OLSyntaxNode
+public class ForEachSubNodeProcess implements Process
 {
-	private final VariablePathNode keyPath, targetPath;
-	private final OLSyntaxNode body;
+	final private VariablePath keyPath, targetPath;
+	final private Process process;
 
-	public ForEachStatement(
-			ParsingContext context,
-			VariablePathNode keyPath,
-			VariablePathNode targetPath,
-			OLSyntaxNode body
-			)
+	public ForEachSubNodeProcess(
+			VariablePath keyPath,
+			VariablePath targetPath,
+			Process process )
 	{
-		super( context );
 		this.keyPath = keyPath;
 		this.targetPath = targetPath;
-		this.body = body;
+		this.process = process;
 	}
 	
-	public OLSyntaxNode body()
+	public Process clone( TransformationReason reason )
 	{
-		return body;
+		return new ForEachSubNodeProcess(
+					(VariablePath) keyPath.cloneExpression( reason ),
+					(VariablePath) targetPath.cloneExpression( reason ),
+					process.clone( reason )
+				);
 	}
 	
-	public VariablePathNode keyPath()
+	public void run()
+		throws FaultException, ExitingException
 	{
-		return keyPath;
+		if ( ExecutionThread.currentThread().isKilled() ) {
+			return;
+		}
+
+		Value v = targetPath.getValueOrNull();
+		if ( v != null && v.hasChildren() ) {
+			String keys[];
+			synchronized( v ) {
+				keys = new String[ v.children().keySet().size() ];
+				keys = v.children().keySet().toArray( keys );
+			}
+			
+			for( String id : keys ) {
+				keyPath.getValue().setValue( id );
+				process.run();
+			}
+		}
 	}
 	
-	public VariablePathNode targetPath()
+	public boolean isKillable()
 	{
-		return targetPath;
-	}
-	
-	@Override
-	public void accept( OLVisitor visitor )
-	{
-		visitor.visit( this );
+		return true;
 	}
 }

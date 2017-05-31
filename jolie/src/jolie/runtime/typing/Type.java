@@ -21,7 +21,6 @@
 
 package jolie.runtime.typing;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,7 +46,7 @@ class TypeImpl extends Type
 		if ( undefinedSubTypes ) {
 			this.subTypes = null;
 		} else {
-			this.subTypes = Collections.unmodifiableMap( subTypes );
+			this.subTypes = subTypes;
 		}
 	}
 	

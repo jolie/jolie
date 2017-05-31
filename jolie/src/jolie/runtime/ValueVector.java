@@ -65,6 +65,18 @@ class ValueVectorLink extends ValueVector implements Cloneable
 	{
 		return getLinkedValueVector().values();
 	}
+	
+	public List< Value > valuesCopy()
+	{
+		return getLinkedValueVector().valuesCopy();
+	}
+	
+	@Override
+	public int size()
+	{
+		ValueVector vector = linkPath.getValueVectorOrNull();
+		return ( vector == null ) ? 0 : vector.size();
+	}
 }
 
 class ValueVectorImpl extends ValueVector implements Serializable
@@ -75,6 +87,12 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	protected List< Value > values()
 	{
 		return values;
+	}
+	
+	@Override
+	public synchronized int size()
+	{
+		return values().size();
 	}
 
 	@Override
@@ -111,6 +129,11 @@ class ValueVectorImpl extends ValueVector implements Serializable
 	public boolean isLink()
 	{
 		return false;
+	}
+	
+	public synchronized List< Value > valuesCopy()
+	{
+		return (List< Value >)values.clone();
 	}
 	
 	public ValueVectorImpl()
@@ -157,23 +180,21 @@ public abstract class ValueVector implements Iterable< Value >
 		return get( 0 );
 	}
 	
-	public boolean isEmpty()
+	public synchronized boolean isEmpty()
 	{
 		return values().isEmpty();
 	}
 	
-	public Iterator< Value > iterator()
+	public synchronized Iterator< Value > iterator()
 	{
 		return values().iterator();
 	}
-
+	
 	public abstract Value get( int i );
 	public abstract void set( int i, Value value );
+	public abstract int size();
+	public abstract List< Value > valuesCopy();
 	
-	public synchronized int size()
-	{
-		return values().size();
-	}
 	
 	public synchronized void add( Value value )
 	{

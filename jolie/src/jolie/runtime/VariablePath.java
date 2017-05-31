@@ -41,7 +41,7 @@ public class VariablePath implements Expression, Cloneable
 
 	private final Pair< Expression, Expression >[] path; // Right Expression may be null
 
-	protected final Pair< Expression, Expression >[] path()
+	public final Pair< Expression, Expression >[] path()
 	{
 		return path;
 	}
@@ -288,6 +288,38 @@ public class VariablePath implements Expression, Cloneable
 			}
 		}
 		return currVector;
+	}
+	
+	public final ValueVector getValueVectorOrNull( Value currValue )
+	{
+		ValueVector currVector = null;
+		for( int i = 0; i < path.length; i++ ) {
+			final Pair< Expression, Expression > pair = path[i];
+			currVector = currValue.children().get( pair.key().evaluate().strValue() );
+			if ( currVector == null ) {
+				return null;
+			}
+			if ( (i+1) < path.length ) {
+				if ( pair.value() == null ) {
+					if ( currVector.isEmpty() ) {
+						return null;
+					}
+					currValue = currVector.get( 0 );
+				} else {
+					final int index = pair.value().evaluate().intValue();
+					if ( currVector.size() <= index ) {
+						return null;
+					}
+					currValue = currVector.get( index );
+				}
+			}
+		}
+		return currVector;
+	}
+	
+	public final ValueVector getValueVectorOrNull()
+	{
+		return getValueVectorOrNull( getRootValue() );
 	}
 	
 	public final ValueVector getValueVector()

@@ -49,7 +49,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -377,7 +378,7 @@ public class SemanticVerifier implements OLVisitor
 		if ( configuration.checkForMain && mainDefined == false ) {
 			error( null, "Main procedure not defined" );
 		}
-		
+
 		if ( !valid ) {
 			logger.severe( "Aborting: input file semantically invalid." );
 			/* for( SemanticException.SemanticError e : semanticException.getErrorList() ){
@@ -536,24 +537,26 @@ public class SemanticVerifier implements OLVisitor
 				if ( outputPort == null ) {
 					error( n, "input port " + n.id() + " aggregates an undefined output port (" + portName + ")" );
 				} else {
-					outputPort.operations().forEach( opDecl -> {
-						final TypeDefinition requestType =
-							opDecl instanceof OneWayOperationDeclaration
-							? ((OneWayOperationDeclaration)opDecl).requestType()
-							: ((RequestResponseOperationDeclaration)opDecl).requestType();
-						if ( requestType instanceof TypeInlineDefinition == false ) {
-							error( n, "input port " + n.id()
-								+ " is trying to extend the type of operation " + opDecl.id()
-								+ " in output port " + outputPort.id()
-								+ " but such operation has an unsupported type structure (type reference or type choice)" );
-						} else if ( ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
-							error( n,
-								"input port " + n.id()
-								+ " is trying to extend the type of operation " + opDecl.id()
-								+ " in output port " + outputPort.id()
-								+ " but such operation has undefined subnode types ({ ? } or undefined)" );
-						}
-					} );
+					if ( item.interfaceExtender() != null ) {
+						outputPort.operations().forEach( opDecl -> {
+							final TypeDefinition requestType =
+								opDecl instanceof OneWayOperationDeclaration
+								? ((OneWayOperationDeclaration)opDecl).requestType()
+								: ((RequestResponseOperationDeclaration)opDecl).requestType();
+							if ( requestType instanceof TypeInlineDefinition == false ) {
+								error( n, "input port " + n.id()
+									+ " is trying to extend the type of operation " + opDecl.id()
+									+ " in output port " + outputPort.id()
+									+ " but such operation has an unsupported type structure (type reference or type choice)" );
+							} else if ( ((TypeInlineDefinition)requestType).untypedSubTypes() ) {
+								error( n,
+									"input port " + n.id()
+									+ " is trying to extend the type of operation " + opDecl.id()
+									+ " in output port " + outputPort.id()
+									+ " but such operation has undefined subnode types ({ ? } or undefined)" );
+							}
+						} );
+					}
 				}
 				
 				/* else {
@@ -1153,8 +1156,15 @@ public class SemanticVerifier implements OLVisitor
 	}
 
 	@Override
-	public void visit( ForEachStatement n )
+	public void visit( ForEachSubNodeStatement n )
 	{
+		n.keyPath().accept( this );
+		n.targetPath().accept( this );
+		n.body().accept( this );
+	}
+
+	@Override
+	public void visit(ForEachArrayItemStatement n) {
 		n.keyPath().accept( this );
 		n.targetPath().accept( this );
 		n.body().accept( this );

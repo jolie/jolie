@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Martin Wolf <mw@martinwolf.eu>
+ * Copyright (C) 2016 Fabrizio Montesi <famontesi@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +21,6 @@ package jolie.net;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.StaticUtils;
@@ -33,17 +33,11 @@ public class LocalListenerFactory extends CommListenerFactory
 	static {
 		StaticUtils.create(
 			LocalListenerFactory.class,
-			new Callable<Object>()
-			{
-				public Object call()
-				{
-					return new ConcurrentHashMap< String, LocalListener>();
-				}
-			}
+			() -> new ConcurrentHashMap<>()
 		);
 	}
 
-	private static Map< String, LocalListener> locationToListener()
+	private static Map< String, LocalListener > locationToListener()
 	{
 		return StaticUtils.retrieve( LocalListenerFactory.class, Map.class );
 	}
@@ -53,6 +47,7 @@ public class LocalListenerFactory extends CommListenerFactory
 		super( commCore );
 	}
 
+	@Override
 	public CommListener createListener(
 		Interpreter interpreter,
 		CommProtocolFactory protocolFactory,

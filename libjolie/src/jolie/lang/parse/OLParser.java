@@ -1,35 +1,35 @@
-/***************************************************************************
- *   Copyright (C) 2006-2015 by Fabrizio Montesi <famontesi@gmail.com>     *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*
+ * Copyright (C) 2006-2016 Fabrizio Montesi <famontesi@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 
 package jolie.lang.parse;
 
 import java.io.BufferedInputStream;
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,7 +54,8 @@ import jolie.lang.parse.ast.DivideAssignStatement;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -302,8 +303,12 @@ public class OLParser extends AbstractParser
 
 				// SubType id
 				String id = token.content();
-				eatIdentifier( "expected type name" );
-
+				if ( token.is( Scanner.TokenType.STRING ) ) {
+					getToken();
+				} else {
+					eatIdentifier( "expected type name" );
+				}
+				
 				Range cardinality = parseCardinality();
 				eat( Scanner.TokenType.COLON, "expected COLON" );
 
@@ -644,10 +649,19 @@ public class OLParser extends AbstractParser
 		);
 		
 		if ( includeURL != null ) {
-			File f = new File( includeURL.toString() );
 			try {
-				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), f.getParent(), f.toURI() );
-			} catch( IOException e ) {
+				String parent;
+				URI uri;
+				try {
+					Path path = Paths.get( includeURL.toURI() );
+					parent = path.getParent().toString();
+					uri = path.toUri();
+				} catch( FileSystemNotFoundException e ) {
+					parent = null;
+					uri = includeURL.toURI();
+				}
+				return new IncludeFile( new BufferedInputStream( includeURL.openStream() ), parent, uri );
+			} catch( IOException | URISyntaxException e ) {
 				e.printStackTrace();
 			}
 		}
@@ -1615,21 +1629,6 @@ public class OLParser extends AbstractParser
 			eat(
 				Scanner.TokenType.RPAREN, "expected )" );
 			break;
-		case FOR:
-			getToken();
-			eat( Scanner.TokenType.LPAREN, "expected (" );
-			OLSyntaxNode init = parseProcess();
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			OLSyntaxNode condition = parseExpression();
-			eat( Scanner.TokenType.COMMA, "expected ," );
-			OLSyntaxNode post = parseProcess();
-			eat( Scanner.TokenType.RPAREN, "expected )" );
-
-			OLSyntaxNode body = parseBasicStatement();
-
-			retVal =
-				new ForStatement( getContext(), init, condition, post, body );
-			break;
 		case SYNCHRONIZED:
 			getToken();
 			eat( Scanner.TokenType.LPAREN, "expected (" );
@@ -1670,23 +1669,59 @@ public class OLParser extends AbstractParser
 				process
 			);
 			break;
-		case FOREACH:
+		case FOR:
 			getToken();
-			eat(
-				Scanner.TokenType.LPAREN, "expected (" );
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+			
+			startBackup();
+			VariablePathNode leftPath = null;
+			
+			try {
+				leftPath = parseVariablePath();
+			} catch( ParserException e ) {}
 
-			VariablePathNode keyPath = parseVariablePath();
-			eat(
-				Scanner.TokenType.COLON, "expected :" );
+			if ( leftPath != null && token.isKeyword( "in" ) ) {
+				// for( elem in path ) { ... }
+				discardBackup();
 
-			VariablePathNode targetPath = parseVariablePath();
-			eat(
-				Scanner.TokenType.RPAREN, "expected )" );
+				getToken();
+				VariablePathNode targetPath = parseVariablePath();
+				if ( targetPath.path().get( targetPath.path().size() - 1 ).value() != null ) {
+					System.out.println( targetPath.path().get( targetPath.path().size() - 1 ).value() );
+					throwException( "target in for ( elem -> array ) { ... } should be an array (cannot specify an index): " + targetPath.toPrettyString() );
+				}
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+				final OLSyntaxNode forEachBody = parseBasicStatement();
 
+				retVal = new ForEachArrayItemStatement( getContext(), leftPath, targetPath, forEachBody );
+			} else {
+				// for( init, condition, post ) { ... }
+				recoverBackup();
+				OLSyntaxNode init = parseProcess();
+				eat( Scanner.TokenType.COMMA, "expected ," );
+				OLSyntaxNode condition = parseExpression();
+				eat( Scanner.TokenType.COMMA, "expected ," );
+				OLSyntaxNode post = parseProcess();
+				eat( Scanner.TokenType.RPAREN, "expected )" );
+
+				OLSyntaxNode body = parseBasicStatement();
+
+				retVal = new ForStatement( getContext(), init, condition, post, body );
+			}
+			break;
+		case FOREACH:
+			// foreach( k : path ) { ... }
+			getToken();
+			eat( Scanner.TokenType.LPAREN, "expected (" );
+
+			final VariablePathNode keyPath = parseVariablePath();
+			
+			eat( Scanner.TokenType.COLON, "expected :" );
+
+			final VariablePathNode targetPath = parseVariablePath();
+			eat( Scanner.TokenType.RPAREN, "expected )" );
 			final OLSyntaxNode forEachBody = parseBasicStatement();
-
-			retVal =
-				new ForEachStatement( getContext(), keyPath, targetPath, forEachBody );
+			retVal = new ForEachSubNodeStatement( getContext(), keyPath, targetPath, forEachBody );
 			break;
 		case LINKIN:
 			retVal = parseLinkInStatement();
@@ -2040,7 +2075,8 @@ public class OLParser extends AbstractParser
 					Scanner.TokenType.RSQUARE, "expected ]" );
 			} else {
 				expr = null;
-			}	path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), expr ) );
+			}
+			path.append( new Pair<>( new ConstantStringExpression( getContext(), varId ), expr ) );
 			break;
 		}
 
