@@ -14,13 +14,13 @@ import io.netty.util.concurrent.ScheduledFuture;
 
 import java.util.concurrent.TimeUnit;
 
-final class MqttPingHandler extends ChannelInboundHandlerAdapter {
+public final class MqttPingHandler extends ChannelInboundHandlerAdapter {
 
     private final int keepaliveSeconds;
 
     private ScheduledFuture<?> pingRespTimeout;
 
-    MqttPingHandler(int keepaliveSeconds) {
+    public MqttPingHandler(int keepaliveSeconds) {
         this.keepaliveSeconds = keepaliveSeconds;
     }
 

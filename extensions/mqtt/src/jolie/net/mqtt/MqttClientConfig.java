@@ -15,23 +15,18 @@ public final class MqttClientConfig {
 
     private String clientId;
     private int timeoutSeconds = 10;
-    private MqttVersion protocolVersion = MqttVersion.MQTT_3_1_1;
-    @Nullable
-    private String username = null;
-    @Nullable
-    private String password = null;
+    private MqttVersion protocolVersion = MqttVersion.MQTT_3_1;
+    @Nullable private String username = null;
+    @Nullable private String password = null;
     private boolean cleanSession = false;
-    @Nullable
-    private MqttLastWill lastWill;
+    @Nullable private MqttLastWill lastWill;
     private Class<? extends Channel> channelClass = NioSocketChannel.class;
 
     public MqttClientConfig() {
         Random random = new Random();
-        String id = "jolie-mqtt/";
-        String[] options
-                = ("abcdefghijklmnopqrstuvwxyzABCDEF"
-                        + "GHIJKLMNOPQRSTUVWXYZ0123456789").split("");
-        for (int i = 0; i < 8; i++) {
+        String id = "netty-mqtt/";
+        String[] options = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+        for(int i = 0; i < 8; i++){
             id += options[random.nextInt(options.length)];
         }
         this.clientId = id;
@@ -44,9 +39,9 @@ public final class MqttClientConfig {
     }
 
     public void setClientId(@Nullable String clientId) {
-        if (clientId == null) {
+        if(clientId == null){
             this.clientId = randomClientId;
-        } else {
+        }else{
             this.clientId = clientId;
         }
     }
@@ -56,9 +51,8 @@ public final class MqttClientConfig {
     }
 
     public void setTimeoutSeconds(int timeoutSeconds) {
-        if (timeoutSeconds != -1 && timeoutSeconds <= 0) {
-            throw new IllegalArgumentException("timeoutSeconds "
-                    + "must be > 0 or -1");
+        if(timeoutSeconds != -1 && timeoutSeconds <= 0){
+            throw new IllegalArgumentException("timeoutSeconds must be > 0 or -1");
         }
         this.timeoutSeconds = timeoutSeconds;
     }
@@ -68,7 +62,7 @@ public final class MqttClientConfig {
     }
 
     public void setProtocolVersion(MqttVersion protocolVersion) {
-        if (protocolVersion == null) {
+        if(protocolVersion == null){
             throw new NullPointerException("protocolVersion");
         }
         this.protocolVersion = protocolVersion;
