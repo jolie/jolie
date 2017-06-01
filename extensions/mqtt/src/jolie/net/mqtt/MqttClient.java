@@ -155,6 +155,7 @@ public interface MqttClient {
      * This config can also be changed using the {@link #getClientConfig()} function
      *
      * @param config The config object to use while looking for settings
+     * @return 
      */
     static MqttClient create(MqttClientConfig config){
         return new MqttClientImpl(config);

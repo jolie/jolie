@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie;
+package jolie.net;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -23,6 +23,8 @@ import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import java.util.Random;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
@@ -31,6 +33,14 @@ import jolie.runtime.VariablePath;
  * Implementation of the { @link AsyncCommProtocol } for MQTT protocol relying
  * on TCP/IP socket, uses netty and Non blocking Sockets
  *
+ * TODO 
+ * MOdificare { @link CommCore}
+ * 1. in caso di una InputPort: 
+ *  1.1 in caso di protocollo PublishSubscribeProtocol (e.g. 
+ *      MqttProtocol extends PublishSubscribeProtocol) 
+ *      si dovrà creare un CommChannel (che rimarrà aperto)
+ *  2.1 altrimenti creò SocketListener e faccio la solita roba
+ * 
  * @author stefanopiozingaro
  */
 public class MqttProtocol extends AsyncCommProtocol {
@@ -116,6 +126,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
 
+        pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
         pipeline.addLast("mqttDecoder", new MqttDecoder());
         pipeline.addLast("mqttEncoder", MqttEncoder.INSTANCE);
         /*

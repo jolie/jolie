@@ -1,0 +1,57 @@
+run:
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler channelRegistered
+INFORMAZIONI: [id: 0x40d1840e] REGISTERED
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler connect
+INFORMAZIONI: [id: 0x40d1840e] CONNECT: test.mosquitto.org/37.187.106.16:1883
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler channelActive
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] ACTIVE
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler write
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] WRITE: 35B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 10 21 00 06 4d 51 49 73 64 70 03 00 00 0a 00 13 |.!..MQIsdp......|
+|00000010| 6e 65 74 74 79 2d 6d 71 74 74 2f 62 52 4e 45 65 |netty-mqtt/bRNEe|
+|00000020| 38 4d 47                                        |8MG             |
++--------+-------------------------------------------------+----------------+
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler flush
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] FLUSH
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler channelRead
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] READ: 4B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 20 02 00 00                                     | ...            |
++--------+-------------------------------------------------+----------------+
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler flush
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] FLUSH
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler channelReadComplete
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] READ COMPLETE
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler write
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] WRITE: 19B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 30 11 00 0b 74 65 6d 70 2f 72 61 6e 64 6f 6d 32 |0...temp/random2|
+|00000010| 33 2e 30                                        |3.0             |
++--------+-------------------------------------------------+----------------+
+giu 01, 2017 7:19:55 PM io.netty.handler.logging.LoggingHandler flush
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] FLUSH
+giu 01, 2017 7:20:05 PM io.netty.handler.logging.LoggingHandler write
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] WRITE: 2B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| c0 00                                           |..              |
++--------+-------------------------------------------------+----------------+
+giu 01, 2017 7:20:05 PM io.netty.handler.logging.LoggingHandler flush
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] FLUSH
+giu 01, 2017 7:20:05 PM io.netty.handler.logging.LoggingHandler channelRead
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] READ: 2B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| d0 00                                           |..              |
++--------+-------------------------------------------------+----------------+
+giu 01, 2017 7:20:05 PM io.netty.handler.logging.LoggingHandler channelReadComplete
+INFORMAZIONI: [id: 0x40d1840e, L:/192.168.1.119:64192 - R:test.mosquitto.org/37.187.106.16:1883] READ COMPLETE
