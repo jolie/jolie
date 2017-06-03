@@ -1,4 +1,4 @@
-package jolie.net.mqtt;
+package io.jk5;
 
 import com.google.common.collect.ImmutableSet;
 import io.netty.channel.Channel;

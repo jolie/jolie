@@ -1,4 +1,4 @@
-package jolie.net.mqtt;
+package io.jk5;
 
 import io.netty.channel.EventLoop;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;

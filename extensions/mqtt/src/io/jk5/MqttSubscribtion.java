@@ -1,4 +1,4 @@
-package jolie.net.mqtt;
+package io.jk5;
 
 import java.util.regex.Pattern;
 

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jolie.net.mqtt;
+package io.jk5;
 
 /**
  *

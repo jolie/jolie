@@ -1,4 +1,4 @@
-package jolie.net.mqtt;
+package io.jk5;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -145,6 +145,7 @@ public interface MqttClient {
 
     /**
      * Construct the MqttClientImpl with default config
+     * @return the mqtt client 
      */
     static MqttClient create(){
         return new MqttClientImpl();
@@ -155,7 +156,7 @@ public interface MqttClient {
      * This config can also be changed using the {@link #getClientConfig()} function
      *
      * @param config The config object to use while looking for settings
-     * @return 
+     * @return the mqtt client
      */
     static MqttClient create(MqttClientConfig config){
         return new MqttClientImpl(config);

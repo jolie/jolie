@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package test;
+package testJk5;
 
 /* TODO 
  * 1. Fare la sottoscrizione (subscribe a topic temperature sulla sandbox)
@@ -23,24 +23,29 @@ package test;
  * 4. Serializzare un oggetto in ByteBuf (cerca su Mqtt)
  */
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
-import jolie.net.mqtt.MqttClient;
-import jolie.net.mqtt.MqttConnectResult;
-import jolie.net.mqtt.MqttHandler;
+import io.jk5.MqttClient;
+import io.jk5.MqttClientConfig;
+import io.jk5.MqttConnectResult;
 
 /**
  *
  * @author stefanopiozingaro
  */
-public class TestSubscribe {
+public class TestPublishJk5 {
 
     // from http://test.mosquitto.org
     private static final String host = "test.mosquitto.org";
     // from http://test.mosquitto.org/gauge/ 
     private static final String topic = "temp/random";
-    private static final String msg = "23.0";
+    private static final double msg = 23.0;
 
-    public TestSubscribe() {
+    public TestPublishJk5() {
+
+        /*
+        MQTT CLIENT
+         */
         MqttClient client = MqttClient.create();
 
         /*
@@ -49,26 +54,23 @@ public class TestSubscribe {
         Future<MqttConnectResult> connect = client.connect(host);
 
         /*
-        SUBSCRIBE ON KNOWN TOPIC
-        
+        PUBLISH ON A KNOWN TOPIC
          */
         connect.addListener((Future<? super MqttConnectResult> f) -> {
+
             if (f.isSuccess()) {
-                MqttHandler handler = (String t, ByteBuf p) -> {
-                    //do nothing
-                };
-                client.on(topic, handler);
+                ByteBuf payload = Unpooled.copiedBuffer(Double.toString(msg).getBytes());
+                client.publish(topic, payload);
             } else {
-                System.out.println("Subscription attemp failed!");
+                System.out.println("Publishing attempt failed!");
             }
         });
-
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        new TestSubscribe();
+        new TestPublishJk5();
     }
 }

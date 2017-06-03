@@ -113,6 +113,7 @@ import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.AsciiString;
+import java.util.function.Consumer;
 
 /**
  * HTTP protocol implementation
@@ -1041,11 +1042,11 @@ public class HttpProtocol extends AsyncCommProtocol
 	{
 		String content = message.content().toString( Charset.forName( charset ) );
 		QueryStringDecoder decoder = new QueryStringDecoder( content, false );
-		for( Entry<String, List<String>> parameter : decoder.parameters().entrySet() ) {
-			for( String parameterValue : parameter.getValue() ) {
-				value.getChildren( parameter.getKey() ).first().setValue( parameterValue );
-			}
-		}
+                decoder.parameters().entrySet().forEach((Entry<String, List<String>> parameter) -> {
+                    parameter.getValue().forEach((parameterValue) -> {
+                        value.getChildren( parameter.getKey() ).first().setValue( parameterValue );
+                    });
+                });
 	}
 
 	private void parseMultiPartFormData( FullHttpMessage message, Value value, String charset )
