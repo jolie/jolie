@@ -16,34 +16,36 @@
  */
 package testJolie;
 
-import io.moquette.Client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.mqtt.MqttMessage;
+import java.net.InetSocketAddress;
 import jolie.net.MqttProtocol;
 
 /**
+ * A client can only send the CONNECT Packet once over a Network Connection
  *
  * @author stefanopiozingaro
  */
-public class TestPublishJolie {
-    
-    Channel channel;
+public class NewClientConnection {
 
-    public TestPublishJolie(MqttProtocol mp) {
+    private static Channel CreateCommChannel(MqttProtocol mp) throws InterruptedException {
+
+        Channel commChannel = null;
+
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
 
             Bootstrap b = new Bootstrap();
             b.group(workerGroup);
             b.channel(NioSocketChannel.class);
-            b.option(ChannelOption.SO_KEEPALIVE, true); // try to keepalive ?
+            // optionally set the local Address 
+            b.remoteAddress(new InetSocketAddress("test.mosquitto.org", 1883));
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
@@ -56,26 +58,34 @@ public class TestPublishJolie {
             oppure in una outputPort, non dobbiamo cioè rimanere solo in ascolto
             ma dobbiamo comunque creare un canale con un endpoint
             anche per la inputPort ( la modifica credo vada fatta in CommCore)
-            */ 
-            channel = b.connect("test.mosquitto.org", 1883).sync().channel();
+             */
+            ChannelFuture f = b.connect().sync();
+            commChannel = f.channel();
+            f.channel().closeFuture().sync();
 
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
         } finally {
             workerGroup.shutdownGracefully();
         }
+
+        return commChannel;
     }
 
     /**
      * @param args the command line arguments
+     * @throws java.lang.InterruptedException
      */
-    public static void main(String[] args) {
-        
+    @SuppressWarnings("ResultOfObjectAllocationIgnored")
+    public static void main(String[] args) throws InterruptedException {
+
         MqttProtocol mp = new MqttProtocol(null);
-        TestPublishJolie testJolieMqttProtocol = 
-                new TestPublishJolie(mp);
-        // cominciamo a far passare roba dentro al tubo
-        
+        /*
+        CHANNEL CREATION
+        */
+        Channel commChannel = CreateCommChannel(mp);
+        /*
+        CLIENT CONNECTION
+        */
+        mp.buildMqttConnectMessage(commChannel);
     }
 
 }
