@@ -16,10 +16,16 @@
  */
 package jolie.net;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttSubAckMessage;
+import io.netty.handler.codec.mqtt.MqttUnsubAckMessage;
 
 /**
  * This Class extends { @link ChannelInboundHanlderAdapter }
@@ -29,11 +35,7 @@ import io.netty.handler.codec.mqtt.MqttMessage;
  * @author stefanopiozingaro
  */
 @ChannelHandler.Sharable
-class MqttProtocolHandler extends ChannelInboundHandlerAdapter {
-
-    private MqttProtocolClient mpc;
-    private ICallback callback;
-    private boolean connectionLost;
+public class MqttProtocolHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * The channelRead that provides parameters to read from the channel inbound
@@ -46,8 +48,33 @@ class MqttProtocolHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) {
         MqttMessage msg = (MqttMessage) message;
-        if (this.callback != null) {
-            this.callback.call(msg);
+        switch (msg.fixedHeader().messageType()) {
+            case CONNACK:
+                handleConack(ctx.channel(), (MqttConnAckMessage) msg);
+                break;
+            case SUBACK:
+                handleSubAck((MqttSubAckMessage) msg);
+                break;
+            case PUBLISH:
+                handlePublish(ctx.channel(), (MqttPublishMessage) msg);
+                break;
+            case UNSUBACK:
+                handleUnsuback((MqttUnsubAckMessage) msg);
+                break;
+            case PUBACK:
+                handlePuback((MqttPubAckMessage) msg);
+                break;
+            case PUBREC:
+                handlePubrec(ctx.channel(), msg);
+                break;
+            case PUBREL:
+                handlePubrel(ctx.channel(), msg);
+                break;
+            case PUBCOMP:
+                handlePubcomp(msg);
+                break;
+            default:
+                throw new AssertionError(msg.fixedHeader().messageType().name());
         }
     }
 
@@ -60,41 +87,37 @@ class MqttProtocolHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        this.setConnectionLost(true);
-        ctx.close(/* false */);
+        ctx.close();
     }
 
-    /**
-     * Interface to implement the callback for the arriving of { @link MqttMessage
-     * }  TODO change it in Future Listener
-     */
-    public interface ICallback {
-
-        void call(MqttMessage msg);
+    /*
+    GESTISCI OGNI CASO
+    */
+    private void handleConack(Channel channel, MqttConnAckMessage mqttConnAckMessage) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public MqttProtocolClient getMpc() {
-        return mpc;
+    private void handleSubAck(MqttSubAckMessage mqttSubAckMessage) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void setMpc(MqttProtocolClient mpc) {
-        this.mpc = mpc;
+    private void handleUnsuback(MqttUnsubAckMessage mqttUnsubAckMessage) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public ICallback getCallback() {
-        return callback;
+    private void handlePuback(MqttPubAckMessage mqttPubAckMessage) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void setCallback(ICallback callback) {
-        this.callback = callback;
+    private void handlePubrec(Channel channel, MqttMessage msg) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public boolean isConnectionLost() {
-        return connectionLost;
+    private void handlePubrel(Channel channel, MqttMessage msg) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void setConnectionLost(boolean connectionLost) {
-        this.connectionLost = connectionLost;
+    private void handlePubcomp(MqttMessage msg) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

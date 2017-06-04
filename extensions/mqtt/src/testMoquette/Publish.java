@@ -17,6 +17,7 @@
 package testMoquette;
 
 import io.moquette.Client;
+import io.moquette.MessageBuilder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
@@ -37,14 +38,15 @@ import io.netty.util.CharsetUtil;
  *
  * @author stefanopiozingaro
  */
-public class TestSubscribeMoquette {
+public class Publish {
 
     // from http://test.mosquitto.org
     private static final String host = "test.mosquitto.org";
     // from http://test.mosquitto.org/gauge/ 
     private static final String topic = "temp/random";
+    private static final double msg = 23.0;
 
-    public TestSubscribeMoquette() {
+    public Publish() {
 
         Client c = new Client(host, 1883);
 
@@ -52,7 +54,7 @@ public class TestSubscribeMoquette {
 
         /*
         Subscribe callback
-         */
+        */
         Client.ICallback callback = (MqttMessage msg1) -> {
             System.out.println(msg1.toString());
         };
@@ -60,18 +62,36 @@ public class TestSubscribeMoquette {
         c.setCallback(callback);
         /*
         End Subscribe callback
-         */
-
+        */
+        
+        /*
+        Build Publish Message
+        */
+        MessageBuilder.PublishBuilder publishMsg = new MessageBuilder.PublishBuilder();
+        publishMsg.payload(Double.toString(msg).getBytes(CharsetUtil.UTF_8));
+        
+        /*
+        Build Publish Message
+        */
         MqttFixedHeader mqttFixedHeader
-                = new MqttFixedHeader(MqttMessageType.SUBSCRIBE,
+                = new MqttFixedHeader(MqttMessageType.PUBLISH,
                         false, MqttQoS.AT_LEAST_ONCE, true, 2);
 
+        MqttPublishVariableHeader variableHeader
+                = new MqttPublishVariableHeader(topic, 0);
+
+        ByteBuf payload
+                = Unpooled.copiedBuffer(Double.toString(msg).getBytes(CharsetUtil.UTF_8));
+
+        MqttMessage mmsg = new MqttPublishMessage(mqttFixedHeader, variableHeader, payload);
+
+        c.sendMessage(mmsg);
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        new TestSubscribeMoquette();
+        new Publish();
     }
 }

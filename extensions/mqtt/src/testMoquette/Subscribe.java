@@ -14,7 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package testJk5;
+package testMoquette;
+
+import io.moquette.Client;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
+import io.netty.handler.codec.mqtt.MqttQoS;
+import io.netty.util.CharsetUtil;
 
 /* TODO 
  * 1. Fare la sottoscrizione (subscribe a topic temperature sulla sandbox)
@@ -22,44 +33,38 @@ package testJk5;
  * 3. Fare la subscribe su topic + publish su topic + stampa subscriber 
  * 4. Serializzare un oggetto in ByteBuf (cerca su Mqtt)
  */
-import io.netty.buffer.ByteBuf;
-import io.netty.util.concurrent.Future;
-import io.jk5.MqttClient;
-import io.jk5.MqttConnectResult;
-import io.jk5.MqttHandler;
-
 /**
  *
  * @author stefanopiozingaro
  */
-public class TestSubscribeJk5 {
+public class Subscribe {
 
     // from http://test.mosquitto.org
     private static final String host = "test.mosquitto.org";
     // from http://test.mosquitto.org/gauge/ 
     private static final String topic = "temp/random";
-    
-    public TestSubscribeJk5() {
-        MqttClient client = MqttClient.create();
+
+    public Subscribe() {
+
+        Client c = new Client(host, 1883);
+
+        c.connect();
 
         /*
-        CONNECT
+        Subscribe callback
          */
-        Future<MqttConnectResult> connect = client.connect(host);
+        Client.ICallback callback = (MqttMessage msg1) -> {
+            System.out.println(msg1.toString());
+        };
 
+        c.setCallback(callback);
         /*
-        SUBSCRIBE ON KNOWN TOPIC
+        End Subscribe callback
          */
-        connect.addListener((Future<? super MqttConnectResult> f) -> {
-            if (f.isSuccess()) {
-                MqttHandler handler = (String t, ByteBuf p) -> {
-                    //do nothing
-                };
-                client.on(topic, handler);
-            } else {
-                System.out.println("Subscription attemp failed!");
-            }
-        });
+
+        MqttFixedHeader mqttFixedHeader
+                = new MqttFixedHeader(MqttMessageType.SUBSCRIBE,
+                        false, MqttQoS.AT_LEAST_ONCE, true, 2);
 
     }
 
@@ -67,6 +72,6 @@ public class TestSubscribeJk5 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        new TestSubscribeJk5();
+        new Subscribe();
     }
 }
