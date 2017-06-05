@@ -33,8 +33,4 @@ build/
 /extensions/local/nbproject/private/
 /lib/jolie-js/nbproject/private/
 /tools/jolie2surface/nbproject/private/
-<<<<<<< HEAD
-/libjolie/build
-=======
 /lib/xsom/build
->>>>>>> upstream/master
