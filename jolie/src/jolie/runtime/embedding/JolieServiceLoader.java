@@ -46,7 +46,6 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		List< String > newArgs = new LinkedList< String >();
 		newArgs.add( "-i" );
 		newArgs.add( currInterpreter.programDirectory().getAbsolutePath() );
-		
 		String[] options = currInterpreter.optionArgs();
 		newArgs.addAll( Arrays.asList( options ) );
 		newArgs.addAll( Arrays.asList( ss ) );

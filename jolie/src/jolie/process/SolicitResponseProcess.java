@@ -105,7 +105,8 @@ public class SolicitResponseProcess implements Process
 					outputPort.getResourcePath(),
 					( outputExpression == null ) ? Value.UNDEFINED_VALUE : outputExpression.evaluate()
 				);
-
+			
+			log( "SENDING", message );
 			if ( types.requestType() != null ) {
 				try {
 					types.requestType().check( message.value() );
@@ -118,7 +119,7 @@ public class SolicitResponseProcess implements Process
 			}
 
 			channel = outputPort.getCommChannel();
-			log( "SENDING", message );
+			
 			channel.send( message );
 			//channel.release(); TODO release channel if possible (i.e. it will not be closed)
 			log( "SENT", message );

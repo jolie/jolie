@@ -783,7 +783,18 @@ public class CommandLineParser implements Closeable
 					if ( olURL != null ) {
 						result.stream = olURL.openStream();
 						result.source = olFilepath;
+						programDirectory = new File( new File( olFilepath ).getParent() );
 					}
+					for( int i = 0; i < includePaths.size() && result.stream == null; i++ ) {
+						String tryPath = includePaths.get( i ) + jolie.lang.Constants.fileSeparator + olFilepath;		
+						olURL = classLoader.getResource( tryPath );
+						if ( olURL != null ) {
+							result.stream = olURL.openStream();
+							result.source = olFilepath;
+							programDirectory = new File( new File( olFilepath ).getParent() );
+						}
+					}
+					
 				}
 				if ( programDirectory == null && olURL != null && olURL.getPath() != null ) {
 					// Try to extract the parent directory of the JAP/JAR library file
