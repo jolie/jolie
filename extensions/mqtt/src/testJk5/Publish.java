@@ -26,7 +26,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.Future;
 import io.jk5.MqttClient;
-import io.jk5.MqttClientConfig;
 import io.jk5.MqttConnectResult;
 
 /**
