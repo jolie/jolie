@@ -44,6 +44,15 @@ public class GetSurface
 	{
 		// TODO code application logic here
 		try {
+			boolean noOutputPort = false;
+			boolean noProtocol = false;
+			boolean noLocation = false;
+			for ( String arg : args )
+			{
+				if ( arg.equals( "-noOutputPort" ) ) noOutputPort = true;
+				if ( arg.equals( "-noLocation" ) ) noLocation = true;
+				if ( arg.equals( "-noProtocol" ) ) noProtocol = true;
+			}
 			CommandLineParser cmdParser = new CommandLineParser( args, GetSurface.class.getClassLoader() );
 			Program program = ParsingUtils.parseProgram(
 				cmdParser.programStream(),
@@ -52,7 +61,7 @@ public class GetSurface
 			ProgramInspector inspector = ParsingUtils.createInspector( program );
 			SurfaceCreator document = new SurfaceCreator( inspector, program.context().source() );
                        
-			document.ConvertDocument( cmdParser.arguments()[0] );
+			document.ConvertDocument( cmdParser.arguments()[0], noOutputPort, noLocation, noProtocol );
 
 		} catch( CommandLineException ex ) {
 			Logger.getLogger( GetSurface.class.getName() ).log( Level.SEVERE, null, ex );

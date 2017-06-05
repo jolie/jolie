@@ -60,6 +60,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import jolie.Interpreter;
 import jolie.jap.JapURLConnection;
 import jolie.js.JsUtils;
 import jolie.runtime.AndJarDeps;
@@ -81,7 +82,7 @@ import org.xml.sax.SAXException;
 @AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar" } )
 public class FileService extends JavaService
 {
-	private final static Pattern fileKeywordPattern = Pattern.compile( "(#+)file\\s+(.*)" );
+	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 	private FileTypeMap fileTypeMap = FileTypeMap.getDefaultFileTypeMap();
@@ -95,7 +96,7 @@ public class FileService extends JavaService
 	@RequestResponse
 	public String convertFromBinaryToBase64Value( Value value )
 	{
-		System.out.println("convertFromBinaryToBase64Value@FileService()() became rawToBase64@Converter()()");
+		Interpreter.getInstance().logWarning( "convertFromBinaryToBase64Value@FileService()() became rawToBase64@Converter()()" );
 		byte[] buffer = value.byteArrayValue().getBytes();
 		
 		Base64.Encoder encoder = Base64.getEncoder();
@@ -106,7 +107,7 @@ public class FileService extends JavaService
 	public ByteArray convertFromBase64ToBinaryValue( Value value )
 		throws FaultException
 	{
-		System.out.println("convertFromBase64ToBinaryValue@FileService()() became base64ToRaw@Converter()()");
+		Interpreter.getInstance().logWarning( "convertFromBase64ToBinaryValue@FileService()() became base64ToRaw@Converter()()" );
 		String stringValue = value.strValue();
 		Base64.Decoder decoder = Base64.getDecoder();
 		byte[] supportArray = decoder.decode( stringValue );
@@ -219,7 +220,7 @@ public class FileService extends JavaService
 		while( names.hasMoreElements() ) {
 			name = names.nextElement();
 			propertyValue = properties.getProperty( name );
-			matcher = fileKeywordPattern.matcher( propertyValue );
+			matcher = FILE_KEYWORD_PATTERN.matcher( propertyValue );
 			if ( matcher.matches() ) {
 				if ( matcher.group( 1 ).length() > 1 ) { // The number of #
 					propertyValue = propertyValue.substring( 1 );
@@ -674,6 +675,10 @@ public class FileService extends JavaService
 	public Value list( Value request )
 	{
 		final File dir = new File( request.getFirstChild( "directory" ).strValue() );
+                boolean fileInfo = false;
+                if ( request.getFirstChild( "info" ).isDefined() ) {
+                    fileInfo = request.getFirstChild( "info" ).boolValue();
+                }
 		final String regex;
 		if ( request.hasChildren( "regex" ) ) {
 			regex = request.getFirstChild( "regex" ).strValue();
@@ -702,7 +707,18 @@ public class FileService extends JavaService
 		if ( files != null ) {
 			ValueVector results = response.getChildren( "result" );
 			for( String file : files ) {
-				results.add( Value.create( file ) );
+                                Value fileValue = Value.create( file );
+                                if( fileInfo ) {
+                                    Value info = fileValue.getFirstChild( "info" );
+                                    File currFile = new File ( dir + File.separator + file );
+                                    info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
+                                    info.getFirstChild( "size" ).setValue( currFile.length() );
+                                    info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
+                                    info.getFirstChild( "isHidden" ).setValue( currFile.isHidden() );
+                                    info.getFirstChild( "isDirectory" ).setValue( currFile.isDirectory() );
+                                    
+                                }
+				results.add( fileValue );
 			}
 		}
 		return response;

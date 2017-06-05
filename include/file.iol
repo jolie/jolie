@@ -68,10 +68,19 @@ type ListRequest:void {
 	.order?: void {
 		.byname?: bool
 	}
+	.info?: bool // it returns also file infos. Default is false
 }
 
 type ListResponse:void {
-	.result[0,*]:string
+	.result[0,*]:string {
+		.info?: void {
+			.lastModified: long
+			.size: long
+			.absolutePath: string
+			.isHidden: bool
+			.isDirectory: bool
+		}
+	}
 }
 
 interface FileInterface {
@@ -132,8 +141,8 @@ RequestResponse:
 	writeFile(WriteFileRequest)(void) throws FileNotFound(FileNotFoundType) IOException(IOExceptionType),
 
 	/**
-	  it copies a source directory into a destination one
-	*/
+	 * it copies a source directory into a destination one
+	 */
 	copyDir( CopyDirRequest )( bool ) throws IOException FileNotFound,
 
 	delete(DeleteRequest)(bool) throws IOException(IOExceptionType),

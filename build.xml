@@ -5,7 +5,7 @@
     <property name="dist.launchers" value="${dist}/launchers"/>
     <property name="dist.launchers.windows" value="${dist.launchers}/windows"/>
     <property name="dist.launchers.unix" value="${dist.launchers}/unix"/>
-    
+
 	<condition property="isWindows" value="true">
 		<os family="windows" />
 	</condition>
@@ -97,7 +97,7 @@ jolie %JOLIE_HOME%\tools\wsdl2jolie.ol %*
           <fileset dir="${private.install.launcher_dir}" includes="${launcher.filename}"/>
         </chmod>
     </target>
-    
+
 	<target name="-create-unix-launchers" unless="isWindows">
 		<echo message="Creating Jolie Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie">#!/bin/sh
@@ -143,7 +143,7 @@ else
 fi
 		</echo>
 		<chmod file="${dist.launchers.unix}/metaservice" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Plasma Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2plasma">#!/bin/sh
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2plasma.jar joliex.plasma.Jolie2Plasma -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
@@ -166,7 +166,7 @@ jolie $JOLIE_HOME/tools/wsdl2jolie.ol "$@"
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/joliec.jar jolie.compiler.Main -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/joliec" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Java Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2java">#!/bin/sh
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/lib/jolie-gwt.jar:$JOLIE_HOME/tools/jolie2java.jar joliex.java.Jolie2Java -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
@@ -184,7 +184,7 @@ java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jo
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2dummy.jar joliex.dummycreator.JolieDummyCreator -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
 		</echo>
 		<chmod file="${dist.launchers.unix}/jolie2dummy" perm="a+x"/>
-		
+
 		<echo message="Creating Jolie2Surface (Jolie Surface Extractor Tool) Unix launcher script..." />
 		<echo file="${dist.launchers.unix}/jolie2surface">#!/bin/sh
 java -cp $JOLIE_HOME/jolie.jar:$JOLIE_HOME/lib/libjolie.jar:$JOLIE_HOME/tools/jolie2surface.jar joliex.surface.GetSurface -l $JOLIE_HOME/lib:$JOLIE_HOME/javaServices/*:$JOLIE_HOME/extensions/* -i $JOLIE_HOME/include "$@"
@@ -207,7 +207,7 @@ Please make sure that:
 	- the directory ${private.install.launcher_dir} is in your environment variable PATH
 </echo>
 	</target>
-	
+
 	<target name="dist-install" depends="dist,install" />
 
 	<target name="build">
@@ -223,6 +223,7 @@ Please make sure that:
 		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie-java}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.auto}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
@@ -255,6 +256,7 @@ Please make sure that:
 		<ant antfile="${project.jolie-ssl}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-gwt}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jolie-java}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.auto}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
@@ -278,7 +280,7 @@ Please make sure that:
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
 	</target>
-    
+
 	<target name="dist" depends="-init,jar">
 		<delete dir="${dist}"/>
 		<copy todir="${dist.jolie}" flatten="true">
@@ -303,6 +305,7 @@ Please make sure that:
 		</copy>
 		<copy todir="${dist.jolie}/extensions" flatten="true">
 			<resources>
+				<file file="${project.auto}/dist/auto.jar"/>
 				<file file="${project.http}/dist/http.jar"/>
 				<file file="${project.https}/dist/https.jar"/>
 				<file file="${project.javascript}/dist/javascript.jar"/>
@@ -323,7 +326,7 @@ Please make sure that:
 				<file file="${project.monitorJavaServices}/dist/monitorJavaServices.jar"/>
 			</resources>
 		</copy>
-		
+
 		<copy todir="${dist.jolie}/tools" flatten="true">
 			<resources>
 				<file file="${project.jolie2plasma}/dist/jolie2plasma.jar"/>
@@ -336,7 +339,7 @@ Please make sure that:
 				<file file="${project.wsdl2jolie}/wsdl2jolie.ol"/>
 			</resources>
 		</copy>
-		
+
 		<copy file="${libs.bluetooth}" tofile="${dist.jolie}/lib/bluetooth.jar"/>
 		<copy file="${libs.gwt-servlet}" tofile="${dist.jolie}/lib/gwt-servlet.jar"/>
 		<copy file="${libs.javamail.smtp}" tofile="${dist.jolie}/lib/smtp.jar"/>
@@ -351,7 +354,7 @@ Please make sure that:
 		<copy file="${libs.smackx}" tofile="${dist.jolie}/lib/smackx.jar"/>
 		<copy file="${libs.commons-lang3}" tofile="${dist.jolie}/lib/commons-lang3.jar"/>
 		<copy file="${libs.uri-templates}" tofile="${dist.jolie}/lib/uri-templates.jar"/>
-	
+
 		<antcall target="-create-unix-launchers" />
 		<antcall target="-create-windows-launchers" />
     </target>

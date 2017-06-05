@@ -128,7 +128,6 @@ import org.xml.sax.SAXException;
  */
 public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
-
 	private String inputId = null;
 	private final Interpreter interpreter;
 	private final MessageFactory messageFactory;
@@ -152,15 +151,15 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		private static final String STYLE = "style";
 	}
 
-	/* 
+	/*
      * it forced the insertion of namespaces within the soap message
-     * 
-     * 
+     *
+     *
      * type Attribute: void {
      *	.name: string
      *  .value: string
      * }
-     * 
+     *
      * parameter add_attribute: void {
      *	.envelope: void {
      *      .attribute*: Attribute
@@ -304,6 +303,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 			element.addAttribute( soapEnvelope.createName( "type", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
+		} else if ( !value.hasChildren() ) {
+			element.addAttribute( soapEnvelope.createName( "nil", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "true" );
 		}
 
 		if ( convertAttributes() ) {
@@ -497,8 +498,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			for( XSAttributeUse attrUse : attributeUses ) {
 				name = attrUse.getDecl().getName();
 				if ( (currValue = getAttributeOrNull( value, name )) != null ) {
-					QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
-					element.addAttribute( attrName, currValue.strValue() );
+					String prefix = getPrefixOrNull( attrUse.getDecl() );
+					if ( prefix == null ) {
+						element.addAttribute( envelope.createName( name ), currValue.strValue() );
+					} else {
+						QName attrName = envelope.createQName( name, getPrefixOrNull( attrUse.getDecl() ) );
+						element.addAttribute( attrName, currValue.strValue() );
+					}
 				}
 			}
 
@@ -781,8 +787,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					SOAPElement opBody = soapBody;
 					if ( wrapped ) {
 						opBody = soapBody.addBodyElement(
-							soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
-						// adding forced attributes to operation 
+						soapEnvelope.createName( messageRootElementName, namespacePrefixMap.get( elementDecl.getOwnerSchema().getTargetNamespace() ), null ) );
+						// adding forced attributes to operation
 						if ( hasParameter( Parameters.ADD_ATTRIBUTE ) ) {
 							Value add_parameter = getParameterFirstValue( Parameters.ADD_ATTRIBUTE );
 							if ( add_parameter.hasChildren( Parameters.OPERATION ) ) {
@@ -800,7 +806,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 										opBody.addAttribute( attrName, attribute.getFirstChild( "value" ).strValue() );
 									}
 								}
-
 							}
 						}
 					}
@@ -838,9 +843,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
 				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
 				/*
-                 * soapAction = "SOAPAction: \"" + messageNamespace + "/" +
-                 * message.operationName() + '\"' + HttpUtils.CRLF;
-				 */
+				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
+				* message.operationName() + '\"' + HttpUtils.CRLF;
+				*/
 				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + HttpUtils.CRLF;
 
 				if ( checkBooleanParameter( "compression", true ) ) {
@@ -896,16 +901,29 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	{
 		String type = "xsd:string";
 		Node currNode;
+		boolean nil = false;
 
 		// Set attributes
 		NamedNodeMap attributes = node.getAttributes();
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				if ( "type".equals( currNode.getNodeName() ) == false && convertAttributes() ) {
+				if ( currNode.getNamespaceURI().equals( XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ) ) {
+					switch( currNode.getLocalName() ) {
+						case "type":
+							type = currNode.getNodeValue();
+							break;
+						case "nil":
+							nil = "true".equals( currNode.getNodeValue() );
+							break;
+						default:
+							if ( convertAttributes() ) {
+								getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+							}
+							break;
+					}
+				} else if ( convertAttributes() ) {
 					getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
-				} else {
-					type = currNode.getNodeValue();
 				}
 			}
 		}
@@ -913,18 +931,26 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
+		StringBuilder tmpNodeValue = new StringBuilder();
+		boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
 			switch( currNode.getNodeType() ) {
 				case Node.ELEMENT_NODE:
 					childValue = value.getNewChild( currNode.getLocalName() );
 					xmlNodeToValue( childValue, currNode, false );
+					foundSubElements = true;
 					break;
 				case Node.TEXT_NODE:
-					if ( !isRecRoot ) {
-						value.setValue( currNode.getNodeValue() );
-					}
+					tmpNodeValue.append( currNode.getNodeValue() );
 					break;
+			}
+		}
+		
+		// the content of the root of a mixed element is not extracted
+		if ( !foundSubElements && !nil ) {
+			if ( !isRecRoot ) {
+				value.setValue( tmpNodeValue.toString() );
 			}
 		}
 
@@ -951,18 +977,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	}
 
 	/*
-     * private Schema getRecvMessageValidationSchema() throws IOException {
-     * List< Source > sources = new ArrayList< Source >(); Definition definition
-     * = getWSDLDefinition(); if ( definition != null ) { Types types =
-     * definition.getTypes(); if ( types != null ) { List< ExtensibilityElement
-     * > list = types.getExtensibilityElements(); for( ExtensibilityElement
-     * element : list ) { if ( element instanceof SchemaImpl ) { sources.add(
-     * new DOMSource( ((SchemaImpl)element).getElement() ) ); } } } }
-     * SchemaFactory schemaFactory = SchemaFactory.newInstance(
-     * XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
-     * schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
-     * } catch( SAXException e ) { throw new IOException( e ); } }
-	 */
+	* private Schema getRecvMessageValidationSchema() throws IOException {
+	* List< Source > sources = new ArrayList< Source >(); Definition definition
+	* = getWSDLDefinition(); if ( definition != null ) { Types types =
+	* definition.getTypes(); if ( types != null ) { List< ExtensibilityElement
+	* > list = types.getExtensibilityElements(); for( ExtensibilityElement
+	* element : list ) { if ( element instanceof SchemaImpl ) { sources.add(
+	* new DOMSource( ((SchemaImpl)element).getElement() ) ); } } } }
+	* SchemaFactory schemaFactory = SchemaFactory.newInstance(
+	* XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
+	* schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
+	* } catch( SAXException e ) { throw new IOException( e ); } }
+	*/
 	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
 		throws IOException
 	{
@@ -978,7 +1004,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		encoding = message.getProperty( "accept-encoding" );
 
 		CommMessage retVal = null;
-		String messageId = message.getPropertyOrEmptyString( "soapaction" );
+		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
 
@@ -991,11 +1017,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				SOAPMessage soapMessage = messageFactory.createMessage();
 				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 				/*
-                 * Schema messageSchema = getRecvMessageValidationSchema(); if (
-                 * messageSchema != null ) {
-                 * factory.setIgnoringElementContentWhitespace( true );
-                 * factory.setSchema( messageSchema ); }
-				 */
+				* Schema messageSchema = getRecvMessageValidationSchema(); if (
+				* messageSchema != null ) {
+				* factory.setIgnoringElementContentWhitespace( true );
+				* factory.setSchema( messageSchema ); }
+				*/
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
 				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
@@ -1005,16 +1031,25 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				soapMessage.getSOAPPart().setContent( dom );
 
 				/*
-                 * if ( checkBooleanParameter( "debugAfter" ) ) {
-                 * ByteArrayOutputStream tmpStream = new
-                 * ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
-                 * interpreter.logInfo( "[SOAP debug] Receiving:\n" +
-                 * tmpStream.toString() ); }
-				 */
+				* if ( checkBooleanParameter( "debugAfter" ) ) {
+				* ByteArrayOutputStream tmpStream = new
+				* ByteArrayOutputStream(); soapMessage.writeTo( tmpStream );
+				* interpreter.logInfo( "[SOAP debug] Receiving:\n" +
+				* tmpStream.toString() ); }
+				*/
 				SOAPFault soapFault = soapMessage.getSOAPBody().getFault();
 				if ( soapFault == null ) {
 					Element soapValueElement = getFirstElement( soapMessage.getSOAPBody() );
 					messageId = soapValueElement.getLocalName();
+
+				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
+					String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+					messageId = soapAction[ soapAction.length - 1 ];
+						if ( checkBooleanParameter( "debug" ) ) {
+							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
+						}
+				}
+
 					// explanation: https://github.com/jolie/jolie/issues/5
 					xmlNodeToValue( value, soapValueElement, checkBooleanParameter( "dropRootValue", false ) );
 
@@ -1043,8 +1078,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						Node n = d.getFirstChild();
 						if ( n != null ) {
 							faultName = n.getLocalName();
-							xmlNodeToValue(
-								faultValue, n, true );
+							xmlNodeToValue( faultValue, n, true );
 						} else {
 							faultValue.setValue( soapFault.getFaultString() );
 						}

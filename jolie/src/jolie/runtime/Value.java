@@ -195,7 +195,7 @@ class ValueImpl extends Value implements Cloneable, Serializable
 				if ( copyLinks && entry.getValue().isLink() ) {
 					myChildren.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 				} else {
-					List< Value > otherVector = entry.getValue().values();
+					List< Value > otherVector = entry.getValue().valuesCopy();
 					ValueVector vec = getChildren( entry.getKey(), myChildren );
 					i = 0;
 					for( Value v : otherVector ) {
@@ -313,7 +313,7 @@ class RootValueImpl extends Value implements Cloneable
 				if ( copyLinks && entry.getValue().isLink() ) {
 					children.put( entry.getKey(), ValueVector.createClone( entry.getValue() ) );
 				} else {
-					List< Value > otherVector = entry.getValue().values();
+					List< Value > otherVector = entry.getValue().valuesCopy();
 					ValueVector vec = getChildren( entry.getKey(), children );
 					i = 0;
 					for( Value v : otherVector ) {

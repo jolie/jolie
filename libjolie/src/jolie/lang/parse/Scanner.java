@@ -111,7 +111,7 @@ public class Scanner
 		UNDEF,				///< undef
 		HASH,				///< #
 		PERCENT_SIGN,		///< %
-		FOR,				///< for
+		FOR,					///< for
 		FOREACH,			///< foreach
 		WITH,				///< with
 		DECREMENT,			///< --
@@ -420,12 +420,7 @@ public class Scanner
 		}
 		return tokenBuilder.toString();
 	}
-	
-	public static String addStringTerminator( String str )
-	{
-		return str + -1;
-	}
-	
+		
 	public InputStream inputStream()
 	{
 		return stream;
@@ -463,11 +458,6 @@ public class Scanner
 	public URI source()
 	{
 		return source;
-	}
-
-	public String sourceName()
-	{
-		return source.getSchemeSpecificPart();
 	}
 	
 	/**

@@ -37,7 +37,8 @@ import jolie.lang.parse.ast.DocumentationComment;
 import jolie.lang.parse.ast.EmbeddedServiceNode;
 import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
-import jolie.lang.parse.ast.ForEachStatement;
+import jolie.lang.parse.ast.ForEachArrayItemStatement;
+import jolie.lang.parse.ast.ForEachSubNodeStatement;
 import jolie.lang.parse.ast.ForStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
@@ -130,6 +131,12 @@ public class OLParseTreeOptimizer
 		{
 			visit( p );
 			return program;
+		}
+		
+		private OLSyntaxNode optimize( OLSyntaxNode n )
+		{
+			n.accept( this );
+			return currNode;
 		}
 		
 		@Override
@@ -370,9 +377,9 @@ public class OLParseTreeOptimizer
 		}
 		
 		@Override
-		public void visit( ForEachStatement n )
+		public void visit( ForEachSubNodeStatement n )
 		{
-			currNode = new ForEachStatement(
+			currNode = new ForEachSubNodeStatement(
 				n.context(),
 				optimizePath( n.keyPath() ),
 				optimizePath( n.targetPath() ),
@@ -380,12 +387,23 @@ public class OLParseTreeOptimizer
 			);
 		}
 
+        @Override
+        public void visit( ForEachArrayItemStatement n )
+        {
+            currNode = new ForEachArrayItemStatement(
+				n.context(),
+				optimizePath( n.keyPath() ),
+				optimizePath( n.targetPath() ),
+				optimizeNode( n.body() )
+            );
+        }
+
 		@Override
 		public void visit( VariablePathNode n )
 		{
 			VariablePathNode varPath = new VariablePathNode( n.context(), n.type() );
 			for( Pair< OLSyntaxNode, OLSyntaxNode > node : n.path() ) {
-				varPath.append(new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
+				varPath.append( new Pair<>( optimizeNode( node.key() ), optimizeNode( node.value() ) ) );
 			}
 			currNode = varPath;
 		}
@@ -922,5 +940,10 @@ public class OLParseTreeOptimizer
 	public static Program optimize( Program originalProgram )
 	{
 		return (new OptimizerVisitor( originalProgram.context() )).optimize( originalProgram );
+	}
+	
+	public static OLSyntaxNode optimize( OLSyntaxNode node )
+	{
+		return (new OptimizerVisitor( node.context() )).optimize( node );
 	}
 }
