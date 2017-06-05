@@ -18,67 +18,21 @@ package jolie.net;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnAckVariableHeader;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageType;
 
 /**
- * This Class extends { @link ChannelInboundHanlderAdapter }
- * in order to override the 2 basic methods of Inbound Handlers: null {@link channelRead }
- * {@link channelInactive }
+ * This Class extends { @link SimpleChannelInboundHandler }
+ * in order to override the method {@link channelRead0 }
  *
  * @author stefanopiozingaro
  */
 @ChannelHandler.Sharable
-public class MqttProtocolInboundHandler extends ChannelInboundHandlerAdapter {
-
-    /**
-     * The channelRead that provides parameters to read from the channel inbound
-     * buffer the MqttMessage arriving, calls messageReceived from the { @link MqttProtocolClient
-     * } implementation
-     *
-     * @param ctx is the Context of the handler
-     * @param message the Object (MqttMessage in this case) arriving
-     */
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object message) {
-        MqttMessage msg = (MqttMessage) message;
-        readInboundMessage(ctx, msg);
-    }
-
-    /**
-     * Calls {@link ChannelHandlerContext#fireChannelInactive()} to forward to
-     * the next {@link ChannelInboundHandler} in the {@link ChannelPipeline}.
-     *
-     * Sub-classes may override this method to change behavior.
-     *
-     * @param ctx
-     * @throws java.lang.Exception
-     */
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ctx.close();
-    }
-
-    /**
-     * Calls {@link ChannelHandlerContext#fireExceptionCaught(Throwable)} to
-     * forward to the next {@link ChannelHandler} in the
-     * {@link ChannelPipeline}.
-     *
-     * Sub-classes may override this method to change behavior.
-     *
-     * @param ctx
-     * @param cause
-     * @throws java.lang.Exception
-     */
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-            throws Exception {
-        cause.printStackTrace();
-        ctx.close();
-    }
+public class MqttProtocolInboundHandler
+        extends SimpleChannelInboundHandler<MqttMessage> {
 
     /**
      * For each one of the { @link MqttMessage } type the method send the
@@ -87,41 +41,39 @@ public class MqttProtocolInboundHandler extends ChannelInboundHandlerAdapter {
      *
      * @param ctx ChannelHandlerContext
      * @param msg MqttMessage
+     * @throws Exception
      */
-    private void readInboundMessage(ChannelHandlerContext ctx, MqttMessage msg) {
-        switch (msg.fixedHeader().messageType()) {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) 
+            throws Exception {
+        
+        MqttMessageType msgType = msg.fixedHeader().messageType();
+        switch (msgType) {
             case CONNACK: // connection response
                 handleConnAck(ctx, (MqttConnAckMessage) msg);
                 break;
             case SUBACK: // subscription response
-                ctx.channel().flush();
                 //handleSubAck((MqttSubAckMessage) msg);
                 break;
             case PUBLISH: // in case of publish from the server
-                ctx.channel().flush();
                 //handlePublish(ctx, (MqttPublishMessage) msg);
                 break;
             case UNSUBACK: // unsubscription response
-                ctx.channel().flush();
                 //handleUnsubAck((MqttUnsubAckMessage) msg);
                 break;
             case PUBACK: // publication response
-                ctx.channel().flush();
                 break;
             case PUBREC:
                 //handlePubRec(ctx, msg);
-                ctx.channel().flush();
                 break;
             case PUBREL:
                 //handlePubRel(ctx, msg);
-                ctx.channel().flush();
                 break;
             case PUBCOMP:
                 //handlePubComp(msg);
-                ctx.channel().flush();
                 break;
             default:
-                throw new AssertionError(msg.fixedHeader().messageType().name());
+                throw new AssertionError(msgType.name());
         }
     }
 
@@ -135,10 +87,8 @@ public class MqttProtocolInboundHandler extends ChannelInboundHandlerAdapter {
     private void handleConnAck(ChannelHandlerContext ctx,
             MqttConnAckMessage mqttConnAckMessage) {
 
-        /* MqttFixedHeader mfh = mqttConnAckMessage.fixedHeader(); */
-        MqttConnAckVariableHeader mcvh = mqttConnAckMessage.variableHeader();
-
-        MqttConnectReturnCode connectReturnCode = mcvh.connectReturnCode();
+        MqttConnectReturnCode connectReturnCode
+                = mqttConnAckMessage.variableHeader().connectReturnCode();
 
         switch (connectReturnCode) {
             case CONNECTION_ACCEPTED:
@@ -149,24 +99,12 @@ public class MqttProtocolInboundHandler extends ChannelInboundHandlerAdapter {
             case CONNECTION_REFUSED_SERVER_UNAVAILABLE:
             case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
             case CONNECTION_REFUSED_NOT_AUTHORIZED:
-                handleConnectionRefused(ctx);
+                ctx.channel().close();
                 break;
             default:
                 throw new AssertionError(connectReturnCode.name());
 
         }
-    }
-
-    /**
-     * Handle the server unavailable situation, wrong username or password and
-     * non authorized user, that is, close everything
-     *
-     * @param ctx ChannelHandlerContext
-     */
-    private void handleConnectionRefused(ChannelHandlerContext ctx) {
-
-        System.out.println("Error! Me closing ...");
-        ctx.close();
     }
 
 }

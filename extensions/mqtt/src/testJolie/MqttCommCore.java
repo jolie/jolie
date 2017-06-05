@@ -48,25 +48,26 @@ import jolie.runtime.VariablePath;
  */
 public class MqttCommCore {
 
-    private ChannelFuture future;
     private Channel channel;
-    private String host;
-    private String topic;
-    private String message;
-    private MqttProtocol mp;
-    private String clientId;
-    private MqttVersion version;
-    private int keepAliveTimeSeconds;
-    private String willTopic;
-    private String willMessage;
-    private String userName;
-    private String password;
+
+    private ChannelFuture future;
+    private final String host;
+    private final String topic;
+    private final String message;
+    private final MqttProtocol mp;
+    private final String clientId;
+    private final MqttVersion version;
+    private final int keepAliveTimeSeconds;
+    private final String willTopic;
+    private final String willMessage;
+    private final String userName;
+    private final String password;
 
     /**
-     * Costructor in the implementation is retrieved from Jolie
-     * protocol specific parameters or set by default
-     * For the time being (05/06/2017) it is defualt 
-     * 
+     * Costructor in the implementation is retrieved from Jolie protocol
+     * specific parameters or set by default For the time being (05/06/2017) it
+     * is defualt
+     *
      * @throws InterruptedException
      */
     public MqttCommCore() throws InterruptedException {
@@ -80,8 +81,8 @@ public class MqttCommCore {
         this.clientId = GenerateRandomId();
         this.version = MqttVersion.MQTT_3_1_1;
         this.keepAliveTimeSeconds = 10;
-        this.willTopic = this.topic;
-        this.willMessage = this.message;
+        this.willTopic = "";
+        this.willMessage = "";
         this.userName = "";
         this.password = "";
 
@@ -90,8 +91,8 @@ public class MqttCommCore {
     }
 
     /**
-     * Generate random client id for default Method 
-     * stolen and little modified @ github from jk5
+     * Generate random client id for default Method stolen and little modified @
+     * github from jk5
      *
      * @return the random generated client id
      */
@@ -107,13 +108,13 @@ public class MqttCommCore {
     }
 
     /**
-     * Override CommeChannel creation in CommCore, that is create the 
-     * Nio socket chanenl
+     * Override CommeChannel creation in CommCore, that is create the Nio socket
+     * chanenl
+     *
      * @param mp
      * @throws InterruptedException
      */
-    private void CreateCommChannel(MqttProtocol mp, String host)
-            throws InterruptedException {
+    private void CreateCommChannel(MqttProtocol mp, String host) {
 
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -144,45 +145,52 @@ public class MqttCommCore {
                     setChannel(f.channel());
                 }
             });
-        } finally {
-            workerGroup.shutdownGracefully().sync();
+        } catch (InterruptedException ex) {
+            workerGroup.shutdownGracefully();
         }
 
     }
 
     /**
-     *
-     * @param ctx ChannelHandlerContext
+     * 
+     * @return MqttConnectMessage
      */
     private MqttConnectMessage buildConnectMqttMessage() {
 
+        boolean isDup = Boolean.FALSE;
+        MqttQoS connectQoS = MqttQoS.AT_LEAST_ONCE;
+        boolean isConnectRetain = Boolean.FALSE;
+        boolean isCleanSession = Boolean.FALSE;
+        boolean isWillRetain = Boolean.FALSE;
+        int willQoS = MqttQoS.AT_LEAST_ONCE.value();
+
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
                 MqttMessageType.CONNECT,
-                Boolean.FALSE, // isDup
-                MqttQoS.AT_LEAST_ONCE, // qos
-                Boolean.FALSE, // isRetain
+                isDup,
+                connectQoS,
+                isConnectRetain,
                 0
         );
 
         MqttConnectVariableHeader variableHeader
                 = new MqttConnectVariableHeader(
-                        version.protocolName(),
-                        version.protocolLevel(),
-                        !"".equals(getUserName()),
-                        !"".equals(getPassword()),
-                        Boolean.TRUE, // isWillRetain
-                        MqttQoS.AT_LEAST_ONCE.value(), //willQoS
-                        !"".equals(getWillMessage()),
-                        Boolean.FALSE, // isCleanSession
-                        getKeepAliveTimeSeconds()
+                        this.version.protocolName(),
+                        this.version.protocolLevel(),
+                        !"".equals(this.userName),
+                        !"".equals(this.password),
+                        isWillRetain,
+                        willQoS,
+                        !"".equals(this.willMessage),
+                        isCleanSession,
+                        this.keepAliveTimeSeconds
                 );
 
         MqttConnectPayload payload = new MqttConnectPayload(
-                getClientId(),
-                getWillTopic(),
-                getWillMessage(),
-                getUserName(),
-                getPassword()
+                this.clientId,
+                this.willTopic,
+                this.willMessage,
+                this.userName,
+                this.password
         );
 
         MqttConnectMessage mcm = new MqttConnectMessage(
@@ -194,26 +202,32 @@ public class MqttCommCore {
         return mcm;
     }
 
+    /**
+     * 
+     * @return MqttPublishMessage
+     */
     private MqttPublishMessage buildPublishMqttMessage() {
+
+        boolean isDup = Boolean.FALSE;
+        MqttQoS publishQoS = MqttQoS.AT_LEAST_ONCE;
+        boolean isConnectRetain = Boolean.FALSE;
+        int messageId = Integer.parseInt(GenerateRandomId());
 
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
                 MqttMessageType.PUBLISH,
-                Boolean.FALSE, // isDup
-                MqttQoS.AT_LEAST_ONCE, // qos
-                Boolean.FALSE, // isRetain
+                isDup,
+                publishQoS,
+                isConnectRetain,
                 0
         );
 
         MqttPublishVariableHeader variableHeader
                 = new MqttPublishVariableHeader(
-                        getTopic(),
-                        Integer.parseInt(GenerateRandomId())
+                        this.topic,
+                        messageId
                 );
 
-        /*
-        Message should be serialized in a byte buffer here
-         */
-        ByteBuf payload = parseObject(getMessage());
+        ByteBuf payload = parseObject(this.message);
 
         MqttPublishMessage mpm = new MqttPublishMessage(
                 mqttFixedHeader,
@@ -224,6 +238,10 @@ public class MqttCommCore {
         return mpm;
     }
 
+    /**
+     * 
+     * @param mm MqttMessage
+     */
     private void sendToBroker(MqttMessage mm) {
 
         if (this.channel.isActive() && this.channel.isWritable()) {
@@ -231,111 +249,10 @@ public class MqttCommCore {
         }
     }
 
-    public ChannelFuture getFuture() {
-        return future;
-    }
-
-    public void setFuture(ChannelFuture future) {
-        this.future = future;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public Object getMessage() {
-        return message;
-    }
-
     /**
-     * TODO Message object should be serialized and not casted!
-     *
-     * @param message
+     * 
+     * @param channel Channel
      */
-    public void setMessage(Object message) {
-        this.message = (String) message;
-    }
-
-    public MqttProtocol getMqttProtocol() {
-        return mp;
-    }
-
-    public void setMqttProtocol(MqttProtocol mp) {
-        this.mp = mp;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = "jolie-mqtt/" + clientId;
-    }
-
-    public MqttVersion getVersion() {
-        return version;
-    }
-
-    public void setVersion(MqttVersion version) {
-        this.version = version;
-    }
-
-    public int getKeepAliveTimeSeconds() {
-        return keepAliveTimeSeconds;
-    }
-
-    public void setKeepAliveTimeSeconds(int keepAliveTimeSeconds) {
-        this.keepAliveTimeSeconds = keepAliveTimeSeconds;
-    }
-
-    public String getWillTopic() {
-        return willTopic;
-    }
-
-    public void setWillTopic(String willTopic) {
-        this.willTopic = willTopic;
-    }
-
-    public String getWillMessage() {
-        return willMessage;
-    }
-
-    public void setWillMessage(String willMessage) {
-        this.willMessage = willMessage;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
     public void setChannel(Channel channel) {
         this.channel = channel;
     }
@@ -349,6 +266,10 @@ public class MqttCommCore {
         mqttCommCore.testMqtt();
     }
 
+    /**
+     * 
+     * @throws InterruptedException 
+     */
     private void testMqtt() throws InterruptedException {
 
         MqttConnectMessage mcm = buildConnectMqttMessage();
@@ -363,7 +284,7 @@ public class MqttCommCore {
      * TODO parse object according to object type passed
      *
      * @param message
-     * @return
+     * @return ByteBuf
      */
     private ByteBuf parseObject(Object message) {
         return Unpooled.copiedBuffer(message.toString().getBytes());
