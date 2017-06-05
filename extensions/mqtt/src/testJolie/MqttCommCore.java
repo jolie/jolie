@@ -23,6 +23,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -30,6 +31,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
@@ -37,10 +40,13 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import java.net.InetSocketAddress;
 import java.util.Random;
-import jolie.net.MqttProtocol;
-import jolie.runtime.VariablePath;
+import jolie.net.MqttPingHandler;
+import jolie.net.MqttProtocolInboundHandler;
 
 /**
  *
@@ -54,7 +60,6 @@ public class MqttCommCore {
     private final String host;
     private final String topic;
     private final String message;
-    private final MqttProtocol mp;
     private final String clientId;
     private final MqttVersion version;
     private final int keepAliveTimeSeconds;
@@ -62,6 +67,8 @@ public class MqttCommCore {
     private final String willMessage;
     private final String userName;
     private final String password;
+    
+    private final int DEFAULT_TIMEOUT = 30;
 
     /**
      * Costructor in the implementation is retrieved from Jolie protocol
@@ -72,8 +79,8 @@ public class MqttCommCore {
      */
     public MqttCommCore() throws InterruptedException {
 
-        VariablePath configurationPath = null;
-        this.mp = new MqttProtocol(configurationPath);
+        //VariablePath configurationPath = null;
+        //this.mp = new MqttProtocol(configurationPath);
         this.host = "test.mosquitto.org";
         this.topic = "temp/random";
         // Master Joda says object this should be
@@ -86,7 +93,7 @@ public class MqttCommCore {
         this.userName = "";
         this.password = "";
 
-        CreateCommChannel(this.mp, this.host);
+        CreateCommChannel(this.host);
 
     }
 
@@ -114,7 +121,8 @@ public class MqttCommCore {
      * @param mp
      * @throws InterruptedException
      */
-    private void CreateCommChannel(MqttProtocol mp, String host) {
+    private void CreateCommChannel(String host)
+            throws InterruptedException {
 
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -127,32 +135,33 @@ public class MqttCommCore {
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
-                    mp.setupPipeline(ch.pipeline());
+                    ChannelPipeline pipeline = ch.pipeline();
+                    pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
+                    pipeline.addLast("decoder", new MqttDecoder());
+                    pipeline.addLast("encoder", MqttEncoder.INSTANCE);
+                    pipeline.addLast("idle", new IdleStateHandler(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, 0));
+                    pipeline.addLast("ping", new MqttPingHandler(DEFAULT_TIMEOUT));
+                    pipeline.addLast("inbound", new MqttProtocolInboundHandler());
                 }
             });
 
-            /*
-            questo dobiamo farlo indipendentemente se siamo in una inputPort 
-            oppure in una outputPort, non dobbiamo cioè rimanere solo in ascolto
-            ma dobbiamo comunque creare un canale con un endpoint
-            anche per la inputPort ( la modifica credo vada fatta in CommCore)
-             */
             this.future = b.connect().sync();
-            //this.future.channel().closeFuture().sync();
             this.future.addListener((ChannelFutureListener) new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture f) throws Exception {
                     setChannel(f.channel());
                 }
             });
-        } catch (InterruptedException ex) {
+            this.future.channel().closeFuture().sync();
+
+        } finally {
             workerGroup.shutdownGracefully();
         }
 
     }
 
     /**
-     * 
+     *
      * @return MqttConnectMessage
      */
     private MqttConnectMessage buildConnectMqttMessage() {
@@ -203,7 +212,7 @@ public class MqttCommCore {
     }
 
     /**
-     * 
+     *
      * @return MqttPublishMessage
      */
     private MqttPublishMessage buildPublishMqttMessage() {
@@ -239,7 +248,7 @@ public class MqttCommCore {
     }
 
     /**
-     * 
+     *
      * @param mm MqttMessage
      */
     private void sendToBroker(MqttMessage mm) {
@@ -250,7 +259,7 @@ public class MqttCommCore {
     }
 
     /**
-     * 
+     *
      * @param channel Channel
      */
     public void setChannel(Channel channel) {
@@ -267,8 +276,8 @@ public class MqttCommCore {
     }
 
     /**
-     * 
-     * @throws InterruptedException 
+     *
+     * @throws InterruptedException
      */
     private void testMqtt() throws InterruptedException {
 
