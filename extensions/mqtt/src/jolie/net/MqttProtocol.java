@@ -22,6 +22,7 @@ import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import java.util.concurrent.TimeUnit;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
@@ -38,7 +39,10 @@ import jolie.runtime.VariablePath;
  */
 public class MqttProtocol extends AsyncCommProtocol {
 
-    private final int DEFAULT_TIMEOUT = 30;
+    // da github di waylau
+    private static final int READ_IDEL_TIME_OUT = 4;
+    private static final int WRITE_IDEL_TIME_OUT = 5;
+    private static final int ALL_IDEL_TIME_OUT = 7;
 
     /**
      * Default Constructor for MqttProtocol going super Look at the { @link
@@ -49,7 +53,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public MqttProtocol(VariablePath configurationPath) {
         super(configurationPath);
     }
-    
+
     /*
      * Inner class Parameters inherit from { @link HttpProtocol }
      * Since now (01/06/2017) we use only the concurrent param
@@ -71,11 +75,16 @@ public class MqttProtocol extends AsyncCommProtocol {
     public void setupPipeline(ChannelPipeline pipeline) {
 
         pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
-        pipeline.addLast("decoder", new MqttDecoder());
-        pipeline.addLast("encoder", MqttEncoder.INSTANCE);
-        pipeline.addLast("idle", new IdleStateHandler(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT, 0));
-        pipeline.addLast("ping", new MqttPingHandler(DEFAULT_TIMEOUT));
-        pipeline.addLast("inbound", new MqttProtocolInboundHandler());
+        pipeline.addLast("MqttDecoder", new MqttDecoder());
+        pipeline.addLast("MqttEncoder", MqttEncoder.INSTANCE);
+        pipeline.addLast("IdleState", new IdleStateHandler(
+                READ_IDEL_TIME_OUT,
+                WRITE_IDEL_TIME_OUT,
+                ALL_IDEL_TIME_OUT,
+                TimeUnit.SECONDS
+        ));
+        pipeline.addLast("MqttOnActive", new MqttOnActiveHandler());
+
     }
 
     /**
