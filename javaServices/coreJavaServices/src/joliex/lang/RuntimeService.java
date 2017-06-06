@@ -280,7 +280,7 @@ public class RuntimeService extends JavaService
 	@RequestResponse
 	public void callExit( Value request )
 	{
-		Object o = request.valueObject();
+		Object o = request.getValueObject().getValueObject();
 		if ( o instanceof LocalCommChannel ) {
 			((LocalCommChannel) o).interpreter().exit();
 		}

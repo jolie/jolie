@@ -6,36 +6,32 @@ include "PlainXMLManagerInterface.iol"
 
 execution{ concurrent }
 
-type GetNodeInnerRequest: void {
-   .tree: undefined
-   .path: string
-}
-
-interface PlainXMLManagerInnerInterface {
-  RequestResponse:
-    getNodeInner( GetNodeInnerRequest )( undefined )
-}
-
-outputPort MySelf {
-  Interfaces: PlainXMLManagerInnerInterface
-}
-
 inputPort PlainXMLManager {
   Location: "local"
-  Interfaces: PlainXMLManagerInterface, PlainXMLManagerInnerInterface
+  Interfaces: PlainXMLManagerInterface
 }
 
-init {
-  getLocalLocation@Runtime()( MySelf.location )
-}
-
-define __recompose_path {
+/*define __recompose_path {
     __path = "";
     for( i = __from, i < #spl_res.result, i++ ) {
         __path = __path + "/" + spl_res.result[ i ]
     }
-}
+}*/
 
+/*
+define __navigate {
+  spl = __path;
+  spl.regex = "/";
+  split@StringUtils( spl )( spl_res );
+
+
+
+  for( n = 0, n < #__node.Node, n++ ) {
+      if ( is_defined( __node.Node[ n ].Element ) ) {
+          if ( __node.Node[ n ].Element.Name == spl_res.result[ 1 ] ) {  //we skip the root
+
+
+}*/
 
 
 define _showTree {
@@ -109,17 +105,15 @@ main {
         }
     }]
 
-    [ getNode( request )( response ) {
+    [ getElement( request )( response ) {
         if ( !is_defined( global.resources.( request.resourceName ) ) ) {
           throw ( ResourceDoesNotExist )
         } else {
-          spl = request.path;
-          spl.regex = "/";
-          split@StringUtils( spl )( spl_res );
           resource -> global.resources.( request.resourceName ).root;
-          for( n = 0, n < #resource.Node, n++ ) {
+          __path = request.path
+          /*for( n = 0, n < #resource.Node, n++ ) {
               if ( is_defined( resource.Node[ n ].Element ) ) {
-                  if ( resource.Node[ n ].Element.Name == spl_res.result[ 2 ] ) {  //we skip the root
+                  if ( resource.Node[ n ].Element.Name == spl_res.result[ 1 ] ) {  //we skip the root
                       __from = 3;
                       __recompose_path;
                       if ( __path != "" ) {
@@ -132,31 +126,8 @@ main {
                           response << resource.Node[ n ].Element
                       }
                   }
-              }
-          }
-        }
-    }]
-
-    [ getNodeInner( request )( response ) {
-        spl = request.path;
-        spl.regex = "/";
-        split@StringUtils( spl )( spl_res );
-        for( n = 0, n < #request.tree.Node, n++ ) {
-            if ( is_defined( request.tree.Node[ n ].Element ) ) {
-                if ( request.tree.Node[ n ].Element.Name == spl_res.result[ 1 ] ) {
-                    __from = 2;
-                    __recompose_path;
-                    if ( __path != "" ) {
-                        with( req ) {
-                            .tree << request.tree.Node[ n ].Element;
-                            .path = __path
-                        };
-                        getNodeInner@MySelf( req )( response )
-                    } else {
-                        response << request.tree.Node[ n ].Element
-                    }
-                }
-            }
+              }*/
+          
         }
     }]
 

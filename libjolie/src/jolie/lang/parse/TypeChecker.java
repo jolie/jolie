@@ -47,6 +47,7 @@ import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.HookStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -955,4 +956,7 @@ public class TypeChecker implements OLVisitor
 		n.provide().accept( this );
 		n.until().accept( this );
 	}
+	
+	public void visit( HookStatement n )
+	{}
 }

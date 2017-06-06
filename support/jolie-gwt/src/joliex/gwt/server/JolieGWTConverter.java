@@ -74,8 +74,8 @@ public class JolieGWTConverter
 			retValue.setValue( value.longValue() );
 		} else if ( value.isBool() ) {
 			retValue.setValue( value.boolValue() );
-		} else if ( value.valueObject() != null ) {
-			retValue.setValue( value.valueObject().toString() );
+		} else if ( value.getValueObject().getValueObject()!= null ) {
+			retValue.setValue( value.getValueObject().getValueObject().toString() );
 		}
 		
 		joliex.gwt.client.ValueVector vec;

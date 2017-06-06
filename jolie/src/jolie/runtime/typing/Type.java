@@ -112,7 +112,7 @@ class TypeImpl extends Type
 		throws TypeCheckingException
 	{
 		if ( checkNativeType( value, nativeType ) == false ) {
-			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.valueObject() == null ) ? "void" : value.valueObject().getClass().getName()) );
+			throw new TypeCheckingException( "Invalid native type for node " + pathBuilder.toString() + ": expected " + nativeType + ", found " + (( value.getValueObject().getValueObject() == null ) ? "void" : value.getValueObject().getValueObject().getClass().getName()) );
 		}
 
 		if ( subTypes != null ) {
@@ -189,10 +189,10 @@ class TypeImpl extends Type
 					throw new TypeCastingException( "Cannot cast node value to " + nativeType.id() + ": " + pathBuilder.toString() );
 				}
 			} else if ( nativeType == NativeType.VOID ) {
-				if ( value.valueObject() != null ) {
+				if ( value.getValueObject().getValueObject() != null ) {
 					throw new TypeCastingException(
 						"Expected " + NativeType.VOID.id() + ", found " +
-						value.valueObject().getClass().getSimpleName() +
+						value.getValueObject().getValueObject().getClass().getSimpleName() +
 						": " + pathBuilder.toString()
 					);
 				}
@@ -205,7 +205,7 @@ class TypeImpl extends Type
 			} else {
 				throw new TypeCastingException(
 					"Expected " + nativeType.id() + ", found " +
-					value.valueObject().getClass().getSimpleName() +
+					value.getValueObject().getValueObject().getClass().getSimpleName() +
 					": " + pathBuilder.toString()
 				);
 			}
@@ -227,7 +227,7 @@ class TypeImpl extends Type
 		} else if ( nativeType == NativeType.STRING ) {
 			return value.isString();
 		} else if ( nativeType == NativeType.VOID ) {
-			return value.valueObject() == null;
+			return value.getValueObject().getValueObject() == null;
 		} else if ( nativeType == NativeType.RAW ) {
 			return value.isByteArray();
 		}

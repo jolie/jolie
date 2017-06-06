@@ -15,25 +15,17 @@ type CreatePlainXMLRequest: void {
   .xml: string
 }
 
-type DestroyPlainXMLRequest: void {
-  .resourceName: string
-}
-
 type GetNodeRequest: void {
   .resourceName: string
   .path: string
 }
 
-type GetXMLStringRequest: void {
-  .resourceName: string
-}
-
-type ShowTreeRequest: void {
-  .resourceName: string
-}
-
 type ShowTreeResponse: void {
   .path*: string
+}
+
+type ResourceRequest: void {
+  .resourceName: string
 }
 
 
@@ -41,8 +33,8 @@ interface PlainXMLManagerInterface {
   RequestResponse:
     addTo( AddToRequest )( void ) throws ResourceDoesNotExist( string ) NodeDoesNoteExist( string ),
     createPlainXML( CreatePlainXMLRequest )( void ) throws ResourceAlreadyExists,
-    destroyPlainXML( DestroyPlainXMLRequest )( void ) throws ResourceDoesNotExist,
-    getNode( GetNodeRequest )( undefined ) throws ResourceDoesNotExist,
-    getXMLString( GetXMLStringRequest )( string ) throws ResourceDoesNotExist,
-    showTree( ShowTreeRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
+    destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
+    getElement( GetNodeRequest )( undefined ) throws ResourceDoesNotExist,
+    getXMLString( ResourceRequest )( string ) throws ResourceDoesNotExist,
+    showTree( ResourceRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
 }
