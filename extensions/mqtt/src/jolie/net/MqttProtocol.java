@@ -39,10 +39,9 @@ import jolie.runtime.VariablePath;
  */
 public class MqttProtocol extends AsyncCommProtocol {
 
-    // da github di waylau
-    private static final int READ_IDEL_TIME_OUT = 4;
-    private static final int WRITE_IDEL_TIME_OUT = 5;
-    private static final int ALL_IDEL_TIME_OUT = 7;
+    private static final int READ_TIMEOUT = 4;
+    private static final int WRITE_TIMEOUT = 5;
+    private static final int PING_KEEP_ALIVE = 10;
 
     /**
      * Default Constructor for MqttProtocol going super Look at the { @link
@@ -77,13 +76,8 @@ public class MqttProtocol extends AsyncCommProtocol {
         pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
         pipeline.addLast("MqttDecoder", new MqttDecoder());
         pipeline.addLast("MqttEncoder", MqttEncoder.INSTANCE);
-        pipeline.addLast("IdleState", new IdleStateHandler(
-                READ_IDEL_TIME_OUT,
-                WRITE_IDEL_TIME_OUT,
-                ALL_IDEL_TIME_OUT,
-                TimeUnit.SECONDS
-        ));
-        pipeline.addLast("MqttOnActive", new MqttOnActiveHandler());
+        pipeline.addLast("IdleState", new IdleStateHandler(READ_TIMEOUT, WRITE_TIMEOUT, 0, TimeUnit.SECONDS));
+        pipeline.addLast("MqttPublishSubscribe", new MqttPublishSubscribeHandler(PING_KEEP_ALIVE));
 
     }
 

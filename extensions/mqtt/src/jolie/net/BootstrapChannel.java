@@ -77,7 +77,7 @@ public class BootstrapChannel {
 
                     ChannelPipeline pipeline = ch.pipeline();
                     mp.setupPipeline(pipeline);
-                    pipeline.addLast("Generic", new GenericHandler());
+                    //pipeline.addLast("Generic", new GenericHandler());
 
                 }
             });
