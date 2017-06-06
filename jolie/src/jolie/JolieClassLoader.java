@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jolie.lang.Constants;
 import jolie.net.CommCore;
@@ -56,6 +57,8 @@ public class JolieClassLoader extends URLClassLoader
 	private final Map< String, String > protocolExtensionClassNames = new HashMap< String, String >();
 	private final Map< String, String > embeddingExtensionClassNames = new HashMap< String, String >();
 
+	private static final Logger logger = Logger.getLogger( "JOLIE" );
+	
 	private void init( URL[] urls )
 		throws IOException
 	{
@@ -125,7 +128,7 @@ public class JolieClassLoader extends URLClassLoader
 				} catch( MalformedURLException e ) {
 					e.printStackTrace();
 				} catch( IOException e ) {
-					e.printStackTrace();
+					logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
 				}
 			}
 		}
@@ -140,6 +143,7 @@ public class JolieClassLoader extends URLClassLoader
 					addJarResource( filename );
 				} catch( MalformedURLException e ) {
 				} catch( IOException e ) {
+					logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
 				}
 			}
 		}
