@@ -6,9 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.mqtt.*;
 import io.netty.util.concurrent.Promise;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
@@ -118,47 +115,24 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     private void handleConack(Channel channel, MqttConnAckMessage message) {
         switch (message.variableHeader().connectReturnCode()) {
             case CONNECTION_ACCEPTED:
-                this.connectFuture.setSuccess(
-                        new MqttConnectResult(true,
-                                MqttConnectReturnCode.CONNECTION_ACCEPTED,
-                                channel.closeFuture()));
+                this.connectFuture.setSuccess(new MqttConnectResult(true, MqttConnectReturnCode.CONNECTION_ACCEPTED, channel.closeFuture()));
 
-                /*
-                this.client
-                        .getPendingSubscribtions()
-                        .entrySet()
-                        .stream()
-                        .filter(
-                                (e)
-                                -> !e.getValue().isSent())
-                        .forEach(
-                                (Map.Entry<Integer, MqttPendingSubscribtion> e)
-                                -> {
-                            channel.write(e.getValue().getSubscribeMessage());
-                            e.getValue().setSent(true);
-                        });
+                this.client.getPendingSubscribtions().entrySet().stream().filter((e) -> !e.getValue().isSent()).forEach((e) -> {
+                    channel.write(e.getValue().getSubscribeMessage());
+                    e.getValue().setSent(true);
+                });
 
-                this.client
-                        .getPendingPublishes()
-                        .forEach(
-                                new BiConsumer<Integer, MqttPendingPublish>() {
-                            @Override
-                            public void accept(Integer id,
-                                    MqttPendingPublish publish) {
-                                if (publish.isSent()) {
-                                    return;
-                                }
-                                channel.write(publish.getMessage());
-                                publish.setSent(true);
-                                if (publish.getQos() == MqttQoS.AT_MOST_ONCE) {
-                                    publish.getFuture().setSuccess(null);
-                                    MqttChannelHandler.this.client
-                                            .getPendingPublishes()
-                                            .remove(publish.getMessageId());
-                                }
-                            }
-                        });
-                 */
+                this.client.getPendingPublishes().forEach((id, publish) -> {
+                    if (publish.isSent()) {
+                        return;
+                    }
+                    channel.write(publish.getMessage());
+                    publish.setSent(true);
+                    if (publish.getQos() == MqttQoS.AT_MOST_ONCE) {
+                        publish.getFuture().setSuccess(null); //We don't get an ACK for QOS 0
+                        this.client.getPendingPublishes().remove(publish.getMessageId());
+                    }
+                });
                 channel.flush();
                 break;
 

@@ -37,10 +37,12 @@ class Main {
         String message = "23.0";
         String brokerHost = "test.mosquitto.org";
         int brokerPort = 1883;
-        
+
         MqttPublishMessage mpm = buildPublishMqttMessage(topic, message);
         BootstrapChannel bc = new BootstrapChannel(brokerHost, brokerPort);
-        bc.getChannel().writeAndFlush(mpm);
+        if (bc.getChannel().isActive() && bc.getChannel().isWritable()) {
+            bc.getChannel().writeAndFlush(mpm);
+        }
     }
 
     /**
