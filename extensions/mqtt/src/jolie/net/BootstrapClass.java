@@ -21,47 +21,52 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
+/*
+outputPort Broker { 
+    location: "socket://test.mosquitto.org:1883" 
+    protocol: mqtt {
+        .osc.publish.alias = "temp/random" 
+    }
+    operation: publish( "23.0" ) 
+}
+ */
 /**
- *
  * @author stefanopiozingaro
  */
-public class BootstrapChannel {
+class BootstrapClass {
 
-    private final String brokerHost;
-    private final int brokerPort;
-    private final MqttProtocol mqttProtocol;
+    private final MqttProtocol mp;
 
-    private Channel channel;
+    private final String locationHost;
+    private final int locationPort;
+    
+    public BootstrapClass() {
+        
+        this.mp = new MqttProtocol(null);
+        this.locationPort = 1883;
+        this.locationHost = "test.mosquitto.org";
 
-    public Channel getChannel() {
-        return channel;
-    }
+        mp.setMqttTopic("temp/random");
+        mp.publish("23.0");
 
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
-    public BootstrapChannel(String brokerHost, int brokerPort) {
-
-        this.brokerHost = brokerHost;
-        this.brokerPort = brokerPort;
-        this.mqttProtocol = new MqttProtocol(null);
-        doBootstrap(this.mqttProtocol);
+        doBootstrap(locationHost, locationPort);
 
     }
 
-    /**
-     *
-     */
-    private void doBootstrap(MqttProtocol mp) {
+    void doBootstrap(String brokerHost, int brokerPort) {
 
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -69,15 +74,17 @@ public class BootstrapChannel {
             Bootstrap b = new Bootstrap();
             b.group(workerGroup);
             b.channel(NioSocketChannel.class);
-            // optionally set the local Address 
             b.remoteAddress(new InetSocketAddress(brokerHost, brokerPort));
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
 
                     ChannelPipeline pipeline = ch.pipeline();
-                    mp.setupPipeline(pipeline);
-                    //pipeline.addLast("Generic", new GenericHandler());
+                    pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
+                    pipeline.addLast("MqttDecoder", new MqttDecoder());
+                    pipeline.addLast("MqttEncoder", MqttEncoder.INSTANCE);
+                    pipeline.addLast("IdleState", new IdleStateHandler(4, 5, 0, TimeUnit.SECONDS));
+                    pipeline.addLast("MqttPublishSubscribe", new MqttPublishSubscribeHandler(mp));
 
                 }
             });
@@ -87,15 +94,15 @@ public class BootstrapChannel {
                 @Override
                 public void operationComplete(ChannelFuture f) throws Exception {
                     if (f.isSuccess()) {
-                        setChannel(f.channel());
+                        mp.setMqttChannel(f.channel());
                     }
                 }
             });
             future.channel().closeFuture().sync();
 
-        } catch (InterruptedException ioe) {
+        } catch (InterruptedException ie) {
 
-            ioe.printStackTrace();
+            ie.printStackTrace();
 
         } finally {
 
@@ -104,10 +111,7 @@ public class BootstrapChannel {
         }
     }
 
-    private static class GenericHandler extends ChannelOutboundHandlerAdapter {
-
-        public GenericHandler() {
-        }
+    public static void main(String[] args) {
+        new BootstrapClass();
     }
-
 }
