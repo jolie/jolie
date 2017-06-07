@@ -16,10 +16,13 @@
  */
 package jolie.net;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
@@ -32,6 +35,7 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.ScheduledFuture;
+import java.util.ListIterator;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -45,31 +49,31 @@ import java.util.concurrent.TimeUnit;
 public class MqttPublishSubscribeHandler
         extends ChannelInboundHandlerAdapter {
 
+    /*
+    From jk5
+     */
     private ScheduledFuture<?> pingRespTimeout;
-
+    /*
+    End jk5
+     */
+    private final MqttProtocol mp;
     private final String clientId;
-    private final MqttVersion version;
-    private final int keepAliveConnectTimeSeconds;
-    private final int keepAlivePingTimeSeconds;
-    private final String willTopic;
-    private final String willMessage;
-    private final String userName;
-    private final String password;
 
-    public MqttPublishSubscribeHandler(int keepAlivePingTimeSeconds) {
+    public MqttPublishSubscribeHandler(MqttProtocol mp) {
 
+        this.mp = mp;
         this.clientId = "jolie/" + GenerateRandomId();
-        this.version = MqttVersion.MQTT_3_1_1;
-        this.keepAlivePingTimeSeconds = keepAlivePingTimeSeconds;
-        this.keepAliveConnectTimeSeconds = 2;
-        this.willTopic = "";
-        this.willMessage = "";
-        this.userName = "";
-        this.password = "";
+
+        mp.setKeepAliveConnectTimeSeconds(2);
+        mp.setVersion(MqttVersion.MQTT_3_1_1);
+        mp.setWillTopic("");
+        mp.setWillMessage("");
+        mp.setUserName("");
+        mp.setPassword("");
     }
 
     /**
-     * Generate random client id for default Method stolen and little modified @
+     * Generate random client id for default Method taken and little modified @
      * github from jk5
      *
      * @return the random generated client id
@@ -95,6 +99,7 @@ public class MqttPublishSubscribeHandler
      * @throws java.lang.Exception
      */
     @Override
+    @SuppressWarnings("Convert2Lambda")
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         boolean isDup = Boolean.FALSE;
@@ -114,23 +119,23 @@ public class MqttPublishSubscribeHandler
 
         MqttConnectVariableHeader variableHeader
                 = new MqttConnectVariableHeader(
-                        this.version.protocolName(),
-                        this.version.protocolLevel(),
-                        !"".equals(this.userName),
-                        !"".equals(this.password),
+                        mp.getVersion().protocolName(),
+                        mp.getVersion().protocolLevel(),
+                        !"".equals(mp.getUserName()),
+                        !"".equals(mp.getPassword()),
                         isWillRetain,
                         willQoS.value(),
-                        !"".equals(this.willMessage),
+                        !"".equals(mp.getWillMessage()),
                         isCleanSession,
-                        this.keepAliveConnectTimeSeconds
+                        mp.getKeepAliveConnectTimeSeconds()
                 );
 
         MqttConnectPayload payload = new MqttConnectPayload(
                 this.clientId,
-                this.willTopic,
-                this.willMessage,
-                this.userName,
-                this.password
+                mp.getWillTopic(),
+                mp.getWillMessage(),
+                mp.getUserName(),
+                mp.getPassword()
         );
 
         MqttConnectMessage mcm = new MqttConnectMessage(
@@ -139,7 +144,9 @@ public class MqttPublishSubscribeHandler
                 payload
         );
 
-        ctx.channel().writeAndFlush(mcm);
+        if (ctx.channel().isWritable()) {
+            ctx.channel().writeAndFlush(mcm);
+        }
     }
 
     @Override
@@ -177,7 +184,7 @@ public class MqttPublishSubscribeHandler
                                             ctx.channel().writeAndFlush(
                                                     new MqttMessage(disconnectFixedHeader)
                                             ).addListener(ChannelFutureListener.CLOSE);
-                                        }, this.keepAlivePingTimeSeconds, TimeUnit.SECONDS);
+                                        }, 10, TimeUnit.SECONDS);
                     }
                     break;
             }
@@ -194,61 +201,53 @@ public class MqttPublishSubscribeHandler
      * @throws Exception
      */
     @Override
+    @SuppressWarnings("Convert2Lambda")
     public void channelRead(ChannelHandlerContext ctx, Object msg)
             throws Exception {
 
-        if (!(msg instanceof MqttMessage)) {
-            ctx.fireChannelRead(msg);
-            return;
-        }
-        MqttMessage message = (MqttMessage) msg;
-        MqttMessageType messageType = message.fixedHeader().messageType();
+        MqttMessageType mmt = ((MqttMessage) msg).fixedHeader().messageType();
+        Channel channel = ctx.channel();
 
-        switch (messageType) {
+        switch (mmt) {
             case CONNACK:
-                switch (message.variableHeader().connectReturnCode()) {
+                MqttConnectReturnCode mcrc
+                        = ((MqttConnAckMessage) msg).variableHeader().connectReturnCode();
+
+                switch (mcrc) {
                     case CONNECTION_ACCEPTED:
-                        this.connectFuture.setSuccess(new MqttConnectResult(true, MqttConnectReturnCode.CONNECTION_ACCEPTED, channel.closeFuture()));
-
-                        this.client.getPendingSubscribtions().entrySet().stream().filter((e) -> !e.getValue().isSent()).forEach((e) -> {
-                            channel.write(e.getValue().getSubscribeMessage());
-                            e.getValue().setSent(true);
-                        });
-
-                        this.client.getPendingPublishes().forEach((id, publish) -> {
-                            if (publish.isSent()) {
-                                return;
-                            }
-                            channel.write(publish.getMessage());
-                            publish.setSent(true);
-                            if (publish.getQos() == MqttQoS.AT_MOST_ONCE) {
-                                publish.getFuture().setSuccess(null); //We don't get an ACK for QOS 0
-                                this.client.getPendingPublishes().remove(publish.getMessageId());
-                            }
-                        });
-                        channel.flush();
+                        for (ListIterator li = mp.getPendingPublishes().listIterator(); li.hasNext();) {
+                            channel.writeAndFlush(li).addListener(new ChannelFutureListener() {
+                                @Override
+                                public void operationComplete(ChannelFuture future) throws Exception {
+                                    if (future.isSuccess()) {
+                                        System.out.println("Master Yoda says "
+                                                + "poweful you become, the dark force strong is in you!");
+                                    }
+                                }
+                            });
+                        }
                         break;
-
                     case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
                     case CONNECTION_REFUSED_IDENTIFIER_REJECTED:
                     case CONNECTION_REFUSED_NOT_AUTHORIZED:
                     case CONNECTION_REFUSED_SERVER_UNAVAILABLE:
                     case CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION:
-                        this.connectFuture.setSuccess(new MqttConnectResult(false, message.variableHeader().connectReturnCode(), channel.closeFuture()));
-                        channel.close();
-                        // Don't start reconnect logic here
+                        channel.closeFuture();
                         break;
                 }
                 break;
             case PINGREQ:
-                MqttFixedHeader fixedHeader = new MqttFixedHeader(
-                        MqttMessageType.PINGRESP,
-                        false,
-                        MqttQoS.AT_MOST_ONCE,
-                        false,
-                        0
+                channel.writeAndFlush(
+                        new MqttMessage(
+                                new MqttFixedHeader(
+                                        MqttMessageType.PINGRESP,
+                                        false,
+                                        MqttQoS.AT_MOST_ONCE,
+                                        false,
+                                        0
+                                )
+                        )
                 );
-                ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
                 break;
             case PINGRESP:
                 if (this.pingRespTimeout != null
@@ -258,51 +257,11 @@ public class MqttPublishSubscribeHandler
                     this.pingRespTimeout = null;
                 }
                 break;
-            case CONNECT:
-                break;
-            case PUBLISH:
-                break;
             case PUBACK:
-                break;
-            case PUBREC:
-                break;
-            case PUBREL:
-                break;
-            case PUBCOMP:
-                break;
-            case SUBSCRIBE:
-                break;
-            case SUBACK:
-                break;
-            case UNSUBSCRIBE:
-                break;
-            case UNSUBACK:
-                break;
-            case DISCONNECT:
                 break;
             default:
                 ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-
         }
-    }
-
-    /**
-     *
-     * @param ctx ChannelHandlerContext
-     * @throws Exception
-     */
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx)
-            throws Exception {
-        /*
-        controlla se ci sono operazioni pending
-         */
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx)
-            throws Exception {
-        super.channelInactive(ctx);
     }
 
 }
