@@ -13,6 +13,7 @@ inputPort PlainXMLManager {
 
 
 define __navigate {
+  /* output: __node, __parent, __node_index */
     /* find node */
     spl = __path;
     spl.regex = "/";
@@ -39,6 +40,8 @@ define __navigate {
         if ( is_defined( __node.Node[ n ].Element ) ) {
             if ( (__node.Node[ n ].Element.Name == _node_to_look_for) && ( tmp_index == _index ) ) {  //we skip the root
                 found = true;
+                __parent =$ __node;
+                __node_index = n;
                 __node =$ __node.Node[ n ].Element
             } else if ( (__node.Node[ n ].Element.Name == _node_to_look_for) && ( tmp_index < _index ) ) {
                 tmp_index++
@@ -53,7 +56,8 @@ define __navigate {
         };
         __navigate
     } else if ( !found && __path != "" && __path != "/" ) {
-        undef( __node )
+        undef( __node );
+        undef( __parent )
     }
 }
 
@@ -174,6 +178,24 @@ main {
           throw ( ResourceDoesNotExist )
         } else {
           plainValueToXml@XmlUtils( global.resources.( request.resourceName ) )( response )
+        }
+    }]
+
+    [ removeElement( request )( response ) {
+        if ( !is_defined( global.resources.( request.resourceName ) ) ) {
+          throw ( ResourceDoesNotExist )
+        } else {
+          __node =$ global.resources.( request.resourceName ).root;
+          __path = request.__path;
+          if ( __path != "/" ) {
+              __navigate
+          }
+          ;
+          undef( __parent.Node[ __node_index ] );
+          if ( request.remove_next_text ) {
+              /* used in case it is necessary to erase next Text node (ex: a CRLF) */
+              undef( __parent.Node[ __node_index ] )
+          }
         }
     }]
 

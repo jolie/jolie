@@ -57,12 +57,17 @@ type CreatePlainXMLRequest: void {
 type GetElementRequest: void {
     .resourceName: string
     .__path: string
-    .__index: int
 }
 
 type ShowTreeResponse: void {
     .path*: string
     .tree: undefined
+}
+
+type RemoveElementRequest: void {
+    .resourceName: string
+    .__path: string
+    .remove_next_text?: bool
 }
 
 type ResourceRequest: void {
@@ -80,5 +85,6 @@ interface PlainXMLManagerInterface {
     destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
     getElement( GetElementRequest )( undefined ) throws ResourceDoesNotExist,
     getXMLString( ResourceRequest )( string ) throws ResourceDoesNotExist,
+    removeElement( RemoveElementRequest )( void ) throws ResourceDoesNotExist,
     showTree( ResourceRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
 }
