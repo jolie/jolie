@@ -56,6 +56,7 @@ import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.HookStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -682,6 +683,7 @@ public class OLParser extends AbstractParser
 	private void parseInclude()
 		throws IOException, ParserException
 	{
+		
 		String[] origIncludePaths;
 		IncludeFile includeFile;
 		while ( token.is( Scanner.TokenType.INCLUDE ) ) {
@@ -690,6 +692,7 @@ public class OLParser extends AbstractParser
 			assertToken( Scanner.TokenType.STRING, "expected filename to include" );
 			String includeStr = token.content();
 			includeFile = null;
+		
 
 			// Try the same directory of the program file first.
 			/* if ( includePaths.length > 1 ) {
@@ -707,7 +710,6 @@ public class OLParser extends AbstractParser
 			for ( int i = 0; i < includePaths.length && includeFile == null; i++ ) {
 				includeFile = retrieveIncludeFile( includePaths[i], includeStr );
 			}
-			
 			if ( includeFile == null ) {
 				includeFile = tryAccessIncludeFile( includeStr );
 				if ( includeFile == null ) {
@@ -1600,7 +1602,7 @@ public class OLParser extends AbstractParser
 			String id = token.content();
 			getToken();
 			
-			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) ) {
+			if ( token.is( Scanner.TokenType.LSQUARE ) || token.is( Scanner.TokenType.DOT ) || token.is( Scanner.TokenType.ASSIGN ) || token.is( Scanner.TokenType.ADD_ASSIGN ) || token.is( Scanner.TokenType.MINUS_ASSIGN ) || token.is( Scanner.TokenType.MULTIPLY_ASSIGN ) || token.is( Scanner.TokenType.DIVIDE_ASSIGN ) || token.is( Scanner.TokenType.POINTS_TO ) || token.is( Scanner.TokenType.DEEP_COPY_LEFT ) || token.is( Scanner.TokenType.DECREMENT ) || token.is( Scanner.TokenType.INCREMENT ) || token.is( Scanner.TokenType.HOOK ) ) {
 				retVal = parseAssignOrDeepCopyOrPointerStatement( _parseVariablePath( id ) );
 			} else if ( id.equals( "forward" ) && ( token.is( Scanner.TokenType.ID ) || token.is( Scanner.TokenType.LPAREN ) ) ) {
 				retVal = parseForwardStatement();
@@ -1976,6 +1978,9 @@ public class OLParser extends AbstractParser
 		} else if ( token.is( Scanner.TokenType.DEEP_COPY_LEFT ) ) {
 			getToken();
 			retVal = new DeepCopyStatement( getContext(), path, parseExpression() );
+		} else if ( token.is( Scanner.TokenType.HOOK ) ) {
+			getToken();
+			retVal = new HookStatement( getContext(), path, parseVariablePath() );
 		} else {
 			throwException( "expected = or -> or << or -- or ++" );
 		}

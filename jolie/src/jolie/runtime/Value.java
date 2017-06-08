@@ -76,9 +76,18 @@ class ValueLink extends Value implements Cloneable
 		getLinkedValue()._refCopy( value );
 	}
 	
+	protected void _hookCopy( Value value )
+	{
+		getLinkedValue()._hookCopy( value );
+	}
+	
 	public void setValueObject( Object object )
 	{
 		getLinkedValue().setValueObject( object );
+	}
+	
+	public ValueObject getValueObject() {
+		return getLinkedValue().getValueObject();
 	}
 	
 	public void erase()
@@ -102,9 +111,9 @@ class ValueLink extends Value implements Cloneable
 		return getLinkedValue().children();
 	}
 		
-	public Object valueObject()
+	public Object finalObject()
 	{
-		return getLinkedValue().valueObject();
+		return getLinkedValue().finalObject();
 	}	
 	
 	public ValueLink( VariablePath path )
@@ -123,12 +132,16 @@ class ValueImpl extends Value implements Cloneable, Serializable
 {
 	private static final long serialVersionUID = 1L;
 	
-	private Object valueObject = null;
+	private ValueObject valueObject = new ValueObject();
 	private Map< String, ValueVector > children = null;
 	
 	public void setValueObject( Object object )
 	{
-		valueObject = object;
+		valueObject.setValueObject( object );
+	}
+	
+	public ValueObject getValueObject() {
+		return valueObject;
 	}
 
 	public ValueVector getChildren( String childId )
@@ -151,9 +164,16 @@ class ValueImpl extends Value implements Cloneable, Serializable
 
 	protected void _refCopy( Value value )
 	{
-		setValueObject( value.valueObject() );
+		setValueObject(value.finalObject() );
 		this.children = value.children();
 	}
+	
+	protected void _hookCopy( Value value )
+	{
+		valueObject = value.getValueObject();
+		this.children = value.children();
+	}
+
 
 	public final Value evaluate()
 	{
@@ -241,19 +261,19 @@ class ValueImpl extends Value implements Cloneable, Serializable
 		return children;
 	}
 	
-	public Object valueObject()
+	public Object finalObject()
 	{
-		return valueObject;
+		return valueObject.getValueObject();
 	}
 
 	protected ValueImpl( Object object )
 	{
-		valueObject = object;
+		valueObject.setValueObject( object );
 	}
 
 	public ValueImpl( Value val )
 	{
-		valueObject = val.valueObject();
+		valueObject.setValueObject(val.finalObject());
 	} 
 }
 
@@ -277,8 +297,15 @@ class RootValueImpl extends Value implements Cloneable
 
 	public void setValueObject( Object object )
 	{}
+	
+	public ValueObject getValueObject() {
+		return null;
+	}
 
 	protected void _refCopy( Value value )
+	{}
+	
+	protected void _hookCopy( Value value ) 
 	{}
 
 
@@ -361,7 +388,7 @@ class RootValueImpl extends Value implements Cloneable
 		return vec;
 	}
 
-	public Object valueObject()
+	public Object finalObject()
 	{
 		return null;
 	}
@@ -493,12 +520,18 @@ public abstract class Value implements Expression, Cloneable
 	{
 		_refCopy( value );
 	}
+	
+	public final void hookCopy( Value value ) {
+		_hookCopy( value );
+	}
 
 	protected abstract void _refCopy( Value value );
+	protected abstract void _hookCopy( Value value );
 	public abstract void erase();
 	protected abstract void _deepCopy( Value value, boolean copyLinks );
 	public abstract Map< String, ValueVector > children();
-	public abstract Object valueObject();
+	public abstract Object finalObject();
+	public abstract ValueObject getValueObject();
 	protected abstract void setValueObject( Object object );
 	public abstract boolean hasChildren();
 	public abstract boolean hasChildren( String childId );
@@ -574,8 +607,8 @@ public abstract class Value implements Expression, Cloneable
 				r = boolValue() == val.boolValue();
 			} else if ( isLong() ) {
 				r = longValue() == val.longValue();
-			} else if ( valueObject() != null ) {
-				r = valueObject().equals( val.valueObject() );
+			} else if ( finalObject() != null ) {
+				r = finalObject().equals(val.finalObject() );
 			}
 		} else {
 			// undefined == undefined
@@ -586,42 +619,42 @@ public abstract class Value implements Expression, Cloneable
 	
 	public final boolean isInt()
 	{
-		return ( valueObject() instanceof Integer );
+		return ( finalObject() instanceof Integer );
 	}
 	
 	public final boolean isLong()
 	{
-		return ( valueObject() instanceof Long );
+		return ( finalObject() instanceof Long );
 	}
 	
 	public final boolean isBool()
 	{
-		return ( valueObject() instanceof Boolean );
+		return ( finalObject() instanceof Boolean );
 	}
 	
 	public final boolean isByteArray()
 	{
-		return ( valueObject() instanceof ByteArray );
+		return ( finalObject() instanceof ByteArray );
 	}
 	
 	public final boolean isDouble()
 	{
-		return ( valueObject() instanceof Double );
+		return ( finalObject() instanceof Double );
 	}
 	
 	public final boolean isString()
 	{
-		return ( valueObject() instanceof String );
+		return ( finalObject() instanceof String );
 	}
 	
 	public final boolean isChannel()
 	{
-		return ( valueObject() instanceof CommChannel );
+		return ( finalObject() instanceof CommChannel );
 	}
 	
 	public final boolean isDefined()
 	{
-		return ( valueObject() != null );
+		return ( finalObject() != null );
 	}
 	
 	public void setValue( CommChannel value )
@@ -631,7 +664,7 @@ public abstract class Value implements Expression, Cloneable
 	
 	public CommChannel channelValue()
 	{
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o instanceof CommChannel == false ) {
 			return null;
 		}
@@ -650,7 +683,7 @@ public abstract class Value implements Expression, Cloneable
 	public final String strValueStrict()
 		throws TypeCastingException
 	{
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof String ) {
@@ -672,7 +705,7 @@ public abstract class Value implements Expression, Cloneable
 		throws TypeCastingException
 	{
 		ByteArray r = null;
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof ByteArray ) {
@@ -732,7 +765,7 @@ public abstract class Value implements Expression, Cloneable
 		throws TypeCastingException
 	{
 		int r = 0;
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof Integer ) {
@@ -772,7 +805,7 @@ public abstract class Value implements Expression, Cloneable
 		throws TypeCastingException
 	{
 		boolean r = false;
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof Boolean ) {
@@ -807,7 +840,7 @@ public abstract class Value implements Expression, Cloneable
 		throws TypeCastingException
 	{
 		long r = 0L;
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof Long ) {
@@ -847,7 +880,7 @@ public abstract class Value implements Expression, Cloneable
 		throws TypeCastingException
 	{
 		double r = 0.0;
-		Object o = valueObject();
+		Object o = finalObject();
 		if ( o == null ) {
 			throw new TypeCastingException();
 		} else if ( o instanceof Integer ) {
@@ -963,7 +996,7 @@ public abstract class Value implements Expression, Cloneable
 	
 	public final void assignValue( Value val )
 	{
-		setValueObject( val.valueObject() );
+		setValueObject(val.finalObject() );
 	}
 	
 	public Expression cloneExpression( TransformationReason reason )

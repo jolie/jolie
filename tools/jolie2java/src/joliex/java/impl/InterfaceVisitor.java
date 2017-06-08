@@ -42,6 +42,7 @@ import jolie.lang.parse.ast.ExecutionInfo;
 import jolie.lang.parse.ast.ExitStatement;
 import jolie.lang.parse.ast.ForEachStatement;
 import jolie.lang.parse.ast.ForStatement;
+import jolie.lang.parse.ast.HookStatement;
 import jolie.lang.parse.ast.IfStatement;
 import jolie.lang.parse.ast.InputPortInfo;
 import jolie.lang.parse.ast.InstallFixedVariableExpressionNode;
@@ -114,6 +115,7 @@ public class InterfaceVisitor implements OLVisitor
 	private final List< InterfaceDefinition > interfaceDefinitions =
 		new ArrayList< InterfaceDefinition >();
 	private final Set< String > interfaceNames = new HashSet< String >();
+
 
 	public class InterfaceNotFound extends Exception
 	{
@@ -230,4 +232,5 @@ public class InterfaceVisitor implements OLVisitor
 	public void visit( InlineTreeExpressionNode n ) {}
 	public void visit( VoidExpressionNode n ) {}
 	public void visit( ProvideUntilStatement n ) {}
+	public void visit( HookStatement n ) {}
 }

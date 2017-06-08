@@ -1,38 +1,91 @@
 
+
+type XMLNodeELement: void {
+    .Name: any            // from version 1.6.0 and greater, it must be replaced with void | string
+    .Namespace: any
+    .Prefix: any
+    .Node*: XMLNodeContent
+}
+type XMLNodeContent: void {
+    .Element?: XMLNodeELement
+    .CDATA?: void {
+        .Value: any
+    }
+    .Text?: void {
+        .Value: any
+    }
+    .Comment?: void {
+        .Value: any
+    }
+    .Entity?: void {
+        .Name: any
+        .Value: any
+        .Node*: XMLNodeContent
+    }
+    .EntityReference?: void {
+        .Value: any
+        .Node*: XMLNodeContent
+    }
+    .Notation?: void {
+        .Value: any
+    }
+    .Attribute?: void {
+        .Name: any
+        .Value: any
+        .Prefix: any
+        .Namespace: any
+    }
+}
+
+type XMLNodes: void {
+    .Node*: XMLNodeContent
+}
+
 type AddToRequest: void {
-  .from: void {
-      .resourceName: string
-      .path: string
-  }
-  .to: void {
-      .resourceName: string
-      .path: string
-  }
+    .from: XMLNodeELement
+    .to: void {
+        .resourceName: string
+        .__path: string
+        .__index: int
+    }
 }
 
 type CreatePlainXMLRequest: void {
-  .resourceName: string
-  .xml: string
+    .resourceName: string
+    .xml: string
 }
 
-type DestroyPlainXMLRequest: void {
-  .resourceName: string
+type GetElementRequest: void {
+    .resourceName: string
+    .__path: string
 }
 
-type GetNodeRequest: void {
-  .resourceName: string
-  .path: string
+type ShowTreeResponse: void {
+    .path*: string
+    .tree: undefined
 }
 
-type GetXMLStringRequest: void {
-  .resourceName: string
+type RemoveElementRequest: void {
+    .resourceName: string
+    .__path: string
+    .remove_next_text?: bool
 }
+
+type ResourceRequest: void {
+    .resourceName: string
+}
+
 
 interface PlainXMLManagerInterface {
   RequestResponse:
-    addTo( AddToRequest )( void ) throws ResourceDoesNotExist( string ) NodeDoesNoteExist( string ),
+    addElementTo( AddToRequest )( void )
+          throws  ResourceDoesNotExist( string )
+                  NodeDoesNoteExist( string )
+                  PositionOrPathNotAvailable,
     createPlainXML( CreatePlainXMLRequest )( void ) throws ResourceAlreadyExists,
-    destroyPlainXML( DestroyPlainXMLRequest )( void ) throws ResourceDoesNotExist,
-    getNode( GetNodeRequest )( undefined ) throws ResourceDoesNotExist,
-    getXMLString( GetXMLStringRequest )( string ) throws ResourceDoesNotExist
+    destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
+    getElement( GetElementRequest )( undefined ) throws ResourceDoesNotExist,
+    getXMLString( ResourceRequest )( string ) throws ResourceDoesNotExist,
+    removeElement( RemoveElementRequest )( void ) throws ResourceDoesNotExist,
+    showTree( ResourceRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
 }

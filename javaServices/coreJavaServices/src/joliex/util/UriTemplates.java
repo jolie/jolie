@@ -55,7 +55,7 @@ public class UriTemplates extends JavaService
 		UriTemplate t = UriTemplate.fromTemplate( request.getFirstChild( "template" ).strValue() );
 		if ( request.hasChildren( "params" ) ) {
 			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children().entrySet() ) {
-				t.set( entry.getKey(), entry.getValue().first().valueObject() );
+				t.set( entry.getKey(), entry.getValue().first().getValueObject().getValueObject() );
 			}
 		}
 		return t.expand();

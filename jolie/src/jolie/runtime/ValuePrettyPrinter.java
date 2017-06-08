@@ -82,16 +82,16 @@ public class ValuePrettyPrinter
 		if ( value.isUsedInCorrelation() ) {
 			writer.write( " (cset)" );
 		}
-		if ( value.valueObject() != null ) {
+		if ( value.getValueObject().getValueObject() != null ) {
 			writer.write( " = " );
-			if ( value.valueObject() instanceof ByteArray && byteTruncation > -1 ) {
+			if ( value.getValueObject().getValueObject() instanceof ByteArray && byteTruncation > -1 ) {
 				String s = value.byteArrayValue().toString();
 				writer.write( s.substring( 0, Math.min( byteTruncation, s.length() ) ) + "..." );
 			} else {
-				writer.write( value.valueObject().toString() );
+				writer.write( value.getValueObject().getValueObject().toString() );
 			}
 			writer.write( " : " );
-			writer.write( value.valueObject().getClass().getName() );
+			writer.write( value.getValueObject().getValueObject().getClass().getName() );
 		}
 		writer.write( '\n' );
 	}
