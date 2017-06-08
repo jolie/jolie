@@ -125,7 +125,7 @@ public class SodepProtocol extends ConcurrentCommProtocol
 	private void writeValue( DataOutput out, Value value )
 		throws IOException
 	{
-		Object valueObject = value.valueObject();
+		Object valueObject = value.getValueObject().getValueObject();
 		if ( valueObject == null ) {
 			out.writeByte( DataTypeHeaderId.NULL );
 		} else if ( valueObject instanceof String ) {
