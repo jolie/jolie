@@ -1,37 +1,38 @@
 
+type XMLNodeELement: void {
+    .Name: any            // from version 1.6.0 and greater, it must be replaced with void | string
+    .Namespace: any
+    .Prefix: any
+    .Node*: XMLNodeContent
+}
 type XMLNodeContent: void {
-    .Element?: void {
-        .Name: string
-        .Namespace: string
-        .Prefix: string
-        .Node*: XMLNodeContent
-    }
+    .Element?: XMLNodeELement
     .CDATA?: void {
-        .Value: string
+        .Value: any
     }
     .Text?: void {
-        .Value: string
+        .Value: any
     }
     .Comment?: void {
-        .Value: string
+        .Value: any
     }
     .Entity?: void {
-        .Name: string
-        .Value: string
+        .Name: any
+        .Value: any
         .Node*: XMLNodeContent
     }
     .EntityReference?: void {
-        .Value: string
+        .Value: any
         .Node*: XMLNodeContent
     }
     .Notation?: void {
-        .Value: string
+        .Value: any
     }
     .Attribute?: void {
-        .Name: string
-        .Value: string
-        .Prefix: string
-        .Namespace: string
+        .Name: any
+        .Value: any
+        .Prefix: any
+        .Namespace: any
     }
 }
 
@@ -40,7 +41,7 @@ type XMLNodes: void {
 }
 
 type AddToRequest: void {
-    .from: XMLNodes
+    .from: XMLNodeELement
     .to: void {
         .resourceName: string
         .__path: string

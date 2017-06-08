@@ -17,8 +17,8 @@ define __navigate {
     spl = __path;
     spl.regex = "/";
     split@StringUtils( spl )( _nodes_res );
-    _node_to_look_for = _nodes_res.result[ 0 ];
-
+    _node_to_look_for = _nodes_res.result[ 0 ]
+    ;
     /* find index */
     spl = _node_to_look_for;
     spl.regex = "\\[";
@@ -108,30 +108,34 @@ main {
 
    /* public */
     [ addElementTo( request )( response ) {
-      if ( !is_defined( global.resources.( request.from.resourceName ) ) ) {
-        throw( ResourceAlreadyExists, request.from.resourceName )
-      };
-      if ( !is_defined( global.resources.( request.to.resourceName ) ) ) {
-        throw( ResourceAlreadyExists, request.to.resourceName )
-      }
-      ;
-      __node =$ global.resources.( request.to.resourceName ).root;
-      __path = request.to.__path;
-      __navigate;
-      if( __node instanceof void ) {
-          throw( PositionOrPathNotAvailable )
-      }
-      ;
-      /* copy extra nodes in temp variable */
-      for( n = request.to.__index, n < #__node.Node, n++ ) {
-          tmp.Node[ request.to.__index - n ] << __node.Node[ n ]
-      };
-      /* undef extra nodes */
-      for( n = request.to.__index, n < #__node.Node, n++ ) {
-          undef( __node.Node[ n ] )
-      };
-      /* add node */
-      __node.Node[ request.to.__index ] <<
+        if ( !is_defined( global.resources.( request.to.resourceName ) ) ) {
+          throw( ResourceAlreadyExists, request.to.resourceName )
+        }
+        ;
+        __node =$ global.resources.( request.to.resourceName ).root;
+        __path = request.to.__path;
+        if ( __path != "/" ) {
+            __navigate
+        }
+        ;
+        if( __node instanceof void ) {
+            throw( PositionOrPathNotAvailable )
+        }
+        ;
+        /* copy extra nodes in temp variable */
+        for( n = request.to.__index, n < #__node.Node, n++ ) {
+            tmp.Node[ n - request.to.__index ] << __node.Node[ n ]
+        };
+        /* undef extra nodes */
+        for( n = request.to.__index, n < #__node.Node, n++ ) {
+            undef( __node.Node[ n ] )
+        };
+        /* add node */
+        __node.Node[ request.to.__index ].Element << request.from;
+        /* add nodes saved in temporary variable */
+        for( n = 0, n < #tmp.Node, n++ ) {
+            __node.Node[ request.to.__index + 1 + n ] << tmp.Node[ n ]
+        }
     }]
 
     [ createPlainXML( request )( response ) {
