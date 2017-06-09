@@ -21,12 +21,17 @@
 
 package jolie.net.soap;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+import jolie.Interpreter;
+import org.xml.sax.InputSource;
 
 /**
  * Implements a WSDL document cache for the SOAP protocol.
@@ -64,7 +69,21 @@ public class WSDLCache
 		if ( definition == null ) {
 			WSDLReader reader = factory.newWSDLReader();
 			reader.setFeature( "javax.wsdl.verbose", false );
-			definition = reader.readWSDL( url );
+			try {
+				definition = reader.readWSDL( url );
+			} catch ( WSDLException e ) {
+				/* try to get the wsdl from the classLoader */
+				Interpreter interpreter = Interpreter.getInstance();
+				try {
+					InputStream inputStream = interpreter.getClassLoader().getResourceAsStream( url );
+					Reader fileReader = new InputStreamReader( inputStream );
+					InputSource is = new InputSource( fileReader );
+					definition = reader.readWSDL( interpreter.getClassLoader().getResource( url ).toURI().toString(), is );
+				} catch ( Exception e2 ) {
+					e2.printStackTrace();
+					throw e;
+				}
+			}
 			cache.put( url, definition );
 		}
 		return definition;
