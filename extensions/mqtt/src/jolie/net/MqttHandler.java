@@ -17,8 +17,6 @@
 package jolie.net;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -30,14 +28,12 @@ import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.concurrent.ScheduledFuture;
-import java.util.ListIterator;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This Class extends { @link SimpleChannelInboundHandler }
@@ -46,47 +42,24 @@ import java.util.concurrent.TimeUnit;
  * @author stefanopiozingaro
  */
 @ChannelHandler.Sharable
-public class MqttPublishSubscribeHandler
+public class MqttHandler
         extends ChannelInboundHandlerAdapter {
 
-    /*
-    From jk5
-     */
-    private ScheduledFuture<?> pingRespTimeout;
-    /*
-    End jk5
-     */
     private final MqttProtocol mp;
     private final String clientId;
+    private final boolean isSubscriber;
 
-    public MqttPublishSubscribeHandler(MqttProtocol mp) {
+    public MqttHandler(MqttProtocol mp) {
 
         this.mp = mp;
-        this.clientId = "jolie/" + GenerateRandomId();
+        this.clientId = "jolie/" + (int) (Math.random() * 65536);
+        this.isSubscriber = mp.isInInputPort();
 
-        mp.setKeepAliveConnectTimeSeconds(2);
         mp.setVersion(MqttVersion.MQTT_3_1_1);
         mp.setWillTopic("");
         mp.setWillMessage("");
         mp.setUserName("");
         mp.setPassword("");
-    }
-
-    /**
-     * Generate random client id for default Method taken and little modified @
-     * github from jk5
-     *
-     * @return the random generated client id
-     */
-    private String GenerateRandomId() {
-        Random random = new Random();
-        String id = "";
-        String[] options
-                = "0123456789".split("");
-        for (int i = 0; i < 8; i++) {
-            id += options[random.nextInt(options.length)];
-        }
-        return id;
     }
 
     /**
@@ -149,48 +122,6 @@ public class MqttPublishSubscribeHandler
         }
     }
 
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
-            throws Exception {
-
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
-            switch (event.state()) {
-                case READER_IDLE:
-                    break;
-                case WRITER_IDLE:
-                    MqttFixedHeader fixedHeader = new MqttFixedHeader(
-                            MqttMessageType.PINGREQ,
-                            false,
-                            MqttQoS.AT_MOST_ONCE,
-                            false,
-                            0
-                    );
-                    ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
-
-                    if (this.pingRespTimeout != null) {
-                        this.pingRespTimeout
-                                = ctx.channel()
-                                        .eventLoop()
-                                        .schedule(() -> {
-                                            MqttFixedHeader disconnectFixedHeader
-                                                    = new MqttFixedHeader(
-                                                            MqttMessageType.DISCONNECT,
-                                                            false,
-                                                            MqttQoS.AT_MOST_ONCE,
-                                                            false,
-                                                            0
-                                                    );
-                                            ctx.channel().writeAndFlush(
-                                                    new MqttMessage(disconnectFixedHeader)
-                                            ).addListener(ChannelFutureListener.CLOSE);
-                                        }, 10, TimeUnit.SECONDS);
-                    }
-                    break;
-            }
-        }
-    }
-
     /**
      * For each one of the { @link MqttMessage } type the method send the
      * request to the inbound handler method, that is, all the acknowledgement
@@ -201,31 +132,27 @@ public class MqttPublishSubscribeHandler
      * @throws Exception
      */
     @Override
-    @SuppressWarnings("Convert2Lambda")
     public void channelRead(ChannelHandlerContext ctx, Object msg)
             throws Exception {
 
         MqttMessageType mmt = ((MqttMessage) msg).fixedHeader().messageType();
         Channel channel = ctx.channel();
-
+        //System.out.println(mmt);
         switch (mmt) {
             case CONNACK:
                 MqttConnectReturnCode mcrc
                         = ((MqttConnAckMessage) msg).variableHeader().connectReturnCode();
 
+                //System.out.println(mcrc);
                 switch (mcrc) {
                     case CONNECTION_ACCEPTED:
-                        for (ListIterator li = mp.getPendingPublishes().listIterator(); li.hasNext();) {
-                            channel.writeAndFlush(li).addListener(new ChannelFutureListener() {
-                                @Override
-                                public void operationComplete(ChannelFuture future) throws Exception {
-                                    if (future.isSuccess()) {
-                                        System.out.println("Master Yoda says "
-                                                + "poweful you become, the dark force strong is in you!");
-                                    }
-                                }
-                            });
+                        if (isSubscriber) {
+                            channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
                         }
+                        /*
+                        Connection alive, tell the thread that we're ready
+                         */
+                        mp.sendAndFlush(channel);
                         break;
                     case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
                     case CONNECTION_REFUSED_IDENTIFIER_REJECTED:
@@ -236,28 +163,33 @@ public class MqttPublishSubscribeHandler
                         break;
                 }
                 break;
-            case PINGREQ:
-                channel.writeAndFlush(
-                        new MqttMessage(
-                                new MqttFixedHeader(
-                                        MqttMessageType.PINGRESP,
-                                        false,
-                                        MqttQoS.AT_MOST_ONCE,
-                                        false,
-                                        0
-                                )
-                        )
-                );
-                break;
             case PINGRESP:
-                if (this.pingRespTimeout != null
-                        && !this.pingRespTimeout.isCancelled()
-                        && !this.pingRespTimeout.isDone()) {
-                    this.pingRespTimeout.cancel(true);
-                    this.pingRespTimeout = null;
-                }
+                //System.out.println("Ping response received!");
+                break;
+            case PUBLISH:
+                MqttPublishMessage mpm = (MqttPublishMessage) msg;
+                mp.notifyPublication(mpm);
+            case SUBACK:
+            //System.out.println("Mi sono iscritto!");
+            case CONNECT:
                 break;
             case PUBACK:
+                break;
+            case PUBREC:
+                break;
+            case PUBREL:
+                break;
+            case PUBCOMP:
+                break;
+            case SUBSCRIBE:
+                break;
+            case UNSUBSCRIBE:
+                break;
+            case UNSUBACK:
+                break;
+            case PINGREQ:
+                break;
+            case DISCONNECT:
                 break;
             default:
                 ctx.fireChannelRead(ReferenceCountUtil.retain(msg));

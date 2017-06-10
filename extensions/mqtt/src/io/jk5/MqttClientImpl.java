@@ -312,9 +312,13 @@ final class MqttClientImpl implements MqttClient {
      */
     @Override
     public Future<Void> publish(String topic, ByteBuf payload, MqttQoS qos, boolean retain) {
+        
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
+        
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, retain, 0);
+        
         MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(topic, getNewMessageId().messageId());
+        
         MqttPublishMessage message = new MqttPublishMessage(fixedHeader, variableHeader, payload);
 
         MqttPendingPublish pendingPublish = new MqttPendingPublish(variableHeader.messageId(), future, payload.retain(), message, qos);
