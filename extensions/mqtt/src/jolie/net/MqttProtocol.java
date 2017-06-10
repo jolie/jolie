@@ -3,8 +3,8 @@
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * the Free Software Foundation, either mqttVersion 3 of the License, or
+ * (at your option) any later mqttVersion.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,18 +23,21 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttSubscribePayload;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.internal.ThreadLocalRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.ListIterator;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
@@ -51,71 +54,46 @@ import jolie.runtime.VariablePath;
  */
 public class MqttProtocol extends AsyncCommProtocol {
 
-    /*
-    to set in the main behaviour for mqtt
-    mandatory
-    */
-    private Channel mqttChannel;
-    private String mqttTopic;
-    
-    /*
-    to set in the main behaviour for mqtt
-    optional
-    */
-    private MqttVersion version;
+    private final boolean inInputPort;
+    private final int keepAliveConnectTimeSeconds;
+    private MqttVersion mqttVersion;
     private String willTopic;
     private String willMessage;
-    private String userName;
-    private String password;
-    private int keepAliveConnectTimeSeconds;
-    
-    /*
-    to publish and to subscribe
-    */
-    private ArrayList<MqttPublishMessage> pendingPublishes = new ArrayList<>();
-    private ArrayList<MqttSubscribeMessage> pendingSubscriptions = new ArrayList<>();
+    private String mqttUserName;
+    private String mqttPassword;
+    private final List<MqttPublishMessage> pendingPublishes;
+    private final List<MqttSubscribeMessage> pendingSubscriptions;
+    private final List<MqttPublishMessage> publishesReceived;
+    private boolean publishReady;
+    private boolean subscribeReady;
+    private Channel connectedChannel;
 
-    /*
-    set & get
-    */
-    public Channel getMqttChannel() {
-        return mqttChannel;
+    public Channel getConnectedChannel() {
+        return connectedChannel;
     }
 
-    public void setMqttChannel(Channel mqttChannel) {
-        this.mqttChannel = mqttChannel;
+    public void setConnectedChannel(Channel connectedChannel) {
+        this.connectedChannel = connectedChannel;
     }
 
-    public String getMqttTopic() {
-        return mqttTopic;
+    public boolean isPublishReady() {
+        return publishReady;
     }
 
-    public void setMqttTopic(String mqttTopic) {
-        this.mqttTopic = mqttTopic;
+    public boolean isSubscribeReady() {
+        return subscribeReady;
     }
 
-    public List<MqttPublishMessage> getPendingPublishes() {
-        return pendingPublishes;
+    public boolean isInInputPort() {
+        return inInputPort;
     }
 
-    public void setPendingPublishes(ArrayList<MqttPublishMessage> pendingPublishes) {
-        this.pendingPublishes = pendingPublishes;
-    }
-
-    public ArrayList<MqttSubscribeMessage> getPendingSubscriptions() {
-        return pendingSubscriptions;
-    }
-
-    public void setPendingSubscriptions(ArrayList<MqttSubscribeMessage> pendingSubscriptions) {
-        this.pendingSubscriptions = pendingSubscriptions;
-    }
-    
     public MqttVersion getVersion() {
-        return version;
+        return mqttVersion;
     }
 
     public void setVersion(MqttVersion version) {
-        this.version = version;
+        this.mqttVersion = version;
     }
 
     public String getWillTopic() {
@@ -135,50 +113,69 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     public String getUserName() {
-        return userName;
+        return mqttUserName;
     }
 
     public void setUserName(String userName) {
-        this.userName = userName;
+        this.mqttUserName = userName;
     }
 
     public String getPassword() {
-        return password;
+        return mqttPassword;
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.mqttPassword = password;
     }
 
     public int getKeepAliveConnectTimeSeconds() {
         return keepAliveConnectTimeSeconds;
     }
 
-    public void setKeepAliveConnectTimeSeconds(int keepAliveConnectTimeSeconds) {
-        this.keepAliveConnectTimeSeconds = keepAliveConnectTimeSeconds;
+    public List<MqttPublishMessage> getPendingPublishes() {
+        return pendingPublishes;
+    }
+
+    public List<MqttSubscribeMessage> getPendingSubscriptions() {
+        return pendingSubscriptions;
+    }
+
+    public List<MqttPublishMessage> getPublishesReceived() {
+        return publishesReceived;
     }
 
     /**
      * Default Constructor for MqttProtocol going super Look at the { @link
      * HttpProtocol.java} one
      *
+     * @param inInputPort
      * @param configurationPath
      */
-    public MqttProtocol(VariablePath configurationPath) {
+    public MqttProtocol(boolean inInputPort, VariablePath configurationPath) {
         super(configurationPath);
+        this.keepAliveConnectTimeSeconds = 2;
+        this.pendingPublishes = new ArrayList<>();
+        this.pendingSubscriptions = new ArrayList<>();
+        this.publishesReceived = new ArrayList<>();
+        this.inInputPort = inInputPort;
+        this.publishReady = false;
+        this.subscribeReady = false;
     }
 
     /**
-     * To publish, just take a future MqttMessage object
-     * TODO implement msgToMqttMsgCodec()
-     * @param string
+     * To buildPublication, just take a future MqttMessage object TODO implement
+     * msgToMqttMsgCodec()
+     *
+     * @param topic String
+     * @param message MqttMessage
+     * @return
      */
-    void publish(String message) {
+    public MqttPublishMessage buildPublication(String topic, String message) {
 
         boolean isDup = Boolean.FALSE;
         MqttQoS publishQoS = MqttQoS.AT_LEAST_ONCE;
         boolean isConnectRetain = Boolean.FALSE;
-        int messageId = Integer.parseInt(GenerateRandomId());
+        int messageId = (int) (Math.random() * 65536);
 
         MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
                 MqttMessageType.PUBLISH,
@@ -188,11 +185,7 @@ public class MqttProtocol extends AsyncCommProtocol {
                 0
         );
 
-        MqttPublishVariableHeader variableHeader
-                = new MqttPublishVariableHeader(
-                        mqttTopic,
-                        messageId
-                );
+        MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(topic, messageId);
 
         ByteBuf payload = parseObject(message);
 
@@ -202,7 +195,81 @@ public class MqttProtocol extends AsyncCommProtocol {
                 payload
         );
 
-        pendingPublishes.add(mpm);
+        return mpm;
+    }
+
+    /**
+     *
+     * @param channel
+     */
+    public void sendAndFlush(Channel channel) {
+
+        if (channel.isActive() && channel.isWritable()) {
+
+            if (inInputPort) {
+
+                this.subscribeReady = true;
+                for (ListIterator<MqttSubscribeMessage> iterator
+                        = this.pendingSubscriptions.listIterator(); iterator.hasNext();) {
+
+                    channel.writeAndFlush(iterator.next());
+                    iterator.remove();
+                }
+            } else {
+
+                this.publishReady = true;
+                for (ListIterator<MqttPublishMessage> iterator
+                        = this.pendingPublishes.listIterator(); iterator.hasNext();) {
+
+                    channel.writeAndFlush(iterator.next());
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    /**
+     * To buildPublication, just take a future MqttMessage object TODO implement
+     * msgToMqttMsgCodec()
+     *
+     * @param topic String
+     * @return
+     */
+    public MqttSubscribeMessage buildSubscription(String topic) {
+
+        boolean isDup = Boolean.FALSE;
+        MqttQoS subscribeQoS = MqttQoS.AT_LEAST_ONCE;
+        boolean isSubscribeRetain = Boolean.FALSE;
+        int messageId = ThreadLocalRandom.current().nextInt(1, 65536 + 1);
+
+        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
+                MqttMessageType.SUBSCRIBE,
+                isDup,
+                subscribeQoS,
+                isSubscribeRetain,
+                0
+        );
+
+        MqttMessageIdVariableHeader variableHeader
+                = MqttMessageIdVariableHeader.from(messageId);
+
+        MqttSubscribePayload payload
+                = new MqttSubscribePayload(Collections.singletonList(
+                        new MqttTopicSubscription(topic, subscribeQoS))
+                );
+
+        MqttSubscribeMessage msm
+                = new MqttSubscribeMessage(mqttFixedHeader, variableHeader, payload);
+
+        return msm;
+    }
+
+    /**
+     * 
+     * @param mpm MqttPublishMessage
+     */
+    void notifyPublication(MqttPublishMessage mpm) {
+        this.publishesReceived.add(mpm);
     }
 
     /*
@@ -227,9 +294,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 
         pipeline.addLast("MqttDecoder", new MqttDecoder());
         pipeline.addLast("MqttEncoder", MqttEncoder.INSTANCE);
-        pipeline.addLast("IdleState", new IdleStateHandler(4, 5, 0, TimeUnit.SECONDS));
-        pipeline.addLast("MqttPublishSubscribe", new MqttPublishSubscribeHandler(this));
-
+        pipeline.addLast("MqttPublishSubscribe", new MqttHandler(this));
+        pipeline.addLast("Ping", new MqttPingHandler());
     }
 
     /**
@@ -252,29 +318,13 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     /**
-     * Generate random client id for default Method stolen and little modified @
-     * github from jk5
-     *
-     * @return the random generated client id
-     */
-    private String GenerateRandomId() {
-        Random random = new Random();
-        String id = "";
-        String[] options = "0123456789".split("");
-        for (int i = 0; i < 8; i++) {
-            id += options[random.nextInt(options.length)];
-        }
-        return id;
-    }
-
-    /**
      * TODO parse object according to object type passed
      *
      * @param message
      * @return ByteBuf
      */
     private ByteBuf parseObject(String message) {
-        return Unpooled.buffer().writeBytes(message.getBytes(CharsetUtil.UTF_8));
+        return Unpooled.copiedBuffer(message.getBytes(CharsetUtil.UTF_8));
     }
 
 }
