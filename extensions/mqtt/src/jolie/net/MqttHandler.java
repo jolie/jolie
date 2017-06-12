@@ -16,6 +16,7 @@
  */
 package jolie.net;
 
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,13 +28,16 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
-import io.netty.util.ReferenceCountUtil;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This Class extends { @link SimpleChannelInboundHandler }
@@ -72,7 +76,6 @@ public class MqttHandler
      * @throws java.lang.Exception
      */
     @Override
-    @SuppressWarnings("Convert2Lambda")
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         boolean isDup = Boolean.FALSE;
@@ -117,9 +120,7 @@ public class MqttHandler
                 payload
         );
 
-        if (ctx.channel().isWritable()) {
-            ctx.channel().writeAndFlush(mcm);
-        }
+        ctx.channel().writeAndFlush(mcm);
     }
 
     /**
@@ -137,40 +138,36 @@ public class MqttHandler
 
         MqttMessageType mmt = ((MqttMessage) msg).fixedHeader().messageType();
         Channel channel = ctx.channel();
-        //System.out.println(mmt);
+
+        //System.out.println(mmt + " " + Thread.currentThread().getName());
         switch (mmt) {
             case CONNACK:
                 MqttConnectReturnCode mcrc
                         = ((MqttConnAckMessage) msg).variableHeader().connectReturnCode();
 
-                //System.out.println(mcrc);
                 switch (mcrc) {
                     case CONNECTION_ACCEPTED:
-                        if (isSubscriber) {
+                        if (isSubscriber) { // in case of subscriber start pinging
                             channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
                         }
-                        /*
-                        Connection alive, tell the thread that we're ready
-                         */
-                        mp.sendAndFlush(channel);
+                        mp.sendAndFlush(channel); // flush pending publish and pending subscriptions 
                         break;
                     case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
                     case CONNECTION_REFUSED_IDENTIFIER_REJECTED:
                     case CONNECTION_REFUSED_NOT_AUTHORIZED:
                     case CONNECTION_REFUSED_SERVER_UNAVAILABLE:
                     case CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION:
-                        channel.closeFuture();
+                        System.out.println(mcrc.name());
                         break;
+                    default:
+                        System.out.println(mcrc.name());
                 }
                 break;
-            case PINGRESP:
-                //System.out.println("Ping response received!");
-                break;
             case PUBLISH:
-                MqttPublishMessage mpm = (MqttPublishMessage) msg;
-                mp.notifyPublication(mpm);
-            case SUBACK:
-            //System.out.println("Mi sono iscritto!");
+                if (isSubscriber) {
+                    handlePublish(channel, (MqttPublishMessage) msg);
+                }
+                break;
             case CONNECT:
                 break;
             case PUBACK:
@@ -183,17 +180,69 @@ public class MqttHandler
                 break;
             case SUBSCRIBE:
                 break;
+            case SUBACK:
+                break;
             case UNSUBSCRIBE:
                 break;
             case UNSUBACK:
                 break;
             case PINGREQ:
                 break;
+            case PINGRESP:
+                break;
             case DISCONNECT:
                 break;
             default:
-                ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+                System.out.println(mmt.name());
         }
     }
 
+    private void handlePublish(Channel channel, MqttPublishMessage mpm) {
+
+        switch (mpm.fixedHeader().qosLevel()) {
+            case AT_MOST_ONCE:
+                handleIncomingPublish(mpm);
+                break;
+            case AT_LEAST_ONCE:
+                handleIncomingPublish(mpm);
+
+                if (mpm.variableHeader().messageId() != -1) {
+
+                    MqttFixedHeader fixedHeader
+                            = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
+                    MqttMessageIdVariableHeader variableHeader
+                            = MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId());
+                    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));
+                }
+                break;
+            case EXACTLY_ONCE:
+                break;
+            case FAILURE:
+                System.out.println("Publish has Failed QoS, it should be retrasmitted!");
+                break;
+            default:
+                System.out.println(mpm.fixedHeader().qosLevel().name());
+        }
+
+    }
+
+    private void handleIncomingPublish(MqttPublishMessage mpm) {
+        Iterator i = mp.getSubscriptions().entrySet().iterator();
+        while (i.hasNext()) {
+            Map.Entry subscription = (Map.Entry) i.next();
+            if (subscription.getKey().equals(mpm.variableHeader().topicName())) {
+                /*
+                System.out.println(
+                        "Topic in the subscriptions is " + subscription.getKey()
+                        + " & "
+                        + " Topic of the message received is " + mpm.variableHeader().topicName()
+                        + " & "
+                        + " Message received is " + Unpooled.copiedBuffer(mpm.payload()).toString(CharsetUtil.UTF_8)
+                );
+                 */
+                ((PublishHandler) subscription.getValue()).onMessage((String) subscription.getKey(), Unpooled.copiedBuffer(mpm.payload()));
+            }
+            //i.remove(); DO NOT REMOVE IT
+        }
+    }
 }

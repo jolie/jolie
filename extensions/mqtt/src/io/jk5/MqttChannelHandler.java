@@ -1,6 +1,5 @@
 package io.jk5;
 
-import com.google.common.collect.ImmutableSet;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -82,6 +81,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
     }
 
     private void invokeHandlersForIncomingPublish(MqttPublishMessage message) {
+        /*
         for (MqttSubscribtion subscribtion : ImmutableSet.copyOf(this.client.getSubscriptions().values())) {
             if (subscribtion.matches(message.variableHeader().topicName())) {
                 if (subscribtion.isOnce() && subscribtion.isCalled()) {
@@ -96,7 +96,8 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                 message.payload().resetReaderIndex();
             }
         }
-        /*Set<MqttSubscribtion> subscribtions = ImmutableSet.copyOf(this.client.getSubscriptions().get(message.variableHeader().topicName()));
+         */
+ /*Set<MqttSubscribtion> subscribtions = ImmutableSet.copyOf(this.client.getSubscriptions().get(message.variableHeader().topicName()));
         for (MqttSubscribtion subscribtion : subscribtions) {
             if(subscribtion.isOnce() && subscribtion.isCalled()){
                 continue;
@@ -156,8 +157,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         pendingSubscribtion.onSubackReceived();
         for (MqttPendingSubscribtion.MqttPendingHandler handler : pendingSubscribtion.getHandlers()) {
             MqttSubscribtion subscribtion = new MqttSubscribtion(pendingSubscribtion.getTopic(), handler.getHandler(), handler.isOnce());
-            this.client.getSubscriptions().put(pendingSubscribtion.getTopic(), subscribtion);
-            this.client.getHandlerToSubscribtion().put(handler.getHandler(), subscribtion);
+
+//            this.client.getSubscriptions().put(pendingSubscribtion.getTopic(), subscribtion);
+ //           this.client.getHandlerToSubscribtion().put(handler.getHandler(), subscribtion);
         }
         this.client.getPendingSubscribeTopics().remove(pendingSubscribtion.getTopic());
 

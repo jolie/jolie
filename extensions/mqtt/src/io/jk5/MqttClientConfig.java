@@ -4,8 +4,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.mqtt.MqttVersion;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Random;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -16,10 +14,10 @@ public final class MqttClientConfig {
     private String clientId;
     private int timeoutSeconds = 10;
     private MqttVersion protocolVersion = MqttVersion.MQTT_3_1;
-    @Nullable private String username = null;
-    @Nullable private String password = null;
+    private String username = null;
+    private String password = null;
     private boolean cleanSession = false;
-    @Nullable private MqttLastWill lastWill;
+    private MqttLastWill lastWill;
     private Class<? extends Channel> channelClass = NioSocketChannel.class;
 
     public MqttClientConfig() {
@@ -33,12 +31,11 @@ public final class MqttClientConfig {
         this.randomClientId = id;
     }
 
-    @Nonnull
     public String getClientId() {
         return clientId;
     }
 
-    public void setClientId(@Nullable String clientId) {
+    public void setClientId( String clientId) {
         if(clientId == null){
             this.clientId = randomClientId;
         }else{
@@ -68,21 +65,21 @@ public final class MqttClientConfig {
         this.protocolVersion = protocolVersion;
     }
 
-    @Nullable
+    
     public String getUsername() {
         return username;
     }
 
-    public void setUsername(@Nullable String username) {
+    public void setUsername( String username) {
         this.username = username;
     }
 
-    @Nullable
+    
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(@Nullable String password) {
+    public void setPassword( String password) {
         this.password = password;
     }
 
@@ -94,12 +91,12 @@ public final class MqttClientConfig {
         this.cleanSession = cleanSession;
     }
 
-    @Nullable
+    
     public MqttLastWill getLastWill() {
         return lastWill;
     }
 
-    public void setLastWill(@Nullable MqttLastWill lastWill) {
+    public void setLastWill( MqttLastWill lastWill) {
         this.lastWill = lastWill;
     }
 
