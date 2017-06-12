@@ -17,15 +17,20 @@
 package jolie.net;
 
 /**
+ * Test Class implementing the behaviour for a general publisher
  *
  * @author stefanopiozingaro
  */
-public class TestMain {
+class Publisher {
+
+    private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null);
+
+    public Publisher(String topic, String message) {
+        mp.buildPublication(topic, message);
+        new ClientBootstrap(mp);
+    }
 
     public static void main(String[] args) {
-
-        //new Thread(new TestCollector()).start();
-        //new Thread(new TestDevice()).start();
-        new Thread(new TestRequestResponse()).start();
+        new Publisher("jolie/temperature/request", "jolie/temperature/response");
     }
 }

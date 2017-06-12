@@ -20,8 +20,6 @@ package io.jk5;
  *
  * @author stefanopiozingaro
  */
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -50,10 +48,10 @@ final class MqttClientImpl implements MqttClient {
     private final IntObjectHashMap<MqttPendingUnsubscribtion> pendingServerUnsubscribes = new IntObjectHashMap<>();
     private final IntObjectHashMap<MqttIncomingQos2Publish> qos2PendingIncomingPublishes = new IntObjectHashMap<>();
     private final IntObjectHashMap<MqttPendingPublish> pendingPublishes = new IntObjectHashMap<>();
-    private final HashMultimap<String, MqttSubscribtion> subscriptions = HashMultimap.create();
+    private final HashMap<String, MqttSubscribtion> subscriptions = new  HashMap<>();
     private final IntObjectHashMap<MqttPendingSubscribtion> pendingSubscribtions = new IntObjectHashMap<>();
     private final Set<String> pendingSubscribeTopics = new HashSet<>();
-    private final HashMultimap<MqttHandler, MqttSubscribtion> handlerToSubscribtion = HashMultimap.create();
+    private final HashMap<MqttHandler, MqttSubscribtion> handlerToSubscribtion = new  HashMap<>();
     private final AtomicInteger nextMessageId = new AtomicInteger(1);
 
     private final MqttClientConfig clientConfig;
@@ -226,10 +224,12 @@ final class MqttClientImpl implements MqttClient {
     @Override
     public Future<Void> off(String topic, MqttHandler handler) {
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
+        /*
         for (MqttSubscribtion subscribtion : this.handlerToSubscribtion.get(handler)) {
             this.subscriptions.remove(topic, subscribtion);
         }
-        this.handlerToSubscribtion.removeAll(handler);
+        */
+        this.handlerToSubscribtion.remove(handler);
         this.checkSubscribtions(topic, future);
         return future;
     }
@@ -245,6 +245,7 @@ final class MqttClientImpl implements MqttClient {
     @Override
     public Future<Void> off(String topic) {
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
+        /*
         ImmutableSet<MqttSubscribtion> subscribtions = ImmutableSet.copyOf(this.subscriptions.get(topic));
         for (MqttSubscribtion subscribtion : subscribtions) {
             for (MqttSubscribtion handSub : this.handlerToSubscribtion.get(subscribtion.getHandler())) {
@@ -252,6 +253,7 @@ final class MqttClientImpl implements MqttClient {
             }
             this.handlerToSubscribtion.remove(subscribtion.getHandler(), subscribtion);
         }
+        */
         this.checkSubscribtions(topic, future);
         return future;
     }
@@ -394,7 +396,7 @@ final class MqttClientImpl implements MqttClient {
     }
 
     private void checkSubscribtions(String topic, Promise<Void> promise) {
-        if (!(this.subscriptions.containsKey(topic) && this.subscriptions.get(topic).size() != 0) && this.serverSubscribtions.contains(topic)) {
+        if (!(this.subscriptions.containsKey(topic) && this.subscriptions.get(topic).toString().length() != 0) && this.serverSubscribtions.contains(topic)) {
             MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.UNSUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE, false, 0);
             MqttMessageIdVariableHeader variableHeader = getNewMessageId();
             MqttUnsubscribePayload payload = new MqttUnsubscribePayload(Collections.singletonList(topic));
@@ -414,7 +416,7 @@ final class MqttClientImpl implements MqttClient {
         return pendingSubscribtions;
     }
 
-    HashMultimap<String, MqttSubscribtion> getSubscriptions() {
+    HashMap<String, MqttSubscribtion> getSubscriptions() {
         return subscriptions;
     }
 
@@ -422,7 +424,7 @@ final class MqttClientImpl implements MqttClient {
         return pendingSubscribeTopics;
     }
 
-    HashMultimap<MqttHandler, MqttSubscribtion> getHandlerToSubscribtion() {
+    HashMap<MqttHandler, MqttSubscribtion> getHandlerToSubscribtion() {
         return handlerToSubscribtion;
     }
 

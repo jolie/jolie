@@ -14,34 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package jolie.net;
 
-import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.buffer.ByteBuf;
 
 /**
  *
  * @author stefanopiozingaro
  */
-class TestCollector implements Runnable {
+public interface PublishHandler {
 
-    private MqttProtocol mp;
-
-    @Override
-    public void run() {
-        receive("temp/random");
-    }
-
-    void receive(String topic) {
-
-        mp = new MqttProtocol(Boolean.TRUE, null);
-        MqttSubscribeMessage sub
-                = mp.buildSubscription(topic);
-
-        if (mp.isSubscribeReady()) {
-            mp.getConnectedChannel().writeAndFlush(sub);
-        } else {
-            mp.getPendingSubscriptions().add(sub);
-        }
-        new ClientBootstrap(mp);
-    }
+    /**
+     *
+     * @param topic
+     * @param payload
+     */
+    void onMessage(String topic, ByteBuf payload);
+    
 }

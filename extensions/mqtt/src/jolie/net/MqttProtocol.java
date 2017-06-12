@@ -19,12 +19,15 @@ package jolie.net;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -35,9 +38,10 @@ import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.ThreadLocalRandom;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
@@ -45,7 +49,7 @@ import jolie.runtime.VariablePath;
  * Implementation of the { @link AsyncCommProtocol } for MQTT protocol relying
  * on TCP/IP socket, uses netty and Non blocking Sockets
  *
- * TODO MOdificare { @link CommCore} 1. in caso di una InputPort: 1.1 in caso di
+ * TODO Modificare { @link CommCore} 1. in caso di una InputPort: 1.1 in caso di
  * protocollo PublishSubscribeProtocol (e.g. MqttProtocol extends
  * PublishSubscribeProtocol) si dovrà creare un CommChannel (che rimarrà aperto)
  * 2.1 altrimenti creò SocketListener e faccio la solita roba
@@ -63,10 +67,14 @@ public class MqttProtocol extends AsyncCommProtocol {
     private String mqttPassword;
     private final List<MqttPublishMessage> pendingPublishes;
     private final List<MqttSubscribeMessage> pendingSubscriptions;
-    private final List<MqttPublishMessage> publishesReceived;
+    private final Map<String, PublishHandler> subscriptions;
     private boolean publishReady;
     private boolean subscribeReady;
     private Channel connectedChannel;
+
+    public Map<String, PublishHandler> getSubscriptions() {
+        return subscriptions;
+    }
 
     public Channel getConnectedChannel() {
         return connectedChannel;
@@ -74,14 +82,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     public void setConnectedChannel(Channel connectedChannel) {
         this.connectedChannel = connectedChannel;
-    }
-
-    public boolean isPublishReady() {
-        return publishReady;
-    }
-
-    public boolean isSubscribeReady() {
-        return subscribeReady;
     }
 
     public boolean isInInputPort() {
@@ -140,10 +140,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         return pendingSubscriptions;
     }
 
-    public List<MqttPublishMessage> getPublishesReceived() {
-        return publishesReceived;
-    }
-
     /**
      * Default Constructor for MqttProtocol going super Look at the { @link
      * HttpProtocol.java} one
@@ -153,13 +149,13 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     public MqttProtocol(boolean inInputPort, VariablePath configurationPath) {
         super(configurationPath);
-        this.keepAliveConnectTimeSeconds = 2;
         this.pendingPublishes = new ArrayList<>();
         this.pendingSubscriptions = new ArrayList<>();
-        this.publishesReceived = new ArrayList<>();
+        this.subscriptions = new HashMap<>();
         this.inInputPort = inInputPort;
         this.publishReady = false;
         this.subscribeReady = false;
+        this.keepAliveConnectTimeSeconds = 2;
     }
 
     /**
@@ -195,47 +191,24 @@ public class MqttProtocol extends AsyncCommProtocol {
                 payload
         );
 
-        return mpm;
-    }
-
-    /**
-     *
-     * @param channel
-     */
-    public void sendAndFlush(Channel channel) {
-
-        if (channel.isActive() && channel.isWritable()) {
-
-            if (inInputPort) {
-
-                this.subscribeReady = true;
-                for (ListIterator<MqttSubscribeMessage> iterator
-                        = this.pendingSubscriptions.listIterator(); iterator.hasNext();) {
-
-                    channel.writeAndFlush(iterator.next());
-                    iterator.remove();
-                }
-            } else {
-
-                this.publishReady = true;
-                for (ListIterator<MqttPublishMessage> iterator
-                        = this.pendingPublishes.listIterator(); iterator.hasNext();) {
-
-                    channel.writeAndFlush(iterator.next());
-                    iterator.remove();
-                }
-            }
+        if (this.publishReady) {
+            this.connectedChannel.writeAndFlush(mpm);
+        } else {
+            this.pendingPublishes.add(mpm);
         }
+
+        return mpm;
     }
 
     /**
      * To buildPublication, just take a future MqttMessage object TODO implement
      * msgToMqttMsgCodec()
      *
-     * @param topic String
+     * @param topics List of MqttTopicSubscription
+     * @param handler PublishHandler
      * @return
      */
-    public MqttSubscribeMessage buildSubscription(String topic) {
+    public MqttSubscribeMessage buildSubscription(List<MqttTopicSubscription> topics, PublishHandler handler) {
 
         boolean isDup = Boolean.FALSE;
         MqttQoS subscribeQoS = MqttQoS.AT_LEAST_ONCE;
@@ -253,23 +226,57 @@ public class MqttProtocol extends AsyncCommProtocol {
         MqttMessageIdVariableHeader variableHeader
                 = MqttMessageIdVariableHeader.from(messageId);
 
-        MqttSubscribePayload payload
-                = new MqttSubscribePayload(Collections.singletonList(
-                        new MqttTopicSubscription(topic, subscribeQoS))
-                );
+        MqttSubscribePayload payload = new MqttSubscribePayload(topics);
 
         MqttSubscribeMessage msm
                 = new MqttSubscribeMessage(mqttFixedHeader, variableHeader, payload);
+
+        // write immeditely on the channel or store it
+        if (this.subscribeReady) {
+            this.connectedChannel.writeAndFlush(msm).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (future.isSuccess()) {
+                        for (ListIterator<MqttTopicSubscription> i = topics.listIterator(); i.hasNext();) {
+                            subscriptions.put(i.next().topicName(), handler);
+                        }
+                    }
+                }
+            });
+        } else {
+            this.pendingSubscriptions.add(msm);
+            for (ListIterator<MqttTopicSubscription> i = topics.listIterator(); i.hasNext();) {
+                subscriptions.put(i.next().topicName(), handler);
+            }
+        }
 
         return msm;
     }
 
     /**
-     * 
-     * @param mpm MqttPublishMessage
+     *
+     * @param channel
      */
-    void notifyPublication(MqttPublishMessage mpm) {
-        this.publishesReceived.add(mpm);
+    public void sendAndFlush(Channel channel) {
+
+        if (channel.isActive() && channel.isWritable()) {
+
+            if (inInputPort) {
+
+                this.subscribeReady = true;
+                for (ListIterator<MqttSubscribeMessage> i = this.pendingSubscriptions.listIterator(); i.hasNext();) {
+                    channel.writeAndFlush(i.next());
+                    i.remove();
+                }
+            } else {
+
+                this.publishReady = true;
+                for (ListIterator<MqttPublishMessage> j = this.pendingPublishes.listIterator(); j.hasNext();) {
+                    channel.writeAndFlush(j.next());
+                    j.remove();
+                }
+            }
+        }
     }
 
     /*
@@ -309,8 +316,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     /**
      *
-     * @return if the behaviour is concurrent or not (i guess @author
-     * stefanopiozingaro)
+     * @return if the behaviour is concurrent or not (i guess)
+     * @author stefanopiozingaro
      */
     @Override
     public boolean isThreadSafe() {
