@@ -25,9 +25,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
-import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -291,8 +291,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     /**
      * Method overrinding setupPipeline of { @link AsyncCommProtocol } Default
-     * pipeline for Mqtt use Encoder and Decoder, we added { @link MqttProtocolInboundHandler
-     * }
+     * pipeline for Mqtt use Encoder and Decoder, we added
+     * MqttProtocolInboundHandler
      *
      * @param pipeline the pipeline to fill with specific protocol handlers
      */
@@ -332,6 +332,27 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     private ByteBuf parseObject(String message) {
         return Unpooled.copiedBuffer(message.getBytes(CharsetUtil.UTF_8));
+    }
+
+    /**
+     * Futuristic Method
+     * @param mqttMsg {@link MqttMessage}
+     * @return {@link CommMessage}
+     */
+    private CommMessage MqttMsg2CommMsgCodec(MqttMessage mqttMsg) {
+        CommMessage commMsg = null;
+        return commMsg;
+
+    }
+
+    /**
+     * Futuristic Method
+     * @param commMsg {@link CommMessage}
+     * @return {@link MqttMessage}
+     */
+    private MqttMessage CommMsg2MqttMsgCodec(CommMessage commMsg) {
+        MqttMessage mqttMsg = null;
+        return mqttMsg;
     }
 
 }

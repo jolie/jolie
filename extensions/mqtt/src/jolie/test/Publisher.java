@@ -14,24 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.test;
 
-import io.netty.buffer.ByteBuf;
+import jolie.net.MqttProtocol;
 
 /**
- * Interface letting the user to implement hot to react at the arrival of a
- * specific topic.
+ * Test Class implementing the behaviour for a general publisher
  *
  * @author stefanopiozingaro
  */
-public interface PublishHandler {
+class Publisher {
 
-    /**
-     * Abstract method setting the behaviour of subscriber.
-     *
-     * @param topic {@link String}
-     * @param payload Netty {@link ByteBuf}
-     */
-    void handleMessage(String topic, ByteBuf payload);
+    private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null);
 
+    public Publisher(String topic, String message) {
+        mp.buildPublication(topic, message);
+        new ClientBootstrap(mp);
+    }
+
+    public static void main(String[] args) {
+        new Publisher("jolie/temperature/request", "jolie/temperature/response");
+    }
 }

@@ -39,3 +39,4 @@ build/
 
 *.class
 /extensions/mqtt/nbproject/private/
+/extensions/coap/nbproject/private/

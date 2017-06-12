@@ -35,9 +35,6 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.CharsetUtil;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * This Class extends { @link SimpleChannelInboundHandler }
@@ -197,6 +194,11 @@ public class MqttHandler
         }
     }
 
+    /**
+     *
+     * @param channel {@link Channel}
+     * @param mpm {@link MqttPublishMessage}
+     */
     private void handlePublish(Channel channel, MqttPublishMessage mpm) {
 
         switch (mpm.fixedHeader().qosLevel()) {
@@ -226,23 +228,15 @@ public class MqttHandler
 
     }
 
+    /**
+     * Call the {@link PublishHandler} relative to the topic contained in the
+     * {@link MqttPublishMessage} received, the {@link PublishHandler} is
+     * defined into the behaviour of the {@link Subscriber}
+     *
+     * @param mpm {@link MqttPublishMessage}
+     */
     private void handleIncomingPublish(MqttPublishMessage mpm) {
-        Iterator i = mp.getSubscriptions().entrySet().iterator();
-        while (i.hasNext()) {
-            Map.Entry subscription = (Map.Entry) i.next();
-            if (subscription.getKey().equals(mpm.variableHeader().topicName())) {
-                /*
-                System.out.println(
-                        "Topic in the subscriptions is " + subscription.getKey()
-                        + " & "
-                        + " Topic of the message received is " + mpm.variableHeader().topicName()
-                        + " & "
-                        + " Message received is " + Unpooled.copiedBuffer(mpm.payload()).toString(CharsetUtil.UTF_8)
-                );
-                 */
-                ((PublishHandler) subscription.getValue()).onMessage((String) subscription.getKey(), Unpooled.copiedBuffer(mpm.payload()));
-            }
-            //i.remove(); DO NOT REMOVE IT
-        }
+        mp.getSubscriptions().get(mpm.variableHeader().topicName())
+                .handleMessage(mpm.variableHeader().topicName(), Unpooled.copiedBuffer(mpm.payload()));
     }
 }
