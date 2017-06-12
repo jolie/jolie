@@ -16,21 +16,33 @@
  */
 package jolie.net;
 
+import io.netty.channel.ChannelPipeline;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.runtime.VariablePath;
+
 /**
- * Test Class implementing the behaviour for a general publisher
  *
  * @author stefanopiozingaro
  */
-class Publisher {
+public class CoapProtocol extends AsyncCommProtocol {
 
-    private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null);
-
-    public Publisher(String topic, String message) {
-        mp.buildPublication(topic, message);
-        new ClientBootstrap(mp);
+    public CoapProtocol(VariablePath configurationPath) {
+        super(configurationPath);
     }
 
-    public static void main(String[] args) {
-        new Publisher("jolie/temperature/request", "jolie/temperature/response");
+    @Override
+    public void setupPipeline(ChannelPipeline pipeline) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public String name() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isThreadSafe() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

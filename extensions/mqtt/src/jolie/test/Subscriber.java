@@ -14,44 +14,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.test;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
-import io.netty.util.CharsetUtil;
 import java.util.Collections;
 import java.util.List;
+import jolie.net.MqttProtocol;
+import jolie.net.PublishHandler;
 
 /**
+ * Test Class implementing the behaviour for a general subscriber
  *
  * @author stefanopiozingaro
  */
-public class RequestResponseSubscriber {
+class Subscriber {
 
-    public RequestResponseSubscriber(List<MqttTopicSubscription> topics, String message) {
-        new Subscriber(topics, new PublishHandler() {
+    private final MqttProtocol mp = new MqttProtocol(Boolean.TRUE, null);
 
-            @Override
-            public void onMessage(String topic, ByteBuf payload) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        new Publisher(Unpooled.copiedBuffer(payload).toString(CharsetUtil.UTF_8), message);
-                    }
-                }).start();
-            }
-        });
+    public Subscriber(List<MqttTopicSubscription> topics, PublishHandler publishHandler) {
+        mp.buildSubscription(topics, publishHandler);
+        new ClientBootstrap(mp);
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
-        new RequestResponseSubscriber(
-                Collections.singletonList(
-                        new MqttTopicSubscription("jolie/temperature/request", MqttQoS.AT_LEAST_ONCE)
-                ), "23.0");
+        new Subscriber(Collections.singletonList(
+                new MqttTopicSubscription("jolie/temperature/response", MqttQoS.AT_LEAST_ONCE)
+        ), new PublishHandler() {
+            @Override
+            public void handleMessage(String topic, ByteBuf payload) {
+            }
+        });
     }
 }

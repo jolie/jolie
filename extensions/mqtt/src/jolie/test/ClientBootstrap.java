@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.test;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -28,6 +28,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
+import jolie.net.MqttProtocol;
 
 /**
  *
@@ -49,7 +50,7 @@ public class ClientBootstrap {
                 protected void initChannel(SocketChannel ch) throws Exception {
 
                     ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
+                    //pipeline.addLast("Logger", new LoggingHandler(LogLevel.INFO));
                     mp.setupPipeline(pipeline);
                 }
             });

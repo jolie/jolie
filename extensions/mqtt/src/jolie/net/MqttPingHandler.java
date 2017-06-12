@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package jolie.net;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -33,12 +32,14 @@ public class MqttPingHandler extends ChannelInboundHandlerAdapter {
 
     public MqttPingHandler() {
     }
-    
+
     /**
-     * Calls {@link ChannelHandlerContext#fireUserEventTriggered(Object)} to forward
-     * to the next {@link ChannelInboundHandler} in the {@link ChannelPipeline}.
+     * Calls {@link ChannelHandlerContext#fireUserEventTriggered(Object)} to
+     * forward to the next {@link ChannelInboundHandler} in the
+     * {@link ChannelPipeline}.
      *
      * Sub-classes may override this method to change behavior.
+     *
      * @param ctx
      * @param evt
      * @throws java.lang.Exception
@@ -63,7 +64,7 @@ public class MqttPingHandler extends ChannelInboundHandlerAdapter {
                     ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
                     break;
                 default:
-                    System.out.println("Lo stato: " + event.state());
+                    System.out.println("State: " + event.state());
             }
         }
     }
