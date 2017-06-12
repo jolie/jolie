@@ -25,6 +25,7 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -315,7 +316,7 @@ public class FileService extends JavaService
 				istream = new FileInputStream( file );
 				size = file.length();
 			} else {
-				URL fileURL = interpreter().getClassLoader().findResource( filenameValue.strValue() );
+				URL fileURL = interpreter().getClassLoader().findResource( filenameValue.strValue() );			
 				if ( fileURL != null && fileURL.getProtocol().equals( "jap" ) ) {
 					URLConnection conn = fileURL.openConnection();
 					if ( conn instanceof JapURLConnection ) {
@@ -328,8 +329,17 @@ public class FileService extends JavaService
 					} else {
 						throw new FileNotFoundException( filenameValue.strValue() );
 					}
-				} else {
-					throw new FileNotFoundException( filenameValue.strValue() );
+				} else  {
+					istream = interpreter().getClassLoader().getResourceAsStream( filenameValue.strValue() );
+					if ( istream == null ) {
+						throw new FileNotFoundException( filenameValue.strValue() );
+					} else {
+						InputStream is2 = interpreter().getClassLoader().getResourceAsStream( filenameValue.strValue() );
+						ByteArrayOutputStream os = new ByteArrayOutputStream();
+						int b;while ((b = is2.read()) != -1) os.write(b);
+						size = os.size();
+						os.close();
+					}
 				}
 			}
 
