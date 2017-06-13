@@ -6,5 +6,5 @@ Interfaces: PlainXMLManagerInterface
 
 embedded {
   Jolie:
-    "services/plain_xml_manager/plain_xml_manager.ol" in PlainXMLManager
+    "./services/plain_xml_manager/plain_xml_manager.ol" in PlainXMLManager
 }
