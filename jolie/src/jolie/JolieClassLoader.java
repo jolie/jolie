@@ -43,6 +43,7 @@ import jolie.runtime.CanUseJars;
 import jolie.runtime.JavaService;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
+import jolie.tracer.DummyTracer;
 
 /**
  * JolieClassLoader is used to resolve the loading of JOLIE extensions and external libraries.
@@ -128,7 +129,9 @@ public class JolieClassLoader extends URLClassLoader
 				} catch( MalformedURLException e ) {
 					e.printStackTrace();
 				} catch( IOException e ) {
-					logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
+					if ( Interpreter.getInstance().enabledTracer() ) {
+						logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
+					}
 				}
 			}
 		}
@@ -143,7 +146,9 @@ public class JolieClassLoader extends URLClassLoader
 					addJarResource( filename );
 				} catch( MalformedURLException e ) {
 				} catch( IOException e ) {
-					logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
+					if ( Interpreter.getInstance().enabledTracer() ) {
+						logger.warning( "Resource " + filename + " cannot be directly accessed by the interpreter");
+					}
 				}
 			}
 		}

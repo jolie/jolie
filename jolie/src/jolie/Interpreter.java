@@ -275,7 +275,8 @@ public class Interpreter
 	private final String[] optionArgs;
 	private final String logPrefix;
 	private final Tracer tracer;
-        private boolean check = false;
+	private boolean enabledTracer = false;
+    private boolean check = false;
 	private final Timer timer;
 	// private long inputMessageTimeout = 24 * 60 * 60 * 1000; // 1 day
 	private final long persistentConnectionTimeout = 60 * 60 * 1000; // 1 hour
@@ -312,6 +313,10 @@ public class Interpreter
 	public String logPrefix()
 	{
 		return logPrefix;
+	}
+	
+	public boolean enabledTracer() {
+		return enabledTracer;
 	}
 	
 	public Tracer tracer()
@@ -867,6 +872,7 @@ public class Interpreter
 
 		if ( cmdParser.tracer() ) {
 			tracer = new PrintingTracer( this );
+			enabledTracer = true;
 		} else {
 			tracer = new DummyTracer();
 		}
