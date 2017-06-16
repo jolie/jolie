@@ -786,6 +786,7 @@ public class CommandLineParser implements Closeable
 						programDirectory = new File( new File( olFilepath ).getParent() );
 					}
 					for( int i = 0; i < includePaths.size() && result.stream == null; i++ ) {
+						
 						String tryPath = includePaths.get( i ) + jolie.lang.Constants.fileSeparator + olFilepath;		
 						olURL = classLoader.getResource( tryPath );
 						if ( olURL != null ) {
