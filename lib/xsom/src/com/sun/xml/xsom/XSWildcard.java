@@ -49,7 +49,7 @@ public interface XSWildcard extends XSComponent, XSTerm
      * Returns true if the specified namespace URI is valid
      * wrt this wildcard.
      * 
-     * @param namespaceURI
+     *  namespaceURI
      *      Use the empty string to test the default no-namespace.
      */
     boolean acceptsNamespace(String namespaceURI);

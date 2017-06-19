@@ -171,7 +171,7 @@ public abstract class NGCCInterleaveFilter implements NGCCEventSource, NGCCEvent
      * This method forces children to move to its final state,
      * then revert to the parent.
      * 
-     * @param source
+     *  source
      *      If this method is called by one of the child receivers,
      *      the receiver object. If this method is called by itself,
      *      null.

@@ -138,9 +138,9 @@ public class NGCCRuntimeEx extends NGCCRuntime implements PatcherManager {
     /**
      * Resolves relative URI found in the document.
      *
-     * @param namespaceURI
+     *  namespaceURI
      *      passed to the entity resolver.
-     * @param relativeUri
+     *  relativeUri
      *      value of the schemaLocation attribute. Can be null.
      *
      * @return
@@ -278,7 +278,7 @@ public class NGCCRuntimeEx extends NGCCRuntime implements PatcherManager {
     /**
      * Parses the specified entity.
      * 
-     * @param importLocation
+     *  importLocation
      *      The source location of the import/include statement.
      *      Used for reporting errors.
      */

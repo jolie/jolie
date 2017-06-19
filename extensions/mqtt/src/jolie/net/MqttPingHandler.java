@@ -24,26 +24,8 @@ import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.timeout.IdleStateEvent;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class MqttPingHandler extends ChannelInboundHandlerAdapter {
 
-    public MqttPingHandler() {
-    }
-
-    /**
-     * Calls {@link ChannelHandlerContext#fireUserEventTriggered(Object)} to
-     * forward to the next {@link ChannelInboundHandler} in the
-     * {@link ChannelPipeline}.
-     *
-     * Sub-classes may override this method to change behavior.
-     *
-     * @param ctx
-     * @param evt
-     * @throws java.lang.Exception
-     */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt)
             throws Exception {
@@ -68,5 +50,4 @@ public class MqttPingHandler extends ChannelInboundHandlerAdapter {
             }
         }
     }
-
 }

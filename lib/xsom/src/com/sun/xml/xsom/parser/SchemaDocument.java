@@ -77,7 +77,7 @@ public interface SchemaDocument {
     /**
      * Gets the {@link SchemaDocument}s that are imported from this document.
      *
-     * @param targetNamespace
+     *  targetNamespace
      *      The namespace URI of the import that you want to
      *      get {@link SchemaDocument}s for.
      * @return

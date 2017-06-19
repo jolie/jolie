@@ -25,10 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import jolie.net.PublishHandler;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class RequestResponseSubscriber {
 
     public RequestResponseSubscriber(List<MqttTopicSubscription> topics, String message) {
@@ -46,9 +42,6 @@ public class RequestResponseSubscriber {
         });
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         new RequestResponseSubscriber(
                 Collections.singletonList(

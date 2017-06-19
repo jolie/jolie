@@ -36,15 +36,8 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateHandler;
 
-/**
- * This Class extends { @link SimpleChannelInboundHandler }
- * in order to override the method {@link channelRead0 }
- *
- * @author stefanopiozingaro
- */
 @ChannelHandler.Sharable
-public class MqttHandler
-        extends ChannelInboundHandlerAdapter {
+public class MqttHandler extends ChannelInboundHandlerAdapter {
 
     private final MqttProtocol mp;
     private final String clientId;
@@ -63,15 +56,6 @@ public class MqttHandler
         mp.setPassword("");
     }
 
-    /**
-     * Calls {@link ChannelHandlerContext#fireChannelActive()} to forward to the
-     * next {@link ChannelInboundHandler} in the {@link ChannelPipeline}.
-     *
-     * Sub-classes may override this method to change behavior.
-     *
-     * @param ctx
-     * @throws java.lang.Exception
-     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
@@ -120,15 +104,6 @@ public class MqttHandler
         ctx.channel().writeAndFlush(mcm);
     }
 
-    /**
-     * For each one of the { @link MqttMessage } type the method send the
-     * request to the inbound handler method, that is, all the acknowledgement
-     * from the broker
-     *
-     * @param ctx ChannelHandlerContext
-     * @param msg MqttMessage
-     * @throws Exception
-     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
             throws Exception {
@@ -136,7 +111,6 @@ public class MqttHandler
         MqttMessageType mmt = ((MqttMessage) msg).fixedHeader().messageType();
         Channel channel = ctx.channel();
 
-        //System.out.println(mmt + " " + Thread.currentThread().getName());
         switch (mmt) {
             case CONNACK:
                 MqttConnectReturnCode mcrc
@@ -194,11 +168,6 @@ public class MqttHandler
         }
     }
 
-    /**
-     *
-     * @param channel {@link Channel}
-     * @param mpm {@link MqttPublishMessage}
-     */
     private void handlePublish(Channel channel, MqttPublishMessage mpm) {
 
         switch (mpm.fixedHeader().qosLevel()) {
@@ -225,16 +194,8 @@ public class MqttHandler
             default:
                 System.out.println(mpm.fixedHeader().qosLevel().name());
         }
-
     }
 
-    /**
-     * Call the {@link PublishHandler} relative to the topic contained in the
-     * {@link MqttPublishMessage} received, the {@link PublishHandler} is
-     * defined into the behaviour of the {@link Subscriber}
-     *
-     * @param mpm {@link MqttPublishMessage}
-     */
     private void handleIncomingPublish(MqttPublishMessage mpm) {
         mp.getSubscriptions().get(mpm.variableHeader().topicName())
                 .handleMessage(mpm.variableHeader().topicName(), Unpooled.copiedBuffer(mpm.payload()));

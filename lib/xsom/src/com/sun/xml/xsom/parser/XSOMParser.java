@@ -82,7 +82,7 @@ public final class XSOMParser {
     * By implementing the {@link XMLParser} interface, XML Schema
     * can be read from something other than XML.
     * 
-    * @param   parser
+    *    parser
     *      This parser will be called to parse XML Schema documents.
     */
     public XSOMParser(XMLParser parser) {

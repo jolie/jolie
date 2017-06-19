@@ -30,10 +30,6 @@ import io.netty.handler.logging.LoggingHandler;
 import java.net.InetSocketAddress;
 import jolie.net.MqttProtocol;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class ClientBootstrap {
 
     public ClientBootstrap(MqttProtocol mp) {
