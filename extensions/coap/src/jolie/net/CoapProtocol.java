@@ -20,10 +20,6 @@ import io.netty.channel.ChannelPipeline;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class CoapProtocol extends AsyncCommProtocol {
 
     public CoapProtocol(VariablePath configurationPath) {

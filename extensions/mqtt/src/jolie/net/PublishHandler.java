@@ -18,20 +18,8 @@ package jolie.net;
 
 import io.netty.buffer.ByteBuf;
 
-/**
- * Interface letting the user to implement hot to react at the arrival of a
- * specific topic.
- *
- * @author stefanopiozingaro
- */
 public interface PublishHandler {
 
-    /**
-     * Abstract method setting the behaviour of subscriber.
-     *
-     * @param topic {@link String}
-     * @param payload Netty {@link ByteBuf}
-     */
     void handleMessage(String topic, ByteBuf payload);
 
 }

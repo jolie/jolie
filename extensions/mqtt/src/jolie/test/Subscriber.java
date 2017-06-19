@@ -24,11 +24,6 @@ import java.util.List;
 import jolie.net.MqttProtocol;
 import jolie.net.PublishHandler;
 
-/**
- * Test Class implementing the behaviour for a general subscriber
- *
- * @author stefanopiozingaro
- */
 class Subscriber {
 
     private final MqttProtocol mp = new MqttProtocol(Boolean.TRUE, null);

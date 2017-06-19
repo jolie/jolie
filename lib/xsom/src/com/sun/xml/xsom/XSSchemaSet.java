@@ -82,9 +82,9 @@ public interface XSSchemaSet
      *
      * @throws IllegalArgumentException
      *      if SCD is syntactically incorrect.
-     * @param scd
+     *  scd
      *      Schema component designator. See {@link SCD} for more details.
-     * @param nsContext
+     *  nsContext
      *      The namespace context in which SCD is evaluated. Cannot be null.
      * @return
      *      Can be empty but never null.
@@ -97,9 +97,9 @@ public interface XSSchemaSet
      *
      * @throws IllegalArgumentException
      *      if SCD is syntactically incorrect.
-     * @param scd
+     *  scd
      *      Schema component designator. See {@link SCD} for more details.
-     * @param nsContext
+     *  nsContext
      *      The namespace context in which SCD is evaluated. Cannot be null.
      * @return
      *      null if the SCD didn't match anything. If the SCD matched more than one node,

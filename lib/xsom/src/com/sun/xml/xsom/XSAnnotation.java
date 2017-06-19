@@ -43,7 +43,7 @@ public interface XSAnnotation
     /**
      * Sets the value to be returned by {@link #getAnnotation()}.
      *
-     * @param o
+     *  o
      *      can be null.
      * @return
      *      old value that was replaced by the <tt>o</tt>.

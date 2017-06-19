@@ -36,17 +36,17 @@ public abstract class AnnotationParser {
      * The sub-tree rooted at &lt;xs:annotation> will be
      * sent to this ContentHandler as if it is a whole document.
      * 
-     * @param context
+     *  context
      *      indicates the schema component that owns this annotation.
      *      Always non-null.
-     * @param parentElementName
+     *  parentElementName
      *      local name of the element that contains &lt;xs:annotation>.
      *      (e.g., "element", "attribute", ... )
-     * @param errorHandler
+     *  errorHandler
      *      The error handler that the client application specifies.
      *      The returned content handler can send its errors to this
      *      object.
-     * @param entityResolver
+     *  entityResolver
      *      The entity resolver that is currently in use. Again,
      *      The returned content handler can use this object
      *      if it needs to resolve entities.
@@ -61,7 +61,7 @@ public abstract class AnnotationParser {
      * Once the SAX events are fed to the ContentHandler,
      * this method will be called to retrieve the parsed result.
      * 
-     * @param existing
+     *  existing
      *      An annotation object which was returned from another
      *      AnnotationParser before. Sometimes, one schema component
      *      can have multiple &lt:xs:annotation> elements and

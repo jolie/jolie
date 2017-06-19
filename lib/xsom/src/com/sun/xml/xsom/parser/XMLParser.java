@@ -41,11 +41,11 @@ public interface XMLParser {
      * <p>
      * This method must be re-entrant.
      * 
-     * @param errorHandler
+     *  errorHandler
      *      Errors found during the parsing must be reported to
      *      this handler so that XSOM can recognize that something went wrong.
      *      Always a non-null valid object
-     * @param entityResolver
+     *  entityResolver
      *      Entity resolution should be done through this interface.
      *      Can be null.
      * 

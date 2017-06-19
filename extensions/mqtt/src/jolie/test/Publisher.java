@@ -18,11 +18,6 @@ package jolie.test;
 
 import jolie.net.MqttProtocol;
 
-/**
- * Test Class implementing the behaviour for a general publisher
- *
- * @author stefanopiozingaro
- */
 class Publisher {
 
     private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null);

@@ -22,10 +22,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.mqtt.MqttDecoder;
-import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
-import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
@@ -45,17 +42,6 @@ import java.util.Map;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
-/**
- * Implementation of the { @link AsyncCommProtocol } for MQTT protocol relying
- * on TCP/IP socket, uses netty and Non blocking Sockets
- *
- * TODO Modificare { @link CommCore} 1. in caso di una InputPort: 1.1 in caso di
- * protocollo PublishSubscribeProtocol (e.g. MqttProtocol extends
- * PublishSubscribeProtocol) si dovrà creare un CommChannel (che rimarrà aperto)
- * 2.1 altrimenti creò SocketListener e faccio la solita roba
- *
- * @author stefanopiozingaro
- */
 public class MqttProtocol extends AsyncCommProtocol {
 
     private final boolean inInputPort;
@@ -140,13 +126,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         return pendingSubscriptions;
     }
 
-    /**
-     * Default Constructor for MqttProtocol going super Look at the { @link
-     * HttpProtocol.java} one
-     *
-     * @param inInputPort
-     * @param configurationPath
-     */
     public MqttProtocol(boolean inInputPort, VariablePath configurationPath) {
         super(configurationPath);
         this.pendingPublishes = new ArrayList<>();
@@ -158,14 +137,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         this.keepAliveConnectTimeSeconds = 2;
     }
 
-    /**
-     * To buildPublication, just take a future MqttMessage object TODO implement
-     * msgToMqttMsgCodec()
-     *
-     * @param topic String
-     * @param message MqttMessage
-     * @return
-     */
     public MqttPublishMessage buildPublication(String topic, String message) {
 
         boolean isDup = Boolean.FALSE;
@@ -200,14 +171,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         return mpm;
     }
 
-    /**
-     * To buildPublication, just take a future MqttMessage object TODO implement
-     * msgToMqttMsgCodec()
-     *
-     * @param topics List of MqttTopicSubscription
-     * @param handler PublishHandler
-     * @return
-     */
     public MqttSubscribeMessage buildSubscription(List<MqttTopicSubscription> topics, PublishHandler handler) {
 
         boolean isDup = Boolean.FALSE;
@@ -231,7 +194,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         MqttSubscribeMessage msm
                 = new MqttSubscribeMessage(mqttFixedHeader, variableHeader, payload);
 
-        // write immeditely on the channel or store it
         if (this.subscribeReady) {
             this.connectedChannel.writeAndFlush(msm).addListener(new ChannelFutureListener() {
                 @Override
@@ -253,10 +215,6 @@ public class MqttProtocol extends AsyncCommProtocol {
         return msm;
     }
 
-    /**
-     *
-     * @param channel
-     */
     public void sendAndFlush(Channel channel) {
 
         if (channel.isActive() && channel.isWritable()) {
@@ -279,80 +237,36 @@ public class MqttProtocol extends AsyncCommProtocol {
         }
     }
 
-    /*
-     * Inner class Parameters copied from { @link HttpProtocol }
-     * Since now (01/06/2017) we use only the concurrent param
-     */
     private static class Parameters {
 
         private static final String CONCURRENT = "concurrent";
 
     }
 
-    /**
-     * Method overrinding setupPipeline of { @link AsyncCommProtocol } Default
-     * pipeline for Mqtt use Encoder and Decoder, we added
-     * MqttProtocolInboundHandler
-     *
-     * @param pipeline the pipeline to fill with specific protocol handlers
-     */
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
 
-        pipeline.addLast("MqttDecoder", new MqttDecoder());
-        pipeline.addLast("MqttEncoder", MqttEncoder.INSTANCE);
-        pipeline.addLast("MqttPublishSubscribe", new MqttHandler(this));
+        pipeline.addLast(new MqttHandler(this));
         pipeline.addLast("Ping", new MqttPingHandler());
+        pipeline.addLast(new MqttCommMessageCodec(this));
     }
 
-    /**
-     *
-     * @return the name of the protocol, in which case is mqtt
-     */
     @Override
     public String name() {
         return "mqtt";
     }
 
-    /**
-     *
-     * @return if the behaviour is concurrent or not (i guess)
-     * @author stefanopiozingaro
-     */
     @Override
     public boolean isThreadSafe() {
         return checkBooleanParameter(Parameters.CONCURRENT);
     }
 
-    /**
-     * TODO parse object according to object type passed
-     *
-     * @param message
-     * @return ByteBuf
-     */
-    private ByteBuf parseObject(String message) {
-        return Unpooled.copiedBuffer(message.getBytes(CharsetUtil.UTF_8));
+    private ByteBuf parseObject(Object message) {
+        ByteBuf bb = Unpooled.buffer();
+        if (message instanceof String) {
+            String msg = (String) message;
+            bb = Unpooled.copiedBuffer(msg.getBytes(CharsetUtil.UTF_8));
+        }
+        return bb;
     }
-
-    /**
-     * Futuristic Method
-     * @param mqttMsg {@link MqttMessage}
-     * @return {@link CommMessage}
-     */
-    private CommMessage MqttMsg2CommMsgCodec(MqttMessage mqttMsg) {
-        CommMessage commMsg = null;
-        return commMsg;
-
-    }
-
-    /**
-     * Futuristic Method
-     * @param commMsg {@link CommMessage}
-     * @return {@link MqttMessage}
-     */
-    private MqttMessage CommMsg2MqttMsgCodec(CommMessage commMsg) {
-        MqttMessage mqttMsg = null;
-        return mqttMsg;
-    }
-
 }
