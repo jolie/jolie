@@ -151,7 +151,13 @@ public class Interpreter
 						} catch( CorrelationError e ) {
 							logWarning( e );
 							try {
-								message.channel().send( CommMessage.createFaultResponse( message.message(), new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+								message.channel().send( 
+                                  CommMessage.createFaultResponse( 
+                                    message.message(), 
+                                    new FaultException( "CorrelationError", 
+                                      "The message you sent can not be correlated with any session and can not be used to start a new session." ) 
+                                  ) 
+                                );
 							} catch( IOException ioe ) {
 								logSevere( ioe );
 							}
@@ -1232,7 +1238,14 @@ public class Interpreter
 				if ( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 				} else {
-					final OLParser olParser = new OLParser( new Scanner( cmdParser.programStream(), cmdParser.programFilepath().toURI(), cmdParser.charset() ), includePaths, classLoader );
+					final OLParser olParser = new OLParser( 
+                      new Scanner(
+                        cmdParser.programStream(), 
+                        cmdParser.programFilepath().toURI(), 
+                        cmdParser.charset() ), 
+                      includePaths, 
+                      classLoader 
+                    );
 
 					olParser.putConstants( cmdParser.definedConstants() );
 					program = olParser.parse();

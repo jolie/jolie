@@ -68,7 +68,11 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 	@Override
 	protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg ) throws Exception
 	{
-		messageRecv( msg );
+		if( channel.parentPort() instanceof OutputPort ){
+            this.channel.receiveResponse( msg );
+        } else {
+            messageRecv( msg );
+        }
 	}
 
 	protected ChannelFuture write( CommMessage msg )
