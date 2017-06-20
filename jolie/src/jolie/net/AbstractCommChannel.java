@@ -70,14 +70,12 @@ public abstract class AbstractCommChannel extends CommChannel
 			}
 		}
 		if ( response == null ) {
-			synchronized( responseRecvMutex ) {
-				if ( responseReceiver == null ) {
-					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
-				} else {
-					responseReceiver.wakeUp();
-				}
-			}
+//				if ( responseReceiver == null ) {
+//					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
+//					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
+//				} else {
+//					responseReceiver.wakeUp();
+//				}
 			synchronized( monitor ) {
 				if ( monitor.response == null ) {
 					try {
@@ -92,155 +90,74 @@ public abstract class AbstractCommChannel extends CommChannel
 		return response;
 	}
 
-	private ResponseReceiver responseReceiver = null;
+    protected void receiveResponse( CommMessage response ){
+        
+		if( response.hasGenericId() ){
+            handleGenericMessage( response );
+        } else {
+            handleMessage( response );
+        }
 
-	private static class ResponseReceiver implements Runnable
-	{
-		private final AbstractCommChannel parent;
-		private final ExecutionThread ethread;
-		private boolean keepRun;
-		private TimeoutHandler timeoutHandler;
+    }
 
-		private void timeout()
-		{
-			synchronized( parent.responseRecvMutex ) {
-				if ( keepRun == false ) {
-					if ( parent.waiters.isEmpty() ) {
-						timeoutHandler = null;
-						parent.responseReceiver = null;
-					} else {
-						keepRun = true;
-					}
-					parent.responseRecvMutex.notify();
-				}
-			}
-		}
+    private void handleGenericMessage( CommMessage response ){
+        
+        ResponseContainer monitor;
+        if( waiters.isEmpty() ){
+            pendingGenericResponses.add( response );
+        } else {
+            Entry< Long, ResponseContainer > entry =
+               waiters.entrySet().iterator().next();
+            monitor = entry.getValue();
+            synchronized( monitor ){
+                monitor.response = new CommMessage(
+                  
+                  entry.getKey(),
+                  response.operationName(),
+                  response.resourcePath(),
+                  response.value(),
+                  response.fault()
+                
+                );
+                monitor.notify();
+            }
+        }
+    }
 
-		private void wakeUp()
-		{
-			// TODO: check race conditions on timeoutHandler, should we sync it?
-			if ( timeoutHandler != null ) {
-				timeoutHandler.cancel();
-			}
-			keepRun = true;
-			parent.responseRecvMutex.notify();
-		}
+    private void handleMessage( CommMessage response ){
+        
+        ResponseContainer monitor;
+        if( ( monitor = waiters.remove( response.id() )) == null  ){
+            pendingResponses.put( response.id(), response);
+        } else {
+            synchronized( monitor ){
+                monitor.response = response;
+                monitor.notify();
+            }
+        }
+        
+    }
+    
+    private void throwIOExceptionFault( IOException e ){
+        if( !waiters.isEmpty() ){
+            ResponseContainer monitor;
+            for( Entry< Long, ResponseContainer > entry: waiters.entrySet() ){
+                monitor = entry.getValue();
+                synchronized( monitor ){
+                    monitor.response = new CommMessage(
+                    
+                      entry.getKey(),
+                      "",
+                      Constants.ROOT_RESOURCE_PATH,
+                      Value.create(),
+                      new FaultException( "IOException", e )
+                      
+                    );
+                    monitor.notify();
+                }
+            }
+        }
+        waiters.clear();
+    }
 
-		private void sleep()
-		{
-			final ResponseReceiver receiver = this;
-			timeoutHandler = new TimeoutHandler( RECEIVER_KEEP_ALIVE ) {
-				@Override
-				public void onTimeout() {
-					receiver.timeout();
-				}
-			};
-			ethread.interpreter().addTimeoutHandler( timeoutHandler );
-			try {
-				keepRun = false;
-				parent.responseRecvMutex.wait();
-			} catch( InterruptedException e ) {
-				Interpreter.getInstance().logSevere( e );
-			}
-		}
-
-		private ResponseReceiver( AbstractCommChannel parent, ExecutionThread ethread )
-		{
-			this.ethread = ethread;
-			this.parent = parent;
-			this.keepRun = true;
-			this.timeoutHandler = null;
-		}
-
-		private void handleGenericMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( parent.waiters.isEmpty() ) {
-				parent.pendingGenericResponses.add( response );
-			} else {
-				Entry< Long, ResponseContainer > entry =
-					parent.waiters.entrySet().iterator().next();
-				monitor = entry.getValue();
-				parent.waiters.remove( entry.getKey() );
-				synchronized( monitor ) {
-					monitor.response = new CommMessage(
-						entry.getKey(),
-						response.operationName(),
-						response.resourcePath(),
-						response.value(),
-						response.fault()
-					);
-					monitor.notify();
-				}
-			}
-		}
-
-		private void handleMessage( CommMessage response )
-		{
-			ResponseContainer monitor;
-			if ( (monitor=parent.waiters.remove( response.id() )) == null ) {
-				parent.pendingResponses.put( response.id(), response );
-			} else {
-				synchronized( monitor ) {
-					monitor.response = response;
-					monitor.notify();
-				}
-			}
-		}
-
-		private void throwIOExceptionFault( IOException e )
-		{
-			if ( parent.waiters.isEmpty() == false ) {
-				ResponseContainer monitor;
-				for( Entry< Long, ResponseContainer > entry : parent.waiters.entrySet() ) {
-					monitor = entry.getValue();
-					synchronized( monitor ) {
-						monitor.response = new CommMessage(
-							entry.getKey(),
-							"",
-							Constants.ROOT_RESOURCE_PATH,
-							Value.create(),
-							new FaultException( "IOException", e )
-						);
-						monitor.notify();
-					}
-				}
-				parent.waiters.clear();
-			}
-		}
-
-		@Override
-		public void run()
-		{
-			/*
-			 * Warning: the following line implies that this
-			 * whole thing is safe iff the CommChannel is used only for outputs,
-			 * otherwise we are messing with correlation set checking.
-			 */
-			CommChannelHandler.currentThread().setExecutionThread( ethread ); // TODO: this is hacky..
-
-			CommMessage response;
-			while( keepRun ) {
-				synchronized( parent.responseRecvMutex ) {
-					try {
-						response = parent.recv();
-						if ( response != null ) {
-							if ( response.hasGenericId() ) {
-								handleGenericMessage( response );
-							} else {
-								handleMessage( response );
-							}
-						}
-						if ( parent.waiters.isEmpty() ) {
-							sleep();
-						}
-					} catch( IOException e ) {
-						throwIOExceptionFault( e );
-						keepRun = false;
-						parent.responseReceiver = null;
-					}
-				}
-			}
-		}
-	}
 }

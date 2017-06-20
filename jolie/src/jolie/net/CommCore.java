@@ -285,7 +285,7 @@ public class CommCore
 
 		public ExecutionThread executionThread()
 		{
-			return executionThread;
+            return executionThread;
 		}
 
 		public Interpreter interpreter()

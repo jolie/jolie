@@ -27,6 +27,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -422,15 +423,21 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public static ExecutionThread currentThread()
 	{
-		Thread currThread = Thread.currentThread();
-		if ( currThread instanceof JolieExecutorThread ) {
-			return ((JolieExecutorThread)currThread).executionThread();
-		} else if ( currThread instanceof CommChannelHandler ) {
-			return ((CommChannelHandler)currThread).executionThread();
-		} else if ( currThread instanceof CommCore.ExecutionContextThread ){
-                        return ( ( ( CommCore.ExecutionContextThread ) currThread ).executionThread() );
-                }
-
+        Thread currThread = Thread.currentThread();
+              
+        
+        if ( currThread instanceof JolieExecutorThread ) {
+            return ( ( JolieExecutorThread ) currThread  ).executionThread();
+        }
+        
+        if( currThread instanceof  CommChannelHandler ) {
+            return ( ( CommChannelHandler ) currThread  ).executionThread();
+        }
+        
+        if( currThread instanceof CommCore.ExecutionContextThread ){
+            return ( ( CommCore.ExecutionContextThread ) currThread  ).executionThread();
+        }
+        
 		return null;
 	}
 

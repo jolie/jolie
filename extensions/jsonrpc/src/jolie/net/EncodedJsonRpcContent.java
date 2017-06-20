@@ -21,41 +21,33 @@
   *   For details about the authors of this software, see the AUTHORS file.     *
   *******************************************************************************/
 
-package jolie.net.protocols;
+package jolie.net;
 
-import jolie.runtime.VariablePath;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import jolie.net.CommMessage;
 
-import io.netty.channel.ChannelPipeline;
+import java.nio.charset.Charset;
 
-public abstract class AsyncCommProtocol extends CommProtocol
-{
+import io.netty.buffer.ByteBuf;
 
-        public AsyncCommProtocol( VariablePath configurationPath )
-        {
-                super( configurationPath );
-        }
+class EncodedJsonRpcContent {
+    
+    private final ByteBuf content;
+    private final Charset charset;
+    
+    public EncodedJsonRpcContent( ByteBuf content, Charset charset ){
+        this.content = content;
+        this.charset = charset;
+    }
 
-        abstract public void setupPipeline( ChannelPipeline pipeline );
-        
-        public void setupWrappablePipeline( ChannelPipeline pipeline )
-	{
-		setupPipeline( pipeline );
-	}
+    public ByteBuf getContent() {
+        return content;
+    }
 
-        @Override
-        public void send( OutputStream ostream, CommMessage message, InputStream istream ) throws IOException
-        {
-                throw new UnsupportedOperationException( "Should not be called." );
-        }
-
-        @Override
-        public CommMessage recv( InputStream istream, OutputStream ostream ) throws IOException
-        {
-                throw new UnsupportedOperationException( "Should not be called." );
-        }
-
+    public Charset getCharset() {
+        return charset;
+    }
+    
+    public String text() {
+        return content.toString( charset );
+    }
+    
 }
