@@ -22,11 +22,11 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import java.util.Collections;
 import java.util.List;
 import jolie.net.MqttProtocol;
-import jolie.net.PublishHandler;
+import jolie.net.mqtt.PublishHandler;
 
 class Subscriber {
 
-    private final MqttProtocol mp = new MqttProtocol(Boolean.TRUE, null);
+    private final MqttProtocol mp = new MqttProtocol(Boolean.TRUE, null, null);
 
     public Subscriber(List<MqttTopicSubscription> topics, PublishHandler publishHandler) {
         mp.buildSubscription(topics, publishHandler);
