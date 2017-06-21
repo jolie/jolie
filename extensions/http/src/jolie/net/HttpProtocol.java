@@ -191,6 +191,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String COMPRESSION_TYPES = "compressionTypes";
 		private static final String REQUEST_COMPRESSION = "requestCompression";
 		private static final String FORMAT = "format";
+		private static final String RESPONSE_HEADER = "responseHeaders";
 		private static final String JSON_ENCODING = "json_encoding";
 		private static final String REQUEST_USER = "request";
 		private static final String RESPONSE_USER = "response";
@@ -876,7 +877,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Method method = send_getRequestMethod( message );
 		String charset = HttpUtils.getCharset( getStringParameter( Parameters.CHARSET, "utf-8" ), null );
 		String format = send_getFormat();
-		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+		String contentType = null;
 		StringBuilder headerBuilder = new StringBuilder();
 
 		if ( inInputPort ) {
@@ -889,11 +890,15 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 			if ( method == Method.GET && getParameterFirstValue( Parameters.METHOD ).hasChildren( "queryFormat" ) ) {
 				if ( getParameterFirstValue( Parameters.METHOD ).getFirstChild( "queryFormat" ).strValue().equals( "json" ) ) {
 					qsFormat = format = "json";
-					encodedContent.contentType = ContentTypes.APPLICATION_JSON;
+					contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
 			send_appendRequestUserHeader(message, headerBuilder);
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
+		}
+		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
+		if ( contentType != null ) {
+			encodedContent.contentType = contentType;
 		}
 		send_appendGenericHeaders( message, encodedContent, charset, headerBuilder );
 		headerBuilder.append( HttpUtils.CRLF );
@@ -1344,6 +1349,19 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		}
 
 		if ( message.isResponse() ) {
+			String responseHeader = "";
+			if ( hasParameter( Parameters.RESPONSE_HEADER ) || hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+				if ( hasOperationSpecificParameter( inputId, Parameters.RESPONSE_HEADER ) ) {
+					responseHeader = getOperationSpecificStringParameter( inputId, Parameters.RESPONSE_HEADER );
+				} else {
+					responseHeader = getStringParameter( Parameters.RESPONSE_HEADER );
+				}
+				for( Entry<String, String> param : message.properties() ) {
+					decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( param.getKey() ).setValue( param.getValue() );
+				}
+				decodedMessage.value.getFirstChild( responseHeader ).getFirstChild( Parameters.STATUS_CODE ).setValue( message.statusCode() );
+			}
+			
 			recv_checkForSetCookie( message, decodedMessage.value );
 			retVal = new CommMessage( decodedMessage.id, inputId, decodedMessage.resourcePath, decodedMessage.value, null );
 		} else if ( message.isError() == false ) {

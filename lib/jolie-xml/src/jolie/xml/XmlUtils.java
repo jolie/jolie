@@ -36,12 +36,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import jolie.lang.Constants;
 import jolie.runtime.Value;
+import jolie.runtime.ValueVector;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import jolie.runtime.ValueVector;
 
 /**
  * Utilities for interactions and transformations with XML.
@@ -257,16 +257,16 @@ public class XmlUtils
 			element.appendChild( doc.createTextNode( value.strValue() ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "string" );
 		} else if ( value.isInt() ) {
-			element.appendChild( doc.createTextNode( new Integer( value.intValue() ).toString() ) );
+			element.appendChild( doc.createTextNode( Integer.toString( value.intValue() ) ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "int" );
 		} else if ( value.isDouble() ) {
-			element.appendChild( doc.createTextNode( new Double( value.doubleValue() ).toString() ) );
+			element.appendChild( doc.createTextNode( Double.toString( value.doubleValue() ) ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "double" );
 		} else if ( value.isLong() ) {
-			element.appendChild( doc.createTextNode( new Long( value.longValue() ).toString() ) );
+			element.appendChild( doc.createTextNode( Long.toString( value.longValue() ) ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "long" );
 		} else if ( value.isBool() ) {
-			element.appendChild( doc.createTextNode( new Boolean( value.boolValue() ).toString() ) );
+			element.appendChild( doc.createTextNode( Boolean.toString( value.boolValue() ) ) );
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "bool" );
 		} else {
 			element.setAttribute( JOLIE_TYPE_ATTRIBUTE, "void" );
@@ -432,19 +432,18 @@ public class XmlUtils
 					break;
 			}
 		}
-		
-                if ( type.equals( "string" ) ) {
-                        value.setValue( builder.toString() );
-                } else if ( type.equals( "int" ) ) {
-                        value.setValue( new Integer( builder.toString() ) );
-                } else if ( type.equals( "long" ) ) {
-                        value.setValue( new Long( builder.toString() ) );
-                } else if ( type.equals( "double" ) ) {
-                        value.setValue( new Double( builder.toString() ) );
-                } else if ( type.equals( "bool" ) ) {
-                        value.setValue( new Boolean( builder.toString() ) );
-                }
-		
+
+		if ( type.equals( "string" ) ) {
+			value.setValue( builder.toString() );
+		} else if ( type.equals( "int" ) ) {
+			value.setValue( new Integer( builder.toString() ) );
+		} else if ( type.equals( "long" ) ) {
+			value.setValue( new Long( builder.toString() ) );
+		} else if ( type.equals( "double" ) ) {
+			value.setValue( new Double( builder.toString() ) );
+		} else if ( type.equals( "bool" ) ) {
+			value.setValue( new Boolean( builder.toString() ) );
+		}
 	}
 
 	private static void elementsToSubValues( Value value, NodeList list, boolean includeAttributes )

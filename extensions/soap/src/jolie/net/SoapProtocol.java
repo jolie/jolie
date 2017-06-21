@@ -131,7 +131,6 @@ import org.xml.sax.SAXException;
  */
 public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
 {
-
 	private String inputId = null;
 	private final Interpreter interpreter;
 	private final MessageFactory messageFactory;
@@ -307,6 +306,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 			element.addAttribute( soapEnvelope.createName( "type", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
+		} else if ( !value.hasChildren() ) {
+			element.addAttribute( soapEnvelope.createName( "nil", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "true" );
 		}
 
 		if ( convertAttributes() ) {
@@ -1003,16 +1004,29 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	{
 		String type = "xsd:string";
 		Node currNode;
+		boolean nil = false;
 
 		// Set attributes
 		NamedNodeMap attributes = node.getAttributes();
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				if ( "type".equals( currNode.getNodeName() ) == false && convertAttributes() ) {
+				if ( currNode.getNamespaceURI().equals( XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ) ) {
+					switch( currNode.getLocalName() ) {
+						case "type":
+							type = currNode.getNodeValue();
+							break;
+						case "nil":
+							nil = "true".equals( currNode.getNodeValue() );
+							break;
+						default:
+							if ( convertAttributes() ) {
+								getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+							}
+							break;
+					}
+				} else if ( convertAttributes() ) {
 					getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
-				} else {
-					type = currNode.getNodeValue();
 				}
 			}
 		}
@@ -1020,7 +1034,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		// Set children
 		NodeList list = node.getChildNodes();
 		Value childValue;
-		StringBuffer tmpNodeValue = new StringBuffer();
+
+		StringBuilder tmpNodeValue = new StringBuilder();
+
 		boolean foundSubElements = false;
 		for( int i = 0; i < list.getLength(); i++ ) {
 			currNode = list.item( i );
@@ -1033,6 +1049,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				case Node.TEXT_NODE:
 					tmpNodeValue.append( currNode.getNodeValue() );
 					break;
+			}
+		}
+		
+		// the content of the root of a mixed element is not extracted
+		if ( !foundSubElements && !nil ) {
+			if ( !isRecRoot ) {
+				value.setValue( tmpNodeValue.toString() );
 			}
 		}
 
@@ -1168,8 +1191,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						Node n = d.getFirstChild();
 						if ( n != null ) {
 							faultName = n.getLocalName();
-							xmlNodeToValue(
-								faultValue, n, true );
+							xmlNodeToValue( faultValue, n, true );
 						} else {
 							faultValue.setValue( soapFault.getFaultString() );
 						}
