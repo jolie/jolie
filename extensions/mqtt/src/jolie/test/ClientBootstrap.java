@@ -51,14 +51,10 @@ public class ClientBootstrap {
                 }
             });
 
-            ChannelFuture future = b.connect().sync().addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        mp.setConnectedChannel(future.channel());
-                    }
-                }
-            });
+            ChannelFuture future = b.connect().sync();
+            if (future.isSuccess()) {
+                mp.setConnectedChannel(future.channel());
+            }
             future.channel().closeFuture().sync();
 
         } catch (InterruptedException ie) {
