@@ -119,9 +119,9 @@ public class MqttHandler extends ChannelInboundHandlerAdapter {
 
                 switch (mcrc) {
                     case CONNECTION_ACCEPTED:
-                        if (isSubscriber) { // in case of subscriber start pinging
+                        //if (isSubscriber) { // in case of subscriber start pinging
                             channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
-                        }
+                        //}
                         mp.sendAndFlush(channel); // flush pending publish and pending subscriptions 
                         break;
                     case CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD:
