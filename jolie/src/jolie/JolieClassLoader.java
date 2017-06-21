@@ -11,7 +11,7 @@
  * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
  * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
  * software, see the AUTHORS file. *
- **************************************************************************
+ * *************************************************************************
  */
 package jolie;
 
@@ -55,7 +55,6 @@ public final class JolieClassLoader extends URLClassLoader {
             throws IOException {
         for (URL url : urls) {
             if ("jar".equals(url.getProtocol())) {
-                System.out.println(url.getHost());
                 try {
                     checkJarForJolieExtensions((JarURLConnection) url.openConnection());
                 } catch (IOException e) {
@@ -326,8 +325,8 @@ public final class JolieClassLoader extends URLClassLoader {
     private void checkForProtocolExtension(Attributes attrs)
             throws IOException {
         String extension = attrs.getValue(Constants.Manifest.PROTOCOL_EXTENSION);
-        System.out.println(extension);
         if (extension != null) {
+
             String[] pair = extensionSplitPattern.split(extension);
             if (pair.length == 2) {
                 protocolExtensionClassNames.put(pair[0], pair[1]);
