@@ -936,7 +936,11 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
 		throws IOException
 	{
-		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
+		try {
+			JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
+		} catch ( IOException e ) {
+			value.setValue( new String( message.content() ));
+		}
 	}
 
 	private static void parseForm( HttpMessage message, Value value, String charset )
