@@ -4,57 +4,53 @@ JIoT aims to bring the power of an high level Service Oriented
 Language into the Internet of Things.
 
 ```Jolie
-inputPort IN_MQTT {
-  Location: "socket://localhost:8000"
-  Protocol: MQTT {
-    .broker = hostname:port;
-    .clientId? = clientId; // default fresh Id
-    .osc.getMessage.alias? = “planets/earth” // default operation name
-    .subscriber? = on_demand | fixed_up_to | on_start // default fixed_up_to
-  }
-  OneWay: getMessage
+interface TemperatureInterface { 
+    OneWay: receiveTemperature( string )
 }
 
-inputPort IN_CoAP {
+inputPort  HttpCP {
+  Location: "socket://localhost:8000"
+  Protocol: http {
+    .method = "get"
+  }
+  Interfaces: TemperatureInterface
+}
+
+inputPort  MqttCP {
+  Location: "socket://localhost:8050"
+  Protocol: mqtt {
+    .broker = "socket://iot.eclipse.org:1883"
+    .osc.receiveTemperature {
+        .alias = "jolie/request/temperature"
+    }
+  }
+  Interfaces: TemperatureInterface
+}
+
+inputPort CoapCP {
   Location: "socket://localhost:8805"
   Protocol: CoAP
-  OneWay: getMessage
+  Interfaces: TemperatureInterface
 }
 
 outputPort Broker {
-  Location: hostname:port // "tcp://iot.eclipse.org:1883"
-  Protocol: MQTT {
-    .clientId = clientId;
-    .osc.sendMessage.alias = “planet/earth”
+  Location: "socket://iot.eclipse.org:1883"
+  Protocol: mqtt {
+    .osc.setTmp {
+      .alias = "jolie/request/temperature"
+    }
   }
-  RequestResponse: sendMessage
+  OneWay: setTmp( string )
 }
 
 execution { concurrent }
 
-define messageArrived {
+main {
+  setTmp@Broker( "22.5" );
+  receiveTemperature( data );
   println@Console( data )
 }
-
-init {
-  sendMessage@Broker( “Hello World!” )
-}
-
-main {
- install( ConnectionLost => println@Console( “Connection Lost!” );
- getMessage( data );
- messageArrived
- sendMessage( "22 C" )( temperature )
-}
-```
-
-### To Do ###
-
-* Implement Jolie Module for encoding MQTT
-* Add datagram support in Jolie (UDP)
-* Implement Jolie Module for encoding CoAP
-* Integrate kotlin and mqtt module into the ant build.xml
-* 
+``` 
 
 ### Contact ###
 
