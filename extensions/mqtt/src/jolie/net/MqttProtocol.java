@@ -38,6 +38,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.ThreadLocalRandom;
 import java.net.URI;
@@ -253,7 +255,6 @@ public class MqttProtocol extends AsyncCommProtocol {
     private static class Parameters {
 
         private static final String CONCURRENT = "concurrent";
-        private static final String BROKER = "broker";
         private static String ALIAS;
 
     }
@@ -261,6 +262,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
 
+        pipeline.addLast(new LoggingHandler(LogLevel.INFO));    
         pipeline.addLast(new MqttHandler(this));
         pipeline.addLast("Ping", new MqttPingHandler());
         pipeline.addLast(new MqttCommMessageCodec());
@@ -294,10 +296,10 @@ public class MqttProtocol extends AsyncCommProtocol {
             ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
                     ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
-            //Interpreter.getInstance().logInfo("Sending: " + message.toString());
-            
+            Interpreter.getInstance().logInfo("Sending: " + message.toString());
+
             MqttMessage msg = buildMqttMessage(message);
-            
+
             out.add(msg);
         }
 
@@ -309,9 +311,9 @@ public class MqttProtocol extends AsyncCommProtocol {
                     ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
             Interpreter.getInstance().logInfo("Mqtt message recv: " + ExecutionThread.currentThread());
-            
+
             CommMessage message = recv_internal(msg);
-            
+
             Interpreter.getInstance().logInfo("Decoded Mqtt request for operation: " + message.operationName());
             out.add(message);
         }
