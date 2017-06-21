@@ -21,8 +21,11 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
@@ -39,7 +42,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.net.protocols.AsyncCommProtocol;
+import jolie.runtime.FaultException;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class MqttProtocol extends AsyncCommProtocol {
@@ -240,6 +247,8 @@ public class MqttProtocol extends AsyncCommProtocol {
     private static class Parameters {
 
         private static final String CONCURRENT = "concurrent";
+        private static final String BROKER = "broker";
+        private static String ALIAS;
 
     }
 
@@ -248,7 +257,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 
         pipeline.addLast(new MqttHandler(this));
         pipeline.addLast("Ping", new MqttPingHandler());
-        pipeline.addLast(new MqttCommMessageCodec(this));
+        pipeline.addLast(new MqttCommMessageCodec());
     }
 
     @Override
@@ -268,5 +277,69 @@ public class MqttProtocol extends AsyncCommProtocol {
             bb = Unpooled.copiedBuffer(msg.getBytes(CharsetUtil.UTF_8));
         }
         return bb;
+    }
+
+    private class MqttCommMessageCodec extends MessageToMessageCodec<MqttMessage, CommMessage> {
+
+        @Override
+        protected void encode(ChannelHandlerContext ctx, CommMessage message, List<Object> out)
+                throws Exception {
+
+            ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
+                    ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+
+            Interpreter.getInstance().logInfo("Sending: " + message.toString());
+            MqttMessage msg = buildMqttMessage(message);
+            out.add(msg);
+        }
+
+        @Override
+        protected void decode(ChannelHandlerContext ctx, MqttMessage msg, List<Object> out)
+                throws Exception {
+
+            ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
+                    ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+
+            Interpreter.getInstance().logInfo("Mqtt message recv: " + ExecutionThread.currentThread());
+            CommMessage message = recv_internal(msg);
+            Interpreter.getInstance().logInfo("Decoded Mqtt request for operation: " + message.operationName());
+            out.add(message);
+        }
+
+        private MqttMessage buildMqttMessage(CommMessage message) {
+
+            /*
+            outputPort Broker {
+                Location: "socket://iot.eclipse.org:1883"
+                Protocol: mqtt {
+                    .osc.setTmp {
+                        .QoS = AT_LEAST_ONCE;
+                        .alias = "jolie/request/temperature"
+                    }
+                }
+                OneWay: setTmp( string )
+            }
+            
+            main {
+                setTmp@Broker( "22.5" )
+            }
+             */
+            String pubTopic = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
+            String pubMessage = "";
+            MqttPublishMessage pub = buildPublication(pubTopic, pubMessage);
+
+            return pub;
+        }
+
+        private CommMessage recv_internal(MqttMessage msg) {
+
+            int id = 0;
+            String operationName = "";
+            String resourcePath = "";
+            Value value = null;
+            FaultException fault = new FaultException("");
+            CommMessage message = new CommMessage(id, operationName, resourcePath, value, fault);
+            return message;
+        }
     }
 }
