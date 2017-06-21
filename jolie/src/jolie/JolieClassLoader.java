@@ -326,7 +326,6 @@ public final class JolieClassLoader extends URLClassLoader {
             throws IOException {
         String extension = attrs.getValue(Constants.Manifest.PROTOCOL_EXTENSION);
         if (extension != null) {
-
             String[] pair = extensionSplitPattern.split(extension);
             if (pair.length == 2) {
                 protocolExtensionClassNames.put(pair[0], pair[1]);
