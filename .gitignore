@@ -41,3 +41,14 @@ build/
 /extensions/mqtt/nbproject/private/
 /extensions/coap/nbproject/private/
 /extensions/coapMiddle/nbproject/private/
+jolie/nbproject/project.xml
+
+jolie/nbproject/project.xml
+
+jolie/nbproject/project.properties
+
+jolie/nbproject/genfiles.properties
+
+jolie/nbproject/build-native.xml
+
+jolie/nbproject/build-impl.xml

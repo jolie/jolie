@@ -27,6 +27,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
@@ -262,7 +264,9 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
 
-        pipeline.addLast(new LoggingHandler(LogLevel.INFO));    
+        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+        pipeline.addLast("mqttDecoder", new MqttDecoder());
+        pipeline.addLast("mqttEncoder", MqttEncoder.INSTANCE);
         pipeline.addLast(new MqttHandler(this));
         pipeline.addLast("Ping", new MqttPingHandler());
         pipeline.addLast(new MqttCommMessageCodec());
