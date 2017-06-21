@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.net.mqtt;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -35,6 +35,7 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.timeout.IdleStateHandler;
+import jolie.net.MqttProtocol;
 
 @ChannelHandler.Sharable
 public class MqttHandler extends ChannelInboundHandlerAdapter {
@@ -199,5 +200,12 @@ public class MqttHandler extends ChannelInboundHandlerAdapter {
     private void handleIncomingPublish(MqttPublishMessage mpm) {
         mp.getSubscriptions().get(mpm.variableHeader().topicName())
                 .handleMessage(mpm.variableHeader().topicName(), Unpooled.copiedBuffer(mpm.payload()));
+    }
+    
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        ctx.channel().closeFuture();    
+        cause.printStackTrace();
     }
 }

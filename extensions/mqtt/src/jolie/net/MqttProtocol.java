@@ -16,6 +16,9 @@
  */
 package jolie.net;
 
+import jolie.net.mqtt.MqttPingHandler;
+import jolie.net.mqtt.MqttHandler;
+import jolie.net.mqtt.PublishHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -37,6 +40,7 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.ThreadLocalRandom;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +68,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     private boolean publishReady;
     private boolean subscribeReady;
     private Channel connectedChannel;
+    private final URI location;
 
     public Map<String, PublishHandler> getSubscriptions() {
         return subscriptions;
@@ -133,8 +138,9 @@ public class MqttProtocol extends AsyncCommProtocol {
         return pendingSubscriptions;
     }
 
-    public MqttProtocol(boolean inInputPort, VariablePath configurationPath) {
+    public MqttProtocol(boolean inInputPort, URI location, VariablePath configurationPath) {
         super(configurationPath);
+        this.location = location;
         this.pendingPublishes = new ArrayList<>();
         this.pendingSubscriptions = new ArrayList<>();
         this.subscriptions = new HashMap<>();
@@ -288,8 +294,10 @@ public class MqttProtocol extends AsyncCommProtocol {
             ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
                     ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
-            Interpreter.getInstance().logInfo("Sending: " + message.toString());
+            //Interpreter.getInstance().logInfo("Sending: " + message.toString());
+            
             MqttMessage msg = buildMqttMessage(message);
+            
             out.add(msg);
         }
 
@@ -301,7 +309,9 @@ public class MqttProtocol extends AsyncCommProtocol {
                     ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
             Interpreter.getInstance().logInfo("Mqtt message recv: " + ExecutionThread.currentThread());
+            
             CommMessage message = recv_internal(msg);
+            
             Interpreter.getInstance().logInfo("Decoded Mqtt request for operation: " + message.operationName());
             out.add(message);
         }
@@ -325,7 +335,7 @@ public class MqttProtocol extends AsyncCommProtocol {
             }
              */
             String pubTopic = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
-            String pubMessage = "";
+            String pubMessage = message.value().strValue();
             MqttPublishMessage pub = buildPublication(pubTopic, pubMessage);
 
             return pub;

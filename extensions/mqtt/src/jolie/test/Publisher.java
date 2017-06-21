@@ -20,7 +20,7 @@ import jolie.net.MqttProtocol;
 
 class Publisher {
 
-    private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null);
+    private final MqttProtocol mp = new MqttProtocol(Boolean.FALSE, null, null);
 
     public Publisher(String topic, String message) {
         mp.buildPublication(topic, message);

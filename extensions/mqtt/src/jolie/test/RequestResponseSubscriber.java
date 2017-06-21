@@ -23,7 +23,7 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.util.CharsetUtil;
 import java.util.Collections;
 import java.util.List;
-import jolie.net.PublishHandler;
+import jolie.net.mqtt.PublishHandler;
 
 public class RequestResponseSubscriber {
 
