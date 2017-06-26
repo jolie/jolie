@@ -24,6 +24,7 @@ package jolie.net;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
+import com.sun.corba.se.impl.protocol.SpecialMethod;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -202,6 +203,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CONTENT_DISPOSITION = "contentDisposition";
 		private static final String DROP_URI_PATH = "dropURIPath";
 		private static final String CACHE_CONTROL = "cacheControl";
+		private static final String STRING_RAW_CONTENT = "stringRawContent";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -883,7 +885,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
-			send_appendResponseUserHeader(message, headerBuilder);
+			send_appendResponseUserHeader( message, headerBuilder );
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
@@ -893,7 +895,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
-			send_appendRequestUserHeader(message, headerBuilder);
+			send_appendRequestUserHeader( message, headerBuilder );
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
@@ -941,11 +943,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private static void parseJson( HttpMessage message, Value value, boolean strictEncoding, String charset )
 		throws IOException
 	{
-		try {
-			JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
-		} catch ( IOException e ) {
-			value.setValue( new String( message.content() ));
-		}
+		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( message.content() ), charset ), value, strictEncoding );
 	}
 
 	private static void parseForm( HttpMessage message, Value value, String charset )
@@ -1178,7 +1176,10 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		if ( "text/html".equals( type ) ) {
+		if ( getOperationSpecificBooleanParameter( inputId, Parameters.STRING_RAW_CONTENT ) 
+			|| checkBooleanParameter(Parameters.STRING_RAW_CONTENT, false ) ) {
+			decodedMessage.value.setValue( new String( message.content(), charset ) );
+		} else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value, charset );

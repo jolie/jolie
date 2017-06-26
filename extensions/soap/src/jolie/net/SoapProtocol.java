@@ -833,7 +833,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						} else {
 							listExt = getWSDLPort().getBinding().getBindingOperation( message.operationName(), null, null).getBindingInput().getExtensibilityElements();
 						}
-						;
+						
 						for( ExtensibilityElement extElement : listExt ) {
 							if ( extElement instanceof SOAPHeaderImpl ) {
 								SOAPHeaderImpl soapHeaderImpl = (SOAPHeaderImpl) extElement;
