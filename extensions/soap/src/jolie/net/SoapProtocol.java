@@ -612,21 +612,22 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					soapMessage = operation.getInput().getMessage();
 					listExt = getWSDLPort().getBinding().getBindingOperation( operationName, null, null).getBindingInput().getExtensibilityElements();
 				}
+
 				for( ExtensibilityElement element : listExt ) {
 					if ( element instanceof SOAPBodyImpl ) {
 						SOAPBodyImpl sBodyImpl = (SOAPBodyImpl) element;
-						if ( sBodyImpl.getParts().size() > 0 ) {
+						if ( sBodyImpl.getParts() != null && sBodyImpl.getParts().size() > 0 ) {
 							String partName = sBodyImpl.getParts().get( 0 ).toString();
 							elementName = soapMessage.getPart( partName ).getElementName().getLocalPart();
 						} else {
 							Part part = ((Entry<String, Part>) soapMessage.getParts().entrySet().iterator().next()).getValue();
 							elementName = part.getElementName().getLocalPart();
 						}
-						
 					}
 				}
 				
 			} catch( Exception e ) {
+				e.printStackTrace();
 			}
 		}
 		return elementName;
@@ -793,14 +794,6 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						soapEnvelope.addNamespaceDeclaration( "jolieMessage", messageNamespace );
 						operationName = soapEnvelope.createName( messageRootElementName, "jolieMessage", messageNamespace );
 					}
-					
-					/*if( hasParameter( "header") ) {
-						if ( getParameterFirstValue( "header" ).hasChildren() ) {
-							// Prepare SOAP Header getting data from parameter .header
-							SOAPHeader soapHeader = soapEnvelope.getHeader();
-							
-						}
-					}*/
 
 					SOAPBodyElement opBody = soapBody.addBodyElement( operationName );
 					String[] parameters = getParameterOrder( message.operationName() );
