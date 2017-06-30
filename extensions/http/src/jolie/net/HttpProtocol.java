@@ -24,7 +24,6 @@ package jolie.net;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RPC;
 import com.google.gwt.user.server.rpc.RPCRequest;
-import com.sun.corba.se.impl.protocol.SpecialMethod;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -385,7 +384,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-                       int displacement = 2;
+			int displacement = 2;
 			if ( m.group( 1 ) == null ) { // ! is missing after %: We have to use URLEncoder
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
@@ -395,7 +394,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					aliasKeys.add( currKey );
 				}
 			} else { // ! is given after %: We have to insert the string raw
-                               displacement = 3;
+				displacement = 3;
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = value.strValue();
@@ -409,7 +408,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				m.start() + offset, m.end() + offset,
 				currStrValue
 			);
-                       displacement++; //considering also }
+			displacement++; //considering also }
 			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
@@ -487,7 +486,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if ( "multipart/form-data".equals( format ) ) {
 			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
 			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-                        StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
 					builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
