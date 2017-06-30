@@ -23,27 +23,46 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
 /**
- * For future development of extensions: Create MqttProtocolFactory called by
- * Jolie Class Loader, update file manifest.mf with value
- * X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
+ * For future development of extensions: Create MqttProtocolFactory called by Jolie Class Loader,
+ * update file manifest.mf with value X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
  *
  * @author stefanopiozingaro
  */
 public class MqttProtocolFactory extends CommProtocolFactory {
 
-    public MqttProtocolFactory(CommCore commCore) {
-        super(commCore);
-    }
+  /**
+   *
+   * @param commCore CommCore
+   */
+  public MqttProtocolFactory(CommCore commCore) {
+    super(commCore);
+  }
 
-    @Override
-    public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
-            throws IOException {
-        return new MqttProtocol(Boolean.TRUE, location, configurationPath);
-    }
+  /**
+   * This is a subscriber, it could be a One Way or a Request Response
+   *
+   * @param configurationPath VariablePath
+   * @param location URI
+   * @return CommProtocol
+   * @throws IOException
+   */
+  @Override
+  public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
+          throws IOException {
+    return new MqttProtocol(Boolean.TRUE, configurationPath);
+  }
 
-    @Override
-    public CommProtocol createOutputProtocol(VariablePath configurationPath, URI location)
-            throws IOException {
-        return new MqttProtocol(Boolean.FALSE, location, configurationPath);
-    }
+  /**
+   * This is a Publisher, just a One Way Publisher
+   *
+   * @param configurationPath VariablePath
+   * @param location URI
+   * @return CommProtocol
+   * @throws IOException
+   */
+  @Override
+  public CommProtocol createOutputProtocol(VariablePath configurationPath, URI location)
+          throws IOException {
+    return new MqttProtocol(Boolean.FALSE, configurationPath);
+  }
 }
