@@ -24,4 +24,38 @@ define doTest
           println@Console( "Expected lenght: 800" )();
           throw( TestFailed )
       }
+      ;
+
+      /* getElement */
+      nd.resourceName = "test";
+      nd.path = "wsdl:definitions/wsdl:portType/wsdl:operation[0]/wsdl:documentation";
+      getElement@PlainXMLManager( nd )( node );
+      if( node.Name != "wsdl:documentation" ) {
+          println@Console( "getElement failed" )();
+          throw( TestFailed )
+      }
+      ;
+      /* modifyElement */
+      NEWTEXT = "test";
+      NEWNODENAME = "testNodeName";
+      node.Node.Text.Value = NEWTEXT;
+      node.Name = NEWNODENAME;
+      nd.content -> node;
+      modifyElement@PlainXMLManager( nd )();
+      undef( nd.content );
+      nd.path = "wsdl:definitions/wsdl:portType/wsdl:operation[0]/" + NEWNODENAME;
+      getElement@PlainXMLManager( nd )( node );
+      if ( node.Node.Text.Value != NEWTEXT && node.Name != NEWNODENAME ) {
+          println@Console( "modifyElement does not work, text node " + node.Node.Text.Value )();
+          throw( TestFailed )
+      }
+      ;
+      /* wrong path in getElement */
+      scope( testPathNotFound ) {
+        install( PathNotFound => nullProcess );
+        nd.path = "wsdl:definitions/wsdl:portTypeXXX/wsdl:operation[0]/wsdl:documentation";
+        getElement@PlainXMLManager( nd )( node );
+        println@Console("PathNotFound not validated")();
+        throw( TestFailed )
+      }
 }

@@ -90,9 +90,9 @@ interface PlainXMLManagerInterface {
                   PositionOrPathNotAvailable,
     createPlainXML( CreatePlainXMLRequest )( void ) throws ResourceAlreadyExists,
     destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
-    getElement( GetElementRequest )( XMLNodeELement ) throws ResourceDoesNotExist,
+    getElement( GetElementRequest )( undefined ) throws ResourceDoesNotExist PathNotFound,
     getXMLString( ResourceRequest )( string ) throws ResourceDoesNotExist,
-    modifyElement( ModifyElementRequest )( void ) throws ResourceDoesNotExist,
+    modifyElement( ModifyElementRequest )( void ) throws ResourceDoesNotExist PathNotFound,
     removeElement( RemoveElementRequest )( void ) throws ResourceDoesNotExist,
     showTree( ResourceRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
 }

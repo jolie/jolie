@@ -58,7 +58,8 @@ define __navigate {
         __navigate
     } else if ( !found && __path != "" && __path != "/" ) {
         undef( __node );
-        undef( __parent )
+        undef( __parent );
+        throw( PathNotFound )
     }
 }
 
@@ -107,6 +108,10 @@ define _showTree {
   };
   undef( stack[ #stack - 1 ] );
   undef( stack_tree[ #stack_tree - 1 ] )
+}
+
+init {
+    install( PathNotFound => nullProcess )
 }
 
 main {
@@ -168,9 +173,21 @@ main {
           throw ( ResourceDoesNotExist )
         } else {
           __node =$ global.resources.( request.resourceName ).root;
-          __path = request.path;
-          __navigate;
-          response << __node
+          spl = request.path;
+          spl.regex = "/";
+          split@StringUtils( spl )( path_elements );
+          if ( path_elements.result[ 0 ] == __node.Name ) {
+              /* root is ok */
+              for( i = 1, i < #path_elements.result, i++ ) {
+                  if ( i > 1 ) { new_path = new_path + "/" };
+                  new_path = new_path + path_elements.result[ i ]
+              };
+              __path = new_path;
+              __navigate;
+              response << __node
+          } else {
+              throw( PathNotFound )
+          }
         }
     }]
 
@@ -179,6 +196,29 @@ main {
           throw ( ResourceDoesNotExist )
         } else {
           plainValueToXml@XmlUtils( global.resources.( request.resourceName ) )( response )
+        }
+    }]
+
+    [ modifyElement( request )( response ) {
+        if ( !is_defined( global.resources.( request.resourceName ) ) ) {
+          throw ( ResourceDoesNotExist )
+        } else {
+          __node =$ global.resources.( request.resourceName ).root;
+          spl = request.path;
+          spl.regex = "/";
+          split@StringUtils( spl )( path_elements );
+          if ( path_elements.result[ 0 ] == __node.Name ) {
+              /* root is ok */
+              for( i = 1, i < #path_elements.result, i++ ) {
+                  if ( i > 1 ) { new_path = new_path + "/" };
+                  new_path = new_path + path_elements.result[ i ]
+              };
+              __path = new_path;
+            __navigate;
+            __node << request.content
+          } else {
+            throw( PathNotFound )
+          }
         }
     }]
 
