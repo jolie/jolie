@@ -21,7 +21,6 @@
  ***************************************************************************/
 
 include "../AbstractTestUnit.iol"
-
 include "private/server.iol"
 
 outputPort SODEPServer {
@@ -95,50 +94,83 @@ Jolie:
 
 define checkResponse
 {
-	if ( response.id != 123456789123456789L || response.firstName != "John" || response.lastName != "Döner" || response.age != 30 || response.size != 90.5 || response.male != true || response.unknown != "Hey" || response.unknown2 != void || #response.array != 3 || response.array[0] != 0 || response.array[1] != "Ho" || response.array[2] != 3.14 || response.object.data != 10L ) {
-		throw( TestFailed, "Data <=> Query value mismatch" )
+	if ( response.id != 123456789123456789L
+		|| response.firstName != "John"
+		|| response.lastName != "Döner"
+		|| response.age != 30
+		|| response.size != 90.5
+		|| response.male != true
+		|| response.unknown != "Hey"
+		|| response.unknown2 != void
+		|| #response.array != 3
+		|| response.array[0] != 0
+		|| response.array[1] != "Ho"
+		|| response.array[2] != 3.14
+		|| response.object.data != 10L ) {
+		throw( TestFailed, "compression:" + compression + ", requestCompression:" + requestCompression + "\n" +current_protocol + "\nCheckResponse: Data <=> Query value mismatch\n"
+		+ "\t.id:" + (response.id != 123456789123456789L) +"\n"
+		+ "\t.firstName:" + (response.firstName != "John") +"\n"
+		+ "\t.lastName:" + (response.lastName != "Döner") +"\n"
+		+ "\t.age:" + (response.age != 30) +"\n"
+		+ "\t.size:" + (response.size != 90.5) +"\n"
+		+ "\t.male:" + (response.male != true) +"\n"
+		+ "\t.unknown:" + (response.unknown != "Hey") +"\n"
+		+ "\t.unknown2:" + (response.unknown2 != void) +"\n"
+		+ "\t.array:" + (#response.array != 3) +"\n"
+		+ "\t.array[0]:" + (response.array[0] != 0) +"\n"
+		+ "\t.array[1]:" + (response.array[1] != "Ho") +"\n"
+		+ "\t.array[2]:" + (response.array[2] != 3.14) +"\n"
+		+ "\t.object:" + (response.object.data != 10L) +"\n"
+		)
 	};
 	if ( response2 != reqVal ) {
-		throw( TestFailed, "Data <=> Query value mismatch" )
+		throw( TestFailed, "Identity: Data <=> Query value mismatch" )
 	}
 }
 
 define test
 {
+	current_protocol = "sodep";
 	echoPerson@SODEPServer( person )( response );
 	identity@SODEPServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "sodeps";
 	echoPerson@SODEPSServer( person )( response );
 	identity@SODEPSServer( reqVal )( response2 );
 	checkResponse;
-
+	current_protocol = "soap";
 	echoPerson@SOAPServer( person )( response );
 	identity@SOAPServer( reqVal )( response2 );
 	checkResponse;
-
+	current_protocol = "jsonrpc";
 	echoPerson@JSONRPCServer( person )( response );
 	identity@JSONRPCServer( reqVal )( response2 );
 	checkResponse;
-
+	current_protocol = "http/xml/post";
 	method = "post";
 	format = "xml";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "https";
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "http/json";
 	format = "json";
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "https/json";
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "http/json-ifield";
 	method = "get"; // JSON-ified
 	echoPerson@HTTPServer( person )( response );
 	identity@HTTPServer( reqVal )( response2 );
 	checkResponse;
+	current_protocol = "https/json-ifield";
 	echoPerson@HTTPSServer( person )( response );
 	identity@HTTPSServer( reqVal )( response2 );
 	checkResponse
