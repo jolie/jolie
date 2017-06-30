@@ -886,9 +886,11 @@ public class CommCore
 						SelectableChannel c = channel.selectableChannel();
 						c.configureBlocking( false );
 						synchronized( selectingMutex ) {
-							c.register( selector, SelectionKey.OP_READ, channel );
-							selector.wakeup();
-							channel.setSelectorIndex( index );
+							if ( selector.isOpen() ) {
+								c.register( selector, SelectionKey.OP_READ, channel );
+								selector.wakeup();
+								channel.setSelectorIndex( index );
+							}
 						}
 					}
 				}

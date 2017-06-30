@@ -118,7 +118,7 @@ main {
         }
         ;
         __node =$ global.resources.( request.to.resourceName ).root;
-        __path = request.to.__path;
+        __path = request.to.path;
         if ( __path != "/" ) {
             __navigate
         }
@@ -128,18 +128,18 @@ main {
         }
         ;
         /* copy extra nodes in temp variable */
-        for( n = request.to.__index, n < #__node.Node, n++ ) {
-            tmp.Node[ n - request.to.__index ] << __node.Node[ n ]
+        for( n = request.to.index, n < #__node.Node, n++ ) {
+            tmp.Node[ n - request.to.index ] << __node.Node[ n ]
         };
         /* undef extra nodes */
-        for( n = request.to.__index, n < #__node.Node, n++ ) {
+        for( n = request.to.index, n < #__node.Node, n++ ) {
             undef( __node.Node[ n ] )
         };
         /* add node */
-        __node.Node[ request.to.__index ].Element << request.from;
+        __node.Node[ request.to.index ].Element << request.from;
         /* add nodes saved in temporary variable */
         for( n = 0, n < #tmp.Node, n++ ) {
-            __node.Node[ request.to.__index + 1 + n ] << tmp.Node[ n ]
+            __node.Node[ request.to.index + 1 + n ] << tmp.Node[ n ]
         }
     }]
 
@@ -168,7 +168,7 @@ main {
           throw ( ResourceDoesNotExist )
         } else {
           __node =$ global.resources.( request.resourceName ).root;
-          __path = request.__path;
+          __path = request.path;
           __navigate;
           response << __node
         }
@@ -187,7 +187,7 @@ main {
           throw ( ResourceDoesNotExist )
         } else {
           __node =$ global.resources.( request.resourceName ).root;
-          __path = request.__path;
+          __path = request.path;
           if ( __path != "/" ) {
               __navigate
           }

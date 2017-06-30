@@ -312,6 +312,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 			element.addAttribute( soapEnvelope.createName( "type", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "xsd:" + type );
 			element.addTextNode( value.strValue() );
+		} else if ( !value.hasChildren() ) {
+			element.addAttribute( soapEnvelope.createName( "nil", "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ), "true" );
 		}
 
 		if ( convertAttributes() ) {
@@ -1001,16 +1003,25 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	{
 		String type = "xsd:string";
 		Node currNode;
+		boolean nil = false;
 
 		// Set attributes
 		NamedNodeMap attributes = node.getAttributes();
 		if ( attributes != null ) {
 			for( int i = 0; i < attributes.getLength(); i++ ) {
 				currNode = attributes.item( i );
-				if ( "type".equals( currNode.getNodeName() ) == false && convertAttributes() ) {
+				if ( currNode.getNamespaceURI().equals( XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI ) ) {
+					if( currNode.getLocalName().equals( "type" ) ) {
+							type = currNode.getNodeValue();
+					} else if ( currNode.getLocalName().equals( "nil" ) ) {
+							nil = "true".equals( currNode.getNodeValue() );
+					} else {
+							if ( convertAttributes() ) {
+								getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
+							}
+					}
+				} else if ( convertAttributes() ) {
 					getAttribute( value, currNode.getNodeName() ).setValue( currNode.getNodeValue() );
-				} else {
-					type = currNode.getNodeValue();
 				}
 			}
 		}
@@ -1035,7 +1046,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 
 		// the content of the root of a mixed element is not extracted
-		if ( !foundSubElements ) {
+		if (  !foundSubElements && !nil ) {
 			if ( !isRecRoot ) {
 				value.setValue( tmpNodeValue.toString() );
 			}

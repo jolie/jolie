@@ -45,8 +45,8 @@ type AddToRequest: void {
     .from: XMLNodeELement
     .to: void {
         .resourceName: string
-        .__path: string
-        .__index: int
+        .path: string
+        .index: int
     }
 }
 
@@ -57,7 +57,13 @@ type CreatePlainXMLRequest: void {
 
 type GetElementRequest: void {
     .resourceName: string
-    .__path: string
+    .path: string
+}
+
+type ModifyElementRequest: void {
+    .resourceName: string
+    .path: string
+    .content: XMLNodeELement
 }
 
 type ShowTreeResponse: void {
@@ -67,7 +73,7 @@ type ShowTreeResponse: void {
 
 type RemoveElementRequest: void {
     .resourceName: string
-    .__path: string
+    .path: string
     .remove_next_text?: bool
 }
 
@@ -84,8 +90,9 @@ interface PlainXMLManagerInterface {
                   PositionOrPathNotAvailable,
     createPlainXML( CreatePlainXMLRequest )( void ) throws ResourceAlreadyExists,
     destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
-    getElement( GetElementRequest )( undefined ) throws ResourceDoesNotExist,
+    getElement( GetElementRequest )( XMLNodeELement ) throws ResourceDoesNotExist,
     getXMLString( ResourceRequest )( string ) throws ResourceDoesNotExist,
+    modifyElement( ModifyElementRequest )( void ) throws ResourceDoesNotExist,
     removeElement( RemoveElementRequest )( void ) throws ResourceDoesNotExist,
     showTree( ResourceRequest )( ShowTreeResponse ) throws ResourceDoesNotExist
 }
