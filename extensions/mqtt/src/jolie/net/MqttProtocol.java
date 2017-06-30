@@ -16,23 +16,31 @@
  */
 package jolie.net;
 
+import jolie.Interpreter;
 import jolie.net.mqtt.MqttPingHandler;
-import jolie.net.mqtt.MqttHandler;
 import jolie.net.mqtt.PublishHandler;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.runtime.VariablePath;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import io.netty.handler.codec.mqtt.MqttConnectPayload;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
 import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
@@ -42,320 +50,288 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
-import io.netty.util.internal.ThreadLocalRandom;
 import java.net.URI;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.net.protocols.AsyncCommProtocol;
-import jolie.runtime.FaultException;
-import jolie.runtime.Value;
-import jolie.runtime.VariablePath;
 
+/**
+ *
+ * @author stefanopiozingaro
+ */
 public class MqttProtocol extends AsyncCommProtocol {
 
-    private final boolean inInputPort;
-    private final int keepAliveConnectTimeSeconds;
-    private MqttVersion mqttVersion;
-    private String willTopic;
-    private String willMessage;
-    private String mqttUserName;
-    private String mqttPassword;
-    private final List<MqttPublishMessage> pendingPublishes;
-    private final List<MqttSubscribeMessage> pendingSubscriptions;
-    private final Map<String, PublishHandler> subscriptions;
-    private boolean publishReady;
-    private boolean subscribeReady;
-    private Channel connectedChannel;
-    private final URI location;
+  private static final MqttVersion mqttVersion = MqttVersion.MQTT_3_1_1;
+  private final List<MqttPublishMessage> pendingPublishes;
+  private final List<MqttSubscribeMessage> pendingSubscriptions;
+  private final Map<String, PublishHandler> subscriptions;
+  private final boolean inInputPort;
 
-    public Map<String, PublishHandler> getSubscriptions() {
-        return subscriptions;
+  private static class Parameters {
+
+    private static final String BROKER = "broker";
+    private static final String CONCURRENT = "concurrent";
+    private static final String ALIAS = "alias";
+    private static final String QOS = "qos";
+    private static final String KEEP_ALIVE = "keepAlive";
+    private static final String WILL_TOPIC = "willTopic";
+    private static final String WILL_MESSAGE = "willMessage";
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
+    private static final String CLIENT_ID = "clientId";
+  }
+
+  /**
+   * The only variable that is accessible from the outside is the list of subscriptions for the
+   * specific topic, no duplicates!
+   *
+   * @return HashMap
+   */
+  public Map<String, PublishHandler> getSubscriptions() {
+    return subscriptions;
+  }
+
+  /**
+   * Constructor of the Mqtt Protocol class
+   *
+   * @param inInputPort boolean
+   * @param configurationPath VariablePath
+   */
+  public MqttProtocol(boolean inInputPort, VariablePath configurationPath) {
+
+    super(configurationPath);
+    this.pendingPublishes = new ArrayList<>();
+    this.pendingSubscriptions = new ArrayList<>();
+    this.subscriptions = new HashMap<>();
+    this.inInputPort = inInputPort;
+
+    if (inInputPort) {
+      System.out.println("Broker address (theroeticcally speaking) is :" + getStringParameter(Parameters.BROKER));
+      /*
+      try {
+        URI brokerLocation = URI.create(getStringParameter(Parameters.BROKER));
+        Interpreter.getInstance().logInfo(brokerLocation.toString());
+        NioSocketCommChannel ncc = new NioSocketCommChannel(brokerLocation, this);
+        ChannelFuture f = ncc.connect(brokerLocation).sync();
+        if (f.isSuccess()) {
+          Interpreter.getInstance().logInfo("Channel created!");
+        }
+      } catch (InterruptedException ex) {
+        Interpreter.getInstance().logSevere("Channel cannot be created! Check URI for Broker!");
+        Interpreter.getInstance().logSevere(ex.getCause());
+        Interpreter.getInstance().logSevere(ex.getMessage());
+      }
+       */
     }
+  }
 
-    public Channel getConnectedChannel() {
-        return connectedChannel;
+  @Override
+  public void setupPipeline(ChannelPipeline pipeline) {
+    pipeline.addLast(new LoggingHandler(LogLevel.INFO));
+    pipeline.addLast(MqttEncoder.INSTANCE);
+    pipeline.addLast(new MqttDecoder());
+    pipeline.addLast("Ping", new MqttPingHandler());
+    pipeline.addLast(new MqttCommMessageCodec());
+  }
+
+  @Override
+  public String name() {
+    return "mqtt";
+  }
+
+  @Override
+  public boolean isThreadSafe() {
+    return checkBooleanParameter(Parameters.CONCURRENT);
+  }
+
+  /**
+   *
+   * @return MqttConnectMessage
+   */
+  public MqttConnectMessage buildConnect() {
+
+    String clientId = getStringParameter(Parameters.CLIENT_ID, "jolie/" + (int) (Math.random() * 65536));
+    String willTopic = getStringParameter(Parameters.WILL_TOPIC);
+    String willMessage = getStringParameter(Parameters.WILL_MESSAGE);
+    String mqttUserName = getStringParameter(Parameters.USERNAME);
+    String mqttPassword = getStringParameter(Parameters.PASSWORD);
+    boolean isDup = Boolean.FALSE; // TODO check
+    boolean isConnectRetain = Boolean.FALSE; // TODO check
+
+    MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.CONNECT, isDup, MqttQoS.AT_MOST_ONCE, isConnectRetain, 0);
+    MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
+            mqttVersion.protocolName(),
+            mqttVersion.protocolLevel(),
+            checkBooleanParameter(mqttUserName, false),
+            checkBooleanParameter(mqttPassword, false),
+            Boolean.FALSE, // TODO check
+            MqttQoS.AT_MOST_ONCE.value(),
+            checkBooleanParameter(willTopic, false),
+            Boolean.FALSE, // TODO check
+            2
+    );
+    MqttConnectPayload payload = new MqttConnectPayload(clientId, willTopic, willMessage, mqttUserName, mqttPassword);
+    return new MqttConnectMessage(mqttFixedHeader, variableHeader, payload);
+  }
+
+  /**
+   *
+   * @param topic String
+   * @param message String
+   * @return
+   */
+  public MqttPublishMessage buildPublication(String topic, Object message) {
+
+    boolean isDup = Boolean.FALSE;
+    MqttQoS publishQoS = MqttQoS.AT_LEAST_ONCE;
+    boolean isConnectRetain = Boolean.FALSE;
+    int messageId = (int) (Math.random() * 65536);
+
+    MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, isDup, publishQoS, isConnectRetain, 0);
+    MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(topic, messageId);
+    ByteBuf payload = parseObject(message);
+    MqttPublishMessage mpm = new MqttPublishMessage(mqttFixedHeader, variableHeader, payload);
+
+    return mpm;
+  }
+
+  public MqttSubscribeMessage buildSubscription(List<MqttTopicSubscription> topics, PublishHandler handler) {
+
+    boolean isDup = Boolean.FALSE;
+    MqttQoS subscribeQoS = MqttQoS.AT_LEAST_ONCE;
+    boolean isSubscribeRetain = Boolean.FALSE;
+    int messageId = (int) (Math.random() * 65536);
+
+    MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(MqttMessageType.SUBSCRIBE, isDup, subscribeQoS, isSubscribeRetain, 0);
+    MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(messageId);
+    MqttSubscribePayload payload = new MqttSubscribePayload(topics);
+    MqttSubscribeMessage msm = new MqttSubscribeMessage(mqttFixedHeader, variableHeader, payload);
+
+    return msm;
+  }
+
+  private ByteBuf parseObject(Object message) {
+    ByteBuf bb = Unpooled.buffer();
+    if (message instanceof String) {
+      String msg = (String) message;
+      bb = Unpooled.copiedBuffer(msg.getBytes(CharsetUtil.UTF_8));
     }
+    return bb;
+  }
 
-    public void setConnectedChannel(Channel connectedChannel) {
-        this.connectedChannel = connectedChannel;
-    }
+  private class MqttCommMessageCodec extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
-    public boolean isInInputPort() {
-        return inInputPort;
-    }
+    @Override
+    protected void encode(ChannelHandlerContext ctx, CommMessage message, List<Object> out)
+            throws Exception {
 
-    public MqttVersion getVersion() {
-        return mqttVersion;
-    }
+      ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
+              ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
-    public void setVersion(MqttVersion version) {
-        this.mqttVersion = version;
-    }
+      if (inInputPort) {
 
-    public String getWillTopic() {
-        return willTopic;
-    }
+        List<MqttTopicSubscription> topics = Collections.singletonList(new MqttTopicSubscription("jolie/temperature/request", MqttQoS.AT_LEAST_ONCE));
+        PublishHandler handler = new PublishHandler() {
+          @Override
+          public void handleMessage(String topic, ByteBuf payload) {
+            // distinguish the two case of one way subscriber or request response
+            Interpreter.getInstance().logInfo(Unpooled.copiedBuffer(payload).toString(CharsetUtil.UTF_8));
+          }
+        };
 
-    public void setWillTopic(String willTopic) {
-        this.willTopic = willTopic;
-    }
-
-    public String getWillMessage() {
-        return willMessage;
-    }
-
-    public void setWillMessage(String willMessage) {
-        this.willMessage = willMessage;
-    }
-
-    public String getUserName() {
-        return mqttUserName;
-    }
-
-    public void setUserName(String userName) {
-        this.mqttUserName = userName;
-    }
-
-    public String getPassword() {
-        return mqttPassword;
-    }
-
-    public void setPassword(String password) {
-        this.mqttPassword = password;
-    }
-
-    public int getKeepAliveConnectTimeSeconds() {
-        return keepAliveConnectTimeSeconds;
-    }
-
-    public List<MqttPublishMessage> getPendingPublishes() {
-        return pendingPublishes;
-    }
-
-    public List<MqttSubscribeMessage> getPendingSubscriptions() {
-        return pendingSubscriptions;
-    }
-
-    public MqttProtocol(boolean inInputPort, URI location, VariablePath configurationPath) {
-        super(configurationPath);
-        this.location = location;
-        this.pendingPublishes = new ArrayList<>();
-        this.pendingSubscriptions = new ArrayList<>();
-        this.subscriptions = new HashMap<>();
-        this.inInputPort = inInputPort;
-        this.publishReady = false;
-        this.subscribeReady = false;
-        this.keepAliveConnectTimeSeconds = 2;
-    }
-
-    public MqttPublishMessage buildPublication(String topic, String message) {
-
-        boolean isDup = Boolean.FALSE;
-        MqttQoS publishQoS = MqttQoS.AT_LEAST_ONCE;
-        boolean isConnectRetain = Boolean.FALSE;
-        int messageId = (int) (Math.random() * 65536);
-
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
-                MqttMessageType.PUBLISH,
-                isDup,
-                publishQoS,
-                isConnectRetain,
-                0
-        );
-
-        MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(topic, messageId);
-
-        ByteBuf payload = parseObject(message);
-
-        MqttPublishMessage mpm = new MqttPublishMessage(
-                mqttFixedHeader,
-                variableHeader,
-                payload
-        );
-
-        if (this.publishReady) {
-            this.connectedChannel.writeAndFlush(mpm);
-        } else {
-            this.pendingPublishes.add(mpm);
+        pendingSubscriptions.add(buildSubscription(topics, handler));
+        for (ListIterator<MqttTopicSubscription> i = topics.listIterator(); i.hasNext();) {
+          subscriptions.put(i.next().topicName(), handler);
         }
 
-        return mpm;
-    }
-
-    public MqttSubscribeMessage buildSubscription(List<MqttTopicSubscription> topics, PublishHandler handler) {
-
-        boolean isDup = Boolean.FALSE;
-        MqttQoS subscribeQoS = MqttQoS.AT_LEAST_ONCE;
-        boolean isSubscribeRetain = Boolean.FALSE;
-        int messageId = ThreadLocalRandom.current().nextInt(1, 65536 + 1);
-
-        MqttFixedHeader mqttFixedHeader = new MqttFixedHeader(
-                MqttMessageType.SUBSCRIBE,
-                isDup,
-                subscribeQoS,
-                isSubscribeRetain,
-                0
-        );
-
-        MqttMessageIdVariableHeader variableHeader
-                = MqttMessageIdVariableHeader.from(messageId);
-
-        MqttSubscribePayload payload = new MqttSubscribePayload(topics);
-
-        MqttSubscribeMessage msm
-                = new MqttSubscribeMessage(mqttFixedHeader, variableHeader, payload);
-
-        if (this.subscribeReady) {
-            this.connectedChannel.writeAndFlush(msm).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        for (ListIterator<MqttTopicSubscription> i = topics.listIterator(); i.hasNext();) {
-                            subscriptions.put(i.next().topicName(), handler);
-                        }
-                    }
-                }
-            });
-        } else {
-            this.pendingSubscriptions.add(msm);
-            for (ListIterator<MqttTopicSubscription> i = topics.listIterator(); i.hasNext();) {
-                subscriptions.put(i.next().topicName(), handler);
-            }
+      } else {
+        String pubTopic = message.operationName();
+        if (hasOperationSpecificParameter(message.operationName(), Parameters.ALIAS)) {
+          pubTopic = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
         }
+        pendingPublishes.add(buildPublication(pubTopic, message.value().strValue()));
 
-        return msm;
+      }
+      out.add(buildConnect());
     }
 
-    public void sendAndFlush(Channel channel) {
+    @Override
+    protected void decode(ChannelHandlerContext ctx, MqttMessage msg, List<Object> out)
+            throws Exception {
 
-        if (channel.isActive() && channel.isWritable()) {
+      Channel channel = ctx.channel();
 
+      ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
+              channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+
+      MqttMessageType mmt = msg.fixedHeader().messageType();
+      Interpreter.getInstance().logInfo(mmt.name() + " received");
+
+      switch (mmt) {
+        case CONNACK:
+          if (((MqttConnAckMessage) msg).variableHeader().connectReturnCode().equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
             if (inInputPort) {
-
-                this.subscribeReady = true;
-                for (ListIterator<MqttSubscribeMessage> i = this.pendingSubscriptions.listIterator(); i.hasNext();) {
-                    channel.writeAndFlush(i.next());
-                    i.remove();
-                }
+              channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
+              for (ListIterator<MqttSubscribeMessage> i = pendingSubscriptions.listIterator(); i.hasNext();) {
+                channel.writeAndFlush(i.next());
+                i.remove();
+              }
             } else {
-
-                this.publishReady = true;
-                for (ListIterator<MqttPublishMessage> j = this.pendingPublishes.listIterator(); j.hasNext();) {
-                    channel.writeAndFlush(j.next());
-                    j.remove();
-                }
+              for (ListIterator<MqttPublishMessage> j = pendingPublishes.listIterator(); j.hasNext();) {
+                channel.writeAndFlush(j.next());
+                j.remove();
+              }
             }
-        }
-    }
-
-    private static class Parameters {
-
-        private static final String CONCURRENT = "concurrent";
-        private static String ALIAS;
-
-    }
-
-    @Override
-    public void setupPipeline(ChannelPipeline pipeline) {
-
-        pipeline.addLast(new LoggingHandler(LogLevel.INFO));
-        pipeline.addLast("mqttDecoder", new MqttDecoder());
-        pipeline.addLast("mqttEncoder", MqttEncoder.INSTANCE);
-        pipeline.addLast(new MqttHandler(this));
-        pipeline.addLast("Ping", new MqttPingHandler());
-        pipeline.addLast(new MqttCommMessageCodec());
-    }
-
-    @Override
-    public String name() {
-        return "mqtt";
-    }
-
-    @Override
-    public boolean isThreadSafe() {
-        return checkBooleanParameter(Parameters.CONCURRENT);
-    }
-
-    private ByteBuf parseObject(Object message) {
-        ByteBuf bb = Unpooled.buffer();
-        if (message instanceof String) {
-            String msg = (String) message;
-            bb = Unpooled.copiedBuffer(msg.getBytes(CharsetUtil.UTF_8));
-        }
-        return bb;
-    }
-
-    private class MqttCommMessageCodec extends MessageToMessageCodec<MqttMessage, CommMessage> {
-
-        @Override
-        protected void encode(ChannelHandlerContext ctx, CommMessage message, List<Object> out)
-                throws Exception {
-
-            ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-                    ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-
-            Interpreter.getInstance().logInfo("Sending: " + message.toString());
-
-            MqttMessage msg = buildMqttMessage(message);
-
-            out.add(msg);
-        }
-
-        @Override
-        protected void decode(ChannelHandlerContext ctx, MqttMessage msg, List<Object> out)
-                throws Exception {
-
-            ((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-                    ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-
-            Interpreter.getInstance().logInfo("Mqtt message recv: " + ExecutionThread.currentThread());
-
-            CommMessage message = recv_internal(msg);
-
-            Interpreter.getInstance().logInfo("Decoded Mqtt request for operation: " + message.operationName());
+          }
+          break;
+        case PUBLISH:
+          if (inInputPort) {
+            MqttPublishMessage mpm = (MqttPublishMessage) msg;
+            getSubscriptions().get(mpm.variableHeader().topicName()).handleMessage(mpm.variableHeader().topicName(), Unpooled.copiedBuffer(mpm.payload()));
+            switch (mpm.fixedHeader().qosLevel()) {
+              case AT_MOST_ONCE:
+                break;
+              case AT_LEAST_ONCE:
+                if (mpm.variableHeader().messageId() != -1) {
+                  MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
+                  channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId())));
+                }
+                break;
+              case EXACTLY_ONCE:
+                // TODO
+                break;
+              default:
+                throw new AssertionError(mpm.fixedHeader().qosLevel().name());
+            }
+            CommMessage message = CommMessage.UNDEFINED_MESSAGE;
             out.add(message);
-        }
-
-        private MqttMessage buildMqttMessage(CommMessage message) {
-
-            /*
-            outputPort Broker {
-                Location: "socket://iot.eclipse.org:1883"
-                Protocol: mqtt {
-                    .osc.setTmp {
-                        .QoS = AT_LEAST_ONCE;
-                        .alias = "jolie/request/temperature"
-                    }
-                }
-                OneWay: setTmp( string )
-            }
-            
-            main {
-                setTmp@Broker( "22.5" )
-            }
-             */
-            String pubTopic = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
-            String pubMessage = message.value().strValue();
-            MqttPublishMessage pub = buildPublication(pubTopic, pubMessage);
-
-            return pub;
-        }
-
-        private CommMessage recv_internal(MqttMessage msg) {
-
-            int id = 0;
-            String operationName = "";
-            String resourcePath = "";
-            Value value = null;
-            FaultException fault = new FaultException("");
-            CommMessage message = new CommMessage(id, operationName, resourcePath, value, fault);
-            return message;
-        }
+          }
+          break;
+        case PUBACK:
+          break;
+        case PUBREC:
+          break;
+        case PUBREL:
+          break;
+        case PUBCOMP:
+          break;
+        case SUBSCRIBE:
+          break;
+        case SUBACK:
+          break;
+        case UNSUBSCRIBE:
+          break;
+        case UNSUBACK:
+          break;
+        default:
+          throw new AssertionError(msg.fixedHeader().messageType().name());
+      }
     }
+  }
 }
