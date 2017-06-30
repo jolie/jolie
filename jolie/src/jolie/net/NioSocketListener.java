@@ -34,12 +34,15 @@ import jolie.net.protocols.CommProtocol;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class NioSocketListener extends CommListener {
 
@@ -47,6 +50,7 @@ public class NioSocketListener extends CommListener {
     private Channel serverChannel;
     private final EventLoopGroup bossGroup;
     private final EventLoopGroup workerGroup;
+    private final ReentrantReadWriteLock responseChannels = new ReentrantReadWriteLock();
 
     public NioSocketListener(
         Interpreter interpreter,
@@ -64,22 +68,35 @@ public class NioSocketListener extends CommListener {
     @Override
     public void shutdown() {
         if ( serverChannel != null ) {
-            serverChannel.close();
+            responseChannels.writeLock().lock();
+            try {
+                serverChannel.close();
+            } finally {
+                responseChannels.writeLock().unlock();
+            }
         }
+    }
+    
+    public void addResponseChannel(){
+        responseChannels.readLock().lock();
+    }
+    
+    public void removeResponseChannel(){
+        responseChannels.readLock().unlock();
     }
 
     @Override
     public void run() {
         try {
-
             bootstrap.group( bossGroup, workerGroup )
                 .channel( NioServerSocketChannel.class )
                 .option( ChannelOption.SO_BACKLOG, 100 )
-                //				.handler( new LoggingHandler( LogLevel.INFO ) )
+                //.handler( new LoggingHandler( LogLevel.INFO ) )
                 .childHandler( new ChannelInitializer<SocketChannel>() {
 
                     @Override
                     protected void initChannel( SocketChannel ch ) throws Exception {
+                        addResponseChannel();
                         CommProtocol protocol = createProtocol();
                         assert (protocol instanceof AsyncCommProtocol);
 
@@ -88,9 +105,24 @@ public class NioSocketListener extends CommListener {
 
                         //interpreter().commCore().scheduleReceive(channel, inputPort());
                         ChannelPipeline p = ch.pipeline();
-                        (( AsyncCommProtocol ) protocol).setupPipeline( p );
+                        ( ( AsyncCommProtocol ) protocol ).setupPipeline( p );
+                        
+                        // the pipeline is an inbound one, hence outbound traffic goes 
+                        // from bottom-up into the pipeline. We add the outbound adapter 
+                        // as first to observe the ultimate send as the response from the 
+                        // nioSocketCommChannelHandler.
+                        p.addFirst( new ChannelOutboundHandlerAdapter(){
+                        
+                            @Override
+                            public void flush( ChannelHandlerContext ctx ) throws Exception {
+                                ctx.flush();
+                                removeResponseChannel();
+                            }
+                        });
                         p.addLast( channel.nioSocketCommChannelHandler );
+
                         ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
+                        
                     }
                 } );
             ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
