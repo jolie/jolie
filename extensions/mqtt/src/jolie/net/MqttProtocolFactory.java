@@ -49,6 +49,7 @@ public class MqttProtocolFactory extends CommProtocolFactory {
   @Override
   public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
           throws IOException {
+    System.out.println(location.toString());
     return new MqttProtocol(Boolean.TRUE, configurationPath);
   }
 
