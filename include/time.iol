@@ -23,7 +23,15 @@
 /**
 *WARNING: work in progress, the API is unstable.
 */
+type ChangeDateFormatRequest: void {
+	.date: string
+	.fromFormat: string
+	.toFormat: string
+}
 
+type ChangeDateFormatResponse: void {
+	.date: string
+}
 
 type DateValuesType:void {
 	.day:int
@@ -66,28 +74,28 @@ type GetTimeDiffRequest:void {
 }
 
 type GetTimestampFromStringRequest:string {
-	.format?:string 
+	.format?:string
 	.language?: string
 }
 
 type GetDateTimeRequest: long {
   .format?: string
- 
+
 }
 
 type GetDateTimeResponse: string {
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
-	.second:int 
+	.second:int
 }
 
 type DateTimeType:void{
 	.day:int
 	.month:int
-	.year:int      
+	.year:int
 	.hour:int
 	.minute:int
 	.second:int
@@ -102,12 +110,20 @@ interface TimeInterface{
 	OneWay:
 		/**!
 		  it sets a timeout whose duration is in milliseconds and it is represented by the root value of the message
-		  When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation 
+		  When the alarm is triggered a message whose content is defined in .message is sent to operation defined in .operation
 		  ( default: timeout )
 		*/
-		setNextTimeout(SetNextTimeOutRequest), 
+		setNextTimeout(SetNextTimeOutRequest),
 		setNextTimeoutByDateTime, setNextTimeoutByTime
 	RequestResponse:
+		/**!
+			it returns a date in the new format
+		*/
+		changeDateFormat( ChangeDateFormatRequest )( ChangeDateFormatResponse ),
+
+		/**!
+			it returns the current datetime
+		*/
 		getCurrentDateTime(CurrentDateTimeRequestType)(string), sleep,
 
 		/**!
@@ -117,7 +133,7 @@ interface TimeInterface{
 
 		/**!
 		* Converts an input string into a date expressed by means of
-		* three elements: day, month and year. The request may specify the 
+		* three elements: day, month and year. The request may specify the
 		* date parsing format. See #DateValuesRequestType for details.
 		*/
 		getDateValues(DateValuesRequestType)(DateValuesType),

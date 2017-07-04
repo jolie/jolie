@@ -415,4 +415,28 @@ public class TimeService extends JavaService
 			throw new FaultException( "InvalidTimestamp", pe );
 		}
 	}
+	
+	/**
+	 * @author Claudio Guidi
+	 * @param request
+	 * @return 
+	 * @throws jolie.runtime.FaultException 
+	 */
+	public Value changeDateFormat( Value request )
+		throws FaultException
+	{
+		Value v = Value.create();
+		try {
+			String fromFormat = request.getFirstChild( "fromFormat" ).strValue();
+			String toFormat = request.getFirstChild( "toFormat" ).strValue();
+			DateFormat origDateFormat = new SimpleDateFormat(fromFormat);
+            Date orig = origDateFormat.parse( request.getFirstChild( "date" ).strValue() );
+            DateFormat destDateFormat = new SimpleDateFormat(toFormat);
+			v.getFirstChild( "date" ).setValue( destDateFormat.format(orig) );
+		} catch( ParseException pe ) {
+			throw new FaultException( "InvalidDate", pe );
+		}
+
+		return v;
+	}
 }
