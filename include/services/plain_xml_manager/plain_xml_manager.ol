@@ -148,6 +148,16 @@ main {
         }
     }]
 
+    [ addResource( request )( response ) {
+        if ( is_defined( global.resources.( request.resourceName ) ) ) {
+          throw( ResourceAlreadyExists )
+        } else {
+          synchronized( write ) {
+              global.resources.( request.resourceName ) << request.resource
+          }
+        }
+    }]
+
     [ createPlainXML( request )( response ) {
         if ( is_defined( global.resources.( request.resourceName ) ) ) {
           throw( ResourceAlreadyExists )

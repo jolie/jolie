@@ -58,4 +58,21 @@ define doTest
         println@Console("PathNotFound not validated")();
         throw( TestFailed )
       }
+      ;
+      /* addResource */
+      nd.resourceName = "test";
+      nd.path = "wsdl:definitions/wsdl:portType";
+      getElement@PlainXMLManager( nd )( node );
+      with( add_resource_request ) {
+        .resourceName = "test2";
+        .resource.root << node
+      };
+      addResource@PlainXMLManager( add_resource_request )();
+      nd.resourceName = "test2";
+      nd.path = "wsdl:portType/wsdl:operation[0]/" + NEWNODENAME;
+      getElement@PlainXMLManager( nd )( node );
+      if( node.Name != NEWNODENAME ) {
+          println@Console( "addResource failed" )();
+          throw( TestFailed )
+      }
 }

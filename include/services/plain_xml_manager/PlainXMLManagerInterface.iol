@@ -50,6 +50,13 @@ type AddToRequest: void {
     }
 }
 
+type AddResourceRequest: void {
+    .resourceName: string
+    .resource: void {
+      .root: undefined
+    }
+}
+
 type CreatePlainXMLRequest: void {
     .resourceName: string
     .xml: string
@@ -88,6 +95,7 @@ interface PlainXMLManagerInterface {
           throws  ResourceDoesNotExist( string )
                   NodeDoesNoteExist( string )
                   PositionOrPathNotAvailable,
+    addResource( AddResourceRequest )( void ) throws ResourceAlreadyExists,
     createPlainXML( CreatePlainXMLRequest )( void ) throws ResourceAlreadyExists,
     destroyPlainXML( ResourceRequest )( void ) throws ResourceDoesNotExist,
     getElement( GetElementRequest )( undefined ) throws ResourceDoesNotExist PathNotFound,
