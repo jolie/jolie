@@ -188,12 +188,14 @@ main {
           split@StringUtils( spl )( path_elements );
           if ( path_elements.result[ 0 ] == __node.Name ) {
               /* root is ok */
-              for( i = 1, i < #path_elements.result, i++ ) {
-                  if ( i > 1 ) { new_path = new_path + "/" };
-                  new_path = new_path + path_elements.result[ i ]
+              if ( #path_elements.result > 1 ) {
+                  for( i = 1, i < #path_elements.result, i++ ) {
+                      if ( i > 1 ) { new_path = new_path + "/" };
+                      new_path = new_path + path_elements.result[ i ]
+                  };
+                  __path = new_path;
+                  __navigate
               };
-              __path = new_path;
-              __navigate;
               response << __node
           } else {
               throw( PathNotFound )

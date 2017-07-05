@@ -35,6 +35,11 @@ define doTest
           throw( TestFailed )
       }
       ;
+      /* getElement root*/
+      nd_root.resourceName = "test";
+      nd_root.path = "wsdl:definitions";
+      getElement@PlainXMLManager( nd_root )( root )
+      ;
       /* modifyElement */
       NEWTEXT = "test";
       NEWNODENAME = "testNodeName";
