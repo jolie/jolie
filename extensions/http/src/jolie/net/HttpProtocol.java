@@ -202,7 +202,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CONTENT_DISPOSITION = "contentDisposition";
 		private static final String DROP_URI_PATH = "dropURIPath";
 		private static final String CACHE_CONTROL = "cacheControl";
-		private static final String STRING_RAW_CONTENT = "stringRawContent";
+		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -1175,8 +1175,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		if ( getOperationSpecificBooleanParameter( inputId, Parameters.STRING_RAW_CONTENT ) 
-			|| checkBooleanParameter(Parameters.STRING_RAW_CONTENT, false ) ) {
+		if ( getOperationSpecificStringParameter(inputId, Parameters.FORCE_CONTENT_DECODING ).equals("string") ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
