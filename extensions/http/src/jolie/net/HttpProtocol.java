@@ -202,6 +202,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		private static final String CONTENT_DISPOSITION = "contentDisposition";
 		private static final String DROP_URI_PATH = "dropURIPath";
 		private static final String CACHE_CONTROL = "cacheControl";
+		private static final String FORCE_CONTENT_DECODING = "forceContentDecoding";
 
 		private static class MultiPartHeaders {
 			private static final String FILENAME = "filename";
@@ -383,7 +384,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		Matcher m = Pattern.compile( "%(!)?\\{[^\\}]*\\}" ).matcher( alias );
 
 		while( m.find() ) {
-                       int displacement = 2;
+			int displacement = 2;
 			if ( m.group( 1 ) == null ) { // ! is missing after %: We have to use URLEncoder
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
@@ -393,7 +394,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					aliasKeys.add( currKey );
 				}
 			} else { // ! is given after %: We have to insert the string raw
-                               displacement = 3;
+				displacement = 3;
 				currKey = alias.substring( m.start() + displacement, m.end() - 1 );
 				if ( "$".equals( currKey ) ) {
 					currStrValue = value.strValue();
@@ -407,7 +408,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 				m.start() + offset, m.end() + offset,
 				currStrValue
 			);
-                       displacement++; //considering also }
+			displacement++; //considering also }
 			offset += currStrValue.length() - displacement - currKey.length();
 		}
 		// removing used keys
@@ -485,7 +486,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		} else if ( "multipart/form-data".equals( format ) ) {
 			ret.contentType = "multipart/form-data; boundary=" + BOUNDARY;
 			ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-                        StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder();
 			for( Entry< String, ValueVector > entry : message.value().children().entrySet() ) {
 				if ( !entry.getKey().startsWith( "@" ) ) {
 					builder.append( "--" ).append( BOUNDARY ).append( HttpUtils.CRLF );
@@ -681,7 +682,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		throws IOException
 	{
 		String path = uri.getRawPath();
-		if ( path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
+		if ( uri.getScheme().equals( "localsocket") || path == null || path.isEmpty() || checkBooleanParameter( Parameters.DROP_URI_PATH, false ) ) {
 			headerBuilder.append( '/' );
 		} else {
 			if ( path.charAt( 0 ) != '/' ) {
@@ -776,7 +777,12 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		headerBuilder.append( ' ' );
 		send_appendRequestPath( message, method, qsFormat, headerBuilder );
 		headerBuilder.append( " HTTP/1.1" + HttpUtils.CRLF );
-		headerBuilder.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+		String host = uri.getHost();
+		if ( uri.getScheme().equals( "localsocket" ) ) {
+			/* in this case we need to replace the localsocket path with a host, that is the default one localhost */
+			host = "localhost";
+		}
+		headerBuilder.append( "Host: " + host + HttpUtils.CRLF );
 		send_appendCookies( message, uri.getHost(), headerBuilder );
 		send_appendAuthorizationHeader( message, headerBuilder );
 		if ( checkBooleanParameter( Parameters.COMPRESSION, true ) ) {
@@ -878,7 +884,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 		if ( inInputPort ) {
 			// We're responding to a request
 			send_appendResponseHeaders( message, headerBuilder );
-                        send_appendResponseUserHeader(message, headerBuilder);
+			send_appendResponseUserHeader( message, headerBuilder );
 		} else {
 			// We're sending a notification or a solicit
 			String qsFormat = "";
@@ -888,7 +894,7 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 					contentType = ContentTypes.APPLICATION_JSON;
 				}
 			}
-                        send_appendRequestUserHeader(message, headerBuilder);
+			send_appendRequestUserHeader( message, headerBuilder );
 			send_appendRequestHeaders( message, method, qsFormat, headerBuilder );
 		}
 		EncodedContent encodedContent = send_encodeContent( message, method, charset, format );
@@ -1169,7 +1175,9 @@ public class HttpProtocol extends CommProtocol implements HttpUtils.HttpProtocol
 	private void recv_parseMessage( HttpMessage message, DecodedMessage decodedMessage, String type, String charset )
 		throws IOException
 	{
-		if ( "text/html".equals( type ) ) {
+		if ( getOperationSpecificStringParameter(inputId, Parameters.FORCE_CONTENT_DECODING ).equals("string") ) {
+			decodedMessage.value.setValue( new String( message.content(), charset ) );
+		} else if ( "text/html".equals( type ) ) {
 			decodedMessage.value.setValue( new String( message.content(), charset ) );
 		} else if ( "application/x-www-form-urlencoded".equals( type ) ) {
 			parseForm( message, decodedMessage.value, charset );
