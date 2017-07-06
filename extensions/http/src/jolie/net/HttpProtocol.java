@@ -1293,9 +1293,11 @@ public class HttpProtocol extends AsyncCommProtocol {
                 }
                 Value cookies = decodedMessage.value.getFirstChild( "cookies" );
                 ServerCookieDecoder decoder = ServerCookieDecoder.STRICT;
-                for ( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.COOKIE ) ) ) {
-                    cookies.getFirstChild( cookie.name() ).setValue( cookie.value() );
-                }
+				if( message.headers().contains( HttpHeaderNames.COOKIE ) ){
+					for ( Cookie cookie : decoder.decode( message.headers().get( HttpHeaderNames.COOKIE ) ) ) {
+						cookies.getFirstChild( cookie.name() ).setValue( cookie.value() );
+					}
+				}
                 decodedMessage.operationName = defaultOpId;
             }
         }
@@ -1431,6 +1433,7 @@ public class HttpProtocol extends AsyncCommProtocol {
 
         } else {
             /* message.isError() == false */ // TODO message 
+			
             recv_checkReceivingOperation( ( FullHttpRequest ) message, decodedMessage );
             recv_checkForMessageProperties( ( FullHttpRequest ) message, decodedMessage );
         }
