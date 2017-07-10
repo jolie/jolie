@@ -35,6 +35,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
@@ -120,6 +121,17 @@ public class NioSocketListener extends CommListener {
                             }
                         });
                         p.addLast( channel.nioSocketCommChannelHandler );
+						p.addLast( new ChannelInboundHandlerAdapter(){
+							
+							@Override
+							public void exceptionCaught( ChannelHandlerContext ctx, Throwable cause) throws Exception 
+							{
+								cause.printStackTrace();
+								ctx.close();
+								serverChannel.close();
+							}
+
+						});
 
                         ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set( interpreter().initThread() );
                         
@@ -127,7 +139,7 @@ public class NioSocketListener extends CommListener {
                 } );
             ChannelFuture f = bootstrap.bind( new InetSocketAddress( inputPort().location().getPort() ) ).sync();
             serverChannel = f.channel();
-            serverChannel.closeFuture().sync();
+            serverChannel.closeFuture().sync();	
         } catch ( InterruptedException ioe ) {
             interpreter().logWarning( ioe );
         } finally {
