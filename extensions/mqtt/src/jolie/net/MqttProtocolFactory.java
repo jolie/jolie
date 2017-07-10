@@ -23,14 +23,14 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
 /**
- * For future development of extensions: Create MqttProtocolFactory called by Jolie Class Loader,
- * update file manifest.mf with value X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
+ * For future development of extensions: Create MqttProtocolFactory called by Jolie Class Loader, update file manifest.mf with value
+ * X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
  *
  * @author stefanopiozingaro
  */
 public class MqttProtocolFactory extends CommProtocolFactory {
 
-  /**
+  /** 
    *
    * @param commCore CommCore
    */
@@ -49,7 +49,6 @@ public class MqttProtocolFactory extends CommProtocolFactory {
   @Override
   public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
           throws IOException {
-    System.out.println(location.toString());
     return new MqttProtocol(Boolean.TRUE, configurationPath);
   }
 
