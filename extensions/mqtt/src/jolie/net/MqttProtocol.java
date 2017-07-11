@@ -16,7 +16,6 @@
  */
 package jolie.net;
 
-import jolie.Interpreter;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
@@ -46,8 +45,6 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
@@ -56,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 
 /**
@@ -99,7 +95,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-	pipeline.addFirst(new LoggingHandler(LogLevel.INFO));
 	pipeline.addLast(MqttEncoder.INSTANCE);
 	pipeline.addLast(new MqttDecoder());
 	pipeline.addLast("Ping", new MqttPingHandler());
@@ -134,11 +129,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 	MqttConnectVariableHeader variableHeader = new MqttConnectVariableHeader(
 		mqttVersion.protocolName(),
 		mqttVersion.protocolLevel(),
-		mqttUserName.equals(""),
-		mqttPassword.equals(""),
+		checkBooleanParameter(Parameters.USERNAME),
+		checkBooleanParameter(Parameters.PASSWORD),
 		false,
 		MqttQoS.AT_MOST_ONCE.value(),
-		willTopic.equals(""),
+		checkBooleanParameter(Parameters.WILL_TOPIC),
 		clientId.equals(""),
 		2
 	);
@@ -207,7 +202,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    String topic = hasOperationSpecificParameter(message.operationName(), Parameters.ALIAS) ? getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS) : message.operationName();
 
 	    if (inInputPort) {
-		List<MqttTopicSubscription> topics = Collections.singletonList(new MqttTopicSubscription(topic, MqttQoS.AT_LEAST_ONCE));
+		MqttQoS subQos = hasParameter(Parameters.QOS) ? MqttQoS.valueOf(getIntParameter(Parameters.QOS)) : MqttQoS.AT_LEAST_ONCE;
+		List<MqttTopicSubscription> topics = Collections.singletonList(new MqttTopicSubscription(topic, subQos));
 		pendingSubscriptions.add(buildSubscription(message.id(), topics));
 	    } else {
 		pendingPublishes.add(buildPublication(message.id(), topic, message.value().strValue()));
@@ -240,16 +236,12 @@ public class MqttProtocol extends AsyncCommProtocol {
 				j.remove();
 			    }
 			}
-		    } else {
-			System.out.println("Connection refused!");
 		    }
 		    break;
 		case PUBLISH:
 		    if (inInputPort) {
 			MqttPublishMessage mpm = (MqttPublishMessage) msg;
 			switch (mpm.fixedHeader().qosLevel()) {
-			    case AT_MOST_ONCE:
-				break;
 			    case AT_LEAST_ONCE:
 				if (mpm.variableHeader().messageId() != -1) {
 				    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);

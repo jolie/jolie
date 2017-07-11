@@ -37,6 +37,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
 import java.io.IOException;
 
@@ -93,7 +95,7 @@ public class NioSocketListener extends CommListener {
 
 	try {
 	    if (protocolFactory.getClass().getName().toLowerCase().contains("mqtt")) {
-		Thread.sleep(2000);
+		Thread.sleep(50);
 		URI broker = URI.create(inputPort().protocolConfigurationPath().getValue().getFirstChild("broker").strValue());
 		AsyncCommProtocol mp = (AsyncCommProtocol) createProtocol();
 		NioSocketCommChannel channel = new NioSocketCommChannel(broker, mp);
@@ -104,6 +106,7 @@ public class NioSocketListener extends CommListener {
 			.handler(new ChannelInitializer() {
 			    @Override
 			    protected void initChannel(Channel ch) throws Exception {
+				ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
 				mp.setupPipeline(ch.pipeline());
 				ch.pipeline().addLast(channel.nioSocketCommChannelHandler);
 			    }
