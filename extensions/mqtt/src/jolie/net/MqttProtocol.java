@@ -72,7 +72,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	private static final String CONCURRENT = "concurrent";
 	private static final String ALIAS = "alias";
 	private static final String QOS = "qos";
-	private static final String KEEP_ALIVE = "keepAlive"; // TODO test
+	private static final String KEEP_ALIVE = "keepAlive";
 	private static final String WILL_TOPIC = "willTopic";
 	private static final String WILL_MESSAGE = "willMessage";
 	private static final String USERNAME = "username";
@@ -114,7 +114,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     /**
      * Build the connection message to a broker, client identifier is set to
      * empty string by default and clean session is set to true accordingly,
-     * otherwise clean session will be false. KeepAlive is set to 2 seconds
+     * otherwise clean session will be false; keepAlive is 2 seconds.
      *
      * @return MqttConnectMessage
      */
