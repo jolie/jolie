@@ -30,12 +30,12 @@ import jolie.runtime.VariablePath;
  */
 public class MqttProtocolFactory extends CommProtocolFactory {
 
-  /** 
+  /**
    *
    * @param commCore CommCore
    */
   public MqttProtocolFactory(CommCore commCore) {
-    super(commCore);
+	super(commCore);
   }
 
   /**
@@ -48,8 +48,8 @@ public class MqttProtocolFactory extends CommProtocolFactory {
    */
   @Override
   public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
-          throws IOException {
-    return new MqttProtocol(Boolean.TRUE, configurationPath);
+		  throws IOException {
+	return new MqttProtocol(Boolean.TRUE, configurationPath);
   }
 
   /**
@@ -62,7 +62,7 @@ public class MqttProtocolFactory extends CommProtocolFactory {
    */
   @Override
   public CommProtocol createOutputProtocol(VariablePath configurationPath, URI location)
-          throws IOException {
-    return new MqttProtocol(Boolean.FALSE, configurationPath);
+		  throws IOException {
+	return new MqttProtocol(Boolean.FALSE, configurationPath);
   }
 }
