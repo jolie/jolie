@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
+import jolie.Interpreter;
 import jolie.runtime.Value;
 
 /**
@@ -222,64 +223,82 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    switch (msg.fixedHeader().messageType()) {
 		case CONNACK:
 		    if (((MqttConnAckMessage) msg).variableHeader().connectReturnCode().equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
+			Interpreter.getInstance().logInfo("CLIENT IS CONNECTED!");
 			if (inInputPort) {
-			    if (checkBooleanParameter(Parameters.KEEP_ALIVE)) {
-				channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
-			    }
+			    channel.pipeline().addBefore("Ping", "IdleState", new IdleStateHandler(1, 1, 1));
 			    for (ListIterator<MqttSubscribeMessage> i = pendingSubscriptions.listIterator(); i.hasNext();) {
-				channel.writeAndFlush(i.next());
+				channel.write(i.next());
 				i.remove();
 			    }
+			    Interpreter.getInstance().logInfo("SUBSCRIPTION HAS BEEN SENT!");
 			} else {
 			    for (ListIterator<MqttPublishMessage> j = pendingPublishes.listIterator(); j.hasNext();) {
-				channel.writeAndFlush(j.next());
+				MqttPublishMessage next = j.next();
+				channel.write(next);
+				if (next.fixedHeader().qosLevel().equals(MqttQoS.AT_MOST_ONCE)) {
+				    Interpreter.getInstance().logInfo("QOS 0 PUBLISH!!");
+				    out.add(CommMessage.UNDEFINED_MESSAGE);
+				}
 				j.remove();
 			    }
+			    Interpreter.getInstance().logInfo("PUBLICATION HAS BEEN SENT!");
 			}
 		    }
+		    channel.flush();
 		    break;
 		case PUBLISH:
+		    MqttPublishMessage mpm = (MqttPublishMessage) msg;
 		    if (inInputPort) {
-			MqttPublishMessage mpm = (MqttPublishMessage) msg;
 			switch (mpm.fixedHeader().qosLevel()) {
 			    case AT_LEAST_ONCE:
 				if (mpm.variableHeader().messageId() != -1) {
 				    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0);
-				    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId())));
+				    MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId());
+				    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, variableHeader));
 				}
 				break;
 			    case EXACTLY_ONCE:
 				if (mpm.variableHeader().messageId() != -1) {
 				    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREC, false, MqttQoS.AT_MOST_ONCE, false, 0);
-				    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId())));
+				    MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId());
+				    MqttMessage pubrecMessage = new MqttMessage(fixedHeader, variableHeader);
+				    channel.writeAndFlush(pubrecMessage);
 				}
 				break;
 			}
-			Value v = Value.create(Unpooled.copiedBuffer(mpm.payload()).toString(CharsetUtil.UTF_8));
-			CommMessage message = new CommMessage(mpm.variableHeader().messageId(), null, null, v, null);
+
+			out.add(new CommMessage(mpm.variableHeader().messageId(), "getTmp", "/", Value.create(Unpooled.copiedBuffer(mpm.payload()).toString(CharsetUtil.UTF_8)), null));
+
+			Interpreter.getInstance().logInfo("CLIENT HAS RECEIVED THE MESSAGE: " + Unpooled.copiedBuffer(mpm.payload()).toString(CharsetUtil.UTF_8));
+			if (!checkBooleanParameter(Parameters.KEEP_ALIVE)) {
+			    channel.closeFuture();
+			}
 		    }
 		    break;
 		case PUBREC:
 		    if (!inInputPort) {
-			MqttPublishMessage mpm = (MqttPublishMessage) msg;
-			if (mpm.variableHeader().messageId() != -1) {
-			    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_MOST_ONCE, false, 0);
-			    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId())));
-			}
+			MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0);
+			MqttMessageIdVariableHeader variableHeader = (MqttMessageIdVariableHeader) msg.variableHeader();
+			MqttMessage pubrelMessage = new MqttMessage(fixedHeader, variableHeader);
+			channel.writeAndFlush(pubrelMessage);
 		    }
 		    break;
 		case PUBREL:
 		    if (inInputPort) {
-			MqttPublishMessage mpm = (MqttPublishMessage) msg;
-			if (mpm.variableHeader().messageId() != -1) {
-			    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false, 0);
-			    channel.writeAndFlush(new MqttPubAckMessage(fixedHeader, MqttMessageIdVariableHeader.from(mpm.variableHeader().messageId())));
-			}
+			MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false, 0);
+			MqttMessageIdVariableHeader variableHeader = MqttMessageIdVariableHeader.from(((MqttMessageIdVariableHeader) msg.variableHeader()).messageId());
+			channel.writeAndFlush(new MqttMessage(fixedHeader, variableHeader));
 		    }
 		    break;
+		case PUBACK:
+		    Interpreter.getInstance().logInfo("PUBACK RECEIVED!!");
+		    out.add(CommMessage.UNDEFINED_MESSAGE);
+		    break;
+		case PUBCOMP:
+		    Interpreter.getInstance().logInfo("PUBCOMP RECEIVED!!");
+		    out.add(CommMessage.UNDEFINED_MESSAGE);
+		    break;
 	    }
-	    CommMessage message = CommMessage.UNDEFINED_MESSAGE;
-	    out.add(message);
 	}
     }
 }

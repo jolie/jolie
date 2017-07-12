@@ -48,8 +48,8 @@ public class MqttProtocolFactory extends CommProtocolFactory {
      * @throws IOException
      */
     @Override
-    public CommProtocol createInputProtocol(VariablePath configurationPath, URI location)
-	    throws IOException {
+    public CommProtocol createInputProtocol(VariablePath configurationPath,
+	    URI location) throws IOException {
 	return new MqttProtocol(Boolean.TRUE, configurationPath);
     }
 
@@ -62,8 +62,8 @@ public class MqttProtocolFactory extends CommProtocolFactory {
      * @throws IOException
      */
     @Override
-    public CommProtocol createOutputProtocol(VariablePath configurationPath, URI location)
-	    throws IOException {
+    public CommProtocol createOutputProtocol(VariablePath configurationPath,
+	    URI location) throws IOException {
 	return new MqttProtocol(Boolean.FALSE, configurationPath);
     }
 }
