@@ -142,6 +142,31 @@ public class RuntimeService extends JavaService
 		}
 		return ret;
 	}
+	
+	@RequestResponse
+	public Value getOutputPortCommChannel( Value v ) throws FaultException
+	{
+		OutputPort foundOp = null;
+		Value ret = Value.create();
+		for ( OutputPort o : interpreter.outputPorts() ) {
+			if ( o.id().equals( v.getFirstChild( "name" ).strValue() ) ) {
+				foundOp = o;
+			}
+		}
+		if ( foundOp == null ) {
+			throw new FaultException( "OutputPortDoesNotExist" );
+		} else {
+			try {
+				ret.getFirstChild( "location" ).setValue( foundOp.getCommChannel() );
+			} catch ( Exception e ) {
+				throw new FaultException("CommChannelError");
+			}
+			
+		}
+		return ret;
+	}
+	
+	
 
 	@RequestResponse
 	public Value getOutputPorts()

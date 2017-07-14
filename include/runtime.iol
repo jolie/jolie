@@ -74,6 +74,10 @@ type GetOutputPortResponse: void {
 	.location: string
 }
 
+type GetOutputPortCommChannelResponse: void {
+	.location: any
+}
+
 type GetOutputPortsResponse: void {
 	.port*: void {
 	  .name: string
@@ -121,12 +125,19 @@ RequestResponse:
 	  throws OutputPortDoesNotExist,
 
 	/**!
+	*	it returns the actual communication channel used by the given port.
+	* WARNING: it can be used only within the same virtual machine
+	*/
+	getOutputPortCommChannel( GetOutputPortRequest )( GetOutputPortCommChannelResponse )
+		throws CommChannelError,
+
+	/**!
 	*	it returns the list of definitions of all the available outputPorts of the service
 	*/
 	getOutputPorts( void )( GetOutputPortsResponse ),
-	
+
 	getProcessId( void )( string ),
-	
+
 	halt(HaltRequest)(void),
 
 	removeOutputPort(string)(void),
