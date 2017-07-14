@@ -37,16 +37,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-
 import java.io.IOException;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import jolie.runtime.Value;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NioSocketListener extends CommListener {
 
@@ -111,7 +109,6 @@ public class NioSocketListener extends CommListener {
 				ChannelPipeline p = ch.pipeline();
 				mp.setupPipeline(ch.pipeline());
 				p.addFirst(new ChannelOutboundHandlerAdapter() {
-
 				    @Override
 				    public void flush(ChannelHandlerContext ctx) throws Exception {
 					ctx.flush();
@@ -119,25 +116,28 @@ public class NioSocketListener extends CommListener {
 				});
 				p.addLast(channel.nioSocketCommChannelHandler);
 				p.addLast(new ChannelInboundHandlerAdapter() {
-
 				    @Override
 				    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 					cause.printStackTrace();
 					ctx.close();
 					serverChannel.close();
 				    }
-
 				});
 				ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(interpreter().initThread());
 			    }
 			});
 		ChannelFuture f = b.connect().sync();
 		serverChannel = f.channel();
-		List<String> tmp = new ArrayList<>();
-		
-		visitValue(inputPort().protocolConfigurationPath().getValue(), tmp);
-		channel.sendImpl(new CommMessage(CommMessage.getNewMessageId(), tmp.get(tmp.indexOf("osc") + 1), "/", inputPort().protocolConfigurationPath().getValue(), null));
-	
+		inputPort().getInterface().oneWayOperations().forEach((t, u) -> {
+		    System.out.println(CommMessage.getNewMessageId());
+		    serverChannel.writeAndFlush(new CommMessage(
+			    CommMessage.getNewMessageId(),
+			    t,
+			    "/",
+			    inputPort().protocolConfigurationPath().getValue(),
+			    null));
+
+		});
 		serverChannel.closeFuture().sync();
 	    } else {
 		bootstrap.group(bossGroup, workerGroup)
@@ -189,22 +189,13 @@ public class NioSocketListener extends CommListener {
 		serverChannel = f.channel();
 		serverChannel.closeFuture().sync();
 	    }
-	} catch (InterruptedException | IOException ioe) {
+	} catch (InterruptedException ioe) {
 	    interpreter().logWarning(ioe);
+	} catch (IOException ex) {
+	    Logger.getLogger(NioSocketListener.class.getName()).log(Level.SEVERE, null, ex);
 	} finally {
 	    bossGroup.shutdownGracefully();
 	    workerGroup.shutdownGracefully();
 	}
-    }
-
-    private void visitValue(Value value, List<String> tmp) {
-	value.children().forEach((s, v) -> {
-	    tmp.add(s);
-	    if (v.first().hasChildren()) {
-		visitValue(v.first(), tmp);
-	    } else {
-		tmp.add(v.first().strValue());
-	    }
-	});
     }
 }
