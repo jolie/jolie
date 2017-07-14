@@ -1,18 +1,13 @@
 include "console.iol"
 
-interface Itemp {
-  OneWay: getTmp( string )
-  RequestResponse: getTmpR( string )( string )
-}
-
 inputPort  Collector {
     Location: "socket://localhost:8050"
     Protocol: mqtt {
         .broker = "socket://test.mosquitto.org:1883";
-        .osc.getTmp {
+        .osc.getTmp << {
             .alias = "temp/oW/random"
         };
-        .osc.getTmpR {
+        .osc.getTmpR << {
             .alias = "temp/rR/random"
         }
     }

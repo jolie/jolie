@@ -1,20 +1,13 @@
-interface ThermostatInterface { 
-    OneWay: setTmp( int )
-}
-
 outputPort Broker {
     Location: "socket://test.mosquitto.org:1883"
     Protocol: mqtt {
-        .osc.setTmp << {
-            .alias = "%!{id}/setTemperature",
-            .format = "raw",
-            .QoS = 1
-        }
+        .osc.getTmp.alias = "jolie/get/temperature";
+        .osc.setTmp.alias = "jolie/set/temperature"
     }
-    Interfaces: ThermostatInterface
+    OneWay: getTmp( string ), setTmp( string )
 }
 
 main 
 {
-    setTmp@Broker( 24 { .id = 42 } )
+    setTmp@Broker( "42" ) | getTmp@Broker( "24" )
 }
