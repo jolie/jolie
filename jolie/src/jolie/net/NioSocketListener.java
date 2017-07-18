@@ -37,14 +37,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import java.io.IOException;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class NioSocketListener extends CommListener {
 
@@ -96,9 +93,6 @@ public class NioSocketListener extends CommListener {
 	    if (protocolFactory.getClass().getName().toLowerCase().contains("mqtt")) {
 		Thread.sleep(100);
 		URI broker = URI.create(inputPort().protocolConfigurationPath().getValue().getFirstChild("broker").strValue());
-		AsyncCommProtocol mp = (AsyncCommProtocol) createProtocol();
-		NioSocketCommChannel channel = new NioSocketCommChannel(broker, mp);
-		channel.setParentInputPort(inputPort());
 		Bootstrap b = new Bootstrap()
 			.group(workerGroup)
 			.channel(NioSocketChannel.class)
@@ -106,6 +100,9 @@ public class NioSocketListener extends CommListener {
 			.handler(new ChannelInitializer() {
 			    @Override
 			    protected void initChannel(Channel ch) throws Exception {
+				AsyncCommProtocol mp = (AsyncCommProtocol) createProtocol();
+				NioSocketCommChannel channel = new NioSocketCommChannel(broker, mp);
+				channel.setParentInputPort(inputPort());
 				ChannelPipeline p = ch.pipeline();
 				mp.setupPipeline(ch.pipeline());
 				p.addFirst(new ChannelOutboundHandlerAdapter() {
@@ -128,16 +125,6 @@ public class NioSocketListener extends CommListener {
 			});
 		ChannelFuture f = b.connect().sync();
 		serverChannel = f.channel();
-		inputPort().getInterface().oneWayOperations().forEach((t, u) -> {
-		    System.out.println(CommMessage.getNewMessageId());
-		    serverChannel.writeAndFlush(new CommMessage(
-			    CommMessage.getNewMessageId(),
-			    t,
-			    "/",
-			    inputPort().protocolConfigurationPath().getValue(),
-			    null));
-
-		});
 		serverChannel.closeFuture().sync();
 	    } else {
 		bootstrap.group(bossGroup, workerGroup)
@@ -191,8 +178,6 @@ public class NioSocketListener extends CommListener {
 	    }
 	} catch (InterruptedException ioe) {
 	    interpreter().logWarning(ioe);
-	} catch (IOException ex) {
-	    Logger.getLogger(NioSocketListener.class.getName()).log(Level.SEVERE, null, ex);
 	} finally {
 	    bossGroup.shutdownGracefully();
 	    workerGroup.shutdownGracefully();
