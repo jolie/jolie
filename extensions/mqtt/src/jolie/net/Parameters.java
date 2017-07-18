@@ -16,26 +16,20 @@
  */
 package jolie.net;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import jolie.runtime.VariablePath;
-
 /**
  *
  * @author stefanopiozingaro
  */
-public class ConnectionHandler extends ChannelInboundHandlerAdapter {
+public class Parameters {
 
-    private final VariablePath configurationPath;
-
-    ConnectionHandler(VariablePath configurationPath) {
-	this.configurationPath = configurationPath;
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-	configurationPath.getValue().children().forEach((t, u) -> {
-	    System.out.println(t);
-	});
-    }
+    static final String BROKER = "broker";
+    static final String CONCURRENT = "concurrent";
+    static final String ALIAS = "alias";
+    static final String QOS = "QoS";
+    static final String WILL_TOPIC = "willTopic";
+    static final String WILL_MESSAGE = "willMessage";
+    static final String USERNAME = "username";
+    static final String PASSWORD = "password";
+    static final String FORMAT = "format";
+    
 }

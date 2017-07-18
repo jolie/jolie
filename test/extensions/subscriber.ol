@@ -1,4 +1,5 @@
 include "console.iol"
+include "iTmp.iol"
 
 inputPort  Collector {
     Location: "socket://localhost:8050"
@@ -7,7 +8,7 @@ inputPort  Collector {
         .osc.getTmp.alias = "jolie/get/temperature";
         .osc.setTmp.alias = "jolie/set/temperature"
     }
-    OneWay: getTmp( string ), setTmp( string )
+    Interfaces: ThermostatInterface
 }
 
 execution{ concurrent }

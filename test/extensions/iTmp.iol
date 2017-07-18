@@ -1,6 +1,6 @@
 type TmpType: string | void | int { .id: int }
 
-interface iTmp {
+interface ThermostatInterface {
   OneWay: getTmp( TmpType ), setTmp( TmpType )
-  RequestResponse: tmp( TmpType )(TmpType )
+  RequestResponse: tmp( TmpType )(int )
 }
