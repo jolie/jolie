@@ -34,20 +34,27 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
-import java.util.Iterator;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import jolie.Interpreter;
+import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
 public class MqttProtocol extends AsyncCommProtocol {
 
-    private static final MqttVersion mqttVersion = MqttVersion.MQTT_3_1_1;
     final boolean inputPort;
+    final VariablePath configurationPath;
 
     public MqttProtocol(boolean inputPort, VariablePath configurationPath) {
 	super(configurationPath);
 	this.inputPort = inputPort;
+	this.configurationPath = configurationPath;
     }
 
     @Override
@@ -74,6 +81,10 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return checkBooleanParameter(Parameters.CONCURRENT);
     }
 
+    public VariablePath getConfigurationPath() {
+	return configurationPath;
+    }
+
     /**
      * TODO isWillRetain is set to false by default; connection qos is set to 0;
      * will qos is set to 0 by default; remaining length is not 0
@@ -97,8 +108,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 		false,
 		0);
 	MqttConnectVariableHeader vh = new MqttConnectVariableHeader(
-		mqttVersion.protocolName(),
-		mqttVersion.protocolLevel(),
+		Parameters.MQTT_VERSION.protocolName(),
+		Parameters.MQTT_VERSION.protocolLevel(),
 		checkBooleanParameter(Parameters.USERNAME),
 		checkBooleanParameter(Parameters.PASSWORD),
 		false,
@@ -119,12 +130,29 @@ public class MqttProtocol extends AsyncCommProtocol {
     /*
     PACKAGE METHODS
      */
-    String getCurrentTopic(String operationName) {
-	return hasOperationSpecificParameter(operationName, Parameters.ALIAS) ? getOperationSpecificStringParameter(operationName, Parameters.ALIAS) : operationName;
+    String getCurrentTopic(CommMessage message) {
+	StringBuilder sb = new StringBuilder();
+
+	if (hasOperationSpecificParameter(message.operationName(), Parameters.ALIAS)) {
+	    String alias = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
+	    try {
+		send_appendParsedAlias(alias, message.value(), sb);
+	    } catch (IOException ex) {
+		Interpreter.getInstance().logWarning(message.fault().getCause());
+	    }
+	} else {
+	    sb.append(message.operationName());
+	}
+
+	return sb.toString();
     }
 
-    MqttQoS getCurrentQos(String operationName) {
-	return hasOperationSpecificParameter(operationName, Parameters.QOS) ? MqttQoS.valueOf(getOperationSpecificParameterFirstValue(operationName, Parameters.QOS).intValue()) : MqttQoS.AT_LEAST_ONCE;
+    MqttQoS getQos(MqttQoS defaultQoS) {
+	return hasParameter(Parameters.QOS) ? MqttQoS.valueOf(getIntParameter(Parameters.QOS)) : defaultQoS;
+    }
+
+    MqttQoS getCurrentOperationQos(String operationName, MqttQoS defaultQoS) {
+	return hasOperationSpecificParameter(operationName, Parameters.QOS) ? MqttQoS.valueOf(getOperationSpecificParameterFirstValue(operationName, Parameters.QOS).intValue()) : defaultQoS;
     }
 
     boolean connectionAccepted(MqttMessage msg) {
@@ -132,23 +160,56 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     String getCurrentOperationName(String topic) {
-	for (Iterator<Map.Entry<String, ValueVector>> it = configurationPath().getValue().children().entrySet().iterator(); it.hasNext();) {
-	    Map.Entry<String, ValueVector> i = it.next();
-	    if (i.getKey().equals("osc")) {
-		for (Iterator<Map.Entry<String, ValueVector>> it1 = i.getValue().first().children().entrySet().iterator(); it1.hasNext();) {
-		    Map.Entry<String, ValueVector> j = it1.next();
-		    for (Iterator<Map.Entry<String, ValueVector>> it2 = j.getValue().first().children().entrySet().iterator(); it2.hasNext();) {
-			Map.Entry<String, ValueVector> k = it2.next();
-			if (k.getKey().equals("alias") && k.getValue().first().strValue().equals(topic)) {
-			    return j.getKey();
-			}
-			it2.remove();
+	if (configurationPath.getValue().hasChildren("osc")) {
+	    for (Map.Entry<String, ValueVector> i : configurationPath.getValue().getFirstChild("osc").children().entrySet()) {
+		for (Map.Entry<String, ValueVector> j : i.getValue().first().children().entrySet()) {
+		    if (j.getKey().equals("alias") && j.getValue().first().strValue().equals(topic)) {
+			return i.getKey();
 		    }
-		    it1.remove();
 		}
 	    }
-	    it.remove();
 	}
 	return topic;
+    }
+
+    private static void send_appendParsedAlias(String alias, Value value, StringBuilder builder)
+	    throws IOException {
+	int offset = 0;
+	List< String> aliasKeys = new ArrayList<>();
+	String currStrValue;
+	String currKey;
+	StringBuilder result = new StringBuilder(alias);
+	Matcher m = Pattern.compile("%(!)?\\{[^\\}]*\\}").matcher(alias);
+
+	while (m.find()) {
+	    if (m.group(1) == null) { // ! is missing after %: We have to use URLEncoder
+		currKey = alias.substring(m.start() + 2, m.end() - 1);
+		if ("$".equals(currKey)) {
+		    currStrValue = URLEncoder.encode(value.strValue(), "UTF-8");
+		} else {
+		    currStrValue = URLEncoder.encode(value.getFirstChild(currKey).strValue(), "UTF-8");
+		    aliasKeys.add(currKey);
+		}
+	    } else { // ! is given after %: We have to insert the string raw
+		currKey = alias.substring(m.start() + 3, m.end() - 1);
+		if ("$".equals(currKey)) {
+		    currStrValue = value.strValue();
+		} else {
+		    currStrValue = value.getFirstChild(currKey).strValue();
+		    aliasKeys.add(currKey);
+		}
+	    }
+
+	    result.replace(
+		    m.start() + offset, m.end() + offset,
+		    currStrValue
+	    );
+	    offset += currStrValue.length() - 3 - currKey.length();
+	}
+	// removing used keys
+	for (String aliasKey : aliasKeys) {
+	    value.children().remove(aliasKey);
+	}
+	builder.append(result);
     }
 }

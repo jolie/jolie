@@ -16,6 +16,8 @@
  */
 package jolie.net;
 
+import io.netty.handler.codec.mqtt.MqttVersion;
+
 /**
  *
  * @author stefanopiozingaro
@@ -31,5 +33,7 @@ public class Parameters {
     static final String USERNAME = "username";
     static final String PASSWORD = "password";
     static final String FORMAT = "format";
-    
+    static final String BOUNDARY = "$"; // MAPPING FOT REQUEST RESPONSE TOPIC
+    static final MqttVersion MQTT_VERSION = MqttVersion.MQTT_3_1_1;
+
 }
