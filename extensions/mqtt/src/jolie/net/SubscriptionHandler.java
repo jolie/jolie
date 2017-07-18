@@ -33,7 +33,6 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +65,11 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 	super.channelActive(ctx);
-	handleSubscriptionsOnStartUp();
+	pendingSubscriptions.add(buildSubscription(
+		CommMessage.getNewMessageId(),
+		getTopicList(),
+		false,
+		prt.getQos(MqttQoS.AT_LEAST_ONCE)));
 	ctx.channel().writeAndFlush(prt.buildConnect(false));
     }
 
@@ -77,7 +80,7 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
 		ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
 	// REQ RESP CHANNEL
-	out.add(new MqttMessage(new MqttFixedHeader(MqttMessageType.PINGREQ, false, MqttQoS.AT_MOST_ONCE, false, 0)));
+	out.add(new MqttMessage(new MqttFixedHeader(MqttMessageType.UNSUBACK, false, MqttQoS.AT_MOST_ONCE, false, 0)));
     }
 
     @Override
@@ -111,23 +114,7 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
     }
 
     /**
-     * TODO update build subscription to support topics list and pass all the
-     * list to the builder from this method
-     */
-    private void handleSubscriptionsOnStartUp() {
-	List<String> topicList = getTopicList();
-	for (String sub : topicList) {
-	    pendingSubscriptions.add(buildSubscription(
-		    CommMessage.getNewMessageId(),
-		    sub,
-		    false,
-		    prt.getCurrentQos(prt.getCurrentOperationName(sub))));
-	}
-    }
-
-    /**
-     * TODO remaining lentgh not 0; maximum qos for every topic is set to
-     * exactly once by default;
+     * TODO remaining lentgh not 0;
      *
      * @param messageId long
      * @param topic String
@@ -135,8 +122,12 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
      * @param subQos MqttQoS
      * @return MqttSubscribeMessage
      */
-    private MqttSubscribeMessage buildSubscription(long messageId, String topic, boolean isDup, MqttQoS subQos) {
+    private MqttSubscribeMessage buildSubscription(long messageId, List<String> topics, boolean isDup, MqttQoS subQos) {
 
+	List<MqttTopicSubscription> tmsL = new ArrayList<>();
+	for (String t : topics) {
+	    tmsL.add(new MqttTopicSubscription(t, prt.getCurrentOperationQos(prt.getCurrentOperationName(t), MqttQoS.EXACTLY_ONCE)));
+	}
 	MqttFixedHeader mfh = new MqttFixedHeader(
 		MqttMessageType.SUBSCRIBE,
 		isDup,
@@ -144,9 +135,7 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
 		false,
 		0);
 	MqttMessageIdVariableHeader vh = MqttMessageIdVariableHeader.from((int) messageId);
-	MqttSubscribePayload p = new MqttSubscribePayload(
-		Collections.singletonList(
-			new MqttTopicSubscription(topic, MqttQoS.EXACTLY_ONCE)));
+	MqttSubscribePayload p = new MqttSubscribePayload(tmsL);
 
 	return new MqttSubscribeMessage(mfh, vh, p);
     }
@@ -163,15 +152,14 @@ public class SubscriptionHandler extends MessageToMessageCodec<MqttMessage, Comm
 	return opL;
     }
 
-    private String getAliasForOperation(String on) {
-	for (Iterator<Map.Entry<String, ValueVector>> it = ip.protocolConfigurationPath().getValue().getFirstChild("osc").children().entrySet().iterator(); it.hasNext();) {
+    private String getAliasForOperation(String operationName) {
+	for (Iterator<Map.Entry<String, ValueVector>> it = prt.getConfigurationPath().getValue().getFirstChild("osc").children().entrySet().iterator(); it.hasNext();) {
 	    Map.Entry<String, ValueVector> i = it.next();
-	    if (on.equals(i.getKey())) {
+	    if (operationName.equals(i.getKey())) {
 		return i.getValue().first().getFirstChild("alias").strValue();
 	    }
-	    it.remove();
 	}
-	return on;
+	return operationName;
     }
 
     private boolean publishReceived(MqttMessage msg) {

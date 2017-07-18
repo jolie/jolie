@@ -16,7 +16,6 @@
  */
 package jolie.net;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -55,10 +54,10 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
 
 	toBePublished = buildPublication(
 		message.id(),
-		prt.getCurrentTopic(message.operationName()),
+		prt.getCurrentTopic(message),
 		message.value(),
 		false,
-		prt.getCurrentQos(message.operationName()));
+		prt.getCurrentOperationQos(message.operationName(), MqttQoS.AT_LEAST_ONCE));
 
 	if (connected) {
 	    ctx.channel().writeAndFlush(toBePublished);
@@ -145,22 +144,22 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
 		0);
 	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic, (int) messageId);
 
-	return new MqttPublishMessage(mfh, vh, parseValue(message));
+	return new MqttPublishMessage(mfh, vh, Unpooled.wrappedBuffer(parseValue(message).getBytes(CharsetUtil.UTF_8)));
     }
 
-    private ByteBuf parseValue(Value value) {
+    private String parseValue(Value value) {
 	if (value.isInt()) {
-	    return Unpooled.wrappedBuffer(String.valueOf(value.intValue()).getBytes(CharsetUtil.UTF_8));
+	    return String.valueOf(value.intValue());
 	}
 	if (value.isBool()) {
-	    return Unpooled.wrappedBuffer(String.valueOf(value.boolValue()).getBytes(CharsetUtil.UTF_8));
+	    return String.valueOf(value.boolValue());
 	}
 	if (value.isDouble()) {
-	    return Unpooled.wrappedBuffer(String.valueOf(value.doubleValue()).getBytes(CharsetUtil.UTF_8));
+	    return String.valueOf(value.doubleValue());
 	}
 	if (value.isLong()) {
-	    return Unpooled.wrappedBuffer(String.valueOf(value.longValue()).getBytes(CharsetUtil.UTF_8));
+	    return String.valueOf(value.longValue());
 	}
-	return Unpooled.wrappedBuffer(value.strValue().getBytes(CharsetUtil.UTF_8));
+	return value.strValue();
     }
 }
