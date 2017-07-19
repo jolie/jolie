@@ -14,9 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.net.mqtt;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
@@ -25,16 +24,14 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.util.CharsetUtil;
 import java.util.List;
+import jolie.net.CommCore;
+import jolie.net.CommMessage;
+import jolie.net.MqttProtocol;
+import jolie.net.NioSocketCommChannel;
 import jolie.runtime.Value;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
     private final MqttProtocol prt;
@@ -47,23 +44,12 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CommMessage message, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, CommMessage msg, List<Object> out) throws Exception {
 
 	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
 		ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
-	toBePublished = buildPublication(
-		message.id(),
-		prt.getCurrentTopic(message),
-		message.value(),
-		false,
-		prt.getCurrentOperationQos(message.operationName(), MqttQoS.AT_LEAST_ONCE));
-
-	if (connected) {
-	    ctx.channel().writeAndFlush(toBePublished);
-	} else {
-	    out.add(prt.buildConnect(false));
-	}
+	commMsgToMqttMsg(ctx.channel(), msg, out);
     }
 
     @Override
@@ -73,9 +59,30 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
 	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
 		ctx.channel().attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
 
+	mqttMsgToCommMsg(ctx.channel(), msg, out);
+    }
+
+    private void commMsgToMqttMsg(Channel ch, CommMessage msg, List<Object> out) {
+
+	toBePublished = prt.buildPublication(
+		msg.id(),
+		prt.getCurrentTopic(msg),
+		msg.value(),
+		false,
+		prt.getCurrentOperationQos(msg.operationName(), MqttQoS.AT_LEAST_ONCE));
+
+	if (connected) {
+	    ch.writeAndFlush(toBePublished);
+	} else {
+	    out.add(prt.buildConnect(false));
+	}
+    }
+
+    private void mqttMsgToCommMsg(Channel ch, MqttMessage msg, List<Object> out) {
+
 	if (prt.connectionAccepted(msg)) {
 	    connected = true;
-	    ctx.channel().writeAndFlush(toBePublished);
+	    ch.writeAndFlush(toBePublished);
 	    if (toBePublished.fixedHeader().qosLevel().equals(MqttQoS.AT_MOST_ONCE)) {
 		out.add(new CommMessage( // qos 0
 			toBePublished.variableHeader().messageId(),
@@ -95,7 +102,9 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
 			    null));
 		    break;
 		case PUBREC:
-		    handlePubrec(ctx.channel(), msg);
+		    MqttFixedHeader fh = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0);
+		    MqttMessageIdVariableHeader vh = (MqttMessageIdVariableHeader) msg.variableHeader();
+		    ch.writeAndFlush(new MqttMessage(fh, vh));
 		    break;
 		case PUBCOMP: // qos 2
 		    out.add(new CommMessage(
@@ -107,59 +116,5 @@ public class PublicationHandler extends MessageToMessageCodec<MqttMessage, CommM
 		    break;
 	    }
 	}
-
-    }
-
-    private void handlePubrec(Channel channel, MqttMessage msg) {
-	MqttFixedHeader fh = new MqttFixedHeader(MqttMessageType.PUBREL, false, MqttQoS.AT_LEAST_ONCE, false, 0);
-	MqttMessageIdVariableHeader vh = (MqttMessageIdVariableHeader) msg.variableHeader();
-	channel.writeAndFlush(new MqttMessage(fh, vh));
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-	super.exceptionCaught(ctx, cause);
-	cause.printStackTrace();
-	ctx.channel().close();
-    }
-
-    /**
-     * TODO is duplicate set to 0 by default; implement serialization for
-     * message; remaining lentgh not 0
-     *
-     * @param messageId long
-     * @param topic String
-     * @param message String
-     * @param isDup boolean
-     * @param pubQos MqttQoS
-     * @return MqttPublishMessage
-     */
-    public MqttPublishMessage buildPublication(long messageId, String topic, Value message, boolean isDup, MqttQoS pubQos) {
-
-	MqttFixedHeader mfh = new MqttFixedHeader(
-		MqttMessageType.PUBLISH,
-		isDup,
-		pubQos,
-		false,
-		0);
-	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic, (int) messageId);
-
-	return new MqttPublishMessage(mfh, vh, Unpooled.wrappedBuffer(parseValue(message).getBytes(CharsetUtil.UTF_8)));
-    }
-
-    private String parseValue(Value value) {
-	if (value.isInt()) {
-	    return String.valueOf(value.intValue());
-	}
-	if (value.isBool()) {
-	    return String.valueOf(value.boolValue());
-	}
-	if (value.isDouble()) {
-	    return String.valueOf(value.doubleValue());
-	}
-	if (value.isLong()) {
-	    return String.valueOf(value.longValue());
-	}
-	return value.strValue();
     }
 }

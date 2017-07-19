@@ -16,6 +16,7 @@
  */
 package jolie.net;
 
+import com.sun.media.sound.SoftMixingMainMixer;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
@@ -50,6 +51,7 @@ public class MqttProtocolFactory extends CommProtocolFactory {
     @Override
     public CommProtocol createInputProtocol(VariablePath configurationPath,
 	    URI location) throws IOException {
+	
 	return new MqttProtocol(Boolean.TRUE, configurationPath);
     }
 
