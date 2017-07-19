@@ -1,3 +1,4 @@
+include "console.iol"
 include "iTmp.iol"
 
 outputPort Broker {
@@ -6,13 +7,13 @@ outputPort Broker {
         .osc.setTmp << {
             .format = "raw",
             .QoS = 1,
-            .alias = "jolie/%{id}/setTemperature"
+            .alias = "jolie/%!{id}/temperature"
         };
         .osc.getTmp << {
             .format = "raw",
             .QoS = 1,
-            .alias = "jolie/%!{id}/getTemperature",
-            .aliasResponse = "jolie/%!{id}/getTempReply"
+            .alias = "jolie/request/temperature",
+            .aliasResponse = "jolie/response/temperature"
         }                
     }
     Interfaces: ThermostatInterface
@@ -20,6 +21,8 @@ outputPort Broker {
 
 main 
 {
-    setTmp@Broker( 24 { .id = 42 } )
-    //getTmp@Broker( { .id = 42 } )( temp )
+    //setTmp@Broker( 24 { .id = 42 } )
+    getTmp()( data ){
+        println@Console( data )()
+    }
 }

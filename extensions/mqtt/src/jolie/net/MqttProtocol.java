@@ -16,6 +16,12 @@
  */
 package jolie.net;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import jolie.net.mqtt.PublicationHandler;
+import jolie.net.mqtt.SubscriptionHandler;
+import jolie.net.mqtt.PingHandler;
+import jolie.net.mqtt.Parameters;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
 
@@ -29,22 +35,28 @@ import io.netty.handler.codec.mqtt.MqttDecoder;
 import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
+import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.codec.mqtt.MqttSubscribePayload;
+import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import java.io.IOException;
-import java.net.URLEncoder;
+import io.netty.util.CharsetUtil;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
 
 public class MqttProtocol extends AsyncCommProtocol {
 
@@ -64,7 +76,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	p.addLast(new MqttDecoder());
 	if (inputPort) {
 	    p.addLast("Ping", new PingHandler());
-	    p.addLast(new SubscriptionHandler(this, channel().parentInputPort()));
+	    p.addLast(new SubscriptionHandler(this));
 	} else {
 	    p.addLast(new PublicationHandler(this));
 	}
@@ -127,19 +139,83 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return new MqttConnectMessage(mfh, vh, p);
     }
 
-    /*
-    PACKAGE METHODS
-     */
-    String getCurrentTopic(CommMessage message) {
+    public MqttPublishMessage buildPublication(long messageId, String topic, Value message, boolean isDup, MqttQoS pubQos) {
+
+	MqttFixedHeader mfh = new MqttFixedHeader(
+		MqttMessageType.PUBLISH,
+		isDup,
+		pubQos,
+		false,
+		0);
+	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic, (int) messageId);
+	ByteBuf bb = Unpooled.wrappedBuffer(parseValue(message).getBytes(CharsetUtil.UTF_8));
+
+	return new MqttPublishMessage(mfh, vh, bb);
+    }
+
+    private String parseValue(Value value) {
+	if (value.isInt()) {
+	    return String.valueOf(value.intValue());
+	}
+	if (value.isBool()) {
+	    return String.valueOf(value.boolValue());
+	}
+	if (value.isDouble()) {
+	    return String.valueOf(value.doubleValue());
+	}
+	if (value.isLong()) {
+	    return String.valueOf(value.longValue());
+	}
+	return value.strValue();
+    }
+
+    public MqttSubscribeMessage buildSubscription(long messageId, List<String> topics, boolean isDup, MqttQoS subQos) {
+
+	List<MqttTopicSubscription> tmsL = new ArrayList<>();
+	for (String t : topics) {
+	    tmsL.add(new MqttTopicSubscription(t, getCurrentOperationQos(getCurrentOperationName(t), MqttQoS.EXACTLY_ONCE)));
+	}
+	MqttFixedHeader mfh = new MqttFixedHeader(
+		MqttMessageType.SUBSCRIBE,
+		isDup,
+		subQos,
+		false,
+		0);
+	MqttMessageIdVariableHeader vh = MqttMessageIdVariableHeader.from((int) messageId);
+	MqttSubscribePayload p = new MqttSubscribePayload(tmsL);
+
+	return new MqttSubscribeMessage(mfh, vh, p);
+    }
+
+    public String getCurrentTopic(CommMessage message) {
+
 	StringBuilder sb = new StringBuilder();
 
 	if (hasOperationSpecificParameter(message.operationName(), Parameters.ALIAS)) {
+	    int offset = 0;
+	    List< String> aliasKeys = new ArrayList<>();
+	    String currStrValue;
+	    String currKey;
 	    String alias = getOperationSpecificStringParameter(message.operationName(), Parameters.ALIAS);
-	    try {
-		send_appendParsedAlias(alias, message.value(), sb);
-	    } catch (IOException ex) {
-		Interpreter.getInstance().logWarning(message.fault().getCause());
+	    StringBuilder result = new StringBuilder(alias);
+	    Matcher m = Pattern.compile("%(!)?\\{[^\\}]*\\}").matcher(alias);
+
+	    while (m.find()) {
+		currKey = alias.substring(m.start() + 3, m.end() - 1);
+		currStrValue = message.value().getFirstChild(currKey).strValue();
+		aliasKeys.add(currKey);
+		result.replace(
+			m.start() + offset, m.end() + offset,
+			currStrValue
+		);
+		offset += currStrValue.length() - 3 - currKey.length();
 	    }
+
+	    for (String aliasKey : aliasKeys) {
+		message.value().children().remove(aliasKey);
+	    }
+	    sb.append(result);
+
 	} else {
 	    sb.append(message.operationName());
 	}
@@ -147,19 +223,23 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return sb.toString();
     }
 
-    MqttQoS getQos(MqttQoS defaultQoS) {
+    public MqttQoS getQos(MqttQoS defaultQoS) {
+
 	return hasParameter(Parameters.QOS) ? MqttQoS.valueOf(getIntParameter(Parameters.QOS)) : defaultQoS;
     }
 
-    MqttQoS getCurrentOperationQos(String operationName, MqttQoS defaultQoS) {
+    public MqttQoS getCurrentOperationQos(String operationName, MqttQoS defaultQoS) {
+
 	return hasOperationSpecificParameter(operationName, Parameters.QOS) ? MqttQoS.valueOf(getOperationSpecificParameterFirstValue(operationName, Parameters.QOS).intValue()) : defaultQoS;
     }
 
-    boolean connectionAccepted(MqttMessage msg) {
+    public boolean connectionAccepted(MqttMessage msg) {
+
 	return msg.fixedHeader().messageType().equals(MqttMessageType.CONNACK) && ((MqttConnAckMessage) msg).variableHeader().connectReturnCode().equals(MqttConnectReturnCode.CONNECTION_ACCEPTED);
     }
 
-    String getCurrentOperationName(String topic) {
+    public String getCurrentOperationName(String topic) {
+
 	if (configurationPath.getValue().hasChildren("osc")) {
 	    for (Map.Entry<String, ValueVector> i : configurationPath.getValue().getFirstChild("osc").children().entrySet()) {
 		for (Map.Entry<String, ValueVector> j : i.getValue().first().children().entrySet()) {
@@ -172,44 +252,32 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return topic;
     }
 
-    private static void send_appendParsedAlias(String alias, Value value, StringBuilder builder)
-	    throws IOException {
-	int offset = 0;
-	List< String> aliasKeys = new ArrayList<>();
-	String currStrValue;
-	String currKey;
-	StringBuilder result = new StringBuilder(alias);
-	Matcher m = Pattern.compile("%(!)?\\{[^\\}]*\\}").matcher(alias);
+    public boolean isSubscriptionOnDemand(boolean defaultSubscriptionOnDemand) {
+	return hasParameter(Parameters.SUBSCRIPTION_ON_DEMAND) ? Boolean.getBoolean(getStringParameter(Parameters.SUBSCRIPTION_ON_DEMAND)) : defaultSubscriptionOnDemand;
+    }
 
-	while (m.find()) {
-	    if (m.group(1) == null) { // ! is missing after %: We have to use URLEncoder
-		currKey = alias.substring(m.start() + 2, m.end() - 1);
-		if ("$".equals(currKey)) {
-		    currStrValue = URLEncoder.encode(value.strValue(), "UTF-8");
-		} else {
-		    currStrValue = URLEncoder.encode(value.getFirstChild(currKey).strValue(), "UTF-8");
-		    aliasKeys.add(currKey);
-		}
-	    } else { // ! is given after %: We have to insert the string raw
-		currKey = alias.substring(m.start() + 3, m.end() - 1);
-		if ("$".equals(currKey)) {
-		    currStrValue = value.strValue();
-		} else {
-		    currStrValue = value.getFirstChild(currKey).strValue();
-		    aliasKeys.add(currKey);
-		}
+    public List<String> getTopicList() {
+
+	List<String> opL = new ArrayList<>();
+	for (Map.Entry<String, OneWayTypeDescription> owon : channel().parentPort().getInterface().oneWayOperations().entrySet()) {
+	    opL.add(getAliasForOperation(owon.getKey()));
+
+	}
+	for (Map.Entry<String, RequestResponseTypeDescription> rron : channel().parentPort().getInterface().requestResponseOperations().entrySet()) {
+	    opL.add(getAliasForOperation(rron.getKey()));
+
+	}
+	return opL;
+    }
+
+    public String getAliasForOperation(String operationName) {
+
+	for (Iterator<Map.Entry<String, ValueVector>> it = getConfigurationPath().getValue().getFirstChild("osc").children().entrySet().iterator(); it.hasNext();) {
+	    Map.Entry<String, ValueVector> i = it.next();
+	    if (operationName.equals(i.getKey())) {
+		return i.getValue().first().getFirstChild("alias").strValue();
 	    }
-
-	    result.replace(
-		    m.start() + offset, m.end() + offset,
-		    currStrValue
-	    );
-	    offset += currStrValue.length() - 3 - currKey.length();
 	}
-	// removing used keys
-	for (String aliasKey : aliasKeys) {
-	    value.children().remove(aliasKey);
-	}
-	builder.append(result);
+	return operationName;
     }
 }

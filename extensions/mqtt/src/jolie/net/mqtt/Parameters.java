@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package jolie.net;
+package jolie.net.mqtt;
 
 import io.netty.handler.codec.mqtt.MqttVersion;
 
@@ -24,16 +24,18 @@ import io.netty.handler.codec.mqtt.MqttVersion;
  */
 public class Parameters {
 
-    static final String BROKER = "broker";
-    static final String CONCURRENT = "concurrent";
-    static final String ALIAS = "alias";
-    static final String QOS = "QoS";
-    static final String WILL_TOPIC = "willTopic";
-    static final String WILL_MESSAGE = "willMessage";
-    static final String USERNAME = "username";
-    static final String PASSWORD = "password";
-    static final String FORMAT = "format";
-    static final String BOUNDARY = "$"; // MAPPING FOT REQUEST RESPONSE TOPIC
-    static final MqttVersion MQTT_VERSION = MqttVersion.MQTT_3_1_1;
+    public static final String BROKER = "broker";
+    public static final String CONCURRENT = "concurrent";
+    public static final String ALIAS = "alias";
+    public static final String QOS = "QoS";
+    public static final String WILL_TOPIC = "willTopic";
+    public static final String WILL_MESSAGE = "willMessage";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
+    public static final String FORMAT = "format";
+    public static final String ALIAS_RESPONSE = "aliasResponse";
+    public static final String SUBSCRIPTION_ON_DEMAND = "onDemand";
+    public static final String BOUNDARY = "$"; // MAPPING FOT REQUEST RESPONSE TOPIC
+    public static final MqttVersion MQTT_VERSION = MqttVersion.MQTT_3_1_1;
 
 }
