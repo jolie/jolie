@@ -8,7 +8,7 @@ inputPort  Thermostat {
         .onDemand = false;
         .osc.getTmp << {
             .format = "raw",
-            .alias = "jolie/request/temperature"
+            .alias = "jolie/%!{id}/temperature/request"
         }
     }
     Interfaces: ThermostatInterface
@@ -18,7 +18,5 @@ execution{ concurrent }
 
 main 
 {
-    getTmp()( data ){
-        println@Console( data )()
-    }
+    getTmp( { .id = 42 } )( 24 )
 }

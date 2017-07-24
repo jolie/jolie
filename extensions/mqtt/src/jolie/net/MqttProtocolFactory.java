@@ -16,7 +16,6 @@
  */
 package jolie.net;
 
-import com.sun.media.sound.SoftMixingMainMixer;
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
@@ -32,40 +31,19 @@ import jolie.runtime.VariablePath;
  */
 public class MqttProtocolFactory extends CommProtocolFactory {
 
-    /**
-     *
-     * @param commCore CommCore
-     */
     public MqttProtocolFactory(CommCore commCore) {
 	super(commCore);
     }
 
-    /**
-     * This is a subscriber, it could be a One Way or a Request Response
-     *
-     * @param configurationPath VariablePath
-     * @param location URI
-     * @return CommProtocol
-     * @throws IOException
-     */
     @Override
     public CommProtocol createInputProtocol(VariablePath configurationPath,
 	    URI location) throws IOException {
-	
-	return new MqttProtocol(Boolean.TRUE, configurationPath);
+	return new MqttProtocol(configurationPath);
     }
 
-    /**
-     * This is a Publisher, just a One Way Publisher
-     *
-     * @param configurationPath VariablePath
-     * @param location URI
-     * @return CommProtocol
-     * @throws IOException
-     */
     @Override
     public CommProtocol createOutputProtocol(VariablePath configurationPath,
 	    URI location) throws IOException {
-	return new MqttProtocol(Boolean.FALSE, configurationPath);
+	return new MqttProtocol(configurationPath);
     }
 }
