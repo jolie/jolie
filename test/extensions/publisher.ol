@@ -12,17 +12,15 @@ outputPort Broker {
         .osc.getTmp << {
             .format = "raw",
             .QoS = 1,
-            .alias = "jolie/request/temperature",
-            .aliasResponse = "jolie/response/temperature"
+            .alias = "jolie/%!{id}/temperature/request",
+            .aliasResponse = "jolie/%!{id}/temperature/response"
         }                
     }
     Interfaces: ThermostatInterface
 }
 
-main 
+main
 {
     //setTmp@Broker( 24 { .id = 42 } )
-    getTmp()( data ){
-        println@Console( data )()
-    }
+    getTmp@Broker( { .id = 42 } )( data )
 }
