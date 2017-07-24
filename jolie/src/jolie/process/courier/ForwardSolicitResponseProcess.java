@@ -86,7 +86,8 @@ public class ForwardSolicitResponseProcess implements Process
 			MessageTraceAction.Type.COURIER_SOLICIT_RESPONSE,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

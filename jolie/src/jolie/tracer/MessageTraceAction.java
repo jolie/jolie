@@ -22,6 +22,8 @@
 
 package jolie.tracer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import jolie.net.CommMessage;
 
 /**
@@ -43,13 +45,17 @@ public class MessageTraceAction implements TraceAction
 	private final String name;
 	private final String description;
 	private final CommMessage message;
+        private final long timestamp;
+        private final String timeValue;
 	
-	public MessageTraceAction( Type type, String name, String description, CommMessage message )
+	public MessageTraceAction( Type type, String name, String description, CommMessage message, long timestamp )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
 		this.message = message;
+                this.timestamp = timestamp;
+                this.timeValue = parsedTimestamp();
 	}
 	
 	public Type type()
@@ -71,4 +77,21 @@ public class MessageTraceAction implements TraceAction
 	{
 		return message;
 	}
+        
+        /*
+        public long timestamp(){
+            return timestamp;
+        }
+        */
+        public String timeValue(){
+            return timeValue;
+        }
+        
+        
+        private String parsedTimestamp() {
+            Date currentDate = new Date(timestamp);
+            SimpleDateFormat dateFormatter = new SimpleDateFormat();
+            dateFormatter.applyPattern("dd/MM/yy_HH.mm.ss.SSS");
+            return dateFormatter.format(currentDate);
+        }
 }

@@ -48,6 +48,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader
 		System.arraycopy( options, 0, newArgs, 2, options.length );
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		interpreter = new Interpreter(
+                        System.currentTimeMillis(),
 			newArgs,
 			currInterpreter.getClassLoader(),
 			currInterpreter.programDirectory()

@@ -75,7 +75,8 @@ public class NotificationProcess implements Process
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

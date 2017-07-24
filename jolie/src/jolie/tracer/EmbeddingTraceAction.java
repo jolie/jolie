@@ -22,6 +22,9 @@
 
 package jolie.tracer;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  *
  * @author Fabrizio Montesi
@@ -35,12 +38,16 @@ public class EmbeddingTraceAction implements TraceAction
 	private final Type type;
 	private final String name;
 	private final String description;
+        private final long timestamp;
+        private final String timeValue;
 	
-	public EmbeddingTraceAction( Type type, String name, String description )
+	public EmbeddingTraceAction( Type type, String name, String description, long timestamp )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
+                this.timestamp = timestamp;
+                this.timeValue = parsedTimestamp();
 	}
 	
 	public Type type()
@@ -57,4 +64,15 @@ public class EmbeddingTraceAction implements TraceAction
 	{
 		return description;
 	}
+        
+        public String timeValue(){
+            return timeValue;
+        }
+        
+        private String parsedTimestamp() {
+            Date currentDate = new Date(timestamp);
+            SimpleDateFormat dateFormatter = new SimpleDateFormat();
+            dateFormatter.applyPattern("dd/MM/yy_HH.mm.ss.SSS");
+            return dateFormatter.format(currentDate);
+        }
 }

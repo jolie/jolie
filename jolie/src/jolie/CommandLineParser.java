@@ -76,6 +76,7 @@ public class CommandLineParser implements Closeable
 	private final boolean isProgramCompiled;
 	private final boolean typeCheck;
 	private final boolean tracer;
+	private final boolean JSONTracer;
         private final boolean check;
 	private final Level logLevel;
 	private File programDirectory = null;
@@ -109,6 +110,19 @@ public class CommandLineParser implements Closeable
 	public boolean tracer()
 	{
 		return tracer;
+	}
+        
+        /**
+	 * Returns
+	 * <code>true</code> if the tracer:json option has been specified, false
+	 * otherwise.
+	 *
+	 * @return <code>true</code> if the verbose option has been specified, false
+	 * otherwise
+	 */
+	public boolean JSONTracer()
+	{
+		return JSONTracer;
 	}
         
         	/**
@@ -370,6 +384,9 @@ public class CommandLineParser implements Closeable
 		boolean bTracer = false;
 		boolean bCheck = false;
 		boolean bTypeCheck = false; // Default for typecheck
+        //Vins
+	boolean bJSONTracer = false;
+        //
 		Level lLogLevel = Level.INFO;
 		List< String > programArgumentsList = new ArrayList<>();
 		LinkedList< String > includeList = new LinkedList<>();
@@ -447,7 +464,12 @@ public class CommandLineParser implements Closeable
 			} else if ( "--trace".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				bTracer = true;
-			} else if ( "--log".equals( argsList.get( i ) ) ) {
+			} else if("--trace:json".equals(argsList.get(i))){
+                            optionsList.add(argsList.get(i));
+                            bJSONTracer = true;
+                            
+                        }
+                        else if ( "--log".equals( argsList.get( i ) ) ) {
 				optionsList.add( argsList.get( i ) );
 				i++;
 				String level = argsList.get( i );
@@ -589,6 +611,7 @@ public class CommandLineParser implements Closeable
 
 		isProgramCompiled = olFilepath.endsWith( ".olc" );
 		tracer = bTracer && !isProgramCompiled;
+                JSONTracer = bJSONTracer && !isProgramCompiled;
 		check = bCheck && !isProgramCompiled;
 		programFilepath = new File( olResult.source );
 		programStream = olResult.stream;

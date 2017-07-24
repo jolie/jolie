@@ -86,7 +86,8 @@ public class SolicitResponseProcess implements Process
 			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

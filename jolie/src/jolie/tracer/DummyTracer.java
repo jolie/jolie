@@ -30,6 +30,6 @@ import java.util.function.Supplier;
 public class DummyTracer implements Tracer
 {
 	@Override
-	public void trace( Supplier< ? extends TraceAction > action )
+	public void trace( Supplier< ? extends TraceAction > action)
 	{}
 }

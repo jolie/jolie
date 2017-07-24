@@ -47,18 +47,18 @@ public class PrintingTracer implements Tracer
 	}
 
 	@Override
-	public synchronized void trace( Supplier< ? extends TraceAction > supplier )
+	public synchronized void trace( Supplier< ? extends TraceAction > supplier)
 	{
 		final TraceAction action = supplier.get();
 		actionCounter++;
 		if ( action instanceof MessageTraceAction ) {
-			trace( (MessageTraceAction) action );
+			trace( (MessageTraceAction) action);
 		} else if ( action instanceof EmbeddingTraceAction ) {
-			trace( (EmbeddingTraceAction) action );
+			trace( (EmbeddingTraceAction) action);
 		}
 	}
 	
-	private void trace( EmbeddingTraceAction action )
+	private void trace( EmbeddingTraceAction action)
 	{
 		StringBuilder stBuilder = new StringBuilder();
 		stBuilder.append( interpreter.logPrefix() ).append( "\t" );
@@ -76,7 +76,7 @@ public class PrintingTracer implements Tracer
 		System.out.println( stBuilder.toString() );
 	}
 	
-	private void trace( MessageTraceAction action )
+	private void trace( MessageTraceAction action)
 	{
 		StringBuilder stBuilder = new StringBuilder();
 		stBuilder.append( interpreter.logPrefix() ).append( "\t" );

@@ -22,10 +22,15 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
+import jolie.net.CommMessage;
 import jolie.runtime.expression.Expression;
 import jolie.runtime.VariablePath;
 import jolie.runtime.InvalidIdException;
 import jolie.runtime.Value;
+import jolie.tracer.MessageTraceAction;
+import jolie.tracer.Tracer;
+import jolie.tracer.VariableTraceAction;
 
 /** Assigns an expression value to a VariablePath.
  * @see Expression
@@ -69,7 +74,16 @@ public class AssignmentProcess implements Process, Expression
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
+                String varTreeName="";
+                for(int i=0; i<varPath.path().length;i++){
+                    varTreeName += varPath.path()[i].key().evaluate().strValue();
+                    if(i != varPath.path().length-1){
+                        varTreeName += ".";
+                    }
+                }
+                log("ASSIGNMENT","Assigning", (expression.evaluate())==null ? null : expression.evaluate().strValue(),varTreeName );
 		varPath.getValue().assignValue( expression.evaluate() );
+                log("ASSIGNMENT","Assigned",(varPath.getValue())==null ? null : varPath.getValue().evaluate().strValue(), varTreeName);
 	}
 	
 	public Value evaluate()
@@ -82,5 +96,18 @@ public class AssignmentProcess implements Process, Expression
 	public boolean isKillable()
 	{
 		return true;
+	}
+        
+        private void log(String name, String behaviour, String value , String variableName)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new VariableTraceAction(
+			VariableTraceAction.Type.ASSIGNMENT,
+			name,
+                        behaviour,
+                        value,
+                        variableName,
+                        System.currentTimeMillis()
+		) );
 	}
 }

@@ -91,6 +91,8 @@ import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.DummyTracer;
+import jolie.tracer.FaultTraceAction;
+import jolie.tracer.JSONTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
 
@@ -287,6 +289,8 @@ public class Interpreter
 	private final String programFilename;
 	private final File programDirectory;
 	private OutputPort monitor = null;
+        
+        private long timestamp ;
 
 	public void setMonitor( OutputPort monitor )
 	{
@@ -673,6 +677,7 @@ public class Interpreter
 	 */
 	public void logInfo( String message )
 	{
+                log(message);
 		logger.info( logPrefix + message );
 	}
 	
@@ -805,7 +810,24 @@ public class Interpreter
 	{
 		return classLoader;
 	}
-
+         private void log(String message)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new FaultTraceAction(
+			FaultTraceAction.Type.FAULT,
+			message,
+                        System.currentTimeMillis()
+		) );
+	}
+        
+         public void setTimestamp(long timestamp){
+             this.timestamp = timestamp;
+         }
+         
+         public long timestamp(){
+             return timestamp;
+         }
+         
 	/**
 	 * Returns <code>true</code> if this interpreter is in verbose mode.
 	 * @return <code>true</code> if this interpreter is in verbose mode
@@ -824,15 +846,16 @@ public class Interpreter
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory )
+	public Interpreter( long timestamp, String[] args, ClassLoader parentClassLoader, File programDirectory )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-        this( args, parentClassLoader, programDirectory, false );
+        this( timestamp ,args, parentClassLoader, programDirectory, false );
 	}
     
-    public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, boolean ignoreFile )
+    public Interpreter( long timestamp, String[] args, ClassLoader parentClassLoader, File programDirectory,  boolean ignoreFile )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
+                this.timestamp = timestamp;
 		this.parentClassLoader = parentClassLoader;
         
 		cmdParser = new CommandLineParser( args, parentClassLoader, ignoreFile );
@@ -854,7 +877,10 @@ public class Interpreter
 
 		if ( cmdParser.tracer() ) {
 			tracer = new PrintingTracer( this );
-		} else {
+		} else if (cmdParser.JSONTracer()){
+                    
+			tracer = new JSONTracer(programFilename,timestamp);
+                } else {
 			tracer = new DummyTracer();
 		}
 		
@@ -884,10 +910,10 @@ public class Interpreter
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
-	public Interpreter( String[] args, ClassLoader parentClassLoader, File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
+	public Interpreter( long timestamp, String[] args, ClassLoader parentClassLoader, File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws CommandLineException, FileNotFoundException, IOException
 	{
-        this( args, parentClassLoader, programDirectory, true );
+        this( timestamp, args, parentClassLoader, programDirectory, true );
         
 		this.parentInterpreter = parentInterpreter;
         this.internalServiceProgram = internalServiceProgram;
@@ -1282,6 +1308,7 @@ public class Interpreter
 			}
 
 		} catch( IOException | ParserException | ClassNotFoundException e ) {
+                    //log(new InterpreterException(e).getMessage());
 			throw new InterpreterException( e );
 		} finally {
 			cmdParser = null; // Free memory

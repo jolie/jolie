@@ -72,7 +72,7 @@ public class OneWayProcess implements InputOperationProcess
 		if ( Interpreter.getInstance().isMonitoring() && !isSessionStarter ) {
 			Interpreter.getInstance().fireMonitorEvent( new OperationStartedEvent( operation.id(), ExecutionThread.currentThread().getSessionId(), Long.valueOf( sessionMessage.message().id()).toString(), sessionMessage.message().value() ) );
 		}
-
+                
 		log( "RECEIVED", sessionMessage.message() );
 		if ( varPath != null ) {
 			varPath.getValue( state.root() ).refCopy( sessionMessage.message().value() );
@@ -115,7 +115,8 @@ public class OneWayProcess implements InputOperationProcess
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 

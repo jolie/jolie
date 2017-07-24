@@ -80,7 +80,8 @@ public class RequestResponseProcess implements InputOperationProcess
 			MessageTraceAction.Type.REQUEST_RESPONSE,
 			operation.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 	

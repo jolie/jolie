@@ -82,7 +82,8 @@ public class ForwardNotificationProcess implements Process
 			MessageTraceAction.Type.COURIER_NOTIFICATION,
 			operationName + "@" + outputPort.id(),
 			log,
-			message
+			message,
+                        System.currentTimeMillis()
 		) );
 	}
 
