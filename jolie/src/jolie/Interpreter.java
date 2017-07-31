@@ -91,7 +91,7 @@ import jolie.runtime.correlation.CorrelationSet;
 import jolie.runtime.embedding.EmbeddedServiceLoader;
 import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
 import jolie.tracer.DummyTracer;
-import jolie.tracer.FaultTraceAction;
+import jolie.tracer.ErrorTraceAction;
 import jolie.tracer.JSONTracer;
 import jolie.tracer.PrintingTracer;
 import jolie.tracer.Tracer;
@@ -677,7 +677,7 @@ public class Interpreter
 	 */
 	public void logInfo( String message )
 	{
-                log(message);
+                log_LOGINFO(logPrefix + message);
 		logger.info( logPrefix + message );
 	}
 	
@@ -686,7 +686,8 @@ public class Interpreter
 	 * @param message the message to log
 	 */
 	public void logFine( String message )
-	{
+	{       
+                log_FINE(logPrefix+message);
 		logger.fine( logPrefix + message );
 	}
 	
@@ -698,6 +699,7 @@ public class Interpreter
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
+                log_FINE(logPrefix+bs.toString());
 		logger.fine( logPrefix + bs.toString() );
 	}
 
@@ -707,6 +709,8 @@ public class Interpreter
 	 */
 	public void logSevere( String message )
 	{
+            
+                log_SEVERE(logPrefix+message);
 		logger.severe( logPrefix + message );
 	}
 
@@ -716,6 +720,7 @@ public class Interpreter
 	 */
 	public void logWarning( String message )
 	{
+                log_WARNING(logPrefix + message);
 		logger.warning( logPrefix + message );
 	}
 
@@ -728,6 +733,7 @@ public class Interpreter
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
+                log_SEVERE(bs.toString());
 		logger.severe( logPrefix + bs.toString() );
 	}
 
@@ -740,6 +746,7 @@ public class Interpreter
 	{
 		ByteArrayOutputStream bs = new ByteArrayOutputStream();
 		t.printStackTrace( new PrintStream( bs ) );
+                log_WARNING(logPrefix + bs.toString());
 		logger.warning( logPrefix + bs.toString() );
 	}
 	
@@ -810,11 +817,38 @@ public class Interpreter
 	{
 		return classLoader;
 	}
-         private void log(String message)
+         private void log_LOGINFO(String message)
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
-		tracer.trace( () -> new FaultTraceAction(
-			FaultTraceAction.Type.FAULT,
+		tracer.trace(() -> new ErrorTraceAction(
+			ErrorTraceAction.Type.ERROR_LOGINFO,
+			message,
+                        System.currentTimeMillis()
+		) );
+	} 
+         private void log_WARNING(String message)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new ErrorTraceAction(
+			ErrorTraceAction.Type.ERROR_WARNING,
+			message,
+                        System.currentTimeMillis()
+		) );
+	}
+         private void log_FINE(String message)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new ErrorTraceAction(
+			ErrorTraceAction.Type.ERROR_FINE,
+			message,
+                        System.currentTimeMillis()
+		) );
+	}
+         private void log_SEVERE(String message)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new ErrorTraceAction(
+			ErrorTraceAction.Type.ERROR_SEVERE,
 			message,
                         System.currentTimeMillis()
 		) );

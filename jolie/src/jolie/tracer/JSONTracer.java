@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Supplier;
 import jolie.runtime.Value;
+import jolie.runtime.ValueJSONPrinter;
 import jolie.runtime.ValuePrettyPrinter;
 
 /**
@@ -58,6 +59,8 @@ public class JSONTracer implements Tracer {
             trace((EmbeddingTraceAction) action);
         } else if (action instanceof VariableTraceAction) {
             trace((VariableTraceAction) action);
+        }else if(action instanceof ErrorTraceAction){
+            trace((ErrorTraceAction) action);
         }else if(action instanceof FaultTraceAction){
             trace((FaultTraceAction) action);
         }
@@ -83,13 +86,66 @@ public class JSONTracer implements Tracer {
         stBuilder.append(programFilename).append("\", \"InstructionNumber\" : \"");
         stBuilder.append(Integer.toString(actionCounter)).append("\", \"Type\" : \"");
         switch (action.type()) {
-            case FAULT:
-                stBuilder.append("FAULT");
+            case FAULT_SCOPE:
+                stBuilder.append("FAULT_SCOPE");
+                break;
+            case FAULT_INSTALL:
+                stBuilder.append("FAULT_INSTALL");
+                break;
+            case FAULT_THROW:
+                stBuilder.append("FAULT_THROW");
                 break;
             default:
                 break;
         }
         stBuilder
+                .append("\", \"Timestamp\" : \"").append(action.timeValue())
+                .append("\", \"Description\" : \"").append(action.value())
+                .append("\" , \"Action\" : \"").append(action.message()).append("\"}");
+        System.out.println(stBuilder.toString());
+        JSONWriter.println(stBuilder.toString());
+        JSONWriter.flush();
+        JSONWriter.close();
+        
+    }
+    
+    public void trace(ErrorTraceAction action){
+        String fileName = parsedTimestamp();
+        try {
+            writer = new FileWriter(fileName + ".json", true);
+            JSONWriter = new PrintWriter(writer);
+
+        } catch (IOException e) {
+            System.out.println("I/O Error: " + e.getMessage());
+        }
+        File file = new File(fileName + ".json");
+        boolean empty = file.length() == 0;
+        StringBuilder stBuilder = new StringBuilder();
+        if (empty) {
+            stBuilder.append("{\"ServiceName\" : \"");
+        } else {
+            stBuilder.append(",{\"ServiceName\" : \"");
+        }
+        stBuilder.append(programFilename).append("\", \"InstructionNumber\" : \"");
+        stBuilder.append(Integer.toString(actionCounter)).append("\", \"Type\" : \"");
+        switch (action.type()) {
+            case ERROR_LOGINFO:
+                stBuilder.append("ERROR_LOGINFO");
+                break;
+            case ERROR_WARNING:
+                stBuilder.append("ERROR_WARNING");
+                break;
+            case ERROR_FINE:
+                stBuilder.append("ERROR_FINE");
+                break;
+            case ERROR_SEVERE:
+                stBuilder.append("ERROR_SEVERE");
+                break;
+            default:
+                break;
+        }
+        stBuilder
+                .append("\", \"Timestamp\" : \"").append(action.timeValue())
                 .append("\" , \"Message\" : \"").append(action.message()).append("\"}");
         System.out.println(stBuilder.toString());
         JSONWriter.println(stBuilder.toString());
@@ -196,22 +252,25 @@ public class JSONTracer implements Tracer {
         stBuilder.append(Integer.toString(actionCounter)).append("\", \"Type\" : \"");
         switch (action.type()) {
             case SOLICIT_RESPONSE:
-                stBuilder.append("<< SR");
+                stBuilder.append("SOLICIT RESPONSE");
                 break;
             case NOTIFICATION:
-                stBuilder.append("< N");
+                stBuilder.append("NOTIFICATION");
                 break;
             case ONE_WAY:
-                stBuilder.append("> OW");
+                stBuilder.append("ONE WAY");
                 break;
             case REQUEST_RESPONSE:
-                stBuilder.append(">> RR");
+                stBuilder.append("REQUEST RESPONSE");
                 break;
             case COURIER_NOTIFICATION:
-                stBuilder.append(">> CN");
+                stBuilder.append("COURIER NOTIFICATION");
                 break;
             case COURIER_SOLICIT_RESPONSE:
-                stBuilder.append(">> CSR");
+                stBuilder.append("COURIER SOLICIT RESPONSE");
+                break;
+            case AGGREGATION:
+                stBuilder.append("AGGREGATION");
                 break;
             default:
                 break;
@@ -222,25 +281,21 @@ public class JSONTracer implements Tracer {
                 .append("\", \"Description\" : \"").append(action.description())
                 .append("\", \"Timestamp\" : \"").append(action.timeValue());
         if (action.message() != null) {
-            stBuilder.append("\", \"MSG_ID\" : \"").append(action.message().id()).append("\",\"Value\" : \"");
+            stBuilder.append("\", \"MSG_ID\" : \"").append(action.message().id()).append("\",\"Value\" : [");
             Writer writer = new StringWriter();
             Value messageValue = action.message().value();
             if (action.message().isFault()) {
                 messageValue = action.message().fault().value();
             }
-            ValuePrettyPrinter printer = new ValuePrettyPrinter(
-                    messageValue,
-                    writer,
-                    ""
-            );
+            ValueJSONPrinter printer = new ValueJSONPrinter(messageValue,writer);
+           
             printer.setByteTruncation(50);
-            printer.setIndentationOffset(6);
             try {
                 printer.run();
             } catch (IOException e) {
             } // Should never happen
 
-            stBuilder.append(writer.toString().replaceAll("=", "").replaceAll(":", "").replaceAll("\t", "").replaceAll("\n", "")).append("\"}");
+            stBuilder.append(writer.toString()).append("\"}]}");
         } else {
             stBuilder.append("\"}");
         }

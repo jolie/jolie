@@ -23,7 +23,10 @@ package jolie.process;
 
 import java.util.List;
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.runtime.HandlerInstallationReason;
+import jolie.tracer.FaultTraceAction;
+import jolie.tracer.Tracer;
 import jolie.util.Pair;
 
 
@@ -49,8 +52,10 @@ public class InstallProcess implements Process
 			final Process handler = pair.value().clone( new HandlerInstallationReason( pair.key() ) );
 			if ( pair.key() == null ) {
 				ethread.installCompensation( handler );
+                            log("INSTALLED", handler.toString());
 			} else {
 				ethread.installFaultHandler( pair.key(), handler );
+                            log("INSTALLED", handler+"///" +pair.key());
 			}
 		}
 	}
@@ -59,4 +64,14 @@ public class InstallProcess implements Process
 	{
 		return false;
 	}
+           private void log(String message, String value)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new FaultTraceAction(
+			FaultTraceAction.Type.FAULT_INSTALL,
+			message,
+                        value,
+                        System.currentTimeMillis()
+		) );
+	} 
 }

@@ -38,6 +38,8 @@ import jolie.runtime.AbstractIdentifiableObject;
 import jolie.runtime.FaultException;
 import jolie.runtime.InputOperation;
 import jolie.runtime.VariablePath;
+import jolie.tracer.FaultTraceAction;
+import jolie.tracer.Tracer;
 
 /**
  * Represents a JolieThread that is able to resolve a VariablePath, referring to a State.
@@ -343,13 +345,26 @@ public abstract class ExecutionThread extends JolieThread
 		return scopeStack.peek().getFaultHandler( id, erase );
 	}
 	
+           private void log(String message, String value)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace(() -> new FaultTraceAction(
+			FaultTraceAction.Type.FAULT_SCOPE,
+			message,
+                        value,
+                        System.currentTimeMillis()
+		) );
+	} 
+        
 	/**
 	 * Pushes scope id as the new current executing scope in the scope stack of this thread.
 	 * @param id the id of the scope to push.
 	 */
 	public synchronized void pushScope( String id )
 	{
+                log("PUSHING" , id);
 		scopeStack.push( new Scope( id ) );
+                log("PUSHED" , id);
 	}
 	
 	/**

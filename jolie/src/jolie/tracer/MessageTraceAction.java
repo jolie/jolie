@@ -38,7 +38,8 @@ public class MessageTraceAction implements TraceAction
 		ONE_WAY,
 		REQUEST_RESPONSE,
 		COURIER_NOTIFICATION,
-		COURIER_SOLICIT_RESPONSE
+		COURIER_SOLICIT_RESPONSE,
+                AGGREGATION
 	}
 	
 	private final Type type;

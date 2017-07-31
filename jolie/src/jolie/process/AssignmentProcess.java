@@ -81,9 +81,10 @@ public class AssignmentProcess implements Process, Expression
                         varTreeName += ".";
                     }
                 }
-                log("ASSIGNMENT","Assigning", (expression.evaluate())==null ? null : expression.evaluate().strValue(),varTreeName );
+                log("ASSIGNMENT", varPath.getStateIdentifier()+": Assigning", (expression.evaluate())==null ? null : expression.evaluate().strValue(),varTreeName );
 		varPath.getValue().assignValue( expression.evaluate() );
-                log("ASSIGNMENT","Assigned",(varPath.getValue())==null ? null : varPath.getValue().evaluate().strValue(), varTreeName);
+                log("ASSIGNMENT",varPath.getStateIdentifier()+": Assigned",(varPath.getValue())==null ? null : varPath.getValue().evaluate().strValue(), varTreeName);
+                
 	}
 	
 	public Value evaluate()

@@ -130,6 +130,10 @@ public class VariablePath implements Expression, Cloneable
 	{
 		return ExecutionThread.currentThread().state().root();
 	}
+        
+        public String getStateIdentifier(){
+            return ExecutionThread.currentThread().getSessionId();
+        }
 	
 	public final void undef()
 	{

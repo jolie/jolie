@@ -25,26 +25,26 @@ import java.util.Date;
  *
  * @author Vins
  */
-public class FaultTraceAction implements TraceAction {
-     public static enum Type {
-        FAULT_INSTALL,
-        FAULT_SCOPE,
-        FAULT_THROW
+public class ErrorTraceAction implements TraceAction{
+    public static enum Type {
+        ERROR_LOGINFO,
+        ERROR_WARNING,
+        ERROR_FINE,
+        ERROR_SEVERE
     }
-     private Type type;
+    
+    private Type type;
     private String message;
     private long timestamp;
     private String timeValue;
-    private String value;
     
-    public FaultTraceAction(Type type, String message, String value,  long timestamp){
+    public ErrorTraceAction(Type type, String message, long timestamp){
         this.type = type;
         this.message = message;
         this.timestamp = timestamp;
         this.timeValue = parsedTimestamp();
-        this.value = value;
     }
-     
+    
     public Type type(){
         return type;
     }
@@ -56,10 +56,8 @@ public class FaultTraceAction implements TraceAction {
     public String timeValue(){
         return timeValue;
     }
-    public String value(){
-        return value;
-    }
-      private String parsedTimestamp() {
+    
+    private String parsedTimestamp() {
             Date currentDate = new Date(timestamp);
             SimpleDateFormat dateFormatter = new SimpleDateFormat();
             dateFormatter.applyPattern("dd/MM/yy_HH.mm.ss.SSS");
