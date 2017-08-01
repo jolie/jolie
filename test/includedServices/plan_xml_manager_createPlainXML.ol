@@ -21,7 +21,55 @@ define doTest
       length@StringUtils( xml_string )( length );
       if ( length != 7922 ) {
           println@Console( "Detected length: " + length )();
-          println@Console( "Expected lenght: 800" )();
+          println@Console( "Expected lenght: 7922" )();
+          throw( TestFailed )
+      }
+      ;
+      with( rq_add ) {
+          with( .from ) {
+              .Prefix = "";
+              .Namespace = "";
+              .Name = "testTag";
+              .Node.Element.Name = "subtestTag";
+              .Node.Element.Prefix = "ns";
+              .Node.Element.Namespace = ""
+          };
+          with( .to ) {
+              .resourceName = "test";
+              .path = "wsdl:portType";
+              .index = 0
+          }
+      };
+      addElementTo@PlainXMLManager( rq_add )();
+      getXMLString@PlainXMLManager( resource )( xml_string );
+      length@StringUtils( xml_string )( length );
+      if ( length != (7922+32) ) {
+          println@Console( "Detected length: " + length )();
+          println@Console( "Expected lenght: 7922+32" )();
+          throw( TestFailed )
+      }
+      ;
+      with( rq_add ) {
+          with( .from ) {
+              .Prefix = "";
+              .Namespace = "";
+              .Name = "testTag";
+              .Node.Element.Name = "subtestTag";
+              .Node.Element.Prefix = "ns";
+              .Node.Element.Namespace = ""
+          };
+          with( .to ) {
+              .resourceName = "test";
+              .path = "/";
+              .index = 0
+          }
+      };
+      addElementTo@PlainXMLManager( rq_add )();
+      getXMLString@PlainXMLManager( resource )( xml_string );
+      length@StringUtils( xml_string )( length );
+      if ( length != (7922+32+32) ) {
+          println@Console( "Detected length: " + length )();
+          println@Console( "Expected lenght: 7922+32+32" )();
           throw( TestFailed )
       }
       ;

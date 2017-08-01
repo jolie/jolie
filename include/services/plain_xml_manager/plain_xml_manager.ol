@@ -137,8 +137,8 @@ main {
             tmp.Node[ n - request.to.index ] << __node.Node[ n ]
         };
         /* undef extra nodes */
-        for( n = request.to.index, n < #__node.Node, n++ ) {
-            undef( __node.Node[ n ] )
+        for( n = #__node.Node, n > request.to.index, n-- ) {
+            undef( __node.Node[ n - 1 ] )
         };
         /* add node */
         __node.Node[ request.to.index ].Element << request.from;
