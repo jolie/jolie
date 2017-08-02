@@ -58,6 +58,9 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -65,6 +68,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import jolie.runtime.ValuePrettyPrinter;
 
 public class MqttProtocol extends AsyncCommProtocol {
 
@@ -116,7 +120,20 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     /**
-     * ß
+     *
+     * @param cm
+     * @throws IOException
+     */
+    public void prettyPrintCommMessage(CommMessage cm) throws IOException {
+	System.out.println("CommMessage with id " + cm.id() + " for operation " + cm.operationName() + " has arrived, here we have the value:");
+	Writer writer = new StringWriter();
+	ValuePrettyPrinter printer = new ValuePrettyPrinter(cm.value(), writer, "Value");
+	printer.run();
+	System.out.println(writer.toString());
+    }
+
+    /**
+     *
      * Invoke the client connection message to the borker method.
      *
      * @return MqttConnectMessage
@@ -311,12 +328,16 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     public ChannelFuture recAck(Channel ch, CommMessage cm) {
 
-	return ch.writeAndFlush(new CommMessage(
-		cm.id(),
-		cm.operationName(),
-		"/",
-		Value.create(),
-		null));
+	if (isOneWay(cm.operationName())) {
+
+	    return ch.writeAndFlush(new CommMessage(
+		    cm.id(),
+		    cm.operationName(),
+		    "/",
+		    Value.create(),
+		    null));
+	}
+	return null;
     }
 
     /**

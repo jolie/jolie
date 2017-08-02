@@ -36,6 +36,9 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.timeout.IdleStateEvent;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Collections;
 
 import java.util.List;
 
@@ -44,6 +47,7 @@ import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
 import jolie.runtime.Value;
+import jolie.runtime.ValuePrettyPrinter;
 
 public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
@@ -57,9 +61,6 @@ public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
     public OuputPortHandler(MqttProtocol protocol) {
 	this.protocol = protocol;
 	this.isConnect = false;
-	this.pendingCm = CommMessage.UNDEFINED_MESSAGE;
-	this.pendingMpm = null;
-	this.pendingMsm = null;
     }
 
     @Override
@@ -95,7 +96,7 @@ public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 		    protocol.qos(commMessage.operationName()));
 	    MqttSubscribeMessage msm = protocol.subscribeMsg(
 		    commMessage.id(),
-		    protocol.topics(),
+		    Collections.singletonList(protocol.topic_request_response(commMessage)),
 		    protocol.qos());
 	    pendingMpm = mpm;
 	    if (isConnect) {
