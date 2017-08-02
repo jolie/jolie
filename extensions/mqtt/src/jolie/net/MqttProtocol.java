@@ -278,10 +278,15 @@ public class MqttProtocol extends AsyncCommProtocol {
     public List<String> topics() {
 
 	List<String> opL = new ArrayList<>();
-	for (Map.Entry<String, OneWayTypeDescription> owon : channel().parentPort().getInterface().oneWayOperations().entrySet()) {
+	for (Map.Entry<String, OneWayTypeDescription> owon
+		: channel().parentPort().getInterface().oneWayOperations()
+			.entrySet()) {
 	    opL.add(alias(owon.getKey()));
 	}
-	for (Map.Entry<String, RequestResponseTypeDescription> rron : channel().parentPort().getInterface().requestResponseOperations().entrySet()) {
+	for (Map.Entry<String, RequestResponseTypeDescription> rron
+		: channel().parentPort().getInterface()
+			.requestResponseOperations()
+			.entrySet()) {
 	    opL.add(alias(rron.getKey()));
 	}
 	return opL;
@@ -348,7 +353,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	private static final String PASSWORD = "password";
 	private static final String FORMAT = "format";
 	private static final String ALIAS_RESPONSE = "aliasResponse";
-	private static final String BOUNDARY = "$"; // MAPPING FOT REQUEST RESPONSE TOPIC
+	private static final String BOUNDARY = "$";
 	private static final MqttVersion MQTT_VERSION = MqttVersion.MQTT_3_1_1;
 
     }
@@ -373,12 +378,16 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     private Value value(ByteBuf payload) {
 
-	return Value.create(Unpooled.copiedBuffer(payload).toString(CharsetUtil.UTF_8));
+	return Value.create(Unpooled.copiedBuffer(payload)
+		.toString(CharsetUtil.UTF_8));
     }
 
     private String alias(String operationName) {
 
-	for (Iterator<Map.Entry<String, ValueVector>> it = configurationPath().getValue().getFirstChild("osc").children().entrySet().iterator(); it.hasNext();) {
+	for (Iterator<Map.Entry<String, ValueVector>> it = configurationPath()
+		.getValue().getFirstChild("osc").children().entrySet()
+		.iterator();
+		it.hasNext();) {
 	    Map.Entry<String, ValueVector> i = it.next();
 	    if (operationName.equals(i.getKey())) {
 		return i.getValue().first().getFirstChild("alias").strValue();
@@ -390,9 +399,13 @@ public class MqttProtocol extends AsyncCommProtocol {
     private String operation(String topic) {
 
 	if (configurationPath().getValue().hasChildren("osc")) {
-	    for (Map.Entry<String, ValueVector> i : configurationPath().getValue().getFirstChild("osc").children().entrySet()) {
-		for (Map.Entry<String, ValueVector> j : i.getValue().first().children().entrySet()) {
-		    if (j.getKey().equals("alias") && j.getValue().first().strValue().equals(topic)) {
+	    for (Map.Entry<String, ValueVector> i : configurationPath()
+		    .getValue()
+		    .getFirstChild("osc").children().entrySet()) {
+		for (Map.Entry<String, ValueVector> j : i.getValue().first()
+			.children().entrySet()) {
+		    if (j.getKey().equals("alias") && j.getValue().first()
+			    .strValue().equals(topic)) {
 			return i.getKey();
 		    }
 		}
@@ -403,12 +416,15 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     private MqttQoS qos(String operationName, MqttQoS defaultQoS) {
 
-	return hasOperationSpecificParameter(operationName, Parameters.QOS) ? MqttQoS.valueOf(getOperationSpecificParameterFirstValue(operationName, Parameters.QOS).intValue()) : defaultQoS;
+	return hasOperationSpecificParameter(operationName, Parameters.QOS)
+		? MqttQoS.valueOf(getOperationSpecificParameterFirstValue(
+			operationName, Parameters.QOS).intValue()) : defaultQoS;
     }
 
     private MqttQoS qos(MqttQoS defaultQoS) {
 
-	return hasParameter(Parameters.QOS) ? MqttQoS.valueOf(getIntParameter(Parameters.QOS)) : defaultQoS;
+	return hasParameter(Parameters.QOS) ? MqttQoS.valueOf(
+		getIntParameter(Parameters.QOS)) : defaultQoS;
     }
 
     private String topic(CommMessage cm, boolean request) {
@@ -416,14 +432,18 @@ public class MqttProtocol extends AsyncCommProtocol {
 	String alias;
 
 	if (request) {
-	    if (hasOperationSpecificParameter(cm.operationName(), Parameters.ALIAS)) {
-		alias = getOperationSpecificStringParameter(cm.operationName(), Parameters.ALIAS);
+	    if (hasOperationSpecificParameter(cm.operationName(),
+		    Parameters.ALIAS)) {
+		alias = getOperationSpecificStringParameter(cm.operationName(),
+			Parameters.ALIAS);
 	    } else {
 		return cm.operationName();
 	    }
 	} else {
-	    if (hasOperationSpecificParameter(cm.operationName(), Parameters.ALIAS_RESPONSE)) {
-		alias = getOperationSpecificStringParameter(cm.operationName(), Parameters.ALIAS_RESPONSE);
+	    if (hasOperationSpecificParameter(cm.operationName(),
+		    Parameters.ALIAS_RESPONSE)) {
+		alias = getOperationSpecificStringParameter(cm.operationName(),
+			Parameters.ALIAS_RESPONSE);
 	    } else {
 		return cm.operationName() + "/response";
 	    }
@@ -454,11 +474,17 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return result.toString();
     }
 
-    private MqttSubscribeMessage subscribeMsg(long messageId, List<String> topics, boolean isDup, MqttQoS subQos) {
+    private MqttSubscribeMessage subscribeMsg(
+	    long messageId,
+	    List<String> topics,
+	    boolean isDup,
+	    MqttQoS subQos) {
 
 	List<MqttTopicSubscription> tmsL = new ArrayList<>();
 	for (String t : topics) {
-	    tmsL.add(new MqttTopicSubscription(t, MqttProtocol.this.qos(operation(t), MqttQoS.EXACTLY_ONCE)));
+	    tmsL.add(new MqttTopicSubscription(t,
+		    MqttProtocol.this.qos(operation(t),
+			    MqttQoS.EXACTLY_ONCE)));
 	}
 	MqttFixedHeader mfh = new MqttFixedHeader(
 		MqttMessageType.SUBSCRIBE,
@@ -466,20 +492,23 @@ public class MqttProtocol extends AsyncCommProtocol {
 		subQos,
 		false,
 		0);
-	MqttMessageIdVariableHeader vh = MqttMessageIdVariableHeader.from((int) messageId);
+	MqttMessageIdVariableHeader vh
+		= MqttMessageIdVariableHeader.from((int) messageId);
 	MqttSubscribePayload p = new MqttSubscribePayload(tmsL);
 
 	return new MqttSubscribeMessage(mfh, vh, p);
     }
 
-    private MqttPublishMessage publishMsg(long messageId, String topic, Value message, boolean isDup, MqttQoS pubQos) {
+    private MqttPublishMessage publishMsg(long messageId, String topic,
+	    Value message, boolean isDup, MqttQoS pubQos) {
 	MqttFixedHeader mfh = new MqttFixedHeader(
 		MqttMessageType.PUBLISH,
 		isDup,
 		pubQos,
 		false,
 		0);
-	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic, (int) messageId);
+	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic,
+		(int) messageId);
 
 	return new MqttPublishMessage(mfh, vh, parseValue(message));
     }
@@ -488,7 +517,9 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	Random random = new Random();
 	String clientId = "jolie-mqtt/";
-	String[] options = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+	String[] options
+		= ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456"
+			+ "789").split("");
 	for (int i = 0; i < 8; i++) {
 	    clientId += options[random.nextInt(options.length)];
 	}
