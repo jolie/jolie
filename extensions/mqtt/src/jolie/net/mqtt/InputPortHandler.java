@@ -1,16 +1,41 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2017 Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package jolie.net.mqtt;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
-import java.util.ArrayList;
-import java.util.Iterator;
+import io.netty.handler.timeout.IdleStateEvent;
 import java.util.List;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -19,69 +44,92 @@ import jolie.net.NioSocketCommChannel;
 
 public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
-    private final MqttProtocol prt;
-    private Channel ch;
-    private final List<MqttSubscribeMessage> pendingSubscriptions;
+    private final MqttProtocol protocol;
+    private Channel channel;
+    private CommMessage pendingCm;
 
     public InputPortHandler(MqttProtocol protocol) {
-	this.prt = protocol;
-	this.pendingSubscriptions = new ArrayList<>();
-    }
-
-    private void init(ChannelHandlerContext ctx) {
-	ch = ctx.channel();
-	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-		ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+	this.protocol = protocol;
+	this.pendingCm = CommMessage.UNDEFINED_MESSAGE;
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CommMessage msg, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, CommMessage cm,
+	    List<Object> out) throws Exception {
 
 	init(ctx);
-	commMsgToMqttMsg(msg);
+
+	pendingCm = cm;
+	MqttPublishMessage mpm = protocol.publishMsg(cm.id(),
+		protocol.topic_request_response(cm),
+		cm.value(),
+		protocol.qos(cm.operationName()));
+	out.add(mpm);
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, MqttMessage msg, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, MqttMessage mm,
+	    List<Object> out) throws Exception {
 
 	init(ctx);
-	mqttMsgToCommMsg(msg);
+
+	switch (mm.fixedHeader().messageType()) {
+	    case CONNACK:
+		MqttConnectReturnCode crc
+			= ((MqttConnAckMessage) mm).variableHeader().connectReturnCode();
+		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
+		    protocol.startPing(channel.pipeline());
+		    MqttSubscribeMessage msm = protocol.subscribeMsg(
+			    CommMessage.getNewMessageId(),
+			    protocol.topics(),
+			    protocol.qos());
+		    channel.writeAndFlush(msm);
+		}
+		break;
+	    case PUBLISH:
+		protocol.recPub(channel, (MqttPublishMessage) mm);
+		break;
+	    case PUBACK:
+	    case PUBCOMP:
+		protocol.recAck(channel, pendingCm);
+		break;
+	    case PUBREC:
+	    case PUBREL:
+		protocol.sendAck(channel, (MqttMessageIdVariableHeader) mm.variableHeader(), mm.fixedHeader().messageType());
+		break;
+	}
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
-	super.channelActive(ctx);
-	pendingSubscriptions.add(prt.subscribeMsg(
-		CommMessage.getNewMessageId(),
-		prt.topics(),
-		false,
-		prt.qos(MqttQoS.AT_LEAST_ONCE)));
-	ctx.channel().writeAndFlush(prt.connectMsg(false));
+	init(ctx);
+
+	channel.writeAndFlush(protocol.connectMsg());
     }
 
-    private void commMsgToMqttMsg(CommMessage cm) {
-	throw new UnsupportedOperationException("Not supported yet.");
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx,
+	    Object evt) throws Exception {
+
+	init(ctx);
+
+	if (evt instanceof IdleStateEvent) {
+	    IdleStateEvent event = (IdleStateEvent) evt;
+	    switch (event.state()) {
+		case READER_IDLE:
+		    break;
+		case WRITER_IDLE:
+		    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGREQ, false, MqttQoS.AT_MOST_ONCE, false, 0);
+		    channel.writeAndFlush(new MqttMessage(fixedHeader));
+	    }
+	}
     }
 
-    private void mqttMsgToCommMsg(MqttMessage mm) {
-	if (prt.connectionAccepted(mm)) {
-	    prt.startPing(ch.pipeline());
-	    if (!(prt.isSubscriptionOnDemand(false) || pendingSubscriptions.isEmpty())) {
-		for (Iterator<MqttSubscribeMessage> it = pendingSubscriptions.iterator(); it.hasNext();) {
-		    MqttSubscribeMessage i = it.next();
-		    ch.write(i);
-		    it.remove(); //remove from the queue
-		}
-		ch.flush();
-	    }
-	}
-	if (mm.fixedHeader().messageType().equals(MqttMessageType.PUBLISH)) {
-	    prt.recPub(ch, (MqttPublishMessage) mm);
-	} else {
-	    if (mm.fixedHeader().messageType().equals(MqttMessageType.PUBREL)) {
-		prt.sendAck(ch, (MqttMessageIdVariableHeader) mm.variableHeader(), mm.fixedHeader().messageType());
-	    }
-	}
+    private void init(ChannelHandlerContext ctx) {
+
+	channel = ctx.channel();
+	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
+		channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
     }
 }
