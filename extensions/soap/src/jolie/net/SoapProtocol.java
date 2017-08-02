@@ -1253,7 +1253,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						}
 					}
 				} else {
-					String faultName = "UnknownFault";
+					
+					String faultName = null;
 					Value faultValue = Value.create();
 					Detail d = soapFault.getDetail();
 					if ( d != null ) {
@@ -1266,6 +1267,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 							faultValue.setValue( soapFault.getFaultString() );
 						}
 					}
+					
+					if ( faultName == null ) { faultName = "UnknownFault";}
 					fault = new FaultException( faultName, faultValue );
 				}
 			}
