@@ -279,7 +279,8 @@ public class XmlUtils
 			if ( currentNode.hasChildren( "Element" ) ) {
 				Value elem = currentNode.getFirstChild( "Element" );
 				Element currentElement;
-				currentElement = doc.createElement( elem.getFirstChild( "Name" ).strValue() );
+				
+				currentElement = doc.createElementNS( elem.getFirstChild( "Namespace").strValue(), elem.getFirstChild( "Name" ).strValue() );
 					element.appendChild( currentElement );
 					_plainValueToDocument( elem, currentElement, doc );
 			}
