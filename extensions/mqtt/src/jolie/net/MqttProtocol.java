@@ -27,6 +27,7 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.ports.InputPort;
 import jolie.net.mqtt.InputPortHandler;
 import jolie.net.mqtt.OuputPortHandler;
+import jolie.net.mqtt.PingHandler;
 import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -54,8 +55,6 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import java.io.IOException;
@@ -72,6 +71,16 @@ import jolie.runtime.ValuePrettyPrinter;
 
 public class MqttProtocol extends AsyncCommProtocol {
 
+    private String topicResponse;
+
+    /**
+     *
+     * @return String
+     */
+    public String getTopicResponse() {
+	return topicResponse;
+    }
+
     /**
      * ****************************** PROTOCOL *****************************
      *
@@ -85,9 +94,10 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
+	p.addLast("PING", new PingHandler(2));
 	if (channel().parentPort() instanceof InputPort) {
 	    p.addLast("INPUT", new InputPortHandler(this));
 	} else {
@@ -177,9 +187,8 @@ public class MqttProtocol extends AsyncCommProtocol {
      *
      * @param channel - The channel where to write the eventual Comm Message
      * @param mpm - The publish message received.
-     * @return ChannelFuture
      */
-    public ChannelFuture recPub(Channel channel, MqttPublishMessage mpm) {
+    public void recPub(Channel channel, MqttPublishMessage mpm) {
 
 	switch (mpm.fixedHeader().qosLevel()) {
 	    case AT_MOST_ONCE:
@@ -213,21 +222,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 		}
 		break;
 	}
-	String operation = operation(mpm.variableHeader().topicName());
-	if (!isOneWay(operation)) {
-
-	}
-	return channel.writeAndFlush(new CommMessage(
-		CommMessage.GENERIC_ID,
-		operation,
-		"/",
-		value(mpm.payload()), // TODO handle value
-		null));
     }
 
     /**
      * Invoke the method for retrieving the specific topic in case of a request
-     * comme message.
+     * comm message.
      *
      * @param cm CommMessage
      * @return String - the topic.
@@ -360,6 +359,52 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     /**
+     * Add the response topic to the value.
+     *
+     * @param commMessage CommMessage
+     * @return Value - The new value with the topic for resonse added.
+     */
+    public Value responseValue(CommMessage commMessage) {
+
+	commMessage.value().add(Value.create(Parameters.BOUNDARY
+		+ topic_request_response(commMessage)
+		+ Parameters.BOUNDARY));
+
+	return commMessage.value();
+    }
+
+    /**
+     *
+     * @param mpm MqttPublishMessage
+     * @return CommMessage
+     */
+    public CommMessage requestCommMsg(MqttPublishMessage mpm) {
+	CommMessage cmReq = CommMessage.createRequest(
+		operation(mpm.variableHeader().topicName()),
+		"/",
+		value(mpm.payload()));
+	return cmReq;
+    }
+
+    /**
+     *
+     * @param request CommMessage
+     * @param mpm MqttPublishMessage
+     * @return CommMessage
+     */
+    public CommMessage responseCommMsg(CommMessage request, MqttPublishMessage mpm) {
+
+	CommMessage cmResp = new CommMessage(
+		CommMessage.GENERIC_ID,
+		operation(mpm.variableHeader().topicName()),
+		"/",
+		value(mpm.payload()),
+		null);
+
+	return cmResp;
+    }
+
+    /**
      * ******************************* PRIVATE *******************************
      */
     private static class Parameters {
@@ -394,13 +439,25 @@ public class MqttProtocol extends AsyncCommProtocol {
 	if (value.isLong()) {
 	    str = String.valueOf(value.longValue());
 	}
-	return Unpooled.wrappedBuffer(str.getBytes(CharsetUtil.UTF_8));
+	return Unpooled.copiedBuffer(str.getBytes(CharsetUtil.UTF_8));
     }
 
     private Value value(ByteBuf payload) {
 
-	return Value.create(Unpooled.copiedBuffer(payload)
-		.toString(CharsetUtil.UTF_8));
+	String str = Unpooled.copiedBuffer(payload).toString(CharsetUtil.UTF_8);
+	Matcher m = Pattern.compile("\\$(.*?)\\$").matcher(str);
+
+	if (m.find()) {
+	    topicResponse = m.group(1);
+	    str = str.replace(str.substring(m.start(), m.end()), "");
+	}
+
+	try {
+	    int intRes = Integer.parseInt(str);
+	    return Value.create(intRes);
+	} catch (NumberFormatException nfe) {
+	    return Value.create(str);
+	}
     }
 
     private String alias(String operationName) {
@@ -428,11 +485,19 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    if (j.getKey().equals("alias") && j.getValue().first()
 			    .strValue().equals(topic)) {
 			return i.getKey();
+		    } else if (j.getKey().equals("aliasResponse") && j.getValue().first()
+			    .strValue().equals(topic)) {
+			return i.getKey();
 		    }
 		}
 	    }
 	}
-	return topic;
+
+	String result = topic;
+	if (result.contains("/response")) {
+	    result = topic.substring(0, topic.indexOf("response") - 1);
+	}
+	return result;
     }
 
     private MqttQoS qos(String operationName, MqttQoS defaultQoS) {
@@ -451,7 +516,9 @@ public class MqttProtocol extends AsyncCommProtocol {
     private String topic(CommMessage cm, boolean request) {
 
 	String alias;
+	String pattern = "%(!)?\\{[^\\}]*\\}";
 
+	// build alias
 	if (request) {
 	    if (hasOperationSpecificParameter(cm.operationName(),
 		    Parameters.ALIAS)) {
@@ -470,13 +537,15 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    }
 	}
 
+	// find pattern
 	int offset = 0;
 	List< String> aliasKeys = new ArrayList<>();
 	String currStrValue;
 	String currKey;
 	StringBuilder result = new StringBuilder(alias);
-	Matcher m = Pattern.compile("%(!)?\\{[^\\}]*\\}").matcher(alias);
+	Matcher m = Pattern.compile(pattern).matcher(alias);
 
+	// substitute in alias
 	while (m.find()) {
 	    currKey = alias.substring(m.start() + 3, m.end() - 1);
 	    currStrValue = cm.value().getFirstChild(currKey).strValue();
@@ -488,6 +557,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    offset += currStrValue.length() - 3 - currKey.length();
 	}
 
+	// remove from value
 	for (String aliasKey : aliasKeys) {
 	    cm.value().children().remove(aliasKey);
 	}

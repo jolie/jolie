@@ -27,17 +27,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
-import io.netty.handler.timeout.IdleStateEvent;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Collections;
 
 import java.util.List;
@@ -47,14 +43,14 @@ import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
 import jolie.runtime.Value;
-import jolie.runtime.ValuePrettyPrinter;
 
-public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
+public class OuputPortHandler
+	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
     private final MqttProtocol protocol;
     private Channel channel;
     private boolean isConnect;
-    private CommMessage pendingCm;
+    private CommMessage cmReq;
     private MqttPublishMessage pendingMpm;
     private MqttSubscribeMessage pendingMsm;
 
@@ -64,48 +60,56 @@ public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CommMessage commMessage,
+    protected void encode(ChannelHandlerContext ctx, CommMessage cm,
 	    List<Object> out) throws Exception {
 
 	init(ctx);
 
+	cmReq = CommMessage.createRequest(
+		cm.operationName(),
+		"/",
+		cm.value());
+
+	MqttConnectMessage mcm = protocol.connectMsg();
 	if (!isConnect) {
-	    out.add(protocol.connectMsg());
+	    out.add(mcm);
 	}
 
-	if (protocol.isOneWay(commMessage.operationName())) {
+	if (protocol.isOneWay(cmReq.operationName())) {
 	    MqttPublishMessage mpm = protocol.publishMsg(
-		    commMessage.id(),
-		    protocol.topic_one_way(commMessage),
-		    commMessage.value(),
-		    protocol.qos(commMessage.operationName()));
+		    cmReq.id(),
+		    protocol.topic_one_way(cmReq),
+		    cmReq.value(),
+		    protocol.qos(cmReq.operationName()));
 	    if (isConnect) {
 		out.add(mpm);
 		if (protocol.checkQoS(mpm, MqttQoS.AT_MOST_ONCE)) {
-		    protocol.recAck(channel, commMessage);
+		    protocol.recAck(channel, cmReq);
 		}
 	    } else {
 		pendingMpm = mpm;
 	    }
 	} else {
-	    commMessage.value().add(Value.create(protocol.topic_request_response(commMessage)));
 	    MqttPublishMessage mpm = protocol.publishMsg(
-		    commMessage.id(),
-		    protocol.topic_one_way(commMessage),
-		    commMessage.value(),
-		    protocol.qos(commMessage.operationName()));
+		    cmReq.id(),
+		    protocol.topic_one_way(cmReq),
+		    protocol.responseValue(cmReq),
+		    protocol.qos(cmReq.operationName()));
 	    MqttSubscribeMessage msm = protocol.subscribeMsg(
-		    commMessage.id(),
-		    Collections.singletonList(protocol.topic_request_response(commMessage)),
+		    cmReq.id(),
+		    Collections.singletonList(
+			    protocol.topic_request_response(cmReq)),
 		    protocol.qos());
 	    pendingMpm = mpm;
 	    if (isConnect) {
 		out.add(msm);
+		if (protocol.checkQoS(msm, MqttQoS.AT_MOST_ONCE)) {
+		    out.add(mpm);
+		}
 	    } else {
 		pendingMsm = msm;
 	    }
 	}
-	pendingCm = commMessage;
     }
 
     @Override
@@ -116,67 +120,71 @@ public class OuputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	switch (mm.fixedHeader().messageType()) {
 	    case CONNACK:
+
 		MqttConnectReturnCode crc
-			= ((MqttConnAckMessage) mm).variableHeader().connectReturnCode();
+			= ((MqttConnAckMessage) mm).variableHeader()
+				.connectReturnCode();
 		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
 		    isConnect = true;
 		    protocol.startPing(channel.pipeline());
-		    if (protocol.isOneWay(pendingCm.operationName())) {
+		    if (protocol.isOneWay(cmReq.operationName())) {
 			if (pendingMpm != null) {
 			    channel.writeAndFlush(pendingMpm);
-			    if (protocol.checkQoS(pendingMpm, MqttQoS.AT_MOST_ONCE)) {
-				protocol.recAck(channel, pendingCm);
+			    if (protocol.checkQoS(pendingMpm,
+				    MqttQoS.AT_MOST_ONCE)) {
+				protocol.recAck(channel, cmReq);
 			    }
 			}
 		    } else {
 			if (pendingMsm != null) {
 			    channel.writeAndFlush(pendingMsm);
+			    if (protocol.checkQoS(pendingMsm, MqttQoS.AT_MOST_ONCE)) {
+				channel.writeAndFlush(pendingMpm);
+			    }
 			}
 		    }
 		}
 		break;
 	    case PUBLISH:
-		protocol.recPub(channel, (MqttPublishMessage) mm);
+
+		MqttPublishMessage mpm = (MqttPublishMessage) mm;
+		CommMessage cmResp = protocol.responseCommMsg(cmReq, mpm);
+		out.add(cmResp);
+		protocol.recPub(channel, mpm);
 		break;
 	    case PUBACK:
 	    case PUBCOMP:
-		protocol.recAck(channel, pendingCm);
+
+		if (protocol.isOneWay(cmReq.operationName())) {
+
+		    out.add(new CommMessage(
+			    cmReq.id(),
+			    cmReq.operationName(),
+			    "/",
+			    Value.create(),
+			    null));
+		}
 		break;
 	    case PUBREC:
 	    case PUBREL:
-		protocol.sendAck(channel, (MqttMessageIdVariableHeader) mm.variableHeader(), mm.fixedHeader().messageType());
+
+		protocol.sendAck(channel,
+			(MqttMessageIdVariableHeader) mm.variableHeader(),
+			mm.fixedHeader().messageType());
 		break;
 	    case SUBACK:
+
 		channel.writeAndFlush(pendingMpm);
-		if (protocol.checkQoS(pendingMpm, MqttQoS.AT_MOST_ONCE)) {
-		    protocol.recAck(channel, pendingCm);
-		}
 		break;
-	}
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx,
-	    Object evt) throws Exception {
-
-	init(ctx);
-
-	if (evt instanceof IdleStateEvent) {
-	    IdleStateEvent event = (IdleStateEvent) evt;
-	    switch (event.state()) {
-		case READER_IDLE:
-		    break;
-		case WRITER_IDLE:
-		    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGREQ, false, MqttQoS.AT_MOST_ONCE, false, 0);
-		    channel.writeAndFlush(new MqttMessage(fixedHeader));
-	    }
 	}
     }
 
     private void init(ChannelHandlerContext ctx) {
 
 	channel = ctx.channel();
-	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-		channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+	((CommCore.ExecutionContextThread) Thread.currentThread())
+		.executionThread(
+			channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
+				.get());
     }
 }

@@ -27,30 +27,27 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
-import io.netty.handler.timeout.IdleStateEvent;
 import java.util.List;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
 
-public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMessage> {
+public class InputPortHandler
+	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
     private final MqttProtocol protocol;
     private Channel channel;
-    private CommMessage pendingCm;
+    private CommMessage cmResp;
 
     public InputPortHandler(MqttProtocol protocol) {
 	this.protocol = protocol;
-	this.pendingCm = CommMessage.UNDEFINED_MESSAGE;
     }
 
     @Override
@@ -59,11 +56,13 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	init(ctx);
 
-	pendingCm = cm;
-	MqttPublishMessage mpm = protocol.publishMsg(cm.id(),
-		protocol.topic_request_response(cm),
-		cm.value(),
-		protocol.qos(cm.operationName()));
+	cmResp = CommMessage.createResponse(cm, cm.value());
+
+	MqttPublishMessage mpm = protocol.publishMsg(cmResp.id(),
+		protocol.getTopicResponse(),
+		cmResp.value(),
+		protocol.qos(cmResp.operationName()));
+
 	out.add(mpm);
     }
 
@@ -75,8 +74,10 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	switch (mm.fixedHeader().messageType()) {
 	    case CONNACK:
+
 		MqttConnectReturnCode crc
-			= ((MqttConnAckMessage) mm).variableHeader().connectReturnCode();
+			= ((MqttConnAckMessage) mm).variableHeader()
+				.connectReturnCode();
 		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
 		    protocol.startPing(channel.pipeline());
 		    MqttSubscribeMessage msm = protocol.subscribeMsg(
@@ -87,15 +88,18 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 		}
 		break;
 	    case PUBLISH:
-		protocol.recPub(channel, (MqttPublishMessage) mm);
-		break;
-	    case PUBACK:
-	    case PUBCOMP:
-		protocol.recAck(channel, pendingCm);
+
+		MqttPublishMessage mpm = (MqttPublishMessage) mm;
+		CommMessage cmReq = protocol.requestCommMsg(mpm);
+		out.add(cmReq);
+		protocol.recPub(channel, mpm);
 		break;
 	    case PUBREC:
 	    case PUBREL:
-		protocol.sendAck(channel, (MqttMessageIdVariableHeader) mm.variableHeader(), mm.fixedHeader().messageType());
+
+		protocol.sendAck(channel,
+			(MqttMessageIdVariableHeader) mm.variableHeader(),
+			mm.fixedHeader().messageType());
 		break;
 	}
     }
@@ -105,31 +109,16 @@ public class InputPortHandler extends MessageToMessageCodec<MqttMessage, CommMes
 
 	init(ctx);
 
-	channel.writeAndFlush(protocol.connectMsg());
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx,
-	    Object evt) throws Exception {
-
-	init(ctx);
-
-	if (evt instanceof IdleStateEvent) {
-	    IdleStateEvent event = (IdleStateEvent) evt;
-	    switch (event.state()) {
-		case READER_IDLE:
-		    break;
-		case WRITER_IDLE:
-		    MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PINGREQ, false, MqttQoS.AT_MOST_ONCE, false, 0);
-		    channel.writeAndFlush(new MqttMessage(fixedHeader));
-	    }
-	}
+	MqttConnectMessage mcm = protocol.connectMsg();
+	channel.writeAndFlush(mcm);
     }
 
     private void init(ChannelHandlerContext ctx) {
 
 	channel = ctx.channel();
-	((CommCore.ExecutionContextThread) Thread.currentThread()).executionThread(
-		channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+	((CommCore.ExecutionContextThread) Thread.currentThread())
+		.executionThread(
+			channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
+				.get());
     }
 }
