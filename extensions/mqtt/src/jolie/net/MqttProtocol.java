@@ -27,7 +27,6 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.ports.InputPort;
 import jolie.net.mqtt.InputPortHandler;
 import jolie.net.mqtt.OuputPortHandler;
-import jolie.net.mqtt.PingHandler;
 import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
@@ -55,6 +54,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import java.io.IOException;
@@ -94,10 +95,9 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
-	p.addLast("PING", new PingHandler(2));
 	if (channel().parentPort() instanceof InputPort) {
 	    p.addLast("INPUT", new InputPortHandler(this));
 	} else {
@@ -229,11 +229,20 @@ public class MqttProtocol extends AsyncCommProtocol {
      * comm message.
      *
      * @param cm CommMessage
+     * @param removeKeys
      * @return String - the topic.
      */
-    public String topic_one_way(CommMessage cm) {
+    public String topic_one_way(CommMessage cm, boolean removeKeys) {
 
-	return topic(cm, true);
+	String alias = cm.operationName();
+
+	if (hasOperationSpecificParameter(cm.operationName(),
+		Parameters.ALIAS)) {
+	    alias = getOperationSpecificStringParameter(cm.operationName(),
+		    Parameters.ALIAS);
+	}
+
+	return topic(cm, alias, removeKeys);
     }
 
     /**
@@ -241,11 +250,20 @@ public class MqttProtocol extends AsyncCommProtocol {
      * comm message.
      *
      * @param cm CommMessage
+     * @param removeKeys
      * @return String - The topic.
      */
-    public String topic_request_response(CommMessage cm) {
+    public String topic_request_response(CommMessage cm, boolean removeKeys) {
 
-	return topic(cm, false);
+	String alias = cm.operationName() + "/response";
+
+	if (hasOperationSpecificParameter(cm.operationName(),
+		Parameters.ALIAS_RESPONSE)) {
+	    alias = getOperationSpecificStringParameter(cm.operationName(),
+		    Parameters.ALIAS_RESPONSE);
+	}
+
+	return topic(cm, alias, removeKeys);
     }
 
     /**
@@ -367,7 +385,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public Value responseValue(CommMessage commMessage) {
 
 	commMessage.value().add(Value.create(Parameters.BOUNDARY
-		+ topic_request_response(commMessage)
+		+ topic_request_response(commMessage, true)
 		+ Parameters.BOUNDARY));
 
 	return commMessage.value();
@@ -513,29 +531,9 @@ public class MqttProtocol extends AsyncCommProtocol {
 		getIntParameter(Parameters.QOS)) : defaultQoS;
     }
 
-    private String topic(CommMessage cm, boolean request) {
+    private String topic(CommMessage cm, String alias, boolean removeKeys) {
 
-	String alias;
 	String pattern = "%(!)?\\{[^\\}]*\\}";
-
-	// build alias
-	if (request) {
-	    if (hasOperationSpecificParameter(cm.operationName(),
-		    Parameters.ALIAS)) {
-		alias = getOperationSpecificStringParameter(cm.operationName(),
-			Parameters.ALIAS);
-	    } else {
-		return cm.operationName();
-	    }
-	} else {
-	    if (hasOperationSpecificParameter(cm.operationName(),
-		    Parameters.ALIAS_RESPONSE)) {
-		alias = getOperationSpecificStringParameter(cm.operationName(),
-			Parameters.ALIAS_RESPONSE);
-	    } else {
-		return cm.operationName() + "/response";
-	    }
-	}
 
 	// find pattern
 	int offset = 0;
@@ -557,9 +555,10 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    offset += currStrValue.length() - 3 - currKey.length();
 	}
 
-	// remove from value
-	for (String aliasKey : aliasKeys) {
-	    cm.value().children().remove(aliasKey);
+	if (removeKeys) {
+	    for (String aliasKey : aliasKeys) {
+		cm.value().children().remove(aliasKey);
+	    }
 	}
 
 	return result.toString();
