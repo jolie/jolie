@@ -29,10 +29,14 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
+import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
+import io.netty.handler.timeout.IdleStateEvent;
 import java.util.List;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -111,6 +115,26 @@ public class InputPortHandler
 
 	MqttConnectMessage mcm = protocol.connectMsg();
 	channel.writeAndFlush(mcm);
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+
+	if (evt instanceof IdleStateEvent) {
+	    IdleStateEvent event = (IdleStateEvent) evt;
+	    switch (event.state()) {
+		case READER_IDLE:
+		    break;
+		case WRITER_IDLE:
+		    MqttFixedHeader fixedHeader = new MqttFixedHeader(
+			    MqttMessageType.PINGREQ,
+			    false,
+			    MqttQoS.AT_MOST_ONCE,
+			    false,
+			    0);
+		    ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
+	    }
+	}
     }
 
     private void init(ChannelHandlerContext ctx) {

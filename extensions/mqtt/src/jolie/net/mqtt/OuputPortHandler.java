@@ -78,7 +78,7 @@ public class OuputPortHandler
 	if (protocol.isOneWay(cmReq.operationName())) {
 	    MqttPublishMessage mpm = protocol.publishMsg(
 		    cmReq.id(),
-		    protocol.topic_one_way(cmReq),
+		    protocol.topic_one_way(cmReq, true),
 		    cmReq.value(),
 		    protocol.qos(cmReq.operationName()));
 	    if (isConnect) {
@@ -90,17 +90,20 @@ public class OuputPortHandler
 		pendingMpm = mpm;
 	    }
 	} else {
-	    MqttPublishMessage mpm = protocol.publishMsg(
-		    cmReq.id(),
-		    protocol.topic_one_way(cmReq),
-		    protocol.responseValue(cmReq),
-		    protocol.qos(cmReq.operationName()));
+
 	    MqttSubscribeMessage msm = protocol.subscribeMsg(
 		    cmReq.id(),
 		    Collections.singletonList(
-			    protocol.topic_request_response(cmReq)),
+			    protocol.topic_request_response(cmReq, false)),
 		    protocol.qos());
+
+	    MqttPublishMessage mpm = protocol.publishMsg(
+		    cmReq.id(),
+		    protocol.topic_one_way(cmReq, false),
+		    protocol.responseValue(cmReq),
+		    protocol.qos(cmReq.operationName()));
 	    pendingMpm = mpm;
+
 	    if (isConnect) {
 		out.add(msm);
 		if (protocol.checkQoS(msm, MqttQoS.AT_MOST_ONCE)) {
