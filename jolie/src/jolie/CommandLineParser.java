@@ -34,6 +34,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -362,8 +363,7 @@ public class CommandLineParser implements Closeable
 	public CommandLineParser( String[] args, ClassLoader parentClassLoader, ArgumentHandler argHandler, boolean ignoreFile )
 		throws CommandLineException, IOException
 	{
-		List< String > argsList = new ArrayList<>( args.length );
-		Collections.addAll( argsList, args );
+		List< String > argsList = Arrays.asList( args );
 
 		String csetAlgorithmName = "simple";
 		List< String > optionsList = new ArrayList<>();
@@ -404,6 +404,7 @@ public class CommandLineParser implements Closeable
 				if ( japUrl != null ) {
 					argsList.set( i, argsList.get( i ).replace( "$JAP$", japUrl ) );
 				}
+//				PATH_SEPARATOR_PATTERN.splitAsStream( argsList.get( i ) ).forEach( includeList::add );
 				String[] tmp = PATH_SEPARATOR_PATTERN.split( argsList.get( i ) );
 				Collections.addAll( includeList, tmp );
 				optionsList.add( argsList.get( i ) );
