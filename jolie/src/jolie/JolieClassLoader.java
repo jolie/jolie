@@ -48,7 +48,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
  */
 public final class JolieClassLoader extends URLClassLoader
 {
-	private final static String EXTENSION_SPLIT_CHAR = ":";
+	private final static char EXTENSION_SPLIT_CHAR = ':';
 
 	private final Map< String, String > channelExtensionClassNames = new HashMap<>();
 	private final Map< String, String > listenerExtensionClassNames = new HashMap<>();
@@ -221,29 +221,13 @@ public final class JolieClassLoader extends URLClassLoader
 	private void checkForChannelExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue( Constants.Manifest.CHANNEL_EXTENSION );
-		if ( extension != null ) {
-			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
-			if ( pair.length == 2 ) {
-				channelExtensionClassNames.put( pair[0], pair[1] );
-			} else {
-				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
-			}
-		}
+		addExtensionToMap( channelExtensionClassNames, attrs.getValue( Constants.Manifest.CHANNEL_EXTENSION ) );
 	}
 	
 	private void checkForEmbeddingExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue( Constants.Manifest.EMBEDDING_EXTENSION );
-		if ( extension != null ) {
-			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
-			if ( pair.length == 2 ) {
-				embeddingExtensionClassNames.put( pair[0], pair[1] );
-			} else {
-				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
-			}
-		}
+		addExtensionToMap( embeddingExtensionClassNames, attrs.getValue( Constants.Manifest.EMBEDDING_EXTENSION ) );
 	}
 
 	/**
@@ -277,15 +261,7 @@ public final class JolieClassLoader extends URLClassLoader
 	private void checkForListenerExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue( Constants.Manifest.LISTENER_EXTENSION );
-		if ( extension != null ) {
-			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
-			if ( pair.length == 2 ) {
-				listenerExtensionClassNames.put( pair[0], pair[1] );
-			} else {
-				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
-			}
-		}
+		addExtensionToMap( listenerExtensionClassNames, attrs.getValue( Constants.Manifest.LISTENER_EXTENSION ) );
 	}
 
 	/**
@@ -315,19 +291,24 @@ public final class JolieClassLoader extends URLClassLoader
 
 		return factory;
 	}
+	
+	private static void addExtensionToMap( Map< String, String > map, String extensionDescriptor )
+		throws IOException
+	{
+		if ( extensionDescriptor != null ) {
+			int pos = extensionDescriptor.indexOf( EXTENSION_SPLIT_CHAR );
+			if ( pos > 0 && pos < extensionDescriptor.length() - 1 ) {
+				map.put( extensionDescriptor.substring( 0, pos ), extensionDescriptor.substring( pos + 1 ) );
+			} else {
+				throw new IOException( "Invalid extension definition found in manifest file: " + extensionDescriptor );
+			}
+		}
+	}
 
 	private void checkForProtocolExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue( Constants.Manifest.PROTOCOL_EXTENSION );
-		if ( extension != null ) {
-			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
-			if ( pair.length == 2 ) {
-				protocolExtensionClassNames.put( pair[0], pair[1] );
-			} else {
-				throw new IOException( "Invalid extension definition found in manifest file: " + extension );
-			}
-		}
+		addExtensionToMap( protocolExtensionClassNames, attrs.getValue( Constants.Manifest.PROTOCOL_EXTENSION ) );
 	}
 	
 	private void checkJarForJolieExtensions( JarURLConnection jarConnection )
