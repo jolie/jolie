@@ -21,6 +21,7 @@
 
 package jolie.lang;
 
+import java.util.jar.Attributes;
 import jolie.lang.parse.Scanner;
 import jolie.util.Range;
 
@@ -38,14 +39,14 @@ public final class Constants
 	public interface Manifest
 	{
 		// Jolie Extensions
-		public final static String CHANNEL_EXTENSION = "X-JOLIE-ChannelExtension";
-		public final static String LISTENER_EXTENSION = "X-JOLIE-ListenerExtension";
-		public final static String PROTOCOL_EXTENSION = "X-JOLIE-ProtocolExtension";
-		public final static String EMBEDDING_EXTENSION = "X-JOLIE-EmbeddingExtension";
+		public final static Attributes.Name CHANNEL_EXTENSION = new Attributes.Name( "X-JOLIE-ChannelExtension" );
+		public final static Attributes.Name LISTENER_EXTENSION = new Attributes.Name( "X-JOLIE-ListenerExtension" );
+		public final static Attributes.Name PROTOCOL_EXTENSION = new Attributes.Name( "X-JOLIE-ProtocolExtension" );
+		public final static Attributes.Name EMBEDDING_EXTENSION = new Attributes.Name( "X-JOLIE-EmbeddingExtension" );
 
 		// JAP Manifest
-		public final static String MAIN_PROGRAM = "X-JOLIE-Main-Program";
-		public final static String OPTIONS = "X-JOLIE-Options";
+		public final static Attributes.Name MAIN_PROGRAM = new Attributes.Name( "X-JOLIE-Main-Program" );
+		public final static Attributes.Name OPTIONS = new Attributes.Name( "X-JOLIE-Options" );
 		//public final static String Libraries = "X-JOLIE-Libraries";
 	}
 
