@@ -48,7 +48,7 @@ import jolie.runtime.embedding.EmbeddedServiceLoaderFactory;
  */
 public final class JolieClassLoader extends URLClassLoader
 {
-	private final static Pattern extensionSplitPattern = Pattern.compile( ":" );
+	private final static String EXTENSION_SPLIT_CHAR = ":";
 
 	private final Map< String, String > channelExtensionClassNames = new HashMap<>();
 	private final Map< String, String > listenerExtensionClassNames = new HashMap<>();
@@ -223,7 +223,7 @@ public final class JolieClassLoader extends URLClassLoader
 	{
 		String extension = attrs.getValue(Constants.Manifest.CHANNEL_EXTENSION );
 		if ( extension != null ) {
-			String[] pair = extensionSplitPattern.split( extension );
+			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
 				channelExtensionClassNames.put( pair[0], pair[1] );
 			} else {
@@ -237,7 +237,7 @@ public final class JolieClassLoader extends URLClassLoader
 	{
 		String extension = attrs.getValue(Constants.Manifest.EMBEDDING_EXTENSION );
 		if ( extension != null ) {
-			String[] pair = extensionSplitPattern.split( extension );
+			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
 				embeddingExtensionClassNames.put( pair[0], pair[1] );
 			} else {
@@ -287,7 +287,7 @@ public final class JolieClassLoader extends URLClassLoader
 	{
 		String extension = attrs.getValue(Constants.Manifest.LISTENER_EXTENSION );
 		if ( extension != null ) {
-			String[] pair = extensionSplitPattern.split( extension );
+			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
 				listenerExtensionClassNames.put( pair[0], pair[1] );
 			} else {
@@ -337,7 +337,7 @@ public final class JolieClassLoader extends URLClassLoader
 	{
 		String extension = attrs.getValue(Constants.Manifest.PROTOCOL_EXTENSION );
 		if ( extension != null ) {
-			String[] pair = extensionSplitPattern.split( extension );
+			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
 				protocolExtensionClassNames.put( pair[0], pair[1] );
 			} else {

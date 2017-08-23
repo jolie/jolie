@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -228,7 +229,6 @@ public class CommCore
 		throws IOException
 	{
 		this.interpreter = interpreter;
-		this.localListener = LocalListener.create( interpreter );
 		this.connectionsLimit = connectionsLimit;
 		// this.connectionCacheSize = connectionsCacheSize;
 		this.threadGroup = new ThreadGroup( "CommCore-" + interpreter.hashCode() );
@@ -240,17 +240,26 @@ public class CommCore
 		*/
 		executorService = new JolieThreadPoolExecutor( new CommThreadFactory() );
 		
-		selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
-		for( int i = 0; i < selectorThreads.length; i++ ) {
-			selectorThreads[ i ] = new SelectorThread( interpreter );
-		}
-
 		//TODO make socket an extension, too?
 		CommListenerFactory listenerFactory = new SocketListenerFactory( this );
 		listenerFactories.put( "socket", listenerFactory );
 		CommChannelFactory channelFactory = new SocketCommChannelFactory( this );
 		channelFactories.put( "socket", channelFactory );
 	}
+	
+	private SelectorThread[] selectorThreads()
+	{
+		if ( selectorThreads == null ) {
+			selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
+			for( int i = 0; i < selectorThreads.length; i++ ) {
+				selectorThreads[ i ] = new SelectorThread( interpreter );
+			}
+		}
+		
+		return selectorThreads;
+	}
+		
+		
 	
 	/**
 	 * Returns the Logger used by this CommCore.
@@ -353,11 +362,11 @@ public class CommCore
 	
 	private final Map< String, CommListenerFactory > listenerFactories = new HashMap<> ();
 
-	private final LocalListener localListener;
+	private LocalListener localListener;
 
 	public LocalCommChannel getLocalCommChannel()
 	{
-		return new LocalCommChannel( interpreter, localListener );
+		return new LocalCommChannel( interpreter, localListener() );
 	}
 	
 	public LocalCommChannel getLocalCommChannel( CommListener listener )
@@ -380,16 +389,20 @@ public class CommCore
 	
 	public LocalListener localListener()
 	{
+		if ( localListener == null ) {
+			localListener = LocalListener.create( interpreter );
+		}
 		return localListener;
 	}
 	
 	public void addLocalInputPort( InputPort inputPort )
 		throws IOException
 	{
-		localListener.mergeInterface( inputPort.getInterface() );
-		localListener.addAggregations( inputPort.aggregationMap() );
-		localListener.addRedirections( inputPort.redirectionMap() );
-		listenersMap.put( inputPort.name(), localListener );
+		final LocalListener l = localListener();
+		l.mergeInterface( inputPort.getInterface() );
+		l.addAggregations( inputPort.aggregationMap() );
+		l.addRedirections( inputPort.redirectionMap() );
+		listenersMap.put( inputPort.name(), l );
 	}
 	
 	/**
@@ -676,12 +689,12 @@ public class CommCore
 		throws IOException
 	{
 		active = true;
-		for( SelectorThread t : selectorThreads ) {
+		for( SelectorThread t : selectorThreads() ) {
 			t.start();
 		}
-		listenersMap.entrySet().forEach( ( entry ) -> {
+		for( Entry< String, CommListener > entry : listenersMap.entrySet() ) {
 			entry.getValue().start();
-		} );
+		}
 	}
 	
 	private PollingThread pollingThread = null;
@@ -775,21 +788,19 @@ public class CommCore
 		pollingThread().register( channel );
 	}
 	
-	private final SelectorThread[] selectorThreads;
+	private SelectorThread[] selectorThreads;
 
 	private class SelectorThread extends NativeJolieThread {
 		// We use a custom class for debugging purposes (the profiler gives us the class name)
 		private class SelectorMutex extends Object {}
 		
-		private final Selector selector;
+		private Selector selector;
 		private final SelectorMutex selectingMutex = new SelectorMutex();
 		private final Deque< Runnable > selectorTasks = new ArrayDeque<>();
 		
 		public SelectorThread( Interpreter interpreter )
-			throws IOException
 		{
 			super( interpreter, threadGroup, interpreter.programFilename() + "-SelectorThread" );
-			this.selector = Selector.open();
 		}
 		
 		private Deque< Runnable > runKeys( SelectionKey[] selectedKeys )
@@ -860,28 +871,33 @@ public class CommCore
 		@Override
 		public void run()
 		{
-			while( active ) {
-				try {
-					SelectionKey[] selectedKeys;
-					synchronized( selectingMutex ) {
-						selector.select();
-						selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
-					}
-					final Deque< Runnable > tasks = runKeys( selectedKeys );
-					runTasks( tasks );
-				} catch( IOException e ) {
-					interpreter.logSevere( e );
-				}
-			}
-
-			synchronized( this ) {
-				for( SelectionKey key : selector.keys() ) {
+			try {
+				this.selector = Selector.open();
+				while( active ) {
 					try {
-						((SelectableStreamingCommChannel)key.attachment()).closeImpl();
+						SelectionKey[] selectedKeys;
+						synchronized( selectingMutex ) {
+							selector.select();
+							selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
+						}
+						final Deque< Runnable > tasks = runKeys( selectedKeys );
+						runTasks( tasks );
 					} catch( IOException e ) {
-						interpreter.logWarning( e );
+						interpreter.logSevere( e );
 					}
 				}
+
+				synchronized( this ) {
+					for( SelectionKey key : selector.keys() ) {
+						try {
+							((SelectableStreamingCommChannel)key.attachment()).closeImpl();
+						} catch( IOException e ) {
+							interpreter.logWarning( e );
+						}
+					}
+				}
+			} catch( IOException e ) {
+				interpreter.logSevere( e );
 			}
 		}
 		
@@ -940,7 +956,7 @@ public class CommCore
 	protected void unregisterForSelection( SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		selectorThreads[ channel.selectorIndex() ].unregister( channel );
+		selectorThreads()[ channel.selectorIndex() ].unregister( channel );
 	}
 	
 	private final AtomicInteger nextSelector = new AtomicInteger( 0 );
@@ -948,8 +964,8 @@ public class CommCore
 	protected void registerForSelection( final SelectableStreamingCommChannel channel )
 		throws IOException
 	{
-		final int i = nextSelector.getAndIncrement() % selectorThreads.length;
-		selectorThreads[ i ].register( channel, i );
+		final int i = nextSelector.getAndIncrement() % selectorThreads().length;
+		selectorThreads()[ i ].register( channel, i );
 		/*final TimeoutHandler handler = new TimeoutHandler( interpreter.persistentConnectionTimeout() ) {
 			@Override
 			public void onTimeout()
@@ -982,7 +998,7 @@ public class CommCore
 				entry.getValue().shutdown();
 			} );
 			
-			for( SelectorThread t : selectorThreads ) {
+			for( SelectorThread t : selectorThreads() ) {
 				t.selector.wakeup();
 				try {
 					t.join();
