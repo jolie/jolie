@@ -248,6 +248,7 @@ public class CommCore
 	}
 	
 	private SelectorThread[] selectorThreads()
+		throws IOException
 	{
 		if ( selectorThreads == null ) {
 			selectorThreads = new SelectorThread[ Runtime.getRuntime().availableProcessors() ];
@@ -794,13 +795,15 @@ public class CommCore
 		// We use a custom class for debugging purposes (the profiler gives us the class name)
 		private class SelectorMutex extends Object {}
 		
-		private Selector selector;
+		private final Selector selector;
 		private final SelectorMutex selectingMutex = new SelectorMutex();
 		private final Deque< Runnable > selectorTasks = new ArrayDeque<>();
 		
 		public SelectorThread( Interpreter interpreter )
+			throws IOException
 		{
 			super( interpreter, threadGroup, interpreter.programFilename() + "-SelectorThread" );
+			this.selector = Selector.open();
 		}
 		
 		private Deque< Runnable > runKeys( SelectionKey[] selectedKeys )
@@ -871,33 +874,28 @@ public class CommCore
 		@Override
 		public void run()
 		{
-			try {
-				this.selector = Selector.open();
-				while( active ) {
-					try {
-						SelectionKey[] selectedKeys;
-						synchronized( selectingMutex ) {
-							selector.select();
-							selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
-						}
-						final Deque< Runnable > tasks = runKeys( selectedKeys );
-						runTasks( tasks );
-					} catch( IOException e ) {
-						interpreter.logSevere( e );
+			while( active ) {
+				try {
+					SelectionKey[] selectedKeys;
+					synchronized( selectingMutex ) {
+						selector.select();
+						selectedKeys = selector.selectedKeys().toArray( new SelectionKey[0] );
 					}
+					final Deque< Runnable > tasks = runKeys( selectedKeys );
+					runTasks( tasks );
+				} catch( IOException e ) {
+					interpreter.logSevere( e );
 				}
+			}
 
-				synchronized( this ) {
-					for( SelectionKey key : selector.keys() ) {
-						try {
-							((SelectableStreamingCommChannel)key.attachment()).closeImpl();
-						} catch( IOException e ) {
-							interpreter.logWarning( e );
-						}
+			synchronized( this ) {
+				for( SelectionKey key : selector.keys() ) {
+					try {
+						((SelectableStreamingCommChannel)key.attachment()).closeImpl();
+					} catch( IOException e ) {
+						interpreter.logWarning( e );
 					}
 				}
-			} catch( IOException e ) {
-				interpreter.logSevere( e );
 			}
 		}
 		
@@ -998,11 +996,15 @@ public class CommCore
 				entry.getValue().shutdown();
 			} );
 			
-			for( SelectorThread t : selectorThreads() ) {
-				t.selector.wakeup();
-				try {
-					t.join();
-				} catch( InterruptedException e ) {}
+			try {
+				for( SelectorThread t : selectorThreads() ) {
+					t.selector.wakeup();
+					try {
+						t.join();
+					} catch( InterruptedException e ) {}
+				}
+			} catch( IOException e ) {
+				interpreter.logSevere( e );
 			}
 			
 			try {
