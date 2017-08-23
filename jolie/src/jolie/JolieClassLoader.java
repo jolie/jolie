@@ -221,7 +221,7 @@ public final class JolieClassLoader extends URLClassLoader
 	private void checkForChannelExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue(Constants.Manifest.CHANNEL_EXTENSION );
+		String extension = attrs.getValue( Constants.Manifest.CHANNEL_EXTENSION );
 		if ( extension != null ) {
 			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
@@ -235,7 +235,7 @@ public final class JolieClassLoader extends URLClassLoader
 	private void checkForEmbeddingExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue(Constants.Manifest.EMBEDDING_EXTENSION );
+		String extension = attrs.getValue( Constants.Manifest.EMBEDDING_EXTENSION );
 		if ( extension != null ) {
 			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
@@ -277,7 +277,7 @@ public final class JolieClassLoader extends URLClassLoader
 	private void checkForListenerExtension( Attributes attrs )
 		throws IOException
 	{
-		String extension = attrs.getValue(Constants.Manifest.LISTENER_EXTENSION );
+		String extension = attrs.getValue( Constants.Manifest.LISTENER_EXTENSION );
 		if ( extension != null ) {
 			String[] pair = extension.split( EXTENSION_SPLIT_CHAR );
 			if ( pair.length == 2 ) {
