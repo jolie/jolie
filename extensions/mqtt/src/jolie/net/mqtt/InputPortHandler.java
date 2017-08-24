@@ -116,26 +116,6 @@ public class InputPortHandler
 	channel.writeAndFlush(mcm);
     }
 
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-
-	if (evt instanceof IdleStateEvent) {
-	    IdleStateEvent event = (IdleStateEvent) evt;
-	    switch (event.state()) {
-		case READER_IDLE:
-		    break;
-		case WRITER_IDLE:
-		    MqttFixedHeader fixedHeader = new MqttFixedHeader(
-			    MqttMessageType.PINGREQ,
-			    false,
-			    MqttQoS.AT_MOST_ONCE,
-			    false,
-			    0);
-		    ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
-	    }
-	}
-    }
-
     private void init(ChannelHandlerContext ctx) {
 
 	channel = ctx.channel();

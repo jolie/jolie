@@ -6,6 +6,7 @@ inputPort  Thermostat {
     Protocol: mqtt {
         .broker = "socket://test.mosquitto.org:1883";
         .osc.getTmp << {
+            .format = "raw",
             .alias = "42/getTemperature"
         }
     }

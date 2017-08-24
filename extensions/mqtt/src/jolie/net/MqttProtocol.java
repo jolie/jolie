@@ -36,6 +36,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
@@ -56,8 +58,8 @@ import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -102,9 +104,30 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
+	p.addLast("PING", new ChannelInboundHandlerAdapter() {
+	    @Override
+	    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+
+		if (evt instanceof IdleStateEvent) {
+		    IdleStateEvent event = (IdleStateEvent) evt;
+		    switch (event.state()) {
+			case READER_IDLE:
+			    break;
+			case WRITER_IDLE:
+			    MqttFixedHeader fixedHeader = new MqttFixedHeader(
+				    MqttMessageType.PINGREQ,
+				    false,
+				    MqttQoS.AT_MOST_ONCE,
+				    false,
+				    0);
+			    ctx.channel().writeAndFlush(new MqttMessage(fixedHeader));
+		    }
+		}
+	    }
+	});
 	if (channel().parentPort() instanceof InputPort) {
 	    p.addLast("INPUT", new InputPortHandler(this));
 	} else {
