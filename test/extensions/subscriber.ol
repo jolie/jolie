@@ -14,5 +14,5 @@ inputPort  Thermostat {
 
 main 
 {
-    getTmp()( 23 )
+    getTmp()( 24 )
 }

@@ -102,7 +102,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
 	if (channel().parentPort() instanceof InputPort) {
@@ -406,11 +406,13 @@ public class MqttProtocol extends AsyncCommProtocol {
      * @param mpm MqttPublishMessage
      * @return CommMessage
      */
-    public CommMessage commMsg(MqttPublishMessage mpm) {
+    public CommMessage commMsg(MqttPublishMessage mpm) throws IOException {
 
 	String operationName = operation(mpm.variableHeader().topicName());
-	return new CommMessage(CommMessage.getNewMessageId(), operationName,
+	CommMessage cm = new CommMessage(CommMessage.GENERIC_ID, operationName,
 		"/", readValue(mpm.payload()), null);
+	prettyPrintCommMessage(cm);
+	return cm;
     }
 
     /**
@@ -522,8 +524,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    }
 	    children.put(s, vec);
 	}
-
-	System.out.println(value);
 
 	return value;
     }
