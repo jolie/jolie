@@ -61,18 +61,24 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import jolie.runtime.ByteArray;
 import jolie.runtime.ValuePrettyPrinter;
 
 public class MqttProtocol extends AsyncCommProtocol {
 
     private String topicResponse;
+    private Set<String> aliasKeys;
 
     /**
      *
@@ -90,6 +96,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public MqttProtocol(VariablePath configurationPath) {
 
 	super(configurationPath);
+	this.aliasKeys = new TreeSet<>();
     }
 
     @Override
@@ -384,42 +391,26 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     public Value responseValue(CommMessage commMessage) {
 
-	commMessage.value().add(Value.create(Parameters.BOUNDARY
+	String topic = Parameters.BOUNDARY
 		+ topic_request_response(commMessage, true)
-		+ Parameters.BOUNDARY));
+		+ Parameters.BOUNDARY;
+
+	commMessage.value().add(Value.create(topic));
 
 	return commMessage.value();
     }
 
     /**
+     * Handle the publish incoming message in order to produce a Comm Message
      *
      * @param mpm MqttPublishMessage
      * @return CommMessage
      */
-    public CommMessage requestCommMsg(MqttPublishMessage mpm) {
-	CommMessage cmReq = CommMessage.createRequest(
-		operation(mpm.variableHeader().topicName()),
-		"/",
-		value(mpm.payload()));
-	return cmReq;
-    }
+    public CommMessage commMsg(MqttPublishMessage mpm) {
 
-    /**
-     *
-     * @param request CommMessage
-     * @param mpm MqttPublishMessage
-     * @return CommMessage
-     */
-    public CommMessage responseCommMsg(CommMessage request, MqttPublishMessage mpm) {
-
-	CommMessage cmResp = new CommMessage(
-		CommMessage.GENERIC_ID,
-		operation(mpm.variableHeader().topicName()),
-		"/",
-		value(mpm.payload()),
-		null);
-
-	return cmResp;
+	String operationName = operation(mpm.variableHeader().topicName());
+	return new CommMessage(CommMessage.getNewMessageId(), operationName,
+		"/", readValue(mpm.payload()), null);
     }
 
     /**
@@ -442,39 +433,159 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     }
 
-    private ByteBuf parseValue(Value value) {
+    private Charset stringCharset = Charset.forName("UTF8");
 
-	String str = value.strValue();
-	if (value.isInt()) {
-	    str = String.valueOf(value.intValue());
-	}
-	if (value.isBool()) {
-	    str = String.valueOf(value.boolValue());
-	}
-	if (value.isDouble()) {
-	    str = String.valueOf(value.doubleValue());
-	}
-	if (value.isLong()) {
-	    str = String.valueOf(value.longValue());
-	}
-	return Unpooled.copiedBuffer(str.getBytes(CharsetUtil.UTF_8));
+    private static class DataTypeHeaderId {
+
+	private static final int NULL = 0;
+	private static final int STRING = 1;
+	private static final int INT = 2;
+	private static final int DOUBLE = 3;
+	private static final int BYTE_ARRAY = 4;
+	private static final int BOOL = 5;
+	private static final int LONG = 6;
     }
 
-    private Value value(ByteBuf payload) {
+    private String readString(ByteBuf in)
+	    throws IndexOutOfBoundsException {
+	int len = in.readInt();
+	if (len > 0) {
+	    byte[] bb = new byte[len];
+	    in.readBytes(bb, 0, len);
+	    String str = new String(bb, stringCharset);
+	    Matcher m = Pattern.compile("\\$(.*?)\\$").matcher(str);
+	    if (m.find()) {
+		topicResponse = m.group(1);
+		str = str.replace(str.substring(m.start(), m.end()), "");
+	    }
+	    return str;
+	}
+	return "";
+    }
 
-	String str = Unpooled.copiedBuffer(payload).toString(CharsetUtil.UTF_8);
-	Matcher m = Pattern.compile("\\$(.*?)\\$").matcher(str);
+    private ByteArray readByteArray(ByteBuf in)
+	    throws IndexOutOfBoundsException {
+	int size = in.readInt();
+	ByteArray ret;
+	if (size > 0) {
+	    byte[] bytes = new byte[size];
+	    in.readBytes(bytes, 0, size);
+	    ret = new ByteArray(bytes);
+	} else {
+	    ret = new ByteArray(new byte[0]);
+	}
+	return ret;
+    }
 
-	if (m.find()) {
-	    topicResponse = m.group(1);
-	    str = str.replace(str.substring(m.start(), m.end()), "");
+    private Value readValue(ByteBuf in)
+	    throws IndexOutOfBoundsException {
+	Value value = Value.create();
+	Object valueObject = null;
+	byte b = in.readByte();
+	switch (b) {
+	    case DataTypeHeaderId.STRING:
+		valueObject = readString(in);
+		break;
+	    case DataTypeHeaderId.INT:
+		valueObject = in.readInt();
+		break;
+	    case DataTypeHeaderId.LONG:
+		valueObject = in.readLong();
+		break;
+	    case DataTypeHeaderId.DOUBLE:
+		valueObject = in.readDouble();
+		break;
+	    case DataTypeHeaderId.BYTE_ARRAY:
+		valueObject = readByteArray(in);
+		break;
+	    case DataTypeHeaderId.BOOL:
+		valueObject = in.readBoolean();
+		break;
+	    case DataTypeHeaderId.NULL:
+	    default:
+		break;
+	}
+	value.setValue(valueObject);
+
+	Map< String, ValueVector> children = value.children();
+	String s;
+	int n, i, size, k;
+	n = in.readInt(); // How many children?
+	ValueVector vec;
+
+	for (i = 0; i < n; i++) {
+	    s = readString(in);
+	    vec = ValueVector.create();
+	    size = in.readInt();
+	    for (k = 0; k < size; k++) {
+		vec.add(readValue(in));
+	    }
+	    children.put(s, vec);
 	}
 
-	try {
-	    int intRes = Integer.parseInt(str);
-	    return Value.create(intRes);
-	} catch (NumberFormatException nfe) {
-	    return Value.create(str);
+	System.out.println(value);
+
+	return value;
+    }
+
+    private void writeString(ByteBuf out, String str) {
+	if (str.isEmpty()) {
+	    out.writeInt(0);
+	} else {
+	    byte[] bytes = str.getBytes(stringCharset);
+	    out.writeInt(bytes.length);
+	    out.writeBytes(bytes);
+	}
+    }
+
+    private void writeByteArray(ByteBuf out, ByteArray byteArray) {
+	int size = byteArray.size();
+	out.writeInt(size);
+	if (size > 0) {
+	    out.writeBytes(byteArray.getBytes());
+	}
+    }
+
+    private void writeValue(ByteBuf out, Value value) {
+	Object valueObject = value.valueObject();
+	if (valueObject == null) {
+	    out.writeByte(DataTypeHeaderId.NULL);
+	} else if (valueObject instanceof String) {
+	    out.writeByte(DataTypeHeaderId.STRING);
+	    writeString(out, (String) valueObject);
+	} else if (valueObject instanceof Integer) {
+	    out.writeByte(DataTypeHeaderId.INT);
+	    out.writeInt((Integer) valueObject);
+	} else if (valueObject instanceof Double) {
+	    out.writeByte(DataTypeHeaderId.DOUBLE);
+	    out.writeDouble((Double) valueObject);
+	} else if (valueObject instanceof ByteArray) {
+	    out.writeByte(DataTypeHeaderId.BYTE_ARRAY);
+	    writeByteArray(out, (ByteArray) valueObject);
+	} else if (valueObject instanceof Boolean) {
+	    out.writeByte(DataTypeHeaderId.BOOL);
+	    out.writeBoolean((Boolean) valueObject);
+	} else if (valueObject instanceof Long) {
+	    out.writeByte(DataTypeHeaderId.LONG);
+	    out.writeLong((Long) valueObject);
+	} else {
+	    out.writeByte(DataTypeHeaderId.NULL);
+	}
+
+	Map< String, ValueVector> children = value.children();
+	List< Map.Entry< String, ValueVector>> entries
+		= new LinkedList<>();
+	for (Map.Entry< String, ValueVector> entry : children.entrySet()) {
+	    entries.add(entry);
+	}
+
+	out.writeInt(entries.size());
+	for (Map.Entry< String, ValueVector> entry : entries) {
+	    writeString(out, entry.getKey());
+	    out.writeInt(entry.getValue().size());
+	    for (Value v : entry.getValue()) {
+		writeValue(out, v);
+	    }
 	}
     }
 
@@ -492,7 +603,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return operationName;
     }
 
-    private String operation(String topic) {
+    public String operation(String topic) {
 
 	if (configurationPath().getValue().hasChildren("osc")) {
 	    for (Map.Entry<String, ValueVector> i : configurationPath()
@@ -537,7 +648,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	// find pattern
 	int offset = 0;
-	List< String> aliasKeys = new ArrayList<>();
 	String currStrValue;
 	String currKey;
 	StringBuilder result = new StringBuilder(alias);
@@ -600,7 +710,10 @@ public class MqttProtocol extends AsyncCommProtocol {
 	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic,
 		(int) messageId);
 
-	return new MqttPublishMessage(mfh, vh, parseValue(message));
+	ByteBuf payload = Unpooled.buffer();
+	writeValue(payload, message);
+
+	return new MqttPublishMessage(mfh, vh, payload);
     }
 
     private MqttConnectMessage connectMsg(boolean isDup) {

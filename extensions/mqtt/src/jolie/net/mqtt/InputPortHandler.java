@@ -94,8 +94,7 @@ public class InputPortHandler
 	    case PUBLISH:
 
 		MqttPublishMessage mpm = (MqttPublishMessage) mm;
-		CommMessage cmReq = protocol.requestCommMsg(mpm);
-		out.add(cmReq);
+		out.add(protocol.commMsg(mpm));
 		protocol.recPub(channel, mpm);
 		break;
 	    case PUBREC:

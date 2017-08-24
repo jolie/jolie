@@ -5,10 +5,8 @@ outputPort Broker {
     Location: "socket://test.mosquitto.org:1883"
     Protocol: mqtt {
         .osc.getTmp << {
-            .format = "raw",
-            .QoS = 2,
-            .alias = "%!{id}/getTemperature",
-            .aliasResponse = "%!{id}/getTempReply"
+            .alias = "42/getTemperature",
+            .aliasResponse = "42/getTempReply"
         }
     }
     Interfaces: ThermostatInterface
@@ -16,8 +14,6 @@ outputPort Broker {
 
 main
 {
-    // ...
-    getTmp@Broker( { .id = 42 } )( temp );
+    getTmp@Broker( )( temp );
     println@Console( temp )()
-    // ...
 }

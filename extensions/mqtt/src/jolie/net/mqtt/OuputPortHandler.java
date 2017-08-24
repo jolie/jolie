@@ -91,8 +91,7 @@ public class OuputPortHandler
 	    }
 	} else {
 
-	    MqttSubscribeMessage msm = protocol.subscribeMsg(
-		    cmReq.id(),
+	    MqttSubscribeMessage msm = protocol.subscribeMsg(cmReq.id(),
 		    Collections.singletonList(
 			    protocol.topic_request_response(cmReq, false)),
 		    protocol.qos());
@@ -151,8 +150,7 @@ public class OuputPortHandler
 	    case PUBLISH:
 
 		MqttPublishMessage mpm = (MqttPublishMessage) mm;
-		CommMessage cmResp = protocol.responseCommMsg(cmReq, mpm);
-		out.add(cmResp);
+		out.add(protocol.commMsg(mpm));
 		protocol.recPub(channel, mpm);
 		break;
 	    case PUBACK:
