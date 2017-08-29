@@ -229,7 +229,7 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
-		<!-- <ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/> -->
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="jar"/>
@@ -262,7 +262,7 @@ Please make sure that:
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
-		<!-- <ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/> -->
+		<ant antfile="${project.soap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.jsonrpc}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodep}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.sodeps}/build.xml" inheritall="false" target="clean"/>
@@ -311,7 +311,7 @@ Please make sure that:
 				<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
-				<!-- <file file="${project.soap}/dist/soap.jar"/> -->
+				<file file="${project.soap}/dist/soap.jar"/>
 				<file file="${project.sodep}/dist/sodep.jar"/>
 				<file file="${project.jsonrpc}/dist/jsonrpc.jar"/>
 				<file file="${project.sodeps}/dist/sodeps.jar"/>

@@ -1,21 +1,26 @@
-/*
- * Copyright (C) 2006-2012 by Fabrizio Montesi <famontesi@gmail.com>
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+/*******************************************************************************                                        
+ *   Copyright (C) 2006-2017 by Fabrizio Montesi <famontesi@gmail.com>         *
+ *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU Library General Public License as           *
+ *   published by the Free Software Foundation; either version 2 of the        *
+ *   License, or (at your option) any later version.                           *
+ *                                                                             *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU Library General Public         *
+ *   License along with this program; if not, write to the                     *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ *                                                                             *
+ *   For details about the authors of this software, see the AUTHORS file.     *
+ *******************************************************************************/
 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
-
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
- * USA
- */
 package jolie.net;
 
 import com.ibm.wsdl.extensions.schema.SchemaImpl;
@@ -32,15 +37,31 @@ import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpVersion;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -91,13 +112,11 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import jolie.Interpreter;
 import jolie.lang.Constants;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
 import jolie.net.http.HttpUtils;
 import jolie.net.http.Method;
 import jolie.net.http.UnsupportedMethodException;
 import jolie.net.ports.Interface;
-import jolie.net.protocols.SequentialCommProtocol;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.soap.WSDLCache;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
@@ -126,7 +145,7 @@ import org.xml.sax.SAXException;
  * initial support for WSDL documents.
  *
  */
-public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
+public class SoapProtocol extends AsyncCommProtocol
 {
 	private String inputId = null;
 	private final Interpreter interpreter;
@@ -152,29 +171,35 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	}
 
 	/*
-     * it forced the insertion of namespaces within the soap message
-     *
-     *
-     * type Attribute: void {
-     *	.name: string
-     *  .value: string
-     * }
-     *
-     * parameter add_attribute: void {
-     *	.envelope: void {
-     *      .attribute*: Attribute
-     *	}
-     *	.operation*: void {
-     *		.operation_name: string
-     *		.attribute: Attribute
-     *	}
-     * }
-	 */
+        * it forced the insertion of namespaces within the soap message
+        *
+        *
+        * type Attribute: void {
+        *	.name: string
+        *  .value: string
+        * }
+        *
+        * parameter add_attribute: void {
+        *	.envelope: void {
+        *      .attribute*: Attribute
+        *	}
+        *	.operation*: void {
+        *		.operation_name: string
+        *		.attribute: Attribute
+        *	}
+        * }
+        */
 
+        @Override
 	public String name()
 	{
 		return "soap";
 	}
+        
+        @Override
+        public boolean isThreadSafe(){
+            return false;
+        }
 
 	public SoapProtocol(
 		VariablePath configurationPath,
@@ -189,6 +214,44 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		this.transformerFactory = TransformerFactory.newInstance();
 		this.interpreter = interpreter;
 		this.messageFactory = MessageFactory.newInstance( SOAPConstants.SOAP_1_1_PROTOCOL );
+	}
+        
+        public class SoapCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage>
+	{
+
+		@Override
+		protected void encode( ChannelHandlerContext ctx, CommMessage message, List<Object> out ) 
+                    throws Exception
+		{
+			 ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
+                            ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
+                        FullHttpMessage msg = buildSoapMessage(message );
+			out.add( msg );
+		}
+
+		@Override
+		protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out ) 
+                    throws Exception
+		{
+			CommMessageExt message = recv_internal( msg );
+                        // for the moment we keep this to transition from CommMessage to CommMessageExt
+			out.add( message.getCommMessage() );
+		}
+	}
+        
+        
+        @Override
+	public void setupPipeline( ChannelPipeline pipeline )
+	{
+		if ( inInputPort ) {
+			pipeline.addLast( new HttpServerCodec() );
+			pipeline.addLast( new HttpContentCompressor() );
+		} else {
+			pipeline.addLast( new HttpClientCodec() );
+			pipeline.addLast( new HttpContentDecompressor() );
+		}
+		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+		pipeline.addLast( new SoapCommMessageCodec() );
 	}
 
 	private void parseSchemaElement( Definition definition, Element element, XSOMParser schemaParser )
@@ -206,9 +269,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			schemaParser.parse( schemaSource );
 		} catch( TransformerConfigurationException e ) {
 			throw new IOException( e );
-		} catch( TransformerException e ) {
-			throw new IOException( e );
-		} catch( SAXException e ) {
+		} catch( TransformerException | SAXException e ) {
 			throw new IOException( e );
 		}
 	}
@@ -390,7 +451,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return namespacePrefixMap.get( compType.getOwnerSchema().getTargetNamespace() );
 	}
 
-	private void termProcessing( Value value, SOAPElement element, SOAPEnvelope envelope, boolean first,
+	private void termProcessing( 
+                Value value, 
+                SOAPElement element, 
+                SOAPEnvelope envelope, 
+                boolean first,
 		XSTerm currTerm, int getMaxOccur,
 		XSSchemaSet sSet, String messageNamespace )
 		throws SOAPException
@@ -589,7 +654,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 	private String getOutputMessageRootElementName( String operationName )
 		throws IOException
 	{
-		String elementName = operationName + ((received) ? "Response" : "");
+		String elementName = operationName + ( ( received ) ? "Response" : "");
 		Port port = getWSDLPort();
 		if ( port != null ) {
 			try {
@@ -597,14 +662,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				Part part;
 				if ( received ) {
 					// We are sending a response
-					part = ((Entry<String, Part>) operation.getOutput().getMessage().getParts().entrySet().iterator().next()).getValue();
+					part = ( (Entry<String, Part>) operation.getOutput().getMessage().getParts().entrySet().iterator().next() ).getValue();
 				} else {
 					// We are sending a request
-					part = ((Entry<String, Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next()).getValue();
+					part = ( (Entry<String, Part>) operation.getInput().getMessage().getParts().entrySet().iterator().next() ).getValue();
 				}
 				elementName = part.getElementName().getLocalPart();
-			} catch( Exception e ) {
-			}
+			} catch( Exception e ) {}
 		}
 		return elementName;
 	}
@@ -674,7 +738,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		}
 	}
 
-	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+	public FullHttpMessage buildSoapMessage( CommMessage message )
 		throws IOException
 	{
 		try {
@@ -710,10 +774,10 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				Name actionName = soapEnvelope.createName( "Action", "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing" );
 				SOAPHeaderElement actionElement = soapHeader.addHeaderElement( actionName );
 				/*
-                 * TODO: the action element could be specified within the
-                 * parameter. Perhaps wsAddressing.action ? We could also allow
-                 * for giving a prefix or a suffix to the operation name, like
-                 * wsAddressing.action.prefix, wsAddressing.action.suffix
+                                * TODO: the action element could be specified within the
+                                * parameter. Perhaps wsAddressing.action ? We could also allow
+                                * for giving a prefix or a suffix to the operation name, like
+                                * wsAddressing.action.prefix, wsAddressing.action.suffix
 				 */
 				actionElement.setValue( message.operationName() );
 				// From element
@@ -724,12 +788,12 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				addressElement.setValue( "http://schemas.xmlsoap.org/ws/2004/03/addressing/role/anonymous" );
 				// To element
 				/*
-                 * if ( operation == null ) { // we are sending a Notification
-                 * or a Solicit Name toName = soapEnvelope.createName("To",
-                 * "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing");
-                 * SOAPHeaderElement
-                 * toElement=soapHeader.addHeaderElement(toName);
-                 * toElement.setValue(getURI().getHost()); }
+                                * if ( operation == null ) { // we are sending a Notification
+                                * or a Solicit Name toName = soapEnvelope.createName("To",
+                                * "wsa", "http://schemas.xmlsoap.org/ws/2004/03/addressing");
+                                * SOAPHeaderElement
+                                * toElement=soapHeader.addHeaderElement(toName);
+                                * toElement.setValue(getURI().getHost()); }
 				 */
 			}
 
@@ -746,7 +810,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				XSElementDecl elementDecl;
 				String messageRootElementName = getOutputMessageRootElementName( message.operationName() );
 				if ( sSet == null
-					|| (elementDecl = sSet.getElementDecl( messageNamespace, messageRootElementName )) == null ) {
+					|| ( elementDecl = sSet.getElementDecl( messageNamespace, messageRootElementName ) ) == null ) {
 					Name operationName;
 					soapEnvelope.addNamespaceDeclaration( "xsi", XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI );
 					soapEnvelope.addNamespaceDeclaration( "xsd", XMLConstants.W3C_XML_SCHEMA_NS_URI );
@@ -822,17 +886,18 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			soapMessage.writeTo( tmpStream );
 			ByteArray content = new ByteArray( tmpStream.toByteArray() );
 
-			StringBuilder httpMessage = new StringBuilder();
+			FullHttpMessage httpMessage;
 			String soapAction = null;
 
 			if ( received ) {
 				// We're responding to a request
 				if ( message.isFault() ) {
-					httpMessage.append( "HTTP/1.1 500 Internal Server Error" + HttpUtils.CRLF );
+                                        httpMessage = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 				} else {
-					httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
+                                        httpMessage = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+
 				}
-				httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
+				httpMessage.headers().add( HttpHeaderNames.SERVER, "Jolie");
 				received = false;
 			} else {
 				// We're sending a notification or a solicit
@@ -840,41 +905,40 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				if ( path == null || path.length() == 0 ) {
 					path = "*";
 				}
-				httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-				httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+				httpMessage = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path);
+				httpMessage.headers().add( HttpHeaderNames.HOST, uri.getHost() );
 				/*
 				* soapAction = "SOAPAction: \"" + messageNamespace + "/" +
 				* message.operationName() + '\"' + HttpUtils.CRLF;
 				*/
-				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + '\"' + HttpUtils.CRLF;
+				soapAction = "SOAPAction: \"" + getSoapActionForOperation( message.operationName() ) + "\"";
 
 				if ( checkBooleanParameter( "compression", true ) ) {
 					String requestCompression = getStringParameter( "requestCompression" );
 					if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 						encoding = requestCompression;
-						httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+						httpMessage.headers().add( HttpHeaderNames.ACCEPT_ENCODING, encoding );
 					} else {
-						httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+						httpMessage.headers().add( HttpHeaderNames.ACCEPT_ENCODING, "gzip, deflate" );
 					}
 				}
 			}
 
 			if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 				channel().setToBeClosed( true );
-				httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+				httpMessage.headers().add( HttpHeaderNames.CONNECTION, "close" );
 			}
 
-			if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
-				content = HttpUtils.encode( encoding, content, httpMessage );
-			}
+//			if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
+//				content = HttpUtils.encode( encoding, content, httpMessage );
+//			}
 
 			//httpMessage.append("Content-Type: application/soap+xml; charset=utf-8" + HttpUtils.CRLF);
-			httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-			httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF );
+                        httpMessage.headers().add( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
+			httpMessage.headers().add( HttpHeaderNames.CONTENT_LENGTH, content.size() );
 			if ( soapAction != null ) {
-				httpMessage.append( soapAction );
+				httpMessage.headers().add( "SOAPAction", soapAction );
 			}
-			httpMessage.append( HttpUtils.CRLF );
 
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 				interpreter.logInfo( "[SOAP debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
@@ -882,19 +946,11 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 
 			inputId = message.operationName();
 
-			ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
-			ostream.write( content.getBytes() );
-		} catch( SOAPException se ) {
+			httpMessage.content().writeBytes( content.getBytes() );
+                        return httpMessage;
+		} catch( SOAPException | SAXException se ) {
 			throw new IOException( se );
-		} catch( SAXException saxe ) {
-			throw new IOException( saxe );
 		}
-	}
-
-	public void send( OutputStream ostream, CommMessage message, InputStream istream )
-		throws IOException
-	{
-		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
 	}
 
 	private void xmlNodeToValue( Value value, Node node, boolean isRecRoot )
@@ -976,42 +1032,28 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return null;
 	}
 
-	/*
-	* private Schema getRecvMessageValidationSchema() throws IOException {
-	* List< Source > sources = new ArrayList< Source >(); Definition definition
-	* = getWSDLDefinition(); if ( definition != null ) { Types types =
-	* definition.getTypes(); if ( types != null ) { List< ExtensibilityElement
-	* > list = types.getExtensibilityElements(); for( ExtensibilityElement
-	* element : list ) { if ( element instanceof SchemaImpl ) { sources.add(
-	* new DOMSource( ((SchemaImpl)element).getElement() ) ); } } } }
-	* SchemaFactory schemaFactory = SchemaFactory.newInstance(
-	* XMLConstants.W3C_XML_SCHEMA_NS_URI ); try { return
-	* schemaFactory.newSchema( sources.toArray( new Source[sources.size()] ) );
-	* } catch( SAXException e ) { throw new IOException( e ); } }
-	*/
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
-		throws IOException
+        public CommMessageExt recv_internal( FullHttpMessage message )
+            throws IOException
 	{
-		HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
 		String charset = HttpUtils.getCharset( null, message );
+		
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
-		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
+		if ( inInputPort && ( (FullHttpRequest) message ).method() != HttpMethod.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
-		encoding = message.getProperty( "accept-encoding" );
+		encoding = message.headers().get( "accept-encoding" );
 
-		CommMessage retVal = null;
+		CommMessageExt retVal = null;
 		String messageId = "";
 		FaultException fault = null;
 		Value value = Value.create();
 
 		try {
-			if ( message.size() > 0 ) {
+			if ( message.content().readableBytes() > 0 ) {
 				if ( checkBooleanParameter( "debug" ) ) {
-					interpreter.logInfo( "[SOAP debug] Receiving:\n" + new String( message.content(), charset ) );
+					interpreter.logInfo( "[SOAP debug] Receiving:\n" + message.content().toString( Charset.forName( charset ) ) );
 				}
 
 				SOAPMessage soapMessage = messageFactory.createMessage();
@@ -1024,7 +1066,9 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				*/
 				factory.setNamespaceAware( true );
 				DocumentBuilder builder = factory.newDocumentBuilder();
-				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				byte[] content = new byte[message.content().readableBytes()];
+				message.content().readBytes( content, 0, content.length);
+				InputSource src = new InputSource( new ByteArrayInputStream( content ) );
 				src.setEncoding( charset );
 				Document doc = builder.parse( src );
 				DOMSource dom = new DOMSource( doc );
@@ -1043,7 +1087,8 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 					messageId = soapValueElement.getLocalName();
 
 				if ( !channel().parentPort().getInterface().containsOperation( messageId ) ) {
-					String[] soapAction = message.getPropertyOrEmptyString( "soapaction" ).replaceAll("\"", "").split("/");
+					String soapActionHeader = ( message.headers().contains( "soapaction" ) ? message.headers().get( "soapaction" ) : "" );
+					String[] soapAction = soapActionHeader.replaceAll("\"", "").split("/");
 					messageId = soapAction[ soapAction.length - 1 ];
 						if ( checkBooleanParameter( "debug" ) ) {
 							interpreter.logInfo( "Operation from SoapAction:" + messageId  );
@@ -1088,24 +1133,25 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 			}
 
 			String resourcePath = recv_getResourcePath( message );
-			if ( message.isResponse() ) {
-				if ( fault != null && message.statusCode() == 500 ) {
+			if ( message instanceof FullHttpResponse ) {
+				if ( fault != null && ( (FullHttpResponse) message ).status() == HttpResponseStatus.INTERNAL_SERVER_ERROR ) {
 					fault = new FaultException( "InternalServerError", "" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
-			} else if ( !message.isError() ) {
+				retVal = new CommMessageExt( CommMessage.GENERIC_ID, inputId, resourcePath, value, fault );
+			} else /* if ( !message.isError() )*/ { // TODO It appears that a message of type ERROR cannot be returned from the old parser.
 				if ( messageId.isEmpty() ) {
 					throw new IOException( "Received SOAP Message without a specified operation" );
 				}
-				retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault );
+				retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, resourcePath, value, fault ).setRequest();
 			}
-		} catch( SOAPException e ) {
-			throw new IOException( e );
-		} catch( ParserConfigurationException e ) {
+		} catch( SOAPException | ParserConfigurationException e ) {
 			throw new IOException( e );
 		} catch( SAXException e ) {
 			//TODO support resourcePath
-			retVal = new CommMessage( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
+			retVal = new CommMessageExt( CommMessage.GENERIC_ID, messageId, "/", value, new FaultException( "TypeMismatch", e ) );
+                        if ( message instanceof FullHttpRequest ){
+                            retVal.setRequest();
+                        }
 		}
 
 		received = true;
@@ -1118,7 +1164,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 				OneWayTypeDescription oneWayTypeDescription = iface.oneWayOperations().get( retVal.operationName() );
 				if ( oneWayTypeDescription != null ) {
 					// We are receiving a One-Way message
-					if ( message.isResponse() == false ) {
+					if ( !( message instanceof FullHttpResponse ) ) {
 						oneWayTypeDescription.requestType().cast( retVal.value() );
 					}
 				} else {
@@ -1128,7 +1174,7 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 						if ( faultType != null ) {
 							faultType.cast( retVal.value() );
 						}
-					} else if ( message.isResponse() ) {
+					} else if ( message instanceof FullHttpResponse ) {
 						rrTypeDescription.responseType().cast( retVal.value() );
 					} else {
 						rrTypeDescription.requestType().cast( retVal.value() );
@@ -1142,18 +1188,13 @@ public class SoapProtocol extends SequentialCommProtocol implements HttpUtils.Ht
 		return retVal;
 	}
 
-	public CommMessage recv( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
-		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
-	}
-
-	private String recv_getResourcePath( HttpMessage message )
-	{
-		String ret = "/";
-		if ( checkBooleanParameter( "interpretResource" ) ) {
-			ret = message.requestPath();
-		}
-		return ret;
-	}
+        private String recv_getResourcePath( FullHttpMessage message )
+        {
+                if ( checkBooleanParameter( "interpretResource" ) && 
+                    message instanceof FullHttpRequest )
+                {
+                        return ( (FullHttpRequest) message ).uri();
+                }
+                return "/";
+        }
 }
