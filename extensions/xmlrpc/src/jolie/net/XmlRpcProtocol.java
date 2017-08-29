@@ -1,63 +1,81 @@
 /***************************************************************************
  *   Copyright (C) 2009 by Claudio Guidi                                   *
  *   Copyright (C) 2015 by Matthias Dieter Wallnöfer                       *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+  *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
+  *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+  *                                                                             *
+  *   This program is free software; you can redistribute it and/or modify      *
+  *   it under the terms of the GNU Library General Public License as           *
+  *   published by the Free Software Foundation; either version 2 of the        *
+  *   License, or (at your option) any later version.                           *
+  *                                                                             *
+  *   This program is distributed in the hope that it will be useful,           *
+  *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+  *   GNU General Public License for more details.                              *
+  *                                                                             *
+  *   You should have received a copy of the GNU Library General Public         *
+  *   License along with this program; if not, write to the                     *
+  *   Free Software Foundation, Inc.,                                           *
+  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+  *                                                                             *
+  *   For details about the authors of this software, see the AUTHORS file.     *
+  *******************************************************************************/
 
 package jolie.net;
 
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpVersion;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map.Entry;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.OutputKeys;
 import jolie.Interpreter;
+import jolie.net.http.HttpUtils;
+import jolie.net.http.Method;
+import jolie.net.http.UnsupportedMethodException;
+import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-import java.io.ByteArrayInputStream;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import jolie.net.http.HttpMessage;
-import jolie.net.http.HttpParser;
-import jolie.net.http.HttpUtils;
-import jolie.net.http.Method;
-import jolie.net.http.UnsupportedMethodException;
-import jolie.net.protocols.SequentialCommProtocol;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 
 /** Implements the XML-RPC over HTTP protocol.
  * 
@@ -85,7 +103,7 @@ import org.w3c.dom.NodeList;
  * All the array in an input XMLRPC message will be translated into Jolie by means of arrays of the keyword array.
  * 
  */
-public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.HttpProtocol
+public class XmlRpcProtocol extends AsyncCommProtocol
 {
 	private String inputId = null;
 	final private Transformer transformer;
@@ -141,6 +159,53 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 		transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
 		transformer.setOutputProperty( OutputKeys.INDENT, "no" );
 	}
+        
+        
+        public class XmlCommMessageCodec extends MessageToMessageCodec<FullHttpMessage, CommMessage>
+        {
+            @Override
+            protected void encode( ChannelHandlerContext ctx, CommMessage message, List< Object> out )
+            throws Exception 
+            {
+                ( ( CommCore.ExecutionContextThread ) Thread.currentThread() ).executionThread(
+                ctx.channel().attr( NioSocketCommChannel.EXECUTION_CONTEXT ).get() );
+                FullHttpMessage msg = buildXmlRpcMessage( message );
+                out.add( msg );
+            }
+            
+            @Override
+            protected void decode( ChannelHandlerContext ctx, FullHttpMessage msg, List<Object> out )
+            throws Exception 
+            {
+                if ( msg instanceof FullHttpRequest ) {
+                    FullHttpRequest request = (FullHttpRequest) msg;
+                } else if ( msg instanceof FullHttpResponse ) {
+                    FullHttpResponse response = (FullHttpResponse) msg;
+                }
+                CommMessage message = recv_internal( msg );
+                out.add( message );
+            }
+            
+        }
+        
+        @Override
+	public void setupPipeline( ChannelPipeline pipeline )
+	{		
+		if (inInputPort) {
+			pipeline.addLast( new HttpServerCodec() );
+			pipeline.addLast( new HttpContentCompressor() );
+		} else {
+			pipeline.addLast( new HttpClientCodec() );
+			pipeline.addLast( new HttpContentDecompressor() );
+		}
+		pipeline.addLast( new HttpObjectAggregator( 65536 ) );
+		pipeline.addLast(new XmlCommMessageCodec() );
+	}
+        
+        @Override
+        public boolean isThreadSafe(){
+            return false;
+        }
 
 	private static Element getFirstElement( Element element, String name )
 		throws IOException
@@ -303,11 +368,12 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			node.appendChild( v );
 		}
 	}
-
-	public void send_internal( OutputStream ostream, CommMessage message, InputStream istream )
+        
+	public FullHttpMessage buildXmlRpcMessage( CommMessage message )
 		throws IOException
 	{
-		Document doc = docBuilder.newDocument();
+            
+            Document doc = docBuilder.newDocument();
 		// root element <methodCall>
 		String rootName = "methodCall";
 		if ( received ) {
@@ -387,14 +453,12 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			throw new IOException( e );
 		}
 		ByteArray content = new ByteArray( tmpStream.toByteArray() );
-
-		StringBuilder httpMessage = new StringBuilder();
-
+                
+                FullHttpMessage httpMessage;
+                
 		if ( received ) {
 			// We're responding to a request
-			httpMessage.append( "HTTP/1.1 200 OK" + HttpUtils.CRLF );
-			httpMessage.append( "Server: Jolie" + HttpUtils.CRLF );
-
+                        httpMessage = new DefaultFullHttpResponse( HttpVersion.HTTP_1_1, HttpResponseStatus.OK );
 			received = false;
 		} else {
 			// We're sending a notification or a solicit
@@ -402,80 +466,75 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 			if ( path == null || path.length() == 0 ) {
 				path = "*";
 			}
-			httpMessage.append( "POST " + path + " HTTP/1.1" + HttpUtils.CRLF );
-			httpMessage.append( "User-Agent: Jolie" + HttpUtils.CRLF );
-			httpMessage.append( "Host: " + uri.getHost() + HttpUtils.CRLF );
+			httpMessage = new DefaultFullHttpRequest( HttpVersion.HTTP_1_1, HttpMethod.POST, path );
+                        httpMessage.headers().set( HttpHeaderNames.USER_AGENT, "Jolie" );
+                        httpMessage.headers().set( HttpHeaderNames.HOST, uri.getHost() );
 
 			if ( checkBooleanParameter( "compression", true ) ) {
 				String requestCompression = getStringParameter( "requestCompression" );
 				if ( requestCompression.equals( "gzip" ) || requestCompression.equals( "deflate" ) ) {
 					encoding = requestCompression;
-					httpMessage.append( "Accept-Encoding: " + encoding + HttpUtils.CRLF );
+					httpMessage.headers().set( HttpHeaderNames.ACCEPT_ENCODING, encoding );
 				} else {
-					httpMessage.append( "Accept-Encoding: gzip, deflate" + HttpUtils.CRLF );
+					httpMessage.headers().set( HttpHeaderNames.ACCEPT_ENCODING, "gzip, deflate" );
 				}
 			}
 		}
 
 		if ( getParameterVector( "keepAlive" ).first().intValue() != 1 ) {
 			channel().setToBeClosed( true );
-			httpMessage.append( "Connection: close" + HttpUtils.CRLF );
+			httpMessage.headers().set( HttpHeaderNames.CONNECTION, "close" );
 		}
 
-		if ( encoding != null && checkBooleanParameter( "compression", true ) ) {
-			content = HttpUtils.encode( encoding, content, httpMessage );
-		}
-
-		httpMessage.append( "Content-Type: text/xml; charset=utf-8" + HttpUtils.CRLF );
-		httpMessage.append( "Content-Length: " + content.size() + HttpUtils.CRLF + HttpUtils.CRLF );
-
-		if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
+                httpMessage.headers().set( HttpHeaderNames.CONTENT_TYPE, "text/xml; charset=utf-8" );
+		httpMessage.headers().set( HttpHeaderNames.CONTENT_LENGTH, content.size() );
+		
+                if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
 			interpreter.logInfo( "[XMLRPC debug] Sending:\n" + httpMessage.toString() + content.toString( "utf-8" ) );
 		}
-
-		ostream.write( httpMessage.toString().getBytes( HttpUtils.URL_DECODER_ENC ) );
-		ostream.write( content.getBytes() );
+                
+		httpMessage.content().writeBytes( content.getBytes() );
+		return httpMessage;
 	}
 
-	public void send( OutputStream ostream, CommMessage message, InputStream istream )
+	public CommMessage recv_internal( FullHttpMessage message )
 		throws IOException
 	{
-		HttpUtils.send( ostream, message, istream, inInputPort, channel(), this );
-	}
-
-	public CommMessage recv_internal( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
-		HttpParser parser = new HttpParser( istream );
-		HttpMessage message = parser.parse();
 		String charset = HttpUtils.getCharset( null, message );
+                
 		HttpUtils.recv_checkForChannelClosing( message, channel() );
 
 		CommMessage retVal = null;
 		FaultException fault = null;
 		Value value = Value.create();
 		Document doc = null;
-
-		if ( message.isError() ) {
+                
+                // TODO It appears that a message of type ERROR cannot be returned from the old parser.
+		/*if ( message.isError() ) {
 			throw new IOException( "HTTP error: " + new String( message.content(), charset ) );
-		}
-		if ( inInputPort && message.type() != HttpMessage.Type.POST ) {
+		}*/
+
+		if ( inInputPort && ( (FullHttpRequest) message).method() != HttpMethod.POST ) {
 			throw new UnsupportedMethodException( "Only HTTP method POST allowed!", Method.POST );
 		}
 
-		encoding = message.getProperty( "accept-encoding" );
+		encoding = message.headers().get( HttpHeaderNames.ACCEPT_ENCODING );
 
-		if ( message.size() > 0 ) {
+		if ( message.content().readableBytes() > 0 ) {
 			if ( getParameterVector( "debug" ).first().intValue() > 0 ) {
-				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + new String( message.content(), charset ) );
+				interpreter.logInfo( "[XMLRPC debug] Receiving:\n" + 
+                                    message.content().toString( Charset.forName( charset ) ) 
+                                );
 			}
 
 			try {
 				DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
-				InputSource src = new InputSource( new ByteArrayInputStream( message.content() ) );
+				byte[] content = new byte[ message.content().readableBytes() ];
+                                message.content().readBytes( content, 0, content.length );
+                                InputSource src = new InputSource( new ByteArrayInputStream( content) );
 				src.setEncoding( charset );
 				doc = builder.parse( src );
-				if ( message.isResponse() ) {
+				if ( message instanceof FullHttpResponse ) {
 					// test if the message contains a fault
 					try {
 						Element faultElement = getFirstElement( doc.getDocumentElement(), "fault" );
@@ -495,17 +554,15 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 				} else {
 					documentToValue( value, doc );
 				}
-			} catch ( ParserConfigurationException pce ) {
+			} catch ( ParserConfigurationException | SAXException pce ) {
 				throw new IOException( pce );
-			} catch ( SAXException saxe ) {
-				throw new IOException( saxe );
 			}
 
-			if ( message.isResponse() ) {
+			if ( message instanceof FullHttpResponse ) {
 				//fault = new FaultException( "InternalServerError", "" );
 				//TODO support resourcePath
 				retVal = new CommMessage( CommMessage.GENERIC_ID, inputId, "/", value, fault );
-			} else if ( !message.isError() ) {
+			} else /* if ( !message.isError() ) */ { // TODO: it appears that a message of type ERROR cannot be returned from the old parser
 				//TODO support resourcePath
 				String opname = doc.getDocumentElement().getFirstChild().getTextContent();
 				retVal = new CommMessage( CommMessage.GENERIC_ID, opname, "/", value, fault );
@@ -515,11 +572,5 @@ public class XmlRpcProtocol extends SequentialCommProtocol implements HttpUtils.
 
 		received = true;
 		return retVal;
-	}
-
-	public CommMessage recv( InputStream istream, OutputStream ostream )
-		throws IOException
-	{
-		return HttpUtils.recv( istream, ostream, inInputPort, channel(), this );
 	}
 }
