@@ -1,21 +1,22 @@
 include "console.iol"
-include "iTmp.iol"
+
+type t: string { .id: string} | string
 
 outputPort Broker {
     Location: "socket://test.mosquitto.org:1883"
     Protocol: mqtt {
-        .osc.getTmp << {
-            .QoS = 2,
+        .osc.twice << {
+            .QoS = 1,
             .format = "raw",
-            .alias = "42/getTemperature",
-            .aliasResponse = "42/getTempReply"
+            .alias = "42/twice",
+            .aliasResponse = "42/twice/response"
         }
     }
-    Interfaces: ThermostatInterface
+    RequestResponse: twice( t )( t )
 }
 
 main
 {
-    getTmp@Broker( )( temp );
+    twice@Broker( "2" )( temp );
     println@Console( temp )()
 }

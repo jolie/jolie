@@ -1,19 +1,21 @@
-include "console.iol"
-include "iTmp.iol"
+type t: string { .id: string} | string
 
 inputPort  Thermostat {
     Location: "socket://localhost:9000"
     Protocol: mqtt {
         .broker = "socket://test.mosquitto.org:1883";
-        .osc.getTmp << {
+        .osc.twice << {
             .format = "raw",
-            .alias = "42/getTemperature"
+            .alias = "42/twice",
+            .aliasResponse = "id"
         }
     }
-    Interfaces: ThermostatInterface
+    RequestResponse: twice( t )( t )
 }
 
 main 
 {
-    getTmp()( 24 )
+    twice( one )( two ) {
+        two = one + "ciao"
+    }
 }

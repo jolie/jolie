@@ -29,80 +29,81 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
-import io.netty.handler.codec.mqtt.MqttFixedHeader;
 import io.netty.handler.codec.mqtt.MqttMessage;
-import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
-import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
-import io.netty.handler.timeout.IdleStateEvent;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.List;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
+import jolie.runtime.ValuePrettyPrinter;
 
+/**
+ *
+ * @author stefanopiozingaro
+ */
 public class InputPortHandler
 	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
-    private final MqttProtocol protocol;
-    private Channel channel;
-    private CommMessage cmResp;
+    private final MqttProtocol mp;
+    private Channel cc;
 
-    public InputPortHandler(MqttProtocol protocol) {
-	this.protocol = protocol;
+    /**
+     *
+     * @param mp MqttProtocol
+     */
+    public InputPortHandler(MqttProtocol mp) {
+
+	this.mp = mp;
+	this.cc = null;
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, CommMessage cm,
+    protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
 
 	init(ctx);
-
-	cmResp = CommMessage.createResponse(cm, cm.value());
-
-	MqttPublishMessage mpm = protocol.publishMsg(cmResp.id(),
-		protocol.getTopicResponse(),
-		cmResp.value(),
-		protocol.qos(cmResp.operationName()));
-
-	out.add(mpm);
+	/*
+	This is a comm message coming from jolie containing a 
+	response for a previous request (so it has the topic where to send the
+	mqtt message in the value)
+	 */
+	out.add(mp.send_response(in));
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, MqttMessage mm,
+    protected void decode(ChannelHandlerContext ctx, MqttMessage in,
 	    List<Object> out) throws Exception {
 
 	init(ctx);
-
-	switch (mm.fixedHeader().messageType()) {
+	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
-
 		MqttConnectReturnCode crc
-			= ((MqttConnAckMessage) mm).variableHeader()
+			= ((MqttConnAckMessage) in).variableHeader()
 				.connectReturnCode();
 		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
-		    protocol.startPing(channel.pipeline());
-		    MqttSubscribeMessage msm = protocol.subscribeMsg(
-			    CommMessage.getNewMessageId(),
-			    protocol.topics(),
-			    protocol.qos());
-		    channel.writeAndFlush(msm);
+		    mp.send_subRequest(cc);
 		}
 		break;
 	    case PUBLISH:
-
-		MqttPublishMessage mpm = (MqttPublishMessage) mm;
-		out.add(protocol.commMsg(mpm));
-		protocol.recPub(channel, mpm);
+		// TODO support wildcards and variabili
+		mp.recPub(cc, (MqttPublishMessage) in);
+		/*
+		Here we are receiving a publish message that has to be converted
+		in a comm message that has id = to a generic id, 
+		operation name according to the topic on which the message 
+		has been published ( this means that it could contain the 
+		response topic or not); the value of the message is payload 
+		without the eventual topic.
+		 */
+		out.add(mp.rec_request((MqttPublishMessage) in));
 		break;
 	    case PUBREC:
+		mp.handlePubrec(cc, in);
 	    case PUBREL:
-
-		protocol.sendAck(channel,
-			(MqttMessageIdVariableHeader) mm.variableHeader(),
-			mm.fixedHeader().messageType());
+		mp.handlePubrel(cc, in);
 		break;
 	}
     }
@@ -111,17 +112,17 @@ public class InputPortHandler
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
 	init(ctx);
-
-	MqttConnectMessage mcm = protocol.connectMsg();
-	channel.writeAndFlush(mcm);
+	cc.writeAndFlush(mp.connectMsg());
     }
 
     private void init(ChannelHandlerContext ctx) {
 
-	channel = ctx.channel();
+	if (cc == null) {
+	    cc = ctx.channel();
+	}
+
 	((CommCore.ExecutionContextThread) Thread.currentThread())
-		.executionThread(
-			channel.attr(NioSocketCommChannel.EXECUTION_CONTEXT)
-				.get());
+		.executionThread(cc
+			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
     }
 }
