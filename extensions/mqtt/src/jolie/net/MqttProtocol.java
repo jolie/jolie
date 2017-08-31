@@ -37,6 +37,7 @@ import jolie.runtime.typing.Type;
 import jolie.runtime.typing.TypeCheckingException;
 import jolie.runtime.VariablePath;
 import jolie.runtime.Value;
+import jolie.runtime.FaultException;
 import jolie.runtime.ValueVector;
 import jolie.runtime.typing.OneWayTypeDescription;
 import jolie.runtime.typing.RequestResponseTypeDescription;
@@ -72,15 +73,12 @@ import io.netty.util.CharsetUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
 
 import java.nio.charset.Charset;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -99,8 +97,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import jolie.runtime.FaultException;
-import jolie.runtime.ValuePrettyPrinter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

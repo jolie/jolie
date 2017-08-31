@@ -11,7 +11,7 @@ outputPort Broker {
     Protocol: mqtt {
         .osc.getTmp << {
             .QoS = 2,
-            .format = "xml",
+            .format = "json",
             .alias = "%!{id}/getTemperature",
             .aliasResponse = "%!{id}/getTempReply"
         }
