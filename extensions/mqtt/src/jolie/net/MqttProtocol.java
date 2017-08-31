@@ -734,7 +734,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	try {
 	    type.check(Value.create(message));
-	    value.setValue(Value.create(message));
+	    value.setValue(message);
 	} catch (TypeCheckingException e1) {
 	    if (isNumeric(message)) {
 		try {
@@ -745,6 +745,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 			if (message.equals("1")) {
 			    type.check(Value.create(true));
 			    value.setValue(true);
+			} else {
+			    throw new TypeCheckingException("");
 			}
 		    }
 		} catch (TypeCheckingException e) {
