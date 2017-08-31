@@ -27,18 +27,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.List;
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
-import jolie.runtime.ValuePrettyPrinter;
 
 /**
  *
@@ -50,14 +46,8 @@ public class InputPortHandler
     private final MqttProtocol mp;
     private Channel cc;
 
-    /**
-     *
-     * @param mp MqttProtocol
-     */
     public InputPortHandler(MqttProtocol mp) {
-
 	this.mp = mp;
-	this.cc = null;
     }
 
     @Override
@@ -65,11 +55,6 @@ public class InputPortHandler
 	    List<Object> out) throws Exception {
 
 	init(ctx);
-	/*
-	This is a comm message coming from jolie containing a 
-	response for a previous request (so it has the topic where to send the
-	mqtt message in the value)
-	 */
 	out.add(mp.send_response(in));
     }
 
@@ -88,17 +73,11 @@ public class InputPortHandler
 		}
 		break;
 	    case PUBLISH:
-		// TODO support wildcards and variabili
-		mp.recPub(cc, (MqttPublishMessage) in);
-		/*
-		Here we are receiving a publish message that has to be converted
-		in a comm message that has id = to a generic id, 
-		operation name according to the topic on which the message 
-		has been published ( this means that it could contain the 
-		response topic or not); the value of the message is payload 
-		without the eventual topic.
-		 */
-		out.add(mp.rec_request((MqttPublishMessage) in));
+		// TODO support wildcards and variables
+		MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
+		mp.recPub(cc, mpmIn);
+		CommMessage cmReq = mp.rec_request(mpmIn);
+		out.add(cmReq);
 		break;
 	    case PUBREC:
 		mp.handlePubrec(cc, in);
@@ -117,9 +96,7 @@ public class InputPortHandler
 
     private void init(ChannelHandlerContext ctx) {
 
-	if (cc == null) {
-	    cc = ctx.channel();
-	}
+	cc = ctx.channel();
 
 	((CommCore.ExecutionContextThread) Thread.currentThread())
 		.executionThread(cc

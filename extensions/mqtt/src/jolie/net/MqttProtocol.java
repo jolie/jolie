@@ -65,14 +65,15 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.CharsetUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import java.nio.charset.Charset;
 
@@ -99,6 +100,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.runtime.FaultException;
+import jolie.runtime.ValuePrettyPrinter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -109,6 +111,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     private Set<String> aliasKeys;
     private Charset charset;
     private final AtomicInteger nextMessageId;
+    private String operationRespone;
 
     /**
      * ****************************** PROTOCOL *****************************
@@ -119,14 +122,14 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	super(configurationPath);
 	this.nextMessageId = new AtomicInteger(1);
-	this.charset = Charset.forName("UTF8");
+	this.charset = CharsetUtil.UTF_8;
 	this.aliasKeys = new TreeSet<>();
     }
 
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
 	p.addLast("PING", new ChannelInboundHandlerAdapter() {
@@ -272,26 +275,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return opL;
     }
 
-    /**
-     *
-     * @param ch Channel
-     * @param cm CommMessage
-     * @return ChannelFuture
-     */
-    public ChannelFuture recAck(Channel ch, CommMessage cm) {
-
-	if (isOneWay(cm.operationName())) {
-
-	    return ch.writeAndFlush(new CommMessage(
-		    cm.id(),
-		    cm.operationName(),
-		    "/",
-		    Value.create(),
-		    null));
-	}
-	return null;
-    }
-
     public MqttConnectMessage connectMsg() {
 
 	Random random = new Random();
@@ -373,6 +356,7 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     public void addRespTopicToValue(CommMessage cm) {
 
+	operationRespone = cm.operationName();
 	String a = cm.operationName() + "/response";
 
 	if (hasOperationSpecificParameter(cm.operationName(),
@@ -398,7 +382,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public MqttPublishMessage send_response(CommMessage in) throws Exception {
 
 	String t = extractTopicResponseFromValue(in);
-	ByteBuf bb = valueToByteBuf(in);
+	ByteBuf bb = Unpooled.copiedBuffer(valueToByteBuf(in));
 	MqttQoS q = qos(in.operationName());
 
 	return publishMsg(t, bb, q);
@@ -410,7 +394,7 @@ public class MqttProtocol extends AsyncCommProtocol {
      * @return
      * @throws java.lang.Exception
      */
-    public Object rec_request(MqttPublishMessage in) throws Exception {
+    public CommMessage rec_request(MqttPublishMessage in) throws Exception {
 
 	String on = operation(in.variableHeader().topicName());
 	Value v = ByteBufToValue(in);
@@ -507,15 +491,18 @@ public class MqttProtocol extends AsyncCommProtocol {
 		nextMessageId.getAndIncrement());
     }
 
-    public CommMessage pubRequestResponseResponse(MqttPublishMessage mpm,
+    public CommMessage pubReqResp(MqttPublishMessage mpm,
 	    CommMessage req) throws Exception {
-	return CommMessage.createResponse(req, ByteBufToValue(mpm));
+
+	return new CommMessage(CommMessage.GENERIC_ID,
+		req.operationName(), "/", ByteBufToValue(mpm), null);
     }
 
     /* 
      * ******************************* PARAM *******************************
      */
     private static class Parameters {
+
 	private static final String BROKER = "broker";
 	private static final String CONCURRENT = "concurrent";
 	private static final String ALIAS = "alias";
@@ -540,20 +527,17 @@ public class MqttProtocol extends AsyncCommProtocol {
     private String extractTopicResponseFromValue(CommMessage in)
 	    throws Exception {
 
-	String nn = "id";
+	String ar = "aliasResponse";
 	if (hasOperationSpecificParameter(in.operationName(),
 		Parameters.ALIAS_RESPONSE)) {
-	    nn = getOperationSpecificStringParameter(in.operationName(),
+	    ar = getOperationSpecificStringParameter(in.operationName(),
 		    Parameters.ALIAS_RESPONSE);
 	}
-	if (in.value().hasChildren(nn)) {
-	    String t = in.value().getFirstChild(nn).strValue();
-	    in.value().children().remove(nn);
-	    return t;
-	} else {
-	    throw new FaultException("Topic for response is not present "
-		    + "in the value of the comm message with id: " + in.id());
-	}
+
+	String t = in.value().getFirstChild(ar).strValue();
+	in.value().children().remove(ar);
+
+	return t;
     }
 
     private ByteBuf valueToByteBuf(CommMessage in) throws Exception {
@@ -603,7 +587,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     private String format(String operationName) {
 	/*
-	We suppose in advance that this is a raw format if nothing else
+	We suppose in advance that raw format stands if nothing else
 	is specified.
 	 */
 	return hasOperationSpecificParameter(operationName,
@@ -612,44 +596,24 @@ public class MqttProtocol extends AsyncCommProtocol {
 				Parameters.FORMAT) : "raw";
     }
 
-    private void writeByteArray(ByteBuf out, ByteArray byteArray) {
-	out.writeBytes(byteArray.getBytes());
-    }
-
-    private void writeString(ByteBuf out, String str) {
-	byte[] bytes = str.getBytes(charset);
-	out.writeBytes(bytes);
-    }
-
     private void writeValue(ByteBuf out, Value value) {
+	// TODO handle bytearray
 	Object valueObject = value.valueObject();
+	String str = null;
 	if (valueObject instanceof String) {
-	    writeString(out, (String) valueObject);
+	    str = ((String) valueObject);
 	} else if (valueObject instanceof Integer) {
-	    out.writeInt((Integer) valueObject);
+	    str = ((Integer) valueObject).toString();
 	} else if (valueObject instanceof Double) {
-	    out.writeDouble((Double) valueObject);
+	    str = ((Double) valueObject).toString();
 	} else if (valueObject instanceof ByteArray) {
-	    writeByteArray(out, (ByteArray) valueObject);
+	    str = ((ByteArray) valueObject).toString();
 	} else if (valueObject instanceof Boolean) {
-	    out.writeBoolean((Boolean) valueObject);
+	    str = ((Boolean) valueObject).toString();
 	} else if (valueObject instanceof Long) {
-	    out.writeLong((Long) valueObject);
+	    str = ((Long) valueObject).toString();
 	}
-
-	Map< String, ValueVector> children = value.children();
-	List< Map.Entry< String, ValueVector>> entries
-		= new LinkedList<>();
-	for (Map.Entry< String, ValueVector> entry : children.entrySet()) {
-	    entries.add(entry);
-	}
-
-	for (Map.Entry< String, ValueVector> entry : entries) {
-	    writeString(out, entry.getKey());
-	    for (Value v : entry.getValue()) {
-		writeValue(out, v);
-	    }
-	}
+	out.writeBytes(str.getBytes(charset));
     }
 
     /*
@@ -660,23 +624,34 @@ public class MqttProtocol extends AsyncCommProtocol {
     private Value ByteBufToValue(MqttPublishMessage in) throws Exception {
 	String msg = Unpooled.copiedBuffer(in.payload()).toString(charset);
 	String tr = null;
+	String ar = "aliasResponse";
 	boolean isResponse = false;
+	String on = operation(in.variableHeader().topicName());
+	if (operationRespone != null) {
+	    on = operationRespone;
+	}
 
-	try {
-	    tr = msg.substring(msg.indexOf("$") + 1, msg.indexOf("$",
-		    msg.indexOf("$") + 1));
-	    StringBuilder sb = new StringBuilder();
-	    sb.append(msg.substring(0, msg.indexOf("$")));
-	    sb.append(msg.substring(msg.indexOf("$", msg.indexOf("$") + 1) + 1,
-		    msg.length()));
-	    msg = sb.toString();
-	    isResponse = true;
-	} catch (IndexOutOfBoundsException ex) {
-	    // do nothing
+	if (channel().parentPort() instanceof InputPort) {
+	    try {
+		if (hasOperationSpecificParameter(on, Parameters.ALIAS_RESPONSE)) {
+		    ar = getOperationSpecificStringParameter(on,
+			    Parameters.ALIAS_RESPONSE);
+		}
+		tr = msg.substring(msg.indexOf("$") + 1, msg.indexOf("$",
+			msg.indexOf("$") + 1));
+		StringBuilder sb = new StringBuilder();
+		sb.append(msg.substring(0, msg.indexOf("$")));
+		sb.append(msg.substring(msg.indexOf("$", msg.indexOf("$") + 1) + 1,
+			msg.length()));
+		msg = sb.toString();
+		isResponse = true;
+	    } catch (IndexOutOfBoundsException ex) {
+		// do nothing
+	    }
 	}
 
 	Value v = Value.UNDEFINED_VALUE;
-	String on = operation(in.variableHeader().topicName());
+
 	Type type = operationType(on,
 		channel().parentPort() instanceof InputPort);
 
@@ -706,45 +681,37 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    }
 		}
 	    }
+	    if (isResponse) {
+		v.setFirstChild(ar, tr);
+	    }
 	} else {
 	    v = Value.create();
 	    try {
+		if (isResponse) {
+		    v.setFirstChild(ar, tr);
+		}
 		type.check(v);
 	    } catch (TypeCheckingException ex1) {
 		v = Value.create("");
 		try {
+		    if (isResponse) {
+			v.setFirstChild(ar, tr);
+		    }
 		    type.check(v);
 		} catch (TypeCheckingException ex2) {
 		    v = Value.create(new ByteArray(new byte[0]));
 		    try {
+			if (isResponse) {
+			    v.setFirstChild(ar, tr);
+			}
 			type.check(v);
 		    } catch (TypeCheckingException ex3) {
-			throw new FaultException("Empty message received but "
-				+ "producing type mismatch, expected: "
-				+ type);
+			v = Value.create();
+			if (isResponse) {
+			    v.setFirstChild(ar, tr);
+			}
 		    }
 		}
-	    }
-	}
-	/*
-	if is response that add the topic response in the final value
-	at the alias response parameter value for the operation
-	 */
-
-	if (isResponse) {
-	    if (hasOperationSpecificParameter(on, Parameters.ALIAS_RESPONSE)) {
-		String ar = getOperationSpecificStringParameter(on,
-			Parameters.ALIAS_RESPONSE);
-
-		Value tmp1 = Value.create();
-		tmp1.setValue(tr);
-		Value tmp2 = Value.create();
-		tmp2.setValue(ar);
-		v.add(tmp2);
-		v.getChildren(ar).add(tmp1);
-	    } else {
-		throw new FaultException("No .aliasResponse parameter added "
-			+ "for operation " + on);
 	    }
 	}
 
@@ -765,11 +732,10 @@ public class MqttProtocol extends AsyncCommProtocol {
     private void recv_parseMessage(String message, Value value, Type type)
 	    throws TypeCheckingException {
 
-	if (message.indexOf("\"") == 0 && message.lastIndexOf("\"")
-		== message.length() - 1) {
-	    value.setValue(message.substring(0, message.length() - 1)
-		    .replaceAll("\\\"", "\""));
-	} else {
+	try {
+	    type.check(Value.create(message.substring(1, message.length() - 1)));
+	    value.setValue(Value.create(message.substring(1, message.length() - 1)));
+	} catch (TypeCheckingException e1) {
 	    if (isNumeric(message)) {
 		try {
 		    if (message.equals("0")) {
@@ -779,9 +745,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 			if (message.equals("1")) {
 			    type.check(Value.create(true));
 			    value.setValue(true);
-			} else {
-			    throw (new TypeCheckingException("Type "
-				    + "checking exception"));
 			}
 		    }
 		} catch (TypeCheckingException e) {
@@ -793,11 +756,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 			    try {
 				value.setValue(Double.parseDouble(message));
 			    } catch (NumberFormatException nfe1) {
-				nfe1.printStackTrace();
+				// do nothing
 			    }
 			}
 		    } catch (NumberFormatException nfe) {
-			e.printStackTrace();
+			// do nothing
 		    }
 		}
 	    } else {
@@ -830,7 +793,6 @@ public class MqttProtocol extends AsyncCommProtocol {
      *
      * ******************************* REC *******************************
      */
-
     private String alias(String operationName) {
 
 	for (Iterator<Map.Entry<String, ValueVector>> it = configurationPath()
@@ -844,7 +806,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 	}
 	return operationName;
     }
-
 
     private MqttQoS qos(String operationName) {
 
