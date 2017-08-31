@@ -27,15 +27,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
-import java.util.ArrayList;
-
-import java.util.Collections;
 import java.util.List;
 
 import jolie.net.CommCore;
@@ -55,7 +51,6 @@ public class OuputPortHandler
     private Channel cc;
     private MqttPublishMessage pendingMpm;
     private MqttSubscribeMessage pendingMsm;
-
     private CommMessage cmReq;
 
     /**
@@ -63,12 +58,7 @@ public class OuputPortHandler
      * @param mp MqttProtocol
      */
     public OuputPortHandler(MqttProtocol mp) {
-
 	this.mp = mp;
-	this.cc = null;
-	pendingMpm = null;
-	pendingMsm = null;
-	cmReq = null;
     }
 
     @Override
@@ -110,31 +100,28 @@ public class OuputPortHandler
 		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
 		    mp.startPing(cc.pipeline());
 		    if (mp.isOneWay(cmReq.operationName())) {
-			if (pendingMpm != null) {
-			    cc.writeAndFlush(pendingMpm);
-			    if (mp.checkQoS(pendingMpm, MqttQoS.AT_MOST_ONCE)) {
-				cc.writeAndFlush(new CommMessage(cmReq.id(),
-					cmReq.operationName(), "/",
-					Value.create(), null));
-				mp.stopPing(cc.pipeline());
-			    }
+			cc.writeAndFlush(pendingMpm);
+			if (mp.checkQoS(pendingMpm, MqttQoS.AT_MOST_ONCE)) {
+			    cc.writeAndFlush(new CommMessage(cmReq.id(),
+				    cmReq.operationName(), "/",
+				    Value.create(), null));
+			    mp.stopPing(cc.pipeline());
 			}
 		    } else {
-			if (pendingMsm != null) {
-			    cc.writeAndFlush(pendingMsm);
-			    if (mp.checkQoS(pendingMsm, MqttQoS.AT_MOST_ONCE)) {
-				cc.writeAndFlush(pendingMpm);
-			    }
+			cc.writeAndFlush(pendingMsm);
+			if (mp.checkQoS(pendingMsm, MqttQoS.AT_MOST_ONCE)) {
+			    cc.writeAndFlush(pendingMpm);
 			}
 		    }
 		}
 		break;
 	    case PUBLISH:
-		// TODO support wildcards and variabili
-		mp.recPub(cc, ((MqttPublishMessage) in));
+		// TODO support wildcards and variables
+		MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
+		mp.recPub(cc, mpmIn);
 		mp.stopPing(cc.pipeline());
-		out.add(mp.pubRequestResponseResponse((MqttPublishMessage) in,
-			cmReq));
+		CommMessage cmResp = mp.pubReqResp(mpmIn, cmReq);
+		out.add(cmResp);
 		break;
 	    case PUBACK:
 	    case PUBCOMP:
@@ -154,18 +141,14 @@ public class OuputPortHandler
 		mp.handlePubrel(cc, in);
 		break;
 	    case SUBACK:
-		if (pendingMpm != null) {
-		    cc.writeAndFlush(pendingMpm);
-		}
+		cc.writeAndFlush(pendingMpm);
 		break;
 	}
     }
 
     private void init(ChannelHandlerContext ctx) {
 
-	if (cc == null) {
-	    cc = ctx.channel();
-	}
+	cc = ctx.channel();
 
 	((CommCore.ExecutionContextThread) Thread.currentThread())
 		.executionThread(cc

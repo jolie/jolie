@@ -1,4 +1,8 @@
-include "iTmp.iol"
+type TmpType: void { .id: string } | int { .id: string }
+
+interface ThermostatInterface {
+  RequestResponse: getTmp( TmpType )( TmpType )
+}
 
 inputPort  Thermostat {
     Location: "socket://localhost:9000"
@@ -13,9 +17,9 @@ inputPort  Thermostat {
     Interfaces: ThermostatInterface
 }
 
-execution{ concurrent }
-
 main 
 {
-    getTmp( )( "24" )
+    getTmp( temp )( temp ){
+        temp = 24
+    }
 }

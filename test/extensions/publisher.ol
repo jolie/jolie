@@ -1,5 +1,10 @@
-include "iTmp.iol"
 include "console.iol"
+
+type TmpType: void { .id: string } | int { .id: string }
+
+interface ThermostatInterface {
+  RequestResponse: getTmp( TmpType )( int )
+}
 
 outputPort Broker {
     Location: "socket://test.mosquitto.org:1883"
@@ -16,6 +21,6 @@ outputPort Broker {
 
 main
 {
-    getTmp@Broker( { .id= "42"} )( temp );  
+    getTmp@Broker( { .id = "42"} )( temp ); 
     println@Console( temp )()
 }
