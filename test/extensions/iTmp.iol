@@ -1,4 +1,4 @@
-type TmpType: void { .id: string } | int { .id: string } | int | void | string { .id: string }
+type TmpType: void { .id: string } | string { .id: string } | void
 
 interface ThermostatInterface {
   OneWay: setTmp( TmpType )

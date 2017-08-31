@@ -132,6 +132,7 @@ public class OuputPortHandler
 	    case PUBLISH:
 		// TODO support wildcards and variabili
 		mp.recPub(cc, ((MqttPublishMessage) in));
+		mp.stopPing(cc.pipeline());
 		out.add(mp.pubRequestResponseResponse((MqttPublishMessage) in,
 			cmReq));
 		break;
