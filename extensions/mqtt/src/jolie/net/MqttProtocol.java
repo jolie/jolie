@@ -733,8 +733,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    throws TypeCheckingException {
 
 	try {
-	    type.check(Value.create(message.substring(1, message.length() - 1)));
-	    value.setValue(Value.create(message.substring(1, message.length() - 1)));
+	    type.check(Value.create(message));
+	    value.setValue(Value.create(message));
 	} catch (TypeCheckingException e1) {
 	    if (isNumeric(message)) {
 		try {
@@ -750,17 +750,15 @@ public class MqttProtocol extends AsyncCommProtocol {
 		} catch (TypeCheckingException e) {
 		    try {
 			value.setValue(Integer.parseInt(message));
+		    } catch (NumberFormatException nfe) {
 			try {
 			    value.setValue(Long.parseLong(message));
-			} catch (NumberFormatException nfe2) {
+			} catch (NumberFormatException nfe1) {
 			    try {
 				value.setValue(Double.parseDouble(message));
-			    } catch (NumberFormatException nfe1) {
-				// do nothing
+			    } catch (NumberFormatException nfe2) {
 			    }
 			}
-		    } catch (NumberFormatException nfe) {
-			// do nothing
 		    }
 		}
 	    } else {
