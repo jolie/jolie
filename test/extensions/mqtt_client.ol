@@ -10,8 +10,8 @@ outputPort Broker {
     Location: "socket://test.mosquitto.org:1883"
     Protocol: mqtt {
         .osc.getTmp << {
-            .QoS = 1,
-            .format = "raw",
+            .QoS = 2,
+            .format = "xml",
             .alias = "%!{id}/getTemperature",
             .aliasResponse = "%!{id}/getTempReply"
         }
