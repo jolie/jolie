@@ -1,21 +1,21 @@
-type t: string { .id: string} | string
+include "iTmp.iol"
 
 inputPort  Thermostat {
     Location: "socket://localhost:9000"
     Protocol: mqtt {
         .broker = "socket://test.mosquitto.org:1883";
-        .osc.twice << {
+        .osc.getTmp << {
             .format = "raw",
-            .alias = "42/twice",
+            .alias = "42/getTemperature",
             .aliasResponse = "id"
         }
     }
-    RequestResponse: twice( t )( t )
+    Interfaces: ThermostatInterface
 }
+
+execution{ concurrent }
 
 main 
 {
-    twice( one )( two ) {
-        two = one + "ciao"
-    }
+    getTmp( )( "24" )
 }

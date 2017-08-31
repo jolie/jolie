@@ -65,14 +65,14 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
 
 import java.nio.charset.Charset;
 
@@ -99,7 +99,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.runtime.FaultException;
-import jolie.runtime.ValuePrettyPrinter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -127,7 +126,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
 	p.addLast("PING", new ChannelInboundHandlerAdapter() {
@@ -398,11 +397,6 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     public MqttPublishMessage send_response(CommMessage in) throws Exception {
 
-	Writer writer = new StringWriter();
-	ValuePrettyPrinter printer = new ValuePrettyPrinter(in.value(), writer, "Value");
-	printer.run();
-	System.out.println(writer.toString());
-
 	String t = extractTopicResponseFromValue(in);
 	ByteBuf bb = valueToByteBuf(in);
 	MqttQoS q = qos(in.operationName());
@@ -420,11 +414,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	String on = operation(in.variableHeader().topicName());
 	Value v = ByteBufToValue(in);
-
-	Writer writer = new StringWriter();
-	ValuePrettyPrinter printer = new ValuePrettyPrinter(v, writer, "Value");
-	printer.run();
-	System.out.println(writer.toString());
 
 	return CommMessage.createRequest(on, "/", v);
     }
@@ -560,7 +549,6 @@ public class MqttProtocol extends AsyncCommProtocol {
 	if (in.value().hasChildren(nn)) {
 	    String t = in.value().getFirstChild(nn).strValue();
 	    in.value().children().remove(nn);
-	    System.out.println(t);
 	    return t;
 	} else {
 	    throw new FaultException("Topic for response is not present "
