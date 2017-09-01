@@ -1,6 +1,6 @@
 include "console.iol"
 
-type TmpType: void { .id: string } | int { .id: string }
+type TmpType: void /*{ .id: string }*/ | int /*{ .id: string }*/
 
 interface ThermostatInterface {
   RequestResponse: getTmp( TmpType )( int )
@@ -21,6 +21,6 @@ outputPort Broker {
 
 main
 {
-    getTmp@Broker( { .id = "42"} )( temp ); 
+    getTmp@Broker( /*{ .id = "42"}*/ )( temp ); 
     println@Console( temp )()
 }

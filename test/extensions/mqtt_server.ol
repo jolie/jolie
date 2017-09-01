@@ -1,4 +1,4 @@
-type TmpType: void { .id: string } | int { .id: string }
+type TmpType: void /*{ .id: string }*/ | int /*{ .id: string }*/
 
 interface ThermostatInterface {
   RequestResponse: getTmp( TmpType )( TmpType )
