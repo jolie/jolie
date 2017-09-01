@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
 
 /**
@@ -34,6 +35,7 @@ import jolie.runtime.VariablePath;
  * Jolie Class Loader, update file manifest.mf with value
  * X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
  */
+@AndJarDeps({"jolie-js.jar", "json_simple.jar", "jolie-xml.jar"})
 public class MqttProtocolFactory extends CommProtocolFactory {
 
     public MqttProtocolFactory(CommCore commCore) {
