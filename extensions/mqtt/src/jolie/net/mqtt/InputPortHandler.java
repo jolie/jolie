@@ -32,6 +32,7 @@ import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 
 import java.util.List;
+import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -65,6 +66,7 @@ public class InputPortHandler
 	    List<Object> out) throws Exception {
 
 	init(ctx);
+
 	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
 		MqttConnectReturnCode crc
@@ -83,6 +85,7 @@ public class InputPortHandler
 		break;
 	    case PUBREC:
 		mp.handlePubrec(cc, in);
+		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
 		break;

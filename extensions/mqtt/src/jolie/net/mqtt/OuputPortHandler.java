@@ -34,6 +34,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 
 import java.util.List;
+import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -139,6 +140,7 @@ public class OuputPortHandler
 		break;
 	    case PUBREC:
 		mp.handlePubrec(cc, in);
+		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
 		break;
