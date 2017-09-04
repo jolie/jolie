@@ -49,6 +49,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
@@ -66,9 +67,12 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.ReferenceCountUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -97,6 +101,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import jolie.Interpreter;
+import jolie.net.ports.OutputPort;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -125,9 +131,28 @@ public class MqttProtocol extends AsyncCommProtocol {
     @Override
     public void setupPipeline(ChannelPipeline p) {
 
-	//p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
+	/*p.addLast(new MessageToMessageCodec<MqttMessage, MqttMessage>() {
+
+	    @Override
+	    protected void encode(ChannelHandlerContext chc, MqttMessage o, List<Object> out) throws Exception {
+		Interpreter.getInstance().logInfo(o.fixedHeader().messageType() + " ->");
+		if (channel().parentPort() instanceof OutputPort && o.fixedHeader().messageType().equals(MqttMessageType.PUBLISH)) {
+		    chc.write(o);
+		} else {
+		    out.add(o);
+		}
+	    }
+
+	    @Override
+	    protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> out) throws Exception {
+		Interpreter.getInstance().logInfo("<- " + i.fixedHeader().messageType());
+		ReferenceCountUtil.retain(i);
+		out.add(i);
+	    }
+	});*/
 	p.addLast("PING", new ChannelInboundHandlerAdapter() {
 	    @Override
 	    public void userEventTriggered(ChannelHandlerContext ctx,
@@ -405,7 +430,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public void send_subRequest(Channel ch) {
 
 	startPing(ch.pipeline());
-	ch.writeAndFlush(subscribeMsg(topics(), qos()));
+	ch.writeAndFlush(subscribeMsg(topics()));
     }
 
     public MqttPublishMessage pubOneWayRequest(CommMessage in) throws Exception {
@@ -432,7 +457,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    Parameters.ALIAS_RESPONSE);
 	}
 
-	return subscribeMsg(Collections.singletonList(topic(in, a, false)), qos());
+	return subscribeMsg(Collections.singletonList(topic(in, a, false)));
     }
 
     public MqttPublishMessage pubRequestResponseRequest(CommMessage in)
@@ -849,15 +874,15 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return result.toString();
     }
 
-    private MqttSubscribeMessage subscribeMsg(List<String> topics,
-	    MqttQoS subQos) {
+    private MqttSubscribeMessage subscribeMsg(List<String> topics) {
 
 	List<MqttTopicSubscription> tmsL = new ArrayList<>();
 	for (String t : topics) {
 	    tmsL.add(new MqttTopicSubscription(t, MqttQoS.EXACTLY_ONCE));
 	}
 	MqttFixedHeader mfh = new MqttFixedHeader(
-		MqttMessageType.SUBSCRIBE, false, subQos, false, 0);
+		MqttMessageType.SUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE, false,
+		0);
 	MqttMessageIdVariableHeader vh = getNewMessageId();
 	MqttSubscribePayload p = new MqttSubscribePayload(tmsL);
 

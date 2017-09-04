@@ -1,17 +1,17 @@
 include "console.iol"
 
-type TmpType: void /*{ .id: string }*/ | int /*{ .id: string }*/
+type TmpType: void { .id: string } | int { .id: string }
 
 interface ThermostatInterface {
   RequestResponse: getTmp( TmpType )( int )
 }
 
 outputPort Broker {
-    Location: "socket://test.mosquitto.org:1883"
+    Location: "socket://localhost:1883"
     Protocol: mqtt {
         .osc.getTmp << {
             .QoS = 2,
-            .format = "json",
+            .format = "raw",
             .alias = "%!{id}/getTemperature",
             .aliasResponse = "%!{id}/getTempReply"
         }
@@ -21,6 +21,6 @@ outputPort Broker {
 
 main
 {
-    getTmp@Broker( /*{ .id = "42"}*/ )( temp ); 
+    getTmp@Broker( { .id = "42"} )( temp ); 
     println@Console( temp )()
 }

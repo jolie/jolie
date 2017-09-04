@@ -1,4 +1,4 @@
-type TmpType: void /*{ .id: string }*/ | int /*{ .id: string }*/
+type TmpType: void { .id: string } | int { .id: string }
 
 interface ThermostatInterface {
   RequestResponse: getTmp( TmpType )( TmpType )
@@ -7,11 +7,12 @@ interface ThermostatInterface {
 inputPort  Thermostat {
     Location: "socket://localhost:9000"
     Protocol: mqtt {
-        .broker = "socket://test.mosquitto.org:1883";
+        .broker = "socket://localhost:1883";
         .osc.getTmp << {
-            .format = "json",
+            .format = "raw",
             .alias = "42/getTemperature",
-            .aliasResponse = "id"
+            .aliasResponse = "id",
+            .QoS = 2
         }
     }
     Interfaces: ThermostatInterface

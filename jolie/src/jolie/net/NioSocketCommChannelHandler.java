@@ -77,7 +77,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 
 	protected ChannelFuture write( CommMessage msg )
 	{
-		return this.ctx.writeAndFlush( msg );
+	    return this.ctx.writeAndFlush(msg);
 	}
 
 	protected ChannelFuture close()
