@@ -129,9 +129,7 @@ public class NioSocketCommChannel extends StreamingCommChannel
 	protected void sendImpl( CommMessage message ) throws IOException
 	{
 		try {
-			ChannelFuture f = nioSocketCommChannelHandler.write( message );
-			f.sync();
-			
+			nioSocketCommChannelHandler.write( message ).sync();
 		} catch( InterruptedException ex ) {
 			throw new IOException( ex );
 		}
