@@ -33,6 +33,7 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 import java.util.List;
+import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -60,6 +61,9 @@ public class InputPortHandler
 
 	init(ctx);
 	MqttPublishMessage mpm = mp.send_response(in);
+	if( !mpm.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)){
+		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+	}
 	out.add(mpm);
     }
 
@@ -98,6 +102,9 @@ public class InputPortHandler
 		    CommMessage cmReq = mp.recv_request(qos2pendingPublish);
 		    out.add(cmReq);
 		}
+		break;
+		case PUBCOMP:
+			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
 		break;
 	}
     }

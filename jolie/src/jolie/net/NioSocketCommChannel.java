@@ -37,12 +37,15 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import java.util.concurrent.Semaphore;
+import jolie.Interpreter;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
     public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf("ExecutionContext");
     public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf("CommChannel");
-
+	public static AttributeKey<Semaphore> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
+	
     private Bootstrap bootstrap;
     private static final int SO_LINGER = 10000;
     protected CompletableFuture<CommMessage> waitingForMsg = null;
@@ -50,7 +53,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 
     public NioSocketCommChannel(URI location, AsyncCommProtocol protocol) {
 	super(location, protocol);
-	nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
+		nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
     }
 
     public NioSocketCommChannelHandler getChannelHandler() {
@@ -67,16 +70,17 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		.handler(new ChannelInitializer() {
 		    @Override
 		    protected void initChannel(Channel ch) throws Exception {
-			ChannelPipeline p = ch.pipeline();
-			protocol.setupPipeline(p);
-			p.addLast(channel.nioSocketCommChannelHandler);
-			ch.attr(EXECUTION_CONTEXT).set(ethread);
+				ChannelPipeline p = ch.pipeline();
+				protocol.setupPipeline(p);
+				p.addLast( channel.nioSocketCommChannelHandler);
+				ch.attr( EXECUTION_CONTEXT ).set(ethread);
+				ch.attr( SEND_RELEASE ).set( new Semaphore( 0 ) );
 		    }
 		}
 		);
 	return channel;
     }
-
+	
     protected ChannelFuture connect(URI location) throws InterruptedException {
 	return bootstrap
 		.connect(new InetSocketAddress(location.getHost(), location.getPort()));
@@ -114,6 +118,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     protected void sendImpl(CommMessage message) throws IOException {
 	try {
 	    nioSocketCommChannelHandler.write(message).sync();
+		Interpreter.getInstance().logInfo( "MESSAGE DELIVERED" );
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}

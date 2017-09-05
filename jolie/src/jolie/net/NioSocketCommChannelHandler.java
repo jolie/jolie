@@ -75,9 +75,11 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
         }
 	}
 
-	protected ChannelFuture write( CommMessage msg )
+	protected ChannelFuture write( CommMessage msg ) throws InterruptedException
 	{
-	    return this.ctx.writeAndFlush(msg);
+	    ChannelFuture f = this.ctx.writeAndFlush(msg);
+		ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().acquire();
+		return f;
 	}
 
 	protected ChannelFuture close()
@@ -230,7 +232,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 			interpreter.logSevere( e );
 		}
 	}
-
+	
 	private void messageRecv( CommMessage message )
 	{
 		channel.lock.lock();
