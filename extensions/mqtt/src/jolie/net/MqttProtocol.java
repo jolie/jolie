@@ -29,7 +29,6 @@ import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 
-
 import jolie.js.JsUtils;
 import jolie.xml.XmlUtils;
 
@@ -116,7 +115,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     private final Charset charset;
     private final AtomicInteger nextMessageId;
     private String operationResponse;
-	private String topicResponse;
+    private String topicResponse;
 
     /**
      * ****************************** PROTOCOL *****************************
@@ -133,7 +132,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline p) {
-		
+
 //	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
@@ -167,60 +166,60 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    p.addLast("OUTPUT", new OutputPortHandler(this));
 	}
     }
-	
-	public void checkDebug( ChannelPipeline p ){
-		if ( checkBooleanParameter( Parameters.DEBUG ) && p.get( "DBENCODE") == null ) {
-			p.addAfter("DECODER", "DBENCODE", new MessageToMessageEncoder<MqttMessage>() {
-				@Override
-				protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
-					String logLine = "";
-					MqttMessageType t = i.fixedHeader().messageType();
-					logLine += t + " ->";
-					if( t.equals( MqttMessageType.PUBLISH ) ){
-						logLine += "\t " + ( (MqttPublishMessage) i ).variableHeader().topicName();
-					}
-					if( t.equals( MqttMessageType.SUBSCRIBE ) ){
-						logLine += "\t ";
-						for( MqttTopicSubscription topic : ( (MqttSubscribeMessage) i ).payload().topicSubscriptions() ){
-							logLine += topic.topicName();
-						}
-					}
-				
-					if( !( t.equals( MqttMessageType.PINGRESP ) || t.equals( MqttMessageType.PINGREQ ) ) ){
-						Interpreter.getInstance().logInfo(  logLine );
-					}
-					
-					if ( channel().parentPort() instanceof OutputPort && t.equals( MqttMessageType.PUBLISH ) ){				
-						chc.write( i );
-						chc.flush();
-					} else {
-						if( channel().parentPort() instanceof InputPort && t.equals( MqttMessageType.PUBLISH ) ){
-							((MqttPublishMessage) i ).retain();
-						}
-						list.add( i );
-					}
-				}
-			});
-			p.addAfter("DBENCODE", "DBDECODE", new MessageToMessageDecoder<MqttMessage>(){
-				@Override
-				protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
-					MqttMessageType t = i.fixedHeader().messageType();
-					String logLine = "";
-					if( !(t.equals( MqttMessageType.PINGRESP ) || t.equals( MqttMessageType.PINGREQ ) ) ){
-						 logLine += " <- " + t;
-						if( t.equals( MqttMessageType.PUBLISH ) ){
-							logLine += "\t  " + ( (MqttPublishMessage) i ).variableHeader().topicName();
-						}
-						Interpreter.getInstance().logInfo( logLine );
-					}
-					if ( t.equals( MqttMessageType.PUBLISH ) ){
-						((MqttPublishMessage) i ).retain();
-					}
-					list.add( i );
-				}
-			});
+
+    public void checkDebug(ChannelPipeline p) {
+	if (checkBooleanParameter(Parameters.DEBUG) && p.get("DBENCODE") == null) {
+	    p.addAfter("DECODER", "DBENCODE", new MessageToMessageEncoder<MqttMessage>() {
+		@Override
+		protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
+		    String logLine = "";
+		    MqttMessageType t = i.fixedHeader().messageType();
+		    logLine += t + " ->";
+		    if (t.equals(MqttMessageType.PUBLISH)) {
+			logLine += "\t " + ((MqttPublishMessage) i).variableHeader().topicName();
+		    }
+		    if (t.equals(MqttMessageType.SUBSCRIBE)) {
+			logLine += "\t ";
+			for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i).payload().topicSubscriptions()) {
+			    logLine += topic.topicName();
+			}
+		    }
+
+		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
+			Interpreter.getInstance().logInfo(logLine);
+		    }
+
+		    if (channel().parentPort() instanceof OutputPort && t.equals(MqttMessageType.PUBLISH)) {
+			chc.write(i);
+			chc.flush();
+		    } else {
+			if (channel().parentPort() instanceof InputPort && t.equals(MqttMessageType.PUBLISH)) {
+			    ((MqttPublishMessage) i).retain();
+			}
+			list.add(i);
+		    }
 		}
+	    });
+	    p.addAfter("DBENCODE", "DBDECODE", new MessageToMessageDecoder<MqttMessage>() {
+		@Override
+		protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
+		    MqttMessageType t = i.fixedHeader().messageType();
+		    String logLine = "";
+		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
+			logLine += " <- " + t;
+			if (t.equals(MqttMessageType.PUBLISH)) {
+			    logLine += "\t  " + ((MqttPublishMessage) i).variableHeader().topicName();
+			}
+			Interpreter.getInstance().logInfo(logLine);
+		    }
+		    if (t.equals(MqttMessageType.PUBLISH)) {
+			((MqttPublishMessage) i).retain();
+		    }
+		    list.add(i);
+		}
+	    });
 	}
+    }
 
     @Override
     public String name() {
@@ -252,7 +251,7 @@ public class MqttProtocol extends AsyncCommProtocol {
      * @param ch - The channel where to write the eventual Comm Message
      * @param mpm - The publish message received.
      */
-    public void recPub(Channel ch, MqttPublishMessage mpm) {
+    public void recv_pub(Channel ch, MqttPublishMessage mpm) {
 
 	switch (mpm.fixedHeader().qosLevel()) {
 	    case AT_MOST_ONCE:
@@ -299,13 +298,13 @@ public class MqttProtocol extends AsyncCommProtocol {
     /**
      * Check if the given incoming Mqtt Message has the related requested QoS.
      *
-     * @param mm MqttMessage
+     * @param cm
      * @param toBeChecked MqttQoS
      * @return boolean - True if the QoS is the same, False otherwise.
      */
     public boolean checkQoS(CommMessage cm, MqttQoS toBeChecked) {
 
-	    return qos( cm.operationName() ).equals(toBeChecked);
+	return qos(cm.operationName()).equals(toBeChecked);
 
     }
 
@@ -408,21 +407,21 @@ public class MqttProtocol extends AsyncCommProtocol {
      * Returns the response topic.
      *
      * @param cm CommMessage
-	 * @return the topic response
+     * @return the topic response
      */
-    public String getRespTopic(CommMessage cm ) {
+    public String getRespTopic(CommMessage cm) {
 
-		// bookkeeping variables for topic-to-operation correlation
-		operationResponse = cm.operationName();
-		topicResponse = cm.operationName() + "/response";
+	// bookkeeping variables for topic-to-operation correlation
+	operationResponse = cm.operationName();
+	topicResponse = cm.operationName() + "/response";
 
-		if (hasOperationSpecificParameter(cm.operationName(),
-			Parameters.ALIAS_RESPONSE)) {
-			topicResponse = getOperationSpecificStringParameter(cm.operationName(),
-				Parameters.ALIAS_RESPONSE);
-		}
+	if (hasOperationSpecificParameter(cm.operationName(),
+		Parameters.ALIAS_RESPONSE)) {
+	    topicResponse = getOperationSpecificStringParameter(cm.operationName(),
+		    Parameters.ALIAS_RESPONSE);
+	}
 
-		return Parameters.BOUNDARY + topic(cm, topicResponse, true) + Parameters.BOUNDARY;
+	return Parameters.BOUNDARY + topic(cm, topicResponse, true) + Parameters.BOUNDARY;
 
     }
 
@@ -510,37 +509,37 @@ public class MqttProtocol extends AsyncCommProtocol {
     /*
      * ******************************* PRIVATE *******************************
      */
-    private String operation( String topic ) {
+    private String operation(String topic) {
 
-		if ( channel().parentPort() instanceof OutputPort ){
-			if( topic.equals( topicResponse ) ){
-				return operationResponse;
-			} else {
-				return topic;
+	if (channel().parentPort() instanceof OutputPort) {
+	    if (topic.equals(topicResponse)) {
+		return operationResponse;
+	    } else {
+		return topic;
+	    }
+	} else {
+	    if (configurationPath().getValue().hasChildren("osc")) {
+		for (Map.Entry<String, ValueVector> i : configurationPath()
+			.getValue()
+			.getFirstChild("osc").children().entrySet()) {
+		    for (Map.Entry<String, ValueVector> j : i.getValue().first()
+			    .children().entrySet()) {
+			if (j.getKey().equals("alias") && j.getValue().first()
+				.strValue().equals(topic)) {
+			    return i.getKey();
 			}
-		} else {	
-			if (configurationPath().getValue().hasChildren("osc")) {
-				for (Map.Entry<String, ValueVector> i : configurationPath()
-					.getValue()
-					.getFirstChild("osc").children().entrySet()) {
-				for (Map.Entry<String, ValueVector> j : i.getValue().first()
-					.children().entrySet()) {
-					if (j.getKey().equals("alias") && j.getValue().first()
-						.strValue().equals(topic)) {
-							return i.getKey();
-						}
-					}
-				}
-			}
-			// else we return directly the topic
-			return topic;
+		    }
 		}
+	    }
+	    // else we return directly the topic
+	    return topic;
+	}
     }
 
     private MqttMessageIdVariableHeader getNewMessageId() {
-		nextMessageId.compareAndSet(0xffff, 1);
-		return MqttMessageIdVariableHeader.from(
-			nextMessageId.getAndIncrement());
+	nextMessageId.compareAndSet(0xffff, 1);
+	return MqttMessageIdVariableHeader.from(
+		nextMessageId.getAndIncrement());
     }
 
     public CommMessage recv_pubReqResp(MqttPublishMessage mpm,
@@ -605,44 +604,44 @@ public class MqttProtocol extends AsyncCommProtocol {
 	String format = format(in.operationName());
 	String message;
 	String topicResponsePrefix = "";
-	if ( !isOneWay( operationResponse ) && channel().parentPort() instanceof OutputPort ){
-		topicResponsePrefix = getRespTopic( in );
+	if (!isOneWay(operationResponse) && channel().parentPort() instanceof OutputPort) {
+	    topicResponsePrefix = getRespTopic(in);
 	}
 	switch (format) {
-		case "json":
-			StringBuilder jsonStringBuilder = new StringBuilder();
-			JsUtils.valueToJsonString(in.value(), true, getSendType(in),
-			  jsonStringBuilder);
-			message = jsonStringBuilder.toString();
-			break;
-		case "xml":
-			DocumentBuilder db = DocumentBuilderFactory.newInstance()
-			  .newDocumentBuilder();
-			Document doc = db.newDocument();
-			Element root = doc.createElement(in.operationName());
-			doc.appendChild(root);
-			XmlUtils.valueToDocument(in.value(), root, doc);
-			Source src = new DOMSource(doc);
-			ByteArrayOutputStream strm = new ByteArrayOutputStream();
-			Result dest = new StreamResult(strm);
-			Transformer trf = TransformerFactory.newInstance()
-			  .newTransformer();
-			trf.setOutputProperty(OutputKeys.ENCODING, charset.name());
-			trf.transform(src, dest);
-			message = strm.toString();
-			break;
-		case "raw":
-			message = valueToRaw(in.value() );
-			break;
-		default:
-				throw new FaultException("Format " + format + " not "
-				  + "supported for operation " + in.operationName());
-	    }
-	message = topicResponsePrefix + message;
-	if( checkBooleanParameter( Parameters.DEBUG ) ){
-		Interpreter.getInstance().logInfo( "Sending " + format.toUpperCase() + " message: " + message );
+	    case "json":
+		StringBuilder jsonStringBuilder = new StringBuilder();
+		JsUtils.valueToJsonString(in.value(), true, getSendType(in),
+			jsonStringBuilder);
+		message = jsonStringBuilder.toString();
+		break;
+	    case "xml":
+		DocumentBuilder db = DocumentBuilderFactory.newInstance()
+			.newDocumentBuilder();
+		Document doc = db.newDocument();
+		Element root = doc.createElement(in.operationName());
+		doc.appendChild(root);
+		XmlUtils.valueToDocument(in.value(), root, doc);
+		Source src = new DOMSource(doc);
+		ByteArrayOutputStream strm = new ByteArrayOutputStream();
+		Result dest = new StreamResult(strm);
+		Transformer trf = TransformerFactory.newInstance()
+			.newTransformer();
+		trf.setOutputProperty(OutputKeys.ENCODING, charset.name());
+		trf.transform(src, dest);
+		message = strm.toString();
+		break;
+	    case "raw":
+		message = valueToRaw(in.value());
+		break;
+	    default:
+		throw new FaultException("Format " + format + " not "
+			+ "supported for operation " + in.operationName());
 	}
-	bb.writeBytes( message.getBytes(charset) );
+	message = topicResponsePrefix + message;
+	if (checkBooleanParameter(Parameters.DEBUG)) {
+	    Interpreter.getInstance().logInfo("Sending " + format.toUpperCase() + " message: " + message);
+	}
+	bb.writeBytes(message.getBytes(charset));
 	return bb;
     }
 
@@ -674,7 +673,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	} else if (valueObject instanceof Long) {
 	    str = ((Long) valueObject).toString();
 	}
-	
+
 	return str;
     }
 
@@ -684,87 +683,89 @@ public class MqttProtocol extends AsyncCommProtocol {
      * ******************************* REC *******************************
      */
     private Value byteBufToValue(String operationName, MqttPublishMessage in) throws Exception {
-	String msg = Unpooled.copiedBuffer( in.payload() ).toString(charset);
-	if ( checkBooleanParameter( Parameters.DEBUG ) ){
-			Interpreter.getInstance().logInfo( "Received message: " + msg );
+	String msg = Unpooled.copiedBuffer(in.payload()).toString(charset);
+	if (checkBooleanParameter(Parameters.DEBUG)) {
+	    Interpreter.getInstance().logInfo("Received message: " + msg);
 	}
 	String topicResp = null;
 	String aliasResp = "aliasResponse";
 
-	if ( channel().parentPort() instanceof InputPort && !isOneWay( operationName ) ) {
+	if (channel().parentPort() instanceof InputPort && !isOneWay(operationName)) {
 	    try {
-			if (hasOperationSpecificParameter(operationName, Parameters.ALIAS_RESPONSE)) {
-				aliasResp = getOperationSpecificStringParameter(operationName,
-					Parameters.ALIAS_RESPONSE);
-			}
-			if( msg.indexOf( Parameters.BOUNDARY ) == 0 && msg.indexOf( Parameters.BOUNDARY, 1 ) > 0 ){
-				topicResp = msg.substring( 1, msg.indexOf( Parameters.BOUNDARY, 1) );
-			}
-			msg = msg.substring( msg.indexOf( Parameters.BOUNDARY, 1 )+1, msg.length() );		
-	    } catch ( IndexOutOfBoundsException ex ) {
+		if (hasOperationSpecificParameter(operationName, Parameters.ALIAS_RESPONSE)) {
+		    aliasResp = getOperationSpecificStringParameter(operationName,
+			    Parameters.ALIAS_RESPONSE);
+		}
+		if (msg.indexOf(Parameters.BOUNDARY) == 0 && msg.indexOf(Parameters.BOUNDARY, 1) > 0) {
+		    topicResp = msg.substring(1, msg.indexOf(Parameters.BOUNDARY, 1));
+		}
+		msg = msg.substring(msg.indexOf(Parameters.BOUNDARY, 1) + 1, msg.length());
+	    } catch (IndexOutOfBoundsException ex) {
 	    }
 	}
 
 	Value v = Value.UNDEFINED_VALUE;
 
-	Type type = operationType( operationName, channel().parentPort() instanceof InputPort );
+	Type type = operationType(operationName, channel().parentPort() instanceof InputPort);
 
-	if ( msg.length() > 0 ) {
+	if (msg.length() > 0) {
 	    String format = format(operationName);
-		switch (format) {
-			case "xml":
-				DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder builder = docBuilderFactory
-				  .newDocumentBuilder();
-				InputSource src = new InputSource( new ByteBufInputStream( Unpooled.wrappedBuffer( msg.getBytes() ) ) );
-                src.setEncoding( charset.name() );
-                Document doc = builder.parse( src );
-                XmlUtils.documentToValue( doc, v );
-				break;
-			case "json":
-				JsUtils.parseJsonIntoValue(new StringReader(msg), v,
-				  checkStringParameter(	Parameters.JSON_ENCODING, "strict" ) );
-				break;
-			case "raw":
-				recv_parseMessage( msg, v, type );
-				break;
-			default:
-				throw new FaultException("Format " + format
-				  + "is not supported. Supported formats are: "
-				  + "xml, json and raw");
-			}	
-			addTopicResponse( v, aliasResp, topicResp );
-			// for XML format
-			try { v = type.cast( v ); }
-			catch ( TypeCastingException e ) {}
-	} else {
-	    v = addTopicResponse( Value.create(), aliasResp, topicResp );
+	    switch (format) {
+		case "xml":
+		    DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+		    DocumentBuilder builder = docBuilderFactory
+			    .newDocumentBuilder();
+		    InputSource src = new InputSource(new ByteBufInputStream(Unpooled.wrappedBuffer(msg.getBytes())));
+		    src.setEncoding(charset.name());
+		    Document doc = builder.parse(src);
+		    XmlUtils.documentToValue(doc, v);
+		    break;
+		case "json":
+		    JsUtils.parseJsonIntoValue(new StringReader(msg), v,
+			    checkStringParameter(Parameters.JSON_ENCODING, "strict"));
+		    break;
+		case "raw":
+		    recv_parseMessage(msg, v, type);
+		    break;
+		default:
+		    throw new FaultException("Format " + format
+			    + "is not supported. Supported formats are: "
+			    + "xml, json and raw");
+	    }
+	    addTopicResponse(v, aliasResp, topicResp);
+	    // for XML format
 	    try {
-			type.check( v );
-	    } catch ( TypeCheckingException ex1 ) {
-			v = addTopicResponse( Value.create(""), aliasResp, topicResp );
-			try {
-				type.check( v );
-			} catch ( TypeCheckingException ex2 ) {
-				v = addTopicResponse( Value.create(new ByteArray(new byte[0])), aliasResp, topicResp );
-				try {
-					type.check( v );
-				} catch ( TypeCheckingException ex3 ) {
-					v = addTopicResponse( Value.create(), aliasResp, topicResp );
-				}
-			}
+		v = type.cast(v);
+	    } catch (TypeCastingException e) {
+	    }
+	} else {
+	    v = addTopicResponse(Value.create(), aliasResp, topicResp);
+	    try {
+		type.check(v);
+	    } catch (TypeCheckingException ex1) {
+		v = addTopicResponse(Value.create(""), aliasResp, topicResp);
+		try {
+		    type.check(v);
+		} catch (TypeCheckingException ex2) {
+		    v = addTopicResponse(Value.create(new ByteArray(new byte[0])), aliasResp, topicResp);
+		    try {
+			type.check(v);
+		    } catch (TypeCheckingException ex3) {
+			v = addTopicResponse(Value.create(), aliasResp, topicResp);
+		    }
+		}
 	    }
 	}
 
 	return v;
     }
-	
-	private Value addTopicResponse( Value v, String aliasResp, String topicResp ){
-		if( topicResp != null ){
-			v.setFirstChild(aliasResp, topicResp);
-		}
-		return v;
+
+    private Value addTopicResponse(Value v, String aliasResp, String topicResp) {
+	if (topicResp != null) {
+	    v.setFirstChild(aliasResp, topicResp);
 	}
+	return v;
+    }
 
     private Type operationType(String on, boolean isRequest) {
 

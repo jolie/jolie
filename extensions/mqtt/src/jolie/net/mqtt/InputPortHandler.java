@@ -67,25 +67,25 @@ public class InputPortHandler
 	init(ctx);
 	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
-			MqttConnectReturnCode crc
-				= ((MqttConnAckMessage) in).variableHeader()
-					.connectReturnCode();
-			if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
-				mp.send_subRequest(cc);
-			}
+		MqttConnectReturnCode crc
+			= ((MqttConnAckMessage) in).variableHeader()
+				.connectReturnCode();
+		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
+		    mp.send_subRequest(cc);
+		}
 		break;
 	    case PUBLISH:
-			// TODO support wildcards and variables
-			MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
-			mp.recPub(cc, mpmIn);
-			CommMessage cmReq = mp.recv_request(mpmIn);
-			out.add(cmReq);
+		// TODO support wildcards and variables
+		MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
+		mp.recv_pub(cc, mpmIn);
+		CommMessage cmReq = mp.recv_request(mpmIn);
+		out.add(cmReq);
 		break;
 	    case PUBREC:
-			mp.handlePubrec(cc, in);
+		mp.handlePubrec(cc, in);
 		break;
 	    case PUBREL:
-			mp.handlePubrel(cc, in);
+		mp.handlePubrel(cc, in);
 		break;
 	}
     }
@@ -97,10 +97,10 @@ public class InputPortHandler
     }
 
     private void init(ChannelHandlerContext ctx) {
-		cc = ctx.channel();
-		((CommCore.ExecutionContextThread) Thread.currentThread())
-			.executionThread(cc
-				.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-		mp.checkDebug( ctx.pipeline() );
+	cc = ctx.channel();
+	((CommCore.ExecutionContextThread) Thread.currentThread())
+		.executionThread(cc
+			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+	mp.checkDebug(ctx.pipeline());
     }
 }
