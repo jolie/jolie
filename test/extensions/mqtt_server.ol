@@ -13,7 +13,8 @@ inputPort  Thermostat {
             .alias = "42/getTemperature",
             .aliasResponse = "id",
             .QoS = 2
-        }
+        };
+        .debug = true
     }
     Interfaces: ThermostatInterface
 }

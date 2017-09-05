@@ -31,7 +31,6 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 
 import java.util.List;
 
@@ -52,8 +51,8 @@ public class OutputPortHandler
     private final MqttProtocol mp;
     private Channel cc;
     private MqttPublishMessage pendingMpm;
-    private MqttSubscribeMessage pendingMsm;
     private CommMessage cmReq;
+    private MqttPublishMessage qos2pendingPublish;
 
     /**
      *
@@ -70,22 +69,6 @@ public class OutputPortHandler
 	init(ctx);
 	out.add(mp.connectMsg());
 	cmReq = CommMessage.createRequest(in.operationName(), "/", in.value());
-	/*
-	two distinct sitautions arise at thits point, each one could be in 
-	a subsituation of client connection or not.
-	The first in the case of a oneway is a send pub request, whilst in 
-	a request response situation is a send sub request followed by a 
-	send pub request, in this order.
-	 */
-	if (mp.isOneWay(in.operationName())) {
-	    MqttPublishMessage mpm = mp.pubOneWayRequest(in);
-	    pendingMpm = mpm;
-	} else {
-	    MqttSubscribeMessage msm = mp.subRequestResponseRequest(in);
-	    MqttPublishMessage mpm = mp.pubRequestResponseRequest(in);
-	    pendingMpm = mpm;
-	    pendingMsm = msm;
-	}
     }
 
     @Override
@@ -102,7 +85,7 @@ public class OutputPortHandler
 		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
 		    mp.startPing(cc.pipeline());
 		    if (mp.isOneWay(cmReq.operationName())) {
-			cc.writeAndFlush(pendingMpm);
+			cc.writeAndFlush(mp.pubOneWayRequest(cmReq));
 			if (mp.checkQoS(cmReq, MqttQoS.AT_MOST_ONCE)) {
 			    cc.writeAndFlush(new CommMessage(cmReq.id(),
 				    cmReq.operationName(), "/",
@@ -110,38 +93,49 @@ public class OutputPortHandler
 			    mp.stopPing(cc.pipeline());
 			}
 		    } else {
-				cc.writeAndFlush(pendingMsm);
-			}
+			cc.writeAndFlush(mp.subRequestResponseRequest(cmReq));
+			pendingMpm = mp.pubRequestResponseRequest(cmReq);
+		    }
 		}
 		break;
 	    case PUBLISH:
-			// TODO support wildcards and variables
-			MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
-			mp.recPub(cc, mpmIn);
-			mp.stopPing(cc.pipeline());
-			CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
-			out.add(cmResp);
+		// TODO support wildcards and variables
+		MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
+		mp.recv_pub(cc, mpmIn);
+		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
+		    qos2pendingPublish = mpmIn;
+		} else {
+		    mp.stopPing(cc.pipeline());
+		    CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
+		    out.add(cmResp);
+		}
 		break;
 	    case PUBACK:
 	    case PUBCOMP:
-			if (mp.isOneWay(cmReq.operationName())) {
-				out.add(new CommMessage(
-					cmReq.id(),
-					cmReq.operationName(),
-					"/",
-					Value.create(),
-					null));
-				mp.stopPing(cc.pipeline());
-			}
+		if (mp.isOneWay(cmReq.operationName())) {
+		    out.add(new CommMessage(
+			    cmReq.id(),
+			    cmReq.operationName(),
+			    "/",
+			    Value.create(),
+			    null));
+		    mp.stopPing(cc.pipeline());
+		}
 		break;
 	    case PUBREC:
-			mp.handlePubrec(cc, in);
+		mp.handlePubrec(cc, in);
 		break;
 	    case PUBREL:
-			mp.handlePubrel(cc, in);
+		mp.handlePubrel(cc, in);
+		if (qos2pendingPublish != null) {
+		    mp.stopPing(cc.pipeline());
+		    CommMessage cmResp = mp.recv_pubReqResp(qos2pendingPublish,
+			    cmReq);
+		    out.add(cmResp);
+		}
 		break;
 	    case SUBACK:
-			cc.write( pendingMpm );
+		cc.write(pendingMpm);
 		break;
 	}
     }
@@ -153,8 +147,8 @@ public class OutputPortHandler
 	((CommCore.ExecutionContextThread) Thread.currentThread())
 		.executionThread(cc
 			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-	
-	mp.checkDebug( ctx.pipeline() );
 
-	}
+	mp.checkDebug(ctx.pipeline());
+
+    }
 }

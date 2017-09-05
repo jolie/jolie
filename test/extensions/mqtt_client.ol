@@ -14,7 +14,8 @@ outputPort Broker {
             .format = "raw",
             .alias = "%!{id}/getTemperature",
             .aliasResponse = "%!{id}/getTempReply"
-        }
+        };
+        .debug = true
     }
     Interfaces: ThermostatInterface
 }
