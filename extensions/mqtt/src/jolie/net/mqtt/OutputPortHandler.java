@@ -34,7 +34,6 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 
 import java.util.List;
-import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -47,7 +46,7 @@ import jolie.runtime.Value;
  *
  * @author stefanopiozingaro
  */
-public class OuputPortHandler
+public class OutputPortHandler
 	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
     private final MqttProtocol mp;
@@ -60,7 +59,7 @@ public class OuputPortHandler
      *
      * @param mp MqttProtocol
      */
-    public OuputPortHandler(MqttProtocol mp) {
+    public OutputPortHandler(MqttProtocol mp) {
 	this.mp = mp;
     }
 
@@ -119,33 +118,33 @@ public class OuputPortHandler
 		}
 		break;
 	    case PUBLISH:
-		// TODO support wildcards and variables
-		MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
-		mp.recPub(cc, mpmIn);
-		mp.stopPing(cc.pipeline());
-		CommMessage cmResp = mp.pubReqResp(mpmIn, cmReq);
-		out.add(cmResp);
+			// TODO support wildcards and variables
+			MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
+			mp.recPub(cc, mpmIn);
+			mp.stopPing(cc.pipeline());
+			CommMessage cmResp = mp.pubReqResp(mpmIn, cmReq);
+			out.add(cmResp);
 		break;
 	    case PUBACK:
 	    case PUBCOMP:
-		if (mp.isOneWay(cmReq.operationName())) {
-		    out.add(new CommMessage(
-			    cmReq.id(),
-			    cmReq.operationName(),
-			    "/",
-			    Value.create(),
-			    null));
-		    mp.stopPing(cc.pipeline());
-		}
+			if (mp.isOneWay(cmReq.operationName())) {
+				out.add(new CommMessage(
+					cmReq.id(),
+					cmReq.operationName(),
+					"/",
+					Value.create(),
+					null));
+				mp.stopPing(cc.pipeline());
+			}
 		break;
 	    case PUBREC:
-		mp.handlePubrec(cc, in);
+			mp.handlePubrec(cc, in);
 		break;
 	    case PUBREL:
-		mp.handlePubrel(cc, in);
+			mp.handlePubrel(cc, in);
 		break;
 	    case SUBACK:
-		cc.writeAndFlush(pendingMpm);
+			cc.write( pendingMpm );
 		break;
 	}
     }
@@ -157,5 +156,8 @@ public class OuputPortHandler
 	((CommCore.ExecutionContextThread) Thread.currentThread())
 		.executionThread(cc
 			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-    }
+	
+	mp.checkDebug( ctx.pipeline() );
+
+	}
 }
