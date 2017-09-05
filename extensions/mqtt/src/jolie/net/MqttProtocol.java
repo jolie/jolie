@@ -24,9 +24,11 @@
 package jolie.net;
 
 import jolie.net.mqtt.InputPortHandler;
-import jolie.net.mqtt.OuputPortHandler;
+import jolie.net.mqtt.OutputPortHandler;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+
 
 import jolie.js.JsUtils;
 import jolie.xml.XmlUtils;
@@ -49,7 +51,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.mqtt.MqttConnectMessage;
 import io.netty.handler.codec.mqtt.MqttConnectPayload;
 import io.netty.handler.codec.mqtt.MqttConnectVariableHeader;
@@ -67,12 +70,9 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
-import io.netty.util.ReferenceCountUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -102,7 +102,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import jolie.Interpreter;
-import jolie.net.ports.OutputPort;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -130,29 +129,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline p) {
-
-	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+		
+//	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	p.addLast("ENCODER", MqttEncoder.INSTANCE);
 	p.addLast("DECODER", new MqttDecoder());
-	/*p.addLast(new MessageToMessageCodec<MqttMessage, MqttMessage>() {
 
-	    @Override
-	    protected void encode(ChannelHandlerContext chc, MqttMessage o, List<Object> out) throws Exception {
-		Interpreter.getInstance().logInfo(o.fixedHeader().messageType() + " ->");
-		if (channel().parentPort() instanceof OutputPort && o.fixedHeader().messageType().equals(MqttMessageType.PUBLISH)) {
-		    chc.write(o);
-		} else {
-		    out.add(o);
-		}
-	    }
-
-	    @Override
-	    protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> out) throws Exception {
-		Interpreter.getInstance().logInfo("<- " + i.fixedHeader().messageType());
-		ReferenceCountUtil.retain(i);
-		out.add(i);
-	    }
-	});*/
 	p.addLast("PING", new ChannelInboundHandlerAdapter() {
 	    @Override
 	    public void userEventTriggered(ChannelHandlerContext ctx,
@@ -179,9 +160,63 @@ public class MqttProtocol extends AsyncCommProtocol {
 	if (channel().parentPort() instanceof InputPort) {
 	    p.addLast("INPUT", new InputPortHandler(this));
 	} else {
-	    p.addLast("OUTPUT", new OuputPortHandler(this));
+	    p.addLast("OUTPUT", new OutputPortHandler(this));
 	}
     }
+	
+	public void checkDebug( ChannelPipeline p ){
+		if ( checkBooleanParameter( Parameters.DEBUG ) && p.get( "DBENCODE") == null ) {
+			p.addAfter("DECODER", "DBENCODE", new MessageToMessageEncoder<MqttMessage>() {
+				@Override
+				protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
+					String logLine = "";
+					MqttMessageType t = i.fixedHeader().messageType();
+					logLine += t + " ->";
+					if( t.equals( MqttMessageType.PUBLISH ) ){
+						logLine += "\t " + ( (MqttPublishMessage) i ).variableHeader().topicName();
+					}
+					if( t.equals( MqttMessageType.SUBSCRIBE ) ){
+						logLine += "\t ";
+						for( MqttTopicSubscription topic : ( (MqttSubscribeMessage) i ).payload().topicSubscriptions() ){
+							logLine += topic.topicName();
+						}
+					}
+				
+					if( !( t.equals( MqttMessageType.PINGRESP ) || t.equals( MqttMessageType.PINGREQ ) ) ){
+						Interpreter.getInstance().logWarning(  logLine );
+					}
+					
+					if ( channel().parentPort() instanceof OutputPort && t.equals( MqttMessageType.PUBLISH ) ){				
+						chc.write( i );
+						chc.flush();
+					} else {
+						if( channel().parentPort() instanceof InputPort && t.equals( MqttMessageType.PUBLISH ) ){
+							((MqttPublishMessage) i ).retain();
+						}
+						list.add( i );
+					}
+				}
+			});
+			p.addAfter("DBENCODE", "DBDECODE", new MessageToMessageDecoder<MqttMessage>(){
+				@Override
+				protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
+					MqttMessageType t = i.fixedHeader().messageType();
+					String logLine = "";
+					if( !(t.equals( MqttMessageType.PINGRESP ) || t.equals( MqttMessageType.PINGREQ ) ) ){
+						 logLine += " <- " + t;
+						if( t.equals( MqttMessageType.PUBLISH ) ){
+							logLine += "\t  " + ( (MqttPublishMessage) i ).variableHeader().topicName();
+						}
+						Interpreter.getInstance().logWarning( logLine );
+					}
+					if ( t.equals( MqttMessageType.PUBLISH ) ){
+						((MqttPublishMessage) i ).retain();
+					}
+					list.add( i );
+				}
+			});
+		}
+	}
 
     @Override
     public String name() {
@@ -430,7 +465,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     public void send_subRequest(Channel ch) {
 
 	startPing(ch.pipeline());
-	ch.writeAndFlush(subscribeMsg(topics()));
+	ch.writeAndFlush(subscribeMsg(topics(), qos()));
     }
 
     public MqttPublishMessage pubOneWayRequest(CommMessage in) throws Exception {
@@ -457,7 +492,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    Parameters.ALIAS_RESPONSE);
 	}
 
-	return subscribeMsg(Collections.singletonList(topic(in, a, false)));
+	return subscribeMsg(Collections.singletonList(topic(in, a, false)), qos());
     }
 
     public MqttPublishMessage pubRequestResponseRequest(CommMessage in)
@@ -536,6 +571,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	private static final String ALIAS_RESPONSE = "aliasResponse";
 	private static final String BOUNDARY = "$";
 	private static final String JSON_ENCODING = "json_encoding";
+	private static final String DEBUG = "debug";
 	private static final MqttVersion MQTT_VERSION = MqttVersion.MQTT_3_1_1;
 
     }
@@ -575,6 +611,10 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    StringBuilder jsonStringBuilder = new StringBuilder();
 	    JsUtils.valueToJsonString(in.value(), true, getSendType(in),
 		    jsonStringBuilder);
+		if( checkBooleanParameter( Parameters.DEBUG ) ){
+			Interpreter.getInstance().logWarning( "Sending JSON message: " 
+			  + jsonStringBuilder.toString() );
+	}
 	    bb = Unpooled.wrappedBuffer(jsonStringBuilder.toString()
 		    .getBytes(charset));
 	} else {
@@ -592,17 +632,23 @@ public class MqttProtocol extends AsyncCommProtocol {
 			.newTransformer();
 		trf.setOutputProperty(OutputKeys.ENCODING, charset.name());
 		trf.transform(src, dest);
+		if( checkBooleanParameter( Parameters.DEBUG ) ){
+			Interpreter.getInstance().logWarning( "Sending XML message: " + strm.toString() );
+		}	
 		bb = Unpooled.wrappedBuffer(strm.toByteArray());
 	    } else {
 		if (format.equals("raw")) {
-		    writeValue(bb, in.value());
+		    String rawMessage = valueToRaw(bb, in.value() );
+			if( checkBooleanParameter( Parameters.DEBUG ) ){
+				Interpreter.getInstance().logWarning( "Sending RAW message: " + rawMessage );
+			}
+			bb.writeBytes( rawMessage.getBytes(charset) );
 		} else {
 		    throw new FaultException("Format " + format + " not "
 			    + "supported for operation " + in.operationName());
 		}
 	    }
 	}
-
 	return bb;
     }
 
@@ -617,7 +663,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 				Parameters.FORMAT) : "raw";
     }
 
-    private void writeValue(ByteBuf out, Value value) {
+    private String valueToRaw(ByteBuf out, Value value) {
 	// TODO handle bytearray
 	Object valueObject = value.valueObject();
 	String str = null;
@@ -634,7 +680,8 @@ public class MqttProtocol extends AsyncCommProtocol {
 	} else if (valueObject instanceof Long) {
 	    str = ((Long) valueObject).toString();
 	}
-	out.writeBytes(str.getBytes(charset));
+	
+	return str;
     }
 
     /*
@@ -644,6 +691,9 @@ public class MqttProtocol extends AsyncCommProtocol {
      */
     private Value ByteBufToValue(MqttPublishMessage in) throws Exception {
 	String msg = Unpooled.copiedBuffer(in.payload()).toString(charset);
+	if ( checkBooleanParameter( Parameters.DEBUG ) ){
+			Interpreter.getInstance().logWarning( "Received message: " + msg );
+	}
 	String tr = null;
 	String ar = "aliasResponse";
 	boolean isResponse = false;
@@ -874,15 +924,15 @@ public class MqttProtocol extends AsyncCommProtocol {
 	return result.toString();
     }
 
-    private MqttSubscribeMessage subscribeMsg(List<String> topics) {
+    private MqttSubscribeMessage subscribeMsg(List<String> topics,
+	    MqttQoS subQos) {
 
 	List<MqttTopicSubscription> tmsL = new ArrayList<>();
 	for (String t : topics) {
 	    tmsL.add(new MqttTopicSubscription(t, MqttQoS.EXACTLY_ONCE));
 	}
 	MqttFixedHeader mfh = new MqttFixedHeader(
-		MqttMessageType.SUBSCRIBE, false, MqttQoS.AT_LEAST_ONCE, false,
-		0);
+		MqttMessageType.SUBSCRIBE, false, subQos, false, 0);
 	MqttMessageIdVariableHeader vh = getNewMessageId();
 	MqttSubscribePayload p = new MqttSubscribePayload(tmsL);
 
