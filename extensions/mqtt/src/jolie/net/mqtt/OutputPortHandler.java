@@ -103,18 +103,15 @@ public class OutputPortHandler
 		    mp.startPing(cc.pipeline());
 		    if (mp.isOneWay(cmReq.operationName())) {
 			cc.writeAndFlush(pendingMpm);
-			if (mp.checkQoS(pendingMpm, MqttQoS.AT_MOST_ONCE)) {
+			if (mp.checkQoS(cmReq, MqttQoS.AT_MOST_ONCE)) {
 			    cc.writeAndFlush(new CommMessage(cmReq.id(),
 				    cmReq.operationName(), "/",
 				    Value.create(), null));
 			    mp.stopPing(cc.pipeline());
 			}
 		    } else {
-			cc.writeAndFlush(pendingMsm);
-			if (mp.checkQoS(pendingMsm, MqttQoS.AT_MOST_ONCE)) {
-			    cc.writeAndFlush(pendingMpm);
+				cc.writeAndFlush(pendingMsm);
 			}
-		    }
 		}
 		break;
 	    case PUBLISH:
@@ -122,7 +119,7 @@ public class OutputPortHandler
 			MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
 			mp.recPub(cc, mpmIn);
 			mp.stopPing(cc.pipeline());
-			CommMessage cmResp = mp.pubReqResp(mpmIn, cmReq);
+			CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
 			out.add(cmResp);
 		break;
 	    case PUBACK:
