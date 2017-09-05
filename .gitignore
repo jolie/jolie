@@ -35,3 +35,4 @@ build/
 /tools/jolie2surface/nbproject/private/
 /lib/xsom/build
 /extensions/auto/nbproject/private/
+/extensions/mqtt/nbproject/private/
