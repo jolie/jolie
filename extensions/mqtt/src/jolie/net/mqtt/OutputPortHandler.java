@@ -38,6 +38,7 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
+import jolie.net.NioSocketCommChannelHandler;
 
 import jolie.runtime.Value;
 
@@ -91,6 +92,7 @@ public class OutputPortHandler
 				    cmReq.operationName(), "/",
 				    Value.create(), null));
 			    mp.stopPing(cc.pipeline());
+				cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
 			}
 		    } else {
 			cc.writeAndFlush(mp.subRequestResponseRequest(cmReq));
@@ -103,7 +105,7 @@ public class OutputPortHandler
 		MqttPublishMessage mpmIn = ((MqttPublishMessage) in);
 		mp.recv_pub(cc, mpmIn);
 		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
-		    qos2pendingPublish = mpmIn;
+		    qos2pendingPublish = mpmIn.retain(); // we retain the message as it will be used by another "channel"
 		} else {
 		    mp.stopPing(cc.pipeline());
 		    CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
@@ -136,6 +138,7 @@ public class OutputPortHandler
 		break;
 	    case SUBACK:
 		cc.write(pendingMpm);
+		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
 		break;
 	}
     }

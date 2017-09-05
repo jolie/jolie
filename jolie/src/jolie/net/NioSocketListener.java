@@ -40,6 +40,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.concurrent.Semaphore;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -111,7 +112,7 @@ public class NioSocketListener extends CommListener {
 								ctx.flush();
 							}
 						});
-						p.addLast(channel.nioSocketCommChannelHandler);
+						p.addLast( channel.nioSocketCommChannelHandler );
 						p.addLast(new ChannelInboundHandlerAdapter() {
 							@Override
 							public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
@@ -121,6 +122,7 @@ public class NioSocketListener extends CommListener {
 							}
 						});
 						ch.attr(NioSocketCommChannel.EXECUTION_CONTEXT).set(interpreter().initThread());
+						ch.attr(NioSocketCommChannel.SEND_RELEASE ).set( new Semaphore( 0 ) );
 					}
 				});
 				ChannelFuture f = b.connect().sync();

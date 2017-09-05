@@ -546,7 +546,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    CommMessage req) throws Exception {
 
 	return new CommMessage(CommMessage.GENERIC_ID,
-		req.operationName(), "/", byteBufToValue(req.operationName(), mpm), null);
+		req.operationName(), "/", byteBufToValue(req.operationName(), mpm.retain()), null);
     }
 
     /* 
@@ -683,7 +683,7 @@ public class MqttProtocol extends AsyncCommProtocol {
      * ******************************* REC *******************************
      */
     private Value byteBufToValue(String operationName, MqttPublishMessage in) throws Exception {
-	String msg = Unpooled.copiedBuffer(in.payload()).toString(charset);
+	String msg = Unpooled.wrappedBuffer(in.payload()).toString(charset);
 	if (checkBooleanParameter(Parameters.DEBUG)) {
 	    Interpreter.getInstance().logInfo("Received message: " + msg);
 	}
