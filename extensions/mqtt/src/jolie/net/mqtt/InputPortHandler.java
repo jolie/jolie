@@ -30,6 +30,7 @@ import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 
 import java.util.List;
 
@@ -47,6 +48,7 @@ public class InputPortHandler
 
     private final MqttProtocol mp;
     private Channel cc;
+    private MqttPublishMessage qos2pendingPublish;
 
     public InputPortHandler(MqttProtocol mp) {
 	this.mp = mp;
@@ -57,7 +59,8 @@ public class InputPortHandler
 	    List<Object> out) throws Exception {
 
 	init(ctx);
-	out.add(mp.send_response(in));
+	MqttPublishMessage mpm = mp.send_response(in);
+	out.add(mpm);
     }
 
     @Override
@@ -78,14 +81,23 @@ public class InputPortHandler
 		// TODO support wildcards and variables
 		MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
 		mp.recv_pub(cc, mpmIn);
-		CommMessage cmReq = mp.recv_request(mpmIn);
-		out.add(cmReq);
+		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
+		    qos2pendingPublish = mpmIn;
+		} else {
+		    CommMessage cmReq = mp.recv_request(mpmIn);
+		    out.add(cmReq);
+		}
+
 		break;
 	    case PUBREC:
 		mp.handlePubrec(cc, in);
 		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
+		if (qos2pendingPublish != null) {
+		    CommMessage cmReq = mp.recv_request(qos2pendingPublish);
+		    out.add(cmReq);
+		}
 		break;
 	}
     }
