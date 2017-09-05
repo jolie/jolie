@@ -78,7 +78,7 @@ public class InputPortHandler
 			// TODO support wildcards and variables
 			MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
 			mp.recPub(cc, mpmIn);
-			CommMessage cmReq = mp.rec_request(mpmIn);
+			CommMessage cmReq = mp.recv_request(mpmIn);
 			out.add(cmReq);
 		break;
 	    case PUBREC:
