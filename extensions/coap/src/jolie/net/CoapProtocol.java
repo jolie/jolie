@@ -17,28 +17,31 @@
 package jolie.net;
 
 import io.netty.channel.ChannelPipeline;
+
 import jolie.net.protocols.AsyncCommProtocol;
+
 import jolie.runtime.VariablePath;
 
 public class CoapProtocol extends AsyncCommProtocol {
 
     public CoapProtocol(VariablePath configurationPath) {
-        super(configurationPath);
+	super(configurationPath);
     }
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-        throw new UnsupportedOperationException("Not supported yet.");
+//	pipeline.addLast(new CoapMessageEncoder());
+//	pipeline.addLast(new CoapMessageDecoder());
     }
 
     @Override
     public String name() {
-        throw new UnsupportedOperationException("Not supported yet.");
+	throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public boolean isThreadSafe() {
-        throw new UnsupportedOperationException("Not supported yet.");
+	throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
