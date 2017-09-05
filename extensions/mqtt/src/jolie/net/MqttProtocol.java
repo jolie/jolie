@@ -660,7 +660,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     private String valueToRaw(Value value) {
 	// TODO handle bytearray
 	Object valueObject = value.valueObject();
-	String str = null;
+	String str = "";
 	if (valueObject instanceof String) {
 	    str = ((String) valueObject);
 	} else if (valueObject instanceof Integer) {
