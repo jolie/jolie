@@ -172,17 +172,21 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    p.addAfter("DECODER", "DBENCODE", new MessageToMessageEncoder<MqttMessage>() {
 		@Override
 		protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
-		    String logLine = "";
+                    String logLine = "";
+                    try {
+                        logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
+                    } catch (Exception e ){}
 		    MqttMessageType t = i.fixedHeader().messageType();
 		    logLine += t + " ->";
 		    if (t.equals(MqttMessageType.PUBLISH)) {
-			logLine += "\t " + ((MqttPublishMessage) i).variableHeader().topicName();
+			logLine += "\t topic: " + ((MqttPublishMessage) i).variableHeader().topicName();
 		    }
 		    if (t.equals(MqttMessageType.SUBSCRIBE)) {
-			logLine += "\t ";
+			logLine += "\t topics: ";
 			for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i).payload().topicSubscriptions()) {
-			    logLine += topic.topicName();
+			    logLine += topic.topicName() + ", ";
 			}
+                        logLine = logLine.substring( 0, logLine.length()-2 ); // removes the trailing ", "
 		    }
 
 		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
@@ -203,8 +207,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    p.addAfter("DBENCODE", "DBDECODE", new MessageToMessageDecoder<MqttMessage>() {
 		@Override
 		protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
-		    MqttMessageType t = i.fixedHeader().messageType();
 		    String logLine = "";
+                    try {
+                        logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
+                    } catch (Exception e ){}
+                    MqttMessageType t = i.fixedHeader().messageType();
 		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
 			logLine += " <- " + t;
 			if (t.equals(MqttMessageType.PUBLISH)) {
@@ -437,7 +444,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	ByteBuf bb = Unpooled.copiedBuffer(valueToByteBuf(in));
 	MqttQoS q = qos(in.operationName());
 
-	return publishMsg(t, bb, q);
+	return publishMsg( t, bb, q, (int) in.id() );
     }
 
     /**
@@ -474,8 +481,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    Parameters.ALIAS);
 	}
 
-	return publishMsg(topic(in, a, true), valueToByteBuf(in),
-		qos(in.operationName()));
+	return publishMsg( topic(in, a, true), valueToByteBuf(in), qos( in.operationName() ), (int) in.id() );
     }
 
     public MqttSubscribeMessage subRequestResponseRequest(CommMessage in) {
@@ -502,8 +508,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 		    Parameters.ALIAS);
 	}
 
-	return publishMsg(topic(in, a, false), valueToByteBuf(in),
-		qos(in.operationName()));
+	return publishMsg( topic( in, a, false ), valueToByteBuf( in ), qos( in.operationName() ), (int) in.id() );
     }
 
     /*
@@ -918,7 +923,7 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     private MqttPublishMessage publishMsg(String topic, ByteBuf payload,
-	    MqttQoS pubQos) {
+	    MqttQoS pubQos, int messageID) {
 
 	MqttFixedHeader mfh = new MqttFixedHeader(
 		MqttMessageType.PUBLISH,
@@ -927,7 +932,9 @@ public class MqttProtocol extends AsyncCommProtocol {
 		false,
 		0);
 	MqttPublishVariableHeader vh = new MqttPublishVariableHeader(topic,
-		getNewMessageId().messageId());
+            //getNewMessageId().messageId()
+            messageID
+        );
 
 	return new MqttPublishMessage(mfh, vh, payload);
     }
