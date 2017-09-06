@@ -29,10 +29,13 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import java.util.HashMap;
 
 import java.util.List;
+import java.util.Map;
 import jolie.Interpreter;
 
 import jolie.net.CommCore;
@@ -49,7 +52,7 @@ public class InputPortHandler
 
     private final MqttProtocol mp;
     private Channel cc;
-    private MqttPublishMessage qos2pendingPublish;
+    private final Map<Integer, MqttPublishMessage> qos2pendingPublish = new HashMap<>();
 
     public InputPortHandler(MqttProtocol mp) {
 	this.mp = mp;
@@ -58,11 +61,12 @@ public class InputPortHandler
     @Override
     protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
-
+        Interpreter.getInstance().logInfo( "INPUTPORTHANDLER: Sending response to " + in.operationName() );
 	init(ctx);
-	MqttPublishMessage mpm = mp.send_response(in);
-	if( !mpm.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)){
-		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+        // TODO: Manage faults, e.g., non-correlating messages etc. We need to match those messages with topics
+        MqttPublishMessage mpm = mp.send_response(in);
+	if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
+            cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
 	}
 	out.add(mpm);
     }
@@ -86,7 +90,7 @@ public class InputPortHandler
 		MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
 		mp.recv_pub(cc, mpmIn);
 		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
-		    qos2pendingPublish = mpmIn;
+		    qos2pendingPublish.put( mpmIn.variableHeader().messageId(), mpmIn );
 		} else {
 		    CommMessage cmReq = mp.recv_request(mpmIn);
 		    out.add(cmReq);
@@ -98,14 +102,17 @@ public class InputPortHandler
 		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
-		if (qos2pendingPublish != null) {
-		    CommMessage cmReq = mp.recv_request(qos2pendingPublish);
+                int messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+                MqttPublishMessage pendigPublishReception = qos2pendingPublish.remove( messageID );
+		if ( pendigPublishReception != null) {
+		    CommMessage cmReq = mp.recv_request( pendigPublishReception );
 		    out.add(cmReq);
 		}
-		break;
-		case PUBCOMP:
-			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
-		break;
+                break;
+            case PUBCOMP:
+                messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+                cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( messageID ).release();
+                break;
 	}
     }
 

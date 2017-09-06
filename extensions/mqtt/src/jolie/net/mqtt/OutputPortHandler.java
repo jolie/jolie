@@ -33,12 +33,12 @@ import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
 
 import java.util.List;
+import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
-import jolie.net.NioSocketCommChannelHandler;
 
 import jolie.runtime.Value;
 
@@ -69,7 +69,7 @@ public class OutputPortHandler
 
 	init(ctx);
 	out.add(mp.connectMsg());
-	cmReq = CommMessage.createRequest(in.operationName(), "/", in.value());
+        cmReq = in;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class OutputPortHandler
 				    cmReq.operationName(), "/",
 				    Value.create(), null));
 			    mp.stopPing(cc.pipeline());
-				cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+                            cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) cmReq.id() );
 			}
 		    } else {
 			cc.writeAndFlush(mp.subRequestResponseRequest(cmReq));
@@ -109,6 +109,7 @@ public class OutputPortHandler
 		} else {
 		    mp.stopPing(cc.pipeline());
 		    CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
+                    // TODO RILASCIARE IL SEMAFORO PER IL MESSAGGIO
 		    out.add(cmResp);
 		}
 		break;
@@ -138,7 +139,8 @@ public class OutputPortHandler
 		break;
 	    case SUBACK:
 		cc.write(pendingMpm);
-		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+                Interpreter.getInstance().logInfo( "Releasing semaphore for #" + pendingMpm.variableHeader().messageId() );
+		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( pendingMpm.variableHeader().messageId() ).release();
 		break;
 	}
     }

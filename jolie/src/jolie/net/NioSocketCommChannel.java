@@ -37,14 +37,17 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import jolie.Interpreter;
+import jolie.net.ports.OutputPort;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
     public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf("ExecutionContext");
     public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf("CommChannel");
-	public static AttributeKey<Semaphore> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
+    public static AttributeKey<Map<Integer, Semaphore>> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
 	
     private Bootstrap bootstrap;
     private static final int SO_LINGER = 10000;
@@ -53,7 +56,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 
     public NioSocketCommChannel(URI location, AsyncCommProtocol protocol) {
 	super(location, protocol);
-		nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
+        nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
     }
 
     public NioSocketCommChannelHandler getChannelHandler() {
@@ -74,7 +77,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 				protocol.setupPipeline(p);
 				p.addLast( channel.nioSocketCommChannelHandler);
 				ch.attr( EXECUTION_CONTEXT ).set(ethread);
-				ch.attr( SEND_RELEASE ).set( new Semaphore( 0 ) );
+				ch.attr( SEND_RELEASE ).set( new HashMap<>() );
 		    }
 		}
 		);
@@ -117,8 +120,9 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void sendImpl(CommMessage message) throws IOException {
 	try {
+            Interpreter.getInstance().logInfo( "Sending message #" + message.id() );
 	    nioSocketCommChannelHandler.write(message).sync();
-		Interpreter.getInstance().logInfo( "MESSAGE DELIVERED" );
+            Interpreter.getInstance().logInfo( "MESSAGE DELIVERED" );
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}
@@ -127,7 +131,9 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void closeImpl() throws IOException {
 	try {
-	    nioSocketCommChannelHandler.close().sync();
+            if( this.parentPort() instanceof OutputPort ){
+                nioSocketCommChannelHandler.close().sync();
+            }
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}

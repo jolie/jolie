@@ -43,6 +43,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import java.util.concurrent.Semaphore;
 
 @ChannelHandler.Sharable
 public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<CommMessage>
@@ -78,13 +79,18 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 	protected ChannelFuture write( CommMessage msg ) throws InterruptedException
 	{
 	    ChannelFuture f = this.ctx.writeAndFlush(msg);
-		ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().acquire();
-		return f;
+            Semaphore s = new Semaphore( 0 );
+            ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().put( ( (int) msg.id() ), s );
+            Interpreter.getInstance().logInfo( "Send message #" + msg.id() + " , waiting for semaphore release" );
+            s.acquire();
+            ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().remove( (int) msg.id() );
+            Interpreter.getInstance().logInfo( "Semaphore released #" + msg.id() );
+            return f;
 	}
 
 	protected ChannelFuture close()
 	{
-		return ctx.close();
+            return ctx.close();
 	}
 
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
