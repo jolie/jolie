@@ -38,7 +38,6 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
-import jolie.net.NioSocketCommChannelHandler;
 
 import jolie.runtime.Value;
 
@@ -60,23 +59,23 @@ public class OutputPortHandler
      * @param mp MqttProtocol
      */
     public OutputPortHandler(MqttProtocol mp) {
-	this.mp = mp;
+		this.mp = mp;
     }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
 
-	init(ctx);
-	out.add(mp.connectMsg());
-	cmReq = CommMessage.createRequest(in.operationName(), "/", in.value());
+		init(ctx);
+		out.add(mp.connectMsg());
+		cmReq = in;
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, MqttMessage in,
 	    List<Object> out) throws Exception {
 
-	init(ctx);
+//	init(ctx);
 
 	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
@@ -92,7 +91,8 @@ public class OutputPortHandler
 				    cmReq.operationName(), "/",
 				    Value.create(), null));
 			    mp.stopPing(cc.pipeline());
-				cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+//				Interpreter.getInstance().logInfo( "Releasing semaphore for #" + cmReq.id() );
+				cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) cmReq.id() );
 			}
 		    } else {
 			cc.writeAndFlush(mp.subRequestResponseRequest(cmReq));
@@ -109,6 +109,7 @@ public class OutputPortHandler
 		} else {
 		    mp.stopPing(cc.pipeline());
 		    CommMessage cmResp = mp.recv_pubReqResp(mpmIn, cmReq);
+                    // TODO RELEASE SEMAPHORE
 		    out.add(cmResp);
 		}
 		break;
@@ -131,18 +132,18 @@ public class OutputPortHandler
 		mp.handlePubrel(cc, in);
 		if (qos2pendingPublish != null) {
 		    mp.stopPing(cc.pipeline());
-		    CommMessage cmResp = mp.recv_pubReqResp(qos2pendingPublish,
-			    cmReq);
-		    out.add(cmResp);
+		    CommMessage cmResp = mp.recv_pubReqResp(qos2pendingPublish, cmReq);
+			out.add(cmResp);
 		}
 		break;
 	    case SUBACK:
 		cc.write(pendingMpm);
-		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
+//		Interpreter.getInstance().logInfo( "Releasing semaphore for #" + pendingMpm.variableHeader().messageId() );
+		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( pendingMpm.variableHeader().messageId() ).release();
 		break;
 	}
     }
-
+	
     private void init(ChannelHandlerContext ctx) {
 
 	cc = ctx.channel();

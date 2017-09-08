@@ -29,11 +29,13 @@ import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import java.util.HashMap;
 
 import java.util.List;
-import jolie.Interpreter;
+import java.util.Map;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -49,7 +51,7 @@ public class InputPortHandler
 
     private final MqttProtocol mp;
     private Channel cc;
-    private MqttPublishMessage qos2pendingPublish;
+    private final Map<Integer, MqttPublishMessage> qos2pendingPublish = new HashMap<>();
 
     public InputPortHandler(MqttProtocol mp) {
 	this.mp = mp;
@@ -58,20 +60,19 @@ public class InputPortHandler
     @Override
     protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
-
-	init(ctx);
-	MqttPublishMessage mpm = mp.send_response(in);
-	if( !mpm.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)){
-		cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
-	}
-	out.add(mpm);
+        // TODO: Manage faults, e.g., non-correlating messages etc. We need to match those messages with topics
+		MqttPublishMessage mpm = mp.send_response( in );
+		if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
+			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
+		}
+		out.add(mpm);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, MqttMessage in,
 	    List<Object> out) throws Exception {
 
-	init(ctx);
+//	init(ctx);
 	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
 		MqttConnectReturnCode crc
@@ -86,7 +87,7 @@ public class InputPortHandler
 		MqttPublishMessage mpmIn = ((MqttPublishMessage) in).copy();
 		mp.recv_pub(cc, mpmIn);
 		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
-		    qos2pendingPublish = mpmIn;
+		    qos2pendingPublish.put( mpmIn.variableHeader().messageId(), mpmIn );
 		} else {
 		    CommMessage cmReq = mp.recv_request(mpmIn);
 		    out.add(cmReq);
@@ -98,28 +99,41 @@ public class InputPortHandler
 		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
-		if (qos2pendingPublish != null) {
-		    CommMessage cmReq = mp.recv_request(qos2pendingPublish);
+                int messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+                MqttPublishMessage pendigPublishReception = qos2pendingPublish.remove( messageID );
+		if ( pendigPublishReception != null) {
+		    CommMessage cmReq = mp.recv_request( pendigPublishReception );
 		    out.add(cmReq);
 		}
-		break;
-		case PUBCOMP:
-			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().release();
-		break;
+                break;
+            case PUBCOMP:
+                messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+                cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( messageID ).release();
+                break;
 	}
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-	init(ctx);
-	cc.writeAndFlush(mp.connectMsg());
+		cc = ctx.channel();
+		((CommCore.ExecutionContextThread) Thread.currentThread())
+			.executionThread(cc
+				.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+		cc.writeAndFlush(mp.connectMsg());
+		mp.checkDebug(ctx.pipeline());
     }
 
-    private void init(ChannelHandlerContext ctx) {
-	cc = ctx.channel();
-	((CommCore.ExecutionContextThread) Thread.currentThread())
-		.executionThread(cc
-			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-	mp.checkDebug(ctx.pipeline());
-    }
+//	@Override
+//	public void channelRegistered( ChannelHandlerContext ctx ){
+//		cc = ctx.channel();
+//		((CommCore.ExecutionContextThread) Thread.currentThread())
+//			.executionThread(cc
+//				.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+//		cc.writeAndFlush(mp.connectMsg());
+//		mp.checkDebug(ctx.pipeline());
+//	}
+	
+//    private void init(ChannelHandlerContext ctx) {
+//	cc = ctx.channel();
+//    }
 }
