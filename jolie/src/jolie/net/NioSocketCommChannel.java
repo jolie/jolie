@@ -40,7 +40,6 @@ import io.netty.util.AttributeKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
-import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
@@ -60,7 +59,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     }
 
     public NioSocketCommChannelHandler getChannelHandler() {
-	return nioSocketCommChannelHandler;
+		return nioSocketCommChannelHandler;
     }
 
     public static NioSocketCommChannel CreateChannel(URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup) {
@@ -94,7 +93,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	// This is blocking to integrate with existing CommCore and ExecutionThreads.
 	try {
 	    if (waitingForMsg != null) {
-		throw new UnsupportedOperationException("Waiting for multiple messages is currently not supported!");
+			throw new UnsupportedOperationException("Waiting for multiple messages is currently not supported!");
 	    }
 	    waitingForMsg = new CompletableFuture<>();
 	    CommMessage msg = waitingForMsg.get();
@@ -120,9 +119,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void sendImpl(CommMessage message) throws IOException {
 	try {
-            Interpreter.getInstance().logInfo( "Sending message #" + message.id() );
-	    nioSocketCommChannelHandler.write(message).sync();
-            Interpreter.getInstance().logInfo( "MESSAGE DELIVERED" );
+		nioSocketCommChannelHandler.write(message).sync();
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}
@@ -131,9 +128,11 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void closeImpl() throws IOException {
 	try {
-            if( this.parentPort() instanceof OutputPort ){
-                nioSocketCommChannelHandler.close().sync();
-            }
+		if( !protocol().name().equals("mqtt") ){
+			nioSocketCommChannelHandler.close().sync();
+		} else if ( this.parentPort() instanceof OutputPort ){
+			nioSocketCommChannelHandler.close().sync();
+		}
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}

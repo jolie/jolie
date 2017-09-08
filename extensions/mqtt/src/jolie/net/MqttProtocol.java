@@ -168,50 +168,19 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     public void checkDebug(ChannelPipeline p) {
-	if (checkBooleanParameter(Parameters.DEBUG) && p.get("DBENCODE") == null) {
-	    p.addAfter("DECODER", "DBENCODE", new MessageToMessageEncoder<MqttMessage>() {
-		@Override
-		protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
-                    String logLine = "";
-                    try {
-                        logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
-                    } catch (Exception e ){}
-		    MqttMessageType t = i.fixedHeader().messageType();
-		    logLine += t + " ->";
-		    if (t.equals(MqttMessageType.PUBLISH)) {
-			logLine += "\t topic: " + ((MqttPublishMessage) i).variableHeader().topicName();
-		    }
-		    if (t.equals(MqttMessageType.SUBSCRIBE)) {
-			logLine += "\t topics: ";
-			for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i).payload().topicSubscriptions()) {
-			    logLine += topic.topicName() + ", ";
-			}
-                        logLine = logLine.substring( 0, logLine.length()-2 ); // removes the trailing ", "
-		    }
-
-		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
-			Interpreter.getInstance().logInfo(logLine);
-		    }
-
-		    if (channel().parentPort() instanceof OutputPort && t.equals(MqttMessageType.PUBLISH)) {
-			chc.write(i);
-			chc.flush();
-		    } else {
-			if (channel().parentPort() instanceof InputPort && t.equals(MqttMessageType.PUBLISH)) {
-			    ((MqttPublishMessage) i).retain();
-			}
-			list.add(i);
-		    }
-		}
-	    });
-	    p.addAfter("DBENCODE", "DBDECODE", new MessageToMessageDecoder<MqttMessage>() {
+	if (checkBooleanParameter(Parameters.DEBUG) ) {
+	    p.addAfter("DECODER", "DBDecode", new MessageToMessageDecoder<MqttMessage>() {
 		@Override
 		protected void decode(ChannelHandlerContext chc, MqttMessage i, List<Object> list) throws Exception {
 		    String logLine = "";
-                    try {
-                        logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
-                    } catch (Exception e ){}
-                    MqttMessageType t = i.fixedHeader().messageType();
+			try {
+				logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
+			} catch (Exception e ){
+				if( i instanceof MqttPublishMessage){
+					logLine = "#" + ((MqttPublishMessage) i).variableHeader().messageId() + " ";
+				}
+			}
+			MqttMessageType t = i.fixedHeader().messageType();
 		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
 			logLine += " <- " + t;
 			if (t.equals(MqttMessageType.PUBLISH)) {
@@ -220,9 +189,48 @@ public class MqttProtocol extends AsyncCommProtocol {
 			Interpreter.getInstance().logInfo(logLine);
 		    }
 		    if (t.equals(MqttMessageType.PUBLISH)) {
-			((MqttPublishMessage) i).retain();
+				((MqttPublishMessage) i).retain();
 		    }
 		    list.add(i);
+		}
+	    });
+		p.addAfter("DECODER", "DBEncode", new MessageToMessageEncoder<MqttMessage>() {
+		@Override
+		protected void encode(ChannelHandlerContext chc, MqttMessage i, List list) throws Exception {
+			String logLine = "";
+			try {
+				logLine = "#" + ((MqttMessageIdVariableHeader) i.variableHeader()).messageId() + " ";
+			} catch (Exception e ){
+				if( i instanceof MqttPublishMessage){
+					logLine = "#" + ((MqttPublishMessage) i).variableHeader().messageId() + " ";
+				}
+			}
+		    MqttMessageType t = i.fixedHeader().messageType();
+		    logLine += t + " ->";
+		    if (t.equals(MqttMessageType.PUBLISH)) {
+				logLine += "\t topic: " + ((MqttPublishMessage) i).variableHeader().topicName();
+		    }
+		    if (t.equals(MqttMessageType.SUBSCRIBE)) {
+			logLine += "\t topics: ";
+			for (MqttTopicSubscription topic : ((MqttSubscribeMessage) i).payload().topicSubscriptions()) {
+			    logLine += topic.topicName() + ", ";
+			}
+				logLine = logLine.substring( 0, logLine.length()-2 ); // removes the trailing ", "
+		    }
+
+		    if (!(t.equals(MqttMessageType.PINGRESP) || t.equals(MqttMessageType.PINGREQ))) {
+			Interpreter.getInstance().logInfo(logLine);
+		    }
+
+		    if (channel().parentPort() instanceof OutputPort && t.equals(MqttMessageType.PUBLISH)) {
+				chc.write(i);
+				chc.flush();
+		    } else {
+			if (channel().parentPort() instanceof InputPort && t.equals(MqttMessageType.PUBLISH)) {
+			    ((MqttPublishMessage) i).retain();
+			}
+			list.add(i);
+		    }
 		}
 	    });
 	}
@@ -230,8 +238,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     @Override
     public String name() {
-
-	return "mqtt";
+		return "mqtt";
     }
 
     @Override
@@ -299,7 +306,9 @@ public class MqttProtocol extends AsyncCommProtocol {
     }
 
     public void stopPing(ChannelPipeline p) {
-	p.remove("IDLE_STATE");
+		if ( p.get( "IDLE_STATE") != null ){
+			p.remove("IDLE_STATE");
+		}
     }
 
     /**
@@ -518,9 +527,9 @@ public class MqttProtocol extends AsyncCommProtocol {
 
 	if (channel().parentPort() instanceof OutputPort) {
 	    if (topic.equals(topicResponse)) {
-		return operationResponse;
+			return operationResponse;
 	    } else {
-		return topic;
+			return topic;
 	    }
 	} else {
 	    if (configurationPath().getValue().hasChildren("osc")) {
@@ -549,10 +558,10 @@ public class MqttProtocol extends AsyncCommProtocol {
 
     public CommMessage recv_pubReqResp(MqttPublishMessage mpm,
 	    CommMessage req) throws Exception {
-
-	return new CommMessage(CommMessage.GENERIC_ID,
-		req.operationName(), "/", byteBufToValue(req.operationName(), mpm.retain()), null);
-    }
+		return new CommMessage(CommMessage.GENERIC_ID,
+			req.operationName(), "/", byteBufToValue(req.operationName(), mpm.retain()), null);
+    
+	}
 
     /* 
      * ******************************* PARAM *******************************
@@ -709,7 +718,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 	    }
 	}
 
-	Value v = Value.UNDEFINED_VALUE;
+	Value v = Value.create();
 
 	Type type = operationType(operationName, channel().parentPort() instanceof InputPort);
 
@@ -761,7 +770,7 @@ public class MqttProtocol extends AsyncCommProtocol {
 		}
 	    }
 	}
-
+	
 	return v;
     }
 

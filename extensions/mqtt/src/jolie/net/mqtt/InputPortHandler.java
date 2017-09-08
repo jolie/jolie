@@ -36,7 +36,6 @@ import java.util.HashMap;
 
 import java.util.List;
 import java.util.Map;
-import jolie.Interpreter;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -61,21 +60,19 @@ public class InputPortHandler
     @Override
     protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
-        Interpreter.getInstance().logInfo( "INPUTPORTHANDLER: Sending response to " + in.operationName() );
-	init(ctx);
         // TODO: Manage faults, e.g., non-correlating messages etc. We need to match those messages with topics
-        MqttPublishMessage mpm = mp.send_response(in);
-	if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
-            cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
-	}
-	out.add(mpm);
+		MqttPublishMessage mpm = mp.send_response( in );
+		if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
+			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
+		}
+		out.add(mpm);
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, MqttMessage in,
 	    List<Object> out) throws Exception {
 
-	init(ctx);
+//	init(ctx);
 	switch (in.fixedHeader().messageType()) {
 	    case CONNACK:
 		MqttConnectReturnCode crc
@@ -118,15 +115,25 @@ public class InputPortHandler
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-	init(ctx);
-	cc.writeAndFlush(mp.connectMsg());
+		cc = ctx.channel();
+		((CommCore.ExecutionContextThread) Thread.currentThread())
+			.executionThread(cc
+				.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+		cc.writeAndFlush(mp.connectMsg());
+		mp.checkDebug(ctx.pipeline());
     }
 
-    private void init(ChannelHandlerContext ctx) {
-	cc = ctx.channel();
-	((CommCore.ExecutionContextThread) Thread.currentThread())
-		.executionThread(cc
-			.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
-	mp.checkDebug(ctx.pipeline());
-    }
+//	@Override
+//	public void channelRegistered( ChannelHandlerContext ctx ){
+//		cc = ctx.channel();
+//		((CommCore.ExecutionContextThread) Thread.currentThread())
+//			.executionThread(cc
+//				.attr(NioSocketCommChannel.EXECUTION_CONTEXT).get());
+//		cc.writeAndFlush(mp.connectMsg());
+//		mp.checkDebug(ctx.pipeline());
+//	}
+	
+//    private void init(ChannelHandlerContext ctx) {
+//	cc = ctx.channel();
+//    }
 }
