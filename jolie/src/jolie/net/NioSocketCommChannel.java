@@ -37,14 +37,16 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
-import jolie.Interpreter;
+import jolie.net.ports.OutputPort;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
     public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf("ExecutionContext");
     public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf("CommChannel");
-	public static AttributeKey<Semaphore> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
+    public static AttributeKey<Map<Integer, Semaphore>> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
 	
     private Bootstrap bootstrap;
     private static final int SO_LINGER = 10000;
@@ -53,11 +55,11 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 
     public NioSocketCommChannel(URI location, AsyncCommProtocol protocol) {
 	super(location, protocol);
-		nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
+        nioSocketCommChannelHandler = new NioSocketCommChannelHandler(this);
     }
 
     public NioSocketCommChannelHandler getChannelHandler() {
-	return nioSocketCommChannelHandler;
+		return nioSocketCommChannelHandler;
     }
 
     public static NioSocketCommChannel CreateChannel(URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup) {
@@ -74,7 +76,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 				protocol.setupPipeline(p);
 				p.addLast( channel.nioSocketCommChannelHandler);
 				ch.attr( EXECUTION_CONTEXT ).set(ethread);
-				ch.attr( SEND_RELEASE ).set( new Semaphore( 0 ) );
+				ch.attr( SEND_RELEASE ).set( new HashMap<>() );
 		    }
 		}
 		);
@@ -91,7 +93,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 	// This is blocking to integrate with existing CommCore and ExecutionThreads.
 	try {
 	    if (waitingForMsg != null) {
-		throw new UnsupportedOperationException("Waiting for multiple messages is currently not supported!");
+			throw new UnsupportedOperationException("Waiting for multiple messages is currently not supported!");
 	    }
 	    waitingForMsg = new CompletableFuture<>();
 	    CommMessage msg = waitingForMsg.get();
@@ -117,8 +119,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void sendImpl(CommMessage message) throws IOException {
 	try {
-	    nioSocketCommChannelHandler.write(message).sync();
-		Interpreter.getInstance().logInfo( "MESSAGE DELIVERED" );
+		nioSocketCommChannelHandler.write(message).sync();
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}
@@ -127,7 +128,11 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void closeImpl() throws IOException {
 	try {
-	    nioSocketCommChannelHandler.close().sync();
+		if( !protocol().name().equals("mqtt") ){
+			nioSocketCommChannelHandler.close().sync();
+		} else if ( this.parentPort() instanceof OutputPort ){
+			nioSocketCommChannelHandler.close().sync();
+		}
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}

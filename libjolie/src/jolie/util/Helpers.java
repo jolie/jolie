@@ -82,16 +82,17 @@ public class Helpers
 	public static <T extends Throwable> void lockAndThen( ReentrantLock lock, ExceptionalRunnable<T> code )
 		throws T
 	{
-		if ( lock.isHeldByCurrentThread() ) {
-			code.run();
-		} else {
-			lock.lock();
-			try {
-				code.run();
-			} finally {
-				lock.unlock();
-			}
-		}
+		code.run();
+//		if ( lock.isHeldByCurrentThread() ) {
+//			code.run();
+//		} else {
+//			lock.lock();
+//			try {
+//				code.run();
+//			} finally {
+//				lock.unlock();
+//			}
+//		}
 	}
 	
 	/**

@@ -43,6 +43,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import java.util.concurrent.Semaphore;
 
 @ChannelHandler.Sharable
 public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<CommMessage>
@@ -64,27 +65,38 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 		super.channelRegistered( ctx );
 		this.ctx = ctx;
 	}
-
+	
 	@Override
 	protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg ) throws Exception
 	{
 		if( channel.parentPort() instanceof OutputPort ){
-            this.channel.receiveResponse( msg );
-        } else {
-            messageRecv( msg );
-        }
+			this.channel.receiveResponse( msg );
+		} else {
+			messageRecv( msg );
+		}
+	}
+	
+	private boolean isMqttProtocol(){
+		return channel.protocol().name().equals("mqtt");
 	}
 
 	protected ChannelFuture write( CommMessage msg ) throws InterruptedException
 	{
-	    ChannelFuture f = this.ctx.writeAndFlush(msg);
-		ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().acquire();
+		Semaphore s = new Semaphore( 0 );
+		if( isMqttProtocol() ) {
+			ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().put( ( (int) msg.id() ), s );
+		}
+		ChannelFuture f  = this.ctx.writeAndFlush( msg ).sync();
+		if( isMqttProtocol() ){
+			s.acquire();
+			ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().remove( (int) msg.id() );
+		}
 		return f;
 	}
 
 	protected ChannelFuture close()
 	{
-		return ctx.close();
+            return ctx.close();
 	}
 
 	private final ReadWriteLock channelHandlersLock = new ReentrantReadWriteLock( true );
@@ -262,5 +274,4 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 			}
 		}
 	}
-
 };
