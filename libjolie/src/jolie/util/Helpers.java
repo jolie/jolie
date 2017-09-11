@@ -109,16 +109,16 @@ public class Helpers
 		throws T
 	{
 		final R ret;
-		if ( lock.isHeldByCurrentThread() ) {
-			ret = code.call();
-		} else {
-			lock.lock();
-			try {
+//		if ( lock.isHeldByCurrentThread() ) {
+//			ret = code.call();
+//		} else {
+//			lock.lock();
+//			try {
 				ret = code.call();
-			} finally {
-				lock.unlock();
-			}
-		}
+//			} finally {
+//				lock.unlock();
+//			}
+//		}
 		return ret;
 	}
 }

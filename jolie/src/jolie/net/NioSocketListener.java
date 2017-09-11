@@ -26,6 +26,7 @@ import jolie.net.protocols.CommProtocol;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -86,47 +87,55 @@ public class NioSocketListener extends CommListener {
 	public void removeResponseChannel() {
 		responseChannels.readLock().unlock();
 	}
-
+	
+	public Channel createNewPubSubChannel( ChannelDuplexHandler dh ) throws InterruptedException{
+		Thread.sleep(100);
+		URI broker = URI.create(inputPort().protocolConfigurationPath().getValue().getFirstChild("broker").strValue());
+		Bootstrap b = new Bootstrap()
+		.group(workerGroup)
+		.channel(NioSocketChannel.class)
+		.remoteAddress(new InetSocketAddress(broker.getHost(), broker.getPort()))
+		.handler(new ChannelInitializer() {
+			@Override
+			protected void initChannel(Channel ch) throws Exception {
+				AsyncCommProtocol mp = (AsyncCommProtocol) createProtocol();
+				NioSocketCommChannel channel = new NioSocketCommChannel(broker, mp);
+				channel.setParentInputPort(inputPort());
+				ChannelPipeline p = ch.pipeline();
+				mp.setupPipeline(ch.pipeline());
+				if( dh != null ){
+					p.replace( "INPUT", dh.toString(), dh );
+				}
+				p.addFirst(new ChannelOutboundHandlerAdapter() {
+					@Override
+					public void flush(ChannelHandlerContext ctx) throws Exception {
+						ctx.flush();
+					}
+				});
+				p.addLast( channel.nioSocketCommChannelHandler );
+				p.addLast(new ChannelInboundHandlerAdapter() {
+					@Override
+					public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+						cause.printStackTrace();
+						ctx.close();
+						//serverChannel.close();
+					}
+				});
+				ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set(interpreter().initThread());
+				ch.attr( NioSocketCommChannel.SEND_RELEASE ).set( new HashMap<>() );
+			}
+		});
+		ChannelFuture f = b.connect().sync();
+		return f.channel();
+	}
+	
 	@Override
 	public void run() {
 
 		try {
 			if (protocolFactory.getClass().getName().toLowerCase().contains("mqtt")) {
-				Thread.sleep(100);
-				URI broker = URI.create(inputPort().protocolConfigurationPath().getValue().getFirstChild("broker").strValue());
-				Bootstrap b = new Bootstrap()
-				.group(workerGroup)
-				.channel(NioSocketChannel.class)
-				.remoteAddress(new InetSocketAddress(broker.getHost(), broker.getPort()))
-				.handler(new ChannelInitializer() {
-					@Override
-					protected void initChannel(Channel ch) throws Exception {
-						AsyncCommProtocol mp = (AsyncCommProtocol) createProtocol();
-						NioSocketCommChannel channel = new NioSocketCommChannel(broker, mp);
-						channel.setParentInputPort(inputPort());
-						ChannelPipeline p = ch.pipeline();
-						mp.setupPipeline(ch.pipeline());
-						p.addFirst(new ChannelOutboundHandlerAdapter() {
-							@Override
-							public void flush(ChannelHandlerContext ctx) throws Exception {
-								ctx.flush();
-							}
-						});
-						p.addLast( channel.nioSocketCommChannelHandler );
-						p.addLast(new ChannelInboundHandlerAdapter() {
-							@Override
-							public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-								cause.printStackTrace();
-								ctx.close();
-								serverChannel.close();
-							}
-						});
-						ch.attr( NioSocketCommChannel.EXECUTION_CONTEXT ).set(interpreter().initThread());
-                                                ch.attr( NioSocketCommChannel.SEND_RELEASE ).set( new HashMap<>() );
-					}
-				});
-				ChannelFuture f = b.connect().sync();
-				serverChannel = f.channel();
+				serverChannel = createNewPubSubChannel( null );
+				serverChannel.attr( NioSocketCommChannel.LISTENER ).set( this );
 				serverChannel.closeFuture().sync();
 			} else {
 				bootstrap.group(bossGroup, workerGroup)
