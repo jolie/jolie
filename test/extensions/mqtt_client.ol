@@ -6,12 +6,6 @@ interface ThermostatInterface {
   RequestResponse: getTmp( TmpType )( int ), getTmp1( TmpType )( int )
 }
 
-// outputPort Broker {
-//   Location: "socket://localhost:9000"
-//   Protocol: sodep
-//   Interfaces: ThermostatInterface
-// }
-
 outputPort Broker {
     Location: "socket://localhost:1883"
     Protocol: mqtt {
