@@ -40,13 +40,14 @@ import io.netty.util.AttributeKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
-import jolie.net.ports.OutputPort;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 
     public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT = AttributeKey.valueOf("ExecutionContext");
     public static AttributeKey<CommChannel> COMMCHANNEL = AttributeKey.valueOf("CommChannel");
     public static AttributeKey<Map<Integer, Semaphore>> SEND_RELEASE = AttributeKey.valueOf("SendRelease");
+		public static AttributeKey<NioSocketListener> LISTENER = AttributeKey.valueOf("Listener");
+
 	
     private Bootstrap bootstrap;
     private static final int SO_LINGER = 10000;
@@ -61,6 +62,8 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     public NioSocketCommChannelHandler getChannelHandler() {
 		return nioSocketCommChannelHandler;
     }
+		
+		
 
     public static NioSocketCommChannel CreateChannel(URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup) {
 	ExecutionThread ethread = ExecutionThread.currentThread();
@@ -128,11 +131,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
     @Override
     protected void closeImpl() throws IOException {
 	try {
-		if( !protocol().name().equals("mqtt") ){
 			nioSocketCommChannelHandler.close().sync();
-		} else if ( this.parentPort() instanceof OutputPort ){
-			nioSocketCommChannelHandler.close().sync();
-		}
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}

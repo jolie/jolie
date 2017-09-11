@@ -46,29 +46,33 @@ import jolie.net.NioSocketCommChannel;
  *
  * @author stefanopiozingaro
  */
-public class InputPortHandler
+public class RequestResponseHandler
 	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
     private final MqttProtocol mp;
     private Channel cc;
     private final Map<Integer, MqttPublishMessage> qos2pendingPublish = new HashMap<>();
+		private String topicResponse = "";
 
-    public InputPortHandler(MqttProtocol mp) {
-	this.mp = mp;
+    public RequestResponseHandler(MqttProtocol mp) {
+		this.mp = mp;
     }
+		
+		public RequestResponseHandler setTopicResponse( String topicResponse ){
+			this.topicResponse = topicResponse;
+			return this;
+		}
 
     @Override
     protected void encode(ChannelHandlerContext ctx, CommMessage in,
 	    List<Object> out) throws Exception {
-			System.out.println( "Ricevuta la send per una oneway?" + mp.isOneWay( in.operationName() ) );
-			
         // TODO: Manage faults, e.g., non-correlating messages etc. We need to match those messages with topics
-//		MqttPublishMessage mpm = mp.send_response( in );
-//		if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
-//			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
-//		}
-//		
-//		out.add(mpm);
+		MqttPublishMessage mpm = mp.send_response( in, topicResponse );
+		if( !mpm.fixedHeader().qosLevel().equals( MqttQoS.EXACTLY_ONCE ) || in.isFault() ){
+			cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( (int) in.id() ).release();
+		}
+		
+		out.add(mpm);
     }
 
     @Override
@@ -81,9 +85,9 @@ public class InputPortHandler
 		MqttConnectReturnCode crc
 			= ((MqttConnAckMessage) in).variableHeader()
 				.connectReturnCode();
-		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
-		    mp.send_subRequest(cc);
-		}
+//		if (crc.equals(MqttConnectReturnCode.CONNECTION_ACCEPTED)) {
+//		    mp.send_subRequest(cc);
+//		}
 		break;
 	    case PUBLISH:
 		// TODO support wildcards and variables
@@ -92,8 +96,8 @@ public class InputPortHandler
 		if (mpmIn.fixedHeader().qosLevel().equals(MqttQoS.EXACTLY_ONCE)) {
 		    qos2pendingPublish.put( mpmIn.variableHeader().messageId(), mpmIn );
 		} else {
-				forwardRequest(ctx, out, mpmIn);
-//		    out.add(cmReq);
+		    CommMessage cmReq = mp.recv_request(mpmIn);
+		    out.add(cmReq);
 		}
 
 		break;
@@ -102,18 +106,19 @@ public class InputPortHandler
 		break;
 	    case PUBREL:
 		mp.handlePubrel(cc, in);
-                int messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
-                MqttPublishMessage pendigPublishReception = qos2pendingPublish.remove( messageID );
-		if ( pendigPublishReception != null) {
-//		    CommMessage cmReq = mp.recv_request( pendigPublishReception );
-				forwardRequest(ctx, out, pendigPublishReception);
-//		    out.add(cmReq);
-		}
-                break;
-            case PUBCOMP:
-//                messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
-//                cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( messageID ).release();
-                break;
+			int messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+			MqttPublishMessage pendigPublishReception = qos2pendingPublish.remove( messageID );
+			if ( pendigPublishReception != null) {
+				CommMessage cmReq = mp.recv_request( pendigPublishReception );
+		    out.add(cmReq);
+			}
+			break;
+		case PUBCOMP:
+			messageID = ( (MqttMessageIdVariableHeader) in.variableHeader() ).messageId();
+			if( cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( messageID ) != null ){
+				cc.attr( NioSocketCommChannel.SEND_RELEASE ).get().get( messageID ).release();
+			}
+			break;
 	}
     }
 
@@ -127,19 +132,6 @@ public class InputPortHandler
 		mp.checkDebug(ctx.pipeline());
     }
 		
-		private void forwardRequest( ChannelHandlerContext ctx, List<Object> out, MqttPublishMessage m ) throws InterruptedException, Exception{
-			CommMessage cm = mp.recv_request( m );
-			if( mp.isOneWay( cm.operationName() ) ){
-				out.add( cm );
-			} else {
-				Channel c = ctx.channel().attr( NioSocketCommChannel.LISTENER ).get().createNewPubSubChannel( 
-					new RequestResponseHandler( mp ).setTopicResponse( mp.extractTopicResponse( m ) )
-				);
-				c.pipeline().fireChannelRead( m );
-			}
-			
-		}
-
 //	@Override
 //	public void channelRegistered( ChannelHandlerContext ctx ){
 //		cc = ctx.channel();
