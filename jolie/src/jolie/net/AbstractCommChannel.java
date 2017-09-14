@@ -1,163 +1,186 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>          *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
+/*******************************************************************************
+ *   Copyright (C) 2009 by Fabrizio Montesi <famontesi@gmail.com>              *
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU Library General Public License as           *
+ *   published by the Free Software Foundation; either version 2 of the        *
+ *   License, or (at your option) any later version.                           *
+ *                                                                             *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU Library General Public         *
+ *   License along with this program; if not, write to the                     *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ *                                                                             *
+ *   For details about the authors of this software, see the AUTHORS file.     *
+ *******************************************************************************/
 
 package jolie.net;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import jolie.ExecutionThread;
-import jolie.Interpreter;
-import jolie.lang.Constants;
-import jolie.runtime.FaultException;
-import jolie.runtime.TimeoutHandler;
-import jolie.runtime.Value;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public abstract class AbstractCommChannel extends CommChannel
-{
-	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
+public abstract class AbstractCommChannel extends CommChannel {
 
-	private final Map< Long, CommMessage > pendingResponses = new HashMap<>();
-	private final Map< Long, ResponseContainer > waiters = new HashMap<>();
-	private final List< CommMessage > pendingGenericResponses = new LinkedList<>();
+    private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
-	private final Object responseRecvMutex = new Object();
+//    private final Map< Long, CommMessage> pendingResponses = new ConcurrentHashMap<>();
+//    private final Map< Long, ResponseContainer> waiters = new ConcurrentHashMap<>();
+//    private final Queue< CommMessage> pendingGenericResponses = new ConcurrentLinkedQueue<>();
+//
+//    private final Object responseRecvMutex = new Object();
+//
+//    private static class ResponseContainer {
+//
+//        private ResponseContainer() {
+//        }
+//        private CommMessage response = null;
+//    }
+    private final CompletableFuture< CommMessage> futureRequest = new CompletableFuture<>();
+    private final CompletableFuture< CommMessage> futureResponse = new CompletableFuture<>();
 
-	private static class ResponseContainer
-	{
-		private ResponseContainer() {}
-		private CommMessage response = null;
-	}
+    @Override
+    public CommMessage recvResponseFor( CommMessage request )
+      throws IOException {
+//        System.out.println( "recvResponseFor " + request.operationName() + " #" + request.id() );
+        CommMessage response = null;
+        futureRequest.complete( request );
+        try {
+            response = futureResponse.get();
+        } catch ( InterruptedException | ExecutionException ex ) {
+            Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
+        }
+        return response;
 
-	@Override
-	public CommMessage recvResponseFor( CommMessage request )
-		throws IOException
-	{
-		CommMessage response;
-		ResponseContainer monitor = null;
-		synchronized( responseRecvMutex ) {
-			response = pendingResponses.remove( request.id() );
-			if ( response == null ) {
-				if ( pendingGenericResponses.isEmpty() ) {
-					assert( waiters.containsKey( request.id() ) == false );
-					monitor = new ResponseContainer();
-					waiters.put( request.id(), monitor );
-					//responseRecvMutex.notify();
-				} else {
-					response = pendingGenericResponses.remove( 0 );
-				}
-			}
-		}
-		if ( response == null ) {
-//				if ( responseReceiver == null ) {
-//					responseReceiver = new ResponseReceiver( this, ExecutionThread.currentThread() );
-//					Interpreter.getInstance().commCore().startCommChannelHandler( responseReceiver );
-//				} else {
-//					responseReceiver.wakeUp();
-//				}
-			synchronized( monitor ) {
-				if ( monitor.response == null ) {
-					try {
-						monitor.wait();
-					} catch( InterruptedException e ) {
-						Interpreter.getInstance().logSevere( e );
-					}
-				}
-				response = monitor.response;
-			}
-		}
-		return response;
-	}
+        // IF MESSAGE HAS ALREADY ARRIVED, PICK IT FROM pendingResponses by ID
+        // 
+//        ResponseContainer monitor = null;
+//        synchronized ( responseRecvMutex ) {
+//            response = pendingResponses.remove( request.id() );
+//            if ( response == null ) {
+//                if ( pendingGenericResponses.isEmpty() ) {
+//                    if( !waiters.containsKey( request.id() ) ){
+//                        monitor = new ResponseContainer();
+//                        waiters.put( request.id(), monitor );
+//                    }
+//                } else {
+//                    response = pendingGenericResponses.poll();
+//                }
+//            }
+//        }
+//        if ( response == null ) {
+//            synchronized ( monitor ) {
+//                if ( monitor.response == null ) {
+//                    try {
+//                        monitor.wait();
+//                    } catch ( InterruptedException e ) {
+//                        Interpreter.getInstance().logSevere( e );
+//                    }
+//                }
+//                response = monitor.response;
+//            }
+//        }
+//        return response;
+    }
 
-    protected void receiveResponse( CommMessage response ){
-        
-		if( response.hasGenericId() ){
+    protected synchronized void receiveResponse( CommMessage response ) {
+//        System.out.println( "receiveResponse " + response.operationName() + " #" + response.id() );
+        if ( response.hasGenericId() ) {
             handleGenericMessage( response );
         } else {
             handleMessage( response );
         }
-
     }
 
-    private void handleGenericMessage( CommMessage response ){
-        
-        ResponseContainer monitor;
-        if( waiters.isEmpty() ){
-            pendingGenericResponses.add( response );
-        } else {
-            Entry< Long, ResponseContainer > entry =
-               waiters.entrySet().iterator().next();
-            monitor = entry.getValue();
-            synchronized( monitor ){
-                monitor.response = new CommMessage(
-                  
-                  entry.getKey(),
-                  response.operationName(),
-                  response.resourcePath(),
-                  response.value(),
-                  response.fault()
-                
+    private CommMessage getFutureRequest() {
+        CommMessage request = null;
+        try {
+            request = futureRequest.get();
+        } catch ( InterruptedException | ExecutionException ex ) {
+            Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
+        }
+        return request;
+    }
+
+    private void handleGenericMessage( CommMessage response ) {
+//        System.out.println( "handleGenericMessage " + response.operationName() + " #" + response.id() );
+        if ( !futureResponse.isDone() ) {
+            CommMessage request = getFutureRequest();
+            if ( response.operationName().equals( request.operationName() ) ) {
+                futureResponse.complete(
+                  new CommMessage(
+                    request.id(),
+                    response.operationName(),
+                    response.resourcePath(),
+                    response.value(),
+                    response.fault()
+                  )
                 );
-                monitor.notify();
             }
         }
+//        ResponseContainer monitor;
+//        if ( waiters.isEmpty() ) {
+//            pendingGenericResponses.add( response );
+//        } else {
+//            Entry< Long, ResponseContainer> entry
+//              = waiters.entrySet().iterator().next();
+//            monitor = entry.getValue();
+//            synchronized ( monitor ) {
+//                monitor.response = new CommMessage(
+//                  entry.getKey(),
+//                  response.operationName(),
+//                  response.resourcePath(),
+//                  response.value(),
+//                  response.fault()
+//                );
+//                monitor.notify();
+//            }
+//        }
     }
 
-    private void handleMessage( CommMessage response ){
-        
-        ResponseContainer monitor;
-        if( ( monitor = waiters.remove( response.id() )) == null  ){
-            pendingResponses.put( response.id(), response);
-        } else {
-            synchronized( monitor ){
-                monitor.response = response;
-                monitor.notify();
-            }
+    private void handleMessage( CommMessage response ) {
+//        System.out.println( "handleMessage " + response.operationName() + " #" + response.id() );
+        if ( !futureResponse.isDone() ) {
+            futureResponse.complete( response );
         }
-        
+//        ResponseContainer monitor;
+//        if ( ( monitor = waiters.remove( response.id() ) ) == null ) {
+//            pendingResponses.put( response.id(), response );
+//        } else {
+//            synchronized ( monitor ) {
+//                monitor.response = response;
+//                monitor.notify();
+//            }
+//        }
     }
-    
-    private void throwIOExceptionFault( IOException e ){
-        if( !waiters.isEmpty() ){
-            ResponseContainer monitor;
-            for( Entry< Long, ResponseContainer > entry: waiters.entrySet() ){
-                monitor = entry.getValue();
-                synchronized( monitor ){
-                    monitor.response = new CommMessage(
-                    
-                      entry.getKey(),
-                      "",
-                      Constants.ROOT_RESOURCE_PATH,
-                      Value.create(),
-                      new FaultException( "IOException", e )
-                      
-                    );
-                    monitor.notify();
-                }
-            }
-        }
-        waiters.clear();
-    }
+
+//    private void throwIOExceptionFault( IOException e ) {
+//        System.out.println( "throwIOException " + e.getMessage() );
+//        if ( !waiters.isEmpty() ) {
+//            ResponseContainer monitor;
+//            for ( Entry< Long, ResponseContainer> entry : waiters.entrySet() ) {
+//                monitor = entry.getValue();
+//                synchronized ( monitor ) {
+//                    monitor.response = new CommMessage(
+//                      entry.getKey(),
+//                      "",
+//                      Constants.ROOT_RESOURCE_PATH,
+//                      Value.create(),
+//                      new FaultException( "IOException", e )
+//                    );
+//                    monitor.notify();
+//                }
+//            }
+//        }
+//        waiters.clear();
+//    }
 
 }

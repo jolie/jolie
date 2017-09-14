@@ -1,27 +1,39 @@
 include "console.iol"
 
-type TmpType: void { .id: string } | int { .id: string }
+type TmpType: void { .id: string }
 
-interface ThermostatInterface {
-  RequestResponse: getTmp( TmpType )( int ), getTmp1( TmpType )( int )
+interface ThermostatInterfaceMQTT {
+    OneWay: test( string )
+    RequestResponse: getTmp( TmpType )( int )
 }
 
 outputPort Broker {
     Location: "socket://localhost:1883"
     Protocol: mqtt {
+        .debug = true;
         .osc.getTmp << {
-            .QoS = 2,
-            .format = "raw",
+            .format = "xml",
             .alias = "%!{id}/getTemperature",
-            .aliasResponse = "%!{id}/getTempReply"
+            .QoS = 2
         };
-        .debug = true
+        .osc.test << {
+            .format = "xml",
+            .alias = "test/getTemperature",
+            .QoS = 2
+        }
     }
-    Interfaces: ThermostatInterface
+    Interfaces: ThermostatInterfaceMQTT
 }
 
 main
 {
-    getTmp@Broker( { .id = "42" } )( varA );
-    println@Console( "T1: " + varA )()
+    {
+        test@Broker( "This is a test" );
+        println@Console( "Test done" )()
+    }
+    |
+    {
+        getTmp@Broker( { .id = "42" } )( varA );
+        println@Console( "getTmp done: " + varA )()
+    }
 }
