@@ -1,20 +1,26 @@
-/** ******************************************************************************
- *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk> *
- * Copyright (C) 2017 by Fabrizio Montesi <famontesi@gmail.com> * Copyright (C)
- * 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> * * This program
- * is free software; you can redistribute it and/or modify * it under the terms
- * of the GNU Library General Public License as * published by the Free Software
- * Foundation; either version 2 of the * License, or (at your option) any later
- * version. * * This program is distributed in the hope that it will be useful,
- * * but WITHOUT ANY WARRANTY; without even the implied warranty of *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU General
- * Public License for more details. * * You should have received a copy of the
- * GNU Library General Public * License along with this program; if not, write
- * to the * Free Software Foundation, Inc., * 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA. * * For details about the authors of this
- * software, see the AUTHORS file. *
-  ******************************************************************************
- */
+/*******************************************************************************
+ *   Copyright (C) 2017 by Martin Møller Andersen <maan511@student.sdu.dk>     *
+ *   Copyright (C) 2017 by Fabrizio Montesi <famontesi@gmail.com>              *
+ *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
+ *                                                                             *
+ *   This program is free software; you can redistribute it and/or modify      *
+ *   it under the terms of the GNU Library General Public License as           *
+ *   published by the Free Software Foundation; either version 2 of the        *
+ *   License, or (at your option) any later version.                           *
+ *                                                                              *
+ *   This program is distributed in the hope that it will be useful,           *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ *   GNU General Public License for more details.                              *
+ *                                                                             *
+ *   You should have received a copy of the GNU Library General Public         *
+ *   License along with this program; if not, write to the                     *
+ *   Free Software Foundation, Inc.,                                           *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 *
+ *                                                                             *
+ *   For details about the authors of this software, see the AUTHORS file.     *
+ *******************************************************************************/
+
 package jolie.net;
 
 import java.io.IOException;
@@ -39,17 +45,27 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 @ChannelHandler.Sharable
-public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<CommMessage> {
+public class StreamingCommChannelHandler extends SimpleChannelInboundHandler<CommMessage> {
 
     private ChannelHandlerContext ctx;
-    private final NioSocketCommChannel channel;
+    private StreamingCommChannel outChannel;  // TOWARDS THE NETWORK
+    private StreamingCommChannel inChannel;   // TOWARDS JOLIE
     private final Interpreter interpreter;
 
-    NioSocketCommChannelHandler( NioSocketCommChannel channel ) {
-        this.channel = channel;
+    StreamingCommChannelHandler( StreamingCommChannel channel ) {
+        this.inChannel = channel;
+        this.outChannel = channel;
         this.interpreter = Interpreter.getInstance();
     }
-
+    
+    public void setOutChannel( StreamingCommChannel c ){
+      this.outChannel = c;
+    }
+    
+    public void setInChannel( StreamingCommChannel c ){
+      this.inChannel = c;
+    }
+    
     @Override
     public void channelRegistered( ChannelHandlerContext ctx ) throws Exception {
         super.channelRegistered( ctx );
@@ -58,15 +74,11 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
 
     @Override
     protected void channelRead0( ChannelHandlerContext ctx, CommMessage msg ) throws Exception {
-        if ( channel.parentPort() instanceof OutputPort ) {
-            this.channel.receiveResponse( msg );
+        if ( inChannel.parentPort() instanceof OutputPort ) {
+            this.inChannel.receiveResponse( msg );
         } else {
             messageRecv( msg );
         }
-    }
-
-    private boolean isMqttProtocol() {
-        return channel.protocol().name().equals( "mqtt" );
     }
 
     protected ChannelFuture write( CommMessage msg ) throws InterruptedException {
@@ -82,7 +94,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
     private void forwardResponse( CommMessage message )
       throws IOException {
         message = new CommMessage(
-          channel.redirectionMessageId(),
+          inChannel.redirectionMessageId(),
           message.operationName(),
           message.resourcePath(),
           message.value(),
@@ -90,20 +102,20 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
         );
         try {
             try {
-                channel.redirectionChannel().send( message );
+                inChannel.redirectionChannel().send( message );
             } finally {
                 try {
-                    if ( channel.redirectionChannel().toBeClosed() ) {
-                        channel.redirectionChannel().close();
+                    if ( inChannel.redirectionChannel().toBeClosed() ) {
+                        inChannel.redirectionChannel().close();
                     } else {
-                        channel.redirectionChannel().disposeForInput();
+                        inChannel.redirectionChannel().disposeForInput();
                     }
                 } finally {
-                    channel.setRedirectionChannel( null );
+                    inChannel.setRedirectionChannel( null );
                 }
             }
         } finally {
-            channel.closeImpl();
+            inChannel.closeImpl();
         }
     }
 
@@ -121,7 +133,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
             }
             rPath = builder.toString();
         }
-        OutputPort oPort = channel.parentInputPort().redirectionMap().get( ss[ 1 ] );
+        OutputPort oPort = inChannel.parentInputPort().redirectionMap().get( ss[ 1 ] );
         if ( oPort == null ) {
             String error = "Discarded a message for resource " + ss[ 1 ]
               + ", not specified in the appropriate redirection table.";
@@ -138,21 +150,21 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
                 message.value(),
                 message.fault()
               );
-            oChannel.setRedirectionChannel( channel );
+            oChannel.setRedirectionChannel( inChannel );
             oChannel.setRedirectionMessageId( rMessage.id() );
             oChannel.send( rMessage );
             oChannel.setToBeClosed( false );
             oChannel.disposeForInput();
         } catch ( IOException e ) {
-            channel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
-            channel.disposeForInput();
+            outChannel.send( CommMessage.createFaultResponse( message, new FaultException( Constants.IO_EXCEPTION_FAULT_NAME, e ) ) );
+            outChannel.disposeForInput();
             throw e;
         }
     }
 
     private void handleAggregatedInput( CommMessage message, AggregatedOperation operation )
       throws IOException, URISyntaxException {
-        operation.runAggregationBehaviour( message, channel );
+        operation.runAggregationBehaviour( message, inChannel );
     }
 
     private void handleDirectMessage( CommMessage message )
@@ -162,28 +174,28 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
               = interpreter.getInputOperation( message.operationName() );
             try {
                 operation.requestType().check( message.value() );
-                interpreter.correlationEngine().onMessageReceive( message, channel );
+                interpreter.correlationEngine().onMessageReceive( message, inChannel );
                 if ( operation instanceof OneWayOperation ) {
                     // We need to send the acknowledgement
-                    channel.send( CommMessage.createEmptyResponse( message ) );
+                    outChannel.send( CommMessage.createEmptyResponse( message ) );
                     //channel.release();
                 }
             } catch ( TypeCheckingException e ) {
                 interpreter.logWarning( "Received message TypeMismatch (input operation " + operation.id() + "): " + e.getMessage() );
                 try {
-                    channel.send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
+                    outChannel.send( CommMessage.createFaultResponse( message, new FaultException( jolie.lang.Constants.TYPE_MISMATCH_FAULT_NAME, e.getMessage() ) ) );
                 } catch ( IOException ioe ) {
                     Interpreter.getInstance().logSevere( ioe );
                 }
             } catch ( CorrelationError e ) {
                 interpreter.logWarning( "Received a non correlating message for operation " + message.operationName() + ". Sending CorrelationError to the caller." );
-                channel.send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
+                outChannel.send( CommMessage.createFaultResponse( message, new FaultException( "CorrelationError", "The message you sent can not be correlated with any session and can not be used to start a new session." ) ) );
             }
         } catch ( InvalidIdException e ) {
             interpreter.logWarning( "Received a message for undefined operation " + message.operationName() + ". Sending IOException to the caller." );
-            channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+            outChannel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
         } finally {
-            channel.disposeForInput();
+            outChannel.disposeForInput();
         }
     }
 
@@ -195,19 +207,19 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
             String[] ss = pathSplitPattern.split( message.resourcePath() );
             if ( ss.length > 1 ) {
                 handleRedirectionInput( message, ss );
-            } else if ( channel.parentInputPort().canHandleInputOperationDirectly( message.operationName() ) ) {
+            } else if ( inChannel.parentInputPort().canHandleInputOperationDirectly( message.operationName() ) ) {
                 handleDirectMessage( message );
             } else {
-                AggregatedOperation operation = channel.parentInputPort().getAggregatedOperation( message.operationName() );
+                AggregatedOperation operation = inChannel.parentInputPort().getAggregatedOperation( message.operationName() );
                 if ( operation == null ) {
                     interpreter.logWarning(
                       "Received a message for operation " + message.operationName()
                       + ", not specified in the input port at the receiving service. Sending IOException to the caller."
                     );
                     try {
-                        channel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
+                        outChannel.send( CommMessage.createFaultResponse( message, new FaultException( "IOException", "Invalid operation: " + message.operationName() ) ) );
                     } finally {
-                        channel.disposeForInput();
+                        outChannel.disposeForInput();
                     }
                 } else {
                     handleAggregatedInput( message, operation );
@@ -219,15 +231,15 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
     }
 
     private void messageRecv( CommMessage message ) {
-        channel.lock.lock();
+        inChannel.lock.lock();
         channelHandlersLock.readLock().lock();
         try {
-            if ( channel.redirectionChannel() == null ) {
-                assert ( channel.parentInputPort() != null );
+            if ( inChannel.redirectionChannel() == null ) {
+                assert ( inChannel.parentInputPort() != null );
                 if ( message != null ) {
                     handleMessage( message );
                 } else {
-                    channel.disposeForInput();
+                    inChannel.disposeForInput();
                 }
             }
         } catch ( ChannelClosingException e ) {
@@ -235,14 +247,14 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
         } catch ( IOException e ) {
             interpreter.logSevere( e );
             try {
-                channel.closeImpl();
+                inChannel.closeImpl();
             } catch ( IOException e2 ) {
                 interpreter.logSevere( e2 );
             }
         } finally {
             channelHandlersLock.readLock().unlock();
-            if ( channel.lock.isHeldByCurrentThread() ) {
-                channel.lock.unlock();
+            if ( inChannel.lock.isHeldByCurrentThread() ) {
+                inChannel.lock.unlock();
             }
         }
     }

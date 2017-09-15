@@ -169,7 +169,7 @@ public class NioSocketListener extends CommListener {
 									removeResponseChannel();
 								}
 							} );
-							p.addLast( channel.nioSocketCommChannelHandler );
+							p.addLast(channel.commChannelHandler );
 							p.addLast( new ChannelInboundHandlerAdapter() {
 
 								@Override

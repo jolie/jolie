@@ -56,6 +56,6 @@ public class PubSubCommChannelFactory extends CommChannelFactory
 
 	@Override
 	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException( "createInputPortChannel for PubSubChannel not supported yet." );
 	}
 }

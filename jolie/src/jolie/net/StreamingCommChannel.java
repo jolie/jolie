@@ -40,7 +40,6 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	{
 		this.location = location;
 		this.protocol = protocol;
-		protocol.setChannel( this );
 	}
 
 	protected CommProtocol protocol()

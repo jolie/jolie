@@ -24,24 +24,32 @@ package jolie.net.mqtt;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jolie.Interpreter;
 import jolie.net.CommChannel;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
+import jolie.net.NioSocketCommChannelFactory;
+import jolie.net.UnsupportedCommProtocolException;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.protocols.AsyncCommProtocol;
+import jolie.net.protocols.CommProtocol;
 
 /**
  *
@@ -156,14 +164,23 @@ public class InputPortHandler
             ih.setTopicResponse( mp.extractTopicResponse( m ) ).setRequestCommMessage( cm );
             // we forward the received message to the new CommChannel
 						
-            URI location = new URI( commChannel.parentInputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue() );
+            URI location = new URI( commChannel.parentInputPort().protocolConfigurationPath()
+                .evaluate().getFirstChild( "broker" ).strValue() 
+            );
+            
+            AsyncCommProtocol newMP = (AsyncCommProtocol) Interpreter.getInstance().commCore()
+                .getCommProtocolFactory( "mqtt" ).createInputProtocol( commChannel.parentInputPort().protocolConfigurationPath(), location );
+            
+            NioSocketCommChannel sideChannel = NioSocketCommChannel
+							.createChannel( location,	newMP,	ctx.channel().eventLoop().parent(), null );
+            
+            sideChannel.connect( location ).sync();
+            
+            sideChannel.setParentInputPort( commChannel.parentInputPort() );
 
-            NioSocketCommChannel fc = NioSocketCommChannel
-							.createChannel( location,	mp,	ctx.channel().eventLoop().parent() );
-						fc.setParentInputPort( commChannel.parentInputPort() );
-						fc.connect( location ).sync();
-						fc.getChannelPipeline().replace( "INPUT", "INPUTRESPONSEHANDLER", ih );
-						fc.getChannelPipeline().fireChannelRead( cm );
+            sideChannel.getChannelPipeline().addBefore( NioSocketCommChannel.CHANNEL_HANDLER_NAME, "INPUTRESPONSEHANLDER", ih);
+            
+						sideChannel.getChannelPipeline().fireChannelRead( cm );
 //            ctx.channel().attr( NioSocketCommChannel.LISTENER ).get()
 //              .createNewPubSubChannel( ih ).pipeline().fireChannelRead( cm );
         }

@@ -167,9 +167,11 @@ public class MqttProtocol extends AsyncCommProtocol {
 		} );
 		if ( channel().parentPort() instanceof InputPort ) {
 			p.addLast( "INPUT", new InputPortHandler( this, channel() ) );
-		} else {
+		} 
+    if ( channel().parentPort() instanceof OutputPort ){
 			p.addLast( "OUTPUT", new OutputPortHandler( this ) );
 		}
+    // else we do not add a specific handler, we will add it after channel registation (see InputResponseHandler)
 	}
 
 	public void checkDebug( ChannelPipeline p ) {

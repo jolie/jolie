@@ -23,6 +23,9 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,41 +35,49 @@ import jolie.net.ports.InputPort;
 
 public class PubSubListener extends CommListener {
 
-	CommChannel channel;
-	
-	public PubSubListener(
-		Interpreter interpreter,
-		CommProtocolFactory protocolFactory,
-		InputPort inputPort
-	)
-		throws IOException {
-		super( interpreter, protocolFactory, inputPort );
-	}
+  public PubSubListener(
+      Interpreter interpreter,
+      CommProtocolFactory protocolFactory,
+      InputPort inputPort
+  )
+      throws IOException {
+    super( interpreter, protocolFactory, inputPort );
+  }
 
-	@Override
-	public void shutdown() {
-		System.out.println( "Shutting down the listener" );
+  @Override
+  public void shutdown() {
+    System.out.println( "Shutting down the listener" );
 //		try {
 //			channel.closeImpl();
 //		} catch ( IOException ex ) {
 //			Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, ex );
 //		}
-	}
+  }
 
-	@Override
-	public void run() {
-		// wait for the init to load the configurationParameters
-		String protocol = "";
-		String broker = "";
-		do {
-			protocol = inputPort().protocolConfigurationPath().getValue().strValue();
-			broker = inputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue();
-		} while( protocol.equals( "" ) || broker.equals( "") );
-		try {
-			URI location = URI.create( broker );
-			channel = interpreter().commCore().createInputCommChannel( location, inputPort() );
-		} catch ( IOException ex ) {
-			Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, ex );
-		}
-	}
+  @Override
+  public void run() {
+    // wait for the init to load the configurationParameters
+    String broker = "";
+    do {
+      broker = inputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue();
+    } while ( broker.equals( "" ) );
+    URI location = URI.create( broker );
+    // WE CREATE THE OUTCHANNEL (Socket, etc..)
+    CommChannel outChannel = null;
+    try {
+      outChannel = interpreter().commCore().createInputCommChannel( location, inputPort() );
+      System.out.println( "outChannel: " + outChannel.parentPort().getClass() );
+    } catch ( IOException ex ) {
+      Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, ex );
+    }
+    // WE CREATE THE INCHANNEL (PubSub)
+    Map< Long, CompletableFuture<Void>> subPubSendRelease = new ConcurrentHashMap<>();
+    PubSubCommChannel inChannel = new PubSubCommChannel( outChannel, subPubSendRelease );
+    // WE CREATE A CHANNELHANDLER THAT LINKS THE TWO CHANNELS AND WE REPLACE THE HANDLER OF THE OUTCHANNEL (THE ONE FROM THE NET TO JOLIE)
+    if ( outChannel instanceof NioSocketCommChannel ) {
+//      ( ( NioSocketCommChannel ) outChannel ).getChannelHandler().setInChannel( inChannel );
+    } else {
+      Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, new UnsupportedCommMediumException( "PubSubChannels only work over NioSocketCommChannel, instead passed: " + outChannel.getClass() ) );
+    }
+  }
 }
