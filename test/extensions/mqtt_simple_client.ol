@@ -31,7 +31,7 @@ main
         test@Broker( "This is a test" );
         println@Console( "Test done" )()
     }
-    |
+    ;
     {
         getTmp@Broker( { .id = "42" } )( varA );
         println@Console( "getTmp done: " + varA )()
