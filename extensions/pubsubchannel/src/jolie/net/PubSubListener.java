@@ -22,10 +22,7 @@
 package jolie.net;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,7 +41,6 @@ public class PubSubListener extends CommListener {
 	)
 		throws IOException {
 		super( interpreter, protocolFactory, inputPort );
-		System.out.println( "Listener created" );
 	}
 
 	@Override
@@ -59,8 +55,6 @@ public class PubSubListener extends CommListener {
 
 	@Override
 	public void run() {
-
-		System.out.println( "Running the listener on port: " + inputPort().name() );
 		// wait for the init to load the configurationParameters
 		String protocol = "";
 		String broker = "";

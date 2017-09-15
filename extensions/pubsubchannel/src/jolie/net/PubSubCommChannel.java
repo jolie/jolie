@@ -51,7 +51,6 @@ public class PubSubCommChannel extends StreamingCommChannel
 	{
 		CompletableFuture<Void> cf = new CompletableFuture<>();
 		sendRelease.put( message.id(), cf );
-		System.out.println( "PUBSUBCOMMCHANNEL SendRelease: " + sendRelease.toString() );
 		channel.send( message );
 		try {
 			cf.get();

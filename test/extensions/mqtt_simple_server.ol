@@ -32,7 +32,7 @@ main
         test( r );
         println@Console( "Received TEST: " + r )()
     }
-    |
+    ;
     {
         getTmp( temp )( temp ){
             temp = 24;

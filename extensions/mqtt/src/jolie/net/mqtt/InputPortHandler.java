@@ -156,16 +156,19 @@ public class InputPortHandler
             ih.setTopicResponse( mp.extractTopicResponse( m ) ).setRequestCommMessage( cm );
             // we forward the received message to the new CommChannel
 						
-						NioSocketCommChannel fc = NioSocketCommChannel.createInputChannel( 
+            System.out.println( "Creating response channel" );
+            NioSocketCommChannel fc = NioSocketCommChannel.createInputChannel( 
 							new URI( commChannel.parentInputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue() ),
 							mp,
 							ctx.channel().eventLoop().parent(), 
 							commChannel.parentInputPort(), 
 							ih);
+            System.out.println( "Waiting for channel pipeline" );
 						ChannelPipeline p = fc.getChannelPipeline();
 							do{
 								p = fc.getChannelPipeline();
 							} while ( p == null );
+              System.out.println( "Sending message to new pipeline" );
 							p.fireChannelRead( cm );
 //            ctx.channel().attr( NioSocketCommChannel.LISTENER ).get()
 //              .createNewPubSubChannel( ih ).pipeline().fireChannelRead( cm );
