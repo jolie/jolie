@@ -1,7 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                           *
- *                                                                           *
  *   This program is free software; you can redistribute it and/or modify    *
  *   it under the terms of the GNU Library General Public License as         *  
  *   published by the Free Software Foundation; either version 2 of the      *
@@ -44,11 +43,18 @@ public class PubSubCommChannel extends StreamingCommChannel
 		this.channel = channel;
 		this.sendRelease = sendRelease;
 	}
-	
+  
+  public PubSubCommChannel( CommChannel channel, Map sendRelease ){
+    super( null, null );
+    this.channel = channel;
+		this.sendRelease = sendRelease;
+  }
+  
 	@Override
 	protected void sendImpl( CommMessage message )
 		throws IOException
 	{
+    System.out.println( "PubSubSendImpl " + message.operationName()  );
 		CompletableFuture<Void> cf = new CompletableFuture<>();
 		sendRelease.put( message.id(), cf );
 		channel.send( message );

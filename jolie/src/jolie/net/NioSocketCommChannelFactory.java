@@ -59,7 +59,7 @@ public class NioSocketCommChannelFactory extends CommChannelFactory {
             throw new UnsupportedCommProtocolException( "Use an async protocol" );
         }
 
-        NioSocketCommChannel channel = NioSocketCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
+        NioSocketCommChannel channel = NioSocketCommChannel.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, port );
 
         try {
             ChannelFuture f = channel.connect( location );
@@ -81,10 +81,8 @@ public class NioSocketCommChannelFactory extends CommChannelFactory {
         }
 
         NioSocketCommChannel channel = NioSocketCommChannel
-					.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
-				
-				channel.setParentInputPort( port );
-				
+					.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, port );
+        
         try {
             ChannelFuture f = channel.connect( location );
             f.sync();

@@ -362,15 +362,14 @@ public class CommCore {
 		if ( channelFactory == null ) {
 			throw new UnsupportedCommMediumException( medium );
 		}
-		String protocol = port.protocolConfigurationPath().getValue().strValue();
+		String protocolName = port.protocolConfigurationPath().getValue().strValue();
 		CommProtocolFactory protocolFactory = 
-			interpreter.commCore().getCommProtocolFactory( protocol );
+			interpreter.commCore().getCommProtocolFactory( protocolName );
 		if ( protocolFactory == null ) {
-			throw new UnsupportedCommProtocolException( protocol );
+			throw new UnsupportedCommProtocolException( protocolName );
 		}
-		return channelFactory.createInputChannel( 
-			uri, port, protocolFactory.createInputProtocol( port.protocolConfigurationPath(), uri ) 
-		);
+    CommProtocol protocol = protocolFactory.createInputProtocol( port.protocolConfigurationPath(), uri );
+		return channelFactory.createInputChannel( uri, port, protocol );
 	}
 
 	public CommChannel createPubSubCommChannel( URI uri, OutputPort port )
