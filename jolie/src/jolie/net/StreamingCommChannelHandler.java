@@ -65,6 +65,14 @@ public class StreamingCommChannelHandler extends SimpleChannelInboundHandler<Com
     public void setInChannel( StreamingCommChannel c ){
       this.inChannel = c;
     }
+		
+		public StreamingCommChannel getOutChannel(){
+			return this.outChannel;
+		}
+		
+		public StreamingCommChannel getInChannel(){
+			return this.inChannel;
+		}
     
     @Override
     public void channelRegistered( ChannelHandlerContext ctx ) throws Exception {

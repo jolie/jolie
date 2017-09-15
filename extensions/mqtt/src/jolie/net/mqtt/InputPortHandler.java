@@ -46,6 +46,7 @@ import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
 import jolie.net.NioSocketCommChannelFactory;
+import jolie.net.StreamingCommChannel;
 import jolie.net.UnsupportedCommProtocolException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.AsyncCommProtocol;
@@ -174,8 +175,14 @@ public class InputPortHandler
             NioSocketCommChannel sideChannel = NioSocketCommChannel
 							.createChannel( location,	newMP,	ctx.channel().eventLoop().parent(), null );
             
+						newMP.setChannel( sideChannel );
+						
+						StreamingCommChannel inChannel = ( (NioSocketCommChannel) commChannel ).getChannelHandler().getInChannel();
+						sideChannel.getChannelHandler().setInChannel( inChannel );
+						
             sideChannel.connect( location ).sync();
-            
+						// THE CHANNEL STARTED WITHOUT HIGH-LEVEL HANDLERS (INPUT or OUTPUT) 
+						// AS IT HAD NOT PARENT PORT. WE ADD IT AND ALSO THE HIGH-LEVEL DEDICATED HANDLER
             sideChannel.setParentInputPort( commChannel.parentInputPort() );
 
             sideChannel.getChannelPipeline().addBefore( NioSocketCommChannel.CHANNEL_HANDLER_NAME, "INPUTRESPONSEHANLDER", ih);

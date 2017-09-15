@@ -47,11 +47,6 @@ public class PubSubListener extends CommListener {
   @Override
   public void shutdown() {
     System.out.println( "Shutting down the listener" );
-//		try {
-//			channel.closeImpl();
-//		} catch ( IOException ex ) {
-//			Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, ex );
-//		}
   }
 
   @Override
@@ -73,9 +68,10 @@ public class PubSubListener extends CommListener {
     // WE CREATE THE INCHANNEL (PubSub)
     Map< Long, CompletableFuture<Void>> subPubSendRelease = new ConcurrentHashMap<>();
     PubSubCommChannel inChannel = new PubSubCommChannel( outChannel, subPubSendRelease );
+		inChannel.setParentInputPort( inputPort() );
     // WE CREATE A CHANNELHANDLER THAT LINKS THE TWO CHANNELS AND WE REPLACE THE HANDLER OF THE OUTCHANNEL (THE ONE FROM THE NET TO JOLIE)
     if ( outChannel instanceof NioSocketCommChannel ) {
-//      ( ( NioSocketCommChannel ) outChannel ).getChannelHandler().setInChannel( inChannel );
+      ( ( NioSocketCommChannel ) outChannel ).getChannelHandler().setInChannel( inChannel );
     } else {
       Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, new UnsupportedCommMediumException( "PubSubChannels only work over NioSocketCommChannel, instead passed: " + outChannel.getClass() ) );
     }
