@@ -38,11 +38,8 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
+import jolie.net.protocols.AsyncCommProtocol;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class InputResponseHandler
 	extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
@@ -54,8 +51,8 @@ public class InputResponseHandler
 	private CommMessage cmReq;
 //    private CompletableFuture<Void> active;
 
-	public InputResponseHandler( MqttProtocol mp ) {
-		this.mp = mp;
+	public InputResponseHandler( AsyncCommProtocol mp ) {
+		this.mp = (MqttProtocol) mp;
 	}
 
 	public InputResponseHandler setTopicResponse( String topicResponse ) {
@@ -72,10 +69,10 @@ public class InputResponseHandler
 	protected void encode( ChannelHandlerContext ctx, CommMessage in,
 		List<Object> out ) throws Exception {
 		init( ctx );
-		cmResp = in;
-		if ( mp.isOneWay( cmResp.operationName() ) ) {
-			mp.markAsSentAndStopPing( cc, ( int ) cmResp.id() );
-		}
+    cmResp = in;
+//		if ( mp.isOneWay( cmResp.operationName() ) ) {
+//			mp.markAsSentAndStopPing( cc, ( int ) cmResp.id() );
+//		}
 		out.add( mp.connectMsg() );
 	}
 
@@ -106,10 +103,6 @@ public class InputResponseHandler
 					}
 				}
 				break;
-			case PUBACK:
-				// WE MARK THE MESSAGE with QoS = 1 as sent
-				mp.markAsSentAndStopPing( cc, ( int ) cmResp.id() );
-				break;
 			case PUBLISH:
 				System.out.println( "InputResponseHandlers should not receive PUBLISHs" );
 				break;
@@ -119,9 +112,11 @@ public class InputResponseHandler
 			case PUBREL:
 				System.out.println( "InputResponseHandlers should not receive PUBRELs" );
 				break;
-			case PUBCOMP:
-				int messageID = MqttProtocol.getMessageID( in );
-				mp.markAsSentAndStopPing( cc, messageID );
+      case PUBACK:
+      case PUBCOMP:
+        // WE MARK THE MESSAGE with QoS = 1 as sent
+				mp.markAsSentAndStopPing( cc, ( int ) cmResp.id() );
+//				int messageID = MqttProtocol.getMessageID( in );
 				break;
 		}
 	}

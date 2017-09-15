@@ -58,10 +58,9 @@ public class PubSubListener extends CommListener {
     } while ( broker.equals( "" ) );
     URI location = URI.create( broker );
     // WE CREATE THE OUTCHANNEL (Socket, etc..)
-    CommChannel outChannel = null;
+    StreamingCommChannel outChannel = null;
     try {
-      outChannel = interpreter().commCore().createInputCommChannel( location, inputPort() );
-      System.out.println( "outChannel: " + outChannel.parentPort().getClass() );
+      outChannel = ( StreamingCommChannel ) interpreter().commCore().createInputCommChannel( location, inputPort() );
     } catch ( IOException ex ) {
       Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, ex );
     }
@@ -70,10 +69,8 @@ public class PubSubListener extends CommListener {
     PubSubCommChannel inChannel = new PubSubCommChannel( outChannel, subPubSendRelease );
 		inChannel.setParentInputPort( inputPort() );
     // WE CREATE A CHANNELHANDLER THAT LINKS THE TWO CHANNELS AND WE REPLACE THE HANDLER OF THE OUTCHANNEL (THE ONE FROM THE NET TO JOLIE)
-    if ( outChannel instanceof NioSocketCommChannel ) {
-      ( ( NioSocketCommChannel ) outChannel ).getChannelHandler().setInChannel( inChannel );
-    } else {
-      Logger.getLogger( PubSubListener.class.getName() ).log( Level.SEVERE, null, new UnsupportedCommMediumException( "PubSubChannels only work over NioSocketCommChannel, instead passed: " + outChannel.getClass() ) );
+    if( outChannel != null ){
+      outChannel.getChannelHandler().setInChannel( inChannel );
     }
   }
 }

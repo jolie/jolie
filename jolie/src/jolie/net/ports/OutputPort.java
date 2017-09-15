@@ -61,7 +61,6 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
 	private final Interface iface;
-	private final Map< Long, CompletableFuture<Void> > subPubSendRelease = new ConcurrentHashMap<>();
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -351,17 +350,5 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		return ret;
 	}
 	
-	public Map getSubPubSendRelease(){
-		return this.subPubSendRelease;
-	}
-	
-	public void subPubRelease( long id ) throws IOException{
-		if( subPubSendRelease != null && subPubSendRelease.containsKey( id ) ){
-			subPubSendRelease.get( id ).complete( null );
-			subPubSendRelease.remove( id );
-		} else {
-			throw new IOException( "Tried to remove missing future " + id );
-		}
-	}
 	
 }

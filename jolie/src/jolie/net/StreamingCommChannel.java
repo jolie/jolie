@@ -46,6 +46,18 @@ public abstract class StreamingCommChannel extends AbstractCommChannel
 	{
 		return protocol;
 	}
+  
+  public void sendRelease( long in ){
+    throw new UnsupportedOperationException( "sendRelease not supported yet." );
+  }
+  
+  public StreamingCommChannelHandler getChannelHandler(){
+    throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
+  }
+  
+  public StreamingCommChannel createWithSideChannel( CommChannel channel ){
+    throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
+  }
 	
 	@Override
 	protected boolean isThreadSafe()
