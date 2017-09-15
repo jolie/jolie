@@ -81,8 +81,10 @@ public class NioSocketCommChannelFactory extends CommChannelFactory {
         }
 
         NioSocketCommChannel channel = NioSocketCommChannel
-					.createInputChannel( location, ( AsyncCommProtocol ) protocol, workerGroup, port, null );
-
+					.createChannel( location, ( AsyncCommProtocol ) protocol, workerGroup );
+				
+				channel.setParentInputPort( port );
+				
         try {
             ChannelFuture f = channel.connect( location );
             f.sync();
