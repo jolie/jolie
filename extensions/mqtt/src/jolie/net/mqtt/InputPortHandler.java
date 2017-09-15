@@ -30,14 +30,11 @@ import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.Interpreter;
 import jolie.net.CommChannel;
 
@@ -45,17 +42,9 @@ import jolie.net.CommCore;
 import jolie.net.CommMessage;
 import jolie.net.MqttProtocol;
 import jolie.net.NioSocketCommChannel;
-import jolie.net.NioSocketCommChannelFactory;
 import jolie.net.StreamingCommChannel;
-import jolie.net.UnsupportedCommProtocolException;
-import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.net.protocols.CommProtocol;
 
-/**
- *
- * @author stefanopiozingaro
- */
 public class InputPortHandler
   extends MessageToMessageCodec<MqttMessage, CommMessage> {
 
@@ -73,7 +62,6 @@ public class InputPortHandler
     protected void encode( ChannelHandlerContext ctx, CommMessage in,
       List<Object> out ) throws Exception {
         // THE ACK TO A ONE-WAY COMING FROM COMMCORE, RELEASING AND SENDING PING INSTEAD
-        mp.releaseMessage( ( int ) in.id() );
         out.add( MqttProtocol.getPingMessage() );
     }
 
@@ -141,7 +129,7 @@ public class InputPortHandler
                 // and we handle the reception of the message
                 handleMessageReception( ctx, out, m );
             } else {
-                // we store the message and wait for its release PUBREL
+                // we store the message, it will be release by a PUBREL
                 qos2pendingPublish.put( MqttProtocol.getMessageID( m ), m );
             }
         } else {
@@ -159,26 +147,32 @@ public class InputPortHandler
         if ( mp.isOneWay( cm.operationName() ) ) {
             out.add( cm );
         } else {
-            // else we forward the message to a new channel pipeline
-            InputResponseHandler ih = new InputResponseHandler( mp );
-            // we store the response topic into the InputResponseHandler
-            ih.setTopicResponse( mp.extractTopicResponse( m ) ).setRequestCommMessage( cm );
             // we forward the received message to the new CommChannel
-						
             URI location = new URI( commChannel.parentInputPort().protocolConfigurationPath()
                 .evaluate().getFirstChild( "broker" ).strValue() 
             );
-            
+                        
             AsyncCommProtocol newMP = (AsyncCommProtocol) Interpreter.getInstance().commCore()
                 .getCommProtocolFactory( "mqtt" ).createInputProtocol( commChannel.parentInputPort().protocolConfigurationPath(), location );
+            
+            // else we forward the message to a new channel pipeline
+            InputResponseHandler ih = new InputResponseHandler( newMP );
+            
+            // we store the response topic into the InputResponseHandler
+            ih.setTopicResponse( mp.extractTopicResponse( m ) ).setRequestCommMessage( cm );
+            
             
             NioSocketCommChannel sideChannel = NioSocketCommChannel
 							.createChannel( location,	newMP,	ctx.channel().eventLoop().parent(), null );
             
 						newMP.setChannel( sideChannel );
-						
-						StreamingCommChannel inChannel = ( (NioSocketCommChannel) commChannel ).getChannelHandler().getInChannel();
-						sideChannel.getChannelHandler().setInChannel( inChannel );
+            
+						StreamingCommChannel inChannel = 
+                ( ( NioSocketCommChannel ) commChannel ).getChannelHandler()
+                    .getInChannel().createWithSideChannel( sideChannel );
+            
+            inChannel.setParentInputPort( commChannel.parentInputPort() );
+            sideChannel.getChannelHandler().setInChannel( inChannel );
 						
             sideChannel.connect( location ).sync();
 						// THE CHANNEL STARTED WITHOUT HIGH-LEVEL HANDLERS (INPUT or OUTPUT) 
@@ -188,8 +182,6 @@ public class InputPortHandler
             sideChannel.getChannelPipeline().addBefore( NioSocketCommChannel.CHANNEL_HANDLER_NAME, "INPUTRESPONSEHANLDER", ih);
             
 						sideChannel.getChannelPipeline().fireChannelRead( cm );
-//            ctx.channel().attr( NioSocketCommChannel.LISTENER ).get()
-//              .createNewPubSubChannel( ih ).pipeline().fireChannelRead( cm );
         }
     }
 

@@ -317,9 +317,9 @@ public class MqttProtocol extends AsyncCommProtocol {
 	}
 
 	public void releaseMessage( int messageID ) throws IOException {
-		if ( channel().parentPort() instanceof OutputPort ){
-			channel().parentOutputPort().subPubRelease( ( long ) messageID );
-		}
+    ( ( StreamingCommChannel )
+        ( ( NioSocketCommChannel ) channel() 
+            ).getChannelHandler().getInChannel() ).sendRelease( ( long ) messageID );
 	}
  
 	public void markAsSentAndStopPing( Channel cc, int messageID ) throws IOException {

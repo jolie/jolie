@@ -65,6 +65,7 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		this.commChannelHandler = new StreamingCommChannelHandler( this );
 	}
 	
+  @Override
 	public StreamingCommChannelHandler getChannelHandler() {
 		return commChannelHandler;
 	}

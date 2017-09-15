@@ -90,7 +90,7 @@ public class StreamingCommChannelHandler extends SimpleChannelInboundHandler<Com
     }
 
     protected ChannelFuture write( CommMessage msg ) throws InterruptedException {
-			return this.ctx.writeAndFlush( msg );
+      return this.ctx.writeAndFlush( msg );
     }
 
     protected ChannelFuture close() {

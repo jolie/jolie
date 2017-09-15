@@ -41,9 +41,9 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 	nioDatagramCommChannelHandler = new NioDatagramCommChannelHandler(this);
     }
 
-    public NioDatagramCommChannelHandler getChannelHandler() {
-	return nioDatagramCommChannelHandler;
-    }
+//    public NioDatagramCommChannelHandler getChannelHandler() {
+//      return nioDatagramCommChannelHandler;
+//    }
 
     public static NioDatagramCommChannel CreateChannel(URI location,
 	    AsyncCommProtocol protocol, EventLoopGroup workerGroup) {

@@ -25,6 +25,9 @@ import jolie.net.ports.OutputPort;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.ports.InputPort;
@@ -42,12 +45,16 @@ public class PubSubCommChannelFactory extends CommChannelFactory
 		throws IOException
 	{
 		
-		CommChannel channel = Interpreter.getInstance().commCore().createCommChannel( location, port );
+		StreamingCommChannel channel = ( ( StreamingCommChannel ) Interpreter.getInstance().commCore().createCommChannel( location, port ) );
 		channel.setParentOutputPort( port );
 		
+    Map< Long, CompletableFuture<Void> > sendRelease = new ConcurrentHashMap<>();
+       
 		PubSubCommChannel ret = null;
-		try {
-			ret = new PubSubCommChannel( location, port.getProtocol(), channel, port.getSubPubSendRelease() );
+		
+    try {  
+			ret = new PubSubCommChannel( location, port.getProtocol(), channel, sendRelease );
+      channel.getChannelHandler().setInChannel( ret );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}
@@ -58,4 +65,5 @@ public class PubSubCommChannelFactory extends CommChannelFactory
 	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
 		throw new UnsupportedOperationException( "createInputPortChannel for PubSubChannel not supported yet." );
 	}
+
 }

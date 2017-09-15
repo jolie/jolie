@@ -110,13 +110,7 @@ public class OutputPortHandler
 				// the message had either a QoS 1 or QoS 2
 				// if the request was a OneWay, we send up the ACK
 				if ( mp.isOneWay( cmReq.operationName() ) ) {
-					out.add( CommMessage.createEmptyResponse( cmReq ) );
-//                    out.add( new CommMessage(
-//                      cmReq.id(),
-//                      cmReq.operationName(),
-//                      "/",
-//                      Value.create(),
-//                      null ) );
+          out.add( CommMessage.createEmptyResponse( cmReq ) );
 				}
 				mp.markAsSentAndStopPing( cc, ( int ) cmReq.id() );
 				break;
