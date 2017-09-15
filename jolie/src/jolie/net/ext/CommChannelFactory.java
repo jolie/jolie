@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.net.URI;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
 /**
  * A factory for delegating the creation of output communication channels to extensions.
@@ -53,5 +55,8 @@ public abstract class CommChannelFactory
 	 * @throws java.io.IOException if the channel could not be created
 	 */
 	abstract public CommChannel createChannel( URI location, OutputPort port )
+		throws IOException;
+	
+	abstract public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol )
 		throws IOException;
 }

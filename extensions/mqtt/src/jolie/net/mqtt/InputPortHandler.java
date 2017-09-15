@@ -24,16 +24,19 @@ package jolie.net.mqtt;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.codec.mqtt.MqttConnAckMessage;
 import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import java.net.URI;
 import java.util.HashMap;
 
 import java.util.List;
 import java.util.Map;
+import jolie.net.CommChannel;
 
 import jolie.net.CommCore;
 import jolie.net.CommMessage;
@@ -50,16 +53,18 @@ public class InputPortHandler
     private final MqttProtocol mp;
     private Channel cc;
     private final Map<Integer, MqttPublishMessage> qos2pendingPublish = new HashMap<>();
+		private final CommChannel commChannel;
 
-    public InputPortHandler( MqttProtocol mp ) {
+    public InputPortHandler( MqttProtocol mp, CommChannel cm ) {
         this.mp = mp;
+				this.commChannel = cm;
     }
 
     @Override
     protected void encode( ChannelHandlerContext ctx, CommMessage in,
       List<Object> out ) throws Exception {
         // THE ACK TO A ONE-WAY COMING FROM COMMCORE, RELEASING AND SENDING PING INSTEAD
-        MqttProtocol.releaseMessage( cc, ( int ) in.id() );
+        mp.releaseMessage( ( int ) in.id() );
         out.add( MqttProtocol.getPingMessage() );
     }
 
@@ -150,8 +155,20 @@ public class InputPortHandler
             // we store the response topic into the InputResponseHandler
             ih.setTopicResponse( mp.extractTopicResponse( m ) ).setRequestCommMessage( cm );
             // we forward the received message to the new CommChannel
-            ctx.channel().attr( NioSocketCommChannel.LISTENER ).get()
-              .createNewPubSubChannel( ih ).pipeline().fireChannelRead( cm );
+						
+						NioSocketCommChannel fc = NioSocketCommChannel.createInputChannel( 
+							new URI( commChannel.parentInputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue() ),
+							mp,
+							ctx.channel().eventLoop().parent(), 
+							commChannel.parentInputPort(), 
+							ih);
+						ChannelPipeline p = fc.getChannelPipeline();
+							do{
+								p = fc.getChannelPipeline();
+							} while ( p == null );
+							p.fireChannelRead( cm );
+//            ctx.channel().attr( NioSocketCommChannel.LISTENER ).get()
+//              .createNewPubSubChannel( ih ).pipeline().fireChannelRead( cm );
         }
     }
 
