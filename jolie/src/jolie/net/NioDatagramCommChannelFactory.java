@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.protocols.CommProtocol;
@@ -51,5 +52,10 @@ public class NioDatagramCommChannelFactory extends CommChannelFactory {
 
 	return channel;
     }
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
 
 }

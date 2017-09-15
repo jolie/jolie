@@ -37,8 +37,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @ChannelHandler.Sharable
 public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<CommMessage> {
@@ -72,22 +70,7 @@ public class NioSocketCommChannelHandler extends SimpleChannelInboundHandler<Com
     }
 
     protected ChannelFuture write( CommMessage msg ) throws InterruptedException {
-        CompletableFuture<Void> cf = new CompletableFuture<>();
-        if ( isMqttProtocol() ) {
-            ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().put( ( ( int ) msg.id() ), cf );
-        } else {
-            cf.complete( null );
-        }
-        ChannelFuture f = this.ctx.writeAndFlush( msg );
-        try {
-            cf.get();
-        } catch ( ExecutionException ex ) {
-            ex.printStackTrace();
-        }
-        if ( isMqttProtocol() ) {
-            ctx.channel().attr( NioSocketCommChannel.SEND_RELEASE ).get().remove( ( int ) msg.id() );
-        }
-        return f;
+			return this.ctx.writeAndFlush( msg );
     }
 
     protected ChannelFuture close() {

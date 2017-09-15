@@ -50,7 +50,7 @@ public abstract class AbstractCommChannel extends CommChannel {
     @Override
     public CommMessage recvResponseFor( CommMessage request )
       throws IOException {
-//        System.out.println( "recvResponseFor " + request.operationName() + " #" + request.id() );
+        System.out.println( "recvResponseFor " + request.operationName() + " #" + request.id() + " | " + this.toString() );
         CommMessage response = null;
         futureRequest.complete( request );
         try {
@@ -92,7 +92,7 @@ public abstract class AbstractCommChannel extends CommChannel {
     }
 
     protected synchronized void receiveResponse( CommMessage response ) {
-//        System.out.println( "receiveResponse " + response.operationName() + " #" + response.id() );
+        System.out.println( "receiveResponse " + response.operationName() + " #" + response.id() + " | " + this.toString() );
         if ( response.hasGenericId() ) {
             handleGenericMessage( response );
         } else {
@@ -111,7 +111,7 @@ public abstract class AbstractCommChannel extends CommChannel {
     }
 
     private void handleGenericMessage( CommMessage response ) {
-//        System.out.println( "handleGenericMessage " + response.operationName() + " #" + response.id() );
+        System.out.println( "handleGenericMessage " + response.operationName() + " #" + response.id() + " | " + this.toString() );
         if ( !futureResponse.isDone() ) {
             CommMessage request = getFutureRequest();
             if ( response.operationName().equals( request.operationName() ) ) {
@@ -147,7 +147,7 @@ public abstract class AbstractCommChannel extends CommChannel {
     }
 
     private void handleMessage( CommMessage response ) {
-//        System.out.println( "handleMessage " + response.operationName() + " #" + response.id() );
+        System.out.println( "handleMessage " + response.operationName() + " #" + response.id() + " | " + this.toString() );
         if ( !futureResponse.isDone() ) {
             futureResponse.complete( response );
         }

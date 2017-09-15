@@ -28,6 +28,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
@@ -59,6 +61,7 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	private final VariablePath locationVariablePath, protocolVariablePath;
 	private final boolean isConstant;
 	private final Interface iface;
+	private final Map< Long, CompletableFuture<Void> > subPubSendRelease = new ConcurrentHashMap<>();
 
 	/* To be called at runtime, after main is run.
 	 * Requires the caller to set the variables by itself.
@@ -231,19 +234,29 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 			URI uri = getLocation( loc );
 			if ( forceNew ) {
 				// A fresh channel was requested
-				ret = interpreter.commCore().createCommChannel( uri, this );
+				ret = createCommChannel( uri, this );
 			} else {
 				// Try reusing an existing channel first
 				String protocol = protocolVariablePath.getValue().strValue();
 				ret = interpreter.commCore().getPersistentChannel( uri, protocol );
 				if ( ret == null ) {
-					ret = interpreter.commCore().createCommChannel( uri, this );
+					ret = createCommChannel( uri, this );
 				}
 			}
 		}
 
 		ret.setParentOutputPort( this );
 		return ret;
+	}
+	
+	private CommChannel createCommChannel( URI uri, OutputPort port ) throws IOException{
+		if( port.protocolConfigurationPath().getValue().strValue().equals( "mqtt") ){
+			interpreter.logSevere( "OutputPort.java uses string evalutation to check "
+				+ "for PubSub protocol. Use inheritance instead.");
+			return interpreter.commCore().createPubSubCommChannel( uri, this );
+		} else {
+			return interpreter.commCore().createCommChannel( uri, this );
+		}
 	}
 
 	private static class LazyLocalUriHolder {
@@ -337,4 +350,18 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 		
 		return ret;
 	}
+	
+	public Map getSubPubSendRelease(){
+		return this.subPubSendRelease;
+	}
+	
+	public void subPubRelease( long id ) throws IOException{
+		if( subPubSendRelease != null && subPubSendRelease.containsKey( id ) ){
+			subPubSendRelease.get( id ).complete( null );
+			subPubSendRelease.remove( id );
+		} else {
+			throw new IOException( "Tried to remove missing future " + id );
+		}
+	}
+	
 }

@@ -1,12 +1,11 @@
 /*******************************************************************************
- *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   *
  *   Copyright (C) 2017 by Saverio Giallorenzo <saverio.giallorenzo@gmail.com> *
  *                                                                             *
  *   This program is free software; you can redistribute it and/or modify      *
  *   it under the terms of the GNU Library General Public License as           *
  *   published by the Free Software Foundation; either version 2 of the        *
  *   License, or (at your option) any later version.                           *
- *                                                                             *
+ *                                                                              *
  *   This program is distributed in the hope that it will be useful,           *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of            *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
@@ -19,36 +18,15 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-package jolie.net;
+package jolie.net.ext;
 
-import java.io.IOException;
-import java.net.URI;
-import jolie.net.ext.CommPubSubProtocolFactory;
-import jolie.net.protocols.CommProtocol;
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.VariablePath;
+import jolie.net.CommCore;
 
-/**
- * For future development of extensions: Create MqttProtocolFactory called by
- * Jolie Class Loader, update file manifest.mf with value
- * X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
- */
-@AndJarDeps( { "jolie-js.jar", "json_simple.jar", "jolie-xml.jar" } )
-public class MqttProtocolFactory extends CommPubSubProtocolFactory {
+public abstract class CommPubSubProtocolFactory extends CommProtocolFactory {
 
-	public MqttProtocolFactory( CommCore commCore ) {
+	public CommPubSubProtocolFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
-	@Override
-	public CommProtocol createInputProtocol( VariablePath configurationPath,
-		URI location ) throws IOException {
-		return new MqttProtocol( configurationPath );
-	}
-
-	@Override
-	public CommProtocol createOutputProtocol( VariablePath configurationPath,
-		URI location ) throws IOException {
-		return new MqttProtocol( configurationPath );
-	}
+	
 }
