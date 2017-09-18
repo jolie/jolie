@@ -1,10 +1,16 @@
 include "console.iol"
 
-type TmpType: void { .id: string }
+type TmpType: void { .id?: string }
 
-interface ThermostatInterfaceMQTT {
+interface ThermostatInterface {
     OneWay: test( string )
-    RequestResponse: getTmp( TmpType )( int )
+    RequestResponse: getTmp( TmpType )( undefined )
+}
+
+outputPort Server {
+    Location: "socket://localhost:8000"
+    Protocol: sodep
+    Interfaces: ThermostatInterface
 }
 
 outputPort Broker {
@@ -22,18 +28,18 @@ outputPort Broker {
             .QoS = 2
         }
     }
-    Interfaces: ThermostatInterfaceMQTT
+    Interfaces: ThermostatInterface
 }
 
 main
 {
     {
-        test@Broker( "This is a test" );
+        test@Server( "This is a test" );
         println@Console( "Test done" )()
     }
     ;
     {
-        getTmp@Broker( { .id = "42" } )( varA );
+        getTmp@Server( { .id = "42" } )( varA );
         println@Console( "getTmp done: " + varA )()
     }
 }

@@ -73,7 +73,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import java.io.StringWriter;
 import java.io.Writer;
-import jolie.net.ext.CommPubSubProtocolFactory;
+import jolie.net.ext.PubSubCommProtocolFactory;
 import jolie.runtime.ValuePrettyPrinter;
 
 /**
@@ -475,7 +475,7 @@ public class CommCore {
 		protocolConfigurations.add( protocolConfigurationProcess );
 
 		String medium = inputPort.location().getScheme();
-		if( protocolFactory instanceof CommPubSubProtocolFactory ){
+		if( protocolFactory instanceof PubSubCommProtocolFactory ){
 			medium = "pubsubchannel";
 		}
 		CommListenerFactory factory = getCommListenerFactory( medium );

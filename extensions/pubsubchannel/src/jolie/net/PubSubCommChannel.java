@@ -91,7 +91,7 @@ public class PubSubCommChannel extends StreamingCommChannel {
   @Override
   protected void closeImpl()
       throws IOException {
-    System.out.println( "Received close request" );
+    //System.out.println( "Received close request" );
   }
 
   public synchronized boolean isReady()

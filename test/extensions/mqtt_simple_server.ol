@@ -1,10 +1,16 @@
 include "console.iol"
 
-type TmpType: void
+type TmpType: void { .id?: string }
 
-interface ThermostatInterfaceMQTT {
+interface ThermostatInterface {
     OneWay: test( string )
     RequestResponse: getTmp( TmpType )( int )
+}
+
+inputPort Thermostat2 {
+    Location: "socket://localhost:8000"
+    Protocol: sodep
+    Interfaces: ThermostatInterface
 }
 
 inputPort  Thermostat {
@@ -23,20 +29,19 @@ inputPort  Thermostat {
             .QoS = 2
         }
     }
-    Interfaces: ThermostatInterfaceMQTT
+    Interfaces: ThermostatInterface
 }
+
+execution{ concurrent }
 
 main 
 {
-    {
-        test( r );
+    [ test( r ) ]{
         println@Console( "Received TEST: " + r )()
     }
-    ;
-    {
-        getTmp( temp )( temp ){
-            temp = 24;
-            println@Console( "Received getTmp, sending back: " + temp )()
-        }
-    }
+    [ getTmp( temp )( resp ){
+            resp = 24;
+            println@Console( "Received getTmp, sending back: " + resp )()
+        } 
+    ]
 }

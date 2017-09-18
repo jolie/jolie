@@ -25,9 +25,9 @@ package jolie.net;
 
 import jolie.net.mqtt.InputPortHandler;
 import jolie.net.mqtt.OutputPortHandler;
-import jolie.net.protocols.AsyncCommProtocol;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.PubSubCommProtocol;
 
 import jolie.js.JsUtils;
 import jolie.xml.XmlUtils;
@@ -109,7 +109,7 @@ import jolie.runtime.typing.TypeCastingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class MqttProtocol extends AsyncCommProtocol {
+public class MqttProtocol extends PubSubCommProtocol {
 
 	private final Set<String> aliasKeys;
 	private final Charset charset;

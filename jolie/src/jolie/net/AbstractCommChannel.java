@@ -19,148 +19,196 @@
  *                                                                             *
  *   For details about the authors of this software, see the AUTHORS file.     *
  *******************************************************************************/
-
 package jolie.net;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractCommChannel extends CommChannel {
 
-    private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
+  private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
-//    private final Map< Long, CommMessage> pendingResponses = new ConcurrentHashMap<>();
-//    private final Map< Long, ResponseContainer> waiters = new ConcurrentHashMap<>();
-//    private final Queue< CommMessage> pendingGenericResponses = new ConcurrentLinkedQueue<>();
-//
-//    private final Object responseRecvMutex = new Object();
-//
-//    private static class ResponseContainer {
-//
-//        private ResponseContainer() {
-//        }
-//        private CommMessage response = null;
-//    }
-    private final CompletableFuture< CommMessage> futureRequest = new CompletableFuture<>();
-    private final CompletableFuture< CommMessage> futureResponse = new CompletableFuture<>();
+  // TODO: add some cleaning routine to remove outdated mappings
+  private final Map< String, MessageContainer> MCS = new ConcurrentHashMap<>();  // MessageContainer Storage
 
-    @Override
-    public CommMessage recvResponseFor( CommMessage request )
+  private class MessageContainer {
+
+    final Queue< CompletableFuture< CommMessage>> generic_FromReception;
+    final Queue< CompletableFuture< CommMessage>> generic_FromRequest;
+    final Map< Long, CompletableFuture< CommMessage>> directMap;
+
+    public MessageContainer() {
+      generic_FromReception = new ConcurrentLinkedQueue<>();
+      generic_FromRequest = new ConcurrentLinkedQueue<>();
+      directMap = new ConcurrentHashMap<>();
+    }
+
+    protected boolean hasDirectFuture( Long id ) {
+      return directMap.containsKey( id );
+    }
+
+    protected CompletableFuture< CommMessage> getDirectFuture( Long id ) {
+      return directMap.get( id );
+    }
+
+    private void addDirectFuture( Long id, CompletableFuture<CommMessage> f ) {
+      directMap.put( id, f );
+    }
+
+    private boolean hasGenericReceptionFuture() {
+      return !generic_FromReception.isEmpty();
+    }
+
+    private CompletableFuture<CommMessage> getGenericReceptionFuture() {
+      return generic_FromReception.peek();
+    }
+
+    private void addGenericReceptionFuture( CompletableFuture<CommMessage> f ) {
+      generic_FromReception.add( f );
+    }
+
+    private void addGenericRequestFuture( CompletableFuture<CommMessage> f ) {
+      generic_FromRequest.add( f );
+    }
+
+    private boolean hasGenericRequestFuture() {
+      return !generic_FromRequest.isEmpty();
+    }
+
+    private CompletableFuture<CommMessage> getGenericRequestFuture() {
+      return generic_FromRequest.peek();
+    }
+
+    private void removeFuture( Long id, CompletableFuture<CommMessage> f ) {
+      directMap.remove( id );
+      generic_FromReception.remove( f );
+      generic_FromRequest.remove( f );
+    }
+
+    private void removeFuture( CompletableFuture<CommMessage> f ) {
+      generic_FromReception.remove( f );
+      generic_FromRequest.remove( f );
+    }
+
+  }
+
+  private MessageContainer retrieveMessageContainer( String operation ) {
+    // we check if the operation of the request is already indexed into the MCS,
+    // if not, we add it
+    synchronized ( MCS ) {
+      if ( !MCS.containsKey( operation ) ) {
+        MessageContainer mc = new MessageContainer();
+        MCS.put( operation, mc );
+        return mc;
+      } else {
+        return MCS.get( operation );
+      }
+    }
+  }
+
+  @Override
+  public CommMessage recvResponseFor( CommMessage request )
       throws IOException {
-        System.out.println( "recvResponseFor " + request.operationName() + " #" + request.id() + " | " + this.toString() );
-        CommMessage response = null;
-        futureRequest.complete( request );
-        try {
-            response = futureResponse.get();
-        } catch ( InterruptedException | ExecutionException ex ) {
-            Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
-        }
-        return response;
 
-        // IF MESSAGE HAS ALREADY ARRIVED, PICK IT FROM pendingResponses by ID
-        // 
-//        ResponseContainer monitor = null;
-//        synchronized ( responseRecvMutex ) {
-//            response = pendingResponses.remove( request.id() );
-//            if ( response == null ) {
-//                if ( pendingGenericResponses.isEmpty() ) {
-//                    if( !waiters.containsKey( request.id() ) ){
-//                        monitor = new ResponseContainer();
-//                        waiters.put( request.id(), monitor );
-//                    }
-//                } else {
-//                    response = pendingGenericResponses.poll();
-//                }
-//            }
-//        }
-//        if ( response == null ) {
-//            synchronized ( monitor ) {
-//                if ( monitor.response == null ) {
-//                    try {
-//                        monitor.wait();
-//                    } catch ( InterruptedException e ) {
-//                        Interpreter.getInstance().logSevere( e );
-//                    }
-//                }
-//                response = monitor.response;
-//            }
-//        }
-//        return response;
+    String operation = request.operationName();
+    Long id = request.id();
+    MessageContainer mc = retrieveMessageContainer( operation );
+    CompletableFuture< CommMessage> futureResponse;
+    CommMessage response = null;
+
+    synchronized ( mc ) {
+      // we check if there is already a response for this request: 
+      // first by ID, 
+      if ( mc.hasDirectFuture( id ) ) {
+        // we get it
+        futureResponse = mc.getDirectFuture( id );
+        // and we remove it from the storage
+        mc.removeFuture( id, futureResponse );
+      } // then in generic receptions
+      else if ( mc.hasGenericReceptionFuture() ) {
+        // we get it
+        futureResponse = mc.getGenericReceptionFuture();
+        // and we remove it from the storage
+        mc.removeFuture( id, futureResponse );
+      } // if no response arrived yet, we set up the future
+      else {
+        futureResponse = new CompletableFuture<>();
+        mc.addDirectFuture( id, futureResponse );
+        mc.addGenericRequestFuture( futureResponse );
+      }
     }
 
-    protected synchronized void receiveResponse( CommMessage response ) {
-        System.out.println( "receiveResponse " + response.operationName() + " #" + response.id() + " | " + this.toString() );
-        if ( response.hasGenericId() ) {
-            handleGenericMessage( response );
-        } else {
-            handleMessage( response );
-        }
+    try {
+      // DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
+      response = futureResponse.get();
+
+    } catch ( InterruptedException | ExecutionException ex ) {
+      Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
     }
 
-    private CommMessage getFutureRequest() {
-        CommMessage request = null;
-        try {
-            request = futureRequest.get();
-        } catch ( InterruptedException | ExecutionException ex ) {
-            Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
-        }
-        return request;
+    return response;
+  }
+
+  protected void receiveResponse( CommMessage response ) {
+
+    if ( response.hasGenericId() ) {
+      handleGenericMessage( response );
+    } else {
+      handleMessage( response );
+    }
+  }
+
+  private void handleGenericMessage( CommMessage response ) {
+
+    String operation = response.operationName();
+    MessageContainer mc = retrieveMessageContainer( operation );
+    CompletableFuture< CommMessage> future;
+
+    synchronized ( mc ) {
+      // if a request is already in the storage, we complete it
+      if ( mc.hasGenericRequestFuture() ) {
+        future = mc.getGenericRequestFuture();
+        mc.removeFuture( future );
+      } // else we add it in the received generic responses
+      else {
+        future = new CompletableFuture<>();
+        mc.addGenericReceptionFuture( future );
+      }
     }
 
-    private void handleGenericMessage( CommMessage response ) {
-        System.out.println( "handleGenericMessage " + response.operationName() + " #" + response.id() + " | " + this.toString() );
-        if ( !futureResponse.isDone() ) {
-            CommMessage request = getFutureRequest();
-            if ( response.operationName().equals( request.operationName() ) ) {
-                futureResponse.complete(
-                  new CommMessage(
-                    request.id(),
-                    response.operationName(),
-                    response.resourcePath(),
-                    response.value(),
-                    response.fault()
-                  )
-                );
-            }
-        }
-//        ResponseContainer monitor;
-//        if ( waiters.isEmpty() ) {
-//            pendingGenericResponses.add( response );
-//        } else {
-//            Entry< Long, ResponseContainer> entry
-//              = waiters.entrySet().iterator().next();
-//            monitor = entry.getValue();
-//            synchronized ( monitor ) {
-//                monitor.response = new CommMessage(
-//                  entry.getKey(),
-//                  response.operationName(),
-//                  response.resourcePath(),
-//                  response.value(),
-//                  response.fault()
-//                );
-//                monitor.notify();
-//            }
-//        }
-    }
+    future.complete( response );
+    
+  }
 
-    private void handleMessage( CommMessage response ) {
-        System.out.println( "handleMessage " + response.operationName() + " #" + response.id() + " | " + this.toString() );
-        if ( !futureResponse.isDone() ) {
-            futureResponse.complete( response );
-        }
-//        ResponseContainer monitor;
-//        if ( ( monitor = waiters.remove( response.id() ) ) == null ) {
-//            pendingResponses.put( response.id(), response );
-//        } else {
-//            synchronized ( monitor ) {
-//                monitor.response = response;
-//                monitor.notify();
-//            }
-//        }
+  private void handleMessage( CommMessage response ) {
+
+    String operation = response.operationName();
+    Long id = response.id();
+    MessageContainer mc = retrieveMessageContainer( operation );
+    CompletableFuture< CommMessage> future;
+
+    synchronized ( mc ) {
+      // if a request is already in the storage, we complete it
+      if ( mc.hasDirectFuture( id ) ) {
+        future = mc.getDirectFuture( id );
+        mc.removeFuture( future );
+      } // else we add it in the received generic responses
+      else {
+        future = new CompletableFuture<>();
+        mc.addDirectFuture( id, future );
+      }
     }
+    
+    future.complete( response );
+  
+  }
 
 //    private void throwIOExceptionFault( IOException e ) {
 //        System.out.println( "throwIOException " + e.getMessage() );
@@ -182,5 +230,4 @@ public abstract class AbstractCommChannel extends CommChannel {
 //        }
 //        waiters.clear();
 //    }
-
 }

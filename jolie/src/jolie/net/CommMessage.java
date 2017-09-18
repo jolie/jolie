@@ -216,6 +216,8 @@ public class CommMessage implements Serializable
 	{
 		return value;
 	}
+  
+  
 
 	/**
 	 * The operation name of this message.

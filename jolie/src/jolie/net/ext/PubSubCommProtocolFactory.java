@@ -22,9 +22,9 @@ package jolie.net.ext;
 
 import jolie.net.CommCore;
 
-public abstract class CommPubSubProtocolFactory extends CommProtocolFactory {
+public abstract class PubSubCommProtocolFactory extends CommProtocolFactory {
 
-	public CommPubSubProtocolFactory( CommCore commCore ) {
+	public PubSubCommProtocolFactory( CommCore commCore ) {
 		super( commCore );
 	}
 
