@@ -106,29 +106,6 @@ public class NioSocketCommChannel extends StreamingCommChannel {
 		return channel;
 	}
 
-//	public static NioSocketCommChannel createInputChannel( URI location, AsyncCommProtocol protocol, EventLoopGroup workerGroup, InputPort port ) {
-////		URI broker = URI.create( inputPort().protocolConfigurationPath().getValue().getFirstChild( "broker" ).strValue() );
-//		ExecutionThread ethread = ExecutionThread.currentThread();
-//		NioSocketCommChannel channel = new NioSocketCommChannel( location, protocol );
-//		channel.setParentInputPort( port );
-//		channel.bootstrap = new Bootstrap();
-//		channel.bootstrap.group( workerGroup )
-//			.channel( NioSocketChannel.class )
-//			.option( ChannelOption.SO_LINGER, SO_LINGER )
-//			.handler( new ChannelInitializer() {
-//				@Override
-//				protected void initChannel( Channel ch ) throws Exception {
-//					ChannelPipeline p = ch.pipeline();
-//					channel.setChannelPipeline( p );
-//					protocol.setupPipeline( p );
-//					p.addLast( channel.nioSocketCommChannelHandler );
-//					ch.attr( EXECUTION_CONTEXT ).set( ethread );
-//				}
-//			}
-//			);
-//		return channel;
-//	}
-
 	public ChannelFuture connect( URI location ) throws InterruptedException {
 		return bootstrap
 			.connect( new InetSocketAddress( location.getHost(), location.getPort() ) );

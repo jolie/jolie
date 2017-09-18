@@ -28,12 +28,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommMessage;
+import jolie.net.ext.CommProtocolFactory;
+import jolie.net.ext.PubSubCommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.process.AssignmentProcess;
 import jolie.process.NullProcess;
@@ -249,9 +249,11 @@ public class OutputPort extends AbstractIdentifiableObject implements Port
 	}
 	
 	private CommChannel createCommChannel( URI uri, OutputPort port ) throws IOException{
-		if( port.protocolConfigurationPath().getValue().strValue().equals( "mqtt") ){
-			interpreter.logSevere( "OutputPort.java uses string evalutation to check "
-				+ "for PubSub protocol. Use inheritance instead.");
+    CommProtocolFactory fetchedFactory = interpreter.commCore().getCommProtocolFactory(
+      port.protocolConfigurationPath().getValue().strValue()
+    );
+
+    if( fetchedFactory instanceof PubSubCommProtocolFactory ){
 			return interpreter.commCore().createPubSubCommChannel( uri, this );
 		} else {
 			return interpreter.commCore().createCommChannel( uri, this );

@@ -1276,7 +1276,7 @@ public class HttpProtocol extends AsyncCommProtocol {
                 }
             }
         }
-
+        
         if ( decodedMessage.resourcePath.equals( "/" ) && !channel().parentInputPort()
             .canHandleInputOperation( decodedMessage.operationName ) ) 
         {

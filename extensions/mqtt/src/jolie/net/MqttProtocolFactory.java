@@ -23,7 +23,7 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
-import jolie.net.ext.CommPubSubProtocolFactory;
+import jolie.net.ext.PubSubCommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 import jolie.runtime.VariablePath;
@@ -34,7 +34,7 @@ import jolie.runtime.VariablePath;
  * X-JOLIE-ProtocolExtension: mqtt:jolie.net.MqttProtocolFactory
  */
 @AndJarDeps( { "jolie-js.jar", "json_simple.jar", "jolie-xml.jar" } )
-public class MqttProtocolFactory extends CommPubSubProtocolFactory {
+public class MqttProtocolFactory extends PubSubCommProtocolFactory {
 
 	public MqttProtocolFactory( CommCore commCore ) {
 		super( commCore );

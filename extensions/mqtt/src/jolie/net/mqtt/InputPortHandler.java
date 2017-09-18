@@ -149,11 +149,11 @@ public class InputPortHandler
         } else {
             // we forward the received message to the new CommChannel
             URI location = new URI( commChannel.parentInputPort().protocolConfigurationPath()
-                .evaluate().getFirstChild( "broker" ).strValue() 
+                .evaluate().getFirstChild( "broker" ).strValue()
             );
                         
             AsyncCommProtocol newMP = (AsyncCommProtocol) Interpreter.getInstance().commCore()
-                .getCommProtocolFactory( "mqtt" ).createInputProtocol( commChannel.parentInputPort().protocolConfigurationPath(), location );
+                .getCommProtocolFactory( mp.name() ).createInputProtocol( commChannel.parentInputPort().protocolConfigurationPath(), location );
             
             // else we forward the message to a new channel pipeline
             InputResponseHandler ih = new InputResponseHandler( newMP );

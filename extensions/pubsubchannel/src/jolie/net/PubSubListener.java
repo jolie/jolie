@@ -46,7 +46,7 @@ public class PubSubListener extends CommListener {
 
   @Override
   public void shutdown() {
-    System.out.println( "Shutting down the listener" );
+//    System.out.println( "Shutting down the listener" );
   }
 
   @Override
