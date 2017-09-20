@@ -34,12 +34,12 @@ outputPort Broker {
 main
 {
     {
-        test@Server( "This is a test" );
+        test@Broker( "This is a test" );
         println@Console( "Test done" )()
     }
     ;
     {
-        getTmp@Server( { .id = "42" } )( varA );
+        getTmp@Broker( { .id = "42" } )( varA );
         println@Console( "getTmp done: " + varA )()
     }
 }

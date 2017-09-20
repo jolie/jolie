@@ -28,7 +28,9 @@ import java.rmi.registry.Registry;
 import jolie.net.ext.CommChannelFactory;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 
 public class RMICommChannelFactory extends CommChannelFactory
 {
@@ -47,5 +49,10 @@ public class RMICommChannelFactory extends CommChannelFactory
 		} catch( NotBoundException e ) {
 			throw new IOException( e );
 		}
+	}
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
 	}
 }

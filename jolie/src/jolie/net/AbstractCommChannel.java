@@ -40,9 +40,9 @@ public abstract class AbstractCommChannel extends CommChannel {
 
   private class MessageContainer {
 
-    final Queue< CompletableFuture< CommMessage>> generic_FromReception;
-    final Queue< CompletableFuture< CommMessage>> generic_FromRequest;
-    final Map< Long, CompletableFuture< CommMessage>> directMap;
+    final Queue< CompletableFuture< CommMessage > > generic_FromReception;
+    final Queue< CompletableFuture< CommMessage > > generic_FromRequest;
+    final Map< Long, CompletableFuture< CommMessage > > directMap;
 
     public MessageContainer() {
       generic_FromReception = new ConcurrentLinkedQueue<>();

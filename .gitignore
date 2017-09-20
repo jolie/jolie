@@ -36,3 +36,5 @@ build/
 /extensions/mqtt/nbproject/private/
 /lib/xsom/build
 /extensions/pubsubchannel/nbproject/private/
+/extensions/auto/nbproject/private/
+/extensions/coap/nbproject/private/

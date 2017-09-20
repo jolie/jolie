@@ -26,7 +26,9 @@ import jolie.lang.Constants;
 import jolie.net.CommChannel;
 import jolie.net.CommCore;
 import jolie.net.ext.CommChannelFactory;
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
+import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
 
 /**
@@ -72,5 +74,10 @@ public class AutoChannelFactory extends CommChannelFactory {
 			throw new IOException( e );
 		}
     }
+
+	@Override
+	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
+		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+	}
 
 }
