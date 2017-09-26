@@ -18,12 +18,12 @@ outputPort Broker {
     Protocol: mqtt {
         .debug = true;
         .osc.getTmp << {
-            .format = "xml",
+            .format = "raw",
             .alias = "%!{id}/getTemperature",
             .QoS = 2
         };
         .osc.test << {
-            .format = "xml",
+            .format = "raw",
             .alias = "test/getTemperature",
             .QoS = 2
         }
@@ -37,9 +37,9 @@ main
         test@Broker( "This is a test" );
         println@Console( "Test done" )()
     }
-    ;
+    |
     {
-        getTmp@Broker( { .id = "42" } )( varA );
+        getTmp@Server( { .id = "42" } )( varA );
         println@Console( "getTmp done: " + varA )()
     }
 }

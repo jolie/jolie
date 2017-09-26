@@ -52,7 +52,7 @@ public class PubSubListener extends CommListener {
   @Override
   public void run() {
     // wait for the init to load the configurationParameters
-    String broker = "";
+		String broker = "";
     do {
       broker = inputPort().protocolConfigurationPath().evaluate().getFirstChild( "broker" ).strValue();
     } while ( broker.equals( "" ) );
