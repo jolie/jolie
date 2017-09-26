@@ -71,10 +71,7 @@ import jolie.runtime.typing.TypeCheckingException;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import java.io.StringWriter;
-import java.io.Writer;
 import jolie.net.ext.PubSubCommProtocolFactory;
-import jolie.runtime.ValuePrettyPrinter;
 
 /**
  * Handles the communications mechanisms for an Interpreter instance.

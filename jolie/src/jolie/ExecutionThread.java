@@ -35,6 +35,7 @@ import java.util.concurrent.Future;
 import jolie.lang.Constants;
 import jolie.net.CommChannelHandler;
 import jolie.net.CommCore;
+import jolie.net.CommListener;
 import jolie.net.SessionMessage;
 import jolie.process.Process;
 import jolie.runtime.AbstractIdentifiableObject;
@@ -424,7 +425,6 @@ public abstract class ExecutionThread extends JolieThread
 	public static ExecutionThread currentThread()
 	{
         Thread currThread = Thread.currentThread();
-              
         
         if ( currThread instanceof JolieExecutorThread ) {
             return ( ( JolieExecutorThread ) currThread  ).executionThread();
@@ -436,6 +436,10 @@ public abstract class ExecutionThread extends JolieThread
         
         if( currThread instanceof CommCore.ExecutionContextThread ){
             return ( ( CommCore.ExecutionContextThread ) currThread  ).executionThread();
+        }
+				
+        if( currThread instanceof CommListener ){
+            return Interpreter.getInstance().initThread();
         }
         
 		return null;

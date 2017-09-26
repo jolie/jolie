@@ -33,182 +33,147 @@ import java.util.logging.Logger;
 
 public abstract class AbstractCommChannel extends CommChannel {
 
-  private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
+	private static final long RECEIVER_KEEP_ALIVE = 20000; // msecs
 
-  // TODO: add some cleaning routine to remove outdated mappings
-  private final Map< String, MessageContainer> MCS = new ConcurrentHashMap<>();  // MessageContainer Storage
+	// TODO: add some cleaning routine to remove outdated mappings
+	private final Map< Long, CompletableFuture< CommMessage>> specificMap = new ConcurrentHashMap<>();
+	private final Map< String, GenericMessages> genericMap = new ConcurrentHashMap<>();
 
-  private class MessageContainer {
+	private class GenericMessages {
 
-    final Queue< CompletableFuture< CommMessage > > generic_FromReception;
-    final Queue< CompletableFuture< CommMessage > > generic_FromRequest;
-    final Map< Long, CompletableFuture< CommMessage > > directMap;
+		public final Queue< CompletableFuture< CommMessage>> responses = new ConcurrentLinkedQueue<>();
+		public final Queue< CompletableFuture< CommMessage>> requests = new ConcurrentLinkedQueue<>();
+	}
 
-    public MessageContainer() {
-      generic_FromReception = new ConcurrentLinkedQueue<>();
-      generic_FromRequest = new ConcurrentLinkedQueue<>();
-      directMap = new ConcurrentHashMap<>();
-    }
+	private GenericMessages getGenericMessages( String operation ) {
+		assert operation != null;
+		if ( !genericMap.containsKey( operation ) ) {
+			genericMap.put( operation, new GenericMessages() );
+		}
+		return genericMap.get( operation );
+	}
 
-    protected boolean hasDirectFuture( Long id ) {
-      return directMap.containsKey( id );
-    }
+	@Override
+	public CommMessage recvResponseFor( CommMessage request )
+		throws IOException {
 
-    protected CompletableFuture< CommMessage> getDirectFuture( Long id ) {
-      return directMap.get( id );
-    }
+		CompletableFuture< CommMessage> futureResponse = null;
+		CommMessage response = null;
 
-    private void addDirectFuture( Long id, CompletableFuture<CommMessage> f ) {
-      directMap.put( id, f );
-    }
+		Long id = request.id();
+		String operation = request.operationName();
 
-    private boolean hasGenericReceptionFuture() {
-      return !generic_FromReception.isEmpty();
-    }
+		synchronized ( this ) {
+			if ( request.hasGenericId() ) {
+				if ( operation != null ) {
+					GenericMessages gm = getGenericMessages( operation );
+					if ( gm.responses.isEmpty() ) {
+						futureResponse = new CompletableFuture<>();
+						gm.requests.add( futureResponse );
+					} else {
+						futureResponse = gm.responses.poll();
+					}
+				} else {
+					Logger.getLogger( AbstractCommChannel.class.getName() )
+						.log( Level.SEVERE, null,
+							new Exception( "Requested reception for generic response without operation. "
+								+ "Impossible to handle." ) );
+				}
+			} else {
+				if ( specificMap.containsKey( id ) ) {
+					futureResponse = specificMap.remove( id );
+				} else {
+					if ( operation != null ) {
+						GenericMessages gm = getGenericMessages( operation );
+						if ( gm.responses.isEmpty() ) {
+							futureResponse = new CompletableFuture<>();
+							specificMap.put( id, futureResponse );
+							gm.requests.add( futureResponse );
+						} else {
+							futureResponse = gm.responses.poll();
+						}
+					} else {
+						futureResponse = new CompletableFuture<>();
+						specificMap.put( id, futureResponse );
+					}
+				}
+			}
+		}
 
-    private CompletableFuture<CommMessage> getGenericReceptionFuture() {
-      return generic_FromReception.peek();
-    }
+		if ( futureResponse != null ) {
+			try {
+				// DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
+				response = futureResponse.get();
+				// if we polled a generic response, we remove the specific request
+				synchronized ( this ) {
+					if ( !request.hasGenericId() ) {
+						specificMap.remove( id );
+					}
+				}
+			} catch ( InterruptedException | ExecutionException ex ) {
+				Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
+			}
+		}
 
-    private void addGenericReceptionFuture( CompletableFuture<CommMessage> f ) {
-      generic_FromReception.add( f );
-    }
+		return response;
+	}
 
-    private void addGenericRequestFuture( CompletableFuture<CommMessage> f ) {
-      generic_FromRequest.add( f );
-    }
+	protected void receiveResponse( CommMessage response ) {
+		if ( response.hasGenericId() ) {
+			handleGenericMessage( response );
+		} else {
+			handleMessage( response );
+		}
+	}
 
-    private boolean hasGenericRequestFuture() {
-      return !generic_FromRequest.isEmpty();
-    }
+	private void handleGenericMessage( CommMessage response ) {
 
-    private CompletableFuture<CommMessage> getGenericRequestFuture() {
-      return generic_FromRequest.peek();
-    }
+		String operation = response.operationName();
+		CompletableFuture future = null;
+		if ( operation == null ) {
+			Logger.getLogger( AbstractCommChannel.class.getName() )
+				.log( Level.SEVERE, null,
+					new Exception( "Requested handling of generic response without operation. "
+						+ "Impossible to handle." ) );
+		} else {
+			synchronized ( this ) {
+				GenericMessages gm = getGenericMessages( operation );
+				if ( gm.requests.isEmpty() ) {
+					future = new CompletableFuture();
+					gm.responses.add( future );
+				} else {
+					future = gm.requests.poll();
+				}
+			}
+		}
 
-    private void removeFuture( Long id, CompletableFuture<CommMessage> f ) {
-      directMap.remove( id );
-      generic_FromReception.remove( f );
-      generic_FromRequest.remove( f );
-    }
+		if ( future != null ) {
+			future.complete( response );
+		}
+	}
 
-    private void removeFuture( CompletableFuture<CommMessage> f ) {
-      generic_FromReception.remove( f );
-      generic_FromRequest.remove( f );
-    }
+	private void handleMessage( CommMessage response ) {
 
-  }
+		String operation = response.operationName();
+		Long id = response.id();
+		CompletableFuture< CommMessage> future = null;
 
-  private MessageContainer retrieveMessageContainer( String operation ) {
-    // we check if the operation of the request is already indexed into the MCS,
-    // if not, we add it
-    synchronized ( MCS ) {
-      if ( !MCS.containsKey( operation ) ) {
-        MessageContainer mc = new MessageContainer();
-        MCS.put( operation, mc );
-        return mc;
-      } else {
-        return MCS.get( operation );
-      }
-    }
-  }
+		synchronized ( this ) {
+			if ( specificMap.containsKey( id ) ) {
+				future = specificMap.remove( id );
+				if ( operation != null ) {
+					// removes related generic request
+					getGenericMessages( operation ).requests.remove( future );
+				}
+			} else {
+				future = new CompletableFuture<>();
+				specificMap.put( id, future );
+			}
+		}
 
-  @Override
-  public CommMessage recvResponseFor( CommMessage request )
-      throws IOException {
+		future.complete( response );
 
-    String operation = request.operationName();
-    Long id = request.id();
-    MessageContainer mc = retrieveMessageContainer( operation );
-    CompletableFuture< CommMessage> futureResponse;
-    CommMessage response = null;
-
-    synchronized ( mc ) {
-      // we check if there is already a response for this request: 
-      // first by ID, 
-      if ( mc.hasDirectFuture( id ) ) {
-        // we get it
-        futureResponse = mc.getDirectFuture( id );
-        // and we remove it from the storage
-        mc.removeFuture( id, futureResponse );
-      } // then in generic receptions
-      else if ( mc.hasGenericReceptionFuture() ) {
-        // we get it
-        futureResponse = mc.getGenericReceptionFuture();
-        // and we remove it from the storage
-        mc.removeFuture( id, futureResponse );
-      } // if no response arrived yet, we set up the future
-      else {
-        futureResponse = new CompletableFuture<>();
-        mc.addDirectFuture( id, futureResponse );
-        mc.addGenericRequestFuture( futureResponse );
-      }
-    }
-
-    try {
-      // DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
-      response = futureResponse.get();
-
-    } catch ( InterruptedException | ExecutionException ex ) {
-      Logger.getLogger( AbstractCommChannel.class.getName() ).log( Level.SEVERE, null, ex );
-    }
-
-    return response;
-  }
-
-  protected void receiveResponse( CommMessage response ) {
-
-    if ( response.hasGenericId() ) {
-      handleGenericMessage( response );
-    } else {
-      handleMessage( response );
-    }
-  }
-
-  private void handleGenericMessage( CommMessage response ) {
-
-    String operation = response.operationName();
-    MessageContainer mc = retrieveMessageContainer( operation );
-    CompletableFuture< CommMessage> future;
-
-    synchronized ( mc ) {
-      // if a request is already in the storage, we complete it
-      if ( mc.hasGenericRequestFuture() ) {
-        future = mc.getGenericRequestFuture();
-        mc.removeFuture( future );
-      } // else we add it in the received generic responses
-      else {
-        future = new CompletableFuture<>();
-        mc.addGenericReceptionFuture( future );
-      }
-    }
-
-    future.complete( response );
-    
-  }
-
-  private void handleMessage( CommMessage response ) {
-
-    String operation = response.operationName();
-    Long id = response.id();
-    MessageContainer mc = retrieveMessageContainer( operation );
-    CompletableFuture< CommMessage> future;
-
-    synchronized ( mc ) {
-      // if a request is already in the storage, we complete it
-      if ( mc.hasDirectFuture( id ) ) {
-        future = mc.getDirectFuture( id );
-        mc.removeFuture( future );
-      } // else we add it in the received generic responses
-      else {
-        future = new CompletableFuture<>();
-        mc.addDirectFuture( id, future );
-      }
-    }
-    
-    future.complete( response );
-  
-  }
+	}
 
 //    private void throwIOExceptionFault( IOException e ) {
 //        System.out.println( "throwIOException " + e.getMessage() );

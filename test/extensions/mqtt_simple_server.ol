@@ -19,12 +19,12 @@ inputPort  Thermostat {
         .debug = true;
         .broker = "socket://localhost:1883";
         .osc.getTmp << {
-            .format = "xml",
+            .format = "raw",
             .alias = "42/getTemperature",
             .QoS = 2
         };
         .osc.test << {
-            .format = "xml",
+            .format = "raw",
             .alias = "test/getTemperature",
             .QoS = 2
         }
