@@ -1,4 +1,4 @@
-/***************************************************************************
+/** *************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,8 +17,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+ ************************************************************************** */
 package jolie.net;
 
 import java.io.IOException;
@@ -28,47 +27,46 @@ import jolie.net.protocols.CommProtocol;
 import jolie.util.Helpers;
 
 /**
- * This abstract class implements a communication channel based on a <code>CommProtocol</code>.
+ * This abstract class implements a communication channel based on a
+ * <code>CommProtocol</code>.
+ *
  * @author Fabrizio Montesi
  * @see SelectableStreamingCommChannel
  */
-public abstract class StreamingCommChannel extends AbstractCommChannel
-{
-	private final URI location;
-	private final CommProtocol protocol;
-	public StreamingCommChannel( URI location, CommProtocol protocol )
-	{
-		this.location = location;
-		this.protocol = protocol;
-	}
+public abstract class StreamingCommChannel extends AbstractCommChannel {
 
-	protected CommProtocol protocol()
-	{
-		return protocol;
-	}
-  
-  public void sendRelease( long in ){
-    throw new UnsupportedOperationException( "sendRelease not supported yet." );
-  }
-  
-  public StreamingCommChannelHandler getChannelHandler(){
-    throw new UnsupportedOperationException( "commChannelHandler not supported yet." );
-  }
-  
-  public StreamingCommChannel createWithSideChannel( CommChannel channel ){
-    throw new UnsupportedOperationException( "createWithSideChannel not supported yet." );
-  }
-	
-	@Override
-	protected boolean isThreadSafe()
-	{
-		return protocol.isThreadSafe();
-	}
+    private final URI location;
+    private final CommProtocol protocol;
 
-	@Override
-	protected void releaseImpl()
-		throws IOException
-	{
-		Helpers.lockAndThen( lock, () -> Interpreter.getInstance().commCore().putPersistentChannel( location, protocol.name(), this ) );
-	}
+    public StreamingCommChannel(URI location, CommProtocol protocol) {
+	this.location = location;
+	this.protocol = protocol;
+    }
+
+    protected CommProtocol protocol() {
+	return protocol;
+    }
+
+    public void sendRelease(long in) {
+	throw new UnsupportedOperationException("sendRelease not supported yet.");
+    }
+
+    public StreamingCommChannelHandler getChannelHandler() {
+	throw new UnsupportedOperationException("commChannelHandler not supported yet.");
+    }
+
+    public StreamingCommChannel createWithSideChannel(CommChannel channel) {
+	throw new UnsupportedOperationException("createWithSideChannel not supported yet.");
+    }
+
+    @Override
+    protected boolean isThreadSafe() {
+	return protocol.isThreadSafe();
+    }
+
+    @Override
+    protected void releaseImpl()
+	    throws IOException {
+	Helpers.lockAndThen(lock, () -> Interpreter.getInstance().commCore().putPersistentChannel(location, protocol.name(), this));
+    }
 }
