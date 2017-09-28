@@ -349,6 +349,7 @@ public abstract class ExecutionThread extends JolieThread
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace(() -> new FaultTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			FaultTraceAction.Type.FAULT_SCOPE,
 			message,
                         value,
@@ -362,9 +363,9 @@ public abstract class ExecutionThread extends JolieThread
 	 */
 	public synchronized void pushScope( String id )
 	{
-                log("PUSHING" , id);
+                log("START PUSH" , id);
 		scopeStack.push( new Scope( id ) );
-                log("PUSHED" , id);
+                //log("PUSHED" , id);
 	}
 	
 	/**

@@ -29,44 +29,48 @@ import jolie.runtime.Value;
 public class VariableTraceAction implements TraceAction{
     
     public static enum Type{
-            ASSIGNMENT
+            ASSIGNMENT,
+            PREINCREMENT,
+            POSTINCREMENT,
+            PREDECREMENT,
+            POSTDECREMENT
     }
     
     private final Type type;
-    private final String name;
     private final String description;
     private final long timestamp;
     private final String timeValue;
     private final Value value;
     private final String origin;
     private final String variableName;
+    private final String sessionId;
     
-    public VariableTraceAction(Type type, String name, String description, Value value, long timestamp){
+    public VariableTraceAction(Type type, String description, Value value, long timestamp){
         this.type = type;
-        this.name = name;
         this.description = description;
         this.timestamp = timestamp;
         this.timeValue = parsedTimestamp();
         this.value = value;
         this.origin = "";
         this.variableName="";
+        this.sessionId = "";
     }
-     public VariableTraceAction(Type type, String name, String description, String origin, String variableName, long timestamp){
+     public VariableTraceAction(String sessionId, Type type,String description, String origin, String variableName, long timestamp){
         this.type = type;
-        this.name = name;
         this.description = description;
         this.timestamp = timestamp;
         this.timeValue = parsedTimestamp();
         this.origin = origin;
         this.value = null;
         this.variableName = variableName;
+        this.sessionId = sessionId;
     }
     
+     public String sessionId(){
+         return sessionId;
+     }
     public Type type(){
         return type;
-    }
-    public String name(){
-        return name;
     }
     public String description(){
         return description;

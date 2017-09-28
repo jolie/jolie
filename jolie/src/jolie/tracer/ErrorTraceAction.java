@@ -37,14 +37,19 @@ public class ErrorTraceAction implements TraceAction{
     private String message;
     private long timestamp;
     private String timeValue;
+    private String sessionId;
     
-    public ErrorTraceAction(Type type, String message, long timestamp){
+    public ErrorTraceAction(String sessionId, Type type, String message, long timestamp){
         this.type = type;
         this.message = message;
         this.timestamp = timestamp;
         this.timeValue = parsedTimestamp();
+        this.sessionId = sessionId;
     }
     
+    public String sessionId(){
+        return sessionId;
+    }
     public Type type(){
         return type;
     }

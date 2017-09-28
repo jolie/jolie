@@ -72,6 +72,7 @@ public class NotificationProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.NOTIFICATION,
 			operationId + "@" + outputPort.id(),
 			log,

@@ -22,6 +22,7 @@
 
 package jolie.runtime.embedding;
 
+import jolie.ExecutionThread;
 import jolie.Interpreter;
 import jolie.JolieClassLoader;
 import jolie.runtime.JavaService;
@@ -56,6 +57,7 @@ public class JavaServiceLoader extends EmbeddedServiceLoader
 			setChannel(	new JavaCommChannel( service ) );
 			
 			interpreter.tracer().trace(	() -> new EmbeddingTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 				EmbeddingTraceAction.Type.SERVICE_LOAD,
 				"Java Service Loader",
 				c.getCanonicalName(),

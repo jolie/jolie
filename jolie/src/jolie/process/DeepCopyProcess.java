@@ -21,7 +21,13 @@
 
 package jolie.process;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jolie.ExecutionThread;
+import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
 
@@ -49,7 +55,8 @@ public class DeepCopyProcess implements Process
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
 
-		if ( rightExpression instanceof VariablePath ) {
+		if ( rightExpression instanceof VariablePath ) {  
+                    
 			leftPath.deepCopy( (VariablePath) rightExpression );
 		} else {
 			leftPath.getValue().deepCopy( rightExpression.evaluate() );

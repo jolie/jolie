@@ -55,7 +55,7 @@ public class InstallProcess implements Process
                             log("INSTALLED", handler.toString());
 			} else {
 				ethread.installFaultHandler( pair.key(), handler );
-                            log("INSTALLED", handler+"///" +pair.key());
+                            log("INSTALLED", handler+" - " +pair.key());
 			}
 		}
 	}
@@ -68,6 +68,7 @@ public class InstallProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace(() -> new FaultTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			FaultTraceAction.Type.FAULT_INSTALL,
 			message,
                         value,

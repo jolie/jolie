@@ -112,6 +112,7 @@ public class OneWayProcess implements InputOperationProcess
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.ONE_WAY,
 			operation.id(),
 			log,

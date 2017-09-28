@@ -40,15 +40,21 @@ public class EmbeddingTraceAction implements TraceAction
 	private final String description;
         private final long timestamp;
         private final String timeValue;
+        private final String sessionId;
 	
-	public EmbeddingTraceAction( Type type, String name, String description, long timestamp )
+	public EmbeddingTraceAction( String sessionId, Type type, String name, String description, long timestamp )
 	{
 		this.type = type;
 		this.name = name;
 		this.description = description;
                 this.timestamp = timestamp;
                 this.timeValue = parsedTimestamp();
+                this.sessionId = sessionId;
 	}
+        
+        public String sessionId(){
+            return sessionId;
+        }
 	
 	public Type type()
 	{

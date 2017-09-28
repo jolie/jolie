@@ -20,9 +20,12 @@
 package jolie.process;
 
 import jolie.ExecutionThread;
+import jolie.Interpreter;
 import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 import jolie.runtime.expression.Expression;
+import jolie.tracer.Tracer;
+import jolie.tracer.VariableTraceAction;
 
 public class PreIncrementProcess implements Process, Expression
 {
@@ -50,8 +53,17 @@ public class PreIncrementProcess implements Process, Expression
 	{
 		if ( ExecutionThread.currentThread().isKilled() )
 			return;
+                String varTreeName="";
+                for(int i=0; i<path.path().length;i++){
+                    varTreeName += path.path()[i].key().evaluate().strValue();
+                    if(i != path.path().length-1){
+                        varTreeName += ".";
+                    }
+                }
 		final Value val = path.getValue();
+                log(path.getStateIdentifier(),"PREINCREMENTING",(path.getValue()==null) ? null : path.getValue().evaluate().strValue(), varTreeName);
 		val.setValue( val.intValue() + 1 );
+                log(path.getStateIdentifier(),"PREINCREMENTED",(path.getValue()==null) ? null : path.getValue().evaluate().strValue(), varTreeName);
 	}
 	
 	@Override
@@ -66,5 +78,17 @@ public class PreIncrementProcess implements Process, Expression
 	public boolean isKillable()
 	{
 		return true;
+	}
+         private void log(String instance, String behaviour, String value , String variableName)
+	{
+		final Tracer tracer = Interpreter.getInstance().tracer();
+		tracer.trace( () -> new VariableTraceAction(
+                        instance,
+			VariableTraceAction.Type.PREINCREMENT,
+                        behaviour,
+                        value,
+                        variableName,
+                        System.currentTimeMillis()
+		) );
 	}
 }

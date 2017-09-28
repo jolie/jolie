@@ -246,6 +246,7 @@ Please make sure that:
 		<ant antfile="${project.joliec}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.jolie2java}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.joliedoc}/build.xml" inheritall="false" target="jar"/>
+		<ant antfile="${project.jtracer}/build.xml" inheritall="false" target="jar"/>
 	</target>
 	<target name="clean" depends="-init">
 		<ant antfile="${project.libjolie}/build.xml" inheritall="false" target="clean"/>
@@ -279,6 +280,7 @@ Please make sure that:
 		<ant antfile="${project.metaservice-java}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.coreJavaServices}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.monitorJavaServices}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.jtracer}/build.xml" inheritall="false" target="clean"/>
 	</target>
 
 	<target name="dist" depends="-init,jar">
@@ -301,6 +303,7 @@ Please make sure that:
 				<file file="${project.jolie-gwt}/dist/jolie-gwt.jar"/>
 				<file file="${project.jolie-java}/dist/jolie-java.jar"/>
 				<file file="${project.metaservice-java}/dist/metaservice-java.jar"/>
+				<file file="${project.jtracer}/dist/jtracer.jar"/>
 			</resources>
 		</copy>
 		<copy todir="${dist.jolie}/extensions" flatten="true">

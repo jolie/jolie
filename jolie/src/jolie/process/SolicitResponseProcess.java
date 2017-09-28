@@ -83,6 +83,7 @@ public class SolicitResponseProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.SOLICIT_RESPONSE,
 			operationId + "@" + outputPort.id(),
 			log,

@@ -56,7 +56,7 @@ public class ThrowProcess implements Process
 			throw new FaultException( faultName );
                         
 		} else {
-                    log("THROWN" , faultName.toString()+"///"+expression.evaluate());
+                    log("THROWN" , faultName.toString()+" - "+expression.evaluate());
 			throw new FaultException( faultName, expression.evaluate() );
 		}
 	}
@@ -69,6 +69,7 @@ public class ThrowProcess implements Process
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace(() -> new FaultTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			FaultTraceAction.Type.FAULT_THROW,
 			message,
                         value,

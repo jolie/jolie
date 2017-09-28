@@ -77,6 +77,7 @@ public class RequestResponseProcess implements InputOperationProcess
 	{
 		final Tracer tracer = Interpreter.getInstance().tracer();
 		tracer.trace( () -> new MessageTraceAction(
+                        ExecutionThread.currentThread().getSessionId(),
 			MessageTraceAction.Type.REQUEST_RESPONSE,
 			operation.id(),
 			log,

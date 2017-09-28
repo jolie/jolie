@@ -36,15 +36,20 @@ public class FaultTraceAction implements TraceAction {
     private long timestamp;
     private String timeValue;
     private String value;
+    private String sessionId;
     
-    public FaultTraceAction(Type type, String message, String value,  long timestamp){
+    public FaultTraceAction(String sessionId, Type type, String message, String value,  long timestamp){
         this.type = type;
         this.message = message;
         this.timestamp = timestamp;
         this.timeValue = parsedTimestamp();
         this.value = value;
+        this.sessionId = sessionId;
     }
-     
+    
+    public String sessionId(){
+        return sessionId;
+    }
     public Type type(){
         return type;
     }

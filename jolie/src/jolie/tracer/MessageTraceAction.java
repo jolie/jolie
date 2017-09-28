@@ -48,8 +48,9 @@ public class MessageTraceAction implements TraceAction
 	private final CommMessage message;
         private final long timestamp;
         private final String timeValue;
+        private final String sessionId;
 	
-	public MessageTraceAction( Type type, String name, String description, CommMessage message, long timestamp )
+	public MessageTraceAction( String sessionId , Type type, String name, String description, CommMessage message, long timestamp )
 	{
 		this.type = type;
 		this.name = name;
@@ -57,8 +58,13 @@ public class MessageTraceAction implements TraceAction
 		this.message = message;
                 this.timestamp = timestamp;
                 this.timeValue = parsedTimestamp();
+                this.sessionId = sessionId;
 	}
 	
+        public String sessionId(){
+            return sessionId;
+        }
+        
 	public Type type()
 	{
 		return type;
