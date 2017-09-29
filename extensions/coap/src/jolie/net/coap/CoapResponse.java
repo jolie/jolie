@@ -1,4 +1,4 @@
-package ncoap.message;
+package jolie.net.coap;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -7,16 +7,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import java.util.Iterator;
-
-import ncoap.communication.blockwise.BlockSize;
-import ncoap.message.options.ContentFormat;
-import ncoap.message.options.OpaqueOptionValue;
-import ncoap.message.options.OptionValue;
-import ncoap.message.options.StringOptionValue;
-import ncoap.message.options.UintOptionValue;
-
-import ncoap.communication.observing.ResourceStatusAge;
-import ncoap.message.options.Option;
 
 public class CoapResponse extends CoapMessage {
 

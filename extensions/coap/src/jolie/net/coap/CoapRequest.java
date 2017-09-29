@@ -1,15 +1,8 @@
-package ncoap.message;
+package jolie.net.coap;
 
 import java.net.*;
 import java.util.*;
 import jolie.Interpreter;
-
-import ncoap.communication.blockwise.BlockSize;
-import ncoap.message.options.OpaqueOptionValue;
-import ncoap.message.options.Option;
-import ncoap.message.options.OptionValue;
-import ncoap.message.options.StringOptionValue;
-import ncoap.message.options.UintOptionValue;
 
 public class CoapRequest extends CoapMessage {
 

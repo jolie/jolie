@@ -1,4 +1,4 @@
-package ncoap.message;
+package jolie.net.coap;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.*;
@@ -10,17 +10,8 @@ import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
 import java.util.*;
-import jolie.Interpreter;
 
-import ncoap.communication.dispatching.Token;
-import ncoap.message.options.Option;
-import ncoap.message.options.OptionValue;
-import ncoap.message.options.EmptyOptionValue;
-import ncoap.message.options.OpaqueOptionValue;
-import ncoap.message.options.StringOptionValue;
-import ncoap.message.options.UintOptionValue;
-import ncoap.message.options.ContentFormat;
-import ncoap.communication.blockwise.BlockSize;
+import jolie.Interpreter;
 
 public abstract class CoapMessage {
 

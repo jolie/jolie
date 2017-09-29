@@ -25,7 +25,6 @@
 package ncoap.communication;
 
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -33,26 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.nio.channels.Channels;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import ncoap.communication.events.AbstractMessageExchangeEvent;
-import ncoap.communication.events.EmptyAckReceivedEvent;
-import ncoap.communication.events.MessageIDAssignedEvent;
-import ncoap.communication.events.MessageIDReleasedEvent;
-import ncoap.communication.events.MessageRetransmittedEvent;
-import ncoap.communication.events.MiscellaneousErrorEvent;
-import ncoap.communication.events.NoMessageIDAvailableEvent;
-import ncoap.communication.events.ResetReceivedEvent;
-import ncoap.communication.events.TransmissionTimeoutEvent;
-import ncoap.communication.events.client.ContinueResponseReceivedEvent;
-import ncoap.communication.events.client.RemoteServerSocketChangedEvent;
-import ncoap.communication.events.client.ResponseBlockReceivedEvent;
-import ncoap.communication.events.client.TokenReleasedEvent;
-import ncoap.communication.events.server.ObserverAcceptedEvent;
-import ncoap.communication.events.server.RemoteClientSocketChangedEvent;
 import ncoap.message.CoapMessage;
 
 /**
@@ -78,6 +62,12 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 	this.executor = executor;
     }
 
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, CoapMessage msg) throws Exception {
+	throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    /*
     public final void messageReceived(ChannelHandlerContext ctx, MessageEvent me) throws Exception {
 	Object msg = me.getMessage();
 	if (msg instanceof CoapMessage) {
@@ -120,6 +110,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 
 	ctx.sendUpstream(me);
     }
+     */
 
     /**
      * Sets the {@link ChannelHandlerContext} of this handler
@@ -139,7 +130,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 	return this.context;
     }
 
-    @Override
+    /*
     public final void writeRequested(ChannelHandlerContext ctx, MessageEvent me) throws Exception {
 	Object message = me.getMessage();
 
@@ -151,6 +142,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 	}
 	ctx.sendDownstream(me);
     }
+     */
 
     /**
      * Returns the {@link ScheduledExecutorService} used to execute I/O tasks
@@ -202,9 +194,9 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      */
     protected void triggerEvent(final AbstractMessageExchangeEvent event, boolean bottomUp) {
 	if (bottomUp) {
-	    Channels.fireMessageReceived(context.getChannel(), event);
+	    //Channels.fireMessageReceived(context.channel(), event);
 	} else {
-	    Channels.fireMessageReceived(this.context, event);
+	    //Channels.fireMessageReceived(this.context, event);
 	}
     }
 
@@ -217,7 +209,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      * further processed
      */
     protected void continueMessageProcessing(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	Channels.fireMessageReceived(this.context, coapMessage, remoteSocket);
+	//Channels.fireMessageReceived(this.context, coapMessage, remoteSocket);
     }
 
     /**
@@ -229,6 +221,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      */
     protected void sendEmptyACK(int messageID, final InetSocketAddress remoteSocket) {
 	final CoapMessage emptyACK = CoapMessage.createEmptyAcknowledgement(messageID);
+	/*
 	ChannelFuture future = Channels.future(getContext().getChannel());
 	Channels.write(getContext(), future, emptyACK, remoteSocket);
 	if (LOG.isDebugEnabled()) {
@@ -240,6 +233,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 		}
 	    });
 	}
+	 */
     }
 
     /**
@@ -251,6 +245,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      */
     protected void sendReset(int messageID, final InetSocketAddress remoteSocket) {
 	final CoapMessage resetMessage = CoapMessage.createEmptyReset(messageID);
+	/*
 	ChannelFuture future = Channels.future(getContext().getChannel());
 	Channels.write(getContext(), future, resetMessage, remoteSocket);
 	if (LOG.isDebugEnabled()) {
@@ -262,6 +257,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
 		}
 	    });
 	}
+	 */
     }
 
     /**
@@ -274,9 +270,10 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      * message writing process
      */
     protected ChannelFuture sendCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	ChannelFuture future = Channels.future(getContext().getChannel());
-	sendCoapMessage(coapMessage, remoteSocket, future);
-	return future;
+	return null;
+	//ChannelFuture future = Channels.future(getContext().getChannel());
+	//sendCoapMessage(coapMessage, remoteSocket, future);
+	//return future;
     }
 
     /**
@@ -288,7 +285,7 @@ public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHan
      * of the message writing process
      */
     protected void sendCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket, ChannelFuture future) {
-	Channels.write(getContext(), future, coapMessage, remoteSocket);
+	//Channels.write(getContext(), future, coapMessage, remoteSocket);
     }
 
     protected ScheduledFuture scheduleTask(Runnable task, long delay, TimeUnit unit) {

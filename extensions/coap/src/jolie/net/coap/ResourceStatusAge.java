@@ -1,4 +1,4 @@
-package ncoap.communication.observing;
+package jolie.net.coap;
 
 import jolie.Interpreter;
 

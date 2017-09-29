@@ -1,4 +1,4 @@
-package ncoap.communication.codec;
+package jolie.net.coap;
 
 import com.google.common.primitives.Ints;
 
@@ -7,12 +7,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 
-import ncoap.message.CoapMessage;
-import ncoap.message.options.OptionValue;
-
 import java.util.List;
 import jolie.Interpreter;
-import ncoap.message.MessageCode;
 
 public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
@@ -33,8 +29,7 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 	}
     }
 
-    protected ByteBuf encode(CoapMessage coapMessage)
-	    throws OptionCodecException {
+    protected ByteBuf encode(CoapMessage coapMessage) {
 
 	// start encoding
 	ByteBuf encodedMessage = Unpooled.buffer(0);

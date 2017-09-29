@@ -1,4 +1,4 @@
-package ncoap.message;
+package jolie.net.coap;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -6,24 +6,9 @@ import java.util.HashMap;
 
 public abstract class MessageType {
 
-    /**
-     * Corresponds to Message EventType 0
-     */
     public static final int CON = 0;
-
-    /**
-     * Corresponds to Message EventType 1
-     */
     public static final int NON = 1;
-
-    /**
-     * Corresponds to Message EventType 2
-     */
     public static final int ACK = 2;
-
-    /**
-     * Corresponds to Message EventType 3
-     */
     public static final int RST = 3;
 
     private static final HashMap<Integer, String> MESSAGE_TYPES

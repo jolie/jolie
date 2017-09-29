@@ -1,4 +1,4 @@
-package ncoap.communication.dispatching;
+package jolie.net.coap;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;

@@ -24,6 +24,7 @@
  */
 package ncoap.communication.identification;
 
+import io.netty.channel.ChannelHandlerContext;
 import ncoap.communication.dispatching.Token;
 import ncoap.communication.events.server.RemoteClientSocketChangedEvent;
 import ncoap.message.CoapMessage;

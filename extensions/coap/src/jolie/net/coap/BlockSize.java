@@ -1,4 +1,4 @@
-package ncoap.communication.blockwise;
+package jolie.net.coap;
 
 public enum BlockSize {
     UNBOUND(-1, 65536),

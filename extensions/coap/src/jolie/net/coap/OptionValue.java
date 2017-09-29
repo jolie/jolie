@@ -1,4 +1,4 @@
-package ncoap.message.options;
+package jolie.net.coap;
 
 import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Longs;
