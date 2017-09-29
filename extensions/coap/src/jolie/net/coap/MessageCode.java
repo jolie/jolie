@@ -1,4 +1,4 @@
-package ncoap.message;
+package jolie.net.coap;
 
 import com.google.common.collect.ImmutableMap;
 

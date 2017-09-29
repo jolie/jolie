@@ -1,4 +1,4 @@
-package ncoap.message.options;
+package jolie.net.coap;
 
 import java.math.BigInteger;
 import java.util.Arrays;

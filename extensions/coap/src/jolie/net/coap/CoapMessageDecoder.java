@@ -1,4 +1,4 @@
-package ncoap.communication.codec;
+package jolie.net.coap;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -6,18 +6,6 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 
 import java.util.List;
 import jolie.Interpreter;
-
-import ncoap.communication.dispatching.Token;
-import ncoap.message.CoapMessage;
-import ncoap.message.MessageCode;
-import ncoap.message.MessageType;
-import ncoap.message.options.EmptyOptionValue;
-import ncoap.message.options.OpaqueOptionValue;
-import ncoap.message.options.OptionValue;
-import ncoap.message.options.StringOptionValue;
-import ncoap.message.options.UintOptionValue;
-import ncoap.message.CoapResponse;
-import ncoap.message.CoapRequest;
 
 public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
@@ -42,8 +30,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	}
     }
 
-    private CoapMessage recv(ByteBuf in)
-	    throws OptionCodecException {
+    private CoapMessage recv(ByteBuf in) {
 
 	//Decode the header values
 	int encodedHeader = in.readInt();
@@ -117,11 +104,8 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	if (in.readableBytes() > 0) {
 	    try {
 		setOptions(coapMessage, in);
-	    } catch (OptionCodecException ex) {
-		ex.setMessageID(messageID);
-		ex.setToken(new Token(token));
-		ex.setMessageType(messageType);
-		throw ex;
+	    } catch (Exception ex) {
+		Interpreter.getInstance().logSevere(ex);
 	    }
 	}
 
@@ -143,8 +127,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	return coapMessage;
     }
 
-    private void setOptions(CoapMessage coapMessage, ByteBuf bb)
-	    throws OptionCodecException {
+    private void setOptions(CoapMessage coapMessage, ByteBuf bb) {
 
 	//Decode the options
 	int previousOptionNumber = 0;

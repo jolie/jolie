@@ -1,12 +1,10 @@
-package ncoap.message.options;
+package jolie.net.coap;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.HashMap;
-
-import static ncoap.message.MessageCode.*;
 
 public abstract class Option {
 
@@ -98,7 +96,7 @@ public abstract class Option {
 
     static {
 	// GET Requests
-	OCCURENCE_CONSTRAINTS.row(GET).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.GET).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(URI_HOST, Occurence.ONCE)
 		.put(URI_PORT, Occurence.ONCE)
 		.put(URI_PATH, Occurence.MULTIPLE)
@@ -115,7 +113,7 @@ public abstract class Option {
 	);
 
 	// POST Requests
-	OCCURENCE_CONSTRAINTS.row(POST).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.POST).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(URI_HOST, Occurence.ONCE)
 		.put(URI_PORT, Occurence.ONCE)
 		.put(URI_PATH, Occurence.MULTIPLE)
@@ -133,7 +131,7 @@ public abstract class Option {
 	);
 
 	// PUT Requests
-	OCCURENCE_CONSTRAINTS.row(PUT).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.PUT).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(URI_HOST, Occurence.ONCE)
 		.put(URI_PORT, Occurence.ONCE)
 		.put(URI_PATH, Occurence.MULTIPLE)
@@ -153,7 +151,7 @@ public abstract class Option {
 	);
 
 	// DELETE Requests
-	OCCURENCE_CONSTRAINTS.row(DELETE).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.DELETE).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(URI_HOST, Occurence.ONCE)
 		.put(URI_PORT, Occurence.ONCE)
 		.put(URI_PATH, Occurence.MULTIPLE)
@@ -165,7 +163,7 @@ public abstract class Option {
 	);
 
 	//Response success (2.x)
-	OCCURENCE_CONSTRAINTS.row(CREATED_201).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.CREATED_201).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(ETAG, Occurence.ONCE)
 		.put(OBSERVE, Occurence.ONCE)
 		.put(LOCATION_PATH, Occurence.MULTIPLE)
@@ -178,7 +176,7 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(DELETED_202).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.DELETED_202).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(BLOCK_2, Occurence.ONCE)
 		.put(BLOCK_1, Occurence.ONCE)
@@ -187,7 +185,7 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(VALID_203).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.VALID_203).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(OBSERVE, Occurence.ONCE)
 		.put(ETAG, Occurence.ONCE)
 		.put(MAX_AGE, Occurence.ONCE)
@@ -197,7 +195,7 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(CHANGED_204).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.CHANGED_204).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(ETAG, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(BLOCK_2, Occurence.ONCE)
@@ -207,7 +205,7 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(CONTENT_205).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.CONTENT_205).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(OBSERVE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(MAX_AGE, Occurence.ONCE)
@@ -220,74 +218,74 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(CONTINUE_231).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.CONTINUE_231).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(BLOCK_1, Occurence.ONCE)
 		.build()
 	);
 
 	// Client ERROR Responses (4.x)
-	OCCURENCE_CONSTRAINTS.row(BAD_REQUEST_400).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.BAD_REQUEST_400).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(UNAUTHORIZED_401).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.UNAUTHORIZED_401).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(BAD_OPTION_402).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.BAD_OPTION_402).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(FORBIDDEN_403).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.FORBIDDEN_403).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(NOT_FOUND_404).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.NOT_FOUND_404).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(METHOD_NOT_ALLOWED_405).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.METHOD_NOT_ALLOWED_405).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(NOT_ACCEPTABLE_406).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.NOT_ACCEPTABLE_406).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(REQUEST_ENTITY_INCOMPLETE_408).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.REQUEST_ENTITY_INCOMPLETE_408).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(PRECONDITION_FAILED_412).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.PRECONDITION_FAILED_412).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(REQUEST_ENTITY_TOO_LARGE_413).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.REQUEST_ENTITY_TOO_LARGE_413).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(BLOCK_1, Occurence.ONCE)
@@ -296,7 +294,7 @@ public abstract class Option {
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(UNSUPPORTED_CONTENT_FORMAT_415).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.UNSUPPORTED_CONTENT_FORMAT_415).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
@@ -304,35 +302,35 @@ public abstract class Option {
 	);
 
 	// Server ERROR Responses ( 5.x )
-	OCCURENCE_CONSTRAINTS.row(INTERNAL_SERVER_ERROR_500).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.INTERNAL_SERVER_ERROR_500).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(NOT_IMPLEMENTED_501).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.NOT_IMPLEMENTED_501).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(BAD_GATEWAY_502).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.BAD_GATEWAY_502).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(GATEWAY_TIMEOUT_504).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.GATEWAY_TIMEOUT_504).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
 		.build()
 	);
 
-	OCCURENCE_CONSTRAINTS.row(PROXYING_NOT_SUPPORTED_505).putAll(ImmutableMap.<Integer, Occurence>builder()
+	OCCURENCE_CONSTRAINTS.row(MessageCode.PROXYING_NOT_SUPPORTED_505).putAll(ImmutableMap.<Integer, Occurence>builder()
 		.put(MAX_AGE, Occurence.ONCE)
 		.put(CONTENT_FORMAT, Occurence.ONCE)
 		.put(ENDPOINT_ID_2, Occurence.ONCE)
