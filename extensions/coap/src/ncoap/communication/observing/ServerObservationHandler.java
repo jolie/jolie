@@ -1,30 +1,10 @@
-/*
- * The MIT License
- *
- * Copyright 2017 Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 package ncoap.communication.observing;
 
 import com.google.common.collect.HashBasedTable;
+
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+
 import ncoap.application.server.CoapServer;
 import ncoap.application.server.resource.ObservableWebresource;
 import ncoap.application.server.resource.WrappedResourceStatus;
@@ -323,6 +303,7 @@ public class ServerObservationHandler extends AbstractCoapChannelHandler impleme
 	    this.block2Size = block2Size;
 	}
 
+	@Override
 	public void run() {
 	    //prepare CoAP response
 	    CoapResponse coapResponse = new CoapResponse(MessageType.NON, MessageCode.NOT_FOUND_404);
@@ -339,7 +320,7 @@ public class ServerObservationHandler extends AbstractCoapChannelHandler impleme
 		@Override
 		public void operationComplete(ChannelFuture future) throws Exception {
 		    if (!future.isSuccess()) {
-			LOG.error("Shutdown Notification Failure!", future.getCause());
+			LOG.error("Shutdown Notification Failure!", future.cause());
 		    } else {
 			LOG.info("Sent NOT_FOUND to \"{}\" (Token: {}).", remoteSocket, token);
 		    }
@@ -366,6 +347,7 @@ public class ServerObservationHandler extends AbstractCoapChannelHandler impleme
 	    this.block2Size = block2Size;
 	}
 
+	@Override
 	public void run() {
 	    try {
 		CoapResponse updateNotification = new CoapResponse(messageType, MessageCode.CONTENT_205);
@@ -376,6 +358,7 @@ public class ServerObservationHandler extends AbstractCoapChannelHandler impleme
 		updateNotification.setObserve();
 		updateNotification.setPreferredBlock2Size(block2Size);
 
+		/*
 		ChannelFuture future = Channels.future(getContext().getChannel());
 		sendCoapMessage(updateNotification, remoteSocket, future);
 
@@ -383,13 +366,14 @@ public class ServerObservationHandler extends AbstractCoapChannelHandler impleme
 		    @Override
 		    public void operationComplete(ChannelFuture future) throws Exception {
 			if (!future.isSuccess()) {
-			    LOG.error("Update Notification Failure!", future.getCause());
+			    LOG.error("Update Notification Failure!", future.cause());
 			} else {
 			    LOG.info("Update Notification sent to \"{}\" (Token: {}).", remoteSocket, token);
 			}
 		    }
 		});
-	    } catch (Exception ex) {
+		 */
+	    } catch (IllegalArgumentException ex) {
 		LOG.error("Exception!", ex);
 	    }
 	}

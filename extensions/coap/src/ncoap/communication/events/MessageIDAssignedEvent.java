@@ -29,31 +29,33 @@ import ncoap.communication.dispatching.Token;
 import java.net.InetSocketAddress;
 
 /**
- * Instances of {@link TransmissionTimeoutEvent} are sent upstream if there was
- * no reaction (ACK, RST or response, respectively) received from the remote
- * endpoint within
- * {@link de.uzl.itm.ncoap.communication.reliability.outbound.MessageIDFactory#EXCHANGE_LIFETIME}
- * even though some reaction was expected, e.g. during a confirmable message
- * transfer.
+ * Instances of {@link MessageIDAssignedEvent} are sent upstream if a message ID was assigned to an outbound
+ * message.
  *
  * @author Oliver Kleine
  */
-public class TransmissionTimeoutEvent extends AbstractMessageTransferEvent {
+public class MessageIDAssignedEvent extends AbstractMessageTransferEvent {
 
     /**
-     * Creates a new instance of {@link TransmissionTimeoutEvent}
+     * Creates a new instance of {@link MessageIDAssignedEvent}
      *
-     * @param remoteSocket the remote endpoint that did not confirm the
-     * reception of a reliable message
-     * @param messageID the message ID of the message that caused this event
-     * @param token the {@link Token} of the message that caused this event
+     * @param remoteSocket the socket of the recipient of the message that was assigned a message ID
+     * @param messageID the message ID that was assigned
+     * @param token the {@link Token} of the message that was assigned a message ID
      */
-    public TransmissionTimeoutEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
-	super(remoteSocket, messageID, token);
+    public MessageIDAssignedEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
+        super(remoteSocket, messageID, token);
+    }
+
+
+
+    @Override
+    public String toString() {
+        return "MESSAGE ID " + this.getMessageID() + " ASSIGNED (remote endpoint: " + this.getRemoteSocket() +
+                ", token: " + this.getToken() + ")";
     }
 
     public interface Handler {
-
-	public void handleEvent(TransmissionTimeoutEvent event);
+        public void handleEvent(MessageIDAssignedEvent event);
     }
 }

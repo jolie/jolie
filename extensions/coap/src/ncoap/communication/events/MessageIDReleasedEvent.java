@@ -29,31 +29,22 @@ import ncoap.communication.dispatching.Token;
 import java.net.InetSocketAddress;
 
 /**
- * Instances of {@link TransmissionTimeoutEvent} are sent upstream if there was
- * no reaction (ACK, RST or response, respectively) received from the remote
- * endpoint within
- * {@link de.uzl.itm.ncoap.communication.reliability.outbound.MessageIDFactory#EXCHANGE_LIFETIME}
- * even though some reaction was expected, e.g. during a confirmable message
- * transfer.
- *
- * @author Oliver Kleine
+ * Created by olli on 27.04.16.
  */
-public class TransmissionTimeoutEvent extends AbstractMessageTransferEvent {
+public class MessageIDReleasedEvent extends AbstractMessageTransferEvent {
 
     /**
-     * Creates a new instance of {@link TransmissionTimeoutEvent}
+     * Creates a new instance of {@link AbstractMessageTransferEvent}
      *
-     * @param remoteSocket the remote endpoint that did not confirm the
-     * reception of a reliable message
-     * @param messageID the message ID of the message that caused this event
-     * @param token the {@link Token} of the message that caused this event
+     * @param remoteSocket the remote socket of the transfer that caused this event
+     * @param messageID    the message ID of the transfer that caused this event
+     * @param token        the {@link Token} of the of the transfer that caused this event
      */
-    public TransmissionTimeoutEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
-	super(remoteSocket, messageID, token);
+    public MessageIDReleasedEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
+        super(remoteSocket, messageID, token);
     }
 
     public interface Handler {
-
-	public void handleEvent(TransmissionTimeoutEvent event);
+        void handleEvent(MessageIDReleasedEvent event);
     }
 }

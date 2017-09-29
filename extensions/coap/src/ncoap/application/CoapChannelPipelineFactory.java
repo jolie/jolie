@@ -51,8 +51,8 @@ public abstract class CoapChannelPipelineFactory {
 	this.channelHandlers = new LinkedHashSet<>();
 	this.executor = executor;
 
-	addChannelHandler(new CoapMessageEncoder());
-	addChannelHandler(new CoapMessageDecoder());
+	addChannelHandler((ChannelHandler) new CoapMessageEncoder());
+	addChannelHandler((ChannelHandler) new CoapMessageDecoder());
     }
 
     protected void addChannelHandler(ChannelHandler channelHandler) {

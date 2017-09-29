@@ -74,7 +74,7 @@ import com.google.common.primitives.Ints;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import ncoap.communication.dispatching.Token;
 import ncoap.communication.events.MiscellaneousErrorEvent;
 import ncoap.message.CoapMessage;
@@ -85,6 +85,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * A {@link CoapMessageEncoder} serializes outgoing {@link CoapMessage}s. In the
@@ -94,7 +95,7 @@ import java.net.InetSocketAddress;
  *
  * @author Oliver Kleine
  */
-public class CoapMessageEncoder extends ChannelInboundHandlerAdapter {
+public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
     private static Logger LOG = LoggerFactory.getLogger(CoapMessageEncoder.class.getName());
 
@@ -107,28 +108,6 @@ public class CoapMessageEncoder extends ChannelInboundHandlerAdapter {
      * The maximum option length (65804)
      */
     public static final int MAX_OPTION_LENGTH = 65804;
-
-    @Override
-    public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent msg) throws Exception {
-
-	if (!(msg instanceof MessageEvent) || !(((MessageEvent) msg).getMessage() instanceof CoapMessage)) {
-	    ctx.sendDownstream(msg);
-	    return;
-	}
-
-	InetSocketAddress remoteSocket = (InetSocketAddress) ((MessageEvent) msg).getRemoteAddress();
-	CoapMessage coapMessage = (CoapMessage) ((MessageEvent) msg).getMessage();
-
-	try {
-	    ByteBuf encodedMessage = encode(coapMessage);
-	    ctx.write(ctx, msg.getFuture(), encodedMessage, remoteSocket);
-	} catch (Exception ex) {
-	    msg.getFuture().setFailure(ex);
-	    int messageID = coapMessage.getMessageID();
-	    Token token = coapMessage.getToken();
-	    sendInternalEncodingFailedMessage(ctx, remoteSocket, messageID, token, ex);
-	}
-    }
 
     protected ByteBuf encode(CoapMessage coapMessage) throws OptionCodecException {
 	LOG.info("CoapMessage to be encoded: {}", coapMessage);
@@ -288,5 +267,10 @@ public class CoapMessageEncoder extends ChannelInboundHandlerAdapter {
 	String desc = cause.getMessage() == null ? "Encoder (" + cause.getClass().getName() + ")" : cause.getMessage();
 	MiscellaneousErrorEvent event = new MiscellaneousErrorEvent(remoteSocket, messageID, token, desc);
 	ctx.fireChannelRead(event);
+    }
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, CoapMessage msg, List<Object> out) throws Exception {
+	out.add(encode(msg));
     }
 }

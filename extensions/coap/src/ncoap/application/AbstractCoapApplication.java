@@ -56,7 +56,7 @@ public abstract class AbstractCoapApplication {
     public static final int NOT_BOUND = -1;
 
     private ScheduledThreadPoolExecutor executor;
-    private DatagramChannel channel;
+    private NioDatagramChannel channel;
     private String applicationName;
 
     /**
@@ -72,45 +72,18 @@ public abstract class AbstractCoapApplication {
 	ThreadFactory threadFactory
 		= new ThreadFactoryBuilder().setNameFormat(applicationName + " I/O Worker #%d").build();
 
+	/*
 	ThreadRenamingRunnable.setThreadNameDeterminer(new ThreadNameDeterminer() {
 	    @Override
 	    public String determineThreadName(String currentThreadName, String proposedThreadName) throws Exception {
 		return null;
 	    }
 	});
-
+	 */
 	// determine number of I/O threads and create thread pool executor of that size
 	int ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, 4);
 	this.executor = new ScheduledThreadPoolExecutor(ioThreads, threadFactory);
 //        this.executor = new SynchronizedExecutor(ioThreads, threadFactory);
-    }
-
-    /**
-     * Starts this application
-     *
-     * @param pipelineFactory the {@link CoapChannelPipelineFactory} that
-     * creates the instances of {@link AbstractCoapChannelHandler}s that deal
-     * with inbound and outbound messages
-     * @param localSocket the socket address to be used for inbound and outbound
-     * messages
-     */
-    protected void startApplication(CoapChannelPipelineFactory pipelineFactory, InetSocketAddress localSocket) {
-
-	Bootstrap bootstrap = new Bootstrap();
-	bootstrap.setPipelineFactory(pipelineFactory);
-	bootstrap.setOption("receiveBufferSizePredictor",
-		new FixedReceiveBufferSizePredictor(RECEIVE_BUFFER_SIZE));
-
-	//Create datagram channel
-	this.channel = (NioDatagramChannel) bootstrap.bind(localSocket);
-
-	// set the channel handler contexts
-	for (ChannelHandler handler : pipelineFactory.getChannelHandlers()) {
-	    if (handler instanceof AbstractCoapChannelHandler) {
-		ChannelHandlerContext context = this.channel.getPipeline().getContext(handler.getClass());
-		((AbstractCoapChannelHandler) handler).setContext(context);
-	    }
-	}
     }
 
     /**
@@ -125,11 +98,7 @@ public abstract class AbstractCoapApplication {
      * {@link #NOT_BOUND} if the application has not yet been started.
      */
     public int getPort() {
-	try {
-	    return ((InetSocketAddress) this.channel.getLocalAddress()).getPort();
-	} catch (IOException ex) {
-	    return NOT_BOUND;
-	}
+	return ((InetSocketAddress) this.channel.localAddress()).getPort();
     }
 
     /**
@@ -157,7 +126,7 @@ public abstract class AbstractCoapApplication {
      * @return the {@link DatagramChannel} instance this application uses to
      * communicate with other endpoints
      */
-    public DatagramChannel getChannel() {
+    public NioDatagramChannel getChannel() {
 	return this.channel;
     }
 

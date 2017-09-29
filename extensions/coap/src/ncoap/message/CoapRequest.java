@@ -9,6 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import java.net.*;
 import java.util.*;
+import ncoap.message.options.OpaqueOptionValue;
+import ncoap.message.options.OptionValue;
+import ncoap.message.options.StringOptionValue;
+import ncoap.message.options.UintOptionValue;
 
 /**
  * Instances of {@link CoapRequest} are created by {@link CoapClient}s to
