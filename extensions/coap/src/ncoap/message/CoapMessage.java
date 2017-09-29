@@ -18,6 +18,13 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.*;
+import ncoap.message.options.ContentFormat;
+import ncoap.message.options.EmptyOptionValue;
+import ncoap.message.options.OpaqueOptionValue;
+import ncoap.message.options.Option;
+import ncoap.message.options.OptionValue;
+import ncoap.message.options.StringOptionValue;
+import ncoap.message.options.UintOptionValue;
 
 public abstract class CoapMessage {
 

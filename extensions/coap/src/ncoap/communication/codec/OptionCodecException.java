@@ -22,14 +22,14 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package de.uzl.itm.ncoap.communication.codec;
+package ncoap.communication.codec;
 
-import de.uzl.itm.ncoap.communication.dispatching.Token;
+import ncoap.communication.dispatching.Token;
 
 import java.net.InetSocketAddress;
 
-import de.uzl.itm.ncoap.message.options.Option;
-import de.uzl.itm.ncoap.message.options.OptionValue;
+import ncoap.message.options.Option;
+import ncoap.message.options.OptionValue;
 
 
 /**

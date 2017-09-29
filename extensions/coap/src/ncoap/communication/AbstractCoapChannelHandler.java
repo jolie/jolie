@@ -27,7 +27,7 @@ package ncoap.communication;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,15 @@ import java.nio.channels.Channels;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import ncoap.communication.events.AbstractMessageExchangeEvent;
+import ncoap.communication.events.EmptyAckReceivedEvent;
+import ncoap.communication.events.MessageIDAssignedEvent;
+import ncoap.communication.events.MessageIDReleasedEvent;
+import ncoap.communication.events.MessageRetransmittedEvent;
+import ncoap.communication.events.MiscellaneousErrorEvent;
+import ncoap.communication.events.NoMessageIDAvailableEvent;
+import ncoap.communication.events.ResetReceivedEvent;
+import ncoap.communication.events.TransmissionTimeoutEvent;
 import ncoap.communication.events.client.ContinueResponseReceivedEvent;
 import ncoap.communication.events.client.RemoteServerSocketChangedEvent;
 import ncoap.communication.events.client.ResponseBlockReceivedEvent;
@@ -52,7 +61,7 @@ import ncoap.message.CoapMessage;
  *
  * @author Oliver Kleine
  */
-public abstract class AbstractCoapChannelHandler extends ChannelInboundHandlerAdapter {
+public abstract class AbstractCoapChannelHandler extends SimpleChannelInboundHandler<CoapMessage> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractCoapChannelHandler.class.getName());
 

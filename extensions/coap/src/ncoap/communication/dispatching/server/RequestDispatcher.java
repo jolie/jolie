@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -342,26 +343,6 @@ public class RequestDispatcher extends AbstractCoapChannelHandler {
 	}
     }
 
-    @Override
-    public boolean handleInboundCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean handleOutboundCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean handleInboundCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean handleOutboundCoapMessage(CoapMessage coapMessage, InetSocketAddress remoteSocket) {
-	throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     private class ResponseCallback implements FutureCallback<CoapResponse> {
 
 	private final Channel channel;
@@ -392,9 +373,10 @@ public class RequestDispatcher extends AbstractCoapChannelHandler {
 		    Token token = coapResponse.getToken();
 		    long contentFormat = coapResponse.getContentFormat();
 		    BlockSize block2Size = BlockSize.getBlockSize(coapRequest.getBlock2Szx());
+		    /*
 		    triggerEvent(new ObserverAcceptedEvent(
 			    remoteSocket, token, (ObservableWebresource) webresource, contentFormat, block2Size
-		    ), true);
+		    ), true);*/
 		} else {
 		    // the observe option is useless here (remove it)...
 		    coapResponse.removeOptions(Option.OBSERVE);
@@ -418,6 +400,7 @@ public class RequestDispatcher extends AbstractCoapChannelHandler {
 	}
 
 	private void sendResponse(final CoapResponse coapResponse) {
+	    /*
 	    ChannelFuture future = Channels.write(this.channel, coapResponse, this.remoteSocket);
 	    if (LOG.isDebugEnabled()) {
 		future.addListener(new ChannelFutureListener() {
@@ -428,7 +411,7 @@ public class RequestDispatcher extends AbstractCoapChannelHandler {
 			}
 		    }
 		});
-	    }
+	}*/
 	}
     }
 }

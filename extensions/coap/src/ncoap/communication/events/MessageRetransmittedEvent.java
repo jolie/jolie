@@ -24,36 +24,43 @@
  */
 package ncoap.communication.events;
 
-import ncoap.communication.dispatching.Token;
-
 import java.net.InetSocketAddress;
 
+import ncoap.communication.dispatching.Token;
+
 /**
- * Instances of {@link TransmissionTimeoutEvent} are sent upstream if there was
- * no reaction (ACK, RST or response, respectively) received from the remote
- * endpoint within
- * {@link de.uzl.itm.ncoap.communication.reliability.outbound.MessageIDFactory#EXCHANGE_LIFETIME}
- * even though some reaction was expected, e.g. during a confirmable message
- * transfer.
+ * Instances are sent upstream by the
+ * {@link de.uzl.itm.ncoap.communication.reliability.outbound.ClientOutboundReliabilityHandler} whenever there was a
+ * retransmission of a confirmable {@link de.uzl.itm.ncoap.message.CoapMessage}.
  *
  * @author Oliver Kleine
- */
-public class TransmissionTimeoutEvent extends AbstractMessageTransferEvent {
+*/
+public class MessageRetransmittedEvent extends AbstractMessageTransferEvent {
 
     /**
-     * Creates a new instance of {@link TransmissionTimeoutEvent}
+     * Creates a new instance of {@link MessageRetransmittedEvent}
      *
-     * @param remoteSocket the remote endpoint that did not confirm the
-     * reception of a reliable message
-     * @param messageID the message ID of the message that caused this event
-     * @param token the {@link Token} of the message that caused this event
+     * @param remoteSocket the desired recipient of the retransmitted message
+     * @param messageID the message ID of the retransmitted message
+     * @param token the {@link Token} of the retransmitted
+     *              message
      */
-    public TransmissionTimeoutEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
-	super(remoteSocket, messageID, token);
+    public MessageRetransmittedEvent(InetSocketAddress remoteSocket, int messageID, Token token) {
+        super(remoteSocket, messageID, token);
+    }
+
+//    @Override
+//    public boolean stopsMessageExchange() {
+//        return false;
+//    }
+
+    @Override
+    public String toString() {
+        return "MESSAGE RETRANSMITTED (to  " + this.getRemoteSocket() + " with message ID " + this.getMessageID()
+                + " and token " + this.getToken() + ")";
     }
 
     public interface Handler {
-
-	public void handleEvent(TransmissionTimeoutEvent event);
+        public void handleEvent(MessageRetransmittedEvent event);
     }
 }
