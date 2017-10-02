@@ -19,12 +19,9 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
-import jolie.runtime.InvalidIdException;
 
 public class NioDatagramCommChannel extends StreamingCommChannel {
 
@@ -79,6 +76,7 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 			}
 			protocol.setChannel(channel);
 			channel.setChannelPipeline(p);
+			System.out.println(protocol.toString());
 			protocol.setupPipeline(p);
 			p.addLast(CHANNEL_HANDLER_NAME,
 				channel.commChannelHandler);
