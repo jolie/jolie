@@ -1,4 +1,4 @@
-/***************************************************************************
+/** *************************************************************************
  *   Copyright (C) by Fabrizio Montesi                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -17,8 +17,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  *                                                                         *
  *   For details about the authors of this software, see the AUTHORS file. *
- ***************************************************************************/
-
+ ************************************************************************** */
 package jolie.net;
 
 import java.io.IOException;
@@ -33,31 +32,33 @@ import jolie.net.protocols.CommProtocol;
 
 /**
  * A <code>CommChannelFactory</code> using TCP/IP sockets as backend.
+ *
  * @author Fabrizio Montesi
  */
-public class SocketCommChannelFactory extends CommChannelFactory
-{
-	public SocketCommChannelFactory( CommCore commCore )
-	{
-		super( commCore );
-	}
+public class SocketCommChannelFactory extends CommChannelFactory {
 
-	public CommChannel createChannel( URI location, OutputPort port )
-		throws IOException
-	{
-		SocketChannel channel = SocketChannel.open( new InetSocketAddress( location.getHost(), location.getPort() ) );
-		SocketCommChannel ret = null;
-		try {
-			ret = new SocketCommChannel( channel, location, port.getProtocol() );
-		} catch( URISyntaxException e ) {
-			throw new IOException( e );
-		}
-		return ret;
-	}
+    public SocketCommChannelFactory(CommCore commCore) {
+	super(commCore);
+    }
 
-	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+    @Override
+    public CommChannel createChannel(URI location, OutputPort port)
+	    throws IOException {
+	SocketChannel channel = SocketChannel.open(new InetSocketAddress(location.getHost(), location.getPort()));
+	SocketCommChannel ret = null;
+	try {
+	    ret = new SocketCommChannel(channel, location, port.getProtocol());
+	} catch (URISyntaxException e) {
+	    throw new IOException(e);
 	}
+	return ret;
+    }
+
+    @Override
+    public CommChannel createInputChannel(URI location, InputPort port, CommProtocol protocol) throws IOException {
+
+	System.out.println("Input channel creation");
+	throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
 }
