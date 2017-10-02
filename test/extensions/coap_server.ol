@@ -2,7 +2,7 @@ include "console.iol"
 
 inputPort  Server {
     Location: "datagram://localhost:9002"
-    Protocol: http
+    Protocol: coap
     OneWay: setTmp( string )
 }
 
