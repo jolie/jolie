@@ -12,7 +12,6 @@ import jolie.net.protocols.AsyncCommProtocol;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
@@ -20,38 +19,49 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
-import java.util.concurrent.Semaphore;
-import jolie.Interpreter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jolie.net.ports.InputPort;
+import jolie.net.ports.OutputPort;
+import jolie.net.ports.Port;
+import jolie.runtime.InvalidIdException;
 
 public class NioDatagramCommChannel extends StreamingCommChannel {
 
+    public final static String CHANNEL_HANDLER_NAME
+	    = "STREAMING-CHANNEL-HANDLER";
     public static AttributeKey<ExecutionThread> EXECUTION_CONTEXT
 	    = AttributeKey.valueOf("ExecutionContext");
-    public static AttributeKey<CommChannel> COMMCHANNEL
-	    = AttributeKey.valueOf("CommChannel");
-    public static AttributeKey<Semaphore> SEND_RELEASE
-	    = AttributeKey.valueOf("SendRelease");
 
     private Bootstrap bootstrap;
     protected CompletableFuture<CommMessage> waitingForMsg = null;
-    protected final NioDatagramCommChannelHandler nioDatagramCommChannelHandler;
+    protected StreamingCommChannelHandler commChannelHandler;
+    private ChannelPipeline channelPipeline;
 
     public NioDatagramCommChannel(URI location, AsyncCommProtocol protocol) {
 	super(location, protocol);
-	nioDatagramCommChannelHandler = new NioDatagramCommChannelHandler(this);
+	this.commChannelHandler = new StreamingCommChannelHandler(this);
     }
 
-//    public NioDatagramCommChannelHandler getChannelHandler() {
-//      return nioDatagramCommChannelHandler;
-//    }
+    @Override
+    public StreamingCommChannelHandler getChannelHandler() {
+	return commChannelHandler;
+    }
+
+    private void setChannelPipeline(ChannelPipeline channelPipeline) {
+	this.channelPipeline = channelPipeline;
+    }
+
+    public ChannelPipeline getChannelPipeline() {
+	return channelPipeline;
+    }
 
     public static NioDatagramCommChannel CreateChannel(URI location,
-	    AsyncCommProtocol protocol, EventLoopGroup workerGroup) {
-
-	NioDatagramCommChannel channel
-		= new NioDatagramCommChannel(location, protocol);
+	    AsyncCommProtocol protocol, EventLoopGroup workerGroup, Port port) {
 
 	ExecutionThread ethread = ExecutionThread.currentThread();
+	NioDatagramCommChannel channel
+		= new NioDatagramCommChannel(location, protocol);
 
 	channel.bootstrap = new Bootstrap();
 	channel.bootstrap.group(workerGroup)
@@ -61,21 +71,27 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 		    @Override
 		    protected void initChannel(Channel ch) throws Exception {
 			ChannelPipeline p = ch.pipeline();
+			if (port instanceof InputPort) {
+			    channel.setParentInputPort((InputPort) port);
+			}
+			if (port instanceof OutputPort) {
+			    channel.setParentOutputPort((OutputPort) port);
+			}
+			protocol.setChannel(channel);
+			channel.setChannelPipeline(p);
 			protocol.setupPipeline(p);
-			p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
-			p.addLast(channel.nioDatagramCommChannelHandler);
+			p.addLast(CHANNEL_HANDLER_NAME,
+				channel.commChannelHandler);
 			ch.attr(EXECUTION_CONTEXT).set(ethread);
-			ch.attr(SEND_RELEASE).set(new Semaphore(0));
 		    }
 		});
 
 	return channel;
     }
 
-    protected ChannelFuture connect(URI location) throws InterruptedException {
-	return bootstrap
-		.connect(new InetSocketAddress(location.getHost(),
-			location.getPort()));
+    public ChannelFuture connect(URI location) throws InterruptedException {
+	return bootstrap.connect(new InetSocketAddress(location.getHost(),
+		location.getPort()));
     }
 
     /**
@@ -115,8 +131,7 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
     @Override
     protected void sendImpl(CommMessage message) throws IOException {
 	try {
-	    nioDatagramCommChannelHandler.write(message).sync();
-	    Interpreter.getInstance().logInfo("MESSAGE DELIVERED");
+	    commChannelHandler.write(message).sync();
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}
@@ -125,10 +140,9 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
     @Override
     protected void closeImpl() throws IOException {
 	try {
-	    nioDatagramCommChannelHandler.close().sync();
+	    commChannelHandler.close().sync();
 	} catch (InterruptedException ex) {
 	    throw new IOException(ex);
 	}
     }
-
 }

@@ -38,7 +38,7 @@ public class NioDatagramCommChannelFactory extends CommChannelFactory {
 
 	NioDatagramCommChannel channel = NioDatagramCommChannel.
 		CreateChannel(location, (AsyncCommProtocol) protocol,
-			workerGroup);
+			workerGroup, port);
 
 	try {
 	    ChannelFuture f = channel.connect(location);
@@ -53,9 +53,27 @@ public class NioDatagramCommChannelFactory extends CommChannelFactory {
 	return channel;
     }
 
-	@Override
-	public CommChannel createInputChannel( URI location, InputPort port, CommProtocol protocol ) throws IOException {
-		throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+    @Override
+    public CommChannel createInputChannel(URI location, InputPort port,
+	    CommProtocol protocol) throws IOException {
+
+	if (!(protocol instanceof AsyncCommProtocol)) {
+	    throw new UnsupportedCommProtocolException("Use an async protocol");
 	}
+
+	NioDatagramCommChannel channel = NioDatagramCommChannel
+		.CreateChannel(location, (AsyncCommProtocol) protocol,
+			workerGroup, port);
+	try {
+	    ChannelFuture f = channel.connect(location);
+	    f.sync();
+	    if (!f.isSuccess()) {
+		throw (IOException) f.cause();
+	    }
+	} catch (InterruptedException e) {
+	    throw new IOException(e);
+	}
+	return channel;
+    }
 
 }

@@ -14,18 +14,17 @@ public class NioDatagramListenerFactory extends CommListenerFactory {
 
     public NioDatagramListenerFactory(CommCore commCore,
 	    EventLoopGroup workerGroup) {
+
 	super(commCore);
 	this.workerGroup = workerGroup;
 
     }
 
     @Override
-    public CommListener createListener(
-	    Interpreter interpreter,
-	    CommProtocolFactory protocolFactory,
-	    InputPort inputPort
-    )
+    public CommListener createListener(Interpreter interpreter,
+	    CommProtocolFactory protocolFactory, InputPort inputPort)
 	    throws IOException {
+
 	return new NioDatagramListener(interpreter, protocolFactory,
 		inputPort, workerGroup);
     }
