@@ -16,34 +16,88 @@ package jolie;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
+import java.util.List;
+
+import jolie.net.CommMessage;
+import jolie.net.coap.CoapMessage;
+import jolie.net.coap.CoapMessageDecoder;
+import jolie.net.coap.CoapMessageEncoder;
 import jolie.net.protocols.AsyncCommProtocol;
-
 import jolie.runtime.VariablePath;
 
 public class CoapProtocol extends AsyncCommProtocol {
 
-    public CoapProtocol(VariablePath configurationPath) {
+    private final boolean isInput;
+
+    public CoapProtocol(VariablePath configurationPath, boolean isInput) {
 	super(configurationPath);
+	this.isInput = isInput;
     }
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-//	pipeline.addLast(new CoapMessageEncoder());
-//	pipeline.addLast(new CoapMessageDecoder());
+	pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	pipeline.addLast("ENCODER", new CoapMessageEncoder());
+	pipeline.addLast("DECODER", new CoapMessageDecoder());
+	pipeline.addLast("CODEC", new CoapCodecHandler(isInput));
     }
 
     @Override
     public String name() {
-	throw new UnsupportedOperationException("Not supported yet.");
+	return "coap";
     }
 
     @Override
     public boolean isThreadSafe() {
-	throw new UnsupportedOperationException("Not supported yet.");
+	return checkBooleanParameter(Parameters.CONCURRENT);
+    }
+
+    static class Parameters {
+
+	private static String CONCURRENT = "concurrent";
+
+    }
+
+    private static class CoapCodecHandler
+	    extends MessageToMessageCodec<CoapMessage, CommMessage> {
+
+	private boolean input;
+
+	public CoapCodecHandler() {
+	}
+
+	private CoapCodecHandler(boolean input) {
+	    this.input = input;
+	}
+
+	@Override
+	protected void encode(ChannelHandlerContext ctx,
+		CommMessage in, List<Object> out) throws Exception {
+
+	    if (input) {
+
+	    } else {
+		//output port
+		CoapMessage msg = CoapMessage.createPing((int) in.id());
+		out.add(msg);
+	    }
+
+	    // socket ack
+	    ctx.writeAndFlush(CommMessage.UNDEFINED_MESSAGE);
+
+	}
+
+	@Override
+	protected void decode(ChannelHandlerContext ctx,
+		CoapMessage in, List<Object> out) throws Exception {
+	    System.out.println("Message received!" + in);
+	}
     }
 
 }

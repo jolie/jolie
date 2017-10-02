@@ -227,7 +227,7 @@ Please make sure that:
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="jar"/>
-    <!-- <ant antfile="${project.coap}/build.xml" inheritall="false" target="jar"/> -->
+    	<ant antfile="${project.coap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="jar"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="jar"/>
@@ -262,8 +262,8 @@ Please make sure that:
 		<ant antfile="${project.auto}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.http}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.https}/build.xml" inheritall="false" target="clean"/>
-    <ant antfile="${project.mqtt}/build.xml" inheritall="false" target="clean"/>
-		<!-- <ant antfile="${project.coap}/build.xml" inheritall="false" target="clean"/> -->
+    	<ant antfile="${project.mqtt}/build.xml" inheritall="false" target="clean"/>
+		<ant antfile="${project.coap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.javascript}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.btl2cap}/build.xml" inheritall="false" target="clean"/>
 		<ant antfile="${project.rmi}/build.xml" inheritall="false" target="clean"/>
@@ -314,9 +314,9 @@ Please make sure that:
 				<file file="${project.auto}/dist/auto.jar"/>
 				<file file="${project.http}/dist/http.jar"/>
 				<file file="${project.https}/dist/https.jar"/>
-        <file file="${project.mqtt}/dist/mqtt.jar"/>
-				<!-- <file file="${project.coap}/dist/coap.jar"/> -->
-	      <file file="${project.javascript}/dist/javascript.jar"/>
+        		<file file="${project.mqtt}/dist/mqtt.jar"/>
+				<file file="${project.coap}/dist/coap.jar"/>
+	      		<file file="${project.javascript}/dist/javascript.jar"/>
 				<file file="${project.btl2cap}/dist/btl2cap.jar"/>
 				<file file="${project.rmi}/dist/rmi.jar"/>
 				<file file="${project.soap}/dist/soap.jar"/>
