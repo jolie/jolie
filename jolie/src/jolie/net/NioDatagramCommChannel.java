@@ -80,7 +80,6 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 			protocol.setChannel(channel);
 			channel.setChannelPipeline(p);
 			protocol.setupPipeline(p);
-			p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 			p.addLast(CHANNEL_HANDLER_NAME,
 				channel.commChannelHandler);
 			ch.attr(EXECUTION_CONTEXT).set(ethread);
