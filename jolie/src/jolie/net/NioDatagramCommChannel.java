@@ -76,7 +76,6 @@ public class NioDatagramCommChannel extends StreamingCommChannel {
 			}
 			protocol.setChannel(channel);
 			channel.setChannelPipeline(p);
-			System.out.println(protocol.toString());
 			protocol.setupPipeline(p);
 			p.addLast(CHANNEL_HANDLER_NAME,
 				channel.commChannelHandler);
