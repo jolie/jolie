@@ -1,4 +1,4 @@
-package jolie;
+package jolie.net;
 
 /*
  * Copyright (C) 2017 stefanopiozingaro
@@ -24,7 +24,6 @@ import io.netty.handler.logging.LoggingHandler;
 
 import java.util.List;
 
-import jolie.net.CommMessage;
 import jolie.net.coap.CoapMessage;
 import jolie.net.coap.CoapMessageDecoder;
 import jolie.net.coap.CoapMessageEncoder;

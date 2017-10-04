@@ -1,12 +1,9 @@
 package jolie.net.coap;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.*;
-import com.google.common.primitives.Longs;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import java.nio.ByteBuffer;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -38,7 +35,7 @@ public abstract class CoapMessage {
 
     private ByteBuf content;
     private Token token;
-    protected SetMultimap<Integer, OptionValue> options;
+    protected Map<Integer, LinkedHashSet<OptionValue>> options;
 
     protected CoapMessage(int messageType, int messageCode, int messageID,
 	    Token token) throws IllegalArgumentException {
@@ -57,8 +54,7 @@ public abstract class CoapMessage {
 	this.setMessageCode(messageCode);
 	this.setMessageID(messageID);
 	this.setToken(token);
-	this.options = Multimaps.newSetMultimap(new TreeMap<>(),
-		LinkedHashSetSupplier.getInstance());
+	this.options = new TreeMap<>();
 	this.content = Unpooled.EMPTY_BUFFER;
     }
 
@@ -125,7 +121,13 @@ public abstract class CoapMessage {
 	    }
 	}
 
-	options.put(optionNumber, optionValue);
+	if (options.containsKey(optionNumber)) {
+	    options.get(optionNumber).add(optionValue);
+	} else {
+	    LinkedHashSet<OptionValue> tmp = new LinkedHashSet<>();
+	    tmp.add(optionValue);
+	    options.put(optionNumber, tmp);
+	}
     }
 
     protected void addStringOption(int optionNumber, String value)
@@ -150,7 +152,7 @@ public abstract class CoapMessage {
 	}
 
 	//Add new option to option list
-	byte[] byteValue = Longs.toByteArray(value);
+	byte[] byteValue = ByteBuffer.allocate(Long.BYTES).putLong(value).array();
 	int index = 0;
 	while (index < byteValue.length && byteValue[index] == 0) {
 	    index++;
@@ -184,11 +186,22 @@ public abstract class CoapMessage {
 	}
 
 	//Add new option to option list
-	options.put(optionNumber, new EmptyOptionValue(optionNumber));
+	if (options.containsKey(optionNumber)) {
+	    options.get(optionNumber).add(new EmptyOptionValue(optionNumber));
+	} else {
+	    LinkedHashSet<OptionValue> tmp = new LinkedHashSet<>();
+	    tmp.add(new EmptyOptionValue(optionNumber));
+	    options.put(optionNumber, tmp);
+	}
     }
 
     public int removeOptions(int optionNumber) {
-	int result = options.removeAll(optionNumber).size();
+	for (Integer i : options.keySet()) {
+	    if (i == optionNumber) {
+		options.remove(i);
+	    }
+	}
+	int result = options.size();
 	return result;
     }
 
@@ -364,7 +377,7 @@ public abstract class CoapMessage {
     }
 
     public void setSize2(long size2) throws IllegalArgumentException {
-	this.options.removeAll(Option.SIZE_2);
+	this.options.remove(Option.SIZE_2);
 	this.addUintOption(Option.SIZE_2, size2);
     }
 
@@ -378,7 +391,7 @@ public abstract class CoapMessage {
     }
 
     public void setSize1(long size1) throws IllegalArgumentException {
-	this.options.removeAll(Option.SIZE_1);
+	this.options.remove(Option.SIZE_1);
 	this.addUintOption(Option.SIZE_1, size1);
     }
 
@@ -480,11 +493,11 @@ public abstract class CoapMessage {
 	return this.content.readableBytes();
     }
 
-    public SetMultimap<Integer, OptionValue> getAllOptions() {
+    public Map<Integer, LinkedHashSet<OptionValue>> getAllOptions() {
 	return this.options;
     }
 
-    public void setAllOptions(SetMultimap<Integer, OptionValue> options) {
+    public void setAllOptions(Map<Integer, LinkedHashSet<OptionValue>> options) {
 	this.options = options;
     }
 
@@ -533,10 +546,10 @@ public abstract class CoapMessage {
 	}
 
 	//Iterators iterate over the contained options
-	Iterator<Map.Entry<Integer, OptionValue>> iterator1
-		= this.getAllOptions().entries().iterator();
-	Iterator<Map.Entry<Integer, OptionValue>> iterator2
-		= other.getAllOptions().entries().iterator();
+	Iterator<Map.Entry<Integer, LinkedHashSet<OptionValue>>> iterator1
+		= this.getAllOptions().entrySet().iterator();
+	Iterator<Map.Entry<Integer, LinkedHashSet<OptionValue>>> iterator2
+		= other.getAllOptions().entrySet().iterator();
 
 	//Check if both CoAP Messages contain the same options in the same order
 	while (iterator1.hasNext()) {
@@ -546,8 +559,10 @@ public abstract class CoapMessage {
 		return false;
 	    }
 
-	    Map.Entry<Integer, OptionValue> entry1 = iterator1.next();
-	    Map.Entry<Integer, OptionValue> entry2 = iterator2.next();
+	    Map.Entry<Integer, LinkedHashSet<OptionValue>> entry1
+		    = iterator1.next();
+	    Map.Entry<Integer, LinkedHashSet<OptionValue>> entry2
+		    = iterator2.next();
 
 	    if (!entry1.getKey().equals(entry2.getKey())) {
 		return false;
@@ -618,24 +633,5 @@ public abstract class CoapMessage {
 	}
 
 	this.messageCode = messageCode;
-    }
-
-    private final static class LinkedHashSetSupplier
-	    implements Supplier<LinkedHashSet<OptionValue>> {
-
-	public static LinkedHashSetSupplier instance
-		= new LinkedHashSetSupplier();
-
-	private LinkedHashSetSupplier() {
-	}
-
-	public static LinkedHashSetSupplier getInstance() {
-	    return instance;
-	}
-
-	@Override
-	public LinkedHashSet<OptionValue> get() {
-	    return new LinkedHashSet<>();
-	}
     }
 }

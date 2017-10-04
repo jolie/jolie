@@ -1,11 +1,11 @@
 package jolie.net.coap;
 
-import com.google.common.net.InetAddresses;
-import com.google.common.primitives.Longs;
-
 import io.netty.util.CharsetUtil;
 
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,12 +27,12 @@ public abstract class OptionValue<T> {
     public static final long MAX_AGE_DEFAULT = 60;
     public static final long MAX_AGE_MAX = 0xFFFFFFFFL;
     public static final byte[] ENCODED_MAX_AGE_DEFAULT
-	    = new BigInteger(1,
-		    Longs.toByteArray(MAX_AGE_DEFAULT)).toByteArray();
+	    = new BigInteger(1, ByteBuffer.allocate(Long.BYTES)
+		    .putLong(MAX_AGE_DEFAULT).array()).toByteArray();
     public static final long URI_PORT_DEFAULT = 5683;
     public static final byte[] ENCODED_URI_PORT_DEFAULT
-	    = new BigInteger(1,
-		    Longs.toByteArray(URI_PORT_DEFAULT)).toByteArray();
+	    = new BigInteger(1, ByteBuffer.allocate(Long.BYTES)
+		    .putLong(URI_PORT_DEFAULT).array()).toByteArray();
 
     private static class Characteristics {
 
@@ -157,8 +157,11 @@ public abstract class OptionValue<T> {
 		hostName = hostName.substring(1, hostName.length() - 1);
 	    }
 
-	    if (InetAddresses.isInetAddress(hostName)) {
+	    try { // check correctness
+		InetAddress.getAllByName(hostName);
 		return true;
+	    } catch (UnknownHostException e) {
+		return false;
 	    }
 	}
 

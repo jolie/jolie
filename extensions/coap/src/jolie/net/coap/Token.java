@@ -1,9 +1,6 @@
 package jolie.net.coap;
 
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Longs;
-import com.google.common.primitives.UnsignedLongs;
-
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Token implements Comparable<Token> {
@@ -75,9 +72,11 @@ public class Token implements Comparable<Token> {
 	    return 1;
 	}
 
-	return UnsignedLongs.compare(Longs.fromByteArray(
-		Bytes.concat(this.getBytes(), new byte[8])),
-		Longs.fromByteArray(Bytes.concat(other.getBytes(),
-			new byte[8])));
+	ByteBuffer.allocate(Long.BYTES);
+
+	Long a = ByteBuffer.wrap(this.getBytes()).getLong();
+	Long b = ByteBuffer.wrap(other.getBytes()).getLong();
+
+	return Long.compareUnsigned(a, b);
     }
 }

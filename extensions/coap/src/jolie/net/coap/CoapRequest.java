@@ -263,13 +263,13 @@ public class CoapRequest extends CoapMessage {
 
     public void setAccept(long... contentFormatNumbers)
 	    throws IllegalArgumentException {
-	options.removeAll(Option.ACCEPT);
+	options.remove(Option.ACCEPT);
 	try {
 	    for (long contentFormatNumber : contentFormatNumbers) {
 		this.addUintOption(Option.ACCEPT, contentFormatNumber);
 	    }
 	} catch (IllegalArgumentException e) {
-	    options.removeAll(Option.ACCEPT);
+	    options.remove(Option.ACCEPT);
 	    throw e;
 	}
     }

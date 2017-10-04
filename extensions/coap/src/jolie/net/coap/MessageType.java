@@ -1,7 +1,5 @@
 package jolie.net.coap;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.HashMap;
 
 public abstract class MessageType {
@@ -15,12 +13,11 @@ public abstract class MessageType {
 	    = new HashMap<>();
 
     static {
-	MESSAGE_TYPES.putAll(ImmutableMap.<Integer, String>builder()
-		.put(CON, "CON (" + CON + ")")
-		.put(NON, "NON (" + NON + ")")
-		.put(ACK, "ACK (" + ACK + ")")
-		.put(RST, "RST (" + RST + ")")
-		.build());
+	MESSAGE_TYPES.put(CON, "CON (" + CON + ")");
+	MESSAGE_TYPES.put(CON, "CON (" + CON + ")");
+	MESSAGE_TYPES.put(NON, "NON (" + NON + ")");
+	MESSAGE_TYPES.put(ACK, "ACK (" + ACK + ")");
+	MESSAGE_TYPES.put(RST, "RST (" + RST + ")");
     }
 
     public static String asString(int messageType) {
