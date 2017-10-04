@@ -114,8 +114,8 @@ public class CoapResponse extends CoapMessage {
     public void setLocationURI(URI locationURI)
 	    throws IllegalArgumentException {
 
-	options.removeAll(Option.LOCATION_PATH);
-	options.removeAll(Option.LOCATION_QUERY);
+	options.remove(Option.LOCATION_PATH);
+	options.remove(Option.LOCATION_QUERY);
 
 	String locationPath = locationURI.getRawPath();
 	String locationQuery = locationURI.getRawQuery();
@@ -138,8 +138,8 @@ public class CoapResponse extends CoapMessage {
 		}
 	    }
 	} catch (IllegalArgumentException ex) {
-	    options.removeAll(Option.LOCATION_PATH);
-	    options.removeAll(Option.LOCATION_QUERY);
+	    options.remove(Option.LOCATION_PATH);
+	    options.remove(Option.LOCATION_QUERY);
 	    throw ex;
 	}
     }
@@ -182,7 +182,7 @@ public class CoapResponse extends CoapMessage {
 
     public void setMaxAge(long maxAge) {
 	try {
-	    this.options.removeAll(Option.MAX_AGE);
+	    this.options.remove(Option.MAX_AGE);
 	    this.addUintOption(Option.MAX_AGE, maxAge);
 	} catch (IllegalArgumentException e) {
 	}

@@ -1,11 +1,10 @@
 package jolie.net.coap;
 
-import com.google.common.primitives.Ints;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
+import java.nio.ByteBuffer;
 
 import java.util.List;
 import jolie.Interpreter;
@@ -39,9 +38,9 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
 	if (coapMessage.getMessageCode() == MessageCode.EMPTY) {
 	    encodedMessage
-		    = Unpooled.wrappedBuffer(
-			    Ints.toByteArray(
-				    encodedMessage.getInt(0) & 0xF0FFFFFF));
+		    = Unpooled.wrappedBuffer(ByteBuffer.allocate(4)
+			    .putInt(encodedMessage.getInt(0) & 0xF0FFFFFF));
+
 	    return encodedMessage;
 	}
 

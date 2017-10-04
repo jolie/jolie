@@ -1,10 +1,9 @@
 package jolie.net.coap;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
-
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class Option {
 
@@ -37,30 +36,28 @@ public abstract class Option {
     private static HashMap<Integer, String> OPTIONS = new HashMap<>();
 
     static {
-	OPTIONS.putAll(ImmutableMap.<Integer, String>builder()
-		.put(IF_MATCH, "IF MATCH (" + IF_MATCH + ")")
-		.put(URI_HOST, "URI HOST (" + URI_HOST + ")")
-		.put(ETAG, "ETAG (" + ETAG + ")")
-		.put(IF_NONE_MATCH, "IF NONE MATCH (" + IF_NONE_MATCH + ")")
-		.put(OBSERVE, "OBSERVE (" + OBSERVE + ")")
-		.put(URI_PORT, "URI PORT (" + URI_PORT + ")")
-		.put(LOCATION_PATH, "LOCATION PATH (" + LOCATION_PATH + ")")
-		.put(URI_PATH, "URI PATH (" + URI_PATH + ")")
-		.put(CONTENT_FORMAT, "CONTENT FORMAT (" + CONTENT_FORMAT + ")")
-		.put(MAX_AGE, "MAX AGE (" + MAX_AGE + ")")
-		.put(URI_QUERY, "URI QUERY (" + URI_QUERY + ")")
-		.put(ACCEPT, "ACCEPT (" + ACCEPT + ")")
-		.put(LOCATION_QUERY, "LOCATION QUERY (" + LOCATION_QUERY + ")")
-		.put(BLOCK_2, "BLOCK 2 (" + BLOCK_2 + ")")
-		.put(BLOCK_1, "BLOCK 1 (" + BLOCK_1 + ")")
-		.put(SIZE_2, "SIZE 2 (" + SIZE_2 + ")")
-		.put(PROXY_URI, "PROXY URI (" + PROXY_URI + ")")
-		.put(PROXY_SCHEME, "PROXY SCHEME (" + PROXY_SCHEME + ")")
-		.put(SIZE_1, "SIZE 1 (" + SIZE_1 + ")")
-		.put(ENDPOINT_ID_1, "ENDPOINT ID 1 (" + ENDPOINT_ID_1 + ")")
-		.put(ENDPOINT_ID_2, "ENDPOINT ID 2 (" + ENDPOINT_ID_2 + ")")
-		.build()
-	);
+
+	OPTIONS.put(IF_MATCH, "IF MATCH (" + IF_MATCH + ")");
+	OPTIONS.put(URI_HOST, "URI HOST (" + URI_HOST + ")");
+	OPTIONS.put(ETAG, "ETAG (" + ETAG + ")");
+	OPTIONS.put(IF_NONE_MATCH, "IF NONE MATCH (" + IF_NONE_MATCH + ")");
+	OPTIONS.put(OBSERVE, "OBSERVE (" + OBSERVE + ")");
+	OPTIONS.put(URI_PORT, "URI PORT (" + URI_PORT + ")");
+	OPTIONS.put(LOCATION_PATH, "LOCATION PATH (" + LOCATION_PATH + ")");
+	OPTIONS.put(URI_PATH, "URI PATH (" + URI_PATH + ")");
+	OPTIONS.put(CONTENT_FORMAT, "CONTENT FORMAT (" + CONTENT_FORMAT + ")");
+	OPTIONS.put(MAX_AGE, "MAX AGE (" + MAX_AGE + ")");
+	OPTIONS.put(URI_QUERY, "URI QUERY (" + URI_QUERY + ")");
+	OPTIONS.put(ACCEPT, "ACCEPT (" + ACCEPT + ")");
+	OPTIONS.put(LOCATION_QUERY, "LOCATION QUERY (" + LOCATION_QUERY + ")");
+	OPTIONS.put(BLOCK_2, "BLOCK 2 (" + BLOCK_2 + ")");
+	OPTIONS.put(BLOCK_1, "BLOCK 1 (" + BLOCK_1 + ")");
+	OPTIONS.put(SIZE_2, "SIZE 2 (" + SIZE_2 + ")");
+	OPTIONS.put(PROXY_URI, "PROXY URI (" + PROXY_URI + ")");
+	OPTIONS.put(PROXY_SCHEME, "PROXY SCHEME (" + PROXY_SCHEME + ")");
+	OPTIONS.put(SIZE_1, "SIZE 1 (" + SIZE_1 + ")");
+	OPTIONS.put(ENDPOINT_ID_1, "ENDPOINT ID 1 (" + ENDPOINT_ID_1 + ")");
+	OPTIONS.put(ENDPOINT_ID_2, "ENDPOINT ID 2 (" + ENDPOINT_ID_2 + ")");
     }
 
     public static String asString(int optionNumber) {
@@ -68,31 +65,32 @@ public abstract class Option {
 	return result == null ? "UNKOWN (" + optionNumber + ")" : result;
     }
 
-    private static HashMultimap<Integer, Integer> MUTUAL_EXCLUSIONS = HashMultimap.create();
+    private static Map<Integer, Set<Integer>> MUTUAL_EXCLUSIONS
+	    = new HashMap<>();
 
     static {
-	MUTUAL_EXCLUSIONS.put(URI_HOST, PROXY_URI);
-	MUTUAL_EXCLUSIONS.put(PROXY_URI, URI_HOST);
+	MUTUAL_EXCLUSIONS.put(URI_HOST, Collections.singleton(PROXY_URI));
+	MUTUAL_EXCLUSIONS.put(PROXY_URI, Collections.singleton(URI_HOST));
 
-	MUTUAL_EXCLUSIONS.put(URI_PORT, PROXY_URI);
-	MUTUAL_EXCLUSIONS.put(PROXY_URI, URI_PORT);
+	MUTUAL_EXCLUSIONS.put(URI_PORT, Collections.singleton(PROXY_URI));
+	MUTUAL_EXCLUSIONS.get(PROXY_URI).add(URI_PORT);
 
-	MUTUAL_EXCLUSIONS.put(URI_PATH, PROXY_URI);
-	MUTUAL_EXCLUSIONS.put(PROXY_URI, URI_PATH);
+	MUTUAL_EXCLUSIONS.put(URI_PATH, Collections.singleton(PROXY_URI));
+	MUTUAL_EXCLUSIONS.get(PROXY_URI).add(URI_PATH);
 
-	MUTUAL_EXCLUSIONS.put(URI_QUERY, PROXY_URI);
-	MUTUAL_EXCLUSIONS.put(PROXY_URI, URI_QUERY);
+	MUTUAL_EXCLUSIONS.put(URI_QUERY, Collections.singleton(PROXY_URI));
+	MUTUAL_EXCLUSIONS.get(PROXY_URI).add(URI_QUERY);
 
-	MUTUAL_EXCLUSIONS.put(PROXY_SCHEME, PROXY_URI);
-	MUTUAL_EXCLUSIONS.put(PROXY_URI, PROXY_SCHEME);
+	MUTUAL_EXCLUSIONS.put(PROXY_SCHEME, Collections.singleton(PROXY_URI));
+	MUTUAL_EXCLUSIONS.get(PROXY_URI).add(PROXY_SCHEME);
     }
 
     public static boolean mutuallyExcludes(int firstOptionNumber, int secondOptionNumber) {
 	return MUTUAL_EXCLUSIONS.get(firstOptionNumber).contains(secondOptionNumber);
     }
 
-    private static final HashBasedTable<Integer, Integer, Option.Occurence> OCCURENCE_CONSTRAINTS
-	    = HashBasedTable.create();
+    private static final HashMap<Integer, HashMap<Integer, Option.Occurence>> OCCURENCE_CONSTRAINTS
+	    = new HashMap<>();
 
     static {
 	// GET Requests

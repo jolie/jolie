@@ -1,4 +1,4 @@
-package jolie;
+package jolie.net;
 
 /*
  * Copyright (C) 2017 stefanopiozingaro
@@ -18,7 +18,6 @@ package jolie;
  */
 import java.io.IOException;
 import java.net.URI;
-import jolie.net.CommCore;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
