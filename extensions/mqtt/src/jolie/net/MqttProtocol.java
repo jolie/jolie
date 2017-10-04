@@ -493,7 +493,13 @@ public class MqttProtocol extends PubSubCommProtocol {
 		ch.writeAndFlush( subscribeMsg( topics(), qos() ) );
 	}
 
-	public MqttPublishMessage pubOneWayRequest( CommMessage in ) throws Exception {
+    /**
+     *
+     * @param in
+     * @return
+     * @throws Exception
+     */
+    public MqttPublishMessage pubOneWayRequest(CommMessage in) throws Exception {
 
 		String a = in.operationName();
 
@@ -506,7 +512,12 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return publishMsg( topic( in, a, true ), valueToByteBuf( in ), getOperationQoS( in.operationName() ), ( int ) in.id() );
 	}
 
-	public MqttSubscribeMessage subRequestResponseRequest( CommMessage in ) {
+    /**
+     *
+     * @param in
+     * @return
+     */
+    public MqttSubscribeMessage subRequestResponseRequest(CommMessage in) {
 
 		String a = in.operationName() + "/response";
 
@@ -519,8 +530,14 @@ public class MqttProtocol extends PubSubCommProtocol {
 		return subscribeMsg( Collections.singletonList( topic( in, a, false ) ), qos() );
 	}
 
-	public MqttPublishMessage pubRequestResponseRequest( CommMessage in )
-		throws Exception {
+    /**
+     *
+     * @param in
+     * @return
+     * @throws Exception
+     */
+    public MqttPublishMessage pubRequestResponseRequest(CommMessage in)
+	  		throws Exception {
 
 		String a = in.operationName();
 
@@ -569,13 +586,25 @@ public class MqttProtocol extends PubSubCommProtocol {
 			nextMessageId.getAndIncrement() );
 	}
 
+    /**
+     *
+     * @param mpm
+     * @param req
+     * @return
+     * @throws Exception
+     */
 	public CommMessage recv_pubReqResp( MqttPublishMessage mpm,
 		CommMessage req ) throws Exception {
 		return new CommMessage( req.id(),//CommMessage.GENERIC_ID,
 			req.operationName(), "/", byteBufToValue( req.operationName(), mpm.retain() ), null );
 	}
 
-	public String extractTopicResponse( MqttPublishMessage m ) {
+    /**
+     *
+     * @param m
+     * @return
+     */
+    public String extractTopicResponse(MqttPublishMessage m) {
 		String msg = Unpooled.wrappedBuffer( m.payload() ).toString( charset );
 
 		if ( msg.indexOf( Parameters.BOUNDARY ) == 0 && msg.indexOf( Parameters.BOUNDARY, 1 ) > 0 ) {

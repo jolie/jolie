@@ -18,8 +18,6 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     protected void encode(ChannelHandlerContext ctx, CoapMessage in,
 	    List<Object> out) throws Exception {
 
-	Interpreter.getInstance().logInfo("CoapMessage to be encoded: " + in);
-
 	ByteBuf bb = encode(in);
 	if (bb != null) {
 	    out.add(bb);

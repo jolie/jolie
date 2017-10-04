@@ -1,32 +1,31 @@
+/*
+ *   Copyright (C) 2017 by Stefano Pio Zingaro <stefanopio.zingaro@unibo.it>   
+ *                                                                             
+ *   This program is free software; you can redistribute it and/or modify      
+ *   it under the terms of the GNU Library General Public License as           
+ *   published by the Free Software Foundation; either version 2 of the        
+ *   License, or (at your option) any later version.                           
+ *                                                                             
+ *   This program is distributed in the hope that it will be useful,           
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of            
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             
+ *   GNU General Public License for more details.                              
+ *                                                                             
+ *   You should have received a copy of the GNU Library General Public         
+ *   License along with this program; if not, write to the                     
+ *   Free Software Foundation, Inc.,                                           
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                 
+ *                                                                             
+ *   For details about the authors of this software, see the AUTHORS file.     
+ */
 package jolie.net;
 
-/*
- * Copyright (C) 2017 stefanopiozingaro
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 import java.io.IOException;
 import java.net.URI;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.VariablePath;
 
-/**
- * For future development of extensions: Create MqttProtocolFactory called by
- * Jolie Class Loader, update file manifest.mf with value
- * X-JOLIE-ProtocolExtension: coap:jolie.net.CoapProtocolFactory
- */
 //@AndJarDeps({"jolie-js.jar", "json_simple.jar", "jolie-xml.jar"})
 public class CoapProtocolFactory extends CommProtocolFactory {
 
