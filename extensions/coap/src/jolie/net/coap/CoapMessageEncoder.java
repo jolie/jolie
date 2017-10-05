@@ -4,10 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
-import java.nio.ByteBuffer;
 
 import java.util.List;
-import jolie.Interpreter;
 
 public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
 
@@ -18,85 +16,49 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     protected void encode(ChannelHandlerContext ctx, CoapMessage in,
 	    List<Object> out) throws Exception {
 
-	ByteBuf bb = encode(in);
-	if (bb != null) {
-	    out.add(bb);
-	} else {
-	    Interpreter.getInstance().logSevere("Error handling Encoding");
-	}
-    }
+	System.out.println("The Coap Message to be encoded: " + in);
 
-    protected ByteBuf encode(CoapMessage coapMessage) {
+	ByteBuf msg = Unpooled.buffer();
 
-	// start encoding
-	ByteBuf encodedMessage = Unpooled.buffer(0);
-
-	// encode HEADER and TOKEN
-	encodeHeader(encodedMessage, coapMessage);
-
-	if (coapMessage.getMessageCode() == MessageCode.EMPTY) {
-	    encodedMessage
-		    = Unpooled.wrappedBuffer(ByteBuffer.allocate(4)
-			    .putInt(encodedMessage.getInt(0) & 0xF0FFFFFF));
-
-	    return encodedMessage;
-	}
-
-	if (coapMessage.getAllOptions().size()
-		== 0 && coapMessage.getContent().readableBytes() == 0) {
-	    return encodedMessage;
-	}
-
-	try {
-	    encodeOptions(encodedMessage, coapMessage);
-	} catch (Exception ex) {
-	    Interpreter.getInstance().logSevere(ex.getMessage());
-	    return null;
-	}
-
-	if (coapMessage.getContent().readableBytes() > 0) {
-	    encodedMessage.writeByte(255);
-	    encodedMessage = Unpooled.wrappedBuffer(encodedMessage,
-		    coapMessage.getContent());
-	}
-
-	return encodedMessage;
-    }
-
-    protected void encodeHeader(ByteBuf buffer, CoapMessage coapMessage) {
-
-	byte[] token = coapMessage.getToken().getBytes();
-
-	int encodedHeader = ((coapMessage.getProtocolVersion() & 0x03) << 30)
-		| ((coapMessage.getMessageType() & 0x03) << 28)
+	//write encoded header
+	byte[] token = in.getToken().getBytes();
+	int encodedHeader = ((in.getProtocolVersion() & 0x03) << 30)
+		| ((in.getMessageType() & 0x03) << 28)
 		| ((token.length & 0x0F) << 24)
-		| ((coapMessage.getMessageCode() & 0xFF) << 16)
-		| ((coapMessage.getMessageID() & 0xFFFF));
-
-	buffer.writeInt(encodedHeader);
-
+		| ((in.getMessageCode() & 0xFF) << 16)
+		| ((in.getMessageID() & 0xFFFF));
+	msg.writeInt(encodedHeader);
 	if (token.length > 0) {
-	    buffer.writeBytes(token);
+	    msg.writeBytes(token);
 	}
-    }
 
-    protected void encodeOptions(ByteBuf buffer, CoapMessage coapMessage)
-	    throws Exception {
+	if (in.getAllOptions().isEmpty()
+		&& in.getContent().readableBytes() == 0) {
 
-	//Encode options one after the other and append buf option to the buf
+	    out.add(msg);
+	}
+
+	//write encoded options
 	int previousOptionNumber = 0;
 
-	for (int optionNumber : coapMessage.getAllOptions().keySet()) {
-	    for (OptionValue optionValue
-		    : coapMessage.getOptions(optionNumber)) {
-		encodeOption(buffer, optionNumber, optionValue,
+	for (int optionNumber : in.getAllOptions().keySet()) {
+	    for (OptionValue optionValue : in.getOptions(optionNumber)) {
+		encodeOption(msg, optionNumber, optionValue,
 			previousOptionNumber);
 		previousOptionNumber = optionNumber;
 	    }
 	}
+
+	//write encoded content
+	if (in.getContent().readableBytes() > 0) {
+	    msg.writeByte(255);
+	    msg.writeBytes(Unpooled.wrappedBuffer(in.getContent()));
+	}
+
+	out.add(msg);
     }
 
-    protected void encodeOption(ByteBuf buffer, int optionNumber,
+    private void encodeOption(ByteBuf buffer, int optionNumber,
 	    OptionValue optionValue, int prevNumber) throws Exception {
 
 	if (prevNumber > optionNumber) {

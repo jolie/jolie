@@ -63,20 +63,13 @@ public class NioDatagramListener extends CommListener {
 			    + ":"
 			    + remoteAddress.getPort());
 
-		    System.out.println("Location: " + location.toString());
-
 		    ctx.pipeline().addLast(new ChannelInitializer<NioDatagramChannel>() {
 
 			@Override
 			protected void initChannel(NioDatagramChannel ch)
 				throws Exception {
 
-			    System.out.println("NioDatagramChannel: " + ch.localAddress().toString());
-
 			    CommProtocol protocol = createProtocol();
-
-			    System.out.println("CommProtocol: " + protocol.name());
-
 			    assert (protocol instanceof AsyncCommProtocol);
 
 			    NioDatagramCommChannel datagramChannel

@@ -15,11 +15,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 
 	String message = "";
 	//Decode the Message Header which must have a length of exactly 4 bytes
-	if (in.readableBytes() < 4) {
-	    message = "Encoded CoAP messages MUST have min. 4 bytes. "
-		    + "This has " + in.readableBytes() + "!";
-	    Interpreter.getInstance().logSevere(message);
-	} else {
+	if (in.readableBytes() == 4) {
 	    CoapMessage msg = recv(in);
 	    if (msg != null) {
 		out.add(msg);
