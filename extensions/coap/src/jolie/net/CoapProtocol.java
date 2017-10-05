@@ -95,6 +95,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 		CoapMessage msg = new CoapMessage(MessageType.NON, MessageCode.POST) {
 		};
 		msg.setContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8)));
+		//CoapMessage empty = CoapMessage.createEmptyAcknowledgement((int) in.id());
 		out.add(msg);
 		// SEND THE ACK back to CommCore
 		ctx.pipeline().fireChannelRead(new CommMessage(
@@ -106,7 +107,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 	@Override
 	protected void decode(ChannelHandlerContext ctx,
 		CoapMessage in, List<Object> out) throws Exception {
-	    System.out.println("Message received!" + in);
+	    System.out.println("Message received!" + in.toString());
 	}
     }
 
