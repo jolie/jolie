@@ -21,23 +21,14 @@
  */
 package jolie.net;
 
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
+import jolie.net.coap.CoapCodecHandler;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.CharsetUtil;
 
-import java.util.List;
-
-import jolie.net.coap.CoapMessage;
-import jolie.net.coap.CoapMessageDecoder;
-import jolie.net.coap.CoapMessageEncoder;
-import jolie.net.coap.MessageCode;
-import jolie.net.coap.MessageType;
+import jolie.net.coap.codec.CoapMessageDecoder;
+import jolie.net.coap.codec.CoapMessageEncoder;
 import jolie.net.protocols.AsyncCommProtocol;
-import jolie.runtime.Value;
 import jolie.runtime.VariablePath;
 
 public class CoapProtocol extends AsyncCommProtocol {
@@ -64,52 +55,6 @@ public class CoapProtocol extends AsyncCommProtocol {
 
     @Override
     public boolean isThreadSafe() {
-	return checkBooleanParameter(Parameters.CONCURRENT);
+	return false;
     }
-
-    static class Parameters {
-
-	private static String CONCURRENT = "concurrent";
-
-    }
-
-    private static class CoapCodecHandler
-	    extends MessageToMessageCodec<CoapMessage, CommMessage> {
-
-	private boolean input;
-
-	private CoapCodecHandler(boolean input) {
-	    this.input = input;
-	}
-
-	@Override
-	protected void encode(ChannelHandlerContext ctx,
-		CommMessage in, List<Object> out) throws Exception {
-
-	    if (input) {
-
-	    } else {
-		//output port - OW and RR
-
-		// CREATE COMM MESSAGE FROM COAP MESSAGE
-		String payload = in.value().strValue();
-		CoapMessage msg = new CoapMessage(MessageType.NON, MessageCode.POST) {
-		};
-		msg.setContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8)));
-		//CoapMessage empty = CoapMessage.createEmptyAcknowledgement((int) in.id());
-		out.add(msg);
-		// SEND THE ACK back to CommCore
-		ctx.pipeline().fireChannelRead(new CommMessage(
-			in.id(), in.operationName(),
-			"/", Value.create(), null));
-	    }
-	}
-
-	@Override
-	protected void decode(ChannelHandlerContext ctx,
-		CoapMessage in, List<Object> out) throws Exception {
-	    System.out.println("Message received!" + in.toString());
-	}
-    }
-
 }

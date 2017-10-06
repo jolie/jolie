@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.message;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,11 +28,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import java.util.Iterator;
+import jolie.net.coap.miscellaneous.BlockSize;
+import jolie.net.coap.options.OpaqueOptionValue;
+import jolie.net.coap.options.Option;
+import jolie.net.coap.options.OptionValue;
+import jolie.net.coap.options.StringOptionValue;
+import jolie.net.coap.options.UintOptionValue;
 
 public class CoapResponse extends CoapMessage {
 
     private static final String NO_ERRROR_CODE = "Code no. %s "
 	    + "is no error code!";
+    private static final long TEXT_PLAIN_UTF8 = 0;
+    private long MODULUS = (long) Math.pow(2, 24);
 
     public CoapResponse(int messageType, int messageCode)
 	    throws IllegalArgumentException {
@@ -54,7 +62,7 @@ public class CoapResponse extends CoapMessage {
 
 	CoapResponse errorResponse = new CoapResponse(messageType, messageCode);
 	errorResponse.setContent(content.getBytes(CoapMessage.CHARSET),
-		ContentFormat.TEXT_PLAIN_UTF8);
+		TEXT_PLAIN_UTF8);
 
 	return errorResponse;
     }
@@ -87,7 +95,7 @@ public class CoapResponse extends CoapMessage {
     }
 
     public void setObserve() {
-	this.setObserve(System.currentTimeMillis() % ResourceStatusAge.MODULUS);
+	this.setObserve(System.currentTimeMillis() % MODULUS);
     }
 
     public void setPreferredBlock2Size(BlockSize block2Size) {

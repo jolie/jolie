@@ -19,11 +19,17 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.message;
 
 import java.net.*;
 import java.util.*;
 import jolie.Interpreter;
+import jolie.net.coap.miscellaneous.BlockSize;
+import jolie.net.coap.options.OpaqueOptionValue;
+import jolie.net.coap.options.Option;
+import jolie.net.coap.options.OptionValue;
+import jolie.net.coap.options.StringOptionValue;
+import jolie.net.coap.options.UintOptionValue;
 
 public class CoapRequest extends CoapMessage {
 

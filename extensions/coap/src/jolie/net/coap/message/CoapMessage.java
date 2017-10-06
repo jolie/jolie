@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.message;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -30,6 +30,14 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import jolie.Interpreter;
+import jolie.net.coap.miscellaneous.BlockSize;
+import jolie.net.coap.options.EmptyOptionValue;
+import jolie.net.coap.options.OpaqueOptionValue;
+import jolie.net.coap.options.Option;
+import jolie.net.coap.options.OptionValue;
+import jolie.net.coap.options.StringOptionValue;
+import jolie.net.coap.miscellaneous.Token;
+import jolie.net.coap.options.UintOptionValue;
 
 public abstract class CoapMessage {
 
@@ -57,6 +65,7 @@ public abstract class CoapMessage {
     private ByteBuf content;
     private Token token;
     protected Map<Integer, LinkedHashSet<OptionValue>> options;
+    private static final long UNDEFINED = -1;
 
     protected CoapMessage(int messageType, int messageCode, int messageID,
 	    Token token) throws IllegalArgumentException {
@@ -297,7 +306,7 @@ public abstract class CoapMessage {
 	    return ((UintOptionValue) options.get(Option.CONTENT_FORMAT)
 		    .iterator().next()).getDecodedValue();
 	} else {
-	    return ContentFormat.UNDEFINED;
+	    return UNDEFINED;
 	}
     }
 

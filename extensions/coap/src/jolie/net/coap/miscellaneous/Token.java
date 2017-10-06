@@ -19,7 +19,7 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.miscellaneous;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
