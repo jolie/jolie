@@ -70,6 +70,8 @@ import io.netty.handler.codec.mqtt.MqttSubscribeMessage;
 import io.netty.handler.codec.mqtt.MqttSubscribePayload;
 import io.netty.handler.codec.mqtt.MqttTopicSubscription;
 import io.netty.handler.codec.mqtt.MqttVersion;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
@@ -144,7 +146,7 @@ public class MqttProtocol extends PubSubCommProtocol {
 	@Override
 	public void setupPipeline( ChannelPipeline p ) {
 
-//	p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	    //p.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 		p.addLast( "ENCODER", MqttEncoder.INSTANCE );
 		p.addLast( "DECODER", new MqttDecoder() );
 
