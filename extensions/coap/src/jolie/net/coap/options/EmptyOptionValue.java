@@ -19,51 +19,32 @@
  *                                                                             
  *   For details about the authors of this software, see the AUTHORS file.     
  */
-package jolie.net.coap;
+package jolie.net.coap.options;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 
-public class UintOptionValue extends OptionValue<Long> {
+public final class EmptyOptionValue extends OptionValue<Void> {
 
-    public static final long UNDEFINED = -1;
-
-    public UintOptionValue(int optionNumber, byte[] value)
-	    throws IllegalArgumentException {
-	this(optionNumber, shortenValue(value), false);
-    }
-
-    public UintOptionValue(int optionNumber, byte[] value, boolean allowDefault)
-	    throws IllegalArgumentException {
-	super(optionNumber, shortenValue(value), allowDefault);
+    public EmptyOptionValue(int optionNumber) throws IllegalArgumentException {
+	super(optionNumber, new byte[0], false);
     }
 
     @Override
-    public Long getDecodedValue() {
-	return new BigInteger(1, value).longValue();
+    public Void getDecodedValue() {
+        return null;
     }
 
     @Override
     public int hashCode() {
-	return getDecodedValue().hashCode();
+        return 0;
     }
 
     @Override
     public boolean equals(Object object) {
-	if (!(object instanceof UintOptionValue)) {
-	    return false;
-	}
+        if (!(object instanceof EmptyOptionValue))
+            return false;
 
-	UintOptionValue other = (UintOptionValue) object;
-	return Arrays.equals(this.getValue(), other.getValue());
-    }
-
-    public static byte[] shortenValue(byte[] value) {
-	int index = 0;
-	while (index < value.length - 1 && value[index] == 0) {
-	    index++;
-	}
-
-	return Arrays.copyOfRange(value, index, value.length);
+        EmptyOptionValue other = (EmptyOptionValue) object;
+        return Arrays.equals(this.getValue(), other.getValue());
     }
 }

@@ -21,32 +21,54 @@
  */
 package jolie.net.coap;
 
-import java.util.HashMap;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageCodec;
+import io.netty.util.CharsetUtil;
 
-public abstract class MessageType {
+import java.util.List;
+import jolie.net.CommMessage;
 
-    public static final int CON = 0;
-    public static final int NON = 1;
-    public static final int ACK = 2;
-    public static final int RST = 3;
+import jolie.net.coap.message.CoapMessage;
+import jolie.net.coap.message.MessageCode;
+import jolie.net.coap.message.MessageType;
+import jolie.runtime.Value;
 
-    private static final HashMap<Integer, String> MESSAGE_TYPES
-	    = new HashMap<>();
+public class CoapCodecHandler
+	extends MessageToMessageCodec<CoapMessage, CommMessage> {
 
-    static {
-	MESSAGE_TYPES.put(CON, "CON (" + CON + ")");
-	MESSAGE_TYPES.put(NON, "NON (" + NON + ")");
-	MESSAGE_TYPES.put(ACK, "ACK (" + ACK + ")");
-	MESSAGE_TYPES.put(RST, "RST (" + RST + ")");
+    private boolean input;
+
+    public CoapCodecHandler(boolean input) {
+	this.input = input;
     }
 
-    public static String asString(int messageType) {
-	String result = MESSAGE_TYPES.get(messageType);
-	return result == null ? "UNKOWN (" + messageType + ")" : result;
+    @Override
+    protected void encode(ChannelHandlerContext ctx,
+	    CommMessage in, List<Object> out) throws Exception {
+
+	if (input) {
+
+	} else {
+	    //output port - OW and RR
+
+	    // CREATE COMM MESSAGE FROM COAP MESSAGE
+	    String payload = in.value().strValue();
+	    CoapMessage msg = new CoapMessage(MessageType.NON, MessageCode.POST) {
+	    };
+	    msg.setContent(Unpooled.wrappedBuffer(payload.getBytes(CharsetUtil.UTF_8)));
+	    //CoapMessage empty = CoapMessage.createEmptyAcknowledgement((int) in.id());
+	    out.add(msg);
+	    // SEND THE ACK back to CommCore
+	    ctx.pipeline().fireChannelRead(new CommMessage(
+		    in.id(), in.operationName(),
+		    "/", Value.create(), null));
+	}
     }
 
-    public static boolean isMessageType(int number) {
-	return MESSAGE_TYPES.containsKey(number);
+    @Override
+    protected void decode(ChannelHandlerContext ctx,
+	    CoapMessage in, List<Object> out) throws Exception {
+	System.out.println("Message received!" + in.toString());
     }
-
 }
