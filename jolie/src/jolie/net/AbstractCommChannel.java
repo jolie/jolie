@@ -57,13 +57,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException {
 
-	    try {
-		Thread.sleep(2000);
-	    } catch (InterruptedException ex) {
-		Logger.getLogger(AbstractCommChannel.class.getName()).log(Level.SEVERE, null, ex);
-	    }
-	    System.out.println("Request Response for: " + request.operationName() + " " + request.id());
-
 		CompletableFuture< CommMessage> futureResponse = null;
 		CommMessage response = null;
 
@@ -113,7 +106,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 
 				// DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
 				response = futureResponse.get();
-			    System.out.println("Found response " + response.operationName() + " " + response.id());
 				// if we polled a generic response, we remove the specific request
 				synchronized ( this ) {
 					if ( !request.hasGenericId() ) {
@@ -129,7 +121,6 @@ public abstract class AbstractCommChannel extends CommChannel {
 	}
 
     protected void receiveResponse(CommMessage response) {
-	System.out.println("Received response: " + response.operationName() + " " + response.id());
 		if ( response.hasGenericId() ) {
 			handleGenericMessage( response );
 		} else {
@@ -171,7 +162,16 @@ public abstract class AbstractCommChannel extends CommChannel {
 
 		synchronized ( this ) {
 			if ( specificMap.containsKey( id ) ) {
-				future = specificMap.remove( id );
+				if( !specificMap.get( id ).isDone() ){
+					// if it is not done, the future has been put by a recvResponseFor
+					// hence we can remove it and complete it later on
+					future = specificMap.remove( id );
+				} else {
+					// otherwise we have received another message with the same id
+					// we consider the last one as valid and proceed to complete 
+					// it with the new message
+					future = specificMap.get( id );
+				}
 				if ( operation != null ) {
 					// removes related generic request
 					getGenericMessages( operation ).requests.remove( future );
