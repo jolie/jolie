@@ -1,19 +1,4 @@
-outputPort ESP {
-    Location: "socket://localhost:1883"
-    Protocol: mqtt {
-        .osc.setOn.alias = "sonoff/cmnd/POWER";
-        .osc.setOn.QoS = 0;
-        .debug = true
-    }
-    OneWay: setOn( string ) 
-}
-
-main
-{
-  setOn@ESP("OFF")
-}
-
-/*include "console.iol"
+include "console.iol"
 
 type TmpType: void { .id: string } | int { .id: string }
 
@@ -54,4 +39,4 @@ main
       println@Console( "T2: " + varB )()
     }  
   }
-}*/
+}
