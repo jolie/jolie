@@ -57,6 +57,13 @@ public abstract class AbstractCommChannel extends CommChannel {
 	public CommMessage recvResponseFor( CommMessage request )
 		throws IOException {
 
+	    try {
+		Thread.sleep(2000);
+	    } catch (InterruptedException ex) {
+		Logger.getLogger(AbstractCommChannel.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	    System.out.println("Request Response for: " + request.operationName() + " " + request.id());
+
 		CompletableFuture< CommMessage> futureResponse = null;
 		CommMessage response = null;
 
@@ -78,7 +85,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 						.log( Level.SEVERE, null,
 							new Exception( "Requested reception for generic response without operation. "
 								+ "Impossible to handle." ) );
-				}
+			    }
+
 			} else {
 				if ( specificMap.containsKey( id ) ) {
 					futureResponse = specificMap.remove( id );
@@ -101,9 +109,11 @@ public abstract class AbstractCommChannel extends CommChannel {
 		}
 
 		if ( futureResponse != null ) {
-			try {
+		    try {
+
 				// DO WE HAVE TO CHANGE THE ID OF A GENERIC RESPONSE TO THE ONE OF THIS REQUEST?
 				response = futureResponse.get();
+			    System.out.println("Found response " + response.operationName() + " " + response.id());
 				// if we polled a generic response, we remove the specific request
 				synchronized ( this ) {
 					if ( !request.hasGenericId() ) {
@@ -118,7 +128,8 @@ public abstract class AbstractCommChannel extends CommChannel {
 		return response;
 	}
 
-	protected void receiveResponse( CommMessage response ) {
+    protected void receiveResponse(CommMessage response) {
+	System.out.println("Received response: " + response.operationName() + " " + response.id());
 		if ( response.hasGenericId() ) {
 			handleGenericMessage( response );
 		} else {

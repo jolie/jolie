@@ -1,3 +1,4 @@
+
 include "console.iol"
 
 type TmpType: void { .id?: string }
