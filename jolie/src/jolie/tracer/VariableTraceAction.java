@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Vins.
+ * Copyright (C) 2017 Vincenzo Mattarella.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,8 @@ import java.util.Date;
 import jolie.runtime.Value;
 
 /**
- *
- * @author Vins
+ * 
+ * @author Vincenzo Mattarella
  */
 public class VariableTraceAction implements TraceAction{
     

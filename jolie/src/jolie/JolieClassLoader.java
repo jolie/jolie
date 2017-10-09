@@ -154,10 +154,20 @@ public final class JolieClassLoader extends URLClassLoader {
         checkForJolieAnnotations(c);
         return c;
     }
-
+    
+    /**
+     * 
+     * @param name
+     * @param interpreter
+     * @param arg1
+     * @param arg2
+     * @return
+     * @throws java.io.IOException 
+     */
     public synchronized Tracer createTracerFactory(String name, Interpreter interpreter, String arg1, long arg2) throws IOException {
         String className = name;
         if (className != null) {
+            addJarResource("jtracer.jar");
             try {
                 final Class<?> c = loadExtensionClass(className);
                 if (Tracer.class.isAssignableFrom(c)) {

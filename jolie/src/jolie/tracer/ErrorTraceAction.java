@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Vins.
+ * Copyright (C) 2017 Vincenzo Mattarella.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- *
- * @author Vins
+ * 
+ * @author Vincenzo Mattarella
  */
 public class ErrorTraceAction implements TraceAction{
     public static enum Type {

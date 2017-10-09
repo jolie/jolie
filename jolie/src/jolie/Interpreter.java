@@ -12,7 +12,7 @@
  * not, write to the * Free Software Foundation, Inc., * 59 Temple Place - Suite
  * 330, Boston, MA 02111-1307, USA. * * For details about the authors of this
  * software, see the AUTHORS file. *
- **************************************************************************
+ * *************************************************************************
  */
 package jolie;
 
@@ -909,7 +909,7 @@ public class Interpreter {
 
         if (cmdParser.tracer()) {
             tracer = new PrintingTracer(this);
-        } else if (cmdParser.JSONTracer()) {
+        } else if (cmdParser.jTracer()) {
             tracer = classLoader.createTracerFactory("jolie.jtracer.JTracer", this, programFilename, timestamp);
         } else {
             tracer = new DummyTracer();
@@ -1232,7 +1232,7 @@ public class Interpreter {
                 future.setResult(e);
             }
             runCode();
-			//commCore.shutdown();
+            //commCore.shutdown();
             // final boolean proceed;
             exit();
         }
