@@ -25,15 +25,21 @@ import jolie.net.coap.CoapCodecHandler;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import java.io.IOException;
 
 import jolie.net.coap.codec.CoapMessageDecoder;
 import jolie.net.coap.codec.CoapMessageEncoder;
+import jolie.net.ports.InputPort;
 import jolie.net.protocols.AsyncCommProtocol;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.OneWayTypeDescription;
+import jolie.runtime.typing.OperationTypeDescription;
+import jolie.runtime.typing.RequestResponseTypeDescription;
+import jolie.runtime.typing.Type;
 
 public class CoapProtocol extends AsyncCommProtocol {
 
-    private final boolean isInput;
+    public boolean isInput;
 
     public CoapProtocol(VariablePath configurationPath, boolean isInput) {
 	super(configurationPath);
@@ -45,7 +51,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 	pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	pipeline.addLast("ENCODER", new CoapMessageEncoder());
 	pipeline.addLast("DECODER", new CoapMessageDecoder());
-	pipeline.addLast("CODEC", new CoapCodecHandler(isInput));
+	pipeline.addLast("CODEC", new CoapCodecHandler(this));
     }
 
     @Override
@@ -56,5 +62,59 @@ public class CoapProtocol extends AsyncCommProtocol {
     @Override
     public boolean isThreadSafe() {
 	return false;
+    }
+
+    public Type getSendType(CommMessage message)
+	    throws IOException {
+	Type ret = null;
+
+	if (channel().parentPort() == null) {
+	    throw new IOException("Could not retrieve communication "
+		    + "port for Coap protocol");
+	}
+
+	OperationTypeDescription opDesc = channel().parentPort()
+		.getOperationTypeDescription(message.operationName(), "/");
+
+	if (opDesc == null) {
+	    return null;
+	}
+
+	if (opDesc.asOneWayTypeDescription() != null) {
+	    if (message.isFault()) {
+		ret = Type.UNDEFINED;
+	    } else {
+		OneWayTypeDescription ow = opDesc.asOneWayTypeDescription();
+		ret = ow.requestType();
+	    }
+	} else if (opDesc.asRequestResponseTypeDescription() != null) {
+	    RequestResponseTypeDescription rr
+		    = opDesc.asRequestResponseTypeDescription();
+	    if (message.isFault()) {
+		ret = rr.getFaultType(message.fault().faultName());
+		if (ret == null) {
+		    ret = Type.UNDEFINED;
+		}
+	    } else {
+		ret = (channel().parentPort() instanceof InputPort)
+			? rr.responseType() : rr.requestType();
+	    }
+	}
+
+	return ret;
+    }
+
+    public boolean _checkBooleanParameter(String param) {
+	return this.checkBooleanParameter(param);
+    }
+
+    public boolean _hasOperationSpecificParameter(String operationName,
+	    String param) {
+	return this.hasOperationSpecificParameter(operationName, param);
+    }
+
+    public String _getOperationSpecificStringParameter(String operationName,
+	    String param) {
+	return this.getOperationSpecificStringParameter(operationName, param);
     }
 }
