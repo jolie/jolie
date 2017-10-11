@@ -39,8 +39,6 @@ public class CoapMessageEncoder extends MessageToMessageEncoder<CoapMessage> {
     protected void encode(ChannelHandlerContext ctx, CoapMessage in,
 	    List<Object> out) throws Exception {
 
-	System.out.println("The Coap Message to be encoded: " + in);
-
 	ByteBuf msg = Unpooled.buffer();
 
 	//write encoded header

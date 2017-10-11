@@ -111,8 +111,9 @@ public class NioDatagramListener extends CommListener {
 		    });
 		}
 	    });
-	    ChannelFuture f = bootstrap.bind(new InetSocketAddress(inputPort()
-		    .location().getPort())).sync();
+	    ChannelFuture f = bootstrap.bind(new InetSocketAddress(
+		    inputPort().location().getHost(),
+		    inputPort().location().getPort())).sync();
 	    serverChannel = f.channel();
 	    serverChannel.closeFuture().sync();
 

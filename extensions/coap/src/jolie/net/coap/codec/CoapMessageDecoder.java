@@ -22,8 +22,10 @@
 package jolie.net.coap.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.util.CharsetUtil;
 
 import java.util.List;
 import jolie.Interpreter;
@@ -46,7 +48,7 @@ public class CoapMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	    List<Object> out) throws Exception {
 
 	String message = "";
-	//Decode the Message Header which must have a length of exactly 4 bytes
+	System.out.println(Unpooled.wrappedBuffer(in).toString(CharsetUtil.UTF_8));
 	if (in.readableBytes() == 4) {
 	    CoapMessage msg = recv(in);
 	    if (msg != null) {

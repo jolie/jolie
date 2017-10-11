@@ -40,7 +40,6 @@ import io.netty.util.AttributeKey;
 import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.ports.Port;
-import jolie.runtime.InvalidIdException;
 
 public class NioSocketCommChannel extends StreamingCommChannel {
 

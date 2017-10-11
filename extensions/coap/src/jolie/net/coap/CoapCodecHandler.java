@@ -23,6 +23,7 @@ package jolie.net.coap;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageCodec;
 import io.netty.util.CharsetUtil;
@@ -45,7 +46,9 @@ import jolie.Interpreter;
 import jolie.js.JsUtils;
 
 import jolie.net.CoapProtocol;
+import jolie.net.CommCore;
 import jolie.net.CommMessage;
+import jolie.net.NioDatagramCommChannel;
 import jolie.net.coap.message.CoapMessage;
 import jolie.net.coap.message.MessageCode;
 import jolie.net.coap.message.MessageType;
@@ -65,10 +68,19 @@ public class CoapCodecHandler
     private boolean input;
     private static final Charset charset = CharsetUtil.UTF_8;
     private final CoapProtocol protocol;
+    private Channel cc;
 
     public CoapCodecHandler(CoapProtocol prt) {
 	this.input = prt.isInput;
 	this.protocol = prt;
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+	cc = ctx.channel();
+	((CommCore.ExecutionContextThread) Thread.currentThread())
+		.executionThread(cc
+			.attr(NioDatagramCommChannel.EXECUTION_CONTEXT).get());
     }
 
     @Override
@@ -83,6 +95,7 @@ public class CoapCodecHandler
 	    CoapMessage msg = new CoapMessage(MessageType.NON,
 		    MessageCode.POST) {
 	    };
+
 	    ByteBuf payload = valueToByteBuf(in);
 	    msg.setContent(payload);
 
@@ -135,7 +148,7 @@ public class CoapCodecHandler
 			+ "supported for operation " + in.operationName());
 	}
 
-	if (protocol._checkBooleanParameter(Parameters.DEBUG)) {
+	if (protocol.checkBooleanParameter(Parameters.DEBUG)) {
 	    Interpreter.getInstance().logInfo("Sending "
 		    + format.toUpperCase() + " message: " + message);
 	}
@@ -144,9 +157,9 @@ public class CoapCodecHandler
     }
 
     private String format(String operationName) {
-	return protocol._hasOperationSpecificParameter(operationName,
+	return protocol.hasOperationSpecificParameter(operationName,
 		Parameters.FORMAT)
-			? protocol._getOperationSpecificStringParameter(
+			? protocol.getOperationSpecificStringParameter(
 				operationName,
 				Parameters.FORMAT) : "raw";
     }

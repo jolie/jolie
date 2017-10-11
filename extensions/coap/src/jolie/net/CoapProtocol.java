@@ -48,7 +48,7 @@ public class CoapProtocol extends AsyncCommProtocol {
 
     @Override
     public void setupPipeline(ChannelPipeline pipeline) {
-	pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
+	//pipeline.addLast("LOGGER", new LoggingHandler(LogLevel.INFO));
 	pipeline.addLast("ENCODER", new CoapMessageEncoder());
 	pipeline.addLast("DECODER", new CoapMessageDecoder());
 	pipeline.addLast("CODEC", new CoapCodecHandler(this));
@@ -104,17 +104,20 @@ public class CoapProtocol extends AsyncCommProtocol {
 	return ret;
     }
 
-    public boolean _checkBooleanParameter(String param) {
-	return this.checkBooleanParameter(param);
+    @Override
+    public boolean checkBooleanParameter(String param) {
+	return super.checkBooleanParameter(param);
     }
 
-    public boolean _hasOperationSpecificParameter(String operationName,
+    @Override
+    public boolean hasOperationSpecificParameter(String operationName,
 	    String param) {
-	return this.hasOperationSpecificParameter(operationName, param);
+	return super.hasOperationSpecificParameter(operationName, param);
     }
 
-    public String _getOperationSpecificStringParameter(String operationName,
+    @Override
+    public String getOperationSpecificStringParameter(String operationName,
 	    String param) {
-	return this.getOperationSpecificStringParameter(operationName, param);
+	return super.getOperationSpecificStringParameter(operationName, param);
     }
 }
