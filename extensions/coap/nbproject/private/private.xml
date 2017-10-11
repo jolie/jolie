@@ -5,6 +5,8 @@
         <group>
             <file>file:/Users/stefanozingaro/Documents/uni/phd/jolie/jolie/extensions/coap/src/jolie/net/CoapProtocol.java</file>
             <file>file:/Users/stefanozingaro/Documents/uni/phd/jolie/jolie/extensions/coap/src/jolie/net/coap/CoapCodecHandler.java</file>
+            <file>file:/Users/stefanozingaro/Documents/uni/phd/jolie/jolie/extensions/coap/src/jolie/net/coap/codec/CoapMessageEncoder.java</file>
+            <file>file:/Users/stefanozingaro/Documents/uni/phd/jolie/jolie/extensions/coap/src/jolie/net/coap/codec/CoapMessageDecoder.java</file>
         </group>
     </open-files>
 </project-private>

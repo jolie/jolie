@@ -1,12 +1,17 @@
 include "console.iol"
 
 outputPort Server {
-    Location: "datagram://localhost:8001"
-    Protocol: coap
-    OneWay: setTmp( string )
+    Location: "datagram://localhost:8003"
+    Protocol: coap {
+        .osc.setTmp << {
+            .format = "raw"
+        };
+        .debug = true
+    }
+    OneWay: setTmp( int )
 }
 
 main
 {
-    setTmp@Server( "24" )
+    setTmp@Server( 24 )
 }
